@@ -6,8 +6,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "../../library/spf/spf.h"
-#include "Rgb.h"
 
 #ifdef __cplusplus
 extern "C" 

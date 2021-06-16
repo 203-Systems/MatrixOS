@@ -1,7 +1,7 @@
 #pragma once
-#include "../Framework/Classes.h"
+#include "../framework/Classes.h"
 
-namespace Matrix
+namespace MatrixOS
 {
   namespace SYS
   {
@@ -14,14 +14,9 @@ namespace Matrix
     void Reboot();
     void Bootloader();
 
-    struct Attribute {
-      uint32_t value,
-      bool readOnly
-    }
-
     enum class EAttribute {
       DeviceType, DeviceVersion, DerviceRevision, DeviceBatch, SerialNumber,
-      KeypadType,
+      VelocityRange,
       LEDType, LEDSizeX, LEDSizeY, 
       BootloaderVersion, SystemVersion, 
       };
@@ -52,10 +47,9 @@ namespace Matrix
     enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
 
     struct KeyInfo {
-      //s8 velocity = 0;
       EKeyStates state = IDLE;
       uint32_t activeTime = 0;
-      float velocity = 0;
+      uint16_t velocity = 0;
       bool changed = false; //for Pressed,Hold, RELEASED, AFTERTOUCH
       bool hold = false;
       uint32_t holdTime()

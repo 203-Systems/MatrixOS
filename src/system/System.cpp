@@ -8,41 +8,21 @@ namespace MatrixOS
     {
       switch (attribute)
       {
-        case EAttribute::BiosVersion: return 0x0104;
+        //System Attributes
+        case EAttribute::SystemVersion:
 
-        case EAttribute::CharRom: return (uintptr_t)ptrFont;
-        case EAttribute::LastChar: return (uintptr_t)&lastChar;
-        case EAttribute::ScreenWidth: return BIOS::LCD::Width;
-        case EAttribute::ScreenHeight: return BIOS::LCD::Height;
 
-        case EAttribute::DeviceType: return (uintptr_t)::GetAttribute((::EAttribute)attribute);
-
-        case EAttribute::BuildRevision: return (uintptr_t)__GITREVISION__;
-        case EAttribute::BuildDate: return (uintptr_t)(__DATE__ " " __TIME__); 
-        case EAttribute::BuildUser: return (uintptr_t)__USER__;
-        case EAttribute::BuildSystem: return (uintptr_t)__OSTYPE__;
-
-        case EAttribute::VersionDfu:
-        case EAttribute::VersionHardware:
-        case EAttribute::VersionSystem:
-        case EAttribute::VersionFpga:
-
+        //Hardware Attributes
+        case EAttribute::DeviceType: 
+        case EAttribute::DeviceVersion: 
+        case EAttribute::DerviceRevision: 
+        case EAttribute::DeviceBatch: 
         case EAttribute::SerialNumber:
-        case EAttribute::LicenseNumber:
-        case EAttribute::LicenseValid:
-        case EAttribute::DisplayType:
-        case EAttribute::DiskType:
-        case EAttribute::BatteryVoltage:
-        case EAttribute::GpioStatus:
-        case EAttribute::GpioI2cSpeed:
-        case EAttribute::FlashReadRange:
-        case EAttribute::FlashWriteRange:
-        case EAttribute::FlashAlertRange:
-          return (uintptr_t)::GetAttribute((::EAttribute)attribute);
-
-        case EAttribute::DiskSectorSize: return BIOS::FAT::SectorSize;
-        case EAttribute::DiskSectorCount: return BIOS::FAT::SectorCount;
-        case EAttribute::KeyMask: return (uintptr_t)&gKeyMask;
+        case EAttribute::VelocityRange:
+        case EAttribute::LEDType: 
+        case EAttribute::LEDSizeX: 
+        case EAttribute::LEDSizeY: 
+        case EAttribute::BootloaderVersion: 
 
         default:
           _ASSERT(0);
