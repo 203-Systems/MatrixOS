@@ -1,6 +1,6 @@
 #pragma once
 #include "Types.h"
-#include "Colour.h"
+#include "Color.h"
 
 class CPoint {
 public:

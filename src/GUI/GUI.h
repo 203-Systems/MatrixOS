@@ -3,6 +3,13 @@
 
 namespace GUI
 {
-  void Background(const CRect& rc, uint32_t clr1, uint32_t clr2);
-  void Window(const CRect& rcRect, uint16_t clr);
+    void textScroll(char ascii[], Color color, uint8_t speed = 10, bool loop = false, uint8_t length = 0);
+    void renderAsciiChar(char ascii, CPoint xy, Color color);
+    void renderHalfHeightNum(uint16_t num, CPoint xy, Color color);
+    // void renderHalfHeightDigit(uint8_t num, CPoint xy, Color color);
+    uint8_t Input8bit(uint8_t currentNum, CPoint xy, Color color);
+    uint8_t Input8bitBinary(uint8_t currentNum, CPoint xy, Color color);
+    uint8_t Input8bitSimple(uint8_t currentNum, CPoint xy, Color color);
 }
+
+

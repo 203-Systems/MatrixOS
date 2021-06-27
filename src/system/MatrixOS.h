@@ -6,8 +6,8 @@ namespace MatrixOS
   namespace SYS
   {
     void Init();
-    uint32_t GetTick();
-    uint32_t millis();
+    // uint32_t GetTick();
+    uint32_t Millis();
     int Execute(uint32_t addr);
     // void Beep(int intervalMs);
     void DelayMs(int intervalMs);
@@ -27,49 +27,49 @@ namespace MatrixOS
 
   namespace LED
   {
-    void SetRGB(CPoint xy, Colour colour, uint8_t layer = 0);
-    void Fill(Colour color, uint8_t layer = 0);
-    void Render(uint8_t layer = 0);
+    uint8_t currentLayer = 0;
+    Color frameBuffer[];
+    void Init(uint16_t numsLED, uint8_t Update(), uint16_t ID2Index());
+    void SetColour(CPoint xy, Color color, uint8_t layer = 0);
+    void SetColour(uint32_t ID, Color color, uint8_t layer = 0);
+    void Fill(Color color, uint8_t layer = 0);
+    void Render(int8_t layer = 0);
+    void SwitchLayer(uint8_t layer);
+
+    uint16_t numsLED;
+    uint8_t (*Update)(Color);
+    uint16_t (*ID2Index)(uint16_t);
+
   }
 
-  // namespace UI
+  // namespace KeyPad
   // {
-  //   void textScroll(char ascii[], Colour colour, uint8_t speed = 10, bool loop = false, uint8_t length = 0);
-  //   void renderAsciiChar(char ascii, CPoint xy, Colour colour);
-  //   void renderHalfHeightNum(uint16_t num, CPoint xy, Colour colour);
-  //   // void renderHalfHeightDigit(uint8_t num, CPoint xy, Colour colour);
-  //   uint8_t binary8bitInput(uint8_t currentNum, CPoint xy, Colour colour);
-  //   uint8_t simple8bitInput(uint8_t currentNum, CPoint xy, Colour colour);
+  //   enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
+
+  //   struct KeyInfo {
+  //     EKeyStates state = IDLE;
+  //     uint32_t activeTime = 0;
+  //     uint16_t velocity = 0;
+  //     bool changed = false; //for Pressed,Hold, RELEASED, AFTERTOUCH
+  //     bool hold = false;
+  //     uint32_t holdTime()
+  //     {
+  //       if(state == IDLE)
+  //       return 0;
+
+  //       if(activeTime > SYS::Millis())
+  //       return 0;
+
+  //       return SYS::Millis() - activeTime;
+  //     }
+  //     operator bool() { return velocity > 0; }
+  //   };
+
+  //   void Scan();
+  //   void SetHandler(void (*f)(KeyInfo));
+  //   void ClearHandler();
+  //   KeyInfo GetKey(CPoint keyID);
   // }
-
-  namespace KeyPad
-  {
-    enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
-
-    struct KeyInfo {
-      EKeyStates state = IDLE;
-      uint32_t activeTime = 0;
-      uint16_t velocity = 0;
-      bool changed = false; //for Pressed,Hold, RELEASED, AFTERTOUCH
-      bool hold = false;
-      uint32_t holdTime()
-      {
-        if(state == IDLE)
-        return 0;
-
-        if(activeTime > millis())
-        return 0;
-
-        return millis() - activeTime;
-      }
-      operator bool() { return velocity > 0; }
-    };
-
-    void Scan();
-    void SetHandler(void (*f)(KeyInfo));
-    void ClearHandler();
-    KeyInfo GetKey(CPoint keyID);
-  }
 
   namespace DBG
   {
@@ -177,18 +177,18 @@ namespace MatrixOS
   //   void EnableInterrupts(uint32_t);
   // }
 
-  namespace USB
-  {
-    typedef void (*THandler)(void);
+  // namespace USB
+  // {
+  //   typedef void (*THandler)(void);
 
-    void Enable();
-    void Initialize(void* pDeviceInfo, void* pDevice, void* pDeviceProperty, void* pUserStandardRequests,
-      THandler arrHandlerIn[], THandler arrHandlerOut[], THandler arrCallbacks[], THandler leaveLowPowerMode);
-    void InitializeMass();
-    void Disable();
+  //   void Enable();
+  //   void Initialize(void* pDeviceInfo, void* pDevice, void* pDeviceProperty, void* pUserStandardRequests,
+  //     THandler arrHandlerIn[], THandler arrHandlerOut[], THandler arrCallbacks[], THandler leaveLowPowerMode);
+  //   void InitializeMass();
+  //   void Disable();
 
-    void InitializeFinish(int msk);
-  }
+  //   void InitializeFinish(int msk);
+  // }
 
   // namespace GPIO
   // {
