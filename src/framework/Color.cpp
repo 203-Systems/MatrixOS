@@ -1,5 +1,14 @@
 #include "Color.h"
 
+Color::Color()
+{
+	W = 0;
+	R = 0;
+	G = 0;
+	B = 0;
+}
+
+
 Color::Color(uint32_t WRGB)
 {
 	W = (WRGB & 0xFF000000) >> 24;

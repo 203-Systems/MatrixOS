@@ -1,5 +1,10 @@
-#pragma once
-#include "../framework/Classes.h"
+#ifndef __MATRIXOS_H
+#define __MATRIXOS_H
+
+#define MATRIXBLOCK6
+#include "../framework/Framework.h"
+#include "Parameters.h"
+#include "../devices/Devices.h"
 
 namespace MatrixOS
 {
@@ -10,7 +15,7 @@ namespace MatrixOS
     uint32_t Millis();
     int Execute(uint32_t addr);
     // void Beep(int intervalMs);
-    void DelayMs(int intervalMs);
+    void DelayMs(uint32_t intervalMs);
     void Reboot();
     void Bootloader();
 
@@ -27,49 +32,43 @@ namespace MatrixOS
 
   namespace LED
   {
-    uint8_t currentLayer = 0;
-    Color frameBuffer[];
-    void Init(uint16_t numsLED, uint8_t Update(), uint16_t ID2Index());
-    void SetColour(CPoint xy, Color color, uint8_t layer = 0);
-    void SetColour(uint32_t ID, Color color, uint8_t layer = 0);
+    // uint8_t currentLayer;
+    // Color frameBuffer[NUMSOFLEDLAYER][NUMSOFLED];
+    void Init();
+    void SetColor(Point xy, Color color, uint8_t layer = 0);
+    void SetColor(uint32_t ID, Color color, uint8_t layer = 0);
     void Fill(Color color, uint8_t layer = 0);
     void Render(int8_t layer = 0);
     void SwitchLayer(uint8_t layer);
-
-    uint16_t numsLED;
-    uint8_t (*Update)(Color);
-    uint16_t (*ID2Index)(uint16_t);
-
   }
 
-  // namespace KeyPad
-  // {
-  //   enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
+  namespace KEYPAD
+  {
+    enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
 
-  //   struct KeyInfo {
-  //     EKeyStates state = IDLE;
-  //     uint32_t activeTime = 0;
-  //     uint16_t velocity = 0;
-  //     bool changed = false; //for Pressed,Hold, RELEASED, AFTERTOUCH
-  //     bool hold = false;
-  //     uint32_t holdTime()
-  //     {
-  //       if(state == IDLE)
-  //       return 0;
+    struct KeyInfo {
+      EKeyStates state = IDLE;
+      uint32_t activeTime = 0;
+      uint16_t velocity = 0;
+      bool changed = false; //for Pressed, Hold, RELEASED, AFTERTOUCH
+      bool hold = false;
+      uint32_t holdTime()
+      {
+        if(state == IDLE)
+        return 0;
 
-  //       if(activeTime > SYS::Millis())
-  //       return 0;
+        if(activeTime > SYS::Millis())
+        return 0;
 
-  //       return SYS::Millis() - activeTime;
-  //     }
-  //     operator bool() { return velocity > 0; }
-  //   };
+        return SYS::Millis() - activeTime;
+      }
+      operator bool() { return velocity > 0; }
+    };
 
-  //   void Scan();
-  //   void SetHandler(void (*f)(KeyInfo));
-  //   void ClearHandler();
-  //   KeyInfo GetKey(CPoint keyID);
-  // }
+    uint8_t Scan(void (*f)(KeyInfo) = NULL); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    // KeyInfo GetKey(CPoint keyXY);
+    KeyInfo GetKey(uint16_t keyID);
+  }
 
   namespace DBG
   {
@@ -223,5 +222,6 @@ namespace MatrixOS
   //     uint8_t Read();
   //     void Write(uint8_t);
   //   }
-  }
 }
+
+#endif

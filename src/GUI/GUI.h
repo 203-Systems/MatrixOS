@@ -1,4 +1,6 @@
-#include "../framework/Classes.h"
+#ifndef __GUI_H
+#define __GUI_H
+
 #include "../system/MatrixOS.h"
 
 namespace GUI
@@ -12,4 +14,4 @@ namespace GUI
     uint8_t Input8bitSimple(uint8_t currentNum, CPoint xy, Color color);
 }
 
-
+#endif
