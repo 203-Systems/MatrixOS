@@ -63,8 +63,8 @@ endif
 # Board within family
 ifeq ($(BOARD_PATH),)
   BOARD_PATH := $(subst ,,$(wildcard devices/*/$(BOARD)))
-  FAMILY := $(word 3, $(subst /, ,$(BOARD_PATH)))
-  FAMILY_PATH = device/$(FAMILY)
+  FAMILY := $(word 2, $(subst /, ,$(BOARD_PATH)))
+  FAMILY_PATH = devices/$(FAMILY)
 endif
 
 ifeq ($(BOARD_PATH),)
