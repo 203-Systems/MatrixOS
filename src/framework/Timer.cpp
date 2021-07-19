@@ -2,66 +2,66 @@
 
 Timer::Timer()
 {
-  Timer::recordCurrent();
+  Timer::RecordCurrent();
 }
 
-bool Timer::tick(u32 ms)
+bool Timer::Tick(u32 ms)
 {
   if(MatrixOS::SYS::Millis() < previous)
     previous = 0;
 
-  if(Timer::isLonger(ms))
+  if(Timer::IsLonger(ms))
   {
-    Timer::recordCurrent();
+    Timer::RecordCurrent();
     return true;
   }
   return false;
 }
 
-bool Timer::isLonger(u32 ms)
+bool Timer::IsLonger(u32 ms)
 {
   return (previous + ms) <= MatrixOS::SYS::Millis();
 }
 
-u32 Timer::sinceLastTick()
+u32 Timer::SinceLastTick()
 {
   return MatrixOS::SYS::Millis() - previous;
 }
 
-void Timer::recordCurrent()
+void Timer::RecordCurrent()
 {
   previous = MatrixOS::SYS::Millis();
 }
 
 // MicroTimer::MicroTimer()
 // {
-//   MicroTimer::recordCurrent();
+//   MicroTimer::RecordCurrent();
 // }
 
-// bool MicroTimer::tick(u32 ms)
+// bool MicroTimer::Tick(u32 ms)
 // {
 //   if(micros() < previous)
 //     previous = 0;
 
-//   if(MicroTimer::isLonger(ms))
+//   if(MicroTimer::IsLonger(ms))
 //   {
-//     MicroTimer::recordCurrent();
+//     MicroTimer::RecordCurrent();
 //     return true;
 //   }
 //   return false;
 // }
 
-// bool MicroTimer::isLonger(u32 ms)
+// bool MicroTimer::IsLonger(u32 ms)
 // {
 //   return (previous + ms) <= micros();
 // }
 
-// u32 MicroTimer::sinceLastTick()
+// u32 MicroTimer::SinceLastTick()
 // {
 //   return micros() - previous;
 // }
 
-// void MicroTimer::recordCurrent()
+// void MicroTimer::RecordCurrent()
 // {
 //   previous = micros();
 // }

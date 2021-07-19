@@ -1,10 +1,9 @@
 #ifndef __MATRIXOS_H
 #define __MATRIXOS_H
 
-#define MATRIXBLOCK6
-#include "../framework/Framework.h"
+#include "Device.h"
 #include "Parameters.h"
-#include "../devices/Devices.h"
+#include "Variables.h"
 
 namespace MatrixOS
 {
@@ -19,15 +18,19 @@ namespace MatrixOS
     void Reboot();
     void Bootloader();
 
-    enum class EAttribute {
-      DeviceType, DeviceVersion, DerviceRevision, DeviceBatch, SerialNumber,
+    enum class SysVar {
+      //Device Info
+      DeviceClass, DeviceName, DeviceVersion, DerviceRevision, SerialNumber,
       VelocityRange,
-      LEDType, LEDSizeX, LEDSizeY, 
+      LEDType, MatrixSizeX, MatrixSizeY, NumsOfLED, NumsOfKey,
       BootloaderVersion, SystemVersion, 
+
+      //System variable
+      Brightness, Rotation
       };
   
-    uintptr_t GetAttribute(EAttribute eInternal);
-    uint8_t SetAttribute(EAttribute eInternal, uint32_t value);
+    uintptr_t GetAttribute(SysVar variable);
+    int8_t SetAttribute(SysVar variable, uintptr_t value);
   }
 
   namespace LED

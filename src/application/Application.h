@@ -1,5 +1,5 @@
-#import "../system/MatrixOS.h"
-#import "../framework/Timer.h"
+#include "system/MatrixOS.h"
+#include "framework/Timer.h"
 
 class Application
 {
@@ -12,18 +12,17 @@ class Application
     inline Application()
     {
         setup();
-        Timer ledTimer();
-        Timer keypadTimer();
-        Timer keypadTimer();
+        Timer ledTimer;
+        Timer keypadTimer;
         while(status != 0)
         {
-            if(ledTimer.tick(1000 / LED_FPS))
+            if(ledTimer.Tick(1000 / LED_FPS))
             {
                MatrixOS::LED::Render();
             }
-            if(keypadTimer.tick(1000 / KEYPAD_POOLRATE))
+            if(keypadTimer.Tick(1000 / KEYPAD_POLLRATE))
             {
-                MatrixOS::KEYPAD::Scan(KeyEvent);
+                MatrixOS::KEYPAD::Scan();
             }
             // TODO: USB Scan and call MidiEvent
             loop();
@@ -33,11 +32,11 @@ class Application
     virtual void setup();
     virtual void loop();
 
-    virtual void KeyEvent(KeyInfo keyInfo);
+    virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo);
     virtual void MidiEvent();
 
     inline void exit()
     {
         status = -1;
     }
-}
+};

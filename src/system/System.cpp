@@ -1,33 +1,50 @@
 #include "MatrixOS.h"
 
-namespace MatrixOS
+namespace MatrixOS::SYS
 {
-  namespace SYS
-  {
-    uintptr_t GetAttribute(EAttribute attribute)
+    void Init()
     {
-      switch (attribute)
-      {
-        //System Attributes
-        case EAttribute::SystemVersion:
-
-
-        //Hardware Attributes
-        case EAttribute::DeviceType: 
-        case EAttribute::DeviceVersion: 
-        case EAttribute::DerviceRevision: 
-        case EAttribute::DeviceBatch: 
-        case EAttribute::SerialNumber:
-        case EAttribute::VelocityRange:
-        case EAttribute::LEDType: 
-        case EAttribute::LEDSizeX: 
-        case EAttribute::LEDSizeY: 
-        case EAttribute::BootloaderVersion: 
-
-        default:
-          _ASSERT(0);
-          return (uintptr_t)nullptr;
-      }
+        Device::Device_Init();
     }
-  }
+
+    void DelayMs(uint32_t intervalMs)
+    {
+        Device::Delay(intervalMs);
+    }
+
+    void Reboot()
+    {
+        Device::Reboot();
+    }
+
+    void Bootloader()
+    {
+        Device::Bootloader();
+    }
+
+    uintptr_t GetAttribute(SysVar variable)
+    {
+        switch(variable)
+        {
+            default:
+                _ASSERT(0);
+                return (uintptr_t)nullptr;
+        }
+    }
+
+    int8_t SetAttribute(SysVar variable, uintptr_t value)
+    {
+        switch(variable)
+        {
+            case SysVar::Rotation:
+                rotation = (uint8_t)value;
+                break;
+            case SysVar::Brightness:
+                brightness = (uint8_t)value;
+                break;
+            default:
+                return -1;
+        }
+        return 0;
+    }
 }

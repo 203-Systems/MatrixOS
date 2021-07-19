@@ -1,7 +1,7 @@
 #ifndef __GUI_H
 #define __GUI_H
 
-#include "../system/MatrixOS.h"
+#include "system/MatrixOS.h"
 
 namespace GUI
 {
