@@ -1,4 +1,4 @@
-UF2_FAMILY_ID = 0x57755a57
+UF2_FAMILY_ID = 0x5ee21072
 ST_FAMILY = f1
 DEPS_SUBMODULES += lib/CMSIS_5 core/stm32$(ST_FAMILY)/cmsis_device_$(ST_FAMILY) core/stm32$(ST_FAMILY)/stm32$(ST_FAMILY)xx_hal_driver
 
