@@ -118,7 +118,6 @@ INC   += $(FAMILY_PATH)
 
 # Compiler Flags
 CFLAGS += \
-	-std=c++17	
 #   -ggdb \
 #   -fdata-sections \
 #   -ffunction-sections \
@@ -129,9 +128,6 @@ CFLAGS += \
 #   -Wstrict-overflow \
 #   -Wall \
 #   -Wextra \
-#   -Werror \
-#   -Wfatal-errors \
-#   -Werror-implicit-function-declaration \
 #   -Wfloat-equal \
 #   -Wundef \
 #   -Wshadow \
@@ -141,6 +137,9 @@ CFLAGS += \
 #   -Wunreachable-code \
 #   -Wcast-align \
 #   -Wcast-function-type
+
+CPPFLAGS += \
+	-std=gnu++17
 
 # Debugging/Optimization
 ifeq ($(DEBUG), 1)
@@ -207,6 +206,8 @@ endif
 
 ASFLAGS += $(CFLAGS)
 
+CPPFLAGS += ${CFLAGS}
+
 # Assembly files can be name with upper case .S, convert it to .s
 SRC_S := $(SRC_S:.S=.s)
 
@@ -220,13 +221,11 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_S:.s=_asm.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 
-$(info $(OBJ))
-
-
 
 # Verbose mode
 ifeq ("$(V)","1")
 $(info CFLAGS  $(CFLAGS) ) $(info )
+$(info CFLAGS  $(CPPFLAGS) ) $(info )
 $(info LDFLAGS $(LDFLAGS)) $(info )
 $(info ASFLAGS $(ASFLAGS)) $(info )
 endif
@@ -246,7 +245,7 @@ endif
 
 $(BUILD)/$(PROJECT).elf: $(OBJ)
 	@echo LINK $@
-	@$(CC) -o $@ $(LDFLAGS) $^ -Wl,--start-group $(LIBS) -Wl,--end-group
+	@$(CXX) -o $@ $(LDFLAGS) $^ -Wl,--start-group $(LIBS) -Wl,--end-group
 
 $(BUILD)/$(PROJECT).bin: $(BUILD)/$(PROJECT).elf
 	@echo CREATE $@
@@ -282,7 +281,7 @@ $(BUILD)/obj/%.o: %.c
 vpath %.cpp . $(TOP)
 $(BUILD)/obj/%.o: %.cpp
 	@echo CC $(notdir $@)
-	@$(CC) $(CFLAGS) -c -MD -o $@ $<
+	@$(CXX) $(CPPFLAGS) -c -MD -o $@ $<
 
 # ASM sources lower case .s
 vpath %.s . $(TOP)

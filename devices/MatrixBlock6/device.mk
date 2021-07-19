@@ -25,7 +25,6 @@ CFLAGS += \
   -mcpu=cortex-m4 \
   -mfloat-abi=hard \
   -mfpu=fpv4-sp-d16 \
-  -nostdlib -nostartfiles \
   -DCFG_TUSB_MCU=OPT_MCU_STM32F4
 
 # suppress warning caused by vendor mcu driver
@@ -39,7 +38,6 @@ SRC_C += \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rcc_ex.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_uart.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_gpio.c \
-	# src/portable/st/synopsys/dcd_synopsys.c
 
 INC += \
 	$(BOARD_PATH) \
