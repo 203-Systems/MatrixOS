@@ -10,7 +10,6 @@ namespace MatrixOS
   namespace SYS
   {
     void Init();
-    // uint32_t GetTick();
     uint32_t Millis();
     int Execute(uint32_t addr);
     // void Beep(int intervalMs);

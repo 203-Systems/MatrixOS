@@ -3,5 +3,5 @@
 namespace MatrixOS::LED
 {
     uint8_t currentLayer = 0;
-    Color frameBuffer[NUMSOFLED];
+    // Color frameBuffer[NUMSOFLED];
 }

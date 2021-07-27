@@ -13,13 +13,13 @@ CFLAGS += \
   -mabi=aapcs \
   -mcpu=cortex-m3 \
   -mfloat-abi=soft \
-  -nostdlib -nostartfiles \
   -DCFG_TUSB_MCU=OPT_MCU_STM32F1
 
 # suppress warning caused by vendor mcu driver
 CFLAGS += -Wno-error=cast-align
 
 SRC_C += \
+	src/portable/st/synopsys/dcd_synopsys.c \
 	$(ST_CMSIS)/Source/Templates/system_stm32$(ST_FAMILY)xx.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_cortex.c \

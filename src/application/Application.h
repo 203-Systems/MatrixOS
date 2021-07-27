@@ -3,40 +3,41 @@
 
 class Application
 {
-    char name[64];
-    char author[64];
-    uint32_t version;
+    public: 
+        char name[64];
+        char author[64];
+        uint32_t version;
 
-    int8_t status = 0;
-
-    inline Application()
-    {
-        setup();
-        Timer ledTimer;
-        Timer keypadTimer;
-        while(status != 0)
+        int8_t status = 0;
+        
+        inline Application()
         {
-            if(ledTimer.Tick(1000 / LED_FPS))
+            // setup();
+            Timer ledTimer;
+            Timer keypadTimer;
+            while(status != 0)
             {
-               MatrixOS::LED::Render();
+                // if(ledTimer.Tick(1000 / LED_FPS))
+                // {
+                // MatrixOS::LED::Render();
+                // }
+                // if(keypadTimer.Tick(1000 / KEYPAD_POLLRATE))
+                // {
+                //     MatrixOS::KEYPAD::Scan();
+                // }
+                // // TODO: USB Scan and call MidiEvent
+                main();
             }
-            if(keypadTimer.Tick(1000 / KEYPAD_POLLRATE))
-            {
-                MatrixOS::KEYPAD::Scan();
-            }
-            // TODO: USB Scan and call MidiEvent
-            loop();
         }
-    }
 
-    virtual void setup();
-    virtual void loop();
+        virtual void setup();
+        virtual void main();
 
-    virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo);
-    virtual void MidiEvent();
+        virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo);
+        virtual void MidiEvent();
 
-    inline void exit()
-    {
-        status = -1;
-    }
+        inline void exit()
+        {
+            status = -1;
+        }
 };

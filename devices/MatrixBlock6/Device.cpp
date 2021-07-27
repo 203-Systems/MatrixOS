@@ -1,4 +1,7 @@
 #include "Device.h"
+#include "Config.h"
+#include "framework/Framework.h"
+#include "stm32f4xx_hal.h"
 
 namespace Device
 {
@@ -99,4 +102,9 @@ namespace Device
     {
         
     }
+}
+
+void OTG_FS_IRQHandler(void)
+{
+  tud_int_handler(0);
 }

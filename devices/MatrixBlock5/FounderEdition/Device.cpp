@@ -1,4 +1,7 @@
 #include "Device.h"
+#include "Config.h"
+#include "framework/Framework.h"
+#include "stm32f1xx_hal.h"
 
 namespace Device
 {
@@ -32,7 +35,23 @@ namespace Device
 
     namespace
     {
-        void SystemClock_Config()
+        /**
+         * @brief  System Clock Configuration
+         *         The system Clock is configured as follow :
+         *            System Clock source            = PLL (HSE)
+         *            SYSCLK(Hz)                     = 72000000
+         *            HCLK(Hz)                       = 72000000
+         *            AHB Prescaler                  = 1
+         *            APB1 Prescaler                 = 2
+         *            APB2 Prescaler                 = 1
+         *            HSE Frequency(Hz)              = 8000000
+         *            HSE PREDIV1                    = 1
+         *            PLLMUL                         = 9
+         *            Flash Latency(WS)              = 2
+         * @param  None
+         * @retval None
+         */
+        void SystemClock_Config(void)
         {
             RCC_ClkInitTypeDef clkinitstruct = {0};
             RCC_OscInitTypeDef oscinitstruct = {0};
@@ -84,4 +103,9 @@ namespace Device
     {
         
     }
+}
+
+void OTG_FS_IRQHandler(void)
+{
+  tud_int_handler(0);
 }

@@ -1,6 +1,6 @@
 #include "Shell.h"
 
-int Shell::main()
+void Shell::main()
 {
-    return 0;
+    return;
 }

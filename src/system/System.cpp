@@ -6,6 +6,11 @@ namespace MatrixOS::SYS
     {
         Device::Device_Init();
     }
+    
+    uint32_t Millis()
+    {
+        return Device::Millis();
+    }
 
     void DelayMs(uint32_t intervalMs)
     {

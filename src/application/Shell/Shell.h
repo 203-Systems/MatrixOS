@@ -9,6 +9,6 @@ class Shell : public Application
     char author[64] = "203 Electronics";
     uint32_t version = 10000;
     
-    int main();
+    void main();
 };
 #endif

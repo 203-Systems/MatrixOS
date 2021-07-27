@@ -29,10 +29,6 @@ CURRENT_PATH := $(shell realpath --relative-to=$(TOP) `pwd`)
 endif
 # $(info Path from top is $(CURRENT_PATH))
 
-# ---------------------------------------
-# Common make definition for all examples
-# ---------------------------------------
-
 # Build directory
 ifeq ($(CMDEXE),1)
 $(shell if exist build\$(BOARD) rd build\$(BOARD) /s /q)
@@ -54,8 +50,13 @@ __check_defined = \
 
 #-------------- Select the board to build for. ------------    
 
+ifeq ($(BOARD), )
+  $(info You must provide a BOARD parameter with 'BOARD=')
+  $(error Invalid BOARD specified)
+endif
+
 # Board without family
-ifneq ($(wildcard devices/$(BOARD)/device.mk),)
+ifneq ($(wildcard ./devices/$(BOARD)/device.mk),)
 BOARD_PATH := devices/$(BOARD)
 FAMILY :=
 endif
@@ -66,6 +67,10 @@ ifeq ($(BOARD_PATH),)
   FAMILY := $(word 2, $(subst /, ,$(BOARD_PATH)))
   FAMILY_PATH = devices/$(FAMILY)
 endif
+
+$(info Board Path: $(BOARD_PATH))
+$(info Family: $(FAMILY))
+$(info Family Path: $(FAMILY_PATH))
 
 ifeq ($(BOARD_PATH),)
   $(info You must provide a BOARD parameter with 'BOARD=')
@@ -168,12 +173,7 @@ endif
 #   CFLAGS += -DLOGGER_SWO
 # endif
 
-# Code source
-SRC_C += $(wildcard src/*.c src/*/*.c src/*/*/*.c src/*/*/*/*.c src/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
-SRC_CPP += $(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp) #Same as above
-
-# Code Include
-INC += src/
+include source.mk
 
 # ---------------------------------------
 # Common make rules for all examples
