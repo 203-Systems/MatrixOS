@@ -13,19 +13,16 @@ CFLAGS += \
   -mabi=aapcs \
   -mcpu=cortex-m3 \
   -mfloat-abi=soft \
-  -DCFG_TUSB_MCU=OPT_MCU_STM32F1
-
-# suppress warning caused by vendor mcu driver
-CFLAGS += -Wno-error=cast-align
+  -DCFG_TUSB_MCU=OPT_MCU_STM32F1\
+  -nostdlib -nostartfiles
 
 SRC_C += \
-	src/portable/st/synopsys/dcd_synopsys.c \
+	lib\tinyusb\src\portable\st\stm32_fsdev\dcd_stm32_fsdev.c  \
 	$(ST_CMSIS)/Source/Templates/system_stm32$(ST_FAMILY)xx.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_cortex.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rcc.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rcc_ex.c \
-	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_uart.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_gpio.c
 
 INC += \
@@ -33,5 +30,6 @@ INC += \
 	lib/CMSIS_5/CMSIS/Core/Include \
 	$(ST_CMSIS)/Include \
 	$(ST_HAL_DRIVER)/Inc
+
 # For freeRTOS port source
 FREERTOS_PORT = ARM_CM3

@@ -4,6 +4,7 @@
 #include "Device.h"
 #include "Parameters.h"
 #include "Variables.h"
+#include "tusb.h"
 
 namespace MatrixOS
 {

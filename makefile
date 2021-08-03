@@ -34,6 +34,8 @@ ifeq ($(CMDEXE),1)
 $(shell if exist build\$(BOARD) rd build\$(BOARD) /s /q)
 endif
 
+
+
 BUILD := build/$(BOARD)
 
 PROJECT := $(notdir $(CURDIR))
@@ -118,11 +120,13 @@ endif
 # Include all source C in family & board folder
 SRC_C += $(subst ,,$(wildcard $(BOARD_PATH)/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(BOARD_PATH)/*.cpp))
+SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
+SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
 
 INC   += $(FAMILY_PATH)
 
 # Compiler Flags
-CFLAGS += \
+# CFLAGS += \
 #   -ggdb \
 #   -fdata-sections \
 #   -ffunction-sections \
@@ -144,34 +148,36 @@ CFLAGS += \
 #   -Wcast-function-type
 
 CPPFLAGS += \
-	-std=gnu++17
+	-std=gnu++17 \
+	# -lstdc++
 
 # Debugging/Optimization
 ifeq ($(DEBUG), 1)
-  CFLAGS += -Og
+  $(info Debug Enabled)
+  CFLAGS += -Og -g
 else
   CFLAGS += -Os
 endif
 
-# # Log level is mapped to TUSB DEBUG option
-# ifneq ($(LOG),)
-#   CMAKE_DEFSYM +=	-DLOG=$(LOG)
-#   CFLAGS += -DCFG_TUSB_DEBUG=$(LOG)
-# endif
+# Log level is mapped to TUSB DEBUG option
+ifneq ($(LOG),)
+  CMAKE_DEFSYM +=	-DLOG=$(LOG)
+  CFLAGS += -DCFG_TUSB_DEBUG=$(LOG)
+endif
 
-# # Logger: default is uart, can be set to rtt or swo
-# ifneq ($(LOGGER),)
-# 	CMAKE_DEFSYM +=	-DLOGGER=$(LOGGER)
-# endif
+# Logger: default is uart, can be set to rtt or swo
+ifneq ($(LOGGER),)
+	CMAKE_DEFSYM +=	-DLOGGER=$(LOGGER)
+endif
 
-# ifeq ($(LOGGER),rtt)
-#   CFLAGS += -DLOGGER_RTT -DSEGGER_RTT_MODE_DEFAULT=SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL
-#   RTT_SRC = lib/SEGGER_RTT
-#   INC   += $(RTT_SRC)/RTT
-#   SRC_C += $(RTT_SRC)/RTT/SEGGER_RTT.c
-# else ifeq ($(LOGGER),swo)
-#   CFLAGS += -DLOGGER_SWO
-# endif
+ifeq ($(LOGGER),rtt)
+  CFLAGS += -DLOGGER_RTT -DSEGGER_RTT_MODE_DEFAULT=SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL
+  RTT_SRC = lib/SEGGER_RTT
+  INC   += $(RTT_SRC)/RTT
+  SRC_C += $(RTT_SRC)/RTT/SEGGER_RTT.c
+else ifeq ($(LOGGER),swo)
+  CFLAGS += -DLOGGER_SWO
+endif
 
 include source.mk
 
@@ -215,8 +221,6 @@ SRC_S := $(SRC_S:.S=.s)
 # assembly file should be placed first in linking order
 # '_asm' suffix is added to object of assembly file
 
-# $(info $(SRC_C))
-
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_S:.s=_asm.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
@@ -225,7 +229,7 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 # Verbose mode
 ifeq ("$(V)","1")
 $(info CFLAGS  $(CFLAGS) ) $(info )
-$(info CFLAGS  $(CPPFLAGS) ) $(info )
+$(info CPPFLAGS  $(CPPFLAGS) ) $(info )
 $(info LDFLAGS $(LDFLAGS)) $(info )
 $(info ASFLAGS $(ASFLAGS)) $(info )
 endif
@@ -336,8 +340,8 @@ flash-jlink: $(BUILD)/$(PROJECT).hex
 	$(JLINKEXE) -device $(JLINK_DEVICE) -if $(JLINK_IF) -JTAGConf -1,-1 -speed auto -CommandFile $(BUILD)/$(BOARD).jlink
 
 # flash STM32 MCU using stlink with STM32 Cube Programmer CLI
-flash-stlink: $(BUILD)/$(PROJECT).elf
-	STM32_Programmer_CLI --connect port=swd --write $< --go
+flash-stlink: $(BUILD)/$(PROJECT).bin
+	STM32_Programmer_CLI --connect port=swd --write $< $(FLASH_ADDRESS) --go
 
 # flash with pyocd
 flash-pyocd: $(BUILD)/$(PROJECT).hex

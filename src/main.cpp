@@ -5,7 +5,9 @@ int main()
 {
     MatrixOS::SYS::Init();
 
-    TestApp();
+    TestApp TestApp;
+    TestApp.main();
 
     return 0;             
 }
+

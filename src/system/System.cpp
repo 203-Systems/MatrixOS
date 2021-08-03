@@ -32,7 +32,7 @@ namespace MatrixOS::SYS
         switch(variable)
         {
             default:
-                _ASSERT(0);
+                // _ASSERT(0);
                 return (uintptr_t)nullptr;
         }
     }

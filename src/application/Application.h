@@ -13,9 +13,9 @@ class Application
         inline Application()
         {
             // setup();
-            Timer ledTimer;
-            Timer keypadTimer;
-            while(status != 0)
+            // Timer ledTimer;
+            // Timer keypadTimer;
+            while(status == 0)
             {
                 // if(ledTimer.Tick(1000 / LED_FPS))
                 // {
@@ -30,11 +30,11 @@ class Application
             }
         }
 
-        virtual void setup();
-        virtual void main();
+        virtual void setup() {};
+        virtual void main() {};
 
-        virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo);
-        virtual void MidiEvent();
+        virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo) {};
+        virtual void MidiEvent() {};
 
         inline void exit()
         {

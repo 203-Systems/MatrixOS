@@ -8,5 +8,8 @@ SRC_S += $(ST_CMSIS)/Source/Templates/gcc/startup_stm32f103xe.s
 JLINK_DEVICE = stm32f103re
 
 # flash target ROM bootloader
-flash: $(BUILD)/$(PROJECT).bin
-	dfu-util -R -a 0 --dfuse-address 0x08002000 -D $<
+# flash: $(BUILD)/$(PROJECT).bin
+# 	dfu-util -R -a 0 --dfuse-address 0x08002000 -D $<
+FLASH_ADDRESS = 0x08000000
+
+flash: flash-stlink
