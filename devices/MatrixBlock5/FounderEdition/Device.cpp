@@ -143,8 +143,8 @@ extern "C" {
             hdma_tim8_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
             hdma_tim8_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
             hdma_tim8_ch2.Init.MemInc = DMA_MINC_ENABLE;
-            hdma_tim8_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-            hdma_tim8_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+            hdma_tim8_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+            hdma_tim8_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
             hdma_tim8_ch2.Init.Mode = DMA_NORMAL;
             hdma_tim8_ch2.Init.Priority = DMA_PRIORITY_HIGH;
             if (HAL_DMA_Init(&hdma_tim8_ch2) != HAL_OK)

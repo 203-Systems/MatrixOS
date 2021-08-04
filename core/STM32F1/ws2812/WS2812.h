@@ -6,8 +6,6 @@
 #include "MatrixOS.h"
 #include <stdlib.h>
 
-#define LED_DMA_BUFFERSIZE 1696 //64*24*2 + LED_DMA_END_LENGTH * 2(Numbers of LED each update * numbers of byte each led need * circular double buffer)
-//Numbers of updates/interrupt will be numsOfLED/<Numbers of LED each update> - 1
 #define LED_DMA_END_LENGTH 80
 
 namespace WS2812
@@ -26,7 +24,8 @@ namespace WS2812
 	extern TIM_HandleTypeDef* htim;
 	extern unsigned int tim_Channel;
 	extern Color* frameBuffer;
-	extern uint16_t* pwmBuffer;
+	extern uint8_t* pwmBuffer;
+	extern uint16_t bufferSize;
 	extern int32_t progress; //# of led sent, -1 means end signal has been send and ready for new job, -2 means end signal transmit in progress
 }
 

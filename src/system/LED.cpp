@@ -13,6 +13,7 @@ namespace MatrixOS::LED
         {
             frameBuffer[i] = Color();
         }
+        Update();
     }
 
     void SetColor(Point xy, Color color, uint8_t layer)
@@ -37,7 +38,7 @@ namespace MatrixOS::LED
         uint16_t index = Device::LED::ID2Index(0, ID); //TODO Add multi chunk support
         uint16_t bufferIndex = index + Device::numsOfLED * layer;
         frameBuffer[bufferIndex] = color;
-        
+
     }
 
     void Fill(Color color, uint8_t layer)

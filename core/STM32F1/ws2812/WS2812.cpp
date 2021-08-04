@@ -8,7 +8,8 @@ namespace WS2812
 	TIM_HandleTypeDef* htim;
 	unsigned int tim_Channel;
 	Color* frameBuffer;
-	uint16_t* pwmBuffer;
+	uint8_t* pwmBuffer; //TODO: Reduce the memory footprint to 1byte
+	uint16_t bufferSize;
 	int32_t progress = -1; //# of led sent, -1 means signal end has been send and ready for new job
 
 	void Init(TIM_HandleTypeDef *HTIM, unsigned int TIM_Channel, uint16_t NumsOfLED) {
@@ -21,8 +22,8 @@ namespace WS2812
 //		TIM_OC_InitTypeDef sConfigOC = { 0 };
 
 		numsOfLED = NumsOfLED;
-
-		pwmBuffer = (uint16_t*)calloc((numsOfLED * 24 + LED_DMA_END_LENGTH * 2), 2);
+		bufferSize = numsOfLED * 24 + LED_DMA_END_LENGTH * 2;
+		pwmBuffer = (uint8_t*)calloc(bufferSize, 1);
 
 		/* TIM Callback init */
 		if (HAL_TIM_RegisterCallback(htim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, DMAHandler) != HAL_OK) //Complete
@@ -65,7 +66,7 @@ namespace WS2812
 
 
 	void SendData() {
-		HAL_TIM_PWM_Start_DMA(htim, tim_Channel, (uint32_t*) pwmBuffer, LED_DMA_BUFFERSIZE);
+		HAL_TIM_PWM_Start_DMA(htim, tim_Channel, (uint32_t*) pwmBuffer, bufferSize);
 	}
 
 
@@ -77,7 +78,7 @@ namespace WS2812
 			pwmBuffer[index] = 0;
 			index ++;
 		}
-		while (index <= (LED_DMA_BUFFERSIZE - 24) && progress < numsOfLED) { //Fills pwm until buffer is full or all LED completely processed
+		while (index <= (bufferSize - 24) && progress < numsOfLED) { //Fills pwm until buffer is full or all LED completely processed
 			uint32_t GRB = frameBuffer[progress].GRB(32);
 			for (int8_t i = 23; i >= 0; i--) {
 				 pwmBuffer[index] = GRB & (1 << i) ? TH_DutyCycle : TL_DutyCycle;
