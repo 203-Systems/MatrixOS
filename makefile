@@ -84,9 +84,6 @@ ifeq ($(FAMILY),)
 else
   # Include Family and Board specific defs
   include $(FAMILY_PATH)/family.mk
-
-  SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
-  SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
 endif
 
 # Fetch submodules depended by family
@@ -115,15 +112,7 @@ else
   RM = rm
 endif
 
-#-------------- Source files and compiler flags --------------
-
-# Include all source C in family & board folder
-SRC_C += $(subst ,,$(wildcard $(BOARD_PATH)/*.c))
-SRC_CPP += $(subst ,,$(wildcard $(BOARD_PATH)/*.cpp))
-SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
-SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
-
-INC   += $(FAMILY_PATH)
+#-------------- Compiler flags --------------
 
 # Compiler Flags
 # CFLAGS += \
@@ -228,6 +217,10 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 
 # Verbose mode
 ifeq ("$(V)","1")
+$(info BOARD_PATH  $(BOARD_PATH)) $(info )
+$(info FAMILY_PATH  $(FAMILY_PATH)) $(info )
+$(info SRC C  $(SRC_C)) $(info )
+$(info SRC CPP  $(SRC_CPP)) $(info )
 $(info CFLAGS  $(CFLAGS) ) $(info )
 $(info CPPFLAGS  $(CPPFLAGS) ) $(info )
 $(info LDFLAGS $(LDFLAGS)) $(info )

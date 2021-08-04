@@ -2,8 +2,8 @@
 #define __MATRIXOS_H
 
 #include "Device.h"
-#include "Parameters.h"
-#include "Variables.h"
+#include "system/Parameters.h"
+#include "system/Variables.h"
 #include "tusb.h"
 
 namespace MatrixOS
@@ -17,6 +17,7 @@ namespace MatrixOS
     void DelayMs(uint32_t intervalMs);
     void Reboot();
     void Bootloader();
+    void Error_Handler();
 
     enum class SysVar {
       //Device Info
@@ -35,13 +36,14 @@ namespace MatrixOS
 
   namespace LED
   {
-    // uint8_t currentLayer;
-    // Color frameBuffer[NUMSOFLEDLAYER][NUMSOFLED];
+    #define LED_LAYERS 1
+    extern uint8_t currentLayer;
+    extern Color* frameBuffer;
     void Init();
-    void SetColor(Point xy, Color color, uint8_t layer = 0);
-    void SetColor(uint32_t ID, Color color, uint8_t layer = 0);
-    void Fill(Color color, uint8_t layer = 0);
-    void Render(int8_t layer = 0);
+    void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
+    void SetColor(uint32_t ID, Color color, uint8_t layer = currentLayer);
+    void Fill(Color color, uint8_t layer = currentLayer);
+    void Update(int8_t layer = currentLayer);
     void SwitchLayer(uint8_t layer);
   }
 
@@ -69,7 +71,7 @@ namespace MatrixOS
     };
 
     uint8_t Scan(void (*f)(KeyInfo) = NULL); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
-    // KeyInfo GetKey(CPoint keyXY);
+    // KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
   }
 

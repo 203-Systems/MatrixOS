@@ -1,8 +1,9 @@
-#ifndef __DEVICES__
-#define __DEVICES__
+#ifndef __DEVICE__
+#define __DEVICE__
 
+#include "framework/Framework.h"
 #include "tusb.h"
-#include "framework/Color.h"
+#include "config.h"
 
 namespace Device
 {
@@ -14,29 +15,16 @@ namespace Device
     void Bootloader();
     void Error_Handler();
 
-    // const uint8_t SYSEXID[3] = {0x00, 0x02, 0x03};
-
     namespace LED
     {
-        void Init();
-        uint8_t Update(Color *frameBuffer, uint8_t brightness = 255);
+        void Update(Color* frameBuffer, uint8_t brightness = 255); //Render LED
+        uint16_t XY2Index(uint8_t GridID, Point xy); //Grid XY to global buffer index
+        uint16_t ID2Index(uint8_t GridID, uint16_t index); //Local led Index to buffer index
     }
 
     namespace KeyPad
     {
-        void Init();
         bool Scan();
-    }
-
-    // namespace USB
-    // {
-    //     void Init();
-    // }
-
-    namespace 
-    {
-        void SystemClock_Config();
-        void GPIO_Init();
     }
 }
 

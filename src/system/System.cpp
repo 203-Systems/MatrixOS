@@ -5,6 +5,7 @@ namespace MatrixOS::SYS
     void Init()
     {
         Device::Device_Init();
+        MatrixOS::LED::Init();
     }
     
     uint32_t Millis()
@@ -51,5 +52,10 @@ namespace MatrixOS::SYS
                 return -1;
         }
         return 0;
+    }
+
+    void Error_Handler()
+    {
+
     }
 }

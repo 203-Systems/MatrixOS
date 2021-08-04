@@ -1,4 +1,4 @@
-#include "system/MatrixOS.h"
+#include "MatrixOS.h"
 #include "application/TestApp/TestApp.h"
 
 int main()

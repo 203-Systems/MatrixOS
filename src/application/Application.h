@@ -1,5 +1,4 @@
-#include "system/MatrixOS.h"
-#include "framework/Timer.h"
+#include "MatrixOS.h"
 
 class Application
 {
@@ -12,32 +11,11 @@ class Application
         
         inline Application()
         {
-            // setup();
-            // Timer ledTimer;
-            // Timer keypadTimer;
-            while(status == 0)
-            {
-                // if(ledTimer.Tick(1000 / LED_FPS))
-                // {
-                // MatrixOS::LED::Render();
-                // }
-                // if(keypadTimer.Tick(1000 / KEYPAD_POLLRATE))
-                // {
-                //     MatrixOS::KEYPAD::Scan();
-                // }
-                // // TODO: USB Scan and call MidiEvent
-                main();
-            }
+            main();
         }
 
-        virtual void setup() {};
         virtual void main() {};
 
-        virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo) {};
-        virtual void MidiEvent() {};
-
-        inline void exit()
-        {
-            status = -1;
-        }
+        // virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo) {};
+        // virtual void MidiEvent() {};
 };

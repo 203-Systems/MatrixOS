@@ -14,7 +14,7 @@ CFLAGS += \
   -mcpu=cortex-m3 \
   -mfloat-abi=soft \
   -DCFG_TUSB_MCU=OPT_MCU_STM32F1\
-  -nostdlib -nostartfiles
+  -nostartfiles
 
 SRC_C += \
 	lib\tinyusb\src\portable\st\stm32_fsdev\dcd_stm32_fsdev.c  \
@@ -23,11 +23,18 @@ SRC_C += \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_cortex.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rcc.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rcc_ex.c \
-	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_gpio.c
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_gpio.c \
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_dma.c \
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_tim.c \
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_tim_ex.c
+
+SRC_CPP += \
+	core\STM32F1\ws2812\WS2812.cpp \
 
 INC += \
 	$(BOARD_PATH) \
 	lib/CMSIS_5/CMSIS/Core/Include \
+	core/stm32$(ST_FAMILY)/ws2812 \
 	$(ST_CMSIS)/Include \
 	$(ST_HAL_DRIVER)/Inc
 

@@ -1,20 +1,20 @@
 #include "TestApp.h"
-#include "system/MatrixOS.h"
 
-void TestApp::main()
-{
+  void TestApp::main()
+  {
     tusb_init();
 
     while(true)
     {
         tud_task();
-        midi_task();
+        midi_task();  
+        LED_task();
     }
-}
+  }
 
-//--------------------------------------------------------------------+
-// MIDI Task
-//--------------------------------------------------------------------+
+  //--------------------------------------------------------------------+
+  // MIDI Task
+  //--------------------------------------------------------------------+
 
 
 void TestApp::midi_task(void)
@@ -30,4 +30,21 @@ void TestApp::midi_task(void)
 
   uint32_t count = tud_midi_stream_read(midi_buf, sizeof(midi_buf));
   tud_midi_stream_write(cable_num, (uint8_t *)midi_buf, count);
+}
+
+void TestApp::LED_task(void)
+{
+  if (TestApp::timer.Tick(100))
+  { 
+    MatrixOS::LED::SetColor(led_id, colorList[colorIndex]);
+    MatrixOS::LED::Update();
+    led_id ++;
+
+    if(led_id == Device::numsOfLED)
+    {
+      led_id = 0;
+      colorIndex ++;
+      colorIndex %= 5;
+    }
+  }
 }
