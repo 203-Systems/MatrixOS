@@ -13,8 +13,11 @@ namespace Device
     const char name[] = "Matrix Founder Edition";
     const uint16_t numsOfLED = 64;
 
-    void MX_DMA_Init(void);
-    void MX_TIM8_Init(void);
+    namespace 
+    {
+        void MX_DMA_Init(void);
+        void MX_TIM8_Init(void);
+    }
 }
 
 extern "C"

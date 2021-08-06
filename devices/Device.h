@@ -6,14 +6,20 @@
 #include "config.h"
 
 namespace Device
-{
-    void Device_Init();
+{  
+    /*Required Varaiables:
+    const char name[];
+    const uint16_t numsOfLED;
+    */
+    
+    void DeviceInit();
+    void DeviceTask();
     void Delay(uint32_t interval);
     // uint32_t GetTick();
     uint32_t Millis();
     void Reboot();
     void Bootloader();
-    void Error_Handler();
+    void ErrorHandler();
 
     namespace LED
     {

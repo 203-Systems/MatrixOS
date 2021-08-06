@@ -5,7 +5,7 @@
 
 namespace Device
 {
-    void Device_Init()
+    void DeviceInit()
     {
         SystemClock_Config();
         SysTick_Config(SystemCoreClock / 1000); //CMSIS

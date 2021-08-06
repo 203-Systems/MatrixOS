@@ -12,4 +12,4 @@ JLINK_DEVICE = stm32f103re
 # 	dfu-util -R -a 0 --dfuse-address 0x08002000 -D $<
 FLASH_ADDRESS = 0x08000000
 
-flash: flash-stlink
+flash: flash-stlink-elf

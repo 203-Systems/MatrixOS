@@ -336,6 +336,9 @@ flash-jlink: $(BUILD)/$(PROJECT).hex
 flash-stlink: $(BUILD)/$(PROJECT).bin
 	STM32_Programmer_CLI --connect port=swd --write $< $(FLASH_ADDRESS) --go
 
+flash-stlink-elf: $(BUILD)/$(PROJECT).elf
+	STM32_Programmer_CLI --connect port=swd --write $< --go
+
 # flash with pyocd
 flash-pyocd: $(BUILD)/$(PROJECT).hex
 	pyocd flash -t $(PYOCD_TARGET) $<

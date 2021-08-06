@@ -2,22 +2,31 @@
 #define __MATRIXOS_H
 
 #include "Device.h"
-#include "system/Parameters.h"
+#include "Parameters.h"
 #include "system/Variables.h"
 #include "tusb.h"
+#include "usb/MidiSpecs.h"
+#include "framework/Framework.h"
+// #include <string>
 
+#undef USB //CMSIS defined the USB, undef so we can use USB as namespace
+
+// using std::string;
+
+//All Public functions that are exposed to 
 namespace MatrixOS
 {
   namespace SYS
   {
-    void Init();
-    uint32_t Millis();
-    int Execute(uint32_t addr);
-    // void Beep(int intervalMs);
+    void Init(void);
+
+    uint32_t Millis(void);
     void DelayMs(uint32_t intervalMs);
-    void Reboot();
-    void Bootloader();
-    void Error_Handler();
+
+    void Reboot(void);
+    void Bootloader(void);
+
+    void SystemTask(void);
 
     enum class SysVar {
       //Device Info
@@ -32,6 +41,10 @@ namespace MatrixOS
   
     uintptr_t GetAttribute(SysVar variable);
     int8_t SetAttribute(SysVar variable, uintptr_t value);
+
+      // int Execute(uint32_t addr);
+
+      void ErrorHandler(void);
   }
 
   namespace LED
@@ -39,7 +52,7 @@ namespace MatrixOS
     #define LED_LAYERS 1
     extern uint8_t currentLayer;
     extern Color* frameBuffer;
-    void Init();
+    void Init(void);
     void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
     void SetColor(uint32_t ID, Color color, uint8_t layer = currentLayer);
     void Fill(Color color, uint8_t layer = currentLayer);
@@ -49,6 +62,8 @@ namespace MatrixOS
 
   namespace KEYPAD
   {
+    void Init(void);
+
     enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
 
     struct KeyInfo {
@@ -57,7 +72,7 @@ namespace MatrixOS
       uint16_t velocity = 0;
       bool changed = false; //for Pressed, Hold, RELEASED, AFTERTOUCH
       bool hold = false;
-      uint32_t holdTime()
+      uint32_t holdTime(void)
       {
         if(state == IDLE)
         return 0;
@@ -70,7 +85,10 @@ namespace MatrixOS
       operator bool() { return velocity > 0; }
     };
 
-    uint8_t Scan(void (*f)(KeyInfo) = NULL); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    extern void (*handler)(KeyInfo);
+    void SetHandler(void (*handler)(KeyInfo));
+
+    uint8_t Scan(void (*handler)(KeyInfo) = handler); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
     // KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
   }
@@ -85,10 +103,10 @@ namespace MatrixOS
   //   const int SharedBufferSize = 2048+128;
 
   //   void SetSharedBuffer(void*);
-  //   void* GetSharedBuffer();
+  //   void* GetSharedBuffer(void);
 
-  //   void LinearStart();
-  //   bool LinearFinish();
+  //   void LinearStart(void);
+  //   bool LinearFinish(void);
   //   bool LinearProgram( uint32_t nAddress, unsigned char* pData, int nLength );
   // }
 
@@ -134,16 +152,16 @@ namespace MatrixOS
   //   const int SharedBufferSize = SectorSize;
 
   //   void SetSharedBuffer(void*);
-  //   void* GetSharedBuffer();
+  //   void* GetSharedBuffer(void);
 
-  //   EResult Init();
+  //   EResult Init(void);
   //   EResult Open(const char* strName, uint8_t nIoMode);
   //   EResult Read(uint8_t* pSectorData);
   //   EResult Write(uint8_t* pSectorData);
   //   EResult Seek(uint32_t lOffset);
   //   EResult Close(int nSize);
-  //   EResult Close();
-  //   uint32_t GetFileSize();
+  //   EResult Close(void);
+  //   uint32_t GetFileSize(void);
 	
   //   EResult OpenDir(char* strPath);
   //   EResult FindNext(TFindFile* pFile);
@@ -173,26 +191,89 @@ namespace MatrixOS
   //     IDMA2_Channel4_5_IRQ };
 
   //   void SetArgument(char* argument);
-  //   char* GetArgument();
-  //   bool HasArgument();
+  //   char* GetArgument(void);
+  //   bool HasArgument(void);
   //   TInterruptHandler GetInterruptVector(EInterruptVector);
   //   void SetInterruptVector(EInterruptVector, TInterruptHandler);
-  //   uint32_t DisableInterrupts();
+  //   uint32_t DisableInterrupts(void);
   //   void EnableInterrupts(uint32_t);
   // }
 
-  // namespace USB
-  // {
-  //   typedef void (*THandler)(void);
+  namespace USB
+  {
+    void Init(void);
+    bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
+    bool Connnected(void); //If USB is connected
 
-  //   void Enable();
-  //   void Initialize(void* pDeviceInfo, void* pDevice, void* pDeviceProperty, void* pUserStandardRequests,
-  //     THandler arrHandlerIn[], THandler arrHandlerOut[], THandler arrCallbacks[], THandler leaveLowPowerMode);
-  //   void InitializeMass();
-  //   void Disable();
+    namespace CDC
+    {
+      uint32_t Available(void);
+      void Poll(void);
+      
+      void Print(char const* str);
+      void Println(char const* str);
 
-  //   void InitializeFinish(int msk);
-  // }
+      extern void (*handler)(char const*);
+      void Read(void);
+      void SetHandler(void (*handler)(char const*));
+    }
+    
+    namespace MIDI
+    {
+      void Init(void);
+      void Poll(void);
+
+      enum Status{NoteOff,
+                  NoteOn,
+                  AfterTouch,
+                  ControlChange,
+                  ProgramChange,
+                  ChannelPressure,
+                  PitchChange,
+                  SongPosition,
+                  SongSelect,
+                  TuneRequest,
+                  Sync,
+                  Start,
+                  Continue,
+                  Stop,
+                  ActiveSense,
+                  Reset,
+                  SysexData,
+                  SysexEnd,
+                  HandlerCount
+                  };
+
+
+      extern void (* handlers[HandlerCount])(...);
+
+      void SetHandler(Status status, void (*handler)(...));
+      void ClearHandler(Status status);
+      void ClearAllHandler(void);
+      void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
+
+      void DispatchPacket(uint8_t packet[4]);
+
+      void sendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+      void sendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+      void sendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
+      void sendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+      void sendProgramChange(uint8_t channel, uint8_t program);
+      void sendChannelPressure(uint8_t channel, uint8_t velocity);
+      void sendPitchChange(uint8_t channel, uint16_t pitch);
+      void sendSongPosition(uint16_t position);
+      void sendSongSelect(uint8_t song);
+      void sendTuneRequest(void);
+      void sendSync(void);
+      void sendStart(void);
+      void sendContinue(void);
+      void sendStop(void);
+      void sendActiveSense(void);
+      void sendReset(void);
+    }
+
+    // void Disable(void);
+  }
 
   // namespace GPIO
   // {
@@ -211,7 +292,7 @@ namespace MatrixOS
   //     bool BeginTransmission(uint8_t address);
   //     bool RequestFrom(uint8_t address, uint8_t bytes);
   //     bool Write(uint8_t data);
-  //     uint8_t Read();
+  //     uint8_t Read(void);
   //     bool EndTransmission(bool stop = true);
   //   }
 
@@ -223,8 +304,8 @@ namespace MatrixOS
   //         EConfig::stopBits2, parity = EConfig::parityNone | EConfig::parityEven | EConfig::parityOdd, flow = EConfig::flowNone | EConfig::flowHw
   //     };
   //     void Setup(int baudrate, EConfig config);
-  //     bool Available();
-  //     uint8_t Read();
+  //     bool Available(void);
+  //     uint8_t Read(void);
   //     void Write(uint8_t);
   //   }
 }

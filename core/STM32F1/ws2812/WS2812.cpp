@@ -12,10 +12,10 @@ namespace WS2812
 	uint16_t bufferSize;
 	int32_t progress = -1; //# of led sent, -1 means signal end has been send and ready for new job
 
-	void Init(TIM_HandleTypeDef *HTIM, unsigned int TIM_Channel, uint16_t NumsOfLED) {
+	void Init(TIM_HandleTypeDef *htim, unsigned int TIM_Channel, uint16_t NumsOfLED) {
 
 		//Timer Setup
-		htim = HTIM;
+		WS2812::htim = htim;
 		tim_Channel = TIM_Channel;
 //		TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
 //		TIM_MasterConfigTypeDef sMasterConfig = { 0 };
@@ -28,7 +28,7 @@ namespace WS2812
 		/* TIM Callback init */
 		if (HAL_TIM_RegisterCallback(htim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, DMAHandler) != HAL_OK) //Complete
 		{
-			MatrixOS::SYS::Error_Handler();
+			MatrixOS::SYS::ErrorHandler();
 		}
 	}
 

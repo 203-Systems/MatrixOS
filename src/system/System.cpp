@@ -4,8 +4,10 @@ namespace MatrixOS::SYS
 {
     void Init()
     {
-        Device::Device_Init();
+        Device::DeviceInit();
+        MatrixOS::KEYPAD::Init();
         MatrixOS::LED::Init();
+        MatrixOS::USB::Init();
     }
     
     uint32_t Millis()
@@ -26,6 +28,13 @@ namespace MatrixOS::SYS
     void Bootloader()
     {
         Device::Bootloader();
+    }
+
+    void SystemTask()
+    {
+        USB::MIDI::Poll();
+        USB::CDC::Poll();
+        Device::DeviceTask();
     }
 
     uintptr_t GetAttribute(SysVar variable)
@@ -54,8 +63,9 @@ namespace MatrixOS::SYS
         return 0;
     }
 
-    void Error_Handler()
+    void ErrorHandler()
     {
-
+        //TODO Show Blue Screen
+        Device::ErrorHandler();
     }
 }

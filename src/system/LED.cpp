@@ -20,7 +20,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::Error_Handler();
+            MatrixOS::SYS::ErrorHandler();
             return;
         }
         uint16_t index = Device::LED::XY2Index(0, xy); //TODO Add multi chunk support
@@ -32,7 +32,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::Error_Handler();
+            MatrixOS::SYS::ErrorHandler();
             return;
         }
         uint16_t index = Device::LED::ID2Index(0, ID); //TODO Add multi chunk support
@@ -45,7 +45,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::Error_Handler();
+            MatrixOS::SYS::ErrorHandler();
             return;
         }
         for(uint16_t index = 0; index < Device::numsOfLED; index++)
@@ -63,7 +63,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::Error_Handler();
+            MatrixOS::SYS::ErrorHandler();
             return;
         }
         currentLayer = layer;

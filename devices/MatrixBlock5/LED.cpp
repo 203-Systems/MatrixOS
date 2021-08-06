@@ -19,7 +19,7 @@ namespace Device
                 case 0: //Main Grid
                     return xy.x * 8 + xy.y;
                 case 1: //Under Glow 
-                    MatrixOS::SYS::Error_Handler();
+                    MatrixOS::SYS::ErrorHandler();
                     return -1;
             }
             return 0;
