@@ -149,6 +149,7 @@ namespace MatrixOS::USB
 
         void DispatchPacket(uint8_t packet[4])
         {
+            CDC::Println("Midi packet recived");
             switch (packet[0]) 
             {
                 case CIN_SYSEX:
@@ -186,9 +187,11 @@ namespace MatrixOS::USB
                     }
                     break;
                 case CIN_NOTE_OFF:
+                    CDC::Println("Note Off");
                     CallHandler(NoteOff, MIDIv1_VOICE_CHANNEL(packet[1]), packet[2], packet[3]);
                     break;
                 case CIN_NOTE_ON:
+                    CDC::Println("Note On");
                     CallHandler(NoteOn, MIDIv1_VOICE_CHANNEL(packet[1]), packet[2], packet[3]);
                     break;
                 case CIN_AFTER_TOUCH:
@@ -242,12 +245,15 @@ namespace MatrixOS::USB
 
         void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
         {
+            uint8_t packet[3] = { 0x80 | channel, note, velocity};
+            tud_midi_stream_write(0, packet, 3);
 
         }
 
         void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
         {
-
+            uint8_t packet[3] = { 0x90 | channel, note, velocity};
+            tud_midi_stream_write(0, packet, 3);
         }
     }
 }

@@ -14,11 +14,13 @@
 
 void TestApp::note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
+  MatrixOS::USB::CDC::Println("Note On Handler");
   MatrixOS::USB::MIDI::SendNoteOn(channel, note, velocity);
 }
 
 void TestApp::note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
+  MatrixOS::USB::CDC::Println("Note Off Handler");
   MatrixOS::USB::MIDI::SendNoteOff(channel, note, velocity);
 }
 
@@ -27,7 +29,7 @@ void TestApp::LED_task(void)
 {
   if (TestApp::timer.Tick(100))
   { 
-    MatrixOS::USB::CDC::Println("LED Index: ");
+    // MatrixOS::USB::CDC::Println("LED Index: ");
     // MatrixOS::USB::CDC::Println(std::to_string(led_id));
 
     MatrixOS::LED::SetColor(led_id, colorList[colorIndex]);
