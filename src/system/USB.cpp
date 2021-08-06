@@ -43,7 +43,7 @@ namespace MatrixOS::USB
         void Println(char const* str)
         {
             tud_cdc_n_write_str(0, str);
-            tud_cdc_n_write_str(0, "\r");
+            tud_cdc_n_write_str(0, "\r\n");
             tud_cdc_n_write_flush(0);
         }
 
