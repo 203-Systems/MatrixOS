@@ -93,10 +93,10 @@ namespace MatrixOS
     KeyInfo GetKey(uint16_t keyID);
   }
 
-  namespace DBG
-  {
-    void Print (const char* format, ...);
-  }
+  // namespace DBG
+  // {
+  //   void Print (const char* format, ...);
+  // }
 
   // namespace MEMORY
   // {
@@ -204,6 +204,7 @@ namespace MatrixOS
     void Init(void);
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
     bool Connnected(void); //If USB is connected
+    void Poll();
 
     namespace CDC
     {
@@ -245,31 +246,31 @@ namespace MatrixOS
                   };
 
 
-      extern void (* handlers[HandlerCount])(...);
+      extern void (* handlers[HandlerCount])();
 
-      void SetHandler(Status status, void (*handler)(...));
+      void SetHandler(Status status, void (*handle)());
       void ClearHandler(Status status);
       void ClearAllHandler(void);
       void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
 
       void DispatchPacket(uint8_t packet[4]);
 
-      void sendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
-      void sendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-      void sendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
-      void sendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
-      void sendProgramChange(uint8_t channel, uint8_t program);
-      void sendChannelPressure(uint8_t channel, uint8_t velocity);
-      void sendPitchChange(uint8_t channel, uint16_t pitch);
-      void sendSongPosition(uint16_t position);
-      void sendSongSelect(uint8_t song);
-      void sendTuneRequest(void);
-      void sendSync(void);
-      void sendStart(void);
-      void sendContinue(void);
-      void sendStop(void);
-      void sendActiveSense(void);
-      void sendReset(void);
+      void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+      void SendProgramChange(uint8_t channel, uint8_t program);
+      void SendChannelPressure(uint8_t channel, uint8_t velocity);
+      void SendPitchChange(uint8_t channel, uint16_t pitch);
+      void SendSongPosition(uint16_t position);
+      void SendSongSelect(uint8_t song);
+      void SendTuneRequest(void);
+      void SendSync(void);
+      void SendStart(void);
+      void SendContinue(void);
+      void SendStop(void);
+      void SendActiveSense(void);
+      void SendReset(void);
     }
 
     // void Disable(void);

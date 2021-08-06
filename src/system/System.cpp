@@ -32,6 +32,7 @@ namespace MatrixOS::SYS
 
     void SystemTask()
     {
+        USB::Poll();
         USB::MIDI::Poll();
         USB::CDC::Poll();
         Device::DeviceTask();

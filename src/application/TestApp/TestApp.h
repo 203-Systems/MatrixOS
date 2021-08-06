@@ -20,7 +20,9 @@ class TestApp
     
     void main();
 
-    void midi_task(void);
+    // void midi_task(void);
+    static void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity);
+    static void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity);
     void LED_task(void);
 };
 

@@ -11,6 +11,11 @@ namespace Device
         LED_Init();
     }
 
+    void DeviceTask()
+    {
+        
+    }
+
     void Bootloader()
     {
         

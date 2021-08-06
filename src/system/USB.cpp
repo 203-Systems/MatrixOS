@@ -17,6 +17,11 @@ namespace MatrixOS::USB
         return tud_ready();
     }
 
+    void Poll()
+    {
+        tud_task();
+    }
+
     namespace CDC
     {
         uint32_t Available()
@@ -26,7 +31,7 @@ namespace MatrixOS::USB
 
         void Poll(void)
         {
-
+            //TODO
         }
 
         void Print(char const* str)
@@ -80,9 +85,9 @@ namespace MatrixOS::USB
             }
         }
 
-        void (* handlers[HandlerCount])(...) = {nullptr};
+        void (* handlers[HandlerCount])() = {nullptr};
 
-        void SetHandler(Status status, void (*handler)(...))
+        void SetHandler(Status status, void (*handler)())
         {
             handlers[status] = handler;
         }
@@ -233,6 +238,16 @@ namespace MatrixOS::USB
                     }
                     break;
             }
+        }
+
+        void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
+        {
+
+        }
+
+        void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
+        {
+
         }
     }
 }
