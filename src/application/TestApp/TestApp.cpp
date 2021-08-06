@@ -1,16 +1,16 @@
 #include "TestApp.h"
 // #include <string> 
 
-  void TestApp::main()
+void TestApp::main()
+{
+  MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOn, note_on_handler);
+  MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOff, note_off_handler);
+  while(true)
   {
-    MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOn, (void (*)())(&note_on_handler));
-    MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOff, (void (*)())(&note_off_handler));
-    while(true)
-    {
-        MatrixOS::SYS::SystemTask();
-        LED_task();
-    }
+      MatrixOS::SYS::SystemTask();
+      LED_task();
   }
+}
 
 void TestApp::note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {

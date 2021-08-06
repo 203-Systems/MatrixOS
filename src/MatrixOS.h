@@ -9,6 +9,8 @@
 #include "framework/Framework.h"
 // #include <string>
 
+// using handler = void(*)();
+
 #undef USB //CMSIS defined the USB, undef so we can use USB as namespace
 
 // using std::string;
@@ -248,7 +250,7 @@ namespace MatrixOS
 
       extern void (* handlers[HandlerCount])();
 
-      void SetHandler(Status status, void (*handle)());
+      void SetHandler(Status status, handler handler);
       void ClearHandler(Status status);
       void ClearAllHandler(void);
       void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);

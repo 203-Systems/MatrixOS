@@ -87,7 +87,7 @@ namespace MatrixOS::USB
 
         void (* handlers[HandlerCount])() = {nullptr};
 
-        void SetHandler(Status status, void (*handler)())
+        void SetHandler(Status status, handler handler)
         {
             handlers[status] = handler;
         }
@@ -245,15 +245,99 @@ namespace MatrixOS::USB
 
         void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
         {
-            uint8_t packet[3] = { 0x80 | channel, note, velocity};
+            uint8_t packet[3] = { (uint8_t)(MIDIv1_NOTE_OFF | (channel & 0x0f)), note, velocity};
             tud_midi_stream_write(0, packet, 3);
 
         }
 
         void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity)
         {
-            uint8_t packet[3] = { 0x90 | channel, note, velocity};
+            uint8_t packet[3] = { (uint8_t)(MIDIv1_NOTE_ON | (channel & 0x0f)), note, velocity};
             tud_midi_stream_write(0, packet, 3);
+        }
+
+        void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity)
+        {   
+            uint8_t packet[3] = { (uint8_t)(MIDIv1_AFTER_TOUCH | (channel & 0x0f)), note, velocity};
+            tud_midi_stream_write(0, packet, 3);
+        }
+
+        void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value)
+        {
+            uint8_t packet[3] = { (uint8_t)(MIDIv1_CONTROL_CHANGE | (channel & 0x0f)), controller, value};
+            tud_midi_stream_write(0, packet, 3);
+        }
+
+        void SendProgramChange(uint8_t channel, uint8_t program)
+        {
+            uint8_t packet[2] = { (uint8_t)(MIDIv1_PROGRAM_CHANGE | (channel & 0x0f)), program};
+            tud_midi_stream_write(0, packet, 2);
+        }
+
+        void SendChannelPressure(uint8_t channel, uint8_t velocity)
+        {
+            uint8_t packet[2] = { (uint8_t)(MIDIv1_CHANNEL_PRESSURE | (channel & 0x0f)), velocity};
+            tud_midi_stream_write(0, packet, 2);
+        }
+
+        void SendPitchChange(uint8_t channel, uint16_t pitch)
+        {
+            uint8_t packet[3] = { (uint8_t)(MIDIv1_PITCH_WHEEL | (channel & 0x0f)), (uint8_t)(pitch & 0x07F), (uint8_t)((pitch>>7) & 0x7f)};
+            tud_midi_stream_write(0, packet, 3);
+        }
+
+        void SendSongPosition(uint16_t position)
+        {
+            uint8_t packet[3] = { MIDIv1_SONG_POSITION_PTR, (uint8_t)(position & 0x07F), (uint8_t)((position>>7) & 0x7f)};
+            tud_midi_stream_write(0, packet, 3);
+        }
+
+        void SendSongSelect(uint8_t song)
+        {
+            uint8_t packet[2] = { MIDIv1_SONG_SELECT, song};
+            tud_midi_stream_write(0, packet, 2);
+        }
+
+        void SendTuneRequest(void)
+        {
+            uint8_t packet[1] = { MIDIv1_TUNE_REQUEST};
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendSync(void)
+        {
+            uint8_t packet[1] = { MIDIv1_CLOCK };
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendStart(void)
+        {
+            uint8_t packet[1] = { MIDIv1_START};
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendContinue(void)
+        {
+            uint8_t packet[1] = { MIDIv1_CONTINUE};
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendStop(void)
+        {
+            uint8_t packet[1] = { MIDIv1_STOP};
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendActiveSense(void)
+        {
+            uint8_t packet[1] = { MIDIv1_ACTIVE_SENSE};
+            tud_midi_stream_write(0, packet, 1);
+        }
+
+        void SendReset(void)
+        {
+            uint8_t packet[1] = { MIDIv1_RESET};
+            tud_midi_stream_write(0, packet, 1);
         }
     }
 }

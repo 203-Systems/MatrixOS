@@ -5,7 +5,7 @@ Timer::Timer()
   Timer::RecordCurrent();
 }
 
-bool Timer::Tick(u32 ms)
+bool Timer::Tick(uint32_t ms)
 {
   if(MatrixOS::SYS::Millis() < previous)
     previous = 0;
@@ -18,12 +18,12 @@ bool Timer::Tick(u32 ms)
   return false;
 }
 
-bool Timer::IsLonger(u32 ms)
+bool Timer::IsLonger(uint32_t ms)
 {
   return (previous + ms) <= MatrixOS::SYS::Millis();
 }
 
-u32 Timer::SinceLastTick()
+uint32_t Timer::SinceLastTick()
 {
   return MatrixOS::SYS::Millis() - previous;
 }
@@ -38,7 +38,7 @@ void Timer::RecordCurrent()
 //   MicroTimer::RecordCurrent();
 // }
 
-// bool MicroTimer::Tick(u32 ms)
+// bool MicroTimer::Tick(uint32_t ms)
 // {
 //   if(micros() < previous)
 //     previous = 0;
@@ -51,12 +51,12 @@ void Timer::RecordCurrent()
 //   return false;
 // }
 
-// bool MicroTimer::IsLonger(u32 ms)
+// bool MicroTimer::IsLonger(uint32_t ms)
 // {
 //   return (previous + ms) <= micros();
 // }
 
-// u32 MicroTimer::SinceLastTick()
+// uint32_t MicroTimer::SinceLastTick()
 // {
 //   return micros() - previous;
 // }

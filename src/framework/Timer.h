@@ -7,12 +7,12 @@ class Timer
 {
   public:
     Timer();
-    bool Tick(u32 ms);
-    bool IsLonger(u32 ms);
-    u32 SinceLastTick();
+    bool Tick(uint32_t ms);
+    bool IsLonger(uint32_t ms);
+    uint32_t SinceLastTick();
     void RecordCurrent();
   private:
-    u32 previous = 0;
+    uint32_t previous = 0;
 };
 
 // class MicroTimer
