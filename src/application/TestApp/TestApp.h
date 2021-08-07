@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MatrixOS.h"
 #include "framework/Timer.h"
 // #include "application/Application.h"
 #include "tusb.h"

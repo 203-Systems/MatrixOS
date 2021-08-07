@@ -19,6 +19,7 @@
 namespace MatrixOS
 {
   inline uint32_t API_version = 0;
+
   namespace SYS
   {
     void Init(void);
@@ -70,7 +71,7 @@ namespace MatrixOS
     extern void (*handler)(KeyInfo);
     void SetHandler(void (*handler)(KeyInfo));
 
-    uint8_t Scan(void (*handler)(KeyInfo) = handler); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    void Scan(void (*handler)(KeyInfo) = handler); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
     KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
   }

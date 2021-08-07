@@ -30,8 +30,13 @@ namespace MatrixOS::SYS
         Device::Bootloader();
     }
 
+    Timer keypadTimer; 
     void SystemTask()
     {
+        if(keypadTimer.Tick(10))
+        {
+            KEYPAD::Scan();
+        }
         USB::Poll();
         USB::MIDI::Poll();
         USB::CDC::Poll();

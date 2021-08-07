@@ -34,10 +34,10 @@ namespace Device
     {
         GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-        /* Configure KeyPad GPIOs */
+        /* GPIO Ports Clock Enable */
+        __HAL_RCC_GPIOC_CLK_ENABLE();
         __HAL_RCC_GPIOA_CLK_ENABLE();
         __HAL_RCC_GPIOB_CLK_ENABLE();
-        __HAL_RCC_GPIOC_CLK_ENABLE();
 
         /*Configure GPIO pin Output Level */
         HAL_GPIO_WritePin(GPIOC, Key8_Pin|Key7_Pin|Key6_Pin|Key5_Pin, GPIO_PIN_RESET);
@@ -52,18 +52,22 @@ namespace Device
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-        /*Configure GPIO pins : FN_Pin KeyRead0_Pin KeyRead1_Pin KeyRead2_Pin
-                                KeyRead3_Pin KeyRead4_Pin KeyRead5_Pin KeyRead6_Pin */
-        GPIO_InitStruct.Pin = FN_Pin|KeyRead0_Pin|KeyRead1_Pin|KeyRead2_Pin
-                                |KeyRead3_Pin|KeyRead4_Pin|KeyRead5_Pin|KeyRead6_Pin;
+        /*Configure GPIO pins : KeyRead5_Pin KeyRead8_Pin KeyRead7_Pin */
+        GPIO_InitStruct.Pin = KeyRead5_Pin|KeyRead8_Pin|KeyRead7_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+        /*Configure GPIO pins : FN_Pin KeyRead4_Pin KeyRead3_Pin KeyRead6_Pin */
+        GPIO_InitStruct.Pin = FN_Pin|KeyRead4_Pin|KeyRead3_Pin|KeyRead6_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-        /*Configure GPIO pins : KeyRead7_Pin KeyRead8_Pin */
-        GPIO_InitStruct.Pin = KeyRead7_Pin|KeyRead8_Pin;
+        /*Configure GPIO pins : KeyRead2_Pin KeyRead1_Pin */
+        GPIO_InitStruct.Pin = KeyRead2_Pin|KeyRead1_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         /*Configure GPIO pins : Key4_Pin Key3_Pin Key2_Pin Key1_Pin */

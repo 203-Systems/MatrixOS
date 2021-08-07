@@ -29,7 +29,7 @@ namespace Device
 
     namespace KeyPad
     {
-        uint16_t Scan();
+        uint16_t* Scan(); //Returns an array, first element will be # of key changed, following elements are keyID
         KeyInfo GetKey(Point keyXY);
         KeyInfo GetKey(uint16_t keyID);
         uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY

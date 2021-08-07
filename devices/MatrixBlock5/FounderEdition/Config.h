@@ -5,6 +5,8 @@
 #include "framework/KeyInfo.h"
 #include "Family.h"
 
+#define MULTIPRESS 10 //Key Press will be process at once
+
 extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_tim8_ch2;
 
@@ -17,7 +19,6 @@ namespace Device
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
 
-
     namespace 
     {
         void MX_DMA_Init(void);
@@ -29,9 +30,15 @@ namespace Device
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[x_size];
+        inline uint16_t changeList[MULTIPRESS + 1];
+
         void FNScan();
         void KeyPadScan();
         void TouchBarScan();
+
+        bool addToList(uint16_t keyID); //Return true when list is full. 
+        void clearList();
+        bool isListFull();
     }
 }
 
@@ -61,46 +68,47 @@ struct GPIO{
     }
 };
 
-#define Key8_Pin GPIO_PIN_13
-#define Key8_GPIO_Port GPIOC
-#define Key7_Pin GPIO_PIN_14
-#define Key7_GPIO_Port GPIOC
-#define Key6_Pin GPIO_PIN_15
-#define Key6_GPIO_Port GPIOC
 #define FN_Pin GPIO_PIN_0
 #define FN_GPIO_Port GPIOA
-#define KeyRead0_Pin GPIO_PIN_1
-#define KeyRead0_GPIO_Port GPIOA
-#define KeyRead1_Pin GPIO_PIN_2
-#define KeyRead1_GPIO_Port GPIOA
-#define KeyRead2_Pin GPIO_PIN_3
-#define KeyRead2_GPIO_Port GPIOA
-#define KeyRead3_Pin GPIO_PIN_4
+
+#define Key1_Pin GPIO_PIN_15
+#define Key1_GPIO_Port GPIOB
+#define Key2_Pin GPIO_PIN_14
+#define Key2_GPIO_Port GPIOB
+#define Key3_Pin GPIO_PIN_13
+#define Key3_GPIO_Port GPIOB
+#define Key4_Pin GPIO_PIN_12
+#define Key4_GPIO_Port GPIOB
+#define Key5_Pin GPIO_PIN_6
+#define Key5_GPIO_Port GPIOC
+#define Key6_Pin GPIO_PIN_15
+#define Key6_GPIO_Port GPIOC
+#define Key7_Pin GPIO_PIN_14
+#define Key7_GPIO_Port GPIOC
+#define Key8_Pin GPIO_PIN_13
+#define Key8_GPIO_Port GPIOC
+
+#define KeyRead1_Pin GPIO_PIN_1
+#define KeyRead1_GPIO_Port GPIOB
+#define KeyRead2_Pin GPIO_PIN_0
+#define KeyRead2_GPIO_Port GPIOB
+#define KeyRead3_Pin GPIO_PIN_2
 #define KeyRead3_GPIO_Port GPIOA
-#define KeyRead4_Pin GPIO_PIN_5
+#define KeyRead4_Pin GPIO_PIN_1
 #define KeyRead4_GPIO_Port GPIOA
-#define KeyRead5_Pin GPIO_PIN_6
-#define KeyRead5_GPIO_Port GPIOA
-#define KeyRead6_Pin GPIO_PIN_7
+#define KeyRead5_Pin GPIO_PIN_3
+#define KeyRead5_GPIO_Port GPIOC
+#define KeyRead6_Pin GPIO_PIN_3
 #define KeyRead6_GPIO_Port GPIOA
+#define KeyRead7_Pin GPIO_PIN_5
+#define KeyRead7_GPIO_Port GPIOC
+#define KeyRead8_Pin GPIO_PIN_4
+#define KeyRead8_GPIO_Port GPIOC
+
 #define TouchData_Pin GPIO_PIN_4
 #define TouchData_GPIO_Port GPIOC
 #define TouchClock_Pin GPIO_PIN_5
 #define TouchClock_GPIO_Port GPIOC
-#define KeyRead7_Pin GPIO_PIN_0
-#define KeyRead7_GPIO_Port GPIOB
-#define KeyRead8_Pin GPIO_PIN_1
-#define KeyRead8_GPIO_Port GPIOB
-#define Key4_Pin GPIO_PIN_12
-#define Key4_GPIO_Port GPIOB
-#define Key3_Pin GPIO_PIN_13
-#define Key3_GPIO_Port GPIOB
-#define Key2_Pin GPIO_PIN_14
-#define Key2_GPIO_Port GPIOB
-#define Key1_Pin GPIO_PIN_15
-#define Key1_GPIO_Port GPIOB
-#define Key5_Pin GPIO_PIN_6
-#define Key5_GPIO_Port GPIOC
 
 inline GPIO keypad_write_pins[] = {
     GPIO(Key1_GPIO_Port, Key1_Pin),

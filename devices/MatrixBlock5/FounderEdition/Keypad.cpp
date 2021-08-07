@@ -3,9 +3,15 @@
 
 namespace Device::KeyPad
 {
-    uint16_t Scan()
+    uint16_t* Scan()
     {
+        clearList();
 
+        if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
+        if(!isListFull()) KeyPadScan();
+        if(!isListFull()) TouchBarScan();
+
+        return changeList;
     }
 
     KeyInfo GetKey(Point keyXY)
@@ -17,12 +23,12 @@ namespace Device::KeyPad
 
     KeyInfo GetKey(uint16_t keyID)
     {
-        uint8_t keyClass = keyID >> 14;
+        uint8_t keyClass = keyID >> 12;
         switch(keyClass)
         {   
             case 0: //System
             {
-                uint16_t index = keyID & (0b0011111111111111);
+                uint16_t index = keyID & (0b0000111111111111);
                 switch(index)
                 {
                     case 0:
@@ -32,63 +38,76 @@ namespace Device::KeyPad
             }
             case 1: //Main Grid
             {
-                int16_t x = (keyID & (0b0011111110000000)) >> 7;
-                int16_t y = keyID & (0b0000000001111111);
+                int16_t x = (keyID & (0b0000111111000000)) >> 6;
+                int16_t y = keyID & (0b0000000000111111);
                 if(x < x_size && y < y_size)  return keypadState[x][y];
                 break;
             }
             case 2: //Touch Bar
             {
-                uint16_t index = keyID & (0b0011111111111111);
+                uint16_t index = keyID & (0b0000111111111111);
                 if(index < touchbar_size) return touchbarState[index];
                 break;
             }
         }
-        return KeyInfo(); //Return an empty KeyInfo
+        return KeyInfo(2323); //Return an empty KeyInfo
     }
 
     void FNScan()
-    {
-        fnState.update(HAL_GPIO_ReadPin(FN_GPIO_Port, FN_Pin));
+    {   fract16 read = HAL_GPIO_ReadPin(FN_GPIO_Port, FN_Pin) * UINT16_MAX;
+        if(fnState.update(read))
+        {
+            addToList(0);
+        }
     }
 
     void KeyPadScan()
     {
-        // bool changed = false;
-
-        // changed = changed || scanFN();
-
-        // for(u8 x = 0; x < XSIZE; x ++)
-        // {
-        //     digitalWrite(keypad_pins[x], HIGH);
-        //     for(u8 y = 0; y < YSIZE; y ++)
-        //     {
-        //     keypadState[x][y] = KeyPad::updateKey(keypadState[x][y], digitalRead(keypad_pins[y+8]));
-        //     if(keypadState[x][y].changed)
-        //     {
-        //         changed = true;
-        //         #ifdef DEBUG
-        //         CompositeSerial.print("Key Action ");
-        //         CompositeSerial.print(xytoxy(x,y), HEX);
-        //         CompositeSerial.print(" ");
-        //         CompositeSerial.print(keypadState[x][y].state);
-        //         CompositeSerial.print(" ");
-        //         CompositeSerial.println(keypadState[x][y].velocity);
-        //         #endif
-        //         if(!KeyPad::addtoList(xytoxy(x,y)))
-        //         return changed;
-        //     }
-        //     }
-        //     digitalWrite(keypad_pins[x], LOW);
-        //     delayMicroseconds(10); // To make the Keypad Matrix happy
-        // }
-
-        // return changed;
+        for(uint8_t x = 0; x < Device::x_size; x ++)
+        {
+            HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_SET);
+            for(uint8_t y = 0; y < Device::y_size; y ++)
+            {
+                fract16 read = HAL_GPIO_ReadPin(keypad_read_pins[y].port, keypad_read_pins[y].pin) * UINT16_MAX;
+                bool updated = keypadState[x][y].update(read);
+                if(updated)
+                {
+                    uint16_t keyID = (1 << 12) + (x << 6) + y;
+                    if(addToList(keyID))
+                    {
+                        HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET); //Set pin back to low
+                        return; //List is full
+                    }
+                }
+            }
+            HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET);
+            volatile int i; for(i=0; i<5; ++i) {} //Add small delay
+            
+        }
     }
 
     void TouchBarScan()
     {
         
+    }
+
+    bool addToList(uint16_t keyID)
+    {   
+        if(isListFull()) return true; //Prevent overwrite
+
+        changeList[0]++;
+        changeList[changeList[0]] = keyID;
+        return isListFull();
+    }
+
+    void clearList()
+    {
+        changeList[0] = 0;
+    }
+
+    bool isListFull()
+    {
+        return changeList[0] == MULTIPRESS;
     }
 
     uint16_t XY2ID(Point xy)
@@ -120,7 +139,7 @@ namespace Device::KeyPad
         {
             case 1: //Main Grid
             {
-                int16_t x = (keyID & (0b00001111110000000)) >> 6;
+                int16_t x = (keyID & 0b0000111111000000) >> 6;
                 int16_t y = keyID & (0b0000000000111111);
                 if(x < Device::x_size && y < Device::y_size)  return Point(x, y);
                 break;

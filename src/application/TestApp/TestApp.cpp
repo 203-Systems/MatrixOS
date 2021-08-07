@@ -32,7 +32,7 @@ void TestApp::LED_task(void)
     // MatrixOS::USB::CDC::Println("LED Index: ");
     // MatrixOS::USB::CDC::Println(std::to_string(led_id));
 
-    MatrixOS::LED::SetColor(led_id, colorList[colorIndex]);
+    MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     MatrixOS::LED::Update();
     led_id ++;
 

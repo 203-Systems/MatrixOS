@@ -1,6 +1,12 @@
 #pragma once
 
-#include "MatrixOS.h"
+#include <stdint.h>
+
+//Avoid recuesive include
+namespace MatrixOS::SYS
+{
+    uint32_t Millis(void);
+}
 
 class Timer
 {

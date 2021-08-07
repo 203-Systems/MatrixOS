@@ -12,9 +12,12 @@ namespace MatrixOS::SYS
 }
 
 enum KeyStates {/*Status Key*/ IDLE, ACTIVED, 
-                 /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH};
+                /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH};
 
 struct KeyInfo {
+    KeyInfo() {}
+    KeyInfo(fract16 velocity) {this->velocity = velocity;}
+
     KeyStates state = IDLE;
     uint32_t lastEventTime = 0; //PRESSED and RELEASED event only
     fract16 velocity = 0;
@@ -68,7 +71,7 @@ struct KeyInfo {
         if(state == IDLE && velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
         {
             state = PRESSED;
-            velocity = velocity;
+            this->velocity = velocity;
             lastEventTime = MatrixOS::SYS::Millis() ;
             return true;
         }
@@ -76,7 +79,7 @@ struct KeyInfo {
         if(state == ACTIVED && velocity == 0 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
-            velocity = 0;
+            this->velocity = 0;
             lastEventTime = MatrixOS::SYS::Millis();
             return true;
         }

@@ -24,8 +24,8 @@ namespace MatrixOS::LED
             return;
         }
         uint16_t index = Device::LED::XY2Index(xy);
+        if(index == UINT16_MAX) return;
         frameBuffer[index + Device::numsOfLED * layer] = color;
-
     }
 
     void SetColor(uint16_t ID, Color color, uint8_t layer)
@@ -36,6 +36,7 @@ namespace MatrixOS::LED
             return;
         }
         uint16_t index = Device::LED::ID2Index(ID);
+        if(index == UINT16_MAX) return;
         uint16_t bufferIndex = index + Device::numsOfLED * layer;
         frameBuffer[bufferIndex] = color;
 
