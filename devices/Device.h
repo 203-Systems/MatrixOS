@@ -1,5 +1,4 @@
-#ifndef __DEVICE__
-#define __DEVICE__
+#pragma once
 
 #include "framework/Framework.h"
 #include "tusb.h"
@@ -30,8 +29,8 @@ namespace Device
 
     namespace KeyPad
     {
-        bool Scan();
-    }
+        uint16_t Scan();
+        KeyInfo GetKey(Point keyXY);
+        KeyInfo GetKey(uint16_t keyID);
+    }   
 }
-
-#endif

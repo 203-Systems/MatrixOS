@@ -64,9 +64,12 @@ namespace MatrixOS::SYS
         return 0;
     }
 
-    void ErrorHandler()
+    void ErrorHandler(char const* error)
     {
+        USB::CDC::Print("Matrix OS Error: ");
+        USB::CDC::Println(error);
         //TODO Show Blue Screen
-        Device::ErrorHandler();
+
+        Device::ErrorHandler(); //Low level indicator in case LED and USB failed
     }
 }

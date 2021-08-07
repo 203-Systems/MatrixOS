@@ -1,14 +1,14 @@
 //Declear Family specific function
-#ifndef __FAMILY__
-#define __FAMILY__
+#pragma once
 
+#include "Device.h"
 #include "stm32f1xx_hal.h"
 
 namespace Device
 {
     void SystemClock_Config();
-    void GPIO_Init();
+    void USB_Init();
     void LED_Init();
+    void KeyPad_Init();
+    void TouchBar_Init();
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __TestApp_H
-#define __TestApp_H
+#pragma once
 
 #include "framework/Timer.h"
 // #include "application/Application.h"
@@ -25,5 +24,3 @@ class TestApp
     static void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity);
     void LED_task(void);
 };
-
-#endif

@@ -47,7 +47,7 @@ namespace MatrixOS::USB
             tud_cdc_n_write_flush(0);
         }
 
-        // void (*handler)(char const*) = nullptr;
+        void (*handler)(char const*) = nullptr;
 
         // void Read() //Prob won't work, implentation need work
         // {
@@ -62,10 +62,10 @@ namespace MatrixOS::USB
         //     }
         // }
 
-        // void SetHandler(void (*handler)(char const*))
-        // {
-        //     CDC::handler = handler;
-        // }
+        void SetHandler(void (*handler)(char const*))
+        {
+            CDC::handler = handler;
+        }
     }
 
     namespace MIDI

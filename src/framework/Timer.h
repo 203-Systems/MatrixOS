@@ -1,5 +1,4 @@
-#ifndef __TIMER_H
-#define __TIMER_H
+#pragma once
 
 #include "MatrixOS.h"
 
@@ -26,5 +25,3 @@ class Timer
 // private:
 //   u32 previous = 0;
 // };
-
-#endif

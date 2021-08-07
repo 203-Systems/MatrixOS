@@ -1,3 +1,5 @@
+#pragma once
+
 #define DEBUG
 
 #define FLASHVERSION 0 //Each Flash data strcture change will cause this to increase

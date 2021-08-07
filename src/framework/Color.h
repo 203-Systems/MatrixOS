@@ -1,5 +1,4 @@
-#ifndef __COLOR_H
-#define __COLOR_H
+#pragma once
 
 #include <stdint.h>
 
@@ -21,5 +20,3 @@ class Color
 		uint8_t scale8(uint8_t i, uint8_t scale);
 		uint8_t scale8_video(uint8_t i, uint8_t scale);
 };
-
-#endif

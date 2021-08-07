@@ -3,7 +3,6 @@
 
 #include "framework/Color.h"
 #include "stm32f1xx_hal.h"
-#include "MatrixOS.h"
 #include <stdlib.h>
 
 #define LED_DMA_END_LENGTH 80

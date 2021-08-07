@@ -1,9 +1,9 @@
 //Define Device Specific Function
-#include "Device.h"
+#include "Family.h"
 
 namespace Device
 {
-    void GPIO_Init()
+    void USB_Init()
     {
         GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -26,6 +26,76 @@ namespace Device
         MX_DMA_Init();
         MX_TIM8_Init();
         WS2812::Init(&htim8, TIM_CHANNEL_2, numsOfLED);
+    }
+
+
+
+    void KeyPad_Init()
+    {
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+        /* Configure KeyPad GPIOs */
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+
+        /*Configure GPIO pin Output Level */
+        HAL_GPIO_WritePin(GPIOC, Key8_Pin|Key7_Pin|Key6_Pin|Key5_Pin, GPIO_PIN_RESET);
+
+        /*Configure GPIO pin Output Level */
+        HAL_GPIO_WritePin(GPIOB, Key4_Pin|Key3_Pin|Key2_Pin|Key1_Pin, GPIO_PIN_RESET);
+
+        /*Configure GPIO pins : Key8_Pin Key7_Pin Key6_Pin Key5_Pin */
+        GPIO_InitStruct.Pin = Key8_Pin|Key7_Pin|Key6_Pin|Key5_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+        /*Configure GPIO pins : FN_Pin KeyRead0_Pin KeyRead1_Pin KeyRead2_Pin
+                                KeyRead3_Pin KeyRead4_Pin KeyRead5_Pin KeyRead6_Pin */
+        GPIO_InitStruct.Pin = FN_Pin|KeyRead0_Pin|KeyRead1_Pin|KeyRead2_Pin
+                                |KeyRead3_Pin|KeyRead4_Pin|KeyRead5_Pin|KeyRead6_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        /*Configure GPIO pins : KeyRead7_Pin KeyRead8_Pin */
+        GPIO_InitStruct.Pin = KeyRead7_Pin|KeyRead8_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+        /*Configure GPIO pins : Key4_Pin Key3_Pin Key2_Pin Key1_Pin */
+        GPIO_InitStruct.Pin = Key4_Pin|Key3_Pin|Key2_Pin|Key1_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    }
+
+    void TouchBar_Init()
+    {
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+        /* Configure TouchBar GPIOs */
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+
+        /*Configure GPIO pin Output Level */
+        HAL_GPIO_WritePin(TouchClock_GPIO_Port, TouchClock_Pin, GPIO_PIN_RESET);
+
+        /*Configure GPIO pins : TouchClock_Pin */
+        GPIO_InitStruct.Pin = TouchClock_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(TouchClock_GPIO_Port, &GPIO_InitStruct);
+
+        /*Configure GPIO pin : TouchData_Pin */
+        GPIO_InitStruct.Pin = TouchData_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(TouchData_GPIO_Port, &GPIO_InitStruct);
     }
 
     namespace

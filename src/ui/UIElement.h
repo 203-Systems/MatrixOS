@@ -1,5 +1,4 @@
-#ifndef __UI_ELEMENT_H
-#define __UI_ELEMENT_H
+#pragma once
 
 #include "MatrixOS.h"
 
@@ -13,5 +12,3 @@ namespace UIElement
     uint8_t Input8bitBinary(uint8_t currentNum, Point xy, Color color);
     uint8_t Input8bitSimple(uint8_t currentNum, Point xy, Color color);
 }
-
-#endif

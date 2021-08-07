@@ -1,5 +1,5 @@
-#ifndef __SHELL_H
-#define __SHELL_H
+#pragma once
+
 
 #include "application/Application.h"
 
@@ -11,4 +11,3 @@ class Shell : public Application
     
     void main();
 };
-#endif

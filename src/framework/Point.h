@@ -1,5 +1,4 @@
-#ifndef __POINT_H
-#define __POINT_H
+#pragma once
 
 class Point {
 public:
@@ -20,4 +19,3 @@ public:
         return cp.x != x || cp.y != y;
     }
 };
-#endif

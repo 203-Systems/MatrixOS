@@ -1,4 +1,5 @@
 #pragma once
+
 #include <assert.h>
 #ifdef __cplusplus
 #include <algorithm>
@@ -92,3 +93,34 @@ typedef uint32_t UINT;
 #endif
 
 #define EVERY(ms) static long dwTick##__LINE__ = 0; bool bDo##__LINE__ = MatrixOS::SYS::GetTick() - dwTick##__LINE__ > ms; if (bDo##__LINE__) dwTick##__LINE__ = MatrixOS::SYS::GetTick(); if (bDo##__LINE__)
+
+class fract16
+{
+    public:
+    uint16_t value;
+    fract16(uint32_t value)
+    {
+        this->value = (uint16_t)value;
+    }
+
+    fract16(uint16_t value, uint8_t bits)
+    {
+        this->value = value << (16 - bits);
+    }
+
+    // uint8_t to14bit(){return value >> 2;}
+    // uint8_t to12bit(){return value >> 4;}
+    // uint8_t to10bit(){return value >> 6;}
+    uint8_t to8bit(){return value >> 8;}
+    uint8_t to7bit(){return value >> 9;}
+    
+    operator bool() {return value > 0;}
+    operator uint8_t() {return to8bit();}
+    operator uint16_t() {return value;}
+    operator uint32_t() {return value;}
+
+    bool operator <(int value) {return this->value < value;}
+    bool operator >(int value) {return this->value > value;}
+
+    bool operator ==(int value) {return this->value == value;}
+};

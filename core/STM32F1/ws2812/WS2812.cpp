@@ -1,5 +1,10 @@
 #include "WS2812.h"
 
+namespace Device
+{
+	void ErrorHandler(void);
+}
+
 namespace WS2812
 {
 	uint16_t numsOfLED ;
@@ -28,7 +33,7 @@ namespace WS2812
 		/* TIM Callback init */
 		if (HAL_TIM_RegisterCallback(htim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, DMAHandler) != HAL_OK) //Complete
 		{
-			MatrixOS::SYS::ErrorHandler();
+			Device::ErrorHandler();
 		}
 	}
 

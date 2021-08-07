@@ -1,8 +1,7 @@
-#ifndef __VARIABLES_H
-#define __VARIABLES_H
+#pragma once
 
 #include "framework/Framework.h"
 inline uint8_t rotation = 0;
 inline uint8_t brightness = 255;
 
-#endif
+inline uint32_t hold_threshold = 400;

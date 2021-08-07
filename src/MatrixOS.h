@@ -18,6 +18,7 @@
 //All Public functions that are exposed to 
 namespace MatrixOS
 {
+  inline uint32_t API_version = 0;
   namespace SYS
   {
     void Init(void);
@@ -41,12 +42,12 @@ namespace MatrixOS
       Brightness, Rotation
       };
   
-    uintptr_t GetAttribute(SysVar variable);
-    int8_t SetAttribute(SysVar variable, uintptr_t value);
+    uintptr_t GetVariable(SysVar variable);
+    int8_t SetVariable(SysVar variable, uintptr_t value);
 
       // int Execute(uint32_t addr);
 
-      void ErrorHandler(void);
+      void ErrorHandler(char const* error = "Undefined Error");
   }
 
   namespace LED
@@ -66,32 +67,11 @@ namespace MatrixOS
   {
     void Init(void);
 
-    enum EKeyStates {IDLE, PRESSED, ACTIVED,/* HOLD, HOLD_ACTIVED,*/ RELEASED, /*HOLD_RELEASED*/};
-
-    struct KeyInfo {
-      EKeyStates state = IDLE;
-      uint32_t activeTime = 0;
-      uint16_t velocity = 0;
-      bool changed = false; //for Pressed, Hold, RELEASED, AFTERTOUCH
-      bool hold = false;
-      uint32_t holdTime(void)
-      {
-        if(state == IDLE)
-        return 0;
-
-        if(activeTime > SYS::Millis())
-        return 0;
-
-        return SYS::Millis() - activeTime;
-      }
-      operator bool() { return velocity > 0; }
-    };
-
     extern void (*handler)(KeyInfo);
     void SetHandler(void (*handler)(KeyInfo));
 
     uint8_t Scan(void (*handler)(KeyInfo) = handler); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
-    // KeyInfo GetKey(Point keyXY);
+    KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
   }
 

@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "Config.h"
 
 namespace Device
 {
@@ -7,8 +8,10 @@ namespace Device
         HAL_Init();
         SystemClock_Config();
 
-        GPIO_Init();
+        USB_Init();
         LED_Init();
+        KeyPad_Init();
+        TouchBar_Init();
     }
 
     void DeviceTask()
