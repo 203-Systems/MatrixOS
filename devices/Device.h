@@ -23,8 +23,8 @@ namespace Device
     namespace LED
     {
         void Update(Color* frameBuffer, uint8_t brightness = 255); //Render LED
-        uint16_t XY2Index(uint8_t GridID, Point xy); //Grid XY to global buffer index
-        uint16_t ID2Index(uint8_t GridID, uint16_t index); //Local led Index to buffer index
+        uint16_t XY2Index(Point xy); //Grid XY to global buffer index, return UINT16_MAX if not index for given XY
+        uint16_t ID2Index(uint16_t ledID); //Local led Index to buffer index, return UINT16_MAX if not index for given Index
     }
 
     namespace KeyPad
@@ -32,5 +32,7 @@ namespace Device
         uint16_t Scan();
         KeyInfo GetKey(Point keyXY);
         KeyInfo GetKey(uint16_t keyID);
+        uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
+        Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
     }   
 }

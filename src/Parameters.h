@@ -1,5 +1,6 @@
 #pragma once
 
+// #include "config.h"
 #define DEBUG
 
 #define FLASHVERSION 0 //Each Flash data strcture change will cause this to increase
@@ -10,3 +11,9 @@
 #define BUILD_VER 1 //0 for Release, any other number will repensent beta ver
 
 #define MULTIPRESS 10 //Key Press will be process at once
+
+#ifndef DEBOUNCE_THRESHOLD
+inline uint16_t debounce_threshold = 24;
+#endif
+
+

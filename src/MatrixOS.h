@@ -57,7 +57,7 @@ namespace MatrixOS
     extern Color* frameBuffer;
     void Init(void);
     void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
-    void SetColor(uint32_t ID, Color color, uint8_t layer = currentLayer);
+    void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
     void Fill(Color color, uint8_t layer = currentLayer);
     void Update(int8_t layer = currentLayer);
     void SwitchLayer(uint8_t layer);

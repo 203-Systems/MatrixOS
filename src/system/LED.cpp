@@ -23,19 +23,19 @@ namespace MatrixOS::LED
             MatrixOS::SYS::ErrorHandler();
             return;
         }
-        uint16_t index = Device::LED::XY2Index(0, xy); //TODO Add multi chunk support
+        uint16_t index = Device::LED::XY2Index(xy);
         frameBuffer[index + Device::numsOfLED * layer] = color;
 
     }
 
-    void SetColor(uint32_t ID, Color color, uint8_t layer)
+    void SetColor(uint16_t ID, Color color, uint8_t layer)
     {
         if(layer >= LED_LAYERS)
         {
             MatrixOS::SYS::ErrorHandler();
             return;
         }
-        uint16_t index = Device::LED::ID2Index(0, ID); //TODO Add multi chunk support
+        uint16_t index = Device::LED::ID2Index(ID);
         uint16_t bufferIndex = index + Device::numsOfLED * layer;
         frameBuffer[bufferIndex] = color;
 

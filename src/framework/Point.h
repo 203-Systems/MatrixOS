@@ -2,11 +2,11 @@
 
 class Point {
 public:
-	uint8_t x, y;
+	int16_t x, y;
 	Point()
 	{
 	}
-	Point(uint8_t _x, uint8_t _y) : 
+	Point(int16_t _x, int16_t _y) : 
 		x(_x), y(_y)
 	{
 	}

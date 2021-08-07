@@ -2,8 +2,8 @@
 #pragma once
 
 #include <stdint.h>
+#include "Parameters.h"
 #include "system/Variables.h"
-#include "system/Parameter.h"
 
 //Avoid recuesive include
 namespace MatrixOS::SYS
@@ -11,11 +11,11 @@ namespace MatrixOS::SYS
     uint32_t Millis(void);
 }
 
-enum EKeyStates : uint8_t {/*Status Key*/ IDLE, ACTIVED, 
-                           /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH};
+enum KeyStates {/*Status Key*/ IDLE, ACTIVED, 
+                 /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH};
 
 struct KeyInfo {
-    EKeyStates state = IDLE;
+    KeyStates state = IDLE;
     uint32_t lastEventTime = 0; //PRESSED and RELEASED event only
     fract16 velocity = 0;
     bool hold = false;

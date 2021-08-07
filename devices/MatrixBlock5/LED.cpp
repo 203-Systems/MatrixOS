@@ -12,29 +12,39 @@ namespace Device
             WS2812::Show(frameBuffer);
         }
 
-        uint16_t XY2Index(uint8_t GridID, Point xy)
+        uint16_t XY2Index(Point xy)
         {
-            switch(GridID)
+            if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
             {
-                case 0: //Main Grid
-                    return xy.x * 8 + xy.y;
-                case 1: //Under Glow 
-                    MatrixOS::SYS::ErrorHandler();
-                    return -1;
+                return xy.x + xy.y * 8;
             }
-            return 0;
+            return UINT16_MAX;
         }
 
-        uint16_t ID2Index(uint8_t GridID, uint16_t index)
+        //Matrix use the following ID Struct
+        // CCCC IIIIIIIIIIII
+        // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 0 (grid), it's spilted to XXXXXXX YYYYYYY.
+        // Class List:
+        // Class 0 - System - IIIIIIIIIIII
+        // Class 1 - Grid - XXXXXX YYYYYY
+        // Class 2 - TouchBar - IIIIIIIIIIII
+        // Class 3 - Underglow - IIIIIIIIIIII
+
+        uint16_t ID2Index(uint16_t ledID)
         {
-            switch(GridID)
+            uint8_t ledClass = ledID >> 12;
+            switch(ledClass)
             {
-                case 0: //Main Grid
-                    return index;
-                case 1: //Under Glow
-                    return index + 64;
+                case 1: //Main Grid
+                {
+                    uint16_t index = ledID & (0b0000111111111111);
+                    if(index < 64) return index;
+                    break;
+                }
+                case 3: //Underglow
+                    break;//TODO: Underglow
             }
-            return 0;
+            return UINT16_MAX;
         }
     }
 }

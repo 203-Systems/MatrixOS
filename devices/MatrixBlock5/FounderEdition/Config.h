@@ -2,6 +2,7 @@
 #pragma once
 
 #include "WS2812.h"
+#include "framework/KeyInfo.h"
 #include "Family.h"
 
 extern TIM_HandleTypeDef htim8;
@@ -10,12 +11,27 @@ extern DMA_HandleTypeDef hdma_tim8_ch2;
 namespace Device
 {
     const char name[] = "Matrix Founder Edition";
+    const char model[] = "MXFE1";
     const uint16_t numsOfLED = 64;
+    const uint8_t x_size = 8;
+    const uint8_t y_size = 8;
+    const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
+
 
     namespace 
     {
         void MX_DMA_Init(void);
         void MX_TIM8_Init(void);
+    }
+
+    namespace KeyPad
+    {
+        inline KeyInfo fnState;
+        inline KeyInfo keypadState[x_size][y_size];
+        inline KeyInfo touchbarState[x_size];
+        void FNScan();
+        void KeyPadScan();
+        void TouchBarScan();
     }
 }
 

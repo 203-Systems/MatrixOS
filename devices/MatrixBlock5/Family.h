@@ -1,7 +1,6 @@
 //Declear Family specific function
 #pragma once
 
-#include "Device.h"
 #include "stm32f1xx_hal.h"
 
 namespace Device
