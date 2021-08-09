@@ -16,7 +16,7 @@
 
 // using std::string;
 
-//All Public functions that are exposed to 
+//All Public functions that are exposed Application layer
 namespace MatrixOS
 {
   inline uint32_t API_version = 0;
@@ -50,7 +50,7 @@ namespace MatrixOS
 
       // int Execute(uint32_t addr);
 
-      void ErrorHandler(char const* error = "Undefined Error");
+    void ErrorHandler(char const* error = "Undefined Error");
   }
 
   namespace LED
@@ -81,6 +81,65 @@ namespace MatrixOS
     uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
     Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
 
+  }
+
+  namespace USB
+  {
+    noexpose void Init(void);
+    bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
+    bool Connnected(void); //If USB is connected
+    void Poll();
+
+    namespace CDC
+    {
+      uint32_t Available(void);
+      void Poll(void);
+      
+      void Print(char const* str);
+      void Println(char const* str);
+
+      extern void (*handler)(char const*);
+      void Read(void);
+      void SetHandler(void (*handler)(char const*));
+    }
+    
+    namespace MIDI
+    {
+      noexpose void Init(void);
+      // void Poll(void); //Not intented for app use. called from SystemTask()
+
+      uint32_t Available();
+      MidiPacket Get();
+
+
+      // extern void (* handlers[HandlerCount])();
+
+      // void SetHandler(Status status, handler handler);
+      // void ClearHandler(Status status);
+      // void ClearAllHandler(void);
+      // void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
+
+      MidiPacket DispatchPacket(uint8_t packet[4]);
+
+      void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
+      void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+      void SendProgramChange(uint8_t channel, uint8_t program);
+      void SendChannelPressure(uint8_t channel, uint8_t velocity);
+      void SendPitchChange(uint8_t channel, uint16_t pitch);
+      void SendSongPosition(uint16_t position);
+      void SendSongSelect(uint8_t song);
+      void SendTuneRequest(void);
+      void SendSync(void);
+      void SendStart(void);
+      void SendContinue(void);
+      void SendStop(void);
+      void SendActiveSense(void);
+      void SendReset(void);
+    }
+
+    // void Disable(void);
   }
 
   // namespace DBG
@@ -188,65 +247,6 @@ namespace MatrixOS
   //   uint32_t DisableInterrupts(void);
   //   void EnableInterrupts(uint32_t);
   // }
-
-  namespace USB
-  {
-    noexpose void Init(void);
-    bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
-    bool Connnected(void); //If USB is connected
-    void Poll();
-
-    namespace CDC
-    {
-      uint32_t Available(void);
-      void Poll(void);
-      
-      void Print(char const* str);
-      void Println(char const* str);
-
-      extern void (*handler)(char const*);
-      void Read(void);
-      void SetHandler(void (*handler)(char const*));
-    }
-    
-    namespace MIDI
-    {
-      noexpose void Init(void);
-      // void Poll(void); //Not intented for app use. called from SystemTask()
-
-      uint32_t Available();
-      MidiPacket Get();
-
-
-      // extern void (* handlers[HandlerCount])();
-
-      // void SetHandler(Status status, handler handler);
-      // void ClearHandler(Status status);
-      // void ClearAllHandler(void);
-      // void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
-
-      MidiPacket DispatchPacket(uint8_t packet[4]);
-
-      void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
-      void SendProgramChange(uint8_t channel, uint8_t program);
-      void SendChannelPressure(uint8_t channel, uint8_t velocity);
-      void SendPitchChange(uint8_t channel, uint16_t pitch);
-      void SendSongPosition(uint16_t position);
-      void SendSongSelect(uint8_t song);
-      void SendTuneRequest(void);
-      void SendSync(void);
-      void SendStart(void);
-      void SendContinue(void);
-      void SendStop(void);
-      void SendActiveSense(void);
-      void SendReset(void);
-    }
-
-    // void Disable(void);
-  }
 
   // namespace GPIO
   // {

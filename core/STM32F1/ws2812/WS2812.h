@@ -11,11 +11,11 @@ namespace WS2812
 {
 	void Init(TIM_HandleTypeDef *htim, unsigned int TIM_Channel, uint16_t NumsOfLED);
 	uint32_t GetTimerPeriod();
-	uint8_t Show(Color *array);
+	uint8_t Show(Color *array, uint8_t brightness = 255);
 	void DMAHandler(TIM_HandleTypeDef *htim);
 	void SendData();
 	void SendEndBuffer();
-	void PrepLEDBuffer();
+	void PrepLEDBuffer(uint8_t brightness);
 
 	extern uint16_t numsOfLED ;
 	extern uint8_t TH_DutyCycle;

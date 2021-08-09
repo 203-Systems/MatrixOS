@@ -52,13 +52,13 @@ namespace WS2812
 		return timerPeriod;
 	}
 
-	uint8_t Show(Color *array) {
+	uint8_t Show(Color *array, uint8_t brightness) {
 		if(progress != -1)
 			return -1;
 		progress = 0;
 		// HAL_TIM_PWM_Stop_DMA(htim, tim_Channel);
 		frameBuffer = array;
-		PrepLEDBuffer();
+		PrepLEDBuffer(brightness);
 		SendData();
 		return 1;
 	}
@@ -75,7 +75,7 @@ namespace WS2812
 	}
 
 
-	void PrepLEDBuffer() //Automatically load next half buffer
+	void PrepLEDBuffer(uint8_t brightness) //Automatically load next half buffer
 	{
 		uint32_t index = 0;
 		for(uint8_t i = 0; i < LED_DMA_END_LENGTH; i++)
@@ -84,7 +84,7 @@ namespace WS2812
 			index ++;
 		}
 		while (index <= (bufferSize - 24) && progress < numsOfLED) { //Fills pwm until buffer is full or all LED completely processed
-			uint32_t GRB = frameBuffer[progress].GRB(32);
+			uint32_t GRB = frameBuffer[progress].GRB(brightness);
 			for (int8_t i = 23; i >= 0; i--) {
 				 pwmBuffer[index] = GRB & (1 << i) ? TH_DutyCycle : TL_DutyCycle;
 				index++;

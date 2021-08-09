@@ -9,7 +9,7 @@ namespace Device
     {
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
-            WS2812::Show(frameBuffer);
+            WS2812::Show(frameBuffer, brightness);
         }
 
         uint16_t XY2Index(Point xy)
