@@ -12,6 +12,7 @@
 // using handler = void(*)();
 
 #undef USB //CMSIS defined the USB, undef so we can use USB as namespace
+#define noexpose //Custum key word to remove function to be generated as exposed API
 
 // using std::string;
 
@@ -22,7 +23,8 @@ namespace MatrixOS
 
   namespace SYS
   {
-    void Init(void);
+    inline bool inited = false;
+    noexpose void Init(void);
 
     uint32_t Millis(void);
     void DelayMs(uint32_t intervalMs);
@@ -54,6 +56,8 @@ namespace MatrixOS
   namespace LED
   {
     #define LED_LAYERS 1
+    // timer ledTimer;
+
     extern uint8_t currentLayer;
     extern Color* frameBuffer;
     void Init(void);
@@ -66,14 +70,17 @@ namespace MatrixOS
 
   namespace KEYPAD
   {
-    void Init(void);
+    noexpose noexpose void Init(void);
 
-    extern void (*handler)(KeyInfo);
-    void SetHandler(void (*handler)(KeyInfo));
+    // extern void (*handler)(uint16_t);
+    // void SetHandler(void (*handler)(uint16_t));
 
-    void Scan(void (*handler)(KeyInfo) = handler); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    uint16_t* Scan(void); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
     KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
+    uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
+    Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
+
   }
 
   // namespace DBG
@@ -184,7 +191,7 @@ namespace MatrixOS
 
   namespace USB
   {
-    void Init(void);
+    noexpose void Init(void);
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
     bool Connnected(void); //If USB is connected
     void Poll();
@@ -204,39 +211,21 @@ namespace MatrixOS
     
     namespace MIDI
     {
-      void Init(void);
-      void Poll(void);
+      noexpose void Init(void);
+      // void Poll(void); //Not intented for app use. called from SystemTask()
 
-      enum Status{NoteOff,
-                  NoteOn,
-                  AfterTouch,
-                  ControlChange,
-                  ProgramChange,
-                  ChannelPressure,
-                  PitchChange,
-                  SongPosition,
-                  SongSelect,
-                  TuneRequest,
-                  Sync,
-                  Start,
-                  Continue,
-                  Stop,
-                  ActiveSense,
-                  Reset,
-                  SysexData,
-                  SysexEnd,
-                  HandlerCount
-                  };
+      uint32_t Available();
+      MidiPacket Get();
 
 
-      extern void (* handlers[HandlerCount])();
+      // extern void (* handlers[HandlerCount])();
 
-      void SetHandler(Status status, handler handler);
-      void ClearHandler(Status status);
-      void ClearAllHandler(void);
-      void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
+      // void SetHandler(Status status, handler handler);
+      // void ClearHandler(Status status);
+      // void ClearAllHandler(void);
+      // void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
 
-      void DispatchPacket(uint8_t packet[4]);
+      MidiPacket DispatchPacket(uint8_t packet[4]);
 
       void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
       void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);

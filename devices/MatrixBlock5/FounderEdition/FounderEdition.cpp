@@ -48,8 +48,8 @@ namespace Device
         /*Configure GPIO pins : Key8_Pin Key7_Pin Key6_Pin Key5_Pin */
         GPIO_InitStruct.Pin = Key8_Pin|Key7_Pin|Key6_Pin|Key5_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
         HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
         /*Configure GPIO pins : KeyRead5_Pin KeyRead8_Pin KeyRead7_Pin */
@@ -73,8 +73,8 @@ namespace Device
         /*Configure GPIO pins : Key4_Pin Key3_Pin Key2_Pin Key1_Pin */
         GPIO_InitStruct.Pin = Key4_Pin|Key3_Pin|Key2_Pin|Key1_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
 
@@ -83,7 +83,7 @@ namespace Device
         GPIO_InitTypeDef GPIO_InitStruct = {0};
 
         /* Configure TouchBar GPIOs */
-        __HAL_RCC_GPIOC_CLK_ENABLE();
+        __HAL_RCC_GPIOA_CLK_ENABLE();
 
         /*Configure GPIO pin Output Level */
         HAL_GPIO_WritePin(TouchClock_GPIO_Port, TouchClock_Pin, GPIO_PIN_RESET);
@@ -98,7 +98,7 @@ namespace Device
         /*Configure GPIO pin : TouchData_Pin */
         GPIO_InitStruct.Pin = TouchData_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Pull = GPIO_PULLDOWN;
         HAL_GPIO_Init(TouchData_GPIO_Port, &GPIO_InitStruct);
     }
 

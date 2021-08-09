@@ -8,6 +8,8 @@ namespace MatrixOS::SYS
         MatrixOS::KEYPAD::Init();
         MatrixOS::LED::Init();
         MatrixOS::USB::Init();
+
+        inited = true;
     }
     
     uint32_t Millis()
@@ -33,13 +35,13 @@ namespace MatrixOS::SYS
     Timer keypadTimer; 
     void SystemTask()
     {
-        if(keypadTimer.Tick(10))
-        {
-            KEYPAD::Scan();
-        }
+        // if(keypadTimer.Tick(10))
+        // {
+        //     KEYPAD::Scan();
+        // }
         USB::Poll();
-        USB::MIDI::Poll();
-        USB::CDC::Poll();
+        // USB::MIDI::Poll();
+        // USB::CDC::Poll();
         Device::DeviceTask();
     }
 
@@ -73,7 +75,19 @@ namespace MatrixOS::SYS
     {
         USB::CDC::Print("Matrix OS Error: ");
         USB::CDC::Println(error);
-        //TODO Show Blue Screen
+        
+        //Show Blue Screen
+        LED::Fill(0x00adef);
+        if(Device::x_size >= 5 && Device::y_size >= 5)
+        {
+            LED::SetColor(Point(1,1), 0xFFFFFF);
+            LED::SetColor(Point(1,3), 0xFFFFFF);
+
+            LED::SetColor(Point(3,1), 0xFFFFFF);
+            LED::SetColor(Point(3,2), 0xFFFFFF);
+            LED::SetColor(Point(3,3), 0xFFFFFF);
+        }
+        LED::Update();
 
         Device::ErrorHandler(); //Low level indicator in case LED and USB failed
     }

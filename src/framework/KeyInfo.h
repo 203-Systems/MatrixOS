@@ -11,16 +11,17 @@ namespace MatrixOS::SYS
     uint32_t Millis(void);
 }
 
-enum KeyStates {/*Status Key*/ IDLE, ACTIVED, 
-                /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH};
+enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
+                /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH,
+                /*Placeholder Keys*/ INVAILD = 255u};
 
 struct KeyInfo {
     KeyInfo() {}
-    KeyInfo(fract16 velocity) {this->velocity = velocity;}
+    KeyInfo(Fract16 velocity) {this->velocity = velocity;}
 
     KeyStates state = IDLE;
     uint32_t lastEventTime = 0; //PRESSED and RELEASED event only
-    fract16 velocity = 0;
+    Fract16 velocity = 0;
     bool hold = false;
     
     // bool hold(uint32_t threshold = hold_threshold)
@@ -50,12 +51,12 @@ struct KeyInfo {
     Release(Pressed, Active, Hold, Hold Actived)
     Aftertouch (Pressed, Actived, Hold, Hold Actived)
     */
-    bool update(fract16 velocity)
+    bool update(Fract16 velocity)
     {
         //Reset back to normal keys
         if(state == PRESSED)
         {
-            state = ACTIVED;
+            state = ACTIVATED;
         }
 
         if(state == RELEASED)
@@ -65,7 +66,7 @@ struct KeyInfo {
 
         if(state == HOLD)
         {
-            state = ACTIVED;
+            state = ACTIVATED;
         }
 
         if(state == IDLE && velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
@@ -76,7 +77,7 @@ struct KeyInfo {
             return true;
         }
 
-        if(state == ACTIVED && velocity == 0 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if(state == ACTIVATED && velocity == 0 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
             this->velocity = 0;
@@ -84,7 +85,7 @@ struct KeyInfo {
             return true;
         }
 
-        if(state == ACTIVED && !hold)
+        if(state == ACTIVATED && !hold)
         {
             if(MatrixOS::SYS::Millis() - lastEventTime > hold_threshold)
             {

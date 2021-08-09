@@ -5,6 +5,8 @@
 #include "framework/KeyInfo.h"
 #include "Family.h"
 
+#define GRID_8x8
+#define MODEL MXFE1
 #define MULTIPRESS 10 //Key Press will be process at once
 
 extern TIM_HandleTypeDef htim8;
@@ -105,10 +107,10 @@ struct GPIO{
 #define KeyRead8_Pin GPIO_PIN_4
 #define KeyRead8_GPIO_Port GPIOC
 
-#define TouchData_Pin GPIO_PIN_4
-#define TouchData_GPIO_Port GPIOC
-#define TouchClock_Pin GPIO_PIN_5
-#define TouchClock_GPIO_Port GPIOC
+#define TouchData_Pin GPIO_PIN_6
+#define TouchData_GPIO_Port GPIOA
+#define TouchClock_Pin GPIO_PIN_7
+#define TouchClock_GPIO_Port GPIOA
 
 inline GPIO keypad_write_pins[] = {
     GPIO(Key1_GPIO_Port, Key1_Pin),

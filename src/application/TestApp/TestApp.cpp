@@ -3,8 +3,8 @@
 
 void TestApp::main()
 {
-  MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOn, note_on_handler);
-  MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOff, note_off_handler);
+  // MatrixOS::USB::MIDI::SetHandler(NoteOn, note_on_handler);
+  // MatrixOS::USB::MIDI::SetHandler(NoteOff, note_off_handler);
   while(true)
   {
       MatrixOS::SYS::SystemTask();

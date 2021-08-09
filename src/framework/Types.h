@@ -1,7 +1,9 @@
 #pragma once
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include "usb/MidiSpecs.h"
 
 #ifdef __cplusplus
 extern "C" 
@@ -50,28 +52,34 @@ typedef void* PVOID;
 
 enum Direction {UP, RIGHT, DOWN, LEFT};
 
-class fract16
+class Fract16
 {
     public:
     uint16_t value;
-    fract16(uint32_t value)
+    Fract16(uint32_t value)
     {
         this->value = (uint16_t)value;
     }
 
-    fract16(uint16_t value, uint8_t bits)
+    Fract16(uint16_t value, uint8_t bits)
     {
         this->value = value << (16 - bits);
+        // TODO: Fill the empty part of the 
+        // uint16_t fill = value 
+        // for(uint8_t i = 0; i < (16 - bits) / bits)
+        // {
+
+        // }
     }
 
-    // uint8_t to14bit(){return value >> 2;}
-    // uint8_t to12bit(){return value >> 4;}
-    // uint8_t to10bit(){return value >> 6;}
-    uint8_t to8bit(){return value >> 8;}
-    uint8_t to7bit(){return value >> 9;}
+    // uint8_t to14bits(){return value >> 2;}
+    // uint8_t to12bits(){return value >> 4;}
+    // uint8_t to10bits(){return value >> 6;}
+    uint8_t to8bits(){return value >> 8;}
+    uint8_t to7bits(){return value >> 9;}
     
     operator bool() {return value > 0;}
-    operator uint8_t() {return to8bit();}
+    operator uint8_t() {return to8bits();}
     operator uint16_t() {return value;}
     operator uint32_t() {return value;}
 
@@ -79,4 +87,47 @@ class fract16
     bool operator >(int value) {return this->value > value;}
 
     bool operator ==(int value) {return this->value == value;}
+};
+
+enum MidiStatus : uint8_t {None = 0,
+                           NoteOff = MIDIv1_NOTE_OFF,
+                           NoteOn = MIDIv1_NOTE_ON,
+                           AfterTouch = MIDIv1_AFTER_TOUCH,
+                           ControlChange = MIDIv1_CONTROL_CHANGE,
+                           ProgramChange = MIDIv1_PROGRAM_CHANGE,
+                           ChannelPressure = MIDIv1_CHANNEL_PRESSURE,
+                           PitchChange = MIDIv1_PITCH_WHEEL,
+                           SongPosition = MIDIv1_SONG_POSITION_PTR,
+                           SongSelect = MIDIv1_SONG_SELECT,
+                           TuneRequest = MIDIv1_TUNE_REQUEST,
+                           Sync = MIDIv1_CLOCK,
+                           Tick = MIDIv1_TICK,
+                           Start = MIDIv1_START,
+                           Continue = MIDIv1_CONTINUE,
+                           Stop = MIDIv1_STOP,
+                           ActiveSense = MIDIv1_ACTIVE_SENSE,
+                           Reset = MIDIv1_RESET,
+                           SysexData = MIDIv1_SYSEX_START,
+                           SysexEnd = MIDIv1_SYSEX_END
+                            };
+
+
+struct MidiPacket
+{
+    MidiStatus status;
+    uint16_t length;
+    uint8_t* data;
+
+    MidiPacket(MidiStatus status, uint16_t length = 0, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    {
+        this->status = status;
+        this->length = length;
+        this->data = (uint8_t*)malloc(length); //Malloc(0) is fine, not gonna bother checking.
+        memcpy(this->data, data, length);
+    }
+
+    ~MidiPacket()
+    {
+        free(data); //free(NULL) is fine
+    }
 };

@@ -10,12 +10,17 @@ public:
 		x(_x), y(_y)
 	{
 	}
+
 	Point operator +(const Point& cp)
 	{
 		return Point( x + cp.x, y + cp.y );
 	}
+
     bool operator !=(const Point& cp)
     {
         return cp.x != x || cp.y != y;
     }
+
+	operator bool() { return x != INT16_MIN && y != INT16_MIN; }
+
 };

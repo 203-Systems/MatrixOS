@@ -102,20 +102,25 @@ namespace Device
     }
 }
 
+namespace MatrixOS::SYS
+{
+    void ErrorHandler(char const* error);
+}
+
 extern "C" {
     void USB_HP_IRQHandler(void)
     {
-    tud_int_handler(0);
+        tud_int_handler(0);
     }
 
     void USB_LP_IRQHandler(void)
     {
-    tud_int_handler(0);
+        tud_int_handler(0);
     }
 
     void USBWakeUp_IRQHandler(void)
     {
-    tud_int_handler(0);
+        tud_int_handler(0);
     }
 
     void SysTick_Handler(void)
@@ -134,9 +139,10 @@ extern "C" {
 
     void HardFault_Handler (void)
     {
-        while(true){
+        MatrixOS::SYS::ErrorHandler("Hard Fault");
+        // while(true){
 
-        }
+        // }
     }
 
     void MemManage_Handler (void)

@@ -54,7 +54,7 @@ namespace Device::KeyPad
     }
 
     void FNScan()
-    {   fract16 read = HAL_GPIO_ReadPin(FN_GPIO_Port, FN_Pin) * UINT16_MAX;
+    {   Fract16 read = HAL_GPIO_ReadPin(FN_GPIO_Port, FN_Pin) * UINT16_MAX;
         if(fnState.update(read))
         {
             addToList(0);
@@ -68,7 +68,7 @@ namespace Device::KeyPad
             HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_SET);
             for(uint8_t y = 0; y < Device::y_size; y ++)
             {
-                fract16 read = HAL_GPIO_ReadPin(keypad_read_pins[y].port, keypad_read_pins[y].pin) * UINT16_MAX;
+                Fract16 read = HAL_GPIO_ReadPin(keypad_read_pins[y].port, keypad_read_pins[y].pin) * UINT16_MAX;
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
                 {
@@ -116,10 +116,10 @@ namespace Device::KeyPad
         {
             return (1 << 12) + (xy.x << 7) + xy.y;
         }
-        else if(xy.x >= 0 && xy.x < 8 && xy.y == 8) //Touch Bar
-        {
-            return (2 << 12) + xy.x;
-        }
+        // else if(xy.x >= 0 && xy.x < 8 && xy.y == 8) //Touch Bar
+        // {
+        //     return (2 << 12) + xy.x;
+        // }
         return UINT16_MAX;
     }
 
