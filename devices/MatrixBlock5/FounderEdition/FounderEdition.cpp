@@ -226,7 +226,7 @@ extern "C" {
             hdma_tim8_ch2.Init.Priority = DMA_PRIORITY_HIGH;
             if (HAL_DMA_Init(&hdma_tim8_ch2) != HAL_OK)
             {
-            Device::ErrorHandler();
+                Device::ErrorHandler();
             }
 
             __HAL_LINKDMA(htim_pwm,hdma[TIM_DMA_ID_CC2],hdma_tim8_ch2);

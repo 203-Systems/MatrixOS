@@ -51,7 +51,7 @@ namespace MatrixOS
 
       // int Execute(uint32_t addr);
 
-    void ErrorHandler(char const* error = "Undefined Error");
+    void ErrorHandler(char const* error = NULL);
   }
 
   namespace LED
@@ -116,7 +116,7 @@ namespace MatrixOS
  
       MidiPacket DispatchPacket(uint8_t packet[4]);
 
-      void SendPacket(MidiPacket MidiPacket);
+      void SendPacket(MidiPacket midiPacket);
       void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
       void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
       void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);

@@ -31,8 +31,16 @@ struct MidiPacket
     uint16_t length;
     uint8_t* data;
 
+    MidiPacket(MidiStatus status, ...)
+    {   
+        va_list valst;
+        MidiPacket(0, status, valst); 
+    }
+
     MidiPacket(uint16_t port, MidiStatus status, ...)
     {
+        this->port = port;
+        this->status = status;
         va_list valst;
         switch (status)
         {
@@ -43,25 +51,25 @@ struct MidiPacket
                 va_start(valst, 3);
                 length = 3;
                 data = (uint8_t*)malloc(3); 
-                data[0] = (uint8_t)(status | (va_arg(valst, uint8_t) & 0x0f));
-                data[1] = va_arg(valst, uint8_t);
-                data[2] = va_arg(valst, uint8_t);
+                data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+                data[1] = (uint8_t)va_arg(valst, int);
+                data[2] = (uint8_t)va_arg(valst, int);
                 break;
             case ProgramChange:
             case ChannelPressure:
                 va_start(valst, 22);
                 length = 2;
                 data = (uint8_t*)malloc(2); 
-                data[0] = (uint8_t)(status | (va_arg(valst, uint8_t) & 0x0f));
-                data[1] = va_arg(valst, uint8_t);
+                data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+                data[1] = (uint8_t)va_arg(valst, int);
                 break;
             case PitchChange:
             {
                 va_start(valst, 2);
                 length = 3;
                 data = (uint8_t*)malloc(3); 
-                data[0] = (uint8_t)(status | (va_arg(valst, uint8_t) & 0x0f));
-                uint16_t pitch = va_arg(valst, uint16_t);
+                data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+                uint16_t pitch = (uint16_t)va_arg(valst, int);
                 data[1] = (uint8_t)(pitch & 0x07F);
                 data[2] = (uint8_t)((pitch>>7) & 0x7f);
             }
@@ -71,7 +79,7 @@ struct MidiPacket
                 length = 1;
                 data = (uint8_t*)malloc(2); 
                 data[0] = SongSelect;
-                data[1] = va_arg(valst, uint8_t);
+                data[1] = (uint8_t)va_arg(valst, int);
                 break;
             case SongPosition:
             {
@@ -79,7 +87,7 @@ struct MidiPacket
                 length = 3;
                 data = (uint8_t*)malloc(3); 
                 data[0] = SongPosition;
-                uint16_t position = va_arg(valst, uint16_t);
+                uint16_t position = (uint16_t)va_arg(valst, int);
                 data[1] = (uint8_t)(position & 0x07F);
                 data[2] = (uint8_t)((position>>7) & 0x7f);
             }
@@ -95,12 +103,14 @@ struct MidiPacket
             case SysexData:
                 //TODO 
                 break;
+            case None:
             default:
+                length = 0;
                 break;
         }
     }
 
-    MidiPacket(MidiStatus status, uint16_t length = 0, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(MidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
     {
         this->port = 0;
         this->status = status;
@@ -109,7 +119,7 @@ struct MidiPacket
         memcpy(this->data, data, length);
     }
 
-    MidiPacket(uint16_t port, MidiStatus status, uint16_t length = 0, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(uint16_t port, MidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
     {
         this->port = port;
         this->status = status;

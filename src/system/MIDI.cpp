@@ -180,6 +180,11 @@ namespace MatrixOS::MIDI
         return MidiPacket(None);
     }
 
+    void SendPacket(MidiPacket midiPacket)
+    {
+        tud_midi_stream_write(0, midiPacket.data, midiPacket.length);
+    }
+
     void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)
     {
         uint8_t packet[3] = { (uint8_t)(MIDIv1_NOTE_OFF | (channel & 0x0f)), note, velocity};

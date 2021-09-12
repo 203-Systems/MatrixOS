@@ -74,7 +74,10 @@ namespace MatrixOS::SYS
     void ErrorHandler(char const* error)
     {
         USB::CDC::Print("Matrix OS Error: ");
-        USB::CDC::Println(error);
+        if(error == NULL)
+            USB::CDC::Println("Undefined Error");
+        else
+            USB::CDC::Println(error);
         
         //Show Blue Screen
         LED::Fill(0x00adef);

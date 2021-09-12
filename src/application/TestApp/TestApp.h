@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "framework/Timer.h"
-// #include "application/Application.h"
+#include "application/Application.h"
 #include "tusb.h"
 
 class TestApp

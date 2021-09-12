@@ -20,7 +20,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::ErrorHandler();
+            MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
             return;
         }
         uint16_t index = Device::LED::XY2Index(xy);
@@ -32,7 +32,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::ErrorHandler();
+            MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
             return;
         }
         uint16_t index = Device::LED::ID2Index(ID);
@@ -46,7 +46,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::ErrorHandler();
+            MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
             return;
         }
         for(uint16_t index = 0; index < Device::numsOfLED; index++)
@@ -64,7 +64,7 @@ namespace MatrixOS::LED
     {
         if(layer >= LED_LAYERS)
         {
-            MatrixOS::SYS::ErrorHandler();
+            MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
             return;
         }
         currentLayer = layer;

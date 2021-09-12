@@ -159,11 +159,11 @@ void Performance::grid_keyevent(Point xy, KeyInfo keyInfo)
     uint8_t note = keymap[currentKeymap][xy.y][xy.x];
     if(keyInfo.state == PRESSED)
     {
-        MatrixOS::MIDI::SendNoteOn(0, note, keyInfo.velocity.to7bits());
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo.velocity.to7bits()));
     }
     else if(keyInfo.state == RELEASED)
     {
-        MatrixOS::MIDI::SendNoteOff(0, note, 0);
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, 0, note, keyInfo.velocity.to7bits()));
     }
 }
 
