@@ -5,20 +5,25 @@
 class Application
 {
     public: 
-        char name[64];
-        char author[64];
+        char name;
+        char author;
         uint32_t version;
 
         int8_t status = 0;
         
-        inline Application()
-        {
-            
-            main();
-        }
+        // Application();
 
-        virtual void main() {};
+        void Start();
 
+        virtual void Setup() {};
+        virtual void Loop() {};
+        virtual void End() {};
+
+        void Exit();
+
+        void GetKey();
         virtual void KeyEvent(KeyInfo keyInfo) {};
+
+        void GetMidi();
         virtual void MidiEvent(MidiPacket midiPacket) {};
 };

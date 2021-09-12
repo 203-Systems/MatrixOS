@@ -8,12 +8,15 @@
 #include "tusb.h"
 #include "usb/MidiSpecs.h"
 #include "framework/Framework.h"
+
 // #include <string>
 
 // using handler = void(*)();
 
 #undef USB //CMSIS defined the USB, undef so we can use USB as namespace
 #define noexpose //Custum key word to remove function to be generated as exposed API
+
+class Application;
 
 // using std::string;
 
@@ -35,19 +38,24 @@ namespace MatrixOS
 
     void SystemTask(void);
 
-    enum class SysVar {
+    enum class ESysVar {
       //Device Info
       DeviceClass, DeviceName, DeviceVersion, DerviceRevision, SerialNumber,
       VelocityRange,
       LEDType, MatrixSizeX, MatrixSizeY, NumsOfLED, NumsOfKey,
       BootloaderVersion, SystemVersion, 
 
-      //System variable
+      //User Variable
       Brightness, Rotation
+
+      //System Variable
+
       };
   
-    uintptr_t GetVariable(SysVar variable);
-    int8_t SetVariable(SysVar variable, uintptr_t value);
+    uintptr_t GetVariable(ESysVar variable);
+    int8_t SetVariable(ESysVar variable, uintptr_t value);
+
+    void RegisterActiveApp(Application* application);
 
       // int Execute(uint32_t addr);
 
@@ -76,7 +84,9 @@ namespace MatrixOS
     // extern void (*handler)(uint16_t);
     // void SetHandler(void (*handler)(uint16_t));
 
-    uint16_t* Scan(void); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    uint16_t Scan(void); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    uint16_t Available();
+    KeyInfo Get();
     KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
     uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
@@ -135,6 +145,9 @@ namespace MatrixOS
       // void SendStop(void);
       // void SendActiveSense(void);
       // void SendReset(void);
+
+      // extern void (*handler)(MidiPacket);
+      // void SetHandler(void (*new_handler)(MidiPacket));
     }
 
   // namespace DBG

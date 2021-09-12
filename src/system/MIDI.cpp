@@ -6,11 +6,11 @@ namespace MatrixOS::MIDI
         // ClearAllHandler();
     }
 
-    // void (* handlers[HandlerCount])() = {nullptr};
+    // void (* handler)(MidiPacket) = nullptr;
 
-    // void SetHandler(Status status, handler handler)
+    // void SetHandler(void (*new_handler)(MidiPacket))
     // {
-    //     handlers[status] = handler;
+    //     handler = new_handler;
     // }
 
     // void ClearHandler(Status status)
@@ -70,6 +70,7 @@ namespace MatrixOS::MIDI
 
     uint32_t Available()
     {
+        // MatrixOS::USB::CDC::Println("Midi Available");
         return tud_midi_available();
     }
 
@@ -86,7 +87,7 @@ namespace MatrixOS::MIDI
         {
             return DispatchUSBPacket(packet);
         }
-        return MidiPacket(None);
+        return MidiPacket(1, None);
     }
 
 
@@ -94,6 +95,7 @@ namespace MatrixOS::MIDI
     MidiPacket DispatchUSBPacket(uint8_t rawPacket[4])
     {
         uint8_t packet[4];
+        uint8_t port = 1;
         memcpy(packet, rawPacket, 4);
         switch (packet[0]) 
         {
@@ -118,67 +120,68 @@ namespace MatrixOS::MIDI
             //     break;
             case CIN_3BYTE_SYS_COMMON:
                 if (packet[1] == MIDIv1_SONG_POSITION_PTR) 
-                    return MidiPacket(SongPosition, 2, &packet[2]);
+                    return MidiPacket(port, SongPosition, 2, &packet[2]);
                 break;
 
             case CIN_2BYTE_SYS_COMMON:
                 switch (packet[1]) {
                     case MIDIv1_SONG_SELECT:
-                        return MidiPacket(SongSelect, 1, &packet[2]);
+                        return MidiPacket(port, SongSelect, 1, &packet[2]);
                     case MIDIv1_MTC_QUARTER_FRAME:
                         // reference library doesnt handle quarter frame.
                         break;
                 }
                 break;
             case CIN_NOTE_OFF:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]); //Strip status value, leaving only channel
-                return MidiPacket(NoteOff, 3, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]); //Strip status value, leaving only channel
+                return MidiPacket(port, NoteOff, 3, &packet[1]);
             case CIN_NOTE_ON:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(NoteOn, 3, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, NoteOn, 3, &packet[1]);
             case CIN_AFTER_TOUCH:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(AfterTouch, 3, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, AfterTouch, 3, &packet[1]);
             case CIN_CONTROL_CHANGE:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(ControlChange, 3, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, ControlChange, 3, &packet[1]);
             case CIN_PROGRAM_CHANGE:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(ProgramChange, 2, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, ProgramChange, 2, &packet[1]);
             case CIN_CHANNEL_PRESSURE:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(ChannelPressure, 2, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, ChannelPressure, 2, &packet[1]);
             case CIN_PITCH_WHEEL:
-                packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
-                return MidiPacket(PitchChange, 3, &packet[1]);
+                // packet[1] = MIDIv1_VOICE_CHANNEL(packet[1]);
+                return MidiPacket(port, PitchChange, 3, &packet[1]);
             case CIN_1BYTE:
                 switch (packet[1]) 
                 {
                     case MIDIv1_CLOCK:
-                        return MidiPacket(Sync);
+                        return MidiPacket(port, Sync);
                     case MIDIv1_TICK:
-                        return MidiPacket(Tick);
+                        return MidiPacket(port, Tick);
                     case MIDIv1_START:
-                        return MidiPacket(Start);
+                        return MidiPacket(port, Start);
                     case MIDIv1_CONTINUE:
-                        return MidiPacket(Continue);
+                        return MidiPacket(port, Continue);
                     case MIDIv1_STOP:
-                        return MidiPacket(Stop);
+                        return MidiPacket(port, Stop);
                     case MIDIv1_ACTIVE_SENSE:
-                        return MidiPacket(ActiveSense);
+                        return MidiPacket(port, ActiveSense);
                     case MIDIv1_RESET:
-                        return MidiPacket(Reset);
+                        return MidiPacket(port, Reset);
                     case MIDIv1_TUNE_REQUEST:
-                        return MidiPacket(TuneRequest);
+                        return MidiPacket(port, TuneRequest);
                 }
                 break;
         }
-        return MidiPacket(None);
+        return MidiPacket(port, None);
     }
 
     void SendPacket(MidiPacket midiPacket)
     {
         tud_midi_stream_write(0, midiPacket.data, midiPacket.length);
+        // MatrixOS::USB::CDC::Println("Sent Midi Packet");
     }
 
     void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)

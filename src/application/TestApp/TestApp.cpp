@@ -1,36 +1,73 @@
 #include "TestApp.h"
-// #include <string> 
+#include <string> 
 
-void TestApp::main()
+void TestApp::Loop()
+{ 
+    // MatrixOS::USB::CDC::Println("Loop");
+    LED_task();
+}
+
+void TestApp::MidiEvent(MidiPacket midiPacket)
 {
-  // MatrixOS::MIDI::SetHandler(NoteOn, note_on_handler);
-  // MatrixOS::MIDI::SetHandler(NoteOff, note_off_handler);
-  while(true)
+  switch(midiPacket.status)
   {
-      MatrixOS::SYS::SystemTask();
-      LED_task();
+    case NoteOn:
+      MatrixOS::USB::CDC::Println("Note On Handler");
+
+      // MatrixOS::USB::CDC::Print("Og - Port:");
+      // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.port).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.status).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.length).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.data[0]).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.data[1]).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Println(std::to_string(midiPacket.data[2]).c_str());
+      // uint8_t channel = midiPacket.data[0];
+      // uint8_t note = midiPacket.data[1];
+      // uint8_t velocity = midiPacket.data[2];
+      // MidiPacket newPacket = MidiPacket(0, NoteOn, channel, note, velocity);
+
+      // MatrixOS::USB::CDC::Print("New - Port:");
+      // MatrixOS::USB::CDC::Print(std::to_string(newPacket.port).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(newPacket.status).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(newPacket.length).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(newPacket.data[0]).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Print(std::to_string(newPacket.data[1]).c_str());
+      // MatrixOS::USB::CDC::Print(" ");
+      // MatrixOS::USB::CDC::Println(std::to_string(newPacket.data[2]).c_str());
+
+      // MatrixOS::USB::CDC::Println("");
+
+      MatrixOS::MIDI::SendPacket(midiPacket);
+      // MatrixOS::MIDI::SendPacket(newPacket);
+      break;
+    // case NoteOff:
+    //   MatrixOS::USB::CDC::Println("Note Off Handler");
+    //   MatrixOS::MIDI::SendPacket(midiPacket);
+    //   break;
   }
 }
 
-void TestApp::note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
+void TestApp::KeyEvent(KeyInfo keyInfo)
 {
-  MatrixOS::USB::CDC::Println("Note On Handler");
-  MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, velocity));
+  MatrixOS::USB::CDC::Println("Key Event Handler");
+  MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
 }
-
-void TestApp::note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
-{
-  MatrixOS::USB::CDC::Println("Note Off Handler");
-  MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, channel, note, velocity));
-}
-
 
 void TestApp::LED_task(void)
 {
   if (TestApp::timer.Tick(100))
   { 
-    // MatrixOS::USB::CDC::Println("LED Index: ");
-    // MatrixOS::USB::CDC::Println(std::to_string(led_id));
+    // MatrixOS::USB::CDC::Print("LED Index: ");
+    // MatrixOS::USB::CDC::Println(std::to_string(led_id).c_str());
 
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     MatrixOS::LED::Update();

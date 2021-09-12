@@ -3,5 +3,15 @@
 
 #include "framework/Framework.h"
 
-// inline Application active_application;
-inline uint32_t active_app_id = 0;
+class Application;
+
+namespace MatrixOS::SysVar
+{
+    inline Application* active_app = nullptr;
+
+    inline uint16_t fps_millis;
+    inline uint16_t keypad_millis;
+
+    inline bool led_update = true;
+    inline bool keypad_scan = true;
+}

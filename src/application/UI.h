@@ -1,10 +1,11 @@
-// #pragma once
+#pragma once
 
-// #include "MatrixOS.h"
+#include "MatrixOS.h"
+#include "application/Application.h"
 
-// class UI
-// {
-//     public:
-//         char name[64];
-//         uint8_t add
-// }
+class UI : public Application
+{
+    public:
+        char name;
+        int8_t status = 0;
+}

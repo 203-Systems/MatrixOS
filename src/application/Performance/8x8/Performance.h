@@ -1,20 +1,20 @@
 #pragma once
+#ifdef GRID_8x8
 
 #include "MatrixOS.h"
+#include "application/Application.h"
 
-class Performance
+class Performance : public Application
 {
-    // using Application::Application;
     public:
-    char name[12] = "Performance";
+    char name[17] = "Performance Mode";
     char author[16] = "203 Electronics";
-    uint32_t version = 10000;
+    uint32_t version = 0;
 
-    Timer ledTimer;
-    Timer keypadTimer;
     uint8_t currentKeymap;
     
-    void main();
+    void setup() override;
+    void loop() override;
 
     void midi_task();
     void keypad_task();
@@ -312,3 +312,5 @@ class Performance
          0x004F0F00  //127
      }};
 };
+
+#endif

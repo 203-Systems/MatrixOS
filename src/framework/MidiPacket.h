@@ -1,7 +1,7 @@
 #include "usb/MidiSpecs.h"
 #include <stdarg.h>
 
-enum MidiStatus : uint8_t {None = 0,
+enum EMidiStatus : uint8_t {None = 0,
                            NoteOff = MIDIv1_NOTE_OFF,
                            NoteOn = MIDIv1_NOTE_ON,
                            AfterTouch = MIDIv1_AFTER_TOUCH,
@@ -27,17 +27,17 @@ enum MidiStatus : uint8_t {None = 0,
 struct MidiPacket
 {
     uint16_t port;
-    MidiStatus status;
+    EMidiStatus status;
     uint16_t length;
     uint8_t* data;
 
-    MidiPacket(MidiStatus status, ...)
+    MidiPacket(EMidiStatus status, ...)
     {   
         va_list valst;
         MidiPacket(0, status, valst); 
     }
 
-    MidiPacket(uint16_t port, MidiStatus status, ...)
+    MidiPacket(uint16_t port, EMidiStatus status, ...)
     {
         this->port = port;
         this->status = status;
@@ -106,7 +106,7 @@ struct MidiPacket
         }
     }
 
-    MidiPacket(MidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
     {
         this->port = 0;
         this->status = status;
@@ -115,7 +115,7 @@ struct MidiPacket
         memcpy(this->data, data, length);
     }
 
-    MidiPacket(uint16_t port, MidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
     {
         this->port = port;
         this->status = status;
@@ -123,6 +123,82 @@ struct MidiPacket
         this->data = (uint8_t*)malloc(length); //Malloc(0) is fine, not gonna bother checking.
         memcpy(this->data, data, length);
     }
+
+    uint8_t channel()
+    {
+        switch(status)
+        {   
+            case NoteOn:
+            case NoteOff:
+            case AfterTouch:
+            case ControlChange:
+            case ProgramChange:
+            case ChannelPressure:
+            case PitchChange:
+                return data[0] & 0x0F;
+            default:
+                return 0;
+        }
+    }
+
+    uint8_t note()
+    {
+        switch(status)
+        {   
+            case NoteOn:
+            case NoteOff:
+            case AfterTouch:
+            case ProgramChange: //To be honest this shouldn't be here but close enough
+                return data[1];
+            default:
+                return 0;
+        }
+    }
+
+    uint8_t controller() //Just an alies for note(), specially build for Program Change
+    {
+        return note();
+    }
+
+    uint8_t velocity()
+    {   
+        switch(status)
+        {   
+            case NoteOn:
+            case NoteOff:
+            case AfterTouch:
+            case ControlChange: //Close Enough
+                return data[2];
+            case ChannelPressure:
+                return data[1];
+            default:
+                return 0;
+        }
+    }
+
+    uint16_t value() //Get value all type, basiclly a generic getter
+    {
+        switch(status)
+        {   
+            case NoteOn: //Close enough
+            case NoteOff:
+            case AfterTouch:
+            case ControlChange: 
+                return data[2];
+            case ProgramChange:
+            case ChannelPressure:
+                return data[1];
+            case PitchChange:
+                return ((uint16_t)data[2] << 7) & data[1];
+            case SongPosition:
+                return ((uint16_t)data[1] << 7) & data[0];
+            case SongSelect:
+                return data[0];
+            default:
+                return 0;
+        }
+    }
+
 
     ~MidiPacket()
     {

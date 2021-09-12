@@ -2,12 +2,14 @@
 #include <string> 
 
 namespace MatrixOS::KEYPAD
-{
-    KeyInfo* changelist[MULTIPRESS];
+{   
+    uint16_t read = 0;
+    uint16_t changed = 0;
+    uint16_t* changelist;
 
     void Init()
     {
-        
+        SysVar::keypad_millis = 1000/UserVar::keypad_scanrate;
     }
 
     // void (*handler)(uint16_t) = nullptr;
@@ -17,11 +19,20 @@ namespace MatrixOS::KEYPAD
     //     KEYPAD::handler = handler;
     // }
 
-    uint16_t* Scan(void)
+    uint16_t Scan(void)
     {   
         // USB::CDC::Println("KeyPad Scan");
-        return Device::KeyPad::Scan();
-        // uint16_t* changelist = Device::KeyPad::Scan();
+        free(changelist);
+        uint16_t* device_change_list = Device::KeyPad::Scan();
+        changed = device_change_list[0];
+        if(changed > 0)
+        {
+            changelist = (uint16_t*)malloc(sizeof(uint16_t) * changed);
+            memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
+        }
+        read = 0;
+
+        return changed;
         // USB::CDC::Println(std::to_string(changelist[0]).c_str());
         // if(handler)
         // {
@@ -58,6 +69,21 @@ namespace MatrixOS::KEYPAD
                 // }
         //     }
         // }
+    }
+
+    uint16_t Available()
+    {
+        // MatrixOS::USB::CDC::Println("KeyPad Available");
+        return changed - read;
+    }
+
+    KeyInfo Get()
+    {
+        if(Available == 0)
+            return KeyInfo();
+        KeyInfo keyInfo = GetKey(changelist[read]);
+        read++;
+        return keyInfo;
     }
 
     KeyInfo GetKey(Point keyXY)

@@ -2,6 +2,12 @@
 #pragma once
 
 #include "framework/Framework.h"
-inline uint8_t rotation = 0;
-inline uint8_t brightness = 127;
 
+namespace MatrixOS::UserVar
+{
+    inline uint8_t rotation = 0;
+    inline uint8_t brightness = 127;
+
+    inline uint16_t fps = 60;
+    inline uint16_t keypad_scanrate = 100;
+}

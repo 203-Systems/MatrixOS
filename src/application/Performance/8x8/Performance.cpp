@@ -1,28 +1,20 @@
+#ifdef GRID_8x8
+
 #include "Performance.h"
 #include <functional>
 #include <string>
 
-#ifdef GRID_8x8
-
-void Performance::main()
+void Perofrmance::setup()
 {
     // MatrixOS::MIDI::SetHandler(NoteOn, note_handler);
     // MatrixOS::MIDI::SetHandler(NoteOff, note_handler);
     // MatrixOS::KEYPAD::SetHandler(keyevent_handler);
     currentKeymap = 0;
-    while(true)
-    {
-        MatrixOS::SYS::SystemTask();
-        midi_task();
-        if(ledTimer.Tick(16)) //62.5 FPS
-        {
-            MatrixOS::LED::Update();
-        }
-        if(keypadTimer.Tick(10)) //100HZ
-        {
-            keypad_task();
-        }
-    }
+}
+
+void Performance::loop()
+{
+    midi_task();
 }
 
 void Performance::midi_task()
@@ -72,46 +64,45 @@ void Performance::note_handler(uint8_t channel, uint8_t note, uint8_t velocity)
     }
 }
  
-void Performance::keypad_task()
-{
-    uint16_t* changelist = MatrixOS::KEYPAD::Scan();
-    // MatrixOS::USB::CDC::Print(std::to_string(MatrixOS::KEYPAD::GetKey(0).velocity.to7bits()).c_str());
-    // switch(MatrixOS::KEYPAD::GetKey(0).state)
-    // {
-    //     case IDLE:
-    //         MatrixOS::USB::CDC::Println(" IDLE");
-    //         break;
-    //     case ACTIVATED:
-    //         MatrixOS::USB::CDC::Println(" ACTIVATED");
-    //         break;
-    //     case PRESSED:
-    //         MatrixOS::USB::CDC::Println(" PRESSED");
-    //         break;
-    //     case RELEASED:
-    //         MatrixOS::USB::CDC::Println(" RELEASED");
-    //         break;
-    //     case HOLD:
-    //         MatrixOS::USB::CDC::Println(" HOLD");
-    //         break;
-    //     case AFTERTOUCH:
-    //         MatrixOS::USB::CDC::Println(" AFTERTOUCH");
-    //         break;
-    //     case INVAILD:
-    //         MatrixOS::USB::CDC::Println(" INVAILD");
-    //         break;
-    //     default:
-    //         MatrixOS::USB::CDC::Print(" UNKNOWN");
-    //         MatrixOS::USB::CDC::Println(std::to_string(MatrixOS::KEYPAD::GetKey(0).state).c_str());
+// void Performance::keypad_task()
+// {
+//     // MatrixOS::USB::CDC::Print(std::to_string(MatrixOS::KEYPAD::GetKey(0).velocity.to7bits()).c_str());
+//     // switch(MatrixOS::KEYPAD::GetKey(0).state)
+//     // {
+//     //     case IDLE:
+//     //         MatrixOS::USB::CDC::Println(" IDLE");
+//     //         break;
+//     //     case ACTIVATED:
+//     //         MatrixOS::USB::CDC::Println(" ACTIVATED");
+//     //         break;
+//     //     case PRESSED:
+//     //         MatrixOS::USB::CDC::Println(" PRESSED");
+//     //         break;
+//     //     case RELEASED:
+//     //         MatrixOS::USB::CDC::Println(" RELEASED");
+//     //         break;
+//     //     case HOLD:
+//     //         MatrixOS::USB::CDC::Println(" HOLD");
+//     //         break;
+//     //     case AFTERTOUCH:
+//     //         MatrixOS::USB::CDC::Println(" AFTERTOUCH");
+//     //         break;
+//     //     case INVAILD:
+//     //         MatrixOS::USB::CDC::Println(" INVAILD");
+//     //         break;
+//     //     default:
+//     //         MatrixOS::USB::CDC::Print(" UNKNOWN");
+//     //         MatrixOS::USB::CDC::Println(std::to_string(MatrixOS::KEYPAD::GetKey(0).state).c_str());
     
-    //         break;
-    // }
-    for(uint16_t i = 0; i < changelist[0]; i++)
-    {
-    //    MatrixOS::USB::CDC::Println(std::to_string(changelsist[i+1]).c_str());
-       keyevent_handler(changelist[i+1]);
-    }
-    // if(changelist[0]) MatrixOS::USB::CDC::Println("");
-}
+//     //         break;
+//     // }
+//     for(uint16_t i = 0; i < changelist[0]; i++)
+//     {
+//     //    MatrixOS::USB::CDC::Println(std::to_string(changelsist[i+1]).c_str());
+//        keyevent_handler(changelist[i+1]);
+//     }
+//     // if(changelist[0]) MatrixOS::USB::CDC::Println("");
+// }
 
 void Performance::keyevent_handler(uint16_t keyID)
 {

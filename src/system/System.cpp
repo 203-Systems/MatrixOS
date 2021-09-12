@@ -32,20 +32,25 @@ namespace MatrixOS::SYS
         Device::Bootloader();
     }
 
+    Timer ledTimer; 
     Timer keypadTimer; 
     void SystemTask()
     {
-        // if(keypadTimer.Tick(10))
-        // {
-        //     KEYPAD::Scan();
-        // }
         USB::Poll();
+        if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
+        {
+            LED::Update();
+        }
+        if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
+        {
+            KEYPAD::Scan();
+        }
         // USB::MIDI::Poll();
         // USB::CDC::Poll();
         Device::DeviceTask();
     }
 
-    uintptr_t GetAttribute(SysVar variable)
+    uintptr_t GetAttribute(ESysVar variable)
     {
         switch(variable)
         {
@@ -55,20 +60,25 @@ namespace MatrixOS::SYS
         }
     }
 
-    int8_t SetAttribute(SysVar variable, uintptr_t value)
+    int8_t SetAttribute(ESysVar variable, uintptr_t value)
     {
         switch(variable)
         {
-            case SysVar::Rotation:
-                rotation = (uint8_t)value;
+            case ESysVar::Rotation:
+                UserVar::rotation = (uint8_t)value;
                 break;
-            case SysVar::Brightness:
-                brightness = (uint8_t)value;
+            case ESysVar::Brightness:
+                UserVar::brightness = (uint8_t)value;
                 break;
             default:
                 return -1;
         }
         return 0;
+    }
+
+    void RegisterActiveApp(Application* application)
+    {
+        SysVar::active_app = application;
     }
 
     void ErrorHandler(char const* error)
