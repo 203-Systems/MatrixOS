@@ -50,7 +50,7 @@ namespace Device::KeyPad
                 break;
             }
         }
-        return KeyInfo(2323); //Return an empty KeyInfo
+        return KeyInfo(); //Return an empty KeyInfo
     }
 
     void FNScan()

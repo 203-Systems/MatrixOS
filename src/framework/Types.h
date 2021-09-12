@@ -49,8 +49,6 @@ typedef volatile const int32_t vsc32;
 typedef volatile const int64_t vsc64;
 typedef void* PVOID;
 
-enum Direction {UP, RIGHT, DOWN, LEFT};
-
 class Fract16
 {
     public:

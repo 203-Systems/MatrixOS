@@ -5,7 +5,7 @@
 
 namespace MatrixOS::UserVar
 {
-    inline uint8_t rotation = 0;
+    inline EDirection rotation = TOP;
     inline uint8_t brightness = 127;
 
     inline uint16_t fps = 60;

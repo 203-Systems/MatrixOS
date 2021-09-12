@@ -7,3 +7,4 @@
 #include "KeyInfo.h"
 #include "Timer.h"
 #include "MidiPacket.h"
+#include "Direction.h"

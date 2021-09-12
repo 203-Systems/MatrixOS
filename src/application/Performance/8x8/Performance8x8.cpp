@@ -1,6 +1,7 @@
 // #ifdef GRID_8x8
 
 #include "Performance8x8.h"
+#include "ActionMenu8x8.h"
 #include <functional>
 #include <string>
 
@@ -64,7 +65,7 @@ void Performance::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
     }
     else //XY Not vaild, 
     {
-
+        IDKeyEvent(KeyID, keyInfo);
     }
 }
 
@@ -78,6 +79,15 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
     else if(keyInfo.state == RELEASED)
     {
         MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, 0, note, keyInfo.velocity.to7bits()));
+    } 
+}
+
+void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
+{
+    if(keyID == 0 && keyInfo.state == PRESSED)
+    {
+        ActionMenu actionMenu;
+        actionMenu.Start();
     }
 }
 

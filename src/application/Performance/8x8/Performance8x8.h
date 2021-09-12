@@ -24,6 +24,7 @@ class Performance : public Application
     void KeyEvent(uint16_t keyID, KeyInfo keyInfo) override;
 
     void GridKeyEvent(Point xy, KeyInfo KeyInfo);
+    void IDKeyEvent(uint16_t keyID, KeyInfo KeyInfo);
 
     const uint8_t keymap[2][8][8] =
     {{{64, 65, 66, 67, 96, 97, 98, 99}, //Drum Rack

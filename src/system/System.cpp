@@ -65,7 +65,7 @@ namespace MatrixOS::SYS
         switch(variable)
         {
             case ESysVar::Rotation:
-                UserVar::rotation = (uint8_t)value;
+                UserVar::rotation = (EDirection)value;
                 break;
             case ESysVar::Brightness:
                 UserVar::brightness = (uint8_t)value;
