@@ -6,3 +6,4 @@
 #include "Handler.h"
 #include "KeyInfo.h"
 #include "Timer.h"
+#include "MidiPacket.h"

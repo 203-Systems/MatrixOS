@@ -2,8 +2,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "Parameters.h"
-#include "system/Variables.h"
+#include "system/Parameters.h"
 
 //Avoid recuesive include
 namespace MatrixOS::SYS

@@ -6,8 +6,8 @@
 
 void Performance::main()
 {
-    // MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOn, note_handler);
-    // MatrixOS::USB::MIDI::SetHandler(MatrixOS::USB::MIDI::NoteOff, note_handler);
+    // MatrixOS::MIDI::SetHandler(NoteOn, note_handler);
+    // MatrixOS::MIDI::SetHandler(NoteOff, note_handler);
     // MatrixOS::KEYPAD::SetHandler(keyevent_handler);
     currentKeymap = 0;
     while(true)
@@ -27,10 +27,10 @@ void Performance::main()
 
 void Performance::midi_task()
 {
-    while(MatrixOS::USB::MIDI::Available())
+    while(MatrixOS::MIDI::Available())
     {
         MatrixOS::USB::CDC::Println("Midi Recived");
-        MidiPacket packet = MatrixOS::USB::MIDI::Get();
+        MidiPacket packet = MatrixOS::MIDI::Get();
         switch(packet.status)
         {
             case NoteOn:
@@ -159,11 +159,11 @@ void Performance::grid_keyevent(Point xy, KeyInfo keyInfo)
     uint8_t note = keymap[currentKeymap][xy.y][xy.x];
     if(keyInfo.state == PRESSED)
     {
-        MatrixOS::USB::MIDI::SendNoteOn(0, note, keyInfo.velocity.to7bits());
+        MatrixOS::MIDI::SendNoteOn(0, note, keyInfo.velocity.to7bits());
     }
     else if(keyInfo.state == RELEASED)
     {
-        MatrixOS::USB::MIDI::SendNoteOff(0, note, 0);
+        MatrixOS::MIDI::SendNoteOff(0, note, 0);
     }
 }
 

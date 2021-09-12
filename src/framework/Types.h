@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "usb/MidiSpecs.h"
 
 #ifdef __cplusplus
 extern "C" 
@@ -89,45 +88,3 @@ class Fract16
     bool operator ==(int value) {return this->value == value;}
 };
 
-enum MidiStatus : uint8_t {None = 0,
-                           NoteOff = MIDIv1_NOTE_OFF,
-                           NoteOn = MIDIv1_NOTE_ON,
-                           AfterTouch = MIDIv1_AFTER_TOUCH,
-                           ControlChange = MIDIv1_CONTROL_CHANGE,
-                           ProgramChange = MIDIv1_PROGRAM_CHANGE,
-                           ChannelPressure = MIDIv1_CHANNEL_PRESSURE,
-                           PitchChange = MIDIv1_PITCH_WHEEL,
-                           SongPosition = MIDIv1_SONG_POSITION_PTR,
-                           SongSelect = MIDIv1_SONG_SELECT,
-                           TuneRequest = MIDIv1_TUNE_REQUEST,
-                           Sync = MIDIv1_CLOCK,
-                           Tick = MIDIv1_TICK,
-                           Start = MIDIv1_START,
-                           Continue = MIDIv1_CONTINUE,
-                           Stop = MIDIv1_STOP,
-                           ActiveSense = MIDIv1_ACTIVE_SENSE,
-                           Reset = MIDIv1_RESET,
-                           SysexData = MIDIv1_SYSEX_START,
-                           SysexEnd = MIDIv1_SYSEX_END
-                            };
-
-
-struct MidiPacket
-{
-    MidiStatus status;
-    uint16_t length;
-    uint8_t* data;
-
-    MidiPacket(MidiStatus status, uint16_t length = 0, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
-    {
-        this->status = status;
-        this->length = length;
-        this->data = (uint8_t*)malloc(length); //Malloc(0) is fine, not gonna bother checking.
-        memcpy(this->data, data, length);
-    }
-
-    ~MidiPacket()
-    {
-        free(data); //free(NULL) is fine
-    }
-};

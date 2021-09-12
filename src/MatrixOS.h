@@ -2,8 +2,9 @@
 #define __MATRIXOS_H
 
 #include "Device.h"
-#include "Parameters.h"
-#include "system/Variables.h"
+#include "system/Parameters.h"
+#include "system/UserVariables.h"
+#include "system/SystemVariables.h"
 #include "tusb.h"
 #include "usb/MidiSpecs.h"
 #include "framework/Framework.h"
@@ -16,7 +17,7 @@
 
 // using std::string;
 
-//All Public functions that are exposed Application layer
+//Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
   inline uint32_t API_version = 0;
@@ -70,7 +71,7 @@ namespace MatrixOS
 
   namespace KEYPAD
   {
-    noexpose noexpose void Init(void);
+    noexpose void Init(void);
 
     // extern void (*handler)(uint16_t);
     // void SetHandler(void (*handler)(uint16_t));
@@ -102,25 +103,20 @@ namespace MatrixOS
       void Read(void);
       void SetHandler(void (*handler)(char const*));
     }
-    
-    namespace MIDI
+    // void Disable(void);
+  }
+
+  namespace MIDI
     {
       noexpose void Init(void);
       // void Poll(void); //Not intented for app use. called from SystemTask()
 
       uint32_t Available();
       MidiPacket Get();
-
-
-      // extern void (* handlers[HandlerCount])();
-
-      // void SetHandler(Status status, handler handler);
-      // void ClearHandler(Status status);
-      // void ClearAllHandler(void);
-      // void CallHandler(Status status, uint32_t value1 = 0, uint32_t value2 = 0, uint32_t value3 = 0);
-
+ 
       MidiPacket DispatchPacket(uint8_t packet[4]);
 
+      void SendPacket(MidiPacket MidiPacket);
       void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
       void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
       void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
@@ -138,9 +134,6 @@ namespace MatrixOS
       void SendActiveSense(void);
       void SendReset(void);
     }
-
-    // void Disable(void);
-  }
 
   // namespace DBG
   // {

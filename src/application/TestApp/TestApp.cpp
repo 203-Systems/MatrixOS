@@ -3,8 +3,8 @@
 
 void TestApp::main()
 {
-  // MatrixOS::USB::MIDI::SetHandler(NoteOn, note_on_handler);
-  // MatrixOS::USB::MIDI::SetHandler(NoteOff, note_off_handler);
+  // MatrixOS::MIDI::SetHandler(NoteOn, note_on_handler);
+  // MatrixOS::MIDI::SetHandler(NoteOff, note_off_handler);
   while(true)
   {
       MatrixOS::SYS::SystemTask();
@@ -15,13 +15,13 @@ void TestApp::main()
 void TestApp::note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
   MatrixOS::USB::CDC::Println("Note On Handler");
-  MatrixOS::USB::MIDI::SendNoteOn(channel, note, velocity);
+  MatrixOS::MIDI::SendNoteOn(channel, note, velocity);
 }
 
 void TestApp::note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
   MatrixOS::USB::CDC::Println("Note Off Handler");
-  MatrixOS::USB::MIDI::SendNoteOff(channel, note, velocity);
+  MatrixOS::MIDI::SendNoteOff(channel, note, velocity);
 }
 
 

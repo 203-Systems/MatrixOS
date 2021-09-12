@@ -13,11 +13,12 @@ class Application
         
         inline Application()
         {
+            
             main();
         }
 
         virtual void main() {};
 
-        // virtual void KeyEvent(MatrixOS::KEYPAD::KeyInfo keyInfo) {};
-        // virtual void MidiEvent() {};
+        virtual void KeyEvent(KeyInfo keyInfo) {};
+        virtual void MidiEvent(MidiPacket midiPacket) {};
 };
