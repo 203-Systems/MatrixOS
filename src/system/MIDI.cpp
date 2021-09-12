@@ -6,16 +6,6 @@ namespace MatrixOS::MIDI
         // ClearAllHandler();
     }
 
-    void Poll(void)
-    {
-        uint8_t packet[4];
-        while(tud_midi_available())
-        {
-            tud_midi_packet_read(packet);
-            DispatchPacket(packet);
-        }
-    }
-
     // void (* handlers[HandlerCount])() = {nullptr};
 
     // void SetHandler(Status status, handler handler)
@@ -85,17 +75,23 @@ namespace MatrixOS::MIDI
 
     MidiPacket Get()
     {
+        //IF USB is enabled
+        return GetUSB();
+    }
+
+    MidiPacket GetUSB()
+    {
         uint8_t packet[4];
         if(tud_midi_packet_read(packet))
         {
-            return DispatchPacket(packet);
+            return DispatchUSBPacket(packet);
         }
         return MidiPacket(None);
     }
 
 
 
-    MidiPacket DispatchPacket(uint8_t rawPacket[4])
+    MidiPacket DispatchUSBPacket(uint8_t rawPacket[4])
     {
         uint8_t packet[4];
         memcpy(packet, rawPacket, 4);

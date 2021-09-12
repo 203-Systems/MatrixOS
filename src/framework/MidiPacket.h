@@ -42,13 +42,13 @@ struct MidiPacket
         this->port = port;
         this->status = status;
         va_list valst;
+        va_start(valst, status);
         switch (status)
         {
             case NoteOn:
             case NoteOff:
             case AfterTouch:
             case ControlChange:
-                va_start(valst, 3);
                 length = 3;
                 data = (uint8_t*)malloc(3); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
@@ -57,7 +57,6 @@ struct MidiPacket
                 break;
             case ProgramChange:
             case ChannelPressure:
-                va_start(valst, 22);
                 length = 2;
                 data = (uint8_t*)malloc(2); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
@@ -65,7 +64,6 @@ struct MidiPacket
                 break;
             case PitchChange:
             {
-                va_start(valst, 2);
                 length = 3;
                 data = (uint8_t*)malloc(3); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
@@ -75,7 +73,6 @@ struct MidiPacket
             }
                 break;
             case SongSelect:
-                va_start(valst, 1);
                 length = 1;
                 data = (uint8_t*)malloc(2); 
                 data[0] = SongSelect;
@@ -83,7 +80,6 @@ struct MidiPacket
                 break;
             case SongPosition:
             {
-                va_start(valst, 1);
                 length = 3;
                 data = (uint8_t*)malloc(3); 
                 data[0] = SongPosition;

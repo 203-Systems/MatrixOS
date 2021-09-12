@@ -113,26 +113,28 @@ namespace MatrixOS
 
       uint32_t Available();
       MidiPacket Get();
- 
-      MidiPacket DispatchPacket(uint8_t packet[4]);
+
+      //USB
+      noexpose MidiPacket GetUSB();
+      noexpose MidiPacket DispatchUSBPacket(uint8_t packet[4]);
 
       void SendPacket(MidiPacket midiPacket);
-      void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
-      void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
-      void SendProgramChange(uint8_t channel, uint8_t program);
-      void SendChannelPressure(uint8_t channel, uint8_t velocity);
-      void SendPitchChange(uint8_t channel, uint16_t pitch);
-      void SendSongPosition(uint16_t position);
-      void SendSongSelect(uint8_t song);
-      void SendTuneRequest(void);
-      void SendSync(void);
-      void SendStart(void);
-      void SendContinue(void);
-      void SendStop(void);
-      void SendActiveSense(void);
-      void SendReset(void);
+      // void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
+      // void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+      // void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
+      // void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+      // void SendProgramChange(uint8_t channel, uint8_t program);
+      // void SendChannelPressure(uint8_t channel, uint8_t velocity);
+      // void SendPitchChange(uint8_t channel, uint16_t pitch);
+      // void SendSongPosition(uint16_t position);
+      // void SendSongSelect(uint8_t song);
+      // void SendTuneRequest(void);
+      // void SendSync(void);
+      // void SendStart(void);
+      // void SendContinue(void);
+      // void SendStop(void);
+      // void SendActiveSense(void);
+      // void SendReset(void);
     }
 
   // namespace DBG
