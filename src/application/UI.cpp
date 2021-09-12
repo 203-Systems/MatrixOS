@@ -63,6 +63,17 @@ void UI::AddUIElement(UIElement uiElement, Point xy)
     uiElementsMap[xy] = &(uiElements.back());
 }
 
+void UI::AddUIElement(UIElement uiElement, uint16_t count, ...)
+{
+    uiElements.push_back(uiElement);
+    va_list valst;
+    va_start(valst, count);
+    for(uint8_t i = 0; i < count; i ++)
+    {
+        uiElementsMap[(Point)va_arg(valst, Point)] = &(uiElements.back());
+    }
+}
+
 void UI::ClearUIElements()
 {
     uiElements.clear();

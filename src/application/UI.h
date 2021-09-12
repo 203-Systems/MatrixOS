@@ -66,6 +66,7 @@ class UI
         std::map<Point, UIElement*> uiElementsMap;
 
         void AddUIElement(UIElement uiElement, Point xy);
+        void AddUIElement(UIElement uiElement, uint16_t count, ...);
 
         void ClearUIElements();
         private:
