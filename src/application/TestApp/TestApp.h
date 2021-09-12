@@ -20,7 +20,7 @@ class TestApp : public Application
     
     void Loop() override;
 
-    void KeyEvent(KeyInfo keyInfo) override;
+    void KeyEvent(uint16_t keyID, KeyInfo keyInfo) override;
     void MidiEvent(MidiPacket midiPacket) override;
 
     void LED_task(void);

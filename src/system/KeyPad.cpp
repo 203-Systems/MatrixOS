@@ -77,13 +77,13 @@ namespace MatrixOS::KEYPAD
         return changed - read;
     }
 
-    KeyInfo Get()
+    uint16_t Get()
     {
         if(Available == 0)
-            return KeyInfo();
-        KeyInfo keyInfo = GetKey(changelist[read]);
+            return 0xFFFF;
+        uint16_t keyID = (changelist[read]);
         read++;
-        return keyInfo;
+        return keyID;
     }
 
     KeyInfo GetKey(Point keyXY)

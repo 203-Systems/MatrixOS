@@ -86,7 +86,7 @@ namespace MatrixOS
 
     uint16_t Scan(void); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
     uint16_t Available();
-    KeyInfo Get();
+    uint16_t Get();
     KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
     uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY

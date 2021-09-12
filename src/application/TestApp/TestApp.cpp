@@ -56,7 +56,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
   }
 }
 
-void TestApp::KeyEvent(KeyInfo keyInfo)
+void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
   MatrixOS::USB::CDC::Println("Key Event Handler");
   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));

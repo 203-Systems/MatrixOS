@@ -1,5 +1,5 @@
 #pragma once
-#ifdef GRID_8x8
+// #ifdef GRID_8x8
 
 #include "MatrixOS.h"
 #include "application/Application.h"
@@ -13,18 +13,17 @@ class Performance : public Application
 
     uint8_t currentKeymap;
     
-    void setup() override;
-    void loop() override;
+    void Setup() override;
+    void Loop() override;
 
-    void midi_task();
-    void keypad_task();
-
-    void note_handler(uint8_t channel, uint8_t note, uint8_t velocity);
+    void MidiEvent(MidiPacket midiPacket) override;
+    void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
     // void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity);
     // void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity);
 
-    void keyevent_handler(uint16_t KeyID);
-    void grid_keyevent(Point xy, KeyInfo KeyInfo);
+    void KeyEvent(uint16_t keyID, KeyInfo keyInfo) override;
+
+    void GridKeyEvent(Point xy, KeyInfo KeyInfo);
 
     const uint8_t keymap[2][8][8] =
     {{{64, 65, 66, 67, 96, 97, 98, 99}, //Drum Rack
@@ -313,4 +312,4 @@ class Performance : public Application
      }};
 };
 
-#endif
+// #endif

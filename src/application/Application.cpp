@@ -22,7 +22,8 @@ void Application::GetKey()
 {
     while(MatrixOS::KEYPAD::Available())
     {   
-        KeyEvent(MatrixOS::KEYPAD::Get());
+        uint16_t keyID = MatrixOS::KEYPAD::Get();
+        KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
     }
 }
 
