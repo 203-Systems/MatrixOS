@@ -50,17 +50,21 @@ namespace MatrixOS::SYS
         Device::DeviceTask();
     }
 
-    uintptr_t GetAttribute(ESysVar variable)
+    uintptr_t GetVariable(ESysVar variable)
     {
         switch(variable)
-        {
+        {   
+            case ESysVar::Rotation:
+                return (uintptr_t)(&UserVar::rotation);
+            case ESysVar::Brightness:
+                return (uintptr_t)(&UserVar::brightness);
             default:
                 // _ASSERT(0);
                 return (uintptr_t)nullptr;
         }
     }
 
-    int8_t SetAttribute(ESysVar variable, uintptr_t value)
+    int8_t SetVariable(ESysVar variable, uint32_t value)
     {
         switch(variable)
         {

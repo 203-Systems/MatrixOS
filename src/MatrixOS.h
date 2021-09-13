@@ -53,9 +53,9 @@ namespace MatrixOS
       };
   
     uintptr_t GetVariable(ESysVar variable);
-    int8_t SetVariable(ESysVar variable, uintptr_t value);
+    int8_t SetVariable(ESysVar variable, uint32_t value);
 
-    void RegisterActiveApp(Application* application);
+    // void RegisterActiveApp(Application* application);
 
       // int Execute(uint32_t addr);
 

@@ -36,6 +36,7 @@ void UI::GetKey()
     while(MatrixOS::KEYPAD::Available())
     {   
         uint16_t keyID = MatrixOS::KEYPAD::Get();
+        KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
         UIKeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
     }
 }
@@ -46,6 +47,32 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     {
         Exit();
         return;
+    }
+    Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+    if(xy && uiElementsMap.count(xy)) //Not Found
+    {   
+        if(keyInfo == RELEASED)
+        {
+            uiElementsMap[xy]->Callback();
+            return;
+        }
+        else if(keyInfo == HOLD)
+        {
+            if(uiElementsMap[xy]->hold_callback == NULL)
+            {
+                //TextScroll;
+            }
+            else
+            {
+              uiElementsMap[xy]->HoldCallback();
+              return;
+            }
+        }
+        MatrixOS::USB::CDC::Println("Registered");
+    }
+    else
+    {
+        MatrixOS::USB::CDC::Println("Not registered");
     }
 }
 
