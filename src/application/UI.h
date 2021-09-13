@@ -39,6 +39,7 @@ struct UIElement
 
     void Callback()
     {
+        MatrixOS::USB::CDC::Println("Callback");
         callback();
     }
 
@@ -46,6 +47,7 @@ struct UIElement
     {
         if(hold_callback == NULL)
             return;
+        MatrixOS::USB::CDC::Println("Hold Callback");
         hold_callback();
     }
 };

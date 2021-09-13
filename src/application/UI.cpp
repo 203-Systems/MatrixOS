@@ -51,12 +51,12 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
     if(xy && uiElementsMap.count(xy)) //Not Found
     {   
-        if(keyInfo == RELEASED)
+        if(keyInfo.state == RELEASED)
         {
             uiElementsMap[xy]->Callback();
             return;
         }
-        else if(keyInfo == HOLD)
+        else if(keyInfo.state == HOLD)
         {
             if(uiElementsMap[xy]->hold_callback == NULL)
             {
@@ -68,11 +68,6 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
               return;
             }
         }
-        MatrixOS::USB::CDC::Println("Registered");
-    }
-    else
-    {
-        MatrixOS::USB::CDC::Println("Not registered");
     }
 }
 
