@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#include <list>
+#include <vector>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -85,4 +88,3 @@ class Fract16
 
     bool operator ==(int value) {return this->value == value;}
 };
-

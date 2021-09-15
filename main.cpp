@@ -1,5 +1,4 @@
 #include "MatrixOS.h"
-#include "application/TestApp/TestApp.h"
 #include "application/Performance/Performance.h"
 
 int main()
@@ -8,8 +7,8 @@ int main()
 
     Performance performance;
     performance.Start();
-    // TestApp testApp;
-    // testApp.Start();
 
     return 0;             
 }
+
+extern "C"{ void * __dso_handle = 0 ;}  

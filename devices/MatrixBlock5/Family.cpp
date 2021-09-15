@@ -21,7 +21,8 @@ namespace Device
 
     void Bootloader()
     {
-        
+        BKP::Write(10, 0x424C);
+        Reboot();
     }
 
     void Reboot()

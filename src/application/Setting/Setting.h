@@ -4,11 +4,11 @@
 #include "MatrixOS.h"
 #include "application/UI.h"
 
-class ActionMenu : public UI
+class Setting: public UI
 {
     public:
-    char name[11] = "ActionMenu";
-    Color nameColor = Color(0x00FFAA);
+    char name[11] = "Setting";
+    Color nameColor = Color(0x00FFFF);
 
     void Setup() override;
     // void End() override;

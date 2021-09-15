@@ -16,6 +16,6 @@ inline uint16_t debounce_threshold = 24;
 
 inline uint16_t hold_threshold = 400;
 
-inline uint8_t brightness_level[8] = {255, 127, 51, 25, 25, 51, 127, 255};
+inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
 
 

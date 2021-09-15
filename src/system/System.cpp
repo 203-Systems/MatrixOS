@@ -1,4 +1,6 @@
 #include "MatrixOS.h"
+#include "SavedVariable.h"
+#include "application/Setting/Setting.h"
 
 namespace MatrixOS::SYS
 {
@@ -29,6 +31,28 @@ namespace MatrixOS::SYS
 
     void Bootloader()
     {
+        LED::Fill(0);
+        uint8_t x = GetVariable(ESysVar::MatrixSizeX);
+        uint8_t y = GetVariable(ESysVar::MatrixSizeY);
+        if(x >= 4 && y >= 4)
+        {
+            uint8_t x_center = x / 2;
+            uint8_t y_center = y / 2;
+            Color color = Color(0xFF0000);
+            LED::SetColor(Point(x_center - 1, y_center - 2), color);
+            LED::SetColor(Point(x_center, y_center - 2), color);
+            LED::SetColor(Point(x_center - 2, y_center - 1), color);
+            LED::SetColor(Point(x_center - 1, y_center - 1), color);
+            LED::SetColor(Point(x_center, y_center - 1), color);
+            LED::SetColor(Point(x_center + 1, y_center - 1), color);
+            LED::SetColor(Point(x_center - 1, y_center), color);
+            LED::SetColor(Point(x_center, y_center), color);
+            LED::SetColor(Point(x_center - 1, y_center + 1), color);
+            LED::SetColor(Point(x_center, y_center + 1), color);
+        }
+        // DelayMs(10);
+        LED::Update();
+        DelayMs(10); //Wait for led data to be updated first. TODO: Update with LED::updated var from device layer
         Device::Bootloader();
     }
 
@@ -50,10 +74,20 @@ namespace MatrixOS::SYS
         Device::DeviceTask();
     }
 
+    void OpenSetting(void)
+    {
+        Setting setting;
+        setting.Start();
+    }
+
     uintptr_t GetVariable(ESysVar variable)
     {
         switch(variable)
         {   
+            case ESysVar::MatrixSizeX:
+                return Device::x_size;
+            case ESysVar::MatrixSizeY:
+                return Device::y_size;
             case ESysVar::Rotation:
                 return (uintptr_t)(&UserVar::rotation);
             case ESysVar::Brightness:

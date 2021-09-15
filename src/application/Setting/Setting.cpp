@@ -1,6 +1,6 @@
-#include "ActionMenu8x8.h"
+#include "Setting.h"
 
-void ActionMenu::Setup()
+void Setting::Setup()
 {   
     //Brightness Control
     AddUIElement(UIElement("Brightness", Color(0xFFFFFF), []() -> void {NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
@@ -11,18 +11,24 @@ void ActionMenu::Setup()
     AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(DOWN);}), 2, Point(3, 5), Point(4, 5));
     AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
-    // AddUIElement(UIElement("Bootloader", Color(0x00FFFF), []() -> void {MatrixOS::SYS::Bootloader();}), Point(2, 2));
+    //Device Control
+    AddUIElement(UIElement("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, 7));
+    AddUIElement(UIElement("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, 6));
+    AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {}), Point(1, 7));
+    AddUIElement(UIElement("Device Bootloader Version", Color(0x00FF30), []() -> void {}), Point(2, 7));
+    AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {}), Point(3, 7));
 
-    AddUIElement(UIElement("Bootloader", Color(0x00FFFF), []() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
 
+    AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
+    AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(7, 7));
 }
 
-void ActionMenu::RotateClockwise(EDirection rotation)
+void Setting::RotateClockwise(EDirection rotation)
 {
-    MatrixOS::USB::CDC::Println("Rotate");
+    
 }
 
-void ActionMenu::NextBrightness()
+void Setting::NextBrightness()
 {
     uint8_t current_brightness = (uint8_t)MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::Brightness);
     MatrixOS::USB::CDC::Print("Brightness: ");
@@ -38,8 +44,8 @@ void ActionMenu::NextBrightness()
     MatrixOS::SYS::SetVariable(MatrixOS::SYS::ESysVar::Brightness, brightness_level[0]);
 }
 
-void ActionMenu::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
+void Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
 {
-    // MatrixOS::USB::CDC::Println("KeyEvent");
+    
 }
 

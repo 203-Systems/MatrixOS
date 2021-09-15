@@ -35,4 +35,12 @@ namespace Device
         uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
         Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
     }   
+
+    #undef BKP
+    namespace BKP //Back up register, presistant ram after software reset.
+    {
+        // uint16_t size;
+        uint32_t Read(uint32_t address);
+        int8_t Write(uint32_t address, uint32_t data);
+    }
 }

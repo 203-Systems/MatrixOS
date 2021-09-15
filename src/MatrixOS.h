@@ -38,6 +38,8 @@ namespace MatrixOS
 
     void SystemTask(void);
 
+    void OpenSetting(void);
+
     enum class ESysVar {
       //Device Info
       DeviceClass, DeviceName, DeviceVersion, DerviceRevision, SerialNumber,
@@ -64,17 +66,24 @@ namespace MatrixOS
 
   namespace LED
   {
-    #define LED_LAYERS 1
+    #define MAX_LED_LAYERS 5
     // timer ledTimer;
 
-    extern uint8_t currentLayer;
-    extern Color* frameBuffer;
+    inline uint8_t currentLayer;
+    inline std::vector<Color*> frameBuffers;
     void Init(void);
     void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
     void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
     void Fill(Color color, uint8_t layer = currentLayer);
     void Update(int8_t layer = currentLayer);
-    void SwitchLayer(uint8_t layer);
+    // void SwitchLayer(uint8_t layer);
+
+    int8_t CreateLayer();
+    void DestoryLayer();
+    
+
+    void ShiftCanvas(EDirection direction, int8_t distance);
+    void RotateCanvas(EDirection direction);
   }
 
   namespace KEYPAD
