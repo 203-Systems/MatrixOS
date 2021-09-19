@@ -38,13 +38,10 @@ namespace Device::EEPROM
     uint16_t GetFreeSpace(uint8_t page);
     int8_t CheckSpace(uint16_t length);
 
-    uint16_t WriteKey(uint32_t hash, void* pointer, uint16_t length, uint8_t page);
-
-    void WriteToFlash(void* pointer, uint16_t length, uint16_t* address);
-    // void WriteData(HashKey newKey, uint8_t offset);
-
     void CleanUpTable(); 
     void Format();
+
+     void WriteToFlash(void* pointer, uint16_t length, uint16_t* address);
 
     // void* Read(std::string name);
     // void Write(std::string name, void* pointer, uint16_t length);

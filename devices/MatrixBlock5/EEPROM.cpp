@@ -10,6 +10,20 @@ namespace Device::EEPROM
     void Init()
     {
         //Determine Data Direction
+        uint32_t left = *(uint32_t*)GetPage(0);
+        uint32_t right = *(uint32_t*)GetPage(nums_of_page-1);
+        if(left == direction_indicator && right != direction_indicator)
+        {
+            reversed = false;
+        }
+        else if(left != direction_indicator && right == direction_indicator)
+        {
+            reversed = true;
+        }
+        else
+        {
+            Format();
+        }
 
 
         //Get Byte Used in Each Page
@@ -176,10 +190,5 @@ namespace Device::EEPROM
             HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, (uint32_t)(address + length_16bit), pointer_16bit[length_16bit] & 0xF0);
         }
         HAL_FLASH_Lock();
-    }
-
-    void WriteData(HashKey newKey, uint8_t offset)
-    {
-        
     }
 }
