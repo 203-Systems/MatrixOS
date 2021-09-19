@@ -165,6 +165,11 @@ namespace Device
             HAL_TIM_MspPostInit(&htim8);
         }
     }
+
+    void EEPROM_Init()
+    {
+        
+    }
 }
 
 TIM_HandleTypeDef htim8;

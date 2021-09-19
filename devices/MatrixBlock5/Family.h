@@ -10,4 +10,11 @@ namespace Device
     void LED_Init();
     void KeyPad_Init();
     void TouchBar_Init();
+    void EEPROM_Init();
+
+    // namespace EEPROM
+    // {
+    //     int16_t FindKey(uint32_t hash);
+    //     HashKey GetKey(uint32_t hash);
+    // }
 }

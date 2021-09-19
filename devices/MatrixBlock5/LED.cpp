@@ -1,7 +1,4 @@
-#ifndef __MatrixBlock5__LED__
-#define __MatrixBlock5__LED__
-
-#include "MatrixOS.h"
+#include "Device.h"
 
 namespace Device
 {
@@ -48,5 +45,3 @@ namespace Device
         }
     }
 }
-
-#endif

@@ -123,7 +123,7 @@ namespace Device::KeyPad
         return UINT16_MAX;
     }
 
-    //Matrix use the following ID Struct
+    // Matrix use the following ID Struct
     // CCCC IIIIIIIIIIII
     // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 0 (grid), it's spilted to XXXXXXX YYYYYYY.
     // Class List:

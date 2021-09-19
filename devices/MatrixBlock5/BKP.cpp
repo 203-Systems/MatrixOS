@@ -1,5 +1,4 @@
 #include "Device.h"
-#include "Config.h"
 
 namespace Device::BKP
 {

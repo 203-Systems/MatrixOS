@@ -2,13 +2,16 @@
 
 #include "framework/Framework.h"
 #include "tusb.h"
-#include "config.h"
+#include "Config.h"
 
 namespace Device
 {  
-    /*Required Varaiables:
+    /*
+    Required Varaiables:
     const char name[];
     const uint16_t numsOfLED;
+    const uint8_t x_size;
+    const uint8_t y_size;
     */
     
     void DeviceInit();
@@ -39,8 +42,14 @@ namespace Device
     #undef BKP
     namespace BKP //Back up register, presistant ram after software reset.
     {
-        // uint16_t size;
+        extern uint16_t size;
         uint32_t Read(uint32_t address);
         int8_t Write(uint32_t address, uint32_t data);
+    }
+
+    namespace EEPROM
+    {
+        void* Read(std::string name);
+        bool Write(std::string name, void* pointer, uint16_t length);
     }
 }
