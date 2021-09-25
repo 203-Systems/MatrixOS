@@ -5,6 +5,7 @@ INC += src/
 INC += devices/
 INC += src/usb/ #Optimize for TinyUSB
 INC += lib/tinyusb/src/
+INC += lib/printf/
 
 # ---------------------------------------
 # Code Source
@@ -13,7 +14,7 @@ SRC_CPP += main.cpp
 SRC_C += $(wildcard src/*.c src/*/*.c src/*/*/*.c src/*/*/*/*.c src/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
 SRC_CPP += $(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp) #Same as above
 
-# TinyUSB Stack source
+# Library source
 SRC_C += \
 	lib\tinyusb\src\tusb.c \
 	lib\tinyusb\src\common\tusb_fifo.c \
@@ -28,7 +29,8 @@ SRC_C += \
 	lib\tinyusb\src\class\msc\msc_device.c \
 	lib\tinyusb\src\class\net\net_device.c \
 	lib\tinyusb\src\class\usbtmc\usbtmc_device.c \
-	lib\tinyusb\src\class\vendor\vendor_device.c
+	lib\tinyusb\src\class\vendor\vendor_device.c \
+	lib\printf\printf.c
 
 # Include all source C in family & board folder
 SRC_C += $(subst ,,$(wildcard $(BOARD_PATH)/*.c))

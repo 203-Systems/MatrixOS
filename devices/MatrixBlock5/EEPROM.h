@@ -24,13 +24,14 @@ namespace Device::EEPROM
             this->length = length;
         }
 
-        bool Used() {return hash != 0xFFFF;}
-        bool Latest() {return new_address != 0xFFFF;}
+        bool Used() {return hash != 0xFFFFFFFF;}
+        bool Latest() {return new_address == 0xFFFF;}
     };
 
     const uint32_t direction_indicator = 0x28dc67e2;
 
     void Init();
+    void UpdateBytesUsed();
 
 	uint16_t FindKey(uint32_t hash);
 
@@ -45,7 +46,7 @@ namespace Device::EEPROM
 
 	bool WriteKey(uint32_t hash, void* pointer, uint16_t length);
 
-	void WriteToFlash(void* pointer, uint16_t length, uint16_t* address);
+	void WriteToFlash(uint32_t pointer, uint16_t length, uint16_t* address);
 	void EreasePage(uint32_t address, uint32_t pages = 1);
 
 	// std::vector<char> Read(std::string name);

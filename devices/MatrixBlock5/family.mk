@@ -29,7 +29,9 @@ SRC_C += \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_tim_ex.c \
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_pwr.c\
 	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rtc.c \
-	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rtc_ex.c
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_rtc_ex.c \
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_flash.c \
+	$(ST_HAL_DRIVER)/Src/stm32$(ST_FAMILY)xx_hal_flash_ex.c
 
 SRC_CPP += \
 	core\STM32F1\ws2812\WS2812.cpp \

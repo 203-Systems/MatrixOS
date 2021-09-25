@@ -118,8 +118,9 @@ namespace MatrixOS
       
       void Print(char const* str);
       void Println(char const* str);
+      void Printf(const char* format, ...);
       void Flush(void);
-      
+
       int8_t Read(void);
       uint32_t ReadBytes(void* buffer, uint32_t length); //Returns nums byte read
       std::string ReadString(void);

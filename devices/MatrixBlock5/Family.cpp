@@ -11,6 +11,7 @@ namespace Device
         LED_Init();
         KeyPad_Init();
         TouchBar_Init();
+        EEPROM::Init();
     }
 
     void DeviceTask()

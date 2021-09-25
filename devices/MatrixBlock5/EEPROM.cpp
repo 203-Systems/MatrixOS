@@ -1,4 +1,18 @@
 #include "EEPROM.h"
+// #include <string>
+
+// namespace MatrixOS::SYS
+// {
+// 	void ErrorHandler(char const* error = NULL);
+// }
+
+#undef USB
+
+namespace MatrixOS::USB::CDC
+{
+	void Print(char const* str);
+	void Println(char const* str);
+}
 
 namespace Device::EEPROM
 {
@@ -13,49 +27,64 @@ namespace Device::EEPROM
 		uint32_t right = *(uint32_t*)GetPage(nums_of_page - 1);
 		if (left == direction_indicator && right != direction_indicator)
 		{
-			// std::cout << "EEPROM is currently in forward direction" << std::endl;
+			// MatrixOS::USB::CDC::Println("EEPROM is currently in forward direction");
 			reversed = false;
 		}
 		else if (left != direction_indicator && right == direction_indicator)
 		{
-			// std::cout << "EEPROM is currently in reverse direction" << std::endl;
+			// MatrixOS::USB::CDC::Println("EEPROM is currently in reverse direction");
 			reversed = true;
 		}
 		else
 		{
-			// std::cout << "EEPROM is current uninitalized or corrupted" << std::endl;
+			// MatrixOS::USB::CDC::Println("EEPROM is current uninitalized or corrupted");
 			Format();
 		}
-		return;
 
+		UpdateBytesUsed();
+	}
 
-		//Get Byte Used in Each Page
+	void UpdateBytesUsed()
+	{
+		// Get Byte Used in Each Page
+		// MatrixOS::USB::CDC::Println("Update Bytes Used");
 		for (uint8_t page = 0; page < nums_of_page; page++)
 		{
+			// MatrixOS::USB::CDC::Print("Page: ");
+			// MatrixOS::USB::CDC::Println(std::to_string(page).c_str());
 			uint32_t page_address = GetPage(page);
 			uint16_t local_address = 0;
 			if (page == 0) local_address = 4;
 			while (local_address < page_size)
 			{
+				// MatrixOS::USB::CDC::Print("Local Address: ");
+				// MatrixOS::USB::CDC::Println(std::to_string(local_address).c_str());
 				HashKey* hashKey = (HashKey*)(page_address + local_address);
 				if (hashKey->Used() == false)
 				{
+					// MatrixOS::USB::CDC::Println("Page End Found");
 					byteUsed[page] = local_address;
+					// MatrixOS::USB::CDC::Print("Bytes Used for Page ");
+					// MatrixOS::USB::CDC::Print(std::to_string(page).c_str());
+					// MatrixOS::USB::CDC::Print(" is ");
+					// MatrixOS::USB::CDC::Println(std::to_string(byteUsed[page]).c_str());
 					break;
 				}
-				local_address += sizeof(HashKey) + hashKey->length;
+				local_address += sizeof(HashKey) + hashKey->length + (hashKey->length % 2) ;
 			}
 		}
 	}
 
 	std::vector<char> Read(std::string name)
 	{
-		//printf("Reading Key\n");
+		MatrixOS::USB::CDC::Println("Reading Key");
 		uint32_t hash = fnv1a_hash(name.c_str());
 		uint16_t virtual_address = FindKey(hash);
 		if (virtual_address == 0xFFFF) return std::vector<char>(0);
 		HashKey* hashKey = GetKey(virtual_address);
-		//printf("Key Found, length: %d\n", hashKey->length);
+		// printf("Key Found, length: %d\n", hashKey->length);
+		MatrixOS::USB::CDC::Print("Key Found, length: ");
+		MatrixOS::USB::CDC::Println(std::to_string(hashKey->length).c_str());
 		std::vector<char> value(hashKey->length);
 		memcpy(value.data(), (char*)hashKey + sizeof(HashKey), hashKey->length);
 		return value;
@@ -63,6 +92,7 @@ namespace Device::EEPROM
 
 	bool Write(std::string name, void* pointer, uint16_t length)
 	{
+		MatrixOS::USB::CDC::Println("Write");
 		//printf("EEPROM Write event - Key: %s, value %s, pointer %p, length %u\n", name.c_str(), (char*)pointer, pointer, length);
 		// Iterate through the Table section to find matching key 
 		uint32_t hash = fnv1a_hash(name.c_str());
@@ -86,20 +116,28 @@ namespace Device::EEPROM
 		HashKey newKey = HashKey(hash, length);
 		// Write HashKey to Flash
 		uint16_t local_address = byteUsed[page];
+		MatrixOS::USB::CDC::Print("Page: ");
+		MatrixOS::USB::CDC::Print(std::to_string(page).c_str());
+		MatrixOS::USB::CDC::Print(" Local Address: ");
+		MatrixOS::USB::CDC::Println(std::to_string(local_address).c_str());
 		uint32_t write_address = GetPage(page) + local_address;
-		WriteToFlash((void*)write_address, sizeof(HashKey), (uint16_t*)&newKey);
+		WriteToFlash(write_address, sizeof(HashKey), (uint16_t*)&newKey);
 		// Write Actual Data
 		write_address += sizeof(HashKey);
-		WriteToFlash((void*)write_address, length, (uint16_t*)pointer);
+		WriteToFlash(write_address, length, (uint16_t*)pointer);
 		// Update Page Usage
 		byteUsed[page] += (length + (length % 2)) + sizeof(HashKey); //16bit align
 
 		// Update Old Key
 		if (oldAddress != 0xFFFF)
 		{
+			MatrixOS::USB::CDC::Print("Update old key at vadd: ");
+			MatrixOS::USB::CDC::Println(std::to_string(oldAddress).c_str());
 			HashKey* oldKey = GetKey(oldAddress);
+			MatrixOS::USB::CDC::Print("Address of old key: ");
+			MatrixOS::USB::CDC::Println(std::to_string((uint32_t)oldKey).c_str());
 			uint16_t virtual_address = page * page_size + local_address;
-			WriteToFlash((void*)(&oldKey->new_address), 2, &virtual_address);
+			WriteToFlash((uint32_t)(&(oldKey->new_address)), 2, &virtual_address);
 		}
 		return true;
 	}
@@ -130,12 +168,14 @@ namespace Device::EEPROM
 						hashKey = GetKey(hashKey->new_address);
 					}
 					//printf("Key Index %X\n", GetVirtualAddress(hashKey));
+					// MatrixOS::USB::CDC::Print("Key Index: ");
+					MatrixOS::USB::CDC::Println(std::to_string(GetVirtualAddress(hashKey)).c_str());
 					return GetVirtualAddress(hashKey);
 				}
 				local_address += sizeof(HashKey) + hashKey->length + hashKey->length % 2;//16bit aligned
 			}
 		}
-		//printf("Key Not found\n");
+		// MatrixOS::USB::CDC::Println("Key Not found\n");
 		return 0xFFFF; //oops we ran out of keys and still can't find it. Use 0xFFFF because it's impossible as a key address
 	}
 
@@ -213,7 +253,7 @@ namespace Device::EEPROM
 			if (page == 0)
 			{
 				byteUsed[page] = 4;
-				WriteToFlash((void*)page_address, 4, (uint16_t*)&direction_indicator);
+				WriteToFlash(page_address, 4, (uint16_t*)&direction_indicator);
 			}
 
 			for (const auto &data : pageData) {
@@ -226,9 +266,9 @@ namespace Device::EEPROM
 
 	void Format()
 	{
-		// std::cout << "EEPROM Formating..." << std::endl;
-		memset((void*)eeprom_address, 0xFF, page_size * nums_of_page);
-		WriteToFlash((void*)eeprom_address, 4, (uint16_t*)&direction_indicator);
+		MatrixOS::USB::CDC::Println("EEPROM Formating...");
+		EreasePage(eeprom_address, nums_of_page);
+		WriteToFlash(eeprom_address, 4, (uint16_t*)&direction_indicator);
 
 		reversed = false;
 		byteUsed[0] = 4;
@@ -236,24 +276,41 @@ namespace Device::EEPROM
 		{
 			byteUsed[page] = 0;
 		}
-		// std::cout << "EEPROM Formated" << std::endl;
+		MatrixOS::USB::CDC::Println("EEPROM Formated");
 	}
 
-    void WriteToFlash(void* pointer, uint16_t length, uint16_t* address)
+    void WriteToFlash(uint32_t flash_address, uint16_t length, uint16_t* data)
     {
-        uint16_t length_16bit = length / 2;
-        uint16_t* pointer_16bit = (uint16_t*)pointer;
+		// MatrixOS::USB::CDC::Println("Write To Flash");
+        uint16_t length_16bit = length / 2; //If odd then 1 less than actual size
+        uint16_t* flash_address_16bit = (uint16_t*)flash_address;
 
         HAL_FLASH_Unlock();
+		MatrixOS::USB::CDC::Println("Flash Unlocked");
         for(uint16_t i = 0; i < length_16bit; i ++)
         {
-            HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, (uint32_t)(address + i), pointer_16bit[i]);
+			MatrixOS::USB::CDC::Print("Write To Flash - Address: ");
+			MatrixOS::USB::CDC::Print(std::to_string((uint32_t)(flash_address_16bit + i)).c_str());
+			MatrixOS::USB::CDC::Print(" Value: ");
+			MatrixOS::USB::CDC::Println(std::to_string((uint64_t)(data[i])).c_str());
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, (uint32_t)(flash_address_16bit + i), (uint64_t)(data[i])) != HAL_OK)
+			{
+				MatrixOS::USB::CDC::Println("Flash Write ERROR");
+			}
         }
         if(length % 2) //If the data length is odd number
-        {
-            HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, (uint32_t)(address + length_16bit), pointer_16bit[length_16bit] & 0xF0);
+        {	
+			MatrixOS::USB::CDC::Print("Write To Flash (Half Byte)- Address: ");
+			MatrixOS::USB::CDC::Print(std::to_string((uint32_t)(flash_address_16bit + length_16bit)).c_str());
+			MatrixOS::USB::CDC::Print(" Value: ");
+			MatrixOS::USB::CDC::Println(std::to_string((uint64_t)(data[length_16bit] & 0xF0)).c_str());
+            if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, (uint32_t)(flash_address_16bit + length_16bit), (uint64_t)(data[length_16bit])) != HAL_OK) //Small endian, the byte will be on the first half of the half word
+			{
+				MatrixOS::USB::CDC::Println("Flash Write ERROR");
+			}	
         }
         HAL_FLASH_Lock();
+		// MatrixOS::USB::CDC::Println("Flash Locked");
     }
 
     void EreasePage(uint32_t address, uint32_t pages)
@@ -266,7 +323,6 @@ namespace Device::EEPROM
         flashErase.PageAddress = address;
         flashErase.TypeErase = FLASH_TYPEERASE_PAGES;
         HAL_FLASHEx_Erase(&flashErase, &error);
-        WriteToFlash((void*)eeprom_address, 4, (uint16_t*)&direction_indicator);
         HAL_FLASH_Lock();
 	}
 }

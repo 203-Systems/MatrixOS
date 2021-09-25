@@ -2,6 +2,7 @@
 #pragma once
 
 #include "WS2812.h"
+#include "EEPROM.h"
 #include "framework/KeyInfo.h"
 #include "Family.h"
 
@@ -24,7 +25,7 @@ namespace Device
 
         const uint16_t page_size = 2048;
         const uint8_t nums_of_page = 32; //Total size has to smaller than 64kb because address constrain
-        const uint32_t eeprom_address = 0x80070000;
+        const uint32_t eeprom_address = 0x8070000;
 
     namespace 
     {

@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "printf.h"
 
 namespace MatrixOS::USB
 {
@@ -44,21 +45,27 @@ namespace MatrixOS::USB
         {
             for(uint16_t i = 0; i < strlen(str); i++)
             {
+                while(!tud_cdc_n_write_available(0))
+                {
+                    SYS::SystemTask();
+                }
                 tud_cdc_n_write_char(0, str[i]);
             }
             // tud_cdc_n_write_str(0, str);
-            tud_cdc_n_write_flush(0);
+            // tud_cdc_n_write_flush(0);
         }
 
         void Println(char const* str)
         {
-            for(uint16_t i = 0; i < strlen(str); i++)
-            {
-                tud_cdc_n_write_char(0, str[i]);
-            }
-            tud_cdc_n_write_char(0, '\r');
-            tud_cdc_n_write_char(0, '\n');
-            tud_cdc_n_write_flush(0);
+            Print(str);
+            Print("\n\r");
+            // tud_cdc_n_write_flush(0);
+        }
+
+        void Printf(const char* format, ...)
+        {
+            va_list valst;
+            printf(format, valst);
         }
 
         void Flush(void)
@@ -92,14 +99,27 @@ namespace MatrixOS::USB
         std::string ReadString(void)
         {
             std::string str;
+            uint8_t i = 0;
+            // Print("Buffer remains ");
+            // Println(std::to_string(Available()).c_str());
             while(Available())
             {
                 int8_t c = Read();
+                // Print("Char read ");
+                // Println(std::to_string(c).c_str());
                 if(c == -1) break;
+                i++;
                 str.push_back(c);
                 if(c == 0) break;
             }
+            // Print("String read with length ");
+            // Println(std::to_string(i).c_str());
             return str;
         }
     }
+}
+
+void _putchar(char character)
+{
+    tud_cdc_n_write_char(0, character);
 }
