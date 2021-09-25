@@ -1,12 +1,12 @@
 #include "MatrixOS.h"
-#include "application/Performance/Performance.h"
+#include "application/Applications.h"
 
 int main()
 {
     MatrixOS::SYS::Init();
 
-    Performance performance;
-    performance.Start();
+    EEPROMTest eepromTest;
+    eepromTest.Start();
 
     return 0;             
 }

@@ -24,9 +24,15 @@ namespace MatrixOS::USB
 
     namespace CDC
     {
-        uint32_t Available()
+
+        bool Connected(void)
         {
-            return tud_cdc_n_write_available(0);
+            return tud_cdc_n_connected(0);
+        }
+
+        uint32_t Available(void)
+        {
+            return tud_cdc_n_available(0);
         }
 
         void Poll(void)
@@ -36,18 +42,29 @@ namespace MatrixOS::USB
 
         void Print(char const* str)
         {
-            tud_cdc_n_write_str(0, str);
+            for(uint16_t i = 0; i < strlen(str); i++)
+            {
+                tud_cdc_n_write_char(0, str[i]);
+            }
+            // tud_cdc_n_write_str(0, str);
             tud_cdc_n_write_flush(0);
         }
 
         void Println(char const* str)
         {
-            tud_cdc_n_write_str(0, str);
-            tud_cdc_n_write_str(0, "\r\n");
+            for(uint16_t i = 0; i < strlen(str); i++)
+            {
+                tud_cdc_n_write_char(0, str[i]);
+            }
+            tud_cdc_n_write_char(0, '\r');
+            tud_cdc_n_write_char(0, '\n');
             tud_cdc_n_write_flush(0);
         }
 
-        void (*handler)(char const*) = nullptr;
+        void Flush(void)
+        {
+            tud_cdc_n_write_flush(0);
+        }
 
         // void Read() //Prob won't work, implentation need work
         // {
@@ -62,9 +79,27 @@ namespace MatrixOS::USB
         //     }
         // }
 
-        void SetHandler(void (*handler)(char const*))
+        int8_t Read(void)
         {
-            CDC::handler = handler;
+            return tud_cdc_n_read_char(0);
+        }
+
+        uint32_t  ReadBytes(void* buffer, uint32_t length)
+        {
+            return tud_cdc_n_read(0, buffer, length);
+        }
+
+        std::string ReadString(void)
+        {
+            std::string str;
+            while(Available())
+            {
+                int8_t c = Read();
+                if(c == -1) break;
+                str.push_back(c);
+                if(c == 0) break;
+            }
+            return str;
         }
     }
 }

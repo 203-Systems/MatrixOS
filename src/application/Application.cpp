@@ -5,9 +5,7 @@ void Application::Start()
     Setup();
     while(status != -1)
     {
-        MatrixOS::SYS::SystemTask();
-        GetKey();
-        GetMidi();
+        LoopTask();
         Loop();
     }
     End();
@@ -16,6 +14,13 @@ void Application::Start()
 void Application::Exit()
 {
     status = -1;
+}
+
+void Application::LoopTask()
+{
+    MatrixOS::SYS::SystemTask();
+    GetKey();
+    GetMidi();
 }
 
 void Application::GetKey()

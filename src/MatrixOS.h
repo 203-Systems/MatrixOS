@@ -112,15 +112,18 @@ namespace MatrixOS
 
     namespace CDC
     {
+      bool Connected(void);
       uint32_t Available(void);
       void Poll(void);
       
       void Print(char const* str);
       void Println(char const* str);
+      void Flush(void);
+      
+      int8_t Read(void);
+      uint32_t ReadBytes(void* buffer, uint32_t length); //Returns nums byte read
+      std::string ReadString(void);
 
-      extern void (*handler)(char const*);
-      void Read(void);
-      void SetHandler(void (*handler)(char const*));
     }
     // void Disable(void);
   }

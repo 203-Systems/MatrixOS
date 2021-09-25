@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Device.h"
+#include <map>
 
 namespace Device::EEPROM
 {
@@ -27,22 +28,27 @@ namespace Device::EEPROM
         bool Latest() {return new_address != 0xFFFF;}
     };
 
+    const uint32_t direction_indicator = 0x28dc67e2;
+
     void Init();
 
-    uint16_t FindKey(uint32_t hash);
+	uint16_t FindKey(uint32_t hash);
 
-    HashKey* GetKey(uint16_t virtual_address);
-    HashKey* GetKey(uint8_t page, uint16_t local_address);
-    uint16_t GetVirtualAddress(HashKey* hashKey);
-    uint32_t GetPage(uint8_t index);
-    uint16_t GetFreeSpace(uint8_t page);
-    int8_t CheckSpace(uint16_t length);
+	HashKey* GetKey(uint16_t virtual_address);
+	HashKey* GetKey(uint8_t page, uint16_t local_address);
+	uint16_t GetVirtualAddress(HashKey* hashKey);
+	uint32_t GetPage(uint8_t index);
+	uint16_t GetFreeSpace(uint8_t page);
+	int8_t CheckSpace(uint16_t length);
 
-    void CleanUpTable(); 
-    void Format();
+	void CleanUpTable(uint32_t hash_to_ignore = 0);
 
-     void WriteToFlash(void* pointer, uint16_t length, uint16_t* address);
+	bool WriteKey(uint32_t hash, void* pointer, uint16_t length);
 
-    // void* Read(std::string name);
-    // void Write(std::string name, void* pointer, uint16_t length);
+	void WriteToFlash(void* pointer, uint16_t length, uint16_t* address);
+	void EreasePage(uint32_t address, uint32_t pages = 1);
+
+	// std::vector<char> Read(std::string name);
+	// bool Write(std::string name, void* pointer, uint16_t length);
+    // void Format();
 }

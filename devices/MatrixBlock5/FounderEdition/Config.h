@@ -22,9 +22,9 @@ namespace Device
 
     const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
 
-    const uint16_t page_size = 2048;
-    const uint8_t nums_of_page = 32; //Total size has to smaller than 64kb because address constrain
-    const uint32_t eeprom_address = 0x80070000;
+        const uint16_t page_size = 2048;
+        const uint8_t nums_of_page = 32; //Total size has to smaller than 64kb because address constrain
+        const uint32_t eeprom_address = 0x80070000;
 
     namespace 
     {

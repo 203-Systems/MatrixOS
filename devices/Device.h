@@ -49,7 +49,9 @@ namespace Device
 
     namespace EEPROM
     {
-        void* Read(std::string name);
+        std::vector<char> Read(std::string name);
+        // void* Read(std::string name);
         bool Write(std::string name, void* pointer, uint16_t length);
+        void Format();
     }
 }

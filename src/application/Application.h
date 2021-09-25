@@ -21,6 +21,8 @@ class Application
 
         void Exit();
 
+        void LoopTask();
+
         void GetKey();
         virtual void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {};
 
