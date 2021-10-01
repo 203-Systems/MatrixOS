@@ -17,14 +17,14 @@ namespace Device
 
     const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
 
-    void USB_Init();
-
     namespace KeyPad
     {
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[x_size];
         inline uint16_t changeList[MULTIPRESS + 1];
+
+        void USB_Init();
 
         void FNScan();
         void KeyPadScan();
