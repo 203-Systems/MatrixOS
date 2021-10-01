@@ -1,9 +1,6 @@
 //Define Device Specific Macro, Value and private function
 #pragma once
 
-#include "WS2812.h"
-#include "EEPROM.h"
-#include "framework/KeyInfo.h"
 #include "Family.h"
 
 #define GRID_8x8

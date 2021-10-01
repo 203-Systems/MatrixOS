@@ -1,7 +1,7 @@
 #include "EEPROMTest.h"
 #include <string> 
 #include <algorithm>
-#include "EEPROM.h"
+#include "Drivers/EEPROM.h"
 
 void EEPROMTest::Setup()
 { 

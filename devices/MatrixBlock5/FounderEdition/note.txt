@@ -1,1 +1,0 @@
-This is the hardware specific code for Matrix Block 6 varients

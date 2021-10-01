@@ -1,6 +1,6 @@
 CFLAGS += -DSTM32F103xE
 
-LD_FILE = $(BOARD_PATH)/STM32F103RETx_FLASH.ld
+LD_FILE = $(DEVICE_PATH)/STM32F103RETx_FLASH.ld
 
 SRC_S += $(ST_CMSIS)/Source/Templates/gcc/startup_stm32f103xe.s
 

@@ -32,9 +32,11 @@ SRC_C += \
 	lib\tinyusb\src\class\vendor\vendor_device.c \
 	lib\printf\printf.c
 
-# Include all source C in family & board folder
-SRC_C += $(subst ,,$(wildcard $(BOARD_PATH)/*.c))
-SRC_CPP += $(subst ,,$(wildcard $(BOARD_PATH)/*.cpp))
+# Include all source C in family & device folder
+SRC_C += $(subst ,,$(wildcard $(DEVICE_PATH)/*.c))
+SRC_CPP += $(subst ,,$(wildcard $(DEVICE_PATH)/*.cpp))
+SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.c))
+SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.cpp))
 SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
 

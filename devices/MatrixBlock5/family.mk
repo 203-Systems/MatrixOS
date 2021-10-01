@@ -5,7 +5,7 @@ DEPS_SUBMODULES += lib/CMSIS_5 core/stm32$(ST_FAMILY)/cmsis_device_$(ST_FAMILY) 
 ST_CMSIS = core/stm32$(ST_FAMILY)/cmsis_device_$(ST_FAMILY)
 ST_HAL_DRIVER = core/stm32$(ST_FAMILY)/stm32$(ST_FAMILY)xx_hal_driver
 
-include $(BOARD_PATH)/device.mk
+include $(DEVICE_PATH)/device.mk
 
 CFLAGS += \
   -flto \
@@ -37,7 +37,8 @@ SRC_CPP += \
 	core\STM32F1\ws2812\WS2812.cpp \
 
 INC += \
-	$(BOARD_PATH) \
+	$(DEVICE_PATH) \
+	$(FAMILY_PATH)/Drivers \
 	lib/CMSIS_5/CMSIS/Core/Include \
 	core/stm32$(ST_FAMILY)/ws2812 \
 	$(ST_CMSIS)/Include \

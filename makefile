@@ -31,15 +31,15 @@ endif
 
 # Build directory
 ifeq ($(CMDEXE),1)
-$(shell if exist build\$(BOARD) rd build\$(BOARD) /s /q)
+$(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
 endif
 
 
 
-BUILD := build/$(BOARD)
+BUILD := build/$(DEVICE)
 
 PROJECT := $(notdir $(CURDIR))
-BIN := _bin/$(BOARD)/$(notdir $(CURDIR))
+BIN := _bin/$(DEVICE)/$(notdir $(CURDIR))
 
 
 # Handy check parameter function
@@ -50,39 +50,39 @@ __check_defined = \
     $(if $(value $1),, \
     $(error Undefined make flag: $1$(if $2, ($2))))
 
-#-------------- Select the board to build for. ------------    
+#-------------- Select the device to build for. ------------    
 
-ifeq ($(BOARD), )
-  $(info You must provide a BOARD parameter with 'BOARD=')
-  $(error Invalid BOARD specified)
+ifeq ($(DEVICE), )
+  $(info You must provide a DEVICE parameter with 'DEVICE=')
+  $(error Invalid DEVICE specified)
 endif
 
-# Board without family
-ifneq ($(wildcard ./devices/$(BOARD)/device.mk),)
-BOARD_PATH := devices/$(BOARD)
+# Device without family
+ifneq ($(wildcard ./devices/$(DEVICE)/device.mk),)
+DEVICE_PATH := devices/$(DEVICE)
 FAMILY :=
 endif
 
-# Board within family
-ifeq ($(BOARD_PATH),)
-  BOARD_PATH := $(subst ,,$(wildcard devices/*/$(BOARD)))
-  FAMILY := $(word 2, $(subst /, ,$(BOARD_PATH)))
+# Device within family
+ifeq ($(DEVICE_PATH),)
+  DEVICE_PATH := $(subst ,,$(wildcard devices/*/varients/$(DEVICE)))
+  FAMILY := $(word 2, $(subst /, ,$(DEVICE_PATH)))
   FAMILY_PATH = devices/$(FAMILY)
 endif
 
-$(info Board Path: $(BOARD_PATH))
+$(info Device Path: $(DEVICE_PATH))
 $(info Family: $(FAMILY))
 $(info Family Path: $(FAMILY_PATH))
 
-ifeq ($(BOARD_PATH),)
-  $(info You must provide a BOARD parameter with 'BOARD=')
-  $(error Invalid BOARD specified)
+ifeq ($(DEVICE_PATH),)
+  $(info You must provide a DEVICE parameter with 'DEVICE=')
+  $(error Invalid DEVICE specified)
 endif
 
 ifeq ($(FAMILY),)
-  include devices/$(BOARD)/device.mk
+  include devices/$(DEVICE)/device.mk
 else
-  # Include Family and Board specific defs
+  # Include Family and Device specific defs
   include $(FAMILY_PATH)/family.mk
 endif
 
@@ -93,7 +93,7 @@ ifdef DEPS_SUBMODULES
 endif
 
 #-------------- Cross Compiler  ------------
-# Can be set by board, default to ARM GCC
+# Can be set by device, default to ARM GCC
 CROSS_COMPILE ?= arm-none-eabi-
 
 CC = $(CROSS_COMPILE)gcc
@@ -188,7 +188,7 @@ ifneq ($(FAMILY),rp2040)
 # libc
 LIBS += -lgcc -lm -lnosys
 
-ifneq ($(BOARD), spresense)
+ifneq ($(DEVICE), spresense)
 LIBS += -lc
 endif
 
@@ -217,7 +217,7 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 
 # Verbose mode
 ifeq ("$(V)","1")
-$(info BOARD_PATH  $(BOARD_PATH)) $(info )
+$(info DEVICE_PATH  $(DEVICE_PATH)) $(info )
 $(info FAMILY_PATH  $(FAMILY_PATH)) $(info )
 $(info SRC C  $(SRC_C)) $(info )
 $(info SRC CPP  $(SRC_CPP)) $(info )
@@ -324,13 +324,13 @@ JLINK_IF ?= swd
 
 # Flash using jlink
 flash-jlink: $(BUILD)/$(PROJECT).hex
-	@echo halt > $(BUILD)/$(BOARD).jlink
-	@echo r > $(BUILD)/$(BOARD).jlink
-	@echo loadfile $^ >> $(BUILD)/$(BOARD).jlink
-	@echo r >> $(BUILD)/$(BOARD).jlink
-	@echo go >> $(BUILD)/$(BOARD).jlink
-	@echo exit >> $(BUILD)/$(BOARD).jlink
-	$(JLINKEXE) -device $(JLINK_DEVICE) -if $(JLINK_IF) -JTAGConf -1,-1 -speed auto -CommandFile $(BUILD)/$(BOARD).jlink
+	@echo halt > $(BUILD)/$(DEVICE).jlink
+	@echo r > $(BUILD)/$(DEVICE).jlink
+	@echo loadfile $^ >> $(BUILD)/$(DEVICE).jlink
+	@echo r >> $(BUILD)/$(DEVICE).jlink
+	@echo go >> $(BUILD)/$(DEVICE).jlink
+	@echo exit >> $(BUILD)/$(DEVICE).jlink
+	$(JLINKEXE) -device $(JLINK_DEVICE) -if $(JLINK_IF) -JTAGConf -1,-1 -speed auto -CommandFile $(BUILD)/$(DEVICE).jlink
 
 # flash STM32 MCU using stlink with STM32 Cube Programmer CLI
 flash-stlink: $(BUILD)/$(PROJECT).bin
