@@ -4,4 +4,4 @@
 // #include "Setting/Setting.h"
 // #include "Shell/Shell.h"
 #include "TestApp/TestApp.h"
-#include "EEPROMTest/EEPROMTest.h"
+// #include "EEPROMTest/EEPROMTest.h"

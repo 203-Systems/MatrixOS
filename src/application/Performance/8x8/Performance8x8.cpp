@@ -23,6 +23,8 @@ void Performance::MidiEvent(MidiPacket midiPacket)
         case NoteOff:
             NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
             break;
+        default:
+            break;
     }
 }
 

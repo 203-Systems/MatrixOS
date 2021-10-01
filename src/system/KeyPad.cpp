@@ -79,7 +79,7 @@ namespace MatrixOS::KEYPAD
 
     uint16_t Get()
     {
-        if(Available == 0)
+        if(Available() == 0)
             return 0xFFFF;
         uint16_t keyID = (changelist[read]);
         read++;

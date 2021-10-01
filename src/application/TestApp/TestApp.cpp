@@ -53,6 +53,8 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
     //   MatrixOS::USB::CDC::Println("Note Off Handler");
     //   MatrixOS::MIDI::SendPacket(midiPacket);
     //   break;
+    default:
+      break;
   }
 }
 

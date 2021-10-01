@@ -5,10 +5,10 @@ int main()
 {
     MatrixOS::SYS::Init();
 
-    EEPROMTest eepromTest;
-    eepromTest.Start();
+    // EEPROMTest eepromTest;
+    // eepromTest.Start();
+    Performance performance;
+    performance.Setup();
 
     return 0;             
 }
-
-extern "C"{ void * __dso_handle = 0 ;}  
