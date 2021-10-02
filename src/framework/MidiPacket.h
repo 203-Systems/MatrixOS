@@ -86,6 +86,7 @@ struct MidiPacket
                 uint16_t position = (uint16_t)va_arg(valst, int);
                 data[1] = (uint8_t)(position & 0x07F);
                 data[2] = (uint8_t)((position>>7) & 0x7f);
+                break;
             }
             case TuneRequest:
             case Sync:

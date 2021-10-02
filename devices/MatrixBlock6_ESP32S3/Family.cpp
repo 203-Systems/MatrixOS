@@ -14,13 +14,9 @@
 #include "freertos/task.h"
 #include "freertos/timers.h"
 
-namespace Device
-{
-    void DeviceInit()
-    {
-        USB_Init();
-    }
 
+extern "C"
+{
     void USB_Init()
     {
         // USB Controller Hal init
@@ -44,16 +40,24 @@ namespace Device
             } else {
                 esp_rom_gpio_connect_in_signal(iopin->pin, iopin->func, false);
                 if ((iopin->pin != GPIO_FUNC_IN_LOW) && (iopin->pin != GPIO_FUNC_IN_HIGH)) {
-                gpio_ll_input_enable(&GPIO, (gpio_num_t)(iopin->pin));
+                gpio_ll_input_enable(&GPIO, iopin->pin);
                 }
             }
             esp_rom_gpio_pad_unhold(iopin->pin);
             }
         }
         if (!hal.use_external_phy) {
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DM_NUM, GPIO_DRIVE_CAP_3);
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DP_NUM, GPIO_DRIVE_CAP_3);
+            gpio_set_drive_capability(USBPHY_DM_NUM, GPIO_DRIVE_CAP_3);
+            gpio_set_drive_capability(USBPHY_DP_NUM, GPIO_DRIVE_CAP_3);
         }
+    }
+}
+
+namespace Device
+{
+    void DeviceInit()
+    {
+        USB_Init();
     }
 
     void DeviceTask()
