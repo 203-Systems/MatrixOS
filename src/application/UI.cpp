@@ -7,7 +7,7 @@ void UI::Start()
     {   
         Render();
         Loop();
-        MatrixOS::SYS::SystemTask();
+        // MatrixOS::SYS::SystemTask();
         GetKey();
         GetMidi();
     }

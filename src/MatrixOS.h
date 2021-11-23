@@ -36,7 +36,7 @@ namespace MatrixOS
     void Reboot(void);
     void Bootloader(void);
 
-    void SystemTask(void);
+    void SystemTask();
 
     void OpenSetting(void);
 
@@ -163,10 +163,14 @@ namespace MatrixOS
       // void SetHandler(void (*new_handler)(MidiPacket));
     }
 
-  // namespace DBG
-  // {
-  //   void Print (const char* format, ...);
-  // }
+  namespace Debug
+  {
+    void LogError (const char* format, ...);
+    void LogWarning (const char* format, ...);
+    void LogInfo (const char* format, ...);
+    void LogDebug (const char* format, ...);
+    void LogVerbose (const char* format, ...);
+  }
 
   // namespace MEMORY
   // {

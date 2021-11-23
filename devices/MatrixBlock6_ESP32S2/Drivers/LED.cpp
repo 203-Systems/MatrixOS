@@ -1,12 +1,18 @@
 #include "Device.h"
 
 namespace Device
-{
+{   
+
+    void LED_Init()
+    {
+        WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
+    }
+
     namespace LED
     {
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
-            // WS2812::Show(frameBuffer, brightness);
+            WS2812::Show(frameBuffer, brightness);
         }
 
         uint16_t XY2Index(Point xy)

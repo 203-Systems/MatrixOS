@@ -3,13 +3,47 @@
 #include "application/Setting/Setting.h"
 
 namespace MatrixOS::SYS
-{
+{   
+    Timer ledTimer; 
+    Timer keypadTimer; 
+    void SystemTask(void* param)
+    {      
+        TickType_t xLastWakeTime;
+        const TickType_t xFrequency = 100;
+        while(1)
+        {
+            // ESP_LOGI("SysTask", "System Task %d", Millis());
+            Device::DeviceTask();
+            // ESP_LOGI("SysTask", "USB Poll");
+            if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
+            {
+                LED::Update();
+                // ESP_LOGI("SysTask", "LED Update");
+            }
+            if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
+            {
+                KEYPAD::Scan();
+                // ESP_LOGI("SysTask", "Keypad Scan");
+            }
+            USB::Poll();
+            // USB::MIDI::Poll();
+            // USB::CDC::Poll();
+            // ESP_LOGI("SysTask", "Device Task");
+            vTaskDelayUntil(&xLastWakeTime, xFrequency);
+        }
+    }
+
+    // Create a task for tinyusb device stack
+    #define SYS_TASK_STACK_SIZE     (configMINIMAL_STACK_SIZE * 3)
+    StackType_t  system_task_stack[SYS_TASK_STACK_SIZE];
+    StaticTask_t system_taskdef;
     void Init()
     {
         Device::DeviceInit();
         MatrixOS::KEYPAD::Init();
         MatrixOS::LED::Init();
         MatrixOS::USB::Init();
+        (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
 
         inited = true;
     }
@@ -54,24 +88,6 @@ namespace MatrixOS::SYS
         LED::Update();
         DelayMs(10); //Wait for led data to be updated first. TODO: Update with LED::updated var from device layer
         Device::Bootloader();
-    }
-
-    Timer ledTimer; 
-    Timer keypadTimer; 
-    void SystemTask()
-    {
-        USB::Poll();
-        if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
-        {
-            LED::Update();
-        }
-        if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
-        {
-            KEYPAD::Scan();
-        }
-        // USB::MIDI::Poll();
-        // USB::CDC::Poll();
-        Device::DeviceTask();
     }
 
     void OpenSetting(void)

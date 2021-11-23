@@ -27,8 +27,10 @@ SRC_C += \
 	lib\tinyusb\src\class\hid\hid_device.c \
 	lib\tinyusb\src\class\midi\midi_device.c \
 	lib\tinyusb\src\class\msc\msc_device.c \
-	lib\tinyusb\src\class\net\net_device.c \
+	lib\tinyusb\src\class\net\ecm_rndis_device.c \
+	lib\tinyusb\src\class\net\ncm_device.c \
 	lib\tinyusb\src\class\usbtmc\usbtmc_device.c \
+	lib\tinyusb\src\class\video\video_device.c \
 	lib\tinyusb\src\class\vendor\vendor_device.c \
 	lib\printf\printf.c
 

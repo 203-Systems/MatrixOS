@@ -2,7 +2,7 @@
 #pragma once
 
 #include "stm32f1xx_hal.h"
-#include "WS2812.h"
+#include "WS2812/WS2812.h"
 #include "Drivers/EEPROM.h"
 
 namespace Device

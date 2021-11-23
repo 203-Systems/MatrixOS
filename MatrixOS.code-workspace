@@ -8,7 +8,7 @@
 		"terminal.integrated.shell.windows" : "cmd.exe",
 		"terminal.integrated.shellArgs.windows" : [
 			"/k",
-			"C:/esp-idf/export.bat"
+			"C:/esp-idf/esp-idf-4.4/export.bat"
 		],
 		"files.associations": {
 			"*.mk": "makefile",
@@ -75,7 +75,9 @@
 			"iostream": "cpp",
 			"shared_mutex": "cpp",
 			"stop_token": "cpp",
-			"variant": "cpp"
+			"variant": "cpp",
+			"usbd_pvt.h": "c",
+			"dcd.h": "c"
 		}
 	}
 }

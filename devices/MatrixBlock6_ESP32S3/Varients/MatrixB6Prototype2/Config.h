@@ -36,38 +36,39 @@ namespace Device
     }
 }
 
-#define FN_Pin 11
+#define FN_Pin GPIO_NUM_11
+#define LED_Pin GPIO_NUM_48
 
-#define Key1_Pin 21
-#define Key2_Pin 26
-#define Key3_Pin 33
-#define Key4_Pin 34
-#define Key5_Pin 35
-#define Key6_Pin 36
-#define Key7_Pin 37
-#define Key8_Pin 38
+#define Key1_Pin GPIO_NUM_21
+#define Key2_Pin GPIO_NUM_26
+#define Key3_Pin GPIO_NUM_33
+#define Key4_Pin GPIO_NUM_34
+#define Key5_Pin GPIO_NUM_35
+#define Key6_Pin GPIO_NUM_36
+#define Key7_Pin GPIO_NUM_37
+#define Key8_Pin GPIO_NUM_38
 
-#define KeyRead1_Pin 1
-#define KeyRead2_Pin 2
-#define KeyRead3_Pin 3
-#define KeyRead4_Pin 4
-#define KeyRead5_Pin 5
-#define KeyRead6_Pin 6
-#define KeyRead7_Pin 7
-#define KeyRead8_Pin 8
+#define KeyRead1_Pin GPIO_NUM_1
+#define KeyRead2_Pin GPIO_NUM_2
+#define KeyRead3_Pin GPIO_NUM_3
+#define KeyRead4_Pin GPIO_NUM_4
+#define KeyRead5_Pin GPIO_NUM_5
+#define KeyRead6_Pin GPIO_NUM_6
+#define KeyRead7_Pin GPIO_NUM_7
+#define KeyRead8_Pin GPIO_NUM_8
 
-#define TouchData_Pin 12
-#define TouchClock_Pin 13
+#define TouchData_Pin GPIO_NUM_12
+#define TouchClock_Pin GPIO_NUM_13
 
-#define PowerCord_Pin 18
+#define PowerCord_Pin GPIO_NUM_18
 
-#define Battery_CHRG_Pin 17
-#define Battery_STDBY_Pin 16
+#define Battery_CHRG_Pin GPIO_NUM_17
+#define Battery_STDBY_Pin GPIO_NUM_16
 
-#define VBAT_Sensing_Pin 9
-#define VBUS_Sensing_Pin 10
+#define VBAT_Sensing_Pin GPIO_NUM_9
+#define VBUS_Sensing_Pin GPIO_NUM_10
 
-#define Matrix_Mod_GPIO_Pin 14
+#define Matrix_Mod_GPIO_Pin GPIO_NUM_14
 
 inline uint16_t keypad_write_pins[] = {
     Key1_Pin,

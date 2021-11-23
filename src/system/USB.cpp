@@ -1,11 +1,28 @@
 #include "MatrixOS.h"
-#include "printf.h"
+// #include "printf.h"
 
 namespace MatrixOS::USB
 {
+    void usb_device_task(void* param)
+    {
+        (void) param;
+        // RTOS forever loop
+        while (1)
+        {
+            // tinyusb device task
+            tud_task();
+        }
+    }
+
+    // Create a task for tinyusb device stack
+    #define USBD_STACK_SIZE     (3*configMINIMAL_STACK_SIZE)
+    StackType_t  usb_device_stack[USBD_STACK_SIZE];
+    StaticTask_t usb_device_taskdef;
     void Init()
     {
         tusb_init();
+        // REMOVED: Let SystemTask handle it
+        // (void) xTaskCreateStatic( usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES-1, usb_device_stack, &usb_device_taskdef);
     }
 
     bool Inited()
@@ -45,10 +62,7 @@ namespace MatrixOS::USB
         {
             for(uint16_t i = 0; i < strlen(str); i++)
             {
-                while(!tud_cdc_n_write_available(0))
-                {
-                    SYS::SystemTask();
-                }
+                while(!tud_cdc_n_write_available(0)){}
                 tud_cdc_n_write_char(0, str[i]);
             }
             // tud_cdc_n_write_str(0, str);

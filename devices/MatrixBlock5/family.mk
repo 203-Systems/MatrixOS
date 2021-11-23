@@ -40,7 +40,7 @@ INC += \
 	$(DEVICE_PATH) \
 	$(FAMILY_PATH)/Drivers \
 	lib/CMSIS_5/CMSIS/Core/Include \
-	core/stm32$(ST_FAMILY)/ws2812 \
+	core/stm32$(ST_FAMILY) \
 	$(ST_CMSIS)/Include \
 	$(ST_HAL_DRIVER)/Inc
 

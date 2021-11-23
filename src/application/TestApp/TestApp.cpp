@@ -9,9 +9,11 @@ void TestApp::Loop()
 
 void TestApp::MidiEvent(MidiPacket midiPacket)
 {
+  ESP_LOGI("TestApp", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
   switch(midiPacket.status)
   {
     case NoteOn:
+    {
       MatrixOS::USB::CDC::Println("Note On Handler");
 
       // MatrixOS::USB::CDC::Print("Og - Port:");
@@ -26,9 +28,10 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
       // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.data[1]).c_str());
       // MatrixOS::USB::CDC::Print(" ");
       // MatrixOS::USB::CDC::Println(std::to_string(midiPacket.data[2]).c_str());
-      // uint8_t channel = midiPacket.data[0];
-      // uint8_t note = midiPacket.data[1];
-      // uint8_t velocity = midiPacket.data[2];
+      uint8_t channel = midiPacket.data[0];
+      uint8_t note = midiPacket.data[1];
+      uint8_t velocity = midiPacket.data[2];
+      MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, velocity));
       // MidiPacket newPacket = MidiPacket(0, NoteOn, channel, note, velocity);
 
       // MatrixOS::USB::CDC::Print("New - Port:");
@@ -46,9 +49,10 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 
       // MatrixOS::USB::CDC::Println("");
 
-      MatrixOS::MIDI::SendPacket(midiPacket);
+      // MatrixOS::MIDI::SendPacket(midiPacket);
       // MatrixOS::MIDI::SendPacket(newPacket);
       break;
+    }
     // case NoteOff:
     //   MatrixOS::USB::CDC::Println("Note Off Handler");
     //   MatrixOS::MIDI::SendPacket(midiPacket);
@@ -71,11 +75,11 @@ void TestApp::LED_task(void)
     // MatrixOS::USB::CDC::Print("LED Index: ");
     // MatrixOS::USB::CDC::Println(std::to_string(led_id).c_str());
 
+    // ESP_LOGI("TestApp", "LED Task");
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
-    MatrixOS::LED::Update();
     led_id ++;
 
-    if(led_id == Device::numsOfLED)
+    if(led_id == 1)
     {
       led_id = 0;
       colorIndex ++;

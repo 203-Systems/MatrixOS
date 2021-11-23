@@ -1,12 +1,11 @@
 #DEPS_SUBMODULES +=
 
-MCU = esp32s3
+MCU = esp32s2
 UF2_FAMILY_ID = 0xbfdd4eee
 
 .PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
 all:
-
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) -DIDF_TARGET=${MCU} build
 
 build: all

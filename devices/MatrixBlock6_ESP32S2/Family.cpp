@@ -4,13 +4,6 @@ namespace Device
 {
     void DeviceInit()
     {
-        // esp_task_wdt_init(3, false);
-        // #ifndef CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0
-        //     esp_task_wdt_add(xTaskGetIdleTaskHandleForCPU(0));
-        // #endif
-        // #if CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1 && !CONFIG_FREERTOS_UNICORE
-        //     esp_task_wdt_add(xTaskGetIdleTaskHandleForCPU(1));
-        // #endif
         USB_Init();
         LED_Init();
     }
@@ -51,19 +44,9 @@ namespace Device
         }
     }   
 
-
-    // bool wdt_subscribed = false;
     void DeviceTask()
-    {   
-        // if(wdt_subscribed == false)
-        // {
-        //     esp_task_wdt_add(NULL);
-        //     esp_task_wdt_status(NULL);
-        // }
-
-        // ESP_LOGI("Device", "Task Watchdog Reset1");
-        // esp_task_wdt_reset();
-        // ESP_LOGI("Device", "Task Watchdog Reset2");
+    {
+        
     }
 
     void Bootloader()

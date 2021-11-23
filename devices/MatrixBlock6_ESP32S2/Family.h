@@ -5,7 +5,6 @@
 #include "hal/gpio_ll.h"
 #include "hal/usb_hal.h"
 #include "soc/usb_periph.h"
-#include "esp_task_wdt.h"
 
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
@@ -19,8 +18,6 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
-
-// #include "FreeRTOSConfig.h"
 
 namespace Device
 {

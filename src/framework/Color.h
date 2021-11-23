@@ -17,8 +17,8 @@ class Color
 		uint32_t RGB(uint8_t brightness = 255);
 		uint32_t GRB(uint8_t brightness = 255);
 
-		uint8_t scale8(uint8_t i, uint8_t scale);
-		uint8_t scale8_video(uint8_t i, uint8_t scale);
+		static uint8_t scale8(uint8_t i, uint8_t scale);
+		static uint8_t scale8_video(uint8_t i, uint8_t scale);
 
 		
 };
