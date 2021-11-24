@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 #include "printf.h"
 
-#define DEFAULT_LOGGING_LEVEL VERBOSE
+#define DEFAULT_LOGGING_LEVEL VERBOSE //Change this later
 
 namespace MatrixOS::Logging
 {

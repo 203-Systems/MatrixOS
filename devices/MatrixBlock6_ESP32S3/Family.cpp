@@ -90,6 +90,11 @@ namespace Device
     {
         
     }
+
+    string GetSerial()
+    {
+        return "<Serial Number>";
+    }
 }
 
 namespace MatrixOS::SYS

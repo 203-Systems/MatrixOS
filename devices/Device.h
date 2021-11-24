@@ -25,6 +25,8 @@ namespace Device
 
     void Logging(ELogLevel level, string tag, string format, ...);
 
+    string GetSerial();
+
     namespace LED
     {
         void Update(Color* frameBuffer, uint8_t brightness = 255); //Render LED

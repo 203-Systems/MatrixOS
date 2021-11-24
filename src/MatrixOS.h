@@ -101,7 +101,7 @@ namespace MatrixOS
 
   namespace USB
   {
-    noexpose void Init(void);
+    noexpose void Init();
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
     bool Connnected(void); //If USB is connected
     // void Poll(); 
