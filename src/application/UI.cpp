@@ -2,6 +2,7 @@
 
 void UI::Start()
 {
+    // MatrixOS::LED::PauseAutoUpdate();
     Setup();
     while(status != -1)
     {   
@@ -13,6 +14,7 @@ void UI::Start()
     }
     End();
     MatrixOS::LED::Fill(0);
+    // MatrixOS::LED::StartAutoUpdate();
 }
 
 void UI::Exit()
@@ -29,6 +31,7 @@ void UI::Render()
         UIElement* uiElement = uiElementMap.second;
         MatrixOS::LED::SetColor(xy, uiElement->color);
     }
+    MatrixOS::LED::Update();
 }
 
 void UI::GetKey()

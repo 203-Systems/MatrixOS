@@ -55,11 +55,14 @@ namespace Device::KeyPad
 
     void FNScan()
     {   
-        // Fract16 read = HAL_GPIO_ReadPin(FN_GPIO_Port, FN_Pin) * UINT16_MAX;
-        // if(fnState.update(read))
-        // {
-        //     addToList(0);
-        // }
+        Fract16 read = gpio_get_level(FN_Pin) * UINT16_MAX;
+        #ifdef FN_PIN_ACTIVE_LOW
+        read = UINT16_MAX - (uint16_t)read;
+        #endif
+        if(fnState.update(read))
+        {
+            addToList(0);
+        }
     }
 
     void KeyPadScan()

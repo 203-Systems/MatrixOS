@@ -9,8 +9,8 @@
 
 namespace Device
 {
-    const char name[] = "Matrix Block6 Prototype 1.0";
-    const char model[] = "MXB6PT1";
+    const string name = "Matrix Block6 Prototype 1.0";
+    const string model = "MXB6PT1";
     const uint16_t numsOfLED = 64;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;

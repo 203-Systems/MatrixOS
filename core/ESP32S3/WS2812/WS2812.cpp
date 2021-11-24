@@ -70,10 +70,10 @@ namespace WS2812
 
     uint8_t Show(Color *array, uint8_t brightness)
     {
-        // ESP_LOGI(TAG, "Show");
+        ESP_LOGV(TAG, "Show");
         if(transmit_in_progress)
         {
-            ESP_LOGI(TAG, "transmit still in progress, abort");
+            ESP_LOGV(TAG, "transmit still in progress, abort");
             return -1;
         }
         setup_rmt_data_buffer(array, brightness);
@@ -89,7 +89,8 @@ namespace WS2812
         const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
         const rmt_item32_t reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
         // rmtBuffer[0] = reset;
-        for (uint32_t led = 0; led < numsOfLED; led++) {
+        for (uint16_t led = 0; led < numsOfLED; led++) {
+            // ESP_LOGI("RMT", "LED %d", led);
             uint32_t bits_to_send = array[led].GRB(brightness);
             uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
             for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++) {
@@ -103,6 +104,7 @@ namespace WS2812
 
     void rmt_callback(rmt_channel_t rmt_channel, void *arg)
     {
+        // ESP_LOGI(TAG, "Transmit finished");
         transmit_in_progress = false;
     }
 }

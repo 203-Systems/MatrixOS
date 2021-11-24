@@ -4,19 +4,19 @@
 
 struct SavedVar
 {
-    std::string name;
+    string name;
     uint8_t length;
     void* pointer;
 
     template<typename T>
-    SavedVar(std::string name, T* pointer)
+    SavedVar(string name, T* pointer)
     {
         this->name = name;
         this->pointer = pointer;
         this->length = sizeof(*pointer);
     }
     
-    SavedVar(std::string name, std::string* pointer)
+    SavedVar(string name, string* pointer)
     {
         this->name = name;
         this->pointer = pointer;

@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+using std::string;
+using std::vector;
+
 #ifdef __cplusplus
 extern "C" 
 #endif

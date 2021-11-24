@@ -5,8 +5,8 @@
 class Application
 {
     public: 
-        char name;
-        char author;
+        string name;
+        string author;
         uint32_t version;
 
         int8_t status = 0;

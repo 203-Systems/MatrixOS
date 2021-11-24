@@ -8,6 +8,7 @@
 void Performance::Setup()
 {
     currentKeymap = 0;
+    MatrixOS::LED::StartAutoUpdate();
 }
 
 void Performance::Loop()
@@ -17,11 +18,14 @@ void Performance::Loop()
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
+    // ESP_LOGI("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
     switch(midiPacket.status)
     {
         case NoteOn:
-        case NoteOff:
             NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
+            break;
+        case NoteOff:
+            NoteHandler(midiPacket.channel(), midiPacket.note(), 0);
             break;
         default:
             break;
@@ -88,8 +92,10 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
     if(keyID == 0 && keyInfo.state == PRESSED)
     {
+        MatrixOS::LED::PauseAutoUpdate();
         ActionMenu actionMenu;
         actionMenu.Start();
+        MatrixOS::LED::StartAutoUpdate();
     }
 }
 

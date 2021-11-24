@@ -14,7 +14,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
   {
     case NoteOn:
     {
-      MatrixOS::USB::CDC::Println("Note On Handler");
+      // MatrixOS::USB::CDC::Println("Note On Handler");
 
       // MatrixOS::USB::CDC::Print("Og - Port:");
       // MatrixOS::USB::CDC::Print(std::to_string(midiPacket.port).c_str());
@@ -64,18 +64,19 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 
 void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-  MatrixOS::USB::CDC::Println("Key Event Handler");
+  MatrixOS::Logging::LogVerbose(name, "Key Event Handler");
   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
 }
 
 void TestApp::LED_task(void)
 {
+  // ESP_LOGI("TestApp", "LED_Task");
   if (TestApp::timer.Tick(100))
   { 
     // MatrixOS::USB::CDC::Print("LED Index: ");
     // MatrixOS::USB::CDC::Println(std::to_string(led_id).c_str());
 
-    // ESP_LOGI("TestApp", "LED Task");
+    ESP_LOGI("TestApp", "LED Task");
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     led_id ++;
 

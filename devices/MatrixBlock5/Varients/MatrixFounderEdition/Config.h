@@ -12,8 +12,8 @@ extern DMA_HandleTypeDef hdma_tim8_ch2;
 
 namespace Device
 {
-    const char name[] = "Matrix Founder Edition";
-    const char model[] = "MXFE1";
+    const string name = "Matrix Founder Edition";
+    const string model = "MXFE1";
     const uint16_t numsOfLED = 64;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;

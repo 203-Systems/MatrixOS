@@ -9,8 +9,8 @@
 
 namespace Device
 {
-    const char name[] = "Matrix Block6 Prototype 1.0";
-    const char model[] = "MXB6PT1";
+    const string name = "Matrix Block6 Prototype w ESPS3";
+    const string model = "MXB6PT1";
     const uint16_t numsOfLED = 64;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
@@ -36,8 +36,9 @@ namespace Device
     }
 }
 
-#define FN_Pin GPIO_NUM_11
-#define LED_Pin GPIO_NUM_48
+#define FN_Pin GPIO_NUM_0
+#define FN_PIN_ACTIVE_LOW
+#define LED_Pin GPIO_NUM_14
 
 #define Key1_Pin GPIO_NUM_21
 #define Key2_Pin GPIO_NUM_26

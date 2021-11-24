@@ -4,13 +4,6 @@ namespace Device
 {
     void DeviceInit()
     {
-        // esp_task_wdt_init(3, false);
-        // #ifndef CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0
-        //     esp_task_wdt_add(xTaskGetIdleTaskHandleForCPU(0));
-        // #endif
-        // #if CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1 && !CONFIG_FREERTOS_UNICORE
-        //     esp_task_wdt_add(xTaskGetIdleTaskHandleForCPU(1));
-        // #endif
         USB_Init();
         LED_Init();
     }

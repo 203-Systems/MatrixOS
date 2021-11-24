@@ -9,3 +9,4 @@
 #include "MidiPacket.h"
 #include "Direction.h"
 #include "Hash.h"
+#include "LogLevel.h"

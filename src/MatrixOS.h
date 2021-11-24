@@ -9,16 +9,10 @@
 #include "usb/MidiSpecs.h"
 #include "framework/Framework.h"
 
-// #include <string>
-
-// using handler = void(*)();
-
-#undef USB //CMSIS defined the USB, undef so we can use USB as namespace
+#undef USB //CMSIS defined the USB, undef so we can use USB as MatrixOS namespace
 #define noexpose //Custum key word to remove function to be generated as exposed API
 
 class Application;
-
-// using std::string;
 
 //Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
@@ -59,9 +53,9 @@ namespace MatrixOS
 
     // void RegisterActiveApp(Application* application);
 
-      // int Execute(uint32_t addr);
+    // int Execute(uint32_t addr);
 
-    void ErrorHandler(char const* error = NULL);
+    void ErrorHandler(string error = NULL);
   }
 
   namespace LED
@@ -76,6 +70,8 @@ namespace MatrixOS
     void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
     void Fill(Color color, uint8_t layer = currentLayer);
     void Update(int8_t layer = currentLayer);
+    void PauseAutoUpdate();
+    void StartAutoUpdate();
     // void SwitchLayer(uint8_t layer);
 
     int8_t CreateLayer();
@@ -108,7 +104,7 @@ namespace MatrixOS
     noexpose void Init(void);
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
     bool Connnected(void); //If USB is connected
-    void Poll();
+    // void Poll(); 
 
     namespace CDC
     {
@@ -116,14 +112,14 @@ namespace MatrixOS
       uint32_t Available(void);
       void Poll(void);
       
-      void Print(char const* str);
-      void Println(char const* str);
-      void Printf(const char* format, ...);
+      void Print(string str);
+      void Println(string str);
+      void Printf(string format, ...);
       void Flush(void);
 
       int8_t Read(void);
       uint32_t ReadBytes(void* buffer, uint32_t length); //Returns nums byte read
-      std::string ReadString(void);
+      string ReadString(void);
 
     }
     // void Disable(void);
@@ -163,13 +159,13 @@ namespace MatrixOS
       // void SetHandler(void (*new_handler)(MidiPacket));
     }
 
-  namespace Debug
+  namespace Logging
   {
-    void LogError (const char* format, ...);
-    void LogWarning (const char* format, ...);
-    void LogInfo (const char* format, ...);
-    void LogDebug (const char* format, ...);
-    void LogVerbose (const char* format, ...);
+    void LogError (string tag, string format, ...);
+    void LogWarning (string tag, string format, ...);
+    void LogInfo (string tag, string format, ...);
+    void LogDebug (string tag, string format, ...);
+    void LogVerbose (string tag, string format, ...);
   }
 
   // namespace MEMORY
@@ -229,7 +225,7 @@ namespace MatrixOS
   //   void* GetSharedBuffer(void);
 
   //   EResult Init(void);
-  //   EResult Open(const char* strName, uint8_t nIoMode);
+  //   EResult Open(string strName, uint8_t nIoMode);
   //   EResult Read(uint8_t* pSectorData);
   //   EResult Write(uint8_t* pSectorData);
   //   EResult Seek(uint32_t lOffset);

@@ -7,8 +7,8 @@
 class Performance : public Application
 {
     public:
-    char name[17] = "Performance Mode";
-    char author[16] = "203 Electronics";
+    string name = "Performance Mode";
+    string author = "203 Electronics";
     uint32_t version = 0;
 
     uint8_t currentKeymap;

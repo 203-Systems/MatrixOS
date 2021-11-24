@@ -2,10 +2,20 @@
 
 namespace MatrixOS::LED
 {
+    // static timer
+    StaticTimer_t led_tmdef;
+    TimerHandle_t led_tm;
+
+    void LEDTimerCallback( TimerHandle_t xTimer )
+    {
+        Update();
+    }
+
+
     void Init()
     {
         uint8_t size = sizeof(Color);
-        SysVar::fps_millis = 1000/UserVar::fps;
+        // SysVar::fps_millis = 1000/UserVar::fps;
         Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
         {
@@ -15,6 +25,9 @@ namespace MatrixOS::LED
         uint8_t currentLayer = 0;
         frameBuffers.push_back(frameBuffer);
         Update();
+
+        led_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/UserVar::fps), true, NULL, LEDTimerCallback, &led_tmdef);
+        xTimerStart(led_tm, 0);
     }
 
     void SetColor(Point xy, Color color, uint8_t layer)
@@ -34,8 +47,8 @@ namespace MatrixOS::LED
         if(layer > currentLayer)
         {
             MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
-            return;
-        }
+                return;
+            }
         uint16_t index = Device::LED::ID2Index(ID);
         // ESP_LOGI("SetColor", "%d", index);
         if(index == UINT16_MAX) return;
@@ -71,6 +84,16 @@ namespace MatrixOS::LED
     //     }
     //     currentLayer = layer;
     // }
+
+    void PauseAutoUpdate()
+    {
+        xTimerStop(led_tm, 0);
+    }
+
+    void StartAutoUpdate()
+    {
+        xTimerStart(led_tm, 0);
+    }
 
     int8_t CreateLayer()
     {

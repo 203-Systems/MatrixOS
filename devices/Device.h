@@ -8,7 +8,7 @@ namespace Device
 {  
     /*
     Required Varaiables:
-    const char name[];
+    const string name;
     const uint16_t numsOfLED;
     const uint8_t x_size;
     const uint8_t y_size;
@@ -22,6 +22,8 @@ namespace Device
     void Reboot();
     void Bootloader();
     void ErrorHandler();
+
+    void Logging(ELogLevel level, string tag, string format, ...);
 
     namespace LED
     {
@@ -54,4 +56,6 @@ namespace Device
         bool Write(std::string name, void* pointer, uint16_t length);
         void Format();
     }
+
+
 }

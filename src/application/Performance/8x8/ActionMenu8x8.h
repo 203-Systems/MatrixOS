@@ -7,7 +7,7 @@
 class ActionMenu : public UI
 {
     public:
-    char name[11] = "ActionMenu";
+    string name = "ActionMenu";
     Color nameColor = Color(0x00FFAA);
 
     void Setup() override;

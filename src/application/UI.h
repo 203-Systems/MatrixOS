@@ -10,12 +10,12 @@
 
 struct UIElement
 {
-    std::string name;
+    string name;
     Color color;
     std::function<void()> callback;
     std::function<void()> hold_callback;
 
-    UIElement(std::string name, Color color, std::function<void()> callback, std::function<void()> hold_callback = nullptr)
+    UIElement(string name, Color color, std::function<void()> callback, std::function<void()> hold_callback = nullptr)
     {
         this->name = name;
         this->color = color;
@@ -23,7 +23,7 @@ struct UIElement
         this->hold_callback = hold_callback;
     }
 
-    // UIElement(std::string name, Color color, std::function<void()> callback, uint8_t count, ...)
+    // UIElement(string name, Color color, std::function<void()> callback, uint8_t count, ...)
     // {
     //     this->name = name;
     //     this->color = color;
@@ -55,7 +55,7 @@ struct UIElement
 class UI
 {
     public:
-        char name;
+        string name;
         Color nameColor;
         int8_t status = 0;
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "framework/Timer.h"
 #include "application/Application.h"
 
 class TestApp : public Application
@@ -9,8 +8,8 @@ class TestApp : public Application
     // using Application::Application;
 
     public:
-    char name[18] = "Matrix OS TestApp";
-    char author[16] = "203 Electronics";
+    string name = "TestApp";
+    string author = "203 Electronics";
     uint32_t version = 0;
 
     Timer timer;

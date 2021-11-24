@@ -22,13 +22,13 @@ int main()
 
     // EEPROMTest eepromTest;
     // eepromTest.Start();
-    // Performance performance;
-    // performance.Start();
+    Performance performance;
+    performance.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
 
-    (void) xTaskCreate(Application,"application", APP_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    // (void) xTaskCreate(Application,"application", APP_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
 
     // while(1)
     // {

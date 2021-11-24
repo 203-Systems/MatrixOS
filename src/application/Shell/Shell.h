@@ -5,8 +5,8 @@
 
 class Shell : public Application
 {
-    char name[64] = "Matrix OS Shell";
-    char author[64] = "203 Electronics";
+    string name = "Matrix OS Shell";
+    string author = "203 Electronics";
     uint32_t version = 10000;
     
     void main();

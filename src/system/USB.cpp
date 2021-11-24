@@ -1,5 +1,4 @@
 #include "MatrixOS.h"
-// #include "printf.h"
 
 namespace MatrixOS::USB
 {
@@ -21,8 +20,7 @@ namespace MatrixOS::USB
     void Init()
     {
         tusb_init();
-        // REMOVED: Let SystemTask handle it
-        // (void) xTaskCreateStatic( usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES-1, usb_device_stack, &usb_device_taskdef);
+        (void) xTaskCreateStatic( usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES-1, usb_device_stack, &usb_device_taskdef);
     }
 
     bool Inited()
@@ -35,10 +33,10 @@ namespace MatrixOS::USB
         return tud_ready();
     }
 
-    void Poll()
-    {
-        tud_task();
-    }
+    // void Poll()
+    // {
+    //     tud_task();
+    // }
 
     namespace CDC
     {
@@ -58,9 +56,9 @@ namespace MatrixOS::USB
             //TODO
         }
 
-        void Print(char const* str)
+        void Print(string str)
         {
-            for(uint16_t i = 0; i < strlen(str); i++)
+            for(uint16_t i = 0; i < str.length(); i++)
             {
                 while(!tud_cdc_n_write_available(0)){}
                 tud_cdc_n_write_char(0, str[i]);
@@ -69,7 +67,7 @@ namespace MatrixOS::USB
             // tud_cdc_n_write_flush(0);
         }
 
-        void Println(char const* str)
+        void Println(string str)
         {
             Print(str);
             Print("\n\r");
@@ -110,9 +108,9 @@ namespace MatrixOS::USB
             return tud_cdc_n_read(0, buffer, length);
         }
 
-        std::string ReadString(void)
+        string ReadString(void)
         {
-            std::string str;
+            string str;
             uint8_t i = 0;
             // Print("Buffer remains ");
             // Println(std::to_string(Available()).c_str());

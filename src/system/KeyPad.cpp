@@ -7,9 +7,15 @@ namespace MatrixOS::KEYPAD
     uint16_t changed = 0;
     uint16_t* changelist;
 
+    // static timer
+    StaticTimer_t keypad_tmdef;
+    TimerHandle_t keypad_tm;
+
     void Init()
     {
-        SysVar::keypad_millis = 1000/UserVar::keypad_scanrate;
+        // SysVar::keypad_millis = 1000/UserVar::keypad_scanrate;
+        keypad_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/UserVar::keypad_scanrate), true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_tmdef);
+        xTimerStart(keypad_tm, 0);
     }
 
     // void (*handler)(uint16_t) = nullptr;
@@ -22,7 +28,9 @@ namespace MatrixOS::KEYPAD
     uint16_t Scan(void)
     {   
         // USB::CDC::Println("KeyPad Scan");
-        free(changelist);
+        if (changelist)
+            free(changelist);
+            
         uint16_t* device_change_list = Device::KeyPad::Scan();
         changed = device_change_list[0];
         if(changed > 0)

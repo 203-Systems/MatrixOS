@@ -4,46 +4,48 @@
 
 namespace MatrixOS::SYS
 {   
-    Timer ledTimer; 
-    Timer keypadTimer; 
-    void SystemTask(void* param)
-    {      
-        TickType_t xLastWakeTime;
-        const TickType_t xFrequency = 100;
-        while(1)
-        {
-            // ESP_LOGI("SysTask", "System Task %d", Millis());
-            Device::DeviceTask();
-            // ESP_LOGI("SysTask", "USB Poll");
-            if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
-            {
-                LED::Update();
-                // ESP_LOGI("SysTask", "LED Update");
-            }
-            if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
-            {
-                KEYPAD::Scan();
-                // ESP_LOGI("SysTask", "Keypad Scan");
-            }
-            USB::Poll();
-            // USB::MIDI::Poll();
-            // USB::CDC::Poll();
-            // ESP_LOGI("SysTask", "Device Task");
-            vTaskDelayUntil(&xLastWakeTime, xFrequency);
-        }
-    }
+    // Timer ledTimer; 
+    // Timer keypadTimer; 
+    // void SystemTask(void* param)
+    // {      
+    //     TickType_t xLastWakeTime;
+    //     const TickType_t xFrequency = 100;
+    //     while(1)
+    //     {
+    //         // ESP_LOGI("SysTask", "System Task %d", Millis());
+    //         Device::DeviceTask();
+    //         // ESP_LOGI("SysTask", "USB Poll");
+    //         // if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
+    //         // {
+    //         //     LED::Update();
+    //         //     // ESP_LOGI("SysTask", "LED Update");
+    //         // }
+    //         if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
+    //         {
+    //             KEYPAD::Scan();
+    //             // ESP_LOGI("SysTask", "Keypad Scan");
+    //         }
+    //         vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    //     }
+    // }
 
     // Create a task for tinyusb device stack
-    #define SYS_TASK_STACK_SIZE     (configMINIMAL_STACK_SIZE * 3)
-    StackType_t  system_task_stack[SYS_TASK_STACK_SIZE];
-    StaticTask_t system_taskdef;
+    // #define SYS_TASK_STACK_SIZE     (configMINIMAL_STACK_SIZE * 3)
+    // StackType_t  system_task_stack[SYS_TASK_STACK_SIZE];
+    // StaticTask_t system_taskdef;
+
+    StaticTimer_t device_task_tmdef;
+    TimerHandle_t device_task_tm;
     void Init()
     {
         Device::DeviceInit();
         MatrixOS::KEYPAD::Init();
         MatrixOS::LED::Init();
         MatrixOS::USB::Init();
-        (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
+        // (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
+        
+        // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
+        // xTimerStart(device_task_tm, 0);
 
         inited = true;
     }
@@ -55,7 +57,7 @@ namespace MatrixOS::SYS
 
     void DelayMs(uint32_t intervalMs)
     {
-        Device::Delay(intervalMs);
+            Device::Delay(intervalMs);
     }
 
     void Reboot()
@@ -135,10 +137,10 @@ namespace MatrixOS::SYS
         SysVar::active_app = application;
     }
 
-    void ErrorHandler(char const* error)
+    void ErrorHandler(string error)
     {
         USB::CDC::Print("Matrix OS Error: ");
-        if(error == NULL)
+        if(error.empty())
             USB::CDC::Println("Undefined Error");
         else
             USB::CDC::Println(error);
