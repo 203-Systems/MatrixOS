@@ -21,7 +21,7 @@ namespace MatrixOS::Logging
         return (uint8_t)GetLogLevel(tag) >= (uint8_t)target_level;
     }
 
-    void Log(ELogLevel level, string tag, string format, ...) //DO NOT 
+    void Log(ELogLevel level, string tag, string format, ...) //DO NOT USE THIS DIRECTLY. STRING WILL NOT BE REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
     {   
         if(ShouldLog(tag, level))
         {

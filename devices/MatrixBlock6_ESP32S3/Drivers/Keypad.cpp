@@ -1,6 +1,28 @@
 //Define Device Keypad Function
 #include "Device.h"
 
+namespace Device
+{
+    void Keypad_Init()
+    {
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
+            gpio_set_level(keypad_write_pins[x], 0);
+        }
+
+        #ifndef  FSR_KEYPAD
+        for(uint8_t y = 0; y < y_size; y++)
+        {
+            gpio_set_direction(keypad_read_pins[y], GPIO_MODE_INPUT);
+            gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+        }
+        #else
+        #endif
+
+    }
+}
+
 namespace Device::KeyPad
 {
     uint16_t* Scan()
@@ -67,27 +89,30 @@ namespace Device::KeyPad
 
     void KeyPadScan()
     {
-        // for(uint8_t x = 0; x < Device::x_size; x ++)
-        // {
-        //     HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_SET);
-        //     for(uint8_t y = 0; y < Device::y_size; y ++)
-        //     {
-        //         Fract16 read = HAL_GPIO_ReadPin(keypad_read_pins[y].port, keypad_read_pins[y].pin) * UINT16_MAX;
-        //         bool updated = keypadState[x][y].update(read);
-        //         if(updated)
-        //         {
-        //             uint16_t keyID = (1 << 12) + (x << 6) + y;
-        //             if(addToList(keyID))
-        //             {
-        //                 HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET); //Set pin back to low
-        //                 return; //List is full
-        //             }
-        //         }
-        //     }
-        //     HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET);
-        //     volatile int i; for(i=0; i<5; ++i) {} //Add small delay
-            
-        // }
+        for(uint8_t x = 0; x < Device::x_size; x ++)
+        {
+            gpio_set_level(keypad_write_pins[x], 1);
+            for(uint8_t y = 0; y < Device::y_size; y ++)
+            {
+                #ifndef  FSR_KEYPAD
+                Fract16 read = gpio_get_level(keypad_write_pins[x]) * UINT16_MAX;
+                #else
+                Fract16 read = gpio_get_level(keypad_write_pins[x]) * UINT16_MAX; //TODO READ ADC
+                #endif
+                bool updated = keypadState[x][y].update(read);
+                if(updated)
+                {
+                    uint16_t keyID = (1 << 12) + (x << 6) + y;
+                    if(addToList(keyID))
+                    {
+                        gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
+                        return; //List is full
+                    }
+                }
+            }
+            gpio_set_level(keypad_write_pins[x], 0);
+            // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
+        }
     }
 
     void TouchBarScan()

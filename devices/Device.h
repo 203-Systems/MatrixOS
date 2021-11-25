@@ -23,7 +23,7 @@ namespace Device
     void Bootloader();
     void ErrorHandler();
 
-    void Logging(ELogLevel level, string tag, string format, ...);
+    void Log(ELogLevel level, string tag, string format, ...);
 
     string GetSerial();
 
@@ -51,12 +51,12 @@ namespace Device
         int8_t Write(uint32_t address, uint32_t data);
     }
 
-    namespace EEPROM
+    namespace NVS
     {
         std::vector<char> Read(std::string name);
         // void* Read(std::string name);
         bool Write(std::string name, void* pointer, uint16_t length);
-        void Format();
+        void Clear();
     }
 
 

@@ -161,6 +161,7 @@ namespace MatrixOS
 
   namespace Logging
   {
+    void LogLevelSet(string tag, ELogLevel level);
     void LogError (string tag, string format, ...);
     void LogWarning (string tag, string format, ...);
     void LogInfo (string tag, string format, ...);
@@ -168,111 +169,9 @@ namespace MatrixOS
     void LogVerbose (string tag, string format, ...);
   }
 
-  // namespace MEMORY
-  // {
-  //   const int SharedBufferSize = 2048+128;
-
-  //   void SetSharedBuffer(void*);
-  //   void* GetSharedBuffer(void);
-
-  //   void LinearStart(void);
-  //   bool LinearFinish(void);
-  //   bool LinearProgram( uint32_t nAddress, unsigned char* pData, int nLength );
-  // }
-
-  // namespace FAT
-  // {
-  //   enum EIoMode {
-  //     IoRead = 1,
-  //     IoWrite = 2,
-  //     IoClosed = 3
-  //   };
-
-  //   enum EResult 
-  //   {
-  //     EOk,
-  //     EDiskError,
-  //     EIntError,
-  //     ENoFile,
-  //     ENoPath,
-  //     EDiskFull
-  //   };
-
-  //   enum EAttribute 
-  //   {
-  //     EReadOnly = 1,
-  //     EHidden = 2,
-  //     ESystem = 4,
-  //     EDirectory = 0x10,
-  //     EArchive = 0x20
-  //   };
-
-  //   struct TFindFile
-  //   {
-  //     uint32_t nFileLength;
-  //     uint16_t nDate;
-  //     uint16_t nTime;
-  //     uint8_t nAtrib;
-  //     char strName[13];
-  //   };
-
-  //   const int SectorSize = 4096;
-  //   const int SectorCount = 2048;
-
-  //   const int SharedBufferSize = SectorSize;
-
-  //   void SetSharedBuffer(void*);
-  //   void* GetSharedBuffer(void);
-
-  //   EResult Init(void);
-  //   EResult Open(string strName, uint8_t nIoMode);
-  //   EResult Read(uint8_t* pSectorData);
-  //   EResult Write(uint8_t* pSectorData);
-  //   EResult Seek(uint32_t lOffset);
-  //   EResult Close(int nSize);
-  //   EResult Close(void);
-  //   uint32_t GetFileSize(void);
-	
-  //   EResult OpenDir(char* strPath);
-  //   EResult FindNext(TFindFile* pFile);
-  // }
-
-  // namespace OS
-  // {
-  //   typedef void (*TInterruptHandler)(void);
-  //   enum EInterruptVector {
-  //     IStackTop, IReset, INMIException, IHardFaultException, IMemManageException, 
-  //     IBusFaultException, IUsageFaultException, _Dummy1, _Dummy2,
-  //     _Dummy3, _Dummy4, ISVC, IDebugMonitor, _Dummy5, IPendSVC, 
-  //     ISysTick, IWWDG_IRQ, IPVD_IRQ, ITAMPER_IRQ, IRTC_IRQ, IFLASH_IRQ,
-  //     IRCC_IRQ, IEXTI0_IRQ, IEXTI1_IRQ, IEXTI2_IRQ, IEXTI3_IRQ, IEXTI4_IRQ,
-  //     IDMA1_Channel1_IRQ, IDMA1_Channel2_IRQ, IDMA1_Channel3_IRQ,
-  //     IDMA1_Channel4_IRQ, IDMA1_Channel5_IRQ, IDMA1_Channel6_IRQ,
-  //     IDMA1_Channel7_IRQ, IADC1_2_IRQ, IUSB_HP_CAN_TX_IRQ, 
-  //     IUSB_LP_CAN_RX0_IRQ, ICAN_RX1_IRQ, ICAN_SCE_IRQ, IEXTI9_5_IRQ,
-  //     ITIM1_BRK_IRQ, ITIM1_UP_IRQ, ITIM1_TRG_COM_IRQ, ITIM1_CC_IRQ,
-  //     ITIM2_IRQ, ITIM3_IRQ, ITIM4_IRQ, II2C1_EV_IRQ, II2C1_ER_IRQ,
-  //     II2C2_EV_IRQ, II2C2_ER_IRQ, ISPI1_IRQ, ISPI2_IRQ, IUSART1_IRQ,
-  //     IUSART2_IRQ, IUSART3_IRQ, IEXTI15_10_IRQ, IRTCAlarm_IRQ, 
-  //     IUSBWakeUp_IRQ, ITIM8_BRK_IRQ, ITIM8_UP_IRQ, ITIM8_TRG_COM_IRQ,
-  //     ITIM8_CC_IRQ, IADC3_IRQ, IFSMC_IRQ, ISDIO_IRQ, ITIM5_IRQ,
-  //     ISPI3_IRQ, IUART4_IRQ, IUART5_IRQ, ITIM6_IRQ, ITIM7_IRQ,
-  //     IDMA2_Channel1_IRQ, IDMA2_Channel2_IRQ, IDMA2_Channel3_IRQ,
-  //     IDMA2_Channel4_5_IRQ };
-
-  //   void SetArgument(char* argument);
-  //   char* GetArgument(void);
-  //   bool HasArgument(void);
-  //   TInterruptHandler GetInterruptVector(EInterruptVector);
-  //   void SetInterruptVector(EInterruptVector, TInterruptHandler);
-  //   uint32_t DisableInterrupts(void);
-  //   void EnableInterrupts(uint32_t);
-  // }
-
   // namespace GPIO
   // {
-  //   enum EPin {P1, P2, P3, P4, P5, P6, P7, P8};
-  //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16, I2c = 32, Uart = 64};
+  //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16};
   //   const int AnalogRange = 1024;
 
   //   void DigitalWrite(EPin pin, bool value);

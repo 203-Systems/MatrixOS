@@ -9,6 +9,12 @@
 
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
+#include "driver/adc.h"
+
+#include "nvs_flash.h"
+#include "nvs.h"
+
+#include "esp_private/system_internal.h"
 
 #include "WS2812/WS2812.h"
 #include "framework/Color.h"
@@ -28,5 +34,5 @@ namespace Device
     void LED_Init();
     void KeyPad_Init();
     void TouchBar_Init();
-    void FLASH_Init();
+    void NVS_Init();
 }

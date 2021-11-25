@@ -14,7 +14,6 @@ namespace MatrixOS::LED
 
     void Init()
     {
-        uint8_t size = sizeof(Color);
         // SysVar::fps_millis = 1000/UserVar::fps;
         Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
@@ -22,7 +21,7 @@ namespace MatrixOS::LED
             frameBuffer[i] = Color();
         }
 
-        uint8_t currentLayer = 0;
+        currentLayer = 0;
         frameBuffers.push_back(frameBuffer);
         Update();
 

@@ -6,43 +6,8 @@ namespace Device
     {
         USB_Init();
         LED_Init();
+        NVS_Init();
     }
-
-    void USB_Init()
-    {
-        // USB Controller Hal init
-        periph_module_reset(PERIPH_USB_MODULE);
-        periph_module_enable(PERIPH_USB_MODULE);
-
-        usb_hal_context_t hal = {
-            .use_external_phy = false // use built-in PHY
-        };
-        usb_hal_init(&hal);
-        
-        /* usb_periph_iopins currently configures USB_OTG as USB Device.
-        * Introduce additional parameters in usb_hal_context_t when adding support
-        * for USB Host.
-        */
-        for (const usb_iopin_dsc_t *iopin = usb_periph_iopins; iopin->pin != -1; ++iopin) {
-            if ((hal.use_external_phy) || (iopin->ext_phy_only == 0)) {
-                esp_rom_gpio_pad_select_gpio((uint32_t)iopin->pin);
-                if (iopin->is_output) {
-                    esp_rom_gpio_connect_out_signal(iopin->pin, iopin->func, false, false);
-                } else {
-                    esp_rom_gpio_connect_in_signal(iopin->pin, iopin->func, false);
-                    if ((iopin->pin != GPIO_FUNC_IN_LOW) && (iopin->pin != GPIO_FUNC_IN_HIGH)) {
-                        gpio_ll_input_enable(&GPIO, (gpio_num_t)iopin->pin);
-                    }
-                }
-                esp_rom_gpio_pad_unhold(iopin->pin);
-            }
-        }
-
-        if (!hal.use_external_phy) {
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DM_NUM, GPIO_DRIVE_CAP_3);
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DP_NUM, GPIO_DRIVE_CAP_3);
-        }
-    }   
 
 
     // bool wdt_subscribed = false;
@@ -61,13 +26,13 @@ namespace Device
 
     void Bootloader()
     {
-        // // Check out esp_reset_reason_t for other Espressif pre-defined values
-        // enum { APP_REQUEST_UF2_RESET_HINT = 0x11F2 };
+        // Check out esp_reset_reason_t for other Espressif pre-defined values
+        #define APP_REQUEST_UF2_RESET_HINT (esp_reset_reason_t)0x11F2
 
-        // // call esp_reset_reason() is required for idf.py to properly links esp_reset_reason_set_hint()
-        // (void) esp_reset_reason();
-        // esp_reset_reason_set_hint(APP_REQUEST_UF2_RESET_HINT);
-        // esp_restart();
+        // call esp_reset_reason() is required for idf.py to properly links esp_reset_reason_set_hint()
+        (void) esp_reset_reason();
+        esp_reset_reason_set_hint(APP_REQUEST_UF2_RESET_HINT);
+        esp_restart();
     }
 
     void Reboot()
@@ -77,7 +42,7 @@ namespace Device
 
     void Delay(uint32_t interval)
     {
-        // vTaskDelay(pdMS_TO_TICKS(interval));
+        vTaskDelay(pdMS_TO_TICKS(interval));
     }
 
     uint32_t Millis()
@@ -91,9 +56,32 @@ namespace Device
         
     }
 
+    void Log(ELogLevel level, string tag, string format, ...)
+    {
+        // va_list valst;
+        // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
+        // esp_log_write((esp_log_level_t)level, tag.c_str(), LOG_FORMAT(I, format.c_str()), esp_log_timestamp(), tag.c_str(), valst);
+        // esp_log_write(ESP_LOG_INFO, tag.c_str(), LOG_COLOR_I "I"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        // do { 
+        //     if (level==ESP_LOG_ERROR ) 
+        //     { 
+        //         esp_log_write(ESP_LOG_ERROR, tag.c_str(), LOG_COLOR_E "E"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        //     } else if (level==ESP_LOG_WARN ) { 
+        //         esp_log_write(ESP_LOG_WARN, tag.c_str(), LOG_COLOR_W "W"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        //     } else if (level==ESP_LOG_DEBUG ) { 
+        //         esp_log_write(ESP_LOG_DEBUG, tag.c_str(), LOG_COLOR_D "D"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        //     } else if (level==ESP_LOG_VERBOSE ) { 
+        //         esp_log_write(ESP_LOG_VERBOSE, tag.c_str(), LOG_COLOR_V "V"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        //     } else { 
+        //         esp_log_write(ESP_LOG_INFO, tag.c_str(), LOG_COLOR_I "I"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
+        //     } 
+        // } while(0);
+
+    }
+
     string GetSerial()
     {
-        return "<Serial Number>";
+        return "<Serial Number>"; //TODO
     }
 }
 
