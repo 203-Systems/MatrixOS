@@ -4,6 +4,7 @@
 
 #define MATRIXOS_LOG_LEVEL  LOG_LEVEL_VERBOSE
 #define MATRIXOS_LOG_DEVICE
+#define MATRIXOS_LOG_COLOR
 
 #define FLASHVERSION 0 //Each Flash data strcture change will cause this to increase
 #define FWVERSION_STRING "2.0 Dev" //String(MAJOR_VER)+ "." +MINOR_VER+"." +PATCH_VER+(BUILD_VER == 0)?"":("b"+BUILD_VER) 
