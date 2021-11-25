@@ -60,9 +60,6 @@ namespace MatrixOS
 
   namespace LED
   {
-    #define MAX_LED_LAYERS 5
-    // timer ledTimer;
-
     inline uint8_t currentLayer;
     inline std::vector<Color*> frameBuffers;
     void Init(void);
@@ -77,9 +74,8 @@ namespace MatrixOS
     int8_t CreateLayer();
     void DestoryLayer();
     
-
-    void ShiftCanvas(EDirection direction, int8_t distance);
-    void RotateCanvas(EDirection direction);
+    void ShiftCanvas(EDirection direction, int8_t distance, int8_t layer = currentLayer); //TODO
+    void RotateCanvas(EDirection direction, int8_t layer = currentLayer); //TODO
   }
 
   namespace KEYPAD
@@ -114,7 +110,7 @@ namespace MatrixOS
       
       void Print(string str);
       void Println(string str);
-      void Printf(string format, ...);
+      void Printf(string format, ...); //TODO: Not Working
       void Flush(void);
 
       int8_t Read(void);
@@ -167,6 +163,11 @@ namespace MatrixOS
     void LogInfo (string tag, string format, ...);
     void LogDebug (string tag, string format, ...);
     void LogVerbose (string tag, string format, ...);
+  }
+
+  namespace NVS
+  {
+    
   }
 
   // namespace GPIO

@@ -47,7 +47,12 @@ namespace MatrixOS::SYS
         // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
         // xTimerStart(device_task_tm, 0);
 
-        inited = true;
+        inited = true; 
+        MatrixOS::Logging::LogError("System", "This is an error log");
+        MatrixOS::Logging::LogWarning("System", "This is a warning log");
+        MatrixOS::Logging::LogInfo("System", "This is an info log");
+        MatrixOS::Logging::LogDebug("System", "This is a debug log");
+        MatrixOS::Logging::LogVerbose("System", "This is a verbose log");
     }
     
     uint32_t Millis()

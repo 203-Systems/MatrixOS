@@ -23,7 +23,7 @@ namespace Device
     void Bootloader();
     void ErrorHandler();
 
-    void Log(ELogLevel level, string tag, string format, ...);
+    void Log(string format, va_list valst);
 
     string GetSerial();
 

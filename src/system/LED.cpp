@@ -121,12 +121,12 @@ namespace MatrixOS::LED
         }
     }
 
-    void ShiftCanvas(EDirection direction, int8_t distance)
+    void ShiftCanvas(EDirection direction, int8_t distance, int8_t layer)
     {
         // Color[] tempBuffer;
     }
 
-    void RotateCanvas(EDirection direction)
+    void RotateCanvas(EDirection direction, int8_t layer)
     {
         
     }

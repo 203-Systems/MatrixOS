@@ -51,9 +51,9 @@ namespace WS2812
             ESP_LOGE(TAG, "get rmt counter clock failed");
         }
         // ns -> ticks
-        ESP_LOGI(TAG, "counter_clk_hz %i", counter_clk_hz);
+        ESP_LOGV(TAG, "counter_clk_hz %i", counter_clk_hz);
         float ratio = (float)counter_clk_hz / 1e9;
-        ESP_LOGI(TAG, "ratio %f", ratio);
+        ESP_LOGV(TAG, "ratio %f", ratio);
 
         ws2812_t0h_ticks = (uint32_t)(ratio * WS2812_T0H_NS);
         ws2812_t0l_ticks = (uint32_t)(ratio * WS2812_T0L_NS);
@@ -61,19 +61,19 @@ namespace WS2812
         ws2812_t1l_ticks = (uint32_t)(ratio * WS2812_T1L_NS);
         ws2812_reset_ticks = (uint32_t)(ratio * WS2812_RESET_US * 1000);
 
-        ESP_LOGI(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
-        ESP_LOGI(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
-        ESP_LOGI(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
-        ESP_LOGI(TAG, "ws2812_t1l_ticks %d", ws2812_t1l_ticks);
-        ESP_LOGI(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
+        ESP_LOGV(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
+        ESP_LOGV(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
+        ESP_LOGV(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
+        ESP_LOGV(TAG, "ws2812_t1l_ticks %d", ws2812_t1l_ticks);
+        ESP_LOGV(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
     }
 
     uint8_t Show(Color *array, uint8_t brightness)
     {
-        // ESP_LOGI(TAG, "Show");
+        // ESP_LOGV(TAG, "Show");
         if(transmit_in_progress)
         {
-            ESP_LOGI(TAG, "transmit still in progress, abort");
+            ESP_LOGV(TAG, "transmit still in progress, abort");
             return -1;
         }
         setup_rmt_data_buffer(array, brightness);

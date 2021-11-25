@@ -56,27 +56,11 @@ namespace Device
         
     }
 
-    void Log(ELogLevel level, string tag, string format, ...)
+    void Log(string format, va_list valst)
     {
-        // va_list valst;
         // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
-        // esp_log_write((esp_log_level_t)level, tag.c_str(), LOG_FORMAT(I, format.c_str()), esp_log_timestamp(), tag.c_str(), valst);
-        // esp_log_write(ESP_LOG_INFO, tag.c_str(), LOG_COLOR_I "I"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        // do { 
-        //     if (level==ESP_LOG_ERROR ) 
-        //     { 
-        //         esp_log_write(ESP_LOG_ERROR, tag.c_str(), LOG_COLOR_E "E"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        //     } else if (level==ESP_LOG_WARN ) { 
-        //         esp_log_write(ESP_LOG_WARN, tag.c_str(), LOG_COLOR_W "W"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        //     } else if (level==ESP_LOG_DEBUG ) { 
-        //         esp_log_write(ESP_LOG_DEBUG, tag.c_str(), LOG_COLOR_D "D"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        //     } else if (level==ESP_LOG_VERBOSE ) { 
-        //         esp_log_write(ESP_LOG_VERBOSE, tag.c_str(), LOG_COLOR_V "V"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        //     } else { 
-        //         esp_log_write(ESP_LOG_INFO, tag.c_str(), LOG_COLOR_I "I"" (%u) %s: " format.c_str() LOG_RESET_COLOR "\n", esp_log_timestamp(), tag.c_str(), valst); 
-        //     } 
-        // } while(0);
-
+        // esp_log_writev(ESP_LOG_INFO, format.c_str(), valst);
+        vprintf(format.c_str(), valst);
     }
 
     string GetSerial()

@@ -51,9 +51,9 @@ namespace WS2812
             ESP_LOGE(TAG, "get rmt counter clock failed");
         }
         // ns -> ticks
-        ESP_LOGI(TAG, "counter_clk_hz %i", counter_clk_hz);
+        ESP_LOGV(TAG, "counter_clk_hz %i", counter_clk_hz);
         float ratio = (float)counter_clk_hz / 1e9;
-        ESP_LOGI(TAG, "ratio %f", ratio);
+        ESP_LOGV(TAG, "ratio %f", ratio);
 
         ws2812_t0h_ticks = (uint32_t)(ratio * WS2812_T0H_NS);
         ws2812_t0l_ticks = (uint32_t)(ratio * WS2812_T0L_NS);
@@ -61,11 +61,11 @@ namespace WS2812
         ws2812_t1l_ticks = (uint32_t)(ratio * WS2812_T1L_NS);
         ws2812_reset_ticks = (uint32_t)(ratio * WS2812_RESET_US * 1000);
 
-        ESP_LOGI(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
-        ESP_LOGI(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
-        ESP_LOGI(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
-        ESP_LOGI(TAG, "ws2812_t1l_ticks %d", ws2812_t1l_ticks);
-        ESP_LOGI(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
+        ESP_LOGV(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
+        ESP_LOGV(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
+        ESP_LOGV(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
+        ESP_LOGV(TAG, "ws2812_t1l_ticks %d", ws2812_t1l_ticks);
+        ESP_LOGV(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
     }
 
     uint8_t Show(Color *array, uint8_t brightness)
@@ -90,7 +90,7 @@ namespace WS2812
         const rmt_item32_t reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
         // rmtBuffer[0] = reset;
         for (uint16_t led = 0; led < numsOfLED; led++) {
-            // ESP_LOGI("RMT", "LED %d", led);
+            // ESP_LOGV("RMT", "LED %d", led);
             uint32_t bits_to_send = array[led].GRB(brightness);
             uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
             for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++) {
@@ -104,7 +104,7 @@ namespace WS2812
 
     void rmt_callback(rmt_channel_t rmt_channel, void *arg)
     {
-        // ESP_LOGI(TAG, "Transmit finished");
+        // ESP_LOGV(TAG, "Transmit finished");
         transmit_in_progress = false;
     }
 }

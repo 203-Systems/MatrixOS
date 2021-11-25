@@ -21,17 +21,19 @@ namespace MatrixOS::Logging
         return (uint8_t)GetLogLevel(tag) >= (uint8_t)target_level;
     }
 
+    string logLevelLut[5] = {"31mE", "33mW", "32mI", "36mD", "37mV"};
     void Log(ELogLevel level, string tag, string format, ...) //DO NOT USE THIS DIRECTLY. STRING WILL NOT BE REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
     {   
         if(ShouldLog(tag, level))
         {
+            string msg = string() + "\033[0;" + logLevelLut[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " +  tag + ": " + format + "\033[0m\n";
             va_list valst;
             #ifdef MATRIXOS_LOG_DEVICE
-            Device::Log(level, tag, format, valst);
+            Device::Log(msg, valst);
             #endif
 
             #ifdef MATRIXOS_LOG_USBCDC
-            USB::CDC::Printf(tag + " Info: " + format, valst)
+            USB::CDC::Printf(msg, valst)
             #endif
         }
 
