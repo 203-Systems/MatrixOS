@@ -25,9 +25,12 @@ namespace Device::NVS
     std::vector<char> Read(std::string name)
     {
         size_t length;
-        nvs_get_blob(nvs_handle, name.c_str(), NULL, &length);
+
+        if (nvs_get_blob(nvs_handle, name.c_str(), NULL, &length) != ESP_OK)
+            return std::vector<char>(0);
         std::vector<char> value(length);
-        nvs_get_blob(nvs_handle, name.c_str(), value.data(), &length);
+        if (nvs_get_blob(nvs_handle, name.c_str(), value.data(), &length) != ESP_OK)
+            return std::vector<char>(0);
         return value;
     }
 

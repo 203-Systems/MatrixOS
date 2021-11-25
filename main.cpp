@@ -20,10 +20,10 @@ int main()
     //     MatrixOS::SYS::SystemTask();
     // }
 
-    // EEPROMTest eepromTest;
-    // eepromTest.Start();
-    Performance performance;
-    performance.Start();
+    NVSTest nvsTest;
+    nvsTest.Start();
+    // Performance performance;
+    // performance.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
