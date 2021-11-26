@@ -18,7 +18,7 @@ void Performance::Loop()
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
-    // ESP_LOGI("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
+    MatrixOS::Logging::LogVerbose("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
     switch(midiPacket.status)
     {
         case NoteOn:
@@ -35,12 +35,6 @@ void Performance::MidiEvent(MidiPacket midiPacket)
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
-    // MatrixOS::USB::CDC::Print("Note Handler ");
-    // MatrixOS::USB::CDC::Print(std::to_string(channel).c_str());
-    // MatrixOS::USB::CDC::Print(" ");
-    // MatrixOS::USB::CDC::Print(std::to_string(note).c_str());
-    // MatrixOS::USB::CDC::Print(" ");
-    // MatrixOS::USB::CDC::Println(std::to_string(velocity).c_str());
     switch(currentKeymap)
     {
         case 0:

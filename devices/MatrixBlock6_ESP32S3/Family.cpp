@@ -51,11 +51,6 @@ namespace Device
         // return 0;
     }
 
-    void ErrorHandler()
-    {
-        
-    }
-
     void Log(string format, va_list valst)
     {
         // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
@@ -66,6 +61,12 @@ namespace Device
     string GetSerial()
     {
         return "<Serial Number>"; //TODO
+    }
+
+    
+    void ErrorHandler()
+    {
+        
     }
 }
 

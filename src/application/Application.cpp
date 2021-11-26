@@ -2,14 +2,11 @@
 
 void Application::Start()
 {
-    // ESP_LOGI("Application", "Start Application");
     Setup();
-    // ESP_LOGI("Application", "Setup Complete");
     // TickType_t xLastWakeTime;
     // const TickType_t xFrequency = 100;
     while(status != -1)
     {
-        // ESP_LOGI("Application", "Loop");
         LoopTask();
         Loop();
         // vTaskDelayUntil(&xLastWakeTime, xFrequency);

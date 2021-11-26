@@ -14,29 +14,31 @@ namespace Device
         ESP_ERROR_CHECK( err );
 
         nvs_open("matrix_os", NVS_READWRITE, &nvs_handle);
-
-
-
     }
 }
 
 namespace Device::NVS
 {
-    std::vector<char> Read(std::string name)
+    vector<char> Read(string name)
     {
         size_t length;
 
         if (nvs_get_blob(nvs_handle, name.c_str(), NULL, &length) != ESP_OK)
-            return std::vector<char>(0);
-        std::vector<char> value(length);
+            return vector<char>(0);
+        vector<char> value(length);
         if (nvs_get_blob(nvs_handle, name.c_str(), value.data(), &length) != ESP_OK)
-            return std::vector<char>(0);
+            return vector<char>(0);
         return value;
     }
 
-    bool Write(std::string name, void* pointer, uint16_t length)
+    bool Write(string name, void* pointer, uint16_t length)
     {
         return nvs_set_blob(nvs_handle, name.c_str(), pointer, length) == ESP_OK;
+    }
+
+    bool Delete(string name)
+    {
+        return nvs_erase_key(nvs_handle, name) == ESP_OK;
     }
 
     void Clear()

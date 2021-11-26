@@ -171,7 +171,7 @@ endif
 include source.mk
 
 # ---------------------------------------
-# Common make rules for all examples
+# Common make rules for all device
 # ---------------------------------------
 
 # Set all as default goal

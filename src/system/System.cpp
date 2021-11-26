@@ -12,18 +12,18 @@ namespace MatrixOS::SYS
     //     const TickType_t xFrequency = 100;
     //     while(1)
     //     {
-    //         // ESP_LOGI("SysTask", "System Task %d", Millis());
+    //         // MatrixOS::Logging::LogDebug("SysTask", "System Task %d", Millis());
     //         Device::DeviceTask();
-    //         // ESP_LOGI("SysTask", "USB Poll");
+    //         // MatrixOS::Logging::LogDebug("SysTask", "USB Poll");
     //         // if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
     //         // {
     //         //     LED::Update();
-    //         //     // ESP_LOGI("SysTask", "LED Update");
+    //         //     // MatrixOS::Logging::LogDebug("SysTask", "LED Update");
     //         // }
     //         if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
     //         {
     //             KEYPAD::Scan();
-    //             // ESP_LOGI("SysTask", "Keypad Scan");
+    //             // MatrixOS::Logging::LogDebug("SysTask", "Keypad Scan");
     //         }
     //         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     //     }

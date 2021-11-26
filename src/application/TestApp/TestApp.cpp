@@ -70,12 +70,9 @@ void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 
 void TestApp::LED_task(void)
 {
-  // ESP_LOGI("TestApp", "LED_Task");
+  // MatrixOS::Logging::Debug("TestApp", "LED_Task");
   if (TestApp::timer.Tick(100))
   { 
-    // MatrixOS::USB::CDC::Print("LED Index: ");
-    // MatrixOS::USB::CDC::Println(std::to_string(led_id).c_str());
-
     MatrixOS::Logging::LogInfo(name, "LED Task");
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     led_id ++;

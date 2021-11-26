@@ -77,7 +77,8 @@
 			"stop_token": "cpp",
 			"variant": "cpp",
 			"usbd_pvt.h": "c",
-			"dcd.h": "c"
+			"dcd.h": "c",
+			"freertosconfig.h": "c"
 		}
 	}
 }

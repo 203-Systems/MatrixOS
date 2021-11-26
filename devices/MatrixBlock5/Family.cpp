@@ -11,7 +11,7 @@ namespace Device
         LED_Init();
         KeyPad_Init();
         TouchBar_Init();
-        EEPROM::Init();
+        NVS::Init();
     }
 
     void DeviceTask()
@@ -38,6 +38,21 @@ namespace Device
     uint32_t Millis()
     {
         return HAL_GetTick();
+    }
+
+    void Log(string format, va_list valst)
+    {
+
+    }
+
+    string GetSerial()
+    {
+        return "<Serial Number>"; //TODO
+    }
+
+    void ErrorHandler()
+    {
+        
     }
 
     /**
@@ -97,10 +112,6 @@ namespace Device
         }
     }
 
-    void ErrorHandler()
-    {
-        
-    }
 }
 
 namespace MatrixOS::SYS
@@ -124,10 +135,10 @@ extern "C" {
         tud_int_handler(0);
     }
 
-    void SysTick_Handler(void)
-    {
-        HAL_IncTick();
-    }
+    // void SysTick_Handler(void)
+    // {
+    //     HAL_IncTick();
+    // }
 
     void _init(void) {;}
 
@@ -140,7 +151,7 @@ extern "C" {
 
     void HardFault_Handler (void)
     {
-        MatrixOS::SYS::ErrorHandler("Hard Fault");
+        // MatrixOS::SYS::ErrorHandler("Hard Fault");
         // while(true){
 
         // }
@@ -167,12 +178,12 @@ extern "C" {
         }
     }
 
-    void SVC_Handler (void)
-    {
-        while(true){
+    // void SVC_Handler (void)
+    // {
+    //     while(true){
 
-        }
-    }
+    //     }
+    // }
 
     void DebugMon_Handler (void)
     {
@@ -181,13 +192,20 @@ extern "C" {
         }
     }
 
-    void PendSV_Handler (void)
-    {
-        while(true){
+    // void PendSV_Handler (void)
+    // {
+    //     while(true){
 
-        }
+    //     }
+    // }
+
+    void vApplicationStackOverflowHook(xTaskHandle pxTask, char *pcTaskName)
+    {
+        (void) pxTask;
+        (void) pcTaskName;
+
+        taskDISABLE_INTERRUPTS();
     }
-    
 }
 
 extern "C"{ void * __dso_handle = 0 ;}  

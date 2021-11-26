@@ -56,6 +56,7 @@ namespace Device
         std::vector<char> Read(std::string name);
         // void* Read(std::string name);
         bool Write(std::string name, void* pointer, uint16_t length);
+        bool Delete(std::string name);
         void Clear();
     }
 

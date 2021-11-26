@@ -21,12 +21,6 @@
 #include "framework/Color.h"
 #include "esp_log.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
-#include "freertos/timers.h"
-
 // #include "FreeRTOSConfig.h"
 
 namespace Device

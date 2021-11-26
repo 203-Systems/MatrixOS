@@ -8,6 +8,11 @@
 #include "tusb.h"
 #include "usb/MidiSpecs.h"
 #include "framework/Framework.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "queue.h"
+#include "task.h"
+#include "timers.h"
 
 #undef USB //CMSIS defined the USB, undef so we can use USB as MatrixOS namespace
 #define noexpose //Custum key word to remove function to be generated as exposed API
@@ -116,9 +121,7 @@ namespace MatrixOS
       int8_t Read(void);
       uint32_t ReadBytes(void* buffer, uint32_t length); //Returns nums byte read
       string ReadString(void);
-
     }
-    // void Disable(void);
   }
 
   namespace MIDI
@@ -167,13 +170,14 @@ namespace MatrixOS
 
   namespace NVS
   {
-    
+    vector<char> GetVariable(string name);
+    int8_t SetVariable(string name, void* pointer, uint16_t length);
+    bool DeleteVariable(string name);
   }
 
   // namespace GPIO
-  // {
+  // {b
   //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16};
-  //   const int AnalogRange = 1024;
 
   //   void DigitalWrite(EPin pin, bool value);
   //   bool DigitalRead(EPin pin);

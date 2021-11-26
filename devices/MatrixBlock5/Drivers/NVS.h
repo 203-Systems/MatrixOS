@@ -3,7 +3,7 @@
 #include "Device.h"
 #include <map>
 
-namespace Device::EEPROM
+namespace Device::NVS
 {
 
     struct HashKey

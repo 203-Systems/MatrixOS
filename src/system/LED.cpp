@@ -49,7 +49,6 @@ namespace MatrixOS::LED
                 return;
             }
         uint16_t index = Device::LED::ID2Index(ID);
-        // ESP_LOGI("SetColor", "%d", index);
         if(index == UINT16_MAX) return;
         uint16_t bufferIndex = index + Device::numsOfLED * layer;
         frameBuffers[layer][bufferIndex] = color;

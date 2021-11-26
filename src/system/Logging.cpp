@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 #include "printf.h"
 
-#define DEFAULT_LOGGING_LEVEL VERBOSE //Change this later
+#define DEFAULT_LOGGING_LEVEL LOG_VERBOSE //Change this later
 
 namespace MatrixOS::Logging
 {
@@ -49,7 +49,7 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 1
         va_list valst;
-        Log(ERROR, tag, format, valst);
+        Log(LOG_ERROR, tag, format, valst);
         #endif
     }    
 
@@ -57,7 +57,7 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 2
         va_list valst;
-        Log(WARNING, tag, format, valst);
+        Log(LOG_WARNING, tag, format, valst);
         #endif
     }
 
@@ -65,7 +65,7 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 3
         va_list valst;
-        Log(INFO, tag, format, valst);
+        Log(LOG_INFO, tag, format, valst);
         #endif
     }
 
@@ -73,7 +73,7 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 4
         va_list valst;
-        Log(DEBUG, tag, format, valst);
+        Log(LOG_DEBUG, tag, format, valst);
         #endif
     }
 
@@ -81,7 +81,7 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 5
         va_list valst;
-        Log(VERBOSE, tag, format, valst);
+        Log(LOG_VERBOSE, tag, format, valst);
         #endif
     }
 }

@@ -1,11 +1,15 @@
+FREERTOS_SRC = lib/FreeRTOS-Kernel
+
 # ---------------------------------------
 # Code Include
 # ---------------------------------------
-INC += src/
-INC += devices/
-INC += src/usb/ #Optimize for TinyUSB
-INC += lib/tinyusb/src/
-INC += lib/printf/
+INC += src/ \
+	devices/ \
+	src/usb/ \
+	lib/tinyusb/src/ \
+	lib/printf/ \
+	$(FREERTOS_SRC)/include \
+	$(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT)
 
 # ---------------------------------------
 # Code Source
@@ -41,5 +45,13 @@ SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.cpp))
 SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
+
+# FreeRTOS source, all files in port folder
+SRC_C += \
+	$(FREERTOS_SRC)/list.c \
+	$(FREERTOS_SRC)/queue.c \
+	$(FREERTOS_SRC)/tasks.c \
+	$(FREERTOS_SRC)/timers.c \
+	$(subst ,,$(wildcard $(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT)/*.c))
 
 INC   += $(FAMILY_PATH)
