@@ -38,7 +38,7 @@ namespace Device::NVS
 
     bool Delete(string name)
     {
-        return nvs_erase_key(nvs_handle, name) == ESP_OK;
+        return nvs_erase_key(nvs_handle, name.c_str()) == ESP_OK;
     }
 
     void Clear()

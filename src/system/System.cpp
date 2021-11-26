@@ -48,21 +48,21 @@ namespace MatrixOS::SYS
         // xTimerStart(device_task_tm, 0);
 
         inited = true; 
-        MatrixOS::Logging::LogError("System", "This is an error log");
-        MatrixOS::Logging::LogWarning("System", "This is a warning log");
-        MatrixOS::Logging::LogInfo("System", "This is an info log");
-        MatrixOS::Logging::LogDebug("System", "This is a debug log");
-        MatrixOS::Logging::LogVerbose("System", "This is a verbose log");
+        // MatrixOS::Logging::LogError("System", "This is an error log");
+        // MatrixOS::Logging::LogWarning("System", "This is a warning log");
+        // MatrixOS::Logging::LogInfo("System", "This is an info log");
+        // MatrixOS::Logging::LogDebug("System", "This is a debug log");
+        // MatrixOS::Logging::LogVerbose("System", "This is a verbose log");
     }
     
     uint32_t Millis()
     {
-        return Device::Millis();
+        return ((((uint64_t) xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ );
     }
 
     void DelayMs(uint32_t intervalMs)
     {
-            Device::Delay(intervalMs);
+        vTaskDelay(pdMS_TO_TICKS(intervalMs));
     }
 
     void Reboot()

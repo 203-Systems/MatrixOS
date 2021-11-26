@@ -16,9 +16,6 @@ namespace Device
     
     void DeviceInit();
     void DeviceTask();
-    void Delay(uint32_t interval);
-    // uint32_t GetTick();
-    uint32_t Millis();
     void Reboot();
     void Bootloader();
     void ErrorHandler();

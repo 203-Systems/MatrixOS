@@ -68,6 +68,7 @@ void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
 }
 
+#define NUMSLEDS 1
 void TestApp::LED_task(void)
 {
   // MatrixOS::Logging::Debug("TestApp", "LED_Task");
@@ -77,11 +78,12 @@ void TestApp::LED_task(void)
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     led_id ++;
 
-    if(led_id == 1)
+    if(led_id == NUMSLEDS)
     {
       led_id = 0;
       colorIndex ++;
       colorIndex %= 5;
     }
+    MatrixOS::LED::Update();
   }
 }

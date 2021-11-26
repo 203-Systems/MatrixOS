@@ -18,7 +18,7 @@ void Performance::Loop()
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
-    MatrixOS::Logging::LogVerbose("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
+    // MatrixOS::Logging::LogVerbose("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
     switch(midiPacket.status)
     {
         case NoteOn:

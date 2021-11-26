@@ -21,7 +21,7 @@
 #include "framework/Color.h"
 #include "esp_log.h"
 
-// #include "FreeRTOSConfig.h"
+#define DONT_START_FREERTOS_SCHEDULER
 
 namespace Device
 {

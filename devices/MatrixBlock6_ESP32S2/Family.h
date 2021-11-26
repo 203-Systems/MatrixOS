@@ -13,6 +13,8 @@
 #include "framework/Color.h"
 #include "esp_log.h"
 
+#define DONT_START_FREERTOS_SCHEDULER
+
 namespace Device
 {
     void USB_Init();
