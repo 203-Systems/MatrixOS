@@ -15,6 +15,13 @@ namespace MatrixOS::LED
     void Init()
     {
         // SysVar::fps_millis = 1000/UserVar::fps;
+        // for(uint8_t i = 0; i < 100; i++)
+        // {
+        //     MatrixOS::USB::CDC::Println(std::to_string(i));
+        //     tud_task();
+        //     MatrixOS::SYS::DelayMs(100);
+        // }
+        // MatrixOS::USB::CDC::Println("Calloc");
         Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
         {
@@ -70,7 +77,7 @@ namespace MatrixOS::LED
 
     void Update(int8_t layer)
     {
-        Device::LED::Update(frameBuffers[layer], 64); //TODO: Get brightness
+        Device::LED::Update(frameBuffers[layer], UserVar::brightness); //TODO: Get brightness
     }
 
     // void SwitchLayer(uint8_t layer)

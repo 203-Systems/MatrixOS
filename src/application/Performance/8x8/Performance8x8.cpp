@@ -8,7 +8,7 @@
 void Performance::Setup()
 {
     currentKeymap = 0;
-    MatrixOS::LED::StartAutoUpdate();
+    // MatrixOS::LED::StartAutoUpdate();
 }
 
 void Performance::Loop()
@@ -58,15 +58,15 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
 
 void Performance::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
 {
-    Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-    if(xy) //IF XY is vaild, means it's on the main grid
-    {
-        GridKeyEvent(xy, keyInfo);
-    }
-    else //XY Not vaild, 
-    {
-        IDKeyEvent(KeyID, keyInfo);
-    }
+    // Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
+    // if(xy) //IF XY is vaild, means it's on the main grid
+    // {
+    //     GridKeyEvent(xy, keyInfo);
+    // }
+    // else //XY Not vaild, 
+    // {
+    //     IDKeyEvent(KeyID, keyInfo);
+    // }
 }
 
 void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)

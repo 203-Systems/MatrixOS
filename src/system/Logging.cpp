@@ -38,7 +38,7 @@ namespace MatrixOS::Logging
             #endif
 
             #ifdef MATRIXOS_LOG_USBCDC
-            USB::CDC::Printf(msg, valst)
+            USB::CDC::Printf(msg, valst);
             #endif
         }
 

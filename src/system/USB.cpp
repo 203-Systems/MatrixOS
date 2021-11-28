@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "printf.h"
 
 namespace MatrixOS::USB
 {
@@ -74,10 +75,17 @@ namespace MatrixOS::USB
             // tud_cdc_n_write_flush(0);
         }
 
-        void Printf(const char* format, ...)
+        void WriteChar(char c, void* arg)
+        {
+            while(!tud_cdc_n_write_available(0)){}
+                tud_cdc_n_write_char(0, c);
+        }
+
+        void Printf(string format, ...)
         {
             va_list valst;
-            printf(format, valst);
+            Print(format);
+            // fctprintf(&WrieChar, NULL, format.c_str(), valst);
         }
 
         void Flush(void)

@@ -2,7 +2,9 @@
 #include "application/Applications.h"
 
 
-#define APP_STACK_SIZE     8196
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 8)
+StackType_t  application_stack[APPLICATION_STACK_SIZE];
+StaticTask_t application_taskdef;
 void Application(void* param)
 {
     // NVSTest nvsTest;
@@ -12,23 +14,23 @@ void Application(void* param)
 
     // TestApp TestApp;
     // TestApp.Start();
+
+    // while(true)
+    // {
+    //     // MatrixOS::Logging::LogDebug("App", "Loop");
+    //     MatrixOS::USB::CDC::Println("Loop");
+    //     MatrixOS::SYS::DelayMs(500);
+    // }
 }
 
 
 int main()
 {
     MatrixOS::SYS::Init();
+    // Device::Bootloader();
 
-    (void) xTaskCreate(Application,"application", APP_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
-
-    // while(1)
-    // {
-    //   ESP_LOGI("Device", "Task Watchdog Reset1");
-    //   esp_task_wdt_reset();
-    // }
-
-    // (void) xTaskCreateStatic( usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES-1, usb_device_stack, &usb_device_taskdef);
-
+    // Application(NULL);
+    (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-2, application_stack, &application_taskdef);
 
     #ifndef DONT_START_FREERTOS_SCHEDULER
     vTaskStartScheduler();

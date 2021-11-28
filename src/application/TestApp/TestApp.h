@@ -17,6 +17,7 @@ class TestApp : public Application
     uint8_t colorIndex = 0;
     Color colorList[5] = {Color(64, 64, 64), Color(127, 0, 0), Color(0, 127, 0), Color(0, 0, 127), Color(0, 0, 0)};
     
+    // void Setup() override;
     void Loop() override;
 
     void KeyEvent(uint16_t keyID, KeyInfo keyInfo) override;

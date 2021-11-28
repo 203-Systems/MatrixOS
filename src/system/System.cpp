@@ -39,9 +39,9 @@ namespace MatrixOS::SYS
     void Init()
     {
         Device::DeviceInit();
+        MatrixOS::USB::Init();
         MatrixOS::KEYPAD::Init();
         MatrixOS::LED::Init();
-        MatrixOS::USB::Init();
         // (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
         
         // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
@@ -144,11 +144,12 @@ namespace MatrixOS::SYS
 
     void ErrorHandler(string error)
     {
-        USB::CDC::Print("Matrix OS Error: ");
+        // Bootloader();
         if(error.empty())
-            USB::CDC::Println("Undefined Error");
-        else
-            USB::CDC::Println(error);
+            error = "Undefined Error";
+        Logging::LogError("System", "Matrix OS Error: %s", error);
+
+        
         
         //Show Blue Screen
         LED::Fill(0x00adef);

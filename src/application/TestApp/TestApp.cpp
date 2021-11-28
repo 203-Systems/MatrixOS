@@ -1,6 +1,11 @@
 #include "TestApp.h"
 #include <string> 
 
+// void TestApp::Setup()
+// {
+
+// }
+
 void TestApp::Loop()
 { 
     // MatrixOS::USB::CDC::Println("Loop");
@@ -64,7 +69,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 
 void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-  MatrixOS::Logging::LogInfo(name, "Key Event Handler");
+  MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
 }
 
@@ -74,7 +79,7 @@ void TestApp::LED_task(void)
   // MatrixOS::Logging::Debug("TestApp", "LED_Task");
   if (TestApp::timer.Tick(100))
   { 
-    MatrixOS::Logging::LogInfo(name, "LED Task");
+  //   // MatrixOS::Logging::LogInfo(name, "LED Task");
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     led_id ++;
 
@@ -84,6 +89,6 @@ void TestApp::LED_task(void)
       colorIndex ++;
       colorIndex %= 5;
     }
-    MatrixOS::LED::Update();
+    // MatrixOS::LED::Update();
   }
 }
