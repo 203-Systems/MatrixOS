@@ -17,10 +17,10 @@ namespace MatrixOS::LED
     void Init()
     {
         Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
-        for(uint32_t i = 0; i < Device::numsOfLED; i++)
-        {
-            frameBuffer[i] = Color();
-        }
+        // for(uint32_t i = 0; i < Device::numsOfLED; i++)
+        // {
+            // frameBuffer[i] = Color();
+        // }
 
         currentLayer = 0;
         frameBuffers.push_back(frameBuffer);

@@ -2,7 +2,7 @@
 #include "application/Applications.h"
 
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 16)
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 6)
 StackType_t  application_stack[APPLICATION_STACK_SIZE];
 StaticTask_t application_taskdef;
 void Application(void* param)
@@ -27,7 +27,6 @@ void Application(void* param)
 int main()
 {
     MatrixOS::SYS::Init();
-    // Device::Bootloader();
 
     // Application(NULL);
     (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-2, application_stack, &application_taskdef);
