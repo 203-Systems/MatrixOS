@@ -3,8 +3,8 @@
 #include "framework/LogLevel.h"
 
 #define MATRIXOS_LOG_LEVEL  LOG_LEVEL_VERBOSE
-// #define MATRIXOS_LOG_DEVICE
-#define MATRIXOS_LOG_USBCDC
+#define MATRIXOS_LOG_DEVICE
+// #define MATRIXOS_LOG_USBCDC
 #define MATRIXOS_LOG_COLOR
 
 #define FLASHVERSION 0 //Each Flash data strcture change will cause this to increase

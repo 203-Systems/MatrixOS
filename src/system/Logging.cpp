@@ -23,16 +23,16 @@ namespace MatrixOS::Logging
 
     string logLevel[5] = {"E", "W", "I", "D", "V"};
     string logLevelColor[5] = {"31", "33", "32", "36", "37"};
-    void Log(ELogLevel level, string tag, string format, ...) //DO NOT USE THIS DIRECTLY. STRING WILL NOT BE REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
+    void Log(ELogLevel level, string tag, string format, va_list valst) //DO NOT USE THIS DIRECTLY. STRING WILL NOT BE REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
     {   
         if(ShouldLog(tag, level))
         {
             #ifdef MATRIXOS_LOG_COLOR
             string msg = string() + "\033[0;" + logLevelColor[level - 1] + "m" + logLevel[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " +  tag + ": " + format + "\033[0m\n";
             #else
-            string msg = logLevel[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " +  tag + ": " + format + "\n";
+            string msg = string() + logLevel[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " +  tag + ": " + format + "\n";
             #endif
-            va_list valst;
+
             #ifdef MATRIXOS_LOG_DEVICE
             Device::Log(msg, valst);
             #endif

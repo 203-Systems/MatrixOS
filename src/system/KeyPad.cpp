@@ -5,7 +5,8 @@ namespace MatrixOS::KEYPAD
 {   
     uint16_t read = 0;
     uint16_t changed = 0;
-    uint16_t changelist[MULTIPRESS]; //Multipress limits how many press can happen at very moment. Doesn't affect how many keys can be on at the same time. Even if it excided, it will be reported in the next tick.
+    uint16_t* changelist;
+    // uint16_t changelist[MULTIPRESS]; //Multipress limits how many press can happen at very moment. Doesn't affect how many keys can be on at the same time. Even if it excided, it will be reported in the next tick.
 
     // static timer
     StaticTimer_t keypad_tmdef;
@@ -30,13 +31,17 @@ namespace MatrixOS::KEYPAD
         if(Available()) //Not all cache has been read yet
             return Available();
         // USB::CDC::Println("KeyPad Scan");
-        // if (changelist)
-        // free(changelist);
+        if (changelist)
+        {
+            free(changelist);
+            changelist = NULL;
+        }
             
         uint16_t* device_change_list = Device::KeyPad::Scan();
         changed = device_change_list[0];
         if(changed > 0)
         {
+            changelist = (uint16_t*)malloc(sizeof(uint16_t) * changed);
             memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
         }
         read = 0;

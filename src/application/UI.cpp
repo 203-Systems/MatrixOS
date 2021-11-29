@@ -1,7 +1,9 @@
 #include "UI.h"
 
+//TODO, make new led layer
 void UI::Start()
 {
+    // MatrixOS::LED::PauseAutoUpdate();
     // MatrixOS::LED::PauseAutoUpdate();
     Setup();
     while(status != -1)
@@ -14,6 +16,7 @@ void UI::Start()
     }
     End();
     MatrixOS::LED::Fill(0);
+    // MatrixOS::LED::Update(); //Uncomment this will cause FE to crash
     // MatrixOS::LED::StartAutoUpdate();
 }
 

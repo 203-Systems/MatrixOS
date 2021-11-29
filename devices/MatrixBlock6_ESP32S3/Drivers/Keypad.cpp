@@ -30,8 +30,8 @@ namespace Device::KeyPad
         clearList();
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
-        if(!isListFull()) KeyPadScan();
-        if(!isListFull()) TouchBarScan();
+        // if(!isListFull()) KeyPadScan();
+        // if(!isListFull()) TouchBarScan();
 
         return changeList;
     }

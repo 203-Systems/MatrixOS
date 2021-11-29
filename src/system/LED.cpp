@@ -11,17 +11,11 @@ namespace MatrixOS::LED
         Update();
     }
 
+    bool auto_update = true;
+
 
     void Init()
     {
-        // SysVar::fps_millis = 1000/UserVar::fps;
-        // for(uint8_t i = 0; i < 100; i++)
-        // {
-        //     MatrixOS::USB::CDC::Println(std::to_string(i));
-        //     tud_task();
-        //     MatrixOS::SYS::DelayMs(100);
-        // }
-        // MatrixOS::USB::CDC::Println("Calloc");
         Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
         {
@@ -33,7 +27,8 @@ namespace MatrixOS::LED
         Update();
 
         led_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/UserVar::fps), true, NULL, LEDTimerCallback, &led_tmdef);
-        xTimerStart(led_tm, 0);
+        if(auto_update)
+            xTimerStart(led_tm, 0);
     }
 
     void SetColor(Point xy, Color color, uint8_t layer)
@@ -92,12 +87,16 @@ namespace MatrixOS::LED
 
     void PauseAutoUpdate()
     {
-        xTimerStop(led_tm, 0);
+        if(auto_update)
+            xTimerStop(led_tm, 0);
+        auto_update = false;
     }
 
     void StartAutoUpdate()
     {
-        xTimerStart(led_tm, 0);
+        if(!auto_update)
+            xTimerStart(led_tm, 0);
+        auto_update = true;
     }
 
     int8_t CreateLayer()
