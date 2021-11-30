@@ -2,15 +2,15 @@
 #include "application/Applications.h"
 
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 6)
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 16)
 StackType_t  application_stack[APPLICATION_STACK_SIZE];
 StaticTask_t application_taskdef;
 void Application(void* param)
 {
     // NVSTest nvsTest;
     // nvsTest.Start();
-    Performance performance;
-    performance.Start();
+    // Performance performance;
+    // performance.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
@@ -27,6 +27,8 @@ void Application(void* param)
 int main()
 {
     MatrixOS::SYS::Init();
+
+    // MatrixOS::Logging::LogDebug("main", "Adding this will crazsh the program, comment it out then it will be fine");
 
     // Application(NULL);
     (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-2, application_stack, &application_taskdef);

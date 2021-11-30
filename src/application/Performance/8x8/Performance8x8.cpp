@@ -8,7 +8,7 @@
 void Performance::Setup()
 {
     currentKeymap = 0;
-    // MatrixOS::LED::StartAutoUpdate();
+    MatrixOS::LED::StartAutoUpdate();
 }
 
 void Performance::Loop()

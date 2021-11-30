@@ -11,7 +11,7 @@ namespace MatrixOS::LED
         Update();
     }
 
-    bool auto_update = true;
+    bool auto_update = false;
 
 
     void Init()
