@@ -7,14 +7,22 @@ void REDACTED::Setup()
 
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
+  redactedTimer.RecordCurrent();
+  redactedTimer2.RecordCurrent();
 }
 
-void REDACTED::Loop()
-{ 
-  if(redactedTimer.Tick(33 + (progress % 3 == 0)))
+void REDACTED::Task1()
+{
+  if(redactedTimer.Tick(33 + (progress % 3 == 0), true))
   {
-    if(offset > sizeof(data))
-      Exit();
+    progress ++;
+    if(progress < 0)
+      return;
+    if(offset >= sizeof(data))
+    {
+      complete = true;
+      return;
+    }
     uint8_t bufferOffset = 1;
     for(uint8_t x = 0; x < 8; x ++)
     {
@@ -27,17 +35,48 @@ void REDACTED::Loop()
         bufferOffset ++;
       }
     }
-    MatrixOS::LED::Update();
+    MatrixOS::LED::Update(); 
     offset += bufferOffset;
-    progress ++;
   }
+}
+
+void REDACTED::Task2()
+{
+  if(redactedTimer2.Tick(54 + (progress2 % 3 == 0), true))
+  {
+    progress2++;
+    waited++;
+    if(waited >= wait)
+    {
+      waited = 0;
+      wait = (data2[offset2] & 0x1F) + 1;
+      uint8_t bufferOffset = 1;
+      for(uint8_t i = 0; i <= (data2[offset2] >> 5); i++)
+      {
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, data2[offset2 + bufferOffset] & 0x7F, 80 * (data2[offset2 + bufferOffset] >> 7)));
+
+        bufferOffset ++;
+      }
+      offset2 += bufferOffset;
+      if(offset2 >= sizeof(data2))
+      {
+          complete2 = true;
+      }
+    }
+  }
+}
+
+void REDACTED::Loop()
+{ 
+  if(!complete) Task1();
+  if(!complete2) Task2();
+  if(complete && complete2) Exit();
 }
 
 void REDACTED::End()
 {
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
-  while(true){}
 }
 
 void REDACTED::KeyEvent(uint16_t keyID, KeyInfo keyInfo)

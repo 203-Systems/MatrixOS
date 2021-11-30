@@ -2,7 +2,7 @@
 #include "application/Applications.h"
 
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 6)
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 8)
 StackType_t  application_stack[APPLICATION_STACK_SIZE];
 StaticTask_t application_taskdef;
 void Application(void* param)
@@ -12,15 +12,13 @@ void Application(void* param)
     // Performance performance;
     // performance.Start();
 
+    REDACTED redacted;
+    redacted.Start();
+
     // TestApp TestApp;
     // TestApp.Start();
 
-    // while(true)
-    // {
-    //     // MatrixOS::Logging::LogDebug("App", "Loop");
-    //     MatrixOS::USB::CDC::Println("Loop");
-    //     MatrixOS::SYS::DelayMs(500);
-    // }
+    while(true){}
 }
 
 

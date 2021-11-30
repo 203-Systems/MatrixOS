@@ -5,14 +5,21 @@ Timer::Timer()
   Timer::RecordCurrent();
 }
 
-bool Timer::Tick(uint32_t ms)
+bool Timer::Tick(uint32_t ms, bool continuous_mode)
 {
   if(MatrixOS::SYS::Millis() < previous)
     previous = 0;
 
   if(Timer::IsLonger(ms))
   {
-    Timer::RecordCurrent();
+    if(continuous_mode)
+    {
+      previous += ms;
+    }
+    else
+    {
+      Timer::RecordCurrent();
+    }
     return true;
   }
   return false;

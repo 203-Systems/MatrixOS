@@ -12,7 +12,7 @@ class Timer
 {
   public:
     Timer();
-    bool Tick(uint32_t ms);
+    bool Tick(uint32_t ms, bool continuous_mode = false);
     bool IsLonger(uint32_t ms);
     uint32_t SinceLastTick();
     void RecordCurrent();
