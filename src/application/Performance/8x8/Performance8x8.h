@@ -11,10 +11,10 @@ class Performance : public Application
     string author = "203 Electronics";
     uint32_t version = 0;
 
-    uint8_t currentKeymap;
+    uint8_t currentKeymap = 0;
     
     void Setup() override;
-    void Loop() override;
+    // void Loop() override;
 
     void MidiEvent(MidiPacket midiPacket) override;
     void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);

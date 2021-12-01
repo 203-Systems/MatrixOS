@@ -7,14 +7,9 @@
 
 void Performance::Setup()
 {
-    currentKeymap = 0;
     MatrixOS::LED::StartAutoUpdate();
 }
 
-void Performance::Loop()
-{
-    // midi_task();
-}
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {

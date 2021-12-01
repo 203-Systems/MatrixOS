@@ -9,16 +9,18 @@ void Application(void* param)
 {
     // NVSTest nvsTest;
     // nvsTest.Start();
-    // Performance performance;
-    // performance.Start();
+    Performance performance;
+    performance.Start();
 
-    REDACTED redacted;
-    redacted.Start();
+    // REDACTED redacted;
+    // redacted.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
 
-    while(true){}
+    // while(true){
+    //     MatrixOS::SYS::DelayMs(10);
+    // }
 }
 
 

@@ -5,8 +5,6 @@
 
 class TestApp : public Application
 {   
-    // using Application::Application;
-
     public:
     string name = "TestApp";
     string author = "203 Electronics";

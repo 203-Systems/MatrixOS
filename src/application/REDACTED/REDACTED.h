@@ -3,7 +3,7 @@
 #include "MatrixOS.h"
 #include "application/Application.h"
 
-// If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ. - 203Null
+    // If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ - 203Null
 class REDACTED : public Application
 {   
     public:

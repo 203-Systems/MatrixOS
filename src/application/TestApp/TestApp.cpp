@@ -1,5 +1,4 @@
 #include "TestApp.h"
-#include <string> 
 
 // void TestApp::Setup()
 // {
@@ -8,13 +7,12 @@
 
 void TestApp::Loop()
 { 
-    // MatrixOS::USB::CDC::Println("Loop");
     LED_task();
 }
 
 void TestApp::MidiEvent(MidiPacket midiPacket)
 {
-  MatrixOS::Logging::LogInfo("TestApp", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
+  // MatrixOS::Logging::LogInfo("TestApp", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
   switch(midiPacket.status)
   {
     case NoteOn:
@@ -69,26 +67,24 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 
 void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-  MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
+//   MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
 }
 
-#define NUMSLEDS 1
+#define NUMSLEDS 64
 void TestApp::LED_task(void)
 {
   // MatrixOS::Logging::Debug("TestApp", "LED_Task");
   if (TestApp::timer.Tick(100))
   { 
-  //   // MatrixOS::Logging::LogInfo(name, "LED Task");
     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
     led_id ++;
-
     if(led_id == NUMSLEDS)
     {
       led_id = 0;
       colorIndex ++;
       colorIndex %= 5;
     }
-    // MatrixOS::LED::Update();
+    MatrixOS::LED::Update();
   }
 }
