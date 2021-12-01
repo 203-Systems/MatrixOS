@@ -31,7 +31,7 @@ int main()
     // MatrixOS::Logging::LogDebug("main", "Adding this will crazsh the program, comment it out then it will be fine");
 
     // Application(NULL);
-    (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-2, application_stack, &application_taskdef);
+    (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-1, application_stack, &application_taskdef);
 
     #ifndef DONT_START_FREERTOS_SCHEDULER
     vTaskStartScheduler();

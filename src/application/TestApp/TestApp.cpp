@@ -56,7 +56,14 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
       // MatrixOS::MIDI::SendPacket(newPacket);
       break;
     }
-    // case NoteOff:
+    case NoteOff:
+    {
+      uint8_t channel = midiPacket.data[0];
+      uint8_t note = midiPacket.data[1];
+      uint8_t velocity = midiPacket.data[2];
+      MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, channel, note, velocity));
+      break;
+    }
     //   MatrixOS::USB::CDC::Println("Note Off Handler");
     //   MatrixOS::MIDI::SendPacket(midiPacket);
     //   break;
