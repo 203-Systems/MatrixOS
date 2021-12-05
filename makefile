@@ -115,26 +115,25 @@ endif
 #-------------- Compiler flags --------------
 
 # Compiler Flags
-# CFLAGS += \
-#   -ggdb \
-#   -fdata-sections \
-#   -ffunction-sections \
-#   -fsingle-precision-constant \
-#   -fno-strict-aliasing \
-#   -Wdouble-promotion \
-#   -Wstrict-prototypes \
-#   -Wstrict-overflow \
-#   -Wall \
-#   -Wextra \
-#   -Wfloat-equal \
-#   -Wundef \
-#   -Wshadow \
-#   -Wwrite-strings \
-#   -Wsign-compare \
-#   -Wmissing-format-attribute \
-#   -Wunreachable-code \
-#   -Wcast-align \
-#   -Wcast-function-type
+CFLAGS += \
+  -ggdb \
+  -fdata-sections \
+  -ffunction-sections \
+  -fsingle-precision-constant \
+  -fno-strict-aliasing \
+  -Wdouble-promotion \
+  -Wstrict-prototypes \
+  -Wstrict-overflow \
+  -Wall \
+  -Wextra \
+  -Wfloat-equal \
+  -Wundef \
+  -Wwrite-strings \
+  -Wsign-compare \
+  -Wmissing-format-attribute \
+  -Wunreachable-code \
+  -Wcast-align \
+  -Wcast-function-type
 
 CPPFLAGS += \
 	-std=gnu++17 \

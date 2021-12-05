@@ -14,7 +14,6 @@
 #include "task.h"
 #include "timers.h"
 
-#undef USB //CMSIS defined the USB, undef so we can use USB as MatrixOS namespace
 #define noexpose //Custum key word to remove function to be generated as exposed API
 
 class Application;

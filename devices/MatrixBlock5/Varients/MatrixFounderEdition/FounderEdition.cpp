@@ -3,6 +3,70 @@
 
 namespace Device
 {
+    namespace
+    {
+        void MX_DMA_Init(void)
+        {
+            /* DMA controller clock enable */
+            __HAL_RCC_DMA2_CLK_ENABLE();
+
+            /* DMA interrupt init */
+            /* DMA2_Channel4_5_IRQn interrupt configuration */
+            HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 0, 0);
+            HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
+
+        }
+
+        void MX_TIM8_Init(void)
+        {
+            TIM_MasterConfigTypeDef sMasterConfig = {0};
+            TIM_OC_InitTypeDef sConfigOC = {0};
+            TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+            htim8.Instance = TIM8;
+            htim8.Init.Prescaler = 0;
+            htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+            htim8.Init.Period = WS2812::GetTimerPeriod()    ;
+            htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+            htim8.Init.RepetitionCounter = 0;
+            htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+            if (HAL_TIM_PWM_Init(&htim8) != HAL_OK)
+            {
+                Device::ErrorHandler();
+            }
+            sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+            sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+            if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
+            {
+                Device::ErrorHandler();
+            }
+            sConfigOC.OCMode = TIM_OCMODE_PWM1;
+            sConfigOC.Pulse = 0;
+            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+            sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+            sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+            if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+            {
+                Device::ErrorHandler();
+            }
+            sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+            sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+            sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+            sBreakDeadTimeConfig.DeadTime = 0;
+            sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+            sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+            sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+            if (HAL_TIMEx_ConfigBreakDeadTime(&htim8, &sBreakDeadTimeConfig) != HAL_OK)
+            {
+                Device::ErrorHandler();
+            }
+
+            HAL_TIM_MspPostInit(&htim8);
+        }
+    }
+    
     void USB_Init()
     {
         GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -100,70 +164,6 @@ namespace Device
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
         GPIO_InitStruct.Pull = GPIO_PULLDOWN;
         HAL_GPIO_Init(TouchData_GPIO_Port, &GPIO_InitStruct);
-    }
-
-    namespace
-    {
-        void MX_DMA_Init(void)
-        {
-            /* DMA controller clock enable */
-            __HAL_RCC_DMA2_CLK_ENABLE();
-
-            /* DMA interrupt init */
-            /* DMA2_Channel4_5_IRQn interrupt configuration */
-            HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 0, 0);
-            HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
-
-        }
-
-        void MX_TIM8_Init(void)
-        {
-            TIM_MasterConfigTypeDef sMasterConfig = {0};
-            TIM_OC_InitTypeDef sConfigOC = {0};
-            TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
-
-            htim8.Instance = TIM8;
-            htim8.Init.Prescaler = 0;
-            htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-            htim8.Init.Period = WS2812::GetTimerPeriod()    ;
-            htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-            htim8.Init.RepetitionCounter = 0;
-            htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-            if (HAL_TIM_PWM_Init(&htim8) != HAL_OK)
-            {
-                Device::ErrorHandler();
-            }
-            sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-            sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-            if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
-            {
-                Device::ErrorHandler();
-            }
-            sConfigOC.OCMode = TIM_OCMODE_PWM1;
-            sConfigOC.Pulse = 0;
-            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-            sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-            sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-            sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-            if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-            {
-                Device::ErrorHandler();
-            }
-            sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-            sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-            sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-            sBreakDeadTimeConfig.DeadTime = 0;
-            sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-            sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-            sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-            if (HAL_TIMEx_ConfigBreakDeadTime(&htim8, &sBreakDeadTimeConfig) != HAL_OK)
-            {
-                Device::ErrorHandler();
-            }
-
-            HAL_TIM_MspPostInit(&htim8);
-        }
     }
 
     void EEPROM_Init()

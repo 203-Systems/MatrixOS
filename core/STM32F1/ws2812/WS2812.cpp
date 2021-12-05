@@ -77,7 +77,7 @@ namespace WS2812
 
 	void PrepLEDBuffer(uint8_t brightness) //Automatically load next half buffer
 	{
-		uint32_t index = 0;
+		uint16_t index = 0;
 		for(uint8_t i = 0; i < LED_DMA_END_LENGTH; i++)
 		{
 			pwmBuffer[index] = 0;

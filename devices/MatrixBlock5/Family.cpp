@@ -13,7 +13,7 @@ namespace Device
         USB_Init();
         LED_Init();
         KeyPad_Init();
-        TouchBar_Init();
+        // TouchBar_Init();
         // NVS::Init(); //Not working TODO FIX
     }
 

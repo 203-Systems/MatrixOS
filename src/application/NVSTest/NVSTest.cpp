@@ -48,7 +48,7 @@ void NVSTest::Loop()
         MatrixOS::USB::CDC::Println(std::to_string(value.size()).c_str());
 
 				MatrixOS::USB::CDC::Print("Value: ");
-				for (int i = 0; i < value.size(); i++)
+				for (uint32_t i = 0; i < value.size(); i++)
 				{
           // MatrixOS::USB::CDC::Print(&value[0]);
           tud_cdc_n_write_char(0, value[i]);

@@ -13,3 +13,5 @@ namespace Device
     void KeyPad_Init();
     void TouchBar_Init();
 }
+
+#undef USB //CMSIS defined the USB, undef so we can use USB as MatrixOS namespace

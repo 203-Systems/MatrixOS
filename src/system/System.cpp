@@ -3,36 +3,6 @@
 
 namespace MatrixOS::SYS
 {   
-    // Timer ledTimer; 
-    // Timer keypadTimer; 
-    // void SystemTask(void* param)
-    // {      
-    //     TickType_t xLastWakeTime;
-    //     const TickType_t xFrequency = 100;
-    //     while(1)
-    //     {
-    //         // MatrixOS::Logging::LogDebug("SysTask", "System Task %d", Millis());
-    //         Device::DeviceTask();
-    //         // MatrixOS::Logging::LogDebug("SysTask", "USB Poll");
-    //         // if(SysVar::led_update && ledTimer.Tick(SysVar::fps_millis)) //62.5 FPS
-    //         // {
-    //         //     LED::Update();
-    //         //     // MatrixOS::Logging::LogDebug("SysTask", "LED Update");
-    //         // }
-    //         if(SysVar::keypad_scan && keypadTimer.Tick(SysVar::keypad_millis)) //100HZ
-    //         {
-    //             KEYPAD::Scan();
-    //             // MatrixOS::Logging::LogDebug("SysTask", "Keypad Scan");
-    //         }
-    //         vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    //     }
-    // }
-
-    // Create a task for tinyusb device stack
-    // #define SYS_TASK_STACK_SIZE     (configMINIMAL_STACK_SIZE * 3)
-    // StackType_t  system_task_stack[SYS_TASK_STACK_SIZE];
-    // StaticTask_t system_taskdef;
-
     void LoadVariables();
     void SaveVariables();
 
@@ -42,7 +12,6 @@ namespace MatrixOS::SYS
     {
         Device::DeviceInit();
         // LoadVariables();
-
         USB::Init();
         KEYPAD::Init();
         LED::Init();

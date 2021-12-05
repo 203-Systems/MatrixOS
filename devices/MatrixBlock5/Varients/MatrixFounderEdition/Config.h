@@ -30,12 +30,6 @@ namespace Device
     const uint8_t nums_of_page = 32; //Total size has to smaller than 64kb because address constrain
     const uint32_t nvs_address = 0x8070000;
 
-    namespace 
-    {
-        void MX_DMA_Init(void);
-        void MX_TIM8_Init(void);
-    }
-
     namespace KeyPad
     {
         inline KeyInfo fnState;
