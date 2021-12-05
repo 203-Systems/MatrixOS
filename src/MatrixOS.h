@@ -39,23 +39,26 @@ namespace MatrixOS
 
     void OpenSetting(void);
 
-    enum class ESysVar {
-      //Device Info
-      DeviceClass, DeviceName, DeviceVersion, DerviceRevision, SerialNumber,
-      VelocityRange,
-      LEDType, MatrixSizeX, MatrixSizeY, NumsOfLED, NumsOfKey,
-      BootloaderVersion, SystemVersion, 
+    // enum class ESysVar {
+    //   //Device Info
+    //   DeviceClass, DeviceName, DeviceVersion, DeviceRevision, SerialNumber,
+    //   VelocityRange,
+    //   LEDType, MatrixSizeX, MatrixSizeY, NumsOfLED, NumsOfKey,
+    //   BootloaderVersion, SystemVersion, 
 
-      //User Variable
-      Brightness, Rotation
+    //   //User Variable
+    //   Brightness, Rotation
 
-      //System Variable
+    //   //System Variable
 
-      };
-  
-    uintptr_t GetVariable(ESysVar variable);
-    int8_t SetVariable(ESysVar variable, uint32_t value);
+    //   };
 
+    enum class EVarClass {DeviceVar, SystemVar, UserVar};
+    uint32_t GetVariable(string variable, EVarClass varClass = EVarClass::UserVar);
+    int8_t SetVariable(string variable, uint32_t value);
+
+    void Rotate(EDirection rotation);
+    
     // void RegisterActiveApp(Application* application);
 
     // int Execute(uint32_t addr);
@@ -171,7 +174,7 @@ namespace MatrixOS
   namespace NVS
   {
     vector<char> GetVariable(string name);
-    int8_t SetVariable(string name, void* pointer, uint16_t length);
+    bool SetVariable(string name, void* pointer, uint16_t length);
     bool DeleteVariable(string name);
   }
 

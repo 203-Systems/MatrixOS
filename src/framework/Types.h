@@ -2,6 +2,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <unordered_map>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -9,6 +10,7 @@
 
 using std::string;
 using std::vector;
+using std::unordered_map;
 
 #ifdef __cplusplus
 extern "C" 

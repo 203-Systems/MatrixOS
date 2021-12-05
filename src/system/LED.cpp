@@ -26,7 +26,7 @@ namespace MatrixOS::LED
         frameBuffers.push_back(frameBuffer);
         Update();
 
-        led_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/UserVar::fps), true, NULL, LEDTimerCallback, &led_tmdef);
+        led_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/fps), true, NULL, LEDTimerCallback, &led_tmdef);
         if(auto_update)
             xTimerStart(led_tm, 0);
     }
@@ -72,7 +72,7 @@ namespace MatrixOS::LED
 
     void Update(int8_t layer)
     {
-        Device::LED::Update(frameBuffers[layer], UserVar::brightness); //TODO: Get brightness
+        Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness")); //TODO: Get brightness
     }
 
     // void SwitchLayer(uint8_t layer)

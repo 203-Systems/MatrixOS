@@ -50,10 +50,10 @@ namespace Device
 
     namespace NVS
     {
-        std::vector<char> Read(std::string name);
-        // void* Read(std::string name);
-        bool Write(std::string name, void* pointer, uint16_t length);
-        bool Delete(std::string name);
+        vector<char> Read(string name);
+        // void* Read(string name);
+        bool Write(string name, void* pointer, uint16_t length);
+        bool Delete(string name);
         void Clear();
     }
 

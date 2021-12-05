@@ -14,3 +14,8 @@ inline uint32_t fnv1a_hash(const char* str) //Implentmation of FNV-1a Hash
     }
     return hash;
 } 
+
+inline uint32_t hash(string str) 
+{
+    return fnv1a_hash(str.c_str());
+}

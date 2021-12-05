@@ -1,5 +1,4 @@
 #include "MatrixOS.h"
-#include "SavedVariable.h"
 #include "application/Setting/Setting.h"
 
 namespace MatrixOS::SYS
@@ -34,25 +33,37 @@ namespace MatrixOS::SYS
     // StackType_t  system_task_stack[SYS_TASK_STACK_SIZE];
     // StaticTask_t system_taskdef;
 
+    void LoadVariables();
+    void SaveVariables();
+
     StaticTimer_t device_task_tmdef;
     TimerHandle_t device_task_tm;
     void Init()
     {
         Device::DeviceInit();
-        MatrixOS::USB::Init();
-        MatrixOS::KEYPAD::Init();
-        MatrixOS::LED::Init();
+        LoadVariables();
+
+        USB::Init();
+        KEYPAD::Init();
+        LED::Init();
+
+        // uint32_t brightness = 64;
+        // bool r = Device::NVS::Write("U_brightness", &brightness, 4);
+        // ESP_LOGI("Init", "Write Status %d", r);
+        // vector<char> read = Device::NVS::Read("U_rotation");
+        // ESP_LOGI("Init", "%s : %d : %d", "U_rotation", read.size(), *(uint32_t*)read.data());
+        
         // (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
         
         // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
         // xTimerStart(device_task_tm, 0);
 
         inited = true; 
-        // MatrixOS::Logging::LogError("System", "This is an error log");
-        // MatrixOS::Logging::LogWarning("System", "This is a warning log");
-        // MatrixOS::Logging::LogInfo("System", "This is an info log");
-        // MatrixOS::Logging::LogDebug("System", "This is a debug log");
-        // MatrixOS::Logging::LogVerbose("System", "This is a verbose log");
+        // Logging::LogError("System", "This is an error log");
+        // Logging::LogWarning("System", "This is a warning log");
+        // Logging::LogInfo("System", "This is an info log");
+        // Logging::LogDebug("System", "This is a debug log");
+        // Logging::LogVerbose("System", "This is a verbose log");
     }
     
     uint32_t Millis()
@@ -73,8 +84,8 @@ namespace MatrixOS::SYS
     void Bootloader()
     {
         LED::Fill(0);
-        uint8_t x = GetVariable(ESysVar::MatrixSizeX);
-        uint8_t y = GetVariable(ESysVar::MatrixSizeY);
+        uint8_t x = 8; //TODO, fix this after GetDeviceInfo();
+        uint8_t y = 8;
         if(x >= 4 && y >= 4)
         {
             uint8_t x_center = x / 2;
@@ -103,38 +114,60 @@ namespace MatrixOS::SYS
         setting.Start();
     }
 
-    uintptr_t GetVariable(ESysVar variable)
-    {
-        switch(variable)
-        {   
-            case ESysVar::MatrixSizeX:
-                return Device::x_size;
-            case ESysVar::MatrixSizeY:
-                return Device::y_size;
-            case ESysVar::Rotation:
-                return (uintptr_t)(&UserVar::rotation);
-            case ESysVar::Brightness:
-                return (uintptr_t)(&UserVar::brightness);
-            default:
-                // _ASSERT(0);
-                return (uintptr_t)nullptr;
+    void LoadVariables()
+    {   
+        //EEPROM was just reseted
+        //EEPROM isn't initallized or Firmware was downgraded
+        //EEPROM is at lower version (Delete variables that no longer needed)
+        //EEPROM is at correct version
+        for (auto& value : userVar) {
+            vector<char> read = NVS::GetVariable("U_" + value.first);
+            if(read.size() == 4)
+            {
+                value.second = *(uint32_t*)read.data();
+            }
+            MatrixOS::Logging::LogVerbose("UserVar", "%s : %d", ("U_" + value.first).c_str(), value.second);
         }
     }
 
-    int8_t SetVariable(ESysVar variable, uint32_t value)
-    {
-        switch(variable)
-        {
-            case ESysVar::Rotation:
-                UserVar::rotation = (EDirection)value;
-                break;
-            case ESysVar::Brightness:
-                UserVar::brightness = (uint8_t)value;
-                break;
-            default:
-                return -1;
+    uint32_t GetVariable(string variable, EVarClass varClass)
+    {   
+        switch(varClass)
+        {   
+            case EVarClass::DeviceVar:
+                return 0; //TODO
+            case EVarClass::SystemVar:
+                return 0; //TODO
+            case EVarClass::UserVar:
+                if(userVar.find(variable) == userVar.end()) //Check User Variables First
+                    return userVar.at(variable);
+                return 0;
         }
         return 0;
+    }
+
+    int8_t SetVariable(string variable, uint32_t value)
+    {   
+        //Save Variable
+        if(userVar.find(variable) != userVar.end()) //Check User Variables First
+        {   
+            userVar[variable] = value;
+            NVS::SetVariable("U_" + variable, &value, 4);
+        }
+        else
+        {
+            return 0;
+        }
+        return 0;
+    }
+
+    void Rotate(EDirection rotation)
+    {
+        if(rotation == 90 || rotation == 180 || rotation == 270)
+        {
+            LED::RotateCanvas(rotation);
+            SetVariable("rotation", (GetVariable("rotation") + rotation) % 360);
+        }
     }
 
     void RegisterActiveApp(Application* application)

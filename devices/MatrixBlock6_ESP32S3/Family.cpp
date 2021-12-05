@@ -9,7 +9,6 @@ namespace Device
         NVS_Init();
     }
 
-
     // bool wdt_subscribed = false;
     void DeviceTask()
     {   

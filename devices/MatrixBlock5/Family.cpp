@@ -119,7 +119,7 @@ namespace Device
 
 namespace MatrixOS::SYS
 {
-    void ErrorHandler(char const* error);
+    void ErrorHandler(string error);
 }
 
 extern "C" {
@@ -147,38 +147,28 @@ extern "C" {
 
     void NMI_Handler (void)
     {
-        while(true){
-
-        }
+        while(true){}
     }
 
     void HardFault_Handler (void)
     {
-        // MatrixOS::SYS::ErrorHandler("Hard Fault");
-        // while(true){
-
-        // }
+        MatrixOS::SYS::ErrorHandler("Hard Fault");
+        while(true){}
     }
 
     void MemManage_Handler (void)
     {
-        while(true){
-
-        }
+        while(true){}
     }
 
     void BusFault_Handler (void)
     {
-        while(true){
-
-        }
+        while(true){}
     }
 
     void UsageFault_Handler (void)
     {
-        while(true){
-
-        }
+        while(true){}
     }
 
     // void SVC_Handler (void)
@@ -190,9 +180,7 @@ extern "C" {
 
     void DebugMon_Handler (void)
     {
-        while(true){
-
-        }
+        while(true){}
     }
 
     // void PendSV_Handler (void)

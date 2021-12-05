@@ -30,18 +30,18 @@ void Setting::RotateClockwise(EDirection rotation)
 
 void Setting::NextBrightness()
 {
-    uint8_t current_brightness = (uint8_t)MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::Brightness);
+    uint8_t current_brightness = (uint8_t)MatrixOS::SYS::GetVariable("brightness");
     MatrixOS::USB::CDC::Print("Brightness: ");
     MatrixOS::USB::CDC::Println(std::to_string(current_brightness).c_str());
     for (uint8_t i = 0; i < sizeof(brightness_level); i++)
     {
         if (brightness_level[i] > current_brightness)
         {
-            MatrixOS::SYS::SetVariable(MatrixOS::SYS::ESysVar::Brightness, brightness_level[i]);
+            MatrixOS::SYS::SetVariable("brightness", brightness_level[i]);
             return;
         }
     }
-    MatrixOS::SYS::SetVariable(MatrixOS::SYS::ESysVar::Brightness, brightness_level[0]);
+    MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
 }
 
 void Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)

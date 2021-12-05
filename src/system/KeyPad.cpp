@@ -15,7 +15,7 @@ namespace MatrixOS::KEYPAD
     void Init()
     {
         // SysVar::keypad_millis = 1000/UserVar::keypad_scanrate;
-        keypad_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/UserVar::keypad_scanrate), true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_tmdef);
+        keypad_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/keypad_scanrate), true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_tmdef);
         xTimerStart(keypad_tm, 0);
     }
 

@@ -20,7 +20,9 @@ inline uint16_t debounce_threshold = 24;
 #endif
 
 inline uint16_t hold_threshold = 400;
+inline uint16_t keypad_scanrate = 100;
 
 //LED
 #define MAX_LED_LAYERS 5
+inline uint16_t fps = 60;
 inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
