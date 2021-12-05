@@ -41,7 +41,7 @@ namespace MatrixOS::SYS
     void Init()
     {
         Device::DeviceInit();
-        LoadVariables();
+        // LoadVariables();
 
         USB::Init();
         KEYPAD::Init();
@@ -139,8 +139,8 @@ namespace MatrixOS::SYS
             case EVarClass::SystemVar:
                 return 0; //TODO
             case EVarClass::UserVar:
-                if(userVar.find(variable) == userVar.end()) //Check User Variables First
-                    return userVar.at(variable);
+                if(userVar.find(variable) != userVar.end()) //Check User Variables First
+                    return userVar[variable];
                 return 0;
         }
         return 0;

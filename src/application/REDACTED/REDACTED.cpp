@@ -5,8 +5,8 @@ void REDACTED::Setup()
   // x_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeX) - 8) / 2; //TODO, wait for new API to be implentmented
   // y_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeY) - 8) / 2;  
 
-  x_offset = 8;
-  y_offset = 8;
+  x_offset = 0;
+  y_offset = 0;
 
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();

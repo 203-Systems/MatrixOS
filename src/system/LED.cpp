@@ -33,6 +33,7 @@ namespace MatrixOS::LED
 
     void SetColor(Point xy, Color color, uint8_t layer)
     {
+        xy = xy.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size));
         if(layer > currentLayer)
         {
             MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");

@@ -2,18 +2,18 @@
 #include "application/Applications.h"
 
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 8)
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 16)
 StackType_t  application_stack[APPLICATION_STACK_SIZE];
 StaticTask_t application_taskdef;
 void Application(void* param)
 {
     // NVSTest nvsTest;
     // nvsTest.Start();
-    Performance performance;
-    performance.Start();
+    // Performance performance;
+    // performance.Start();
 
-    // REDACTED redacted;
-    // redacted.Start();
+    REDACTED redacted;
+    redacted.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
@@ -34,6 +34,7 @@ int main()
     (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-1, application_stack, &application_taskdef);
     vTaskStartScheduler();
     #else
+    ESP_LOGI("main", "Enter Application");
     Application(NULL);
     #endif
 

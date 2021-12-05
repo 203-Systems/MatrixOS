@@ -40,11 +40,6 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
                 Point xy = Point(xy_raw >> 4, xy_raw & 0x0f);
                 MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
             }
-            else
-            {
-
-            }
-            break;
         }
         case 1:
             break; //TODO

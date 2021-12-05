@@ -26,6 +26,19 @@ namespace Device
             return UINT16_MAX;
         }
 
+        // Point Index2XY(uint16_t index)
+        // {
+        //     if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
+        //     {
+        //         return xy.x + xy.y * 8;
+        //     }
+        //     if(index < 64)
+        //     {
+
+        //     }
+        //     return UINT16_MAX;
+        // }
+
         //TODO This text is very wrong (GRID)
         //Matrix use the following ID Struct
         // CCCC IIIIIIIIIIII
