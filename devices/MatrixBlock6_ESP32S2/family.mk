@@ -21,8 +21,8 @@ clean:
 flash bootloader-flash app-flash erase monitor dfu-flash dfu:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) $@
 
-uf2: $(BUILD)/$(PROJECT).uf2
+uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
 
-$(BUILD)/$(PROJECT).uf2: $(BUILD)/$(PROJECT).bin
+$(BUILD)/$(PROJECT)-$(DEVICE).uf2: $(BUILD)/$(PROJECT)-$(DEVICE).bin
 	@echo CREATE $@
-	$(PYTHON) tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^
+	python tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^

@@ -41,8 +41,8 @@ SRC_C += \
 # Include all source C in family & device folder
 SRC_C += $(subst ,,$(wildcard $(DEVICE_PATH)/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(DEVICE_PATH)/*.cpp))
-SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.c))
-SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/drivers/*.cpp))
+SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/Drivers/*.c))
+SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/Drivers/*.cpp))
 SRC_C += $(subst ,,$(wildcard $(FAMILY_PATH)/*.c))
 SRC_CPP += $(subst ,,$(wildcard $(FAMILY_PATH)/*.cpp))
 

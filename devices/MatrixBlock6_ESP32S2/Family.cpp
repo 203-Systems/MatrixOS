@@ -6,58 +6,33 @@ namespace Device
     {
         USB_Init();
         LED_Init();
+        KeyPad_Init();
+        // NVS_Init();
     }
 
-    void USB_Init()
-    {
-        // USB Controller Hal init
-        periph_module_reset(PERIPH_USB_MODULE);
-        periph_module_enable(PERIPH_USB_MODULE);
-
-        usb_hal_context_t hal = {
-            .use_external_phy = false // use built-in PHY
-        };
-        usb_hal_init(&hal);
-        
-        /* usb_periph_iopins currently configures USB_OTG as USB Device.
-        * Introduce additional parameters in usb_hal_context_t when adding support
-        * for USB Host.
-        */
-        for (const usb_iopin_dsc_t *iopin = usb_periph_iopins; iopin->pin != -1; ++iopin) {
-            if ((hal.use_external_phy) || (iopin->ext_phy_only == 0)) {
-                esp_rom_gpio_pad_select_gpio((uint32_t)iopin->pin);
-                if (iopin->is_output) {
-                    esp_rom_gpio_connect_out_signal(iopin->pin, iopin->func, false, false);
-                } else {
-                    esp_rom_gpio_connect_in_signal(iopin->pin, iopin->func, false);
-                    if ((iopin->pin != GPIO_FUNC_IN_LOW) && (iopin->pin != GPIO_FUNC_IN_HIGH)) {
-                        gpio_ll_input_enable(&GPIO, (gpio_num_t)iopin->pin);
-                    }
-                }
-                esp_rom_gpio_pad_unhold(iopin->pin);
-            }
-        }
-
-        if (!hal.use_external_phy) {
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DM_NUM, GPIO_DRIVE_CAP_3);
-            gpio_set_drive_capability((gpio_num_t)USBPHY_DP_NUM, GPIO_DRIVE_CAP_3);
-        }
-    }   
-
+    // bool wdt_subscribed = false;
     void DeviceTask()
-    {
-        
+    {   
+        // if(wdt_subscribed == false)
+        // {
+        //     esp_task_wdt_add(NULL);
+        //     esp_task_wdt_status(NULL);
+        // }
+
+        // ESP_LOGI("Device", "Task Watchdog Reset1");
+        // esp_task_wdt_reset();
+        // ESP_LOGI("Device", "Task Watchdog Reset2");
     }
 
     void Bootloader()
     {
-        // // Check out esp_reset_reason_t for other Espressif pre-defined values
-        // enum { APP_REQUEST_UF2_RESET_HINT = 0x11F2 };
+        // Check out esp_reset_reason_t for other Espressif pre-defined values
+        #define APP_REQUEST_UF2_RESET_HINT (esp_reset_reason_t)0x11F2
 
-        // // call esp_reset_reason() is required for idf.py to properly links esp_reset_reason_set_hint()
-        // (void) esp_reset_reason();
-        // esp_reset_reason_set_hint(APP_REQUEST_UF2_RESET_HINT);
-        // esp_restart();
+        // call esp_reset_reason() is required for idf.py to properly links esp_reset_reason_set_hint()
+        (void) esp_reset_reason();
+        esp_reset_reason_set_hint(APP_REQUEST_UF2_RESET_HINT);
+        esp_restart();
     }
 
     void Reboot()
@@ -67,7 +42,7 @@ namespace Device
 
     void Delay(uint32_t interval)
     {
-        // vTaskDelay(pdMS_TO_TICKS(interval));
+        vTaskDelay(pdMS_TO_TICKS(interval));
     }
 
     uint32_t Millis()
@@ -76,6 +51,19 @@ namespace Device
         // return 0;
     }
 
+    void Log(string format, va_list valst)
+    {
+        // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
+        // esp_log_writev(ESP_LOG_INFO, format.c_str(), valst);
+        vprintf(format.c_str(), valst);
+    }
+
+    string GetSerial()
+    {
+        return "<Serial Number>"; //TODO
+    }
+
+    
     void ErrorHandler()
     {
         

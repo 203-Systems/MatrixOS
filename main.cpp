@@ -9,16 +9,16 @@ void Application(void* param)
 {
     // NVSTest nvsTest;
     // nvsTest.Start();
-    // Performance performance;
-    // performance.Start();
+    Performance performance;
+    performance.Start();
 
-    REDACTED redacted;
-    redacted.Start();
+    // REDACTED redacted;
+    // redacted.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
 
-    // while(true){
+    // while(true){ 
     //     MatrixOS::SYS::DelayMs(10);
     // }
 }
@@ -28,11 +28,10 @@ int main()
 {
     MatrixOS::SYS::Init();
 
-    #ifndef ESP_IDF_VERSION
+    #ifndef ESP_IDF_VERSION //ESP32s Doesn't need to start scheduler
     (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-1, application_stack, &application_taskdef);
     vTaskStartScheduler();
     #else
-    ESP_LOGI("main", "Enter Application");
     Application(NULL);
     #endif
 

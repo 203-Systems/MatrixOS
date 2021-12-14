@@ -1,16 +1,24 @@
 //Define Device Specific Macro, Value and private function
 #pragma once
 
-#include "Family.h"
-
 #define GRID_8x8
 #define MODEL MXB6PT1
 #define MULTIPRESS 10 //Key Press will be process at once
+// #define LC8812
+
+#include "Family.h"
 
 namespace Device
 {
-    const string name = "Matrix Block6 Prototype 1.0";
+    const string name = "Matrix Block6 Prototype 1";
     const string model = "MXB6PT1";
+
+    const string manufaturer_name = "203 Electronics";
+    const string product_name = "Matrix";
+    const uint16_t usb_vid = 0x0203; 
+    const uint16_t usb_pid = 0x1040; //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
+
+
     const uint16_t numsOfLED = 64;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
@@ -36,7 +44,8 @@ namespace Device
     }
 }
 
-#define FN_Pin GPIO_NUM_11
+#define FN_Pin GPIO_NUM_0
+#define FN_PIN_ACTIVE_LOW
 #define LED_Pin GPIO_NUM_15
 
 #define Key1_Pin GPIO_NUM_21
@@ -57,6 +66,16 @@ namespace Device
 #define KeyRead7_Pin GPIO_NUM_7
 #define KeyRead8_Pin GPIO_NUM_8
 
+// #define FSR_KEYPAD
+#define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
+#define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
+#define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2
+#define KeyRead4_ADC_CHANNEL ADC1_CHANNEL_3
+#define KeyRead5_ADC_CHANNEL ADC1_CHANNEL_4
+#define KeyRead6_ADC_CHANNEL ADC1_CHANNEL_5
+#define KeyRead7_ADC_CHANNEL ADC1_CHANNEL_6
+#define KeyRead8_ADC_CHANNEL ADC1_CHANNEL_7
+
 #define TouchData_Pin GPIO_NUM_12
 #define TouchClock_Pin GPIO_NUM_13
 
@@ -70,7 +89,7 @@ namespace Device
 
 #define Matrix_Mod_GPIO_Pin GPIO_NUM_14
 
-inline uint16_t keypad_write_pins[] = {
+inline gpio_num_t keypad_write_pins[] = {
     Key1_Pin,
     Key2_Pin,
     Key3_Pin,
@@ -81,7 +100,7 @@ inline uint16_t keypad_write_pins[] = {
     Key8_Pin,
 };
 
-inline uint16_t keypad_read_pins[] = {
+inline gpio_num_t keypad_read_pins[] = {
     KeyRead1_Pin,
     KeyRead2_Pin,
     KeyRead3_Pin,
@@ -90,4 +109,15 @@ inline uint16_t keypad_read_pins[] = {
     KeyRead6_Pin,
     KeyRead7_Pin,
     KeyRead8_Pin,
+};
+
+inline adc1_channel_t keypad_read_adc_channel[] = {
+    KeyRead1_ADC_CHANNEL,
+    KeyRead2_ADC_CHANNEL,
+    KeyRead3_ADC_CHANNEL,
+    KeyRead4_ADC_CHANNEL,
+    KeyRead5_ADC_CHANNEL,
+    KeyRead6_ADC_CHANNEL,
+    KeyRead7_ADC_CHANNEL,
+    KeyRead8_ADC_CHANNEL,
 };

@@ -10,6 +10,8 @@ void REDACTED::Setup()
 
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
+
+  MatrixOS::SYS::DelayMs(2000);
   redactedTimer.RecordCurrent();
   redactedTimer2.RecordCurrent();
 }
@@ -38,6 +40,10 @@ void REDACTED::Task1()
         bufferOffset ++;
       }
     }
+    // for(uint8_t i = 0; i < 64; i++)
+    // {
+    //   MatrixOS::LED::SetColor((1 << 12) + i, Color((i * 4)));
+    // }
     MatrixOS::LED::Update(); 
     offset += bufferOffset;
   }
@@ -56,7 +62,10 @@ void REDACTED::Task2()
       uint8_t bufferOffset = 1;
       for(uint8_t i = 0; i <= (data2[offset2] >> 5); i++)
       {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, data2[offset2 + bufferOffset] & 0x7F, 80 * (data2[offset2 + bufferOffset] >> 7)));
+        uint8_t v =  80 * (data2[offset2 + bufferOffset] >> 7);
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, v > 0 ? NoteOn : NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
+        // uint8_t packet[] = {v>0 ? MIDIv1_NOTE_ON : MIDIv1_NOTE_OFF, data2[offset2 + bufferOffset] & 0x7F, v};
+        // tud_midi_stream_write(0, packet, 3);
 
         bufferOffset ++;
       }
@@ -72,12 +81,16 @@ void REDACTED::Task2()
 void REDACTED::Loop()
 { 
   if(!complete) Task1();
-  if(!complete2) Task2();
+  // if(!complete2) Task2();
   if(complete && complete2) Exit();
 }
 
 void REDACTED::End()
 {
+  // for(uint8_t n = 0; n < 127; n ++)
+  // {
+  //   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, n, 0));
+  // }
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
 }

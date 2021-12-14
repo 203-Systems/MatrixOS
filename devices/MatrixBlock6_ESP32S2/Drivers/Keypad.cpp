@@ -1,6 +1,43 @@
 //Define Device Keypad Function
 #include "Device.h"
 
+namespace Device
+{
+    #ifdef  FSR_KEYPAD
+    esp_adc_cal_characteristics_t adc1_chars;
+    #endif 
+
+    void KeyPad_Init()
+    {
+        #if Key2_Pin == GPIO_NUM_26 //OOPS, used SPICS1 as keypad pin
+        gpio_config_t io_conf;
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_OUTPUT;
+        io_conf.pin_bit_mask = (1ULL<<GPIO_NUM_26);
+        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+	    gpio_config(&io_conf);
+        #endif
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
+            gpio_set_level(keypad_write_pins[x], 0);
+        }
+
+        #ifndef  FSR_KEYPAD
+        for(uint8_t y = 0; y < y_size; y++)
+        {
+            gpio_set_direction(keypad_read_pins[y], GPIO_MODE_INPUT);
+            gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+        }
+        #else
+        adc1_config_width(ADC_WIDTH_BIT_13);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
+        #endif
+
+    }
+}
+
 namespace Device::KeyPad
 {
     uint16_t* Scan()
@@ -9,7 +46,7 @@ namespace Device::KeyPad
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        if(!isListFull()) TouchBarScan();
+        // if(!isListFull()) TouchBarScan();
 
         return changeList;
     }
@@ -67,27 +104,34 @@ namespace Device::KeyPad
 
     void KeyPadScan()
     {
-        // for(uint8_t x = 0; x < Device::x_size; x ++)
-        // {
-        //     HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_SET);
-        //     for(uint8_t y = 0; y < Device::y_size; y ++)
-        //     {
-        //         Fract16 read = HAL_GPIO_ReadPin(keypad_read_pins[y].port, keypad_read_pins[y].pin) * UINT16_MAX;
-        //         bool updated = keypadState[x][y].update(read);
-        //         if(updated)
-        //         {
-        //             uint16_t keyID = (1 << 12) + (x << 6) + y;
-        //             if(addToList(keyID))
-        //             {
-        //                 HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET); //Set pin back to low
-        //                 return; //List is full
-        //             }
-        //         }
-        //     }
-        //     HAL_GPIO_WritePin(keypad_write_pins[x].port, keypad_write_pins[x].pin, GPIO_PIN_RESET);
-        //     volatile int i; for(i=0; i<5; ++i) {} //Add small delay
-            
-        // }
+        for(uint8_t x = 0; x < Device::x_size; x ++)
+        {
+            gpio_set_level(keypad_write_pins[x], 1);
+            for(uint8_t y = 0; y < Device::y_size; y ++)
+            {
+                #ifndef  FSR_KEYPAD
+                Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
+                #else
+                uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+                // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                Fract16 read = (raw_voltage > 8000)  * UINT16_MAX;
+                // return;
+                #endif
+                bool updated = keypadState[x][y].update(read);
+                if(updated)
+                {
+                    uint16_t keyID = (1 << 12) + (x << 6) + y;
+                    if(addToList(keyID))
+                    {
+                        gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
+                        return; //List is full
+                    }
+                }
+            }
+            gpio_set_level(keypad_write_pins[x], 0);
+            // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
+        }
     }
 
     void TouchBarScan()

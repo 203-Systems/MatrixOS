@@ -29,10 +29,10 @@ CURRENT_PATH := $(shell realpath --relative-to=$(TOP) `pwd`)
 endif
 # $(info Path from top is $(CURRENT_PATH))
 
-# Build directory
-ifeq ($(CMDEXE),1)
-$(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
-endif
+# # Build directory
+# ifeq ($(CMDEXE),1)
+# $(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
+# endif
 
 
 

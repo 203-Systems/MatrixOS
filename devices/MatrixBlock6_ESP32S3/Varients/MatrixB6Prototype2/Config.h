@@ -9,8 +9,8 @@
 
 namespace Device
 {
-    const string name = "Matrix Block6 Prototype w ESPS3";
-    const string model = "MXB6PT1";
+    const string name = "Matrix Block6 Prototype 2";
+    const string model = "MXB6PT2";
 
     const string manufaturer_name = "203 Electronics";
     const string product_name = "Matrix";

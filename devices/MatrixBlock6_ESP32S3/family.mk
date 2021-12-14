@@ -1,7 +1,7 @@
 #DEPS_SUBMODULES +=
 
 MCU = esp32s3
-UF2_FAMILY_ID = 0xbfdd4eee
+UF2_FAMILY_ID = 0xc47e5767
 
 .PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 

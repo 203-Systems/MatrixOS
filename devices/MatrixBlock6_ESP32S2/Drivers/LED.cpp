@@ -12,6 +12,8 @@ namespace Device
     {
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
+            // ESP_LOGI("LED", "LED Update");
+            // ESP_LOGI("LED", "%d", frameBuffer[0].RGB());
             WS2812::Show(frameBuffer, brightness);
         }
 
@@ -24,9 +26,23 @@ namespace Device
             return UINT16_MAX;
         }
 
+        // Point Index2XY(uint16_t index)
+        // {
+        //     if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
+        //     {
+        //         return xy.x + xy.y * 8;
+        //     }
+        //     if(index < 64)
+        //     {
+
+        //     }
+        //     return UINT16_MAX;
+        // }
+
+        //TODO This text is very wrong (GRID)
         //Matrix use the following ID Struct
         // CCCC IIIIIIIIIIII
-        // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 0 (grid), it's spilted to XXXXXXX YYYYYYY.
+        // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 1 (grid), it's spilted to XXXXXXX YYYYYYY.
         // Class List:
         // Class 0 - System - IIIIIIIIIIII
         // Class 1 - Grid - XXXXXX YYYYYY

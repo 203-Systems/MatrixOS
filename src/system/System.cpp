@@ -12,6 +12,7 @@ namespace MatrixOS::SYS
     {
         Device::DeviceInit();
         // LoadVariables();
+
         USB::Init();
         KEYPAD::Init();
         LED::Init();
@@ -164,6 +165,18 @@ namespace MatrixOS::SYS
             LED::SetColor(Point(3,2), 0xFFFFFF);
             LED::SetColor(Point(3,3), 0xFFFFFF);
         }
+
+        // uint32_t CFSR = *(uint32_t *) 0xE000ED28;
+
+        // for(uint8_t y = 0; y < 4; y++)
+        // {
+        //     for(uint8_t x = 0; x < 8; x++)
+        //     {
+        //         uint32_t mask = 1 << (31 - (8 * y + x));
+        //         LED::SetColor(Point(x,y + 4), 0xFFFFFF * ((CFSR & mask) > 0));
+        //     }
+        // }
+
         LED::Update();
 
         Device::ErrorHandler(); //Low level indicator in case LED and USB failed

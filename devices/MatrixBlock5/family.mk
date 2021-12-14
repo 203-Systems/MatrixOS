@@ -8,7 +8,6 @@ ST_HAL_DRIVER = core/stm32$(ST_FAMILY)/stm32$(ST_FAMILY)xx_hal_driver
 include $(DEVICE_PATH)/device.mk
 
 CFLAGS += \
-  -flto \
   -mthumb \
   -mabi=aapcs \
   -mcpu=cortex-m3 \
