@@ -19,7 +19,7 @@ namespace Device
     const uint16_t usb_pid = 0x1040; //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
 
-    const uint16_t numsOfLED = 64;
+    const uint16_t numsOfLED = 64 + 32;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
 

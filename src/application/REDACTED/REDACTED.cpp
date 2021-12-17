@@ -81,7 +81,7 @@ void REDACTED::Task2()
 void REDACTED::Loop()
 { 
   if(!complete) Task1();
-  // if(!complete2) Task2();
+  if(!complete2) Task2();
   if(complete && complete2) Exit();
 }
 

@@ -38,8 +38,8 @@ namespace WS2812
     // void rmt_callback(rmt_channel_t rmt_channel, void* arg);
 
     // extern rmt_item32_t* rmtBuffer;
-    extern bool transmit_in_progress;
-    extern uint16_t numsOfLED;
-    extern rmt_channel_t rmt_channel;
-    extern gpio_num_t gpio_tx;
+    // extern bool transmit_in_progress;
+    // extern uint16_t numsOfLED;
+    // extern rmt_channel_t rmt_channel;
+    // extern gpio_num_t gpio_tx;
 }

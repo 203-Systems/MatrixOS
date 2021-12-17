@@ -35,11 +35,11 @@ namespace WS2812
     uint8_t Show(Color *array, uint8_t brightness = 255);
 
     void setup_rmt_data_buffer(Color *array, uint8_t brightness);
-    void rmt_callback(rmt_channel_t rmt_channel, void* arg);
+    // void rmt_callback(rmt_channel_t rmt_channel, void* arg);
 
-    extern rmt_item32_t* rmtBuffer;
-    extern bool transmit_in_progress;
-    extern uint16_t numsOfLED;
-    extern rmt_channel_t rmt_channel;
-    extern gpio_num_t gpio_tx;
+    // extern rmt_item32_t* rmtBuffer;
+    // extern bool transmit_in_progress;
+    // extern uint16_t numsOfLED;
+    // extern rmt_channel_t rmt_channel;
+    // extern gpio_num_t gpio_tx;
 }
