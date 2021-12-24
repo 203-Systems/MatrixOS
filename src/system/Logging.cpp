@@ -32,7 +32,7 @@ namespace MatrixOS::Logging
             #else
             string msg = string() + logLevel[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " +  tag + ": " + format + "\n";
             #endif
-
+    
             #ifdef MATRIXOS_LOG_DEVICE
             Device::Log(msg, valst);
             #endif
@@ -49,7 +49,9 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 1
         va_list valst;
+        va_start(valst, format.c_str());
         Log(LOG_ERROR, tag, format, valst);
+        va_end(valst);
         #endif
     }    
 
@@ -57,7 +59,9 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 2
         va_list valst;
+        va_start(valst, format.c_str());
         Log(LOG_WARNING, tag, format, valst);
+        va_end(valst);
         #endif
     }
 
@@ -65,7 +69,9 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 3
         va_list valst;
+        va_start(valst, format.c_str());
         Log(LOG_INFO, tag, format, valst);
+        va_end(valst);
         #endif
     }
 
@@ -73,7 +79,9 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 4
         va_list valst;
+        va_start(valst, format.c_str());
         Log(LOG_DEBUG, tag, format, valst);
+        va_end(valst);
         #endif
     }
 
@@ -81,7 +89,9 @@ namespace MatrixOS::Logging
     {
         #if MATRIXOS_LOG_LEVEL >= 5
         va_list valst;
+        va_start(valst, format.c_str());
         Log(LOG_VERBOSE, tag, format, valst);
+        va_end(valst);
         #endif
     }
 }

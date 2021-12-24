@@ -7,7 +7,7 @@ namespace Device
         USB_Init();
         LED_Init();
         KeyPad_Init();
-        // NVS_Init();
+        NVS_Init();
     }
 
     // bool wdt_subscribed = false;
@@ -55,6 +55,7 @@ namespace Device
     {
         // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
         // esp_log_writev(ESP_LOG_INFO, format.c_str(), valst);
+        
         vprintf(format.c_str(), valst);
     }
 

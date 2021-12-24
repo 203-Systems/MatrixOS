@@ -10,8 +10,6 @@ class Application
         uint32_t version;
 
         int8_t status = 0;
-        
-        // Application();
 
         void Start();
 

@@ -3,13 +3,10 @@
 void Application::Start()
 {
     Setup();
-    // TickType_t xLastWakeTime;
-    // const TickType_t xFrequency = 100;
     while(status != -1)
     {
         LoopTask();
         Loop();
-        // vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
     End();
 }
@@ -21,8 +18,6 @@ void Application::Exit()
 
 void Application::LoopTask()
 {
-    // MatrixOS::SYS::SystemTask();
-    // taskYIELD();
     GetKey();
     GetMidi();
 }

@@ -13,8 +13,8 @@ class ActionMenu : public UI
     void Setup() override;
     // void End() override;
 
-    static void RotateClockwise(EDirection rotation);
-    static void NextBrightness();
+    void RotateClockwise(EDirection rotation);
+    void NextBrightness();
 
     void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
 };

@@ -44,8 +44,8 @@ namespace Device
     }
 }
 
-#define FN_Pin GPIO_NUM_0
-#define FN_PIN_ACTIVE_LOW
+#define FN_Pin GPIO_NUM_11
+#define FN_PIN_ACTIVE_HIGH
 #define LED_Pin GPIO_NUM_15
 
 #define Key1_Pin GPIO_NUM_21
@@ -66,7 +66,7 @@ namespace Device
 #define KeyRead7_Pin GPIO_NUM_7
 #define KeyRead8_Pin GPIO_NUM_8
 
-// #define FSR_KEYPAD
+#define FSR_KEYPAD
 #define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
 #define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
 #define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2

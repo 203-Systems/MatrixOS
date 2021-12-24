@@ -52,11 +52,12 @@ namespace MatrixOS
 
     //   };
 
-    enum class EVarClass {DeviceVar, SystemVar, UserVar};
+    enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
     uint32_t GetVariable(string variable, EVarClass varClass = EVarClass::UserVar);
     int8_t SetVariable(string variable, uint32_t value);
 
-    void Rotate(EDirection rotation);
+    void Rotate(EDirection rotation, bool absolute = false);
+    void NextBrightness();
     
     // void RegisterActiveApp(Application* application);
 

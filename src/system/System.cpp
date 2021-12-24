@@ -6,6 +6,8 @@ namespace MatrixOS::SYS
     void LoadVariables();
     void SaveVariables();
 
+    string logTag = logTag;
+
     StaticTimer_t device_task_tmdef;
     TimerHandle_t device_task_tm;
     void Init()
@@ -29,14 +31,14 @@ namespace MatrixOS::SYS
         // xTimerStart(device_task_tm, 0);
 
         inited = true; 
-        // Logging::LogError("System", "This is an error log");
-        // Logging::LogWarning("System", "This is a warning log");
-        // Logging::LogInfo("System", "This is an info log");
-        // Logging::LogDebug("System", "This is a debug log");
-        // Logging::LogVerbose("System", "This is a verbose log");
+        // Logging::LogError(logTag, "This is an error log");
+        // Logging::LogWarning(logTag, "This is a warning log");
+        // Logging::LogInfo(logTag, "This is an info log");
+        // Logging::LogDebug(logTag, "This is a debug log");
+        // Logging::LogVerbose(logTag, "This is a verbose log");
     }
     
-    uint32_t Millis()
+    uint32_t Millis() 
     {
         return ((((uint64_t) xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ );
     }
@@ -112,6 +114,8 @@ namespace MatrixOS::SYS
                 if(userVar.find(variable) != userVar.end()) //Check User Variables First
                     return userVar[variable];
                 return 0;
+            case EVarClass::AppVar:
+                return 0;
         }
         return 0;
     }
@@ -119,6 +123,8 @@ namespace MatrixOS::SYS
     int8_t SetVariable(string variable, uint32_t value)
     {   
         //Save Variable
+        MatrixOS::Logging::LogDebug(logTag, "Set Variable [%s, %d]", variable, value);
+        // MatrixOS::Logging::LogDebug(logTag, "Set Variable");
         if(userVar.find(variable) != userVar.end()) //Check User Variables First
         {   
             userVar[variable] = value;
@@ -131,26 +137,50 @@ namespace MatrixOS::SYS
         return 0;
     }
 
-    void Rotate(EDirection rotation)
+    void Rotate(EDirection rotation, bool absolute)
     {
         if(rotation == 90 || rotation == 180 || rotation == 270)
         {
             LED::RotateCanvas(rotation);
-            SetVariable("rotation", (GetVariable("rotation") + rotation) % 360);
+            SetVariable("rotation", (GetVariable("rotation") + rotation * !absolute) % 360);
         }
     }
 
-    void RegisterActiveApp(Application* application)
+    void NextBrightness()
     {
-        SysVar::active_app = application;
+        // ESP_LOGI(logTag.c_str(), "Next Brightness");
+        MatrixOS::Logging::LogDebug(logTag, "Next Brightness");
+        uint8_t current_brightness = (uint8_t)GetVariable("brightness");
+        // ESP_LOGI(logTag.c_str(), "Current Brightness %d", current_brightness);
+        MatrixOS::Logging::LogDebug(logTag, "Current Brightness %d", current_brightness);
+        for (uint8_t brightness: brightness_level)
+        {
+            // ESP_LOGI(logTag.c_str(), "Check Brightness Level  %d", brightness);
+            MatrixOS::Logging::LogDebug(logTag, "Check Brightness Level  %d", brightness);
+            if (brightness > current_brightness)
+            {
+                // ESP_LOGI(logTag.c_str(), "Brightness Level Selected");
+                MatrixOS::Logging::LogDebug(logTag, "Brightness Level Selected");
+                // MatrixOS::SYS::SetVariable("brightness", brightness);
+                return;
+            }
+        }
+        // ESP_LOGI(logTag.c_str(), "Lowest Level Selected");
+        MatrixOS::Logging::LogDebug(logTag, "Lowest Level Selected");
+        // MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
     }
+
+    // void RegisterActiveApp(Application* application)
+    // {
+    //     SysVar::active_app = application;
+    // }
 
     void ErrorHandler(string error)
     {
         // Bootloader();
         if(error.empty())
             error = "Undefined Error";
-        Logging::LogError("System", "Matrix OS Error: %s", error);
+        Logging::LogError(logTag, "Matrix OS Error: %s", error);
 
         
         

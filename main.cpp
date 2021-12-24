@@ -2,7 +2,7 @@
 #include "application/Applications.h"
 
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 8)
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 16)
 StackType_t  application_stack[APPLICATION_STACK_SIZE];
 StaticTask_t application_taskdef;
 void Application(void* param)
@@ -11,9 +11,6 @@ void Application(void* param)
     // nvsTest.Start();
     Performance performance;
     performance.Start();
-
-    // REDACTED redacted;
-    // redacted.Start();
 
     // TestApp TestApp;
     // TestApp.Start();

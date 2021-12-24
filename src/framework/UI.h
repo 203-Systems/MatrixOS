@@ -15,7 +15,7 @@ struct UIElement
     std::function<void()> callback;
     std::function<void()> hold_callback;
 
-    UIElement(string name, Color color, std::function<void()> callback, std::function<void()> hold_callback = nullptr)
+    UIElement(string name, Color color, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr)
     {
         this->name = name;
         this->color = color;
@@ -23,30 +23,16 @@ struct UIElement
         this->hold_callback = hold_callback;
     }
 
-    // UIElement(string name, Color color, std::function<void()> callback, uint8_t count, ...)
-    // {
-    //     this->name = name;
-    //     this->color = color;
-    //     this->callback = callback;
-
-    //     va_list valst;
-    //     va_start(valst, count);
-    //     for(uint8_t i = 0; i < count; i++)
-    //     {
-    //         xys.push_back(va_arg(valst, Point));
-    //     }
-    // }
-
     void Callback()
     {
-        callback();
+        if(callback)
+            callback();
     }
 
     void HoldCallback()
     {
-        if(hold_callback == NULL)
-            return;
-        hold_callback();
+        if(hold_callback)
+            hold_callback();
     }
 };
 
@@ -56,6 +42,9 @@ class UI
         string name;
         Color nameColor;
         int8_t status = 0;
+
+        UI() {};
+        UI(string name, Color color);
 
         void Start();
 

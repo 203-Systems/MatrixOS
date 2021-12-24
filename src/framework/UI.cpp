@@ -1,22 +1,26 @@
 #include "UI.h"
 
+UI::UI(string name, Color color)
+{
+    this->name = name;
+    this->nameColor = color;
+}
+
 //TODO, make new led layer
 void UI::Start()
 {
-    // MatrixOS::LED::PauseAutoUpdate();
     // MatrixOS::LED::PauseAutoUpdate();
     Setup();
     while(status != -1)
     {   
         Render();
         Loop();
-        // MatrixOS::SYS::SystemTask();
         GetKey();
         GetMidi();
     }
     End();
     MatrixOS::LED::Fill(0);
-    // MatrixOS::LED::Update(); //Uncomment this will cause FE to crash
+    // MatrixOS::LED::Update();
     // MatrixOS::LED::StartAutoUpdate();
 }
 
@@ -55,7 +59,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         return;
     }
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
-    if(xy && uiElementsMap.count(xy)) //Not Found
+    if(xy && uiElementsMap.count(xy)) //Key Found
     {   
         if(keyInfo.state == RELEASED)
         {

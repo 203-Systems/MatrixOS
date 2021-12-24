@@ -18,6 +18,13 @@ namespace Device
         io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
 	    gpio_config(&io_conf);
         #endif
+        
+        #ifdef FN_PIN_ACTIVE_LOW //Active Low
+        gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
+        #else //Active High
+        gpio_set_pull_mode(FN_Pin, GPIO_PULLDOWN_ONLY);
+        #endif
+
         for(uint8_t x = 0; x < x_size; x++)
         {
             gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
@@ -115,7 +122,8 @@ namespace Device::KeyPad
                 uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
                 // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
                 // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                Fract16 read = (raw_voltage > 8000)  * UINT16_MAX;
+                
+                Fract16 read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
                 // return;
                 #endif
                 bool updated = keypadState[x][y].update(read);
