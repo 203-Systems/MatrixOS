@@ -41,23 +41,27 @@ public:
 
 	operator uint32_t() { return (uint32_t)(x << 16 & y); }
 
-	Point Rotate(EDirection rotation, Point dimension)
+	Point Rotate(EDirection rotation, Point dimension, bool reverse = false)
 	{	
 		int16_t new_x;
 		int16_t new_y;
+		// if(bool() == false)
+		// 	return *this;
+		if(reverse)
+			rotation = (EDirection)(360 - rotation);
 		switch(rotation)
 		{
 			case RIGHT:
-				new_x = y;
-				new_y = (dimension.y - 1) - x;
+				new_x = (dimension.x - 1) - y;
+				new_y = x;
 				break;
 			case DOWN:
 				new_x = (dimension.x - 1) - x;
 				new_y = (dimension.y - 1) - y;
 				break;
 			case LEFT:
-				new_x = (dimension.x - 1) - y;
-				new_y = x;
+				new_x = y;
+				new_y = (dimension.y - 1) - x;
 				break;
 			default:
 				new_x = x;

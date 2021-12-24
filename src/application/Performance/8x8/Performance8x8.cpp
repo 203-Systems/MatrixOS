@@ -96,9 +96,9 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, Point(3, 5), Point(4, 5));
     actionMenu.AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
-    // actionMenu.AddUIElement(UIElement("Bootloader", Color(0x00FFFF), [&]() -> void {MatrixOS::SYS::Bootloader();}), Point(2, 2));
 
-    actionMenu.AddUIElement(UIElement("Bootloader", Color(0x00FFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
+    actionMenu.AddUIElement(UIElement("System Setting", Color(0x00FFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
+    actionMenu.AddUIElement(UIElement("Menu Lock", Color(0x00FFFF), [&]() -> void {}), Point(7, 7));
     
     actionMenu.Start();
 

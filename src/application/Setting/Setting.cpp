@@ -6,7 +6,7 @@ void Setting::Setup()
     AddUIElement(UIElement("Brightness", Color(0xFFFFFF), []() -> void {NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
 
     //Rotation control and canvas
-    AddUIElement(UIElement("Clear Canvas", Color(0x00FF00), []() -> void {MatrixOS::USB::CDC::Println("Clear Canvas");}), 2, Point(3, 2), Point(4, 2));
+    AddUIElement(UIElement("This does nothing", Color(0x00FF00), []() -> void {}), 2, Point(3, 2), Point(4, 2));
     AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(RIGHT);}), 2, Point(5, 3), Point(5, 4));
     AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(DOWN);}), 2, Point(3, 5), Point(4, 5));
     AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(LEFT);}), 2, Point(2, 3), Point(2, 4));

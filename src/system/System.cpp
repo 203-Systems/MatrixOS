@@ -161,13 +161,13 @@ namespace MatrixOS::SYS
             {
                 // ESP_LOGI(logTag.c_str(), "Brightness Level Selected");
                 MatrixOS::Logging::LogDebug(logTag, "Brightness Level Selected");
-                // MatrixOS::SYS::SetVariable("brightness", brightness);
+                MatrixOS::SYS::SetVariable("brightness", brightness);
                 return;
             }
         }
         // ESP_LOGI(logTag.c_str(), "Lowest Level Selected");
         MatrixOS::Logging::LogDebug(logTag, "Lowest Level Selected");
-        // MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
+        MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
     }
 
     // void RegisterActiveApp(Application* application)

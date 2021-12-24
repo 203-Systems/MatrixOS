@@ -109,13 +109,17 @@ namespace MatrixOS::KEYPAD
         return Device::KeyPad::GetKey(keyID);
     }
 
-    uint16_t XY2ID(Point xy) //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
+    uint16_t XY2ID(Point xy) //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY //TODO Compensate for rotation
     {
         return Device::KeyPad::XY2ID(xy);
     }
 
     Point ID2XY(uint16_t keyID) //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
     {
-        return Device::KeyPad::ID2XY(keyID);
+        Point point = Device::KeyPad::ID2XY(keyID);
+        if(point)
+           return point.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size), true);
+        return point;
+        // return Device::KeyPad::ID2XY(keyID).Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size), true);
     }
 }

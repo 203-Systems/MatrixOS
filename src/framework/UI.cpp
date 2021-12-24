@@ -59,6 +59,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         return;
     }
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+    MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", xy.x, xy.y);
     if(xy && uiElementsMap.count(xy)) //Key Found
     {   
         if(keyInfo.state == RELEASED)
