@@ -3,6 +3,7 @@
 #include "Types.h"
 #include "Color.h"
 #include "Point.h"
+#include "Dimension.h"
 #include "Handler.h"
 #include "KeyInfo.h"
 #include "Timer.h"

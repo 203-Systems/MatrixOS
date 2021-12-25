@@ -40,6 +40,22 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
                 Point xy = Point(xy_raw >> 4, xy_raw & 0x0f);
                 MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
             }
+            else if (note > 99 && note < 108) //Side Light Right Column
+            {
+                MatrixOS::LED::SetColor(Point(8, note - 100), palette[channel % 2][velocity]);
+            }
+            else if (note > 115 && note < 124) //Side Light Bottom Row
+            {
+                MatrixOS::LED::SetColor(Point(note - 116, 8), palette[channel % 2][velocity]);
+            }
+            else if (note > 107 && note < 116) //Side Light Left Column
+            {
+                MatrixOS::LED::SetColor(Point(-1, note - 108), palette[channel % 2][velocity]);
+            }
+            else if (note > 27 && note < 36) //Side Light Top Row
+            {   
+                MatrixOS::LED::SetColor(Point(note - 28, -1), palette[channel % 2][velocity]);
+            }
         }
         case 1:
             break; //TODO

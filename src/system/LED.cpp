@@ -33,6 +33,7 @@ namespace MatrixOS::LED
 
     void SetColor(Point xy, Color color, uint8_t layer)
     {
+        // MatrixOS::Logging::LogVerbose("LED", "Set Color %d %d", xy.x, xy.y);
         xy = xy.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size));
         if(layer > currentLayer)
         {

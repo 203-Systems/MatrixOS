@@ -22,14 +22,16 @@ namespace Device
     const uint16_t numsOfLED = 64 + 32;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
+    // const Dimension grid_size(8,8);
+    // const Point grid_offset = Point(1,1);
 
-    const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
+    const uint8_t touchbar_size = 16; //Not required by the API, private use.
 
     namespace KeyPad
     {
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
-        inline KeyInfo touchbarState[x_size];
+        inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
 
         void USB_Init();
