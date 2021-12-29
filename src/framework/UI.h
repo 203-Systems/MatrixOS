@@ -43,6 +43,10 @@ class UI
         Color nameColor;
         int8_t status = 0;
 
+        
+        Timer uiTimer;
+        uint16_t uiFps = 60;
+
         UI() {};
         UI(string name, Color color);
 
@@ -50,6 +54,7 @@ class UI
 
         virtual void Setup() {};
         virtual void Loop() {};
+        virtual void Render() {};
         virtual void End() {};
 
         void Exit();
@@ -68,6 +73,6 @@ class UI
 
         void ClearUIElements();
         private:
-        void Render();
+        void RenderUI();
         void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
 };

@@ -174,12 +174,13 @@ namespace MatrixOS
   namespace NVS
   {
     vector<char> GetVariable(string name);
+    int8_t GetVariable(string name, void* pointer, uint16_t length); //Load variable into pointer. If not defined, it will try to assign current pointer value into it.
     bool SetVariable(string name, void* pointer, uint16_t length);
     bool DeleteVariable(string name);
   }
 
   // namespace GPIO
-  // {b
+  // {
   //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16};
 
   //   void DigitalWrite(EPin pin, bool value);

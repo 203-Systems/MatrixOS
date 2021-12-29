@@ -72,7 +72,7 @@ struct KeyInfo {
         {
             state = PRESSED;
             this->velocity = velocity;
-            lastEventTime = MatrixOS::SYS::Millis() ;
+            lastEventTime = MatrixOS::SYS::Millis();
             return true;
         }
 

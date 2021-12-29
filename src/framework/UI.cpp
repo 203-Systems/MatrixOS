@@ -13,8 +13,8 @@ void UI::Start()
     Setup();
     while(status != -1)
     {   
-        Render();
         Loop();
+        RenderUI();
         GetKey();
         GetMidi();
     }
@@ -29,16 +29,20 @@ void UI::Exit()
     status = -1;
 }
 
-void UI::Render()
-{
-    MatrixOS::LED::Fill(0);
-    for (auto const& uiElementMap : uiElementsMap)
-    {   
-        Point xy = uiElementMap.first;
-        UIElement* uiElement = uiElementMap.second;
-        MatrixOS::LED::SetColor(xy, uiElement->color);
+void UI::RenderUI()
+{   
+    if(uiTimer.Tick(uiFps))
+    {
+        MatrixOS::LED::Fill(0);
+        for (auto const& uiElementMap : uiElementsMap)
+        {   
+            Point xy = uiElementMap.first;
+            UIElement* uiElement = uiElementMap.second;
+            MatrixOS::LED::SetColor(xy, uiElement->color);
+        }
+        Render();
+        MatrixOS::LED::Update();
     }
-    MatrixOS::LED::Update();
 }
 
 void UI::GetKey()

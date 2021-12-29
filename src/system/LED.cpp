@@ -26,7 +26,7 @@ namespace MatrixOS::LED
         frameBuffers.push_back(frameBuffer);
         Update();
 
-        led_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1000/fps), true, NULL, LEDTimerCallback, &led_tmdef);
+        led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / fps, true, NULL, LEDTimerCallback, &led_tmdef);
         if(auto_update)
             xTimerStart(led_tm, 0);
     }

@@ -2,47 +2,33 @@
 
 void Setting::Setup()
 {   
+
+    Point origin = Point((Device::x_size - 1)/2, (Device::y_size - 1)/2);
+
+    //TODO: Let's assume all dimension are even atm. (No device with odd dimension should exist. Srsly why does Samson Conspiracy exists?)
+    //Also assume at least 4x4
+
     //Brightness Control
-    AddUIElement(UIElement("Brightness", Color(0xFFFFFF), []() -> void {NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
+    AddUIElement(UIElement("Brightness", Color(0xFFFFFF), []() -> void {MatrixOS::SYS::NextBrightness();}), 4, origin, origin + Point(0, 1), origin + Point(1, 0), origin + Point(1, 1));
 
     //Rotation control and canvas
-    AddUIElement(UIElement("This does nothing", Color(0x00FF00), []() -> void {}), 2, Point(3, 2), Point(4, 2));
-    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(RIGHT);}), 2, Point(5, 3), Point(5, 4));
-    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(DOWN);}), 2, Point(3, 5), Point(4, 5));
-    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {RotateClockwise(LEFT);}), 2, Point(2, 3), Point(2, 4));
+    AddUIElement(UIElement("This does nothing", Color(0x00FF00), []() -> void {}), 2, origin + Point(0, -1), origin + Point(1, -1));
+    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(RIGHT);}), 2, origin + Point(2, 0), origin + Point(2, 1));
+    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, origin + Point(0, 2), origin + Point(1, 2));
+    AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, origin + Point(-1, 0), origin + Point(-1, 1));
 
     //Device Control
-    AddUIElement(UIElement("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, 7));
-    AddUIElement(UIElement("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, 6));
-    AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {}), Point(1, 7));
-    AddUIElement(UIElement("Device Bootloader Version", Color(0x00FF30), []() -> void {}), Point(2, 7));
-    AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {}), Point(3, 7));
+    AddUIElement(UIElement("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, Device::y_size - 1));
+    AddUIElement(UIElement("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, Device::y_size - 2));
+    AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {}), Point(1, Device::y_size - 1));
+    AddUIElement(UIElement("Device Bootloader Version", Color(0x00FF30), []() -> void {}), Point(2, Device::y_size - 1));
+    AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {}), Point(3, Device::y_size - 1));
 
 
     // AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
-    AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(7, 7));
-}
+    AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
 
-void Setting::RotateClockwise(EDirection rotation)
-{
-    
+    // Device::Setting::Setup();
 }
-
-void Setting::NextBrightness()
-{
-    uint8_t current_brightness = (uint8_t)MatrixOS::SYS::GetVariable("brightness");
-    MatrixOS::USB::CDC::Print("Brightness: ");
-    MatrixOS::USB::CDC::Println(std::to_string(current_brightness).c_str());
-    for (uint8_t i = 0; i < sizeof(brightness_level); i++)
-    {
-        if (brightness_level[i] > current_brightness)
-        {
-            MatrixOS::SYS::SetVariable("brightness", brightness_level[i]);
-            return;
-        }
-    }
-    MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
-}
-
 
 
