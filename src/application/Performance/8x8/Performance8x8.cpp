@@ -10,6 +10,14 @@ void Performance::Setup()
     MatrixOS::LED::StartAutoUpdate();
 }
 
+void Performance::Loop()
+{
+    if(stfuTimer.Tick(10))
+    {
+        stfuScan();
+    }
+}
+
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
@@ -26,9 +34,7 @@ void Performance::MidiEvent(MidiPacket midiPacket)
             break;
     }
 }
-
-
-void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
+Point Performance::NoteToXY(uint8_t note)
 {
     switch(currentKeymap)
     {
@@ -37,28 +43,45 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
             if (note > 35 && note < 100)
             {   
                 uint8_t xy_raw = user1_keymap_optimized[note - 36];
-                Point xy = Point(xy_raw >> 4, xy_raw & 0x0f);
-                MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
+                return Point(xy_raw >> 4, xy_raw & 0x0f);
             }
             else if (note > 99 && note < 108) //Side Light Right Column
             {
-                MatrixOS::LED::SetColor(Point(8, note - 100), palette[channel % 2][velocity]);
+                return Point(8, note - 100);
             }
             else if (note > 115 && note < 124) //Side Light Bottom Row
             {
-                MatrixOS::LED::SetColor(Point(note - 116, 8), palette[channel % 2][velocity]);
+                return Point(note - 116, 8);
             }
             else if (note > 107 && note < 116) //Side Light Left Column
             {
-                MatrixOS::LED::SetColor(Point(-1, note - 108), palette[channel % 2][velocity]);
+                return Point(-1, note - 108);
             }
             else if (note > 27 && note < 36) //Side Light Top Row
             {   
-                MatrixOS::LED::SetColor(Point(note - 28, -1), palette[channel % 2][velocity]);
+                return Point(note - 28, -1);
             }
+            break;
         }
-        case 1:
-            break; //TODO
+    }
+    return Point::Invalid();
+}
+
+void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
+{
+    Point xy = NoteToXY(note);
+    if(xy && !(velocity == 0 && stfu))
+        MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
+    if(stfu)
+    {
+        if(velocity == 0)
+        {
+            stfuMap[note] = stfu;
+        }
+        else
+        {
+            stfuMap[note] = -1;
+        }
     }
 }
 
@@ -94,6 +117,24 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     if(keyID == 0 && keyInfo.state == PRESSED)
     {
         ActionMenu();
+    }
+}
+
+void Performance::stfuScan()
+{
+    for(uint8_t note = 0; note < 128; note++)
+    {
+        if(stfuMap[note] > 0)
+        {   
+            stfuMap[note]--;
+        }
+        else if(stfuMap[note] == 0)
+        {   
+            Point xy = NoteToXY(note);
+            if(xy)
+                MatrixOS::LED::SetColor(xy, 0);
+            stfuMap[note] = -1;
+        }
     }
 }
 

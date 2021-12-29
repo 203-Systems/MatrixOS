@@ -46,8 +46,9 @@ void UI::GetKey()
     while(MatrixOS::KEYPAD::Available())
     {   
         uint16_t keyID = MatrixOS::KEYPAD::Get();
-        KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
-        UIKeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
+        bool action = KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
+        if(!action)
+            UIKeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
     }
 }
 

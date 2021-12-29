@@ -12,9 +12,16 @@ class Performance : public Application
     uint32_t version = 0;
 
     uint8_t currentKeymap = 0;
+
+    bool unipadMode = false;
+    bool fnLock = false;
+
+    uint8_t stfu = 2;
     
     void Setup() override;
-    // void Loop() override;
+    void Loop() override;
+
+    Point NoteToXY(uint8_t note);
 
     void MidiEvent(MidiPacket midiPacket) override;
     void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
@@ -27,6 +34,8 @@ class Performance : public Application
     void IDKeyEvent(uint16_t keyID, KeyInfo KeyInfo);
 
     void ActionMenu();
+
+    void stfuScan();
 
     const uint8_t keymap[2][8][8] =
     {{{64, 65, 66, 67, 96, 97, 98, 99}, //Drum Rack
@@ -49,8 +58,7 @@ class Performance : public Application
     const uint8_t user1_keymap_optimized[64] =
     {0x07, 0x17, 0x27, 0x37, 0x06, 0x16, 0x26, 0x36, 0x05, 0x15, 0x25, 0x35, 0x04, 0x14, 0x24, 0x34, 0x03, 0x13, 0x23, 0x33, 0x02, 0x12, 0x22, 0x32, 0x01, 0x11, 0x21, 0x31, 0x00, 0x10, 0x20, 0x30, 0x47, 0x57, 0x67, 0x77, 0x46, 0x56, 0x66, 0x76, 0x45, 0x55, 0x65, 0x75, 0x44, 0x54, 0x64, 0x74, 0x43, 0x53, 0x63, 0x73, 0x42, 0x52, 0x62, 0x72, 0x41, 0x51, 0x61, 0x71, 0x40, 0x50, 0x60, 0x70};
 
-
-  const Color palette[2][128] = //color Palette
+    const Color palette[2][128] = //color Palette
     {{
          //MatrixcolorPalette (Mat1s' Palette for now)
          0x00000000, //0
@@ -313,6 +321,12 @@ class Performance : public Application
          0x00AF4F00, //126
          0x004F0F00  //127
      }};
+
+    private:
+    int8_t stfuMap[128];
+    Timer stfuTimer;
 };
+
+
 
 // #endif

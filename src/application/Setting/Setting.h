@@ -16,5 +16,5 @@ class Setting: public UI
     static void RotateClockwise(EDirection rotation);
     static void NextBrightness();
 
-    void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
+    // bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
 };

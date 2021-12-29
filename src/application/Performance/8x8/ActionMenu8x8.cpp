@@ -46,17 +46,17 @@ void ActionMenu::NextBrightness()
     // MatrixOS::SYS::SetVariable("brightness", 16);
 }
 
-void ActionMenu::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
-{
-    Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-    if(xy) //IF XY is vaild, means it's on the main grid
-    {
-        MatrixOS::Logging::LogDebug(name, "Key Event %d %d", xy.x, xy.y);
-        if(xy.x == 0 && xy.y == 0)
-            NextBrightness();
-    }
-    else //XY Not vaild, 
-    {
-        // IDKeyEvent(KeyID, keyInfo);
-    }
-}
+// void ActionMenu::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
+// {
+//     Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
+//     if(xy) //IF XY is vaild, means it's on the main grid
+//     {
+//         MatrixOS::Logging::LogDebug(name, "Key Event %d %d", xy.x, xy.y);
+//         if(xy.x == 0 && xy.y == 0)
+//             NextBrightness();
+//     }
+//     else //XY Not vaild, 
+//     {
+//         // IDKeyEvent(KeyID, keyInfo);
+//     }
+// }

@@ -19,7 +19,7 @@ void Setting::Setup()
     AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {}), Point(3, 7));
 
 
-    AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
+    // AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
     AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(7, 7));
 }
 
@@ -44,8 +44,5 @@ void Setting::NextBrightness()
     MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
 }
 
-void Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
-{
-    
-}
+
 

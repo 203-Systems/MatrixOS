@@ -16,5 +16,5 @@ class ActionMenu : public UI
     void RotateClockwise(EDirection rotation);
     void NextBrightness();
 
-    void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
+    // void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
 };

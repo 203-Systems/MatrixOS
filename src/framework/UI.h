@@ -55,7 +55,7 @@ class UI
         void Exit();
 
         void GetKey();
-        virtual void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {};
+        virtual bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {return false;}; //Return true to skip UIKeyEvent
 
         void GetMidi();
         virtual void MidiEvent(MidiPacket midiPacket) {};
