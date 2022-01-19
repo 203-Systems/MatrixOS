@@ -153,7 +153,7 @@ namespace MatrixOS::SYS
         uint8_t current_brightness = (uint8_t)GetVariable("brightness");
         // ESP_LOGI(logTag.c_str(), "Current Brightness %d", current_brightness);
         MatrixOS::Logging::LogDebug(logTag, "Current Brightness %d", current_brightness);
-        for (uint8_t brightness: brightness_level)
+        for (uint8_t brightness: Device::brightness_level)
         {
             // ESP_LOGI(logTag.c_str(), "Check Brightness Level  %d", brightness);
             MatrixOS::Logging::LogDebug(logTag, "Check Brightness Level  %d", brightness);
@@ -167,7 +167,7 @@ namespace MatrixOS::SYS
         }
         // ESP_LOGI(logTag.c_str(), "Lowest Level Selected");
         MatrixOS::Logging::LogDebug(logTag, "Lowest Level Selected");
-        MatrixOS::SYS::SetVariable("brightness", brightness_level[0]);
+        MatrixOS::SYS::SetVariable("brightness", Device::brightness_level[0]);
     }
 
     // void RegisterActiveApp(Application* application)

@@ -2,7 +2,7 @@
 
 #include "framework/LogLevel.h"
 
-#define MATRIXOS_LOG_LEVEL  LOG_LEVEL_ERROR
+#define MATRIXOS_LOG_LEVEL  LOG_LEVEL_DEBUG
 #define MATRIXOS_LOG_DEVICE
 // #define MATRIXOS_LOG_USBCDC
 #define MATRIXOS_LOG_COLOR
@@ -20,9 +20,4 @@ inline uint16_t debounce_threshold = 24;
 #endif
 
 inline uint16_t hold_threshold = 400;
-inline uint16_t keypad_scanrate = 120;
 
-//LED
-#define MAX_LED_LAYERS 5
-inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
-inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};

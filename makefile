@@ -299,7 +299,7 @@ size: $(BUILD)/$(PROJECT).elf
 .PHONY: clean
 clean:
 ifeq ($(CMDEXE),1)
-	rd /S /Q $(subst /,\,$(BUILD))
+	if exist $(subst /,\,$(BUILD)) rd /S /Q $(subst /,\,$(BUILD))
 else
 	$(RM) -rf $(BUILD)
 endif

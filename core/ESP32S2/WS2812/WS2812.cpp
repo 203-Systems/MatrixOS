@@ -16,6 +16,10 @@ namespace WS2812
     static uint32_t ws2812_t1l_ticks = 0;
     static uint32_t ws2812_reset_ticks = 0;
 
+    static rmt_item32_t bit0;
+    static rmt_item32_t bit1;
+    static rmt_item32_t reset;
+
     void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint16_t numsOfLED)
     {
         rmt_config_t config = RMT_DEFAULT_CONFIG_TX(gpio_tx, rmt_channel);
@@ -51,6 +55,10 @@ namespace WS2812
         ws2812_t1l_ticks = (uint32_t)(ratio * WS2812_T1L_NS);
         ws2812_reset_ticks = (uint32_t)(ratio * WS2812_RESET_US * 1000);
 
+        bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
+        bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
+        reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
+
         // ESP_LOGV(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
         // ESP_LOGV(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
         // ESP_LOGV(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
@@ -63,22 +71,19 @@ namespace WS2812
         // ESP_LOGV(TAG, "Show");
         uint32_t status;
         rmt_get_status(rmt_channel, &status);
-        if(status & 0x003ff000) //RMT_MEM_RADDR_EX
-        {
-            // ESP_LOGI(TAG, "transmit still in progress, abort");
-            return -1;
-        }
+        // if(status & 0x003ff000) //RMT_MEM_RADDR_EX
+        // {
+        //     // ESP_LOGI(TAG, "transmit still in progress, abort");
+        //     return -1;
+        // }
         setup_rmt_data_buffer(array, brightness);
-        ESP_ERROR_CHECK(rmt_write_items(rmt_channel, rmtBuffer, numsOfLED * BITS_PER_LED_CMD + 1, true)); //Block the thread because FreeRTOS is gonna handle it
+        ESP_ERROR_CHECK(rmt_write_items(rmt_channel, rmtBuffer, numsOfLED * BITS_PER_LED_CMD + 1, false));
         // ESP_ERROR_CHECK(rmt_wait_tx_done(LED_RMT_TX_CHANNEL, portMAX_DELAY));
         return 0;
     }
 
     void setup_rmt_data_buffer(Color *array, uint8_t brightness) 
     {
-        const rmt_item32_t bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
-        const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
-        const rmt_item32_t reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
         // rmtBuffer[0] = reset;
         for (uint16_t led = 0; led < numsOfLED; led++) {
             // ESP_LOGV("RMT", "LED %d", led);

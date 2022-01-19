@@ -22,6 +22,13 @@ namespace Device
     const uint16_t numsOfLED = 64 + 32;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
+
+    inline uint16_t keypad_scanrate = 60;
+
+    //LED
+    #define MAX_LED_LAYERS 5
+    inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
+    inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
     // const Dimension grid_size(8,8);
     // const Point grid_offset = Point(1,1);
 
@@ -68,7 +75,7 @@ namespace Device
 #define KeyRead7_Pin GPIO_NUM_7
 #define KeyRead8_Pin GPIO_NUM_8
 
-#define FSR_KEYPAD
+// #define FSR_KEYPAD
 #define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
 #define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
 #define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2

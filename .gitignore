@@ -2,8 +2,6 @@
 .vscode/
 .VSCodeCounter/
 build/
-*.cmake
-CMakeLists.txt
 
 # Prerequisites
 *.d

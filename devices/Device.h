@@ -57,5 +57,11 @@ namespace Device
         void Clear();
     }
 
+    namespace Battery
+    {
+        bool Chagring();
+        float voltage();
+    }
+
 
 }

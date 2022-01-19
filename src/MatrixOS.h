@@ -14,7 +14,7 @@
 #include "task.h"
 #include "timers.h"
 
-#define noexpose //Custum key word to remove function to be generated as exposed API
+#define noexpose //Custum keyword to remove function to be generated as exposed API
 
 class Application;
 
@@ -22,11 +22,10 @@ class Application;
 namespace MatrixOS
 {
   inline uint32_t API_version = 0;
-
   namespace SYS
   {
     inline bool inited = false;
-    noexpose void Init(void);
+    void Init(void);
 
     uint32_t Millis(void);
     void DelayMs(uint32_t intervalMs);
@@ -34,23 +33,7 @@ namespace MatrixOS
     void Reboot(void);
     void Bootloader(void);
 
-    void SystemTask();
-
     void OpenSetting(void);
-
-    // enum class ESysVar {
-    //   //Device Info
-    //   DeviceClass, DeviceName, DeviceVersion, DeviceRevision, SerialNumber,
-    //   VelocityRange,
-    //   LEDType, MatrixSizeX, MatrixSizeY, NumsOfLED, NumsOfKey,
-    //   BootloaderVersion, SystemVersion, 
-
-    //   //User Variable
-    //   Brightness, Rotation
-
-    //   //System Variable
-
-    //   };
 
     enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
     uint32_t GetVariable(string variable, EVarClass varClass = EVarClass::UserVar);
@@ -59,9 +42,9 @@ namespace MatrixOS
     void Rotate(EDirection rotation, bool absolute = false);
     void NextBrightness();
     
-    // void RegisterActiveApp(Application* application);
+    void RegisterActiveApp(Application* application);
 
-    // int Execute(uint32_t addr);
+    int Execute(uint32_t addr);
 
     void ErrorHandler(string error = NULL);
   }
@@ -69,7 +52,7 @@ namespace MatrixOS
   namespace LED
   {
     inline uint8_t currentLayer;
-    inline std::vector<Color*> frameBuffers;
+    inline vector<Color*> frameBuffers;
     void Init(void);
     void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
     void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
@@ -77,13 +60,13 @@ namespace MatrixOS
     void Update(int8_t layer = currentLayer);
     void PauseAutoUpdate();
     void StartAutoUpdate();
-    // void SwitchLayer(uint8_t layer);
+    void SwitchLayer(uint8_t layer);
 
     int8_t CreateLayer();
     void DestoryLayer();
     
-    void ShiftCanvas(EDirection direction, int8_t distance, int8_t layer = currentLayer); //TODO
-    void RotateCanvas(EDirection direction, int8_t layer = currentLayer); //TODO
+    void ShiftCanvas(EDirection direction, int8_t distance, int8_t layer = currentLayer);
+    void RotateCanvas(EDirection direction, int8_t layer = currentLayer);
   }
 
   namespace KEYPAD
