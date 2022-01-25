@@ -17,7 +17,6 @@
 #include "esp_log.h"
 
 #include "nvs_flash.h"
-#include "nvs.h"
 
 #include "esp_private/system_internal.h"
 
@@ -29,10 +28,46 @@
 #define DONT_START_FREERTOS_SCHEDULER
 
 namespace Device
-{
-    void USB_Init();
-    void LED_Init();
-    void KeyPad_Init();
-    void TouchBar_Init();
-    void NVS_Init();
+{   
+    namespace USB
+    {
+        void Init();
+    }
+    namespace LED
+    {
+        void Init();
+    }
+    
+    namespace KeyPad
+    {
+        void Init();
+    }
+    
+    namespace TouchBar
+    {
+        void Init();
+    }
+    
+    namespace NVS
+    {
+        void Init();
+    }
+
+
+
+    namespace WIFI
+    {
+        void Init();
+    }
+
+    namespace ESPNOW
+    {
+        void Init();
+        void Flush(void* param);
+        bool SendMidi(uint8_t* packet);
+        uint32_t MidiAvailable();
+        MidiPacket GetMidi();
+        void BroadcastMac();
+        void UpdatePeer(const uint8_t* new_mac);
+    }
 }

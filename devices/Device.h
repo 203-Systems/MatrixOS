@@ -57,11 +57,21 @@ namespace Device
         void Clear();
     }
 
+    #ifdef DEVICE_BATTERY
     namespace Battery
-    {
+    {   
         bool Chagring();
-        float voltage();
+        float Voltage();
     }
+    #endif
 
+    #ifdef DEVICE_MIDI
+    namespace MIDI
+    {
+        uint32_t Available();
+        MidiPacket Get();
+        bool Sent(MidiPacket packet);
+    } 
+    #endif
 
 }

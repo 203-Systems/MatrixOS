@@ -1,13 +1,13 @@
 //Define Device Keypad Function
 #include "Device.h"
 
-namespace Device
+namespace Device::KeyPad
 {
     #ifdef  FSR_KEYPAD
     esp_adc_cal_characteristics_t adc1_chars;
     #endif 
 
-    void KeyPad_Init()
+    void Init()
     {
         #if Key2_Pin == GPIO_NUM_26 //OOPS, used SPICS1 as keypad pin
         gpio_config_t io_conf;
@@ -43,10 +43,7 @@ namespace Device
         #endif
 
     }
-}
 
-namespace Device::KeyPad
-{
     uint16_t* Scan()
     {
         clearList();

@@ -3,13 +3,13 @@
 namespace Device
 {   
 
-    void LED_Init()
-    {
-        WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
-    }
-
     namespace LED
     {
+        void Init()
+        {
+            WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
+        }
+
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
             // ESP_LOGI("LED", "LED Update");

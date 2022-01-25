@@ -3,6 +3,10 @@
 
 #define GRID_8x8
 #define MODEL MXB6PT1
+
+#define DEVICE_BATTERY
+#define DEVICE_MIDI
+
 #define MULTIPRESS 10 //Key Press will be process at once
 // #define LC8812
 

@@ -71,13 +71,31 @@ namespace MatrixOS::MIDI
     uint32_t Available()
     {
         // MatrixOS::USB::CDC::Println("Midi Available");
-        return tud_midi_available();
+        uint32_t packets = 0;
+        packets += tud_midi_available();
+
+        #ifdef DEVICE_MIDI
+        Device::MIDI::Available();
+        #endif
+
+        return packets;
     }
 
     MidiPacket Get()
     {
         //IF USB is enabled
-        return GetUSB();
+        if(Available())
+        {
+            return GetUSB();
+        }
+        #ifdef DEVICE_MIDI
+        else if(Device::MIDI::Available())
+        {
+            return Device::MIDI::Get();
+        }
+        #endif
+
+        return MidiPacket(0, None);
     }
 
     MidiPacket GetUSB()
