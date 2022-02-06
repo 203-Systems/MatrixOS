@@ -15,6 +15,9 @@ void Application(void* param)
     // TestApp TestApp;
     // TestApp.Start();
 
+    // WirelessRepeater wirelessRepeater;
+    // wirelessRepeater.Start();
+
     // while(true){ 
     //     MatrixOS::SYS::DelayMs(10);
     // }

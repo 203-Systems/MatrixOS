@@ -157,10 +157,23 @@ namespace Device
             }
             else
             {
-                for(uint16_t i = 0; i < len; i+=3)
+                for(int16_t i = 0; i < len; i+=3)
                 {
                     //Switch to 4byte system later 
-                    MidiPacket packet = MidiPacket(ESP_NOW_MIDI_PORT_ID, (EMidiStatus)(data[i] & 0xF0), 3, &data[i]);
+                    // ESP_LOGI("Got Midi", "%#02X %#02X %#02X", data[i], data[i + 1], data[i + 2]);
+                    if((data[i] & 0xF0) != 0x80 && (data[i] & 0xF0) != 0x90)
+                    {
+                        ESP_LOGW("Got Midi", "Midi Incorrect %#02X %#02X %#02X", data[i], data[i + 1], data[i + 2]);
+                        i -= 2;
+                        while((data[i + 3] & 0xF0) != 0x80 && (data[i + 3] & 0xF0) != 0x90 && i+3 < len)
+                        {
+                            i++;
+                        }
+                        continue;
+                        
+                    }
+                    MidiPacket packet = MidiPacket(ESP_NOW_MIDI_PORT_ID, (EMidiStatus)(data[i] & 0xF0), data[i], data[i + 1], data[i + 2]);
+                    // ESP_LOGI("Got Midi 2", "%#02X %#02X %#02X", packet.data[0], packet.data[1], packet.data[2]);
                     midi_buffer.push(packet);
                 }
             }
@@ -172,11 +185,12 @@ namespace Device
         }
 
         MidiPacket GetMidi()
-        {
+        {;
             if(midi_buffer.size())
             {   
                 MidiPacket packet = midi_buffer.front();
                 midi_buffer.pop();
+                // ESP_LOGI("GetMidi", "%#02X %#02X %#02X", packet.data[0], packet.data[1], packet.data[2]);
                 return packet;
             }
             return MidiPacket(ESP_NOW_MIDI_PORT_ID, None);
@@ -191,7 +205,7 @@ namespace Device
 
         void UpdatePeer(const uint8_t* new_mac)
         {
-            ESP_LOGD("ESPNOW Update Peer", "Target Mac updated: %#02X:%#02X:%#02X:%#02X:%#02X:%#02X", new_mac[0], new_mac[1], new_mac[2], new_mac[3], new_mac[4], new_mac[5]);
+            ESP_LOGI("ESPNOW Update Peer", "Target Mac updated: %#02X:%#02X:%#02X:%#02X:%#02X:%#02X", new_mac[0], new_mac[1], new_mac[2], new_mac[3], new_mac[4], new_mac[5]);
             
             esp_now_peer_info_t peer_info;
             esp_now_get_peer(target_mac, &peer_info);

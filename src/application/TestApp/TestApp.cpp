@@ -5,10 +5,10 @@
 
 // }
 
-void TestApp::Loop()
-{ 
-    LED_task();
-}
+// void TestApp::Loop()
+// { 
+//     LED_task();
+// }
 
 void TestApp::MidiEvent(MidiPacket midiPacket)
 {
@@ -72,26 +72,26 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
   }
 }
 
-void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
-{
-//   MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
-  MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
-}
+// void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
+// {
+// //   MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
+//   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
+// }
 
-#define NUMSLEDS 64
-void TestApp::LED_task(void)
-{
-  // MatrixOS::Logging::Debug("TestApp", "LED_Task");
-  if (TestApp::timer.Tick(100))
-  { 
-    MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
-    led_id ++;
-    if(led_id == NUMSLEDS)
-    {
-      led_id = 0;
-      colorIndex ++;
-      colorIndex %= 5;
-    }
-    MatrixOS::LED::Update();
-  }
-}
+// #define NUMSLEDS 64
+// void TestApp::LED_task(void)
+// {
+//   // MatrixOS::Logging::Debug("TestApp", "LED_Task");
+//   if (TestApp::timer.Tick(100))
+//   { 
+//     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
+//     led_id ++;
+//     if(led_id == NUMSLEDS)
+//     {
+//       led_id = 0;
+//       colorIndex ++;
+//       colorIndex %= 5;
+//     }
+//     MatrixOS::LED::Update();
+//   }
+// }

@@ -21,7 +21,7 @@ void Performance::Loop()
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
-    // MatrixOS::Logging::LogVerbose("Performance", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
+    // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d", midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
     switch(midiPacket.status)
     {
         case NoteOn:
@@ -69,6 +69,7 @@ Point Performance::NoteToXY(uint8_t note)
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
+    // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
     Point xy = NoteToXY(note);
     if(xy && !(velocity == 0 && stfu))
         MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
@@ -80,7 +81,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
         }
         else
         {
-            stfuMap[note] = -1;
+            stfuMap[note] = 10;
         }
     }
 }
