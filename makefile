@@ -27,20 +27,19 @@ CURRENT_PATH := $(subst ,,$(subst \,/,$(shell echo %CD%)))
 else
 CURRENT_PATH := $(shell realpath --relative-to=$(TOP) `pwd`)
 endif
+
 # $(info Path from top is $(CURRENT_PATH))
 
-# # Build directory
-# ifeq ($(CMDEXE),1)
-# $(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
-# endif
+# Build directory
+ifeq ($(CMDEXE),1)
+$(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
+endif
 
-
-
+# Build directory
 BUILD := build/$(DEVICE)
 
 PROJECT := $(notdir $(CURDIR))
 BIN := _bin/$(DEVICE)/$(notdir $(CURDIR))
-
 
 # Handy check parameter function
 check_defined = \
@@ -50,12 +49,7 @@ __check_defined = \
     $(if $(value $1),, \
     $(error Undefined make flag: $1$(if $2, ($2))))
 
-#-------------- Select the device to build for. ------------    
-
-ifeq ($(DEVICE), )
-  $(info You must provide a DEVICE parameter with 'DEVICE=')
-  $(error Invalid DEVICE specified)
-endif
+#-------------- Select the device to build for. ------------
 
 # Device without family
 ifneq ($(wildcard ./devices/$(DEVICE)/device.mk),)
@@ -79,6 +73,7 @@ ifeq ($(DEVICE_PATH),)
   $(error Invalid DEVICE specified)
 endif
 
+
 ifeq ($(FAMILY),)
   include devices/$(DEVICE)/device.mk
 else
@@ -87,14 +82,16 @@ else
 endif
 
 # Fetch submodules depended by family
-fetch_submodule_if_empty = $(if $(wildcard $1/*),,$(info $(shell git -C $(TOP) submodule update --init $1)))
+fetch_submodule_if_empty = $(if $(wildcard $1/*),,$(info $(shell git -C submodule update --init $1)))
 ifdef DEPS_SUBMODULES
   $(foreach s,$(DEPS_SUBMODULES),$(call fetch_submodule_if_empty,$(s)))
 endif
 
 #-------------- Cross Compiler  ------------
-# Can be set by device, default to ARM GCC
+# Can be set by board, default to ARM GCC
 CROSS_COMPILE ?= arm-none-eabi-
+# Allow for -Os to be changed by board makefiles in case -Os is not allowed
+CFLAGS_OPTIMIZED ?= -Os
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -106,13 +103,15 @@ MKDIR = mkdir
 ifeq ($(CMDEXE),1)
   CP = copy
   RM = del
+  PYTHON = python
 else
   SED = sed
   CP = cp
   RM = rm
+  PYTHON = python3
 endif
 
-#-------------- Compiler flags --------------
+#-------------- Source files and compiler flags --------------
 
 # Compiler Flags
 CFLAGS += \
@@ -122,7 +121,6 @@ CFLAGS += \
   -fsingle-precision-constant \
   -fno-strict-aliasing \
   -Wdouble-promotion \
-  -Wstrict-prototypes \
   -Wstrict-overflow \
   -Wall \
   -Wextra \
@@ -141,10 +139,9 @@ CPPFLAGS += \
 
 # Debugging/Optimization
 ifeq ($(DEBUG), 1)
-  $(info Debug Enabled)
   CFLAGS += -Og -g
 else
-  CFLAGS += -Os
+  CFLAGS += $(CFLAGS_OPTIMIZED)
 endif
 
 # Log level is mapped to TUSB DEBUG option
@@ -161,7 +158,7 @@ endif
 ifeq ($(LOGGER),rtt)
   CFLAGS += -DLOGGER_RTT -DSEGGER_RTT_MODE_DEFAULT=SEGGER_RTT_MODE_BLOCK_IF_FIFO_FULL
   RTT_SRC = lib/SEGGER_RTT
-  INC   += $(RTT_SRC)/RTT
+  INC   += $(TOP)/$(RTT_SRC)/RTT
   SRC_C += $(RTT_SRC)/RTT/SEGGER_RTT.c
 else ifeq ($(LOGGER),swo)
   CFLAGS += -DLOGGER_SWO
@@ -180,6 +177,7 @@ include source.mk
 ifneq ($(MCU),esp32s2)
 ifneq ($(MCU),esp32s3)
 ifneq ($(MCU),rp2040)
+
 # ---------------------------------------
 # GNU Make build system
 # ---------------------------------------
@@ -216,10 +214,12 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 
 # Verbose mode
 ifeq ("$(V)","1")
+$(info Shell$(SHELL))
 $(info DEVICE_PATH  $(DEVICE_PATH)) $(info )
 $(info FAMILY_PATH  $(FAMILY_PATH)) $(info )
 $(info SRC C  $(SRC_C)) $(info )
 $(info SRC CPP  $(SRC_CPP)) $(info )
+$(info SRC S  $(SRC_S)) $(info )
 $(info CFLAGS  $(CFLAGS) ) $(info )
 $(info CPPFLAGS  $(CPPFLAGS) ) $(info )
 $(info LDFLAGS $(LDFLAGS)) $(info )
@@ -268,25 +268,22 @@ copy-artifact: $(BUILD)/$(PROJECT).bin $(BUILD)/$(PROJECT).hex $(BUILD)/$(PROJEC
 # We set vpath to point to the top of the tree so that the source files
 # can be located. By following this scheme, it allows a single build rule
 # to be used to compile all .c files.
-vpath %.c . $(TOP)
+
 $(BUILD)/obj/%.o: %.c
 	@echo CC $(notdir $@)
 	@$(CC) $(CFLAGS) -c -MD -o $@ $<
 
 # ASM sources .cpp
-vpath %.cpp . $(TOP)
 $(BUILD)/obj/%.o: %.cpp
 	@echo CC $(notdir $@)
 	@$(CXX) $(CPPFLAGS) -c -MD -o $@ $<
 
 # ASM sources lower case .s
-vpath %.s . $(TOP)
 $(BUILD)/obj/%_asm.o: %.s
 	@echo AS $(notdir $@)
 	@$(CC) -x assembler-with-cpp $(ASFLAGS) -c -o $@ $<
 
 # ASM sources upper case .S
-vpath %.S . $(TOP)
 $(BUILD)/obj/%_asm.o: %.S
 	@echo AS $(notdir $@)
 	@$(CC) -x assembler-with-cpp $(ASFLAGS) -c -o $@ $<
@@ -299,7 +296,7 @@ size: $(BUILD)/$(PROJECT).elf
 .PHONY: clean
 clean:
 ifeq ($(CMDEXE),1)
-	if exist $(subst /,\,$(BUILD)) rd /S /Q $(subst /,\,$(BUILD))
+	rd /S /Q $(subst /,\,$(BUILD))
 else
 	$(RM) -rf $(BUILD)
 endif
@@ -358,7 +355,7 @@ debug-bmp: $(BUILD)/$(PROJECT).elf
 
 # Create binary directory
 $(BIN):
-	@$(MKDIR) -p $@
+	@$(Founde) -p $@
 
 # Copy binaries .elf, .bin, .hex, .uf2 to BIN for upload
 # due to large size of combined artifacts, only uf2 is uploaded for now

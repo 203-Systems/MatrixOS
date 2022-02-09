@@ -15,10 +15,8 @@ INC += src/ \
 # Code Source
 # ---------------------------------------
 SRC_CPP += main.cpp
-# SRC_C += $(wildcard src/*.c src/*/*.c src/*/*/*.c src/*/*/*/*.c src/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
-# SRC_CPP += $(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp) #Same as above
-SRC_C += $(subst ,,$(wildcard src/*.c))
-SRC_CPP += $(subst ,,$(wildcard src/*.cpp))
+SRC_C += $(wildcard src/*.c src/*/*.c src/*/*/*.c src/*/*/*/*.c src/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
+SRC_CPP += $(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp) #Same as above
 
 # Library source
 SRC_C += \

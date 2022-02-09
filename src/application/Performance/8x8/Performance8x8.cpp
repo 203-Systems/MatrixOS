@@ -81,7 +81,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
         }
         else
         {
-            stfuMap[note] = 10;
+            stfuMap[note] = -1;
         }
     }
 }

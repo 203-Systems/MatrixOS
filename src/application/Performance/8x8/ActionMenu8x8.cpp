@@ -2,9 +2,6 @@
 
 void ActionMenu::Setup()
 {   
-    ESP_LOGI(name.c_str(), "Reading Address");
-    ESP_LOGI(name.c_str(), "Address of ActionMenu is %p", this);
-
     //Brightness Control
     AddUIElement(UIElement("Brightness", Color(0xFFFFFF), [&]() -> void {NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
 

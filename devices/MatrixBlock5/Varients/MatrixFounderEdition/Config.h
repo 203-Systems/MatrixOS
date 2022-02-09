@@ -24,8 +24,14 @@ namespace Device
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
 
-    const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
+     #define MAX_LED_LAYERS 5
+    inline uint16_t keypad_scanrate = 60;
+    inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
 
+    inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
+    
+    const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
+    
     const uint16_t page_size = 2048;
     const uint8_t nums_of_page = 32; //Total size has to smaller than 64kb because address constrain
     const uint32_t nvs_address = 0x8070000;
