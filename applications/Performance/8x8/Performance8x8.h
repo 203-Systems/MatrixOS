@@ -2,7 +2,7 @@
 // #ifdef GRID_8x8
 
 #include "MatrixOS.h"
-#include "application/Application.h"
+#include "applications/Application.h"
 
 class Performance : public Application
 {

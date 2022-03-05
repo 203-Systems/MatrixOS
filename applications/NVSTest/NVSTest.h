@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "framework/Timer.h"
-#include "application/Application.h"
+#include "applications/Application.h"
 
 class NVSTest : public Application
 {   

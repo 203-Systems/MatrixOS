@@ -122,7 +122,6 @@ CFLAGS += \
   -fno-strict-aliasing \
   -Wdouble-promotion \
   -Wstrict-overflow \
-  -Wall \
   -Wextra \
   -Wfloat-equal \
   -Wundef \
@@ -211,12 +210,12 @@ OBJ += $(addprefix $(BUILD)/obj/, $(SRC_S:.s=_asm.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_C:.c=.o))
 OBJ += $(addprefix $(BUILD)/obj/, $(SRC_CPP:.cpp=.o))
 
-
 # Verbose mode
 ifeq ("$(V)","1")
 $(info Shell$(SHELL))
 $(info DEVICE_PATH  $(DEVICE_PATH)) $(info )
 $(info FAMILY_PATH  $(FAMILY_PATH)) $(info )
+$(info INC  $(INC)) $(info )
 $(info SRC C  $(SRC_C)) $(info )
 $(info SRC CPP  $(SRC_CPP)) $(info )
 $(info SRC S  $(SRC_S)) $(info )

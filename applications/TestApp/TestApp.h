@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "application/Application.h"
+#include "applications/Application.h"
 
 class TestApp : public Application
 {   

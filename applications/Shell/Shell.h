@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "application/Application.h"
+#include "applications/Application.h"
 
 class Shell : public Application
 {

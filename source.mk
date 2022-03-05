@@ -3,20 +3,24 @@ FREERTOS_SRC = lib/FreeRTOS-Kernel
 # ---------------------------------------
 # Code Include
 # ---------------------------------------
-INC += src/ \
-	devices/ \
-	src/usb/ \
-	lib/tinyusb/src/ \
-	lib/printf/ \
+INC += \
+	os/usb \
+	os \
+	devices \
+	lib/tinyusb/src \
+	lib/printf \
 	$(FREERTOS_SRC)/include \
-	$(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT)
+	$(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT) \
+	. 
 
 # ---------------------------------------
 # Code Source
 # ---------------------------------------
 SRC_CPP += main.cpp
-SRC_C += $(wildcard src/*.c src/*/*.c src/*/*/*.c src/*/*/*/*.c src/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
-SRC_CPP += $(wildcard src/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp) #Same as above
+SRC_C += $(wildcard os/*.c os/*/*.c os/*/*/*.c os/*/*/*/*.c os/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
+SRC_CPP += $(wildcard os/*.cpp os/*/*.cpp os/*/*/*.cpp os/*/*/*/*.cpp os/*/*/*/*/*.cpp) #Same as above
+SRC_C += $(wildcard applications/*.c applications/*/*.c applications/*/*/*.c applications/*/*/*/*.c applications/*/*/*/*/*.c) #Lazy solution for recursive find. I gived up tring to find something cleaner
+SRC_CPP += $(wildcard applications/*.cpp applications/*/*.cpp applications/*/*/*.cpp applications/*/*/*/*.cpp applications/*/*/*/*/*.cpp) #Same as above
 
 # Library source
 SRC_C += \
@@ -35,8 +39,7 @@ SRC_C += \
 	lib\tinyusb\src\class\net\ncm_device.c \
 	lib\tinyusb\src\class\usbtmc\usbtmc_device.c \
 	lib\tinyusb\src\class\video\video_device.c \
-	lib\tinyusb\src\class\vendor\vendor_device.c \
-	lib\printf\printf.c
+	lib\tinyusb\src\class\vendor\vendor_device.c
 
 # Include all source C in family & device folder
 SRC_C += $(subst ,,$(wildcard $(DEVICE_PATH)/*.c))

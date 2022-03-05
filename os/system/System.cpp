@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "application/Setting/Setting.h"
+#include "applications/Setting/Setting.h"
 
 namespace MatrixOS::SYS
 {   
