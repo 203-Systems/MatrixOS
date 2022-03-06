@@ -5,6 +5,12 @@ void BootAnimation::Start()
     Setup();
     //Idle animation
     bool hold = false;
+    for(uint8_t i = 0; i < 100; i++) //Add small delay for USB to be connected
+    {
+        MatrixOS::SYS::DelayMs(5);
+        if(MatrixOS::USB::Connected())
+            break;
+    }
     while(status != -1 && (!MatrixOS::USB::Connected() || hold))
     {
         LoopTask();

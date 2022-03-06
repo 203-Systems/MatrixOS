@@ -2,6 +2,9 @@
 
 #include "../BootAnimation.h"
 
+#define MATRIX_BOOT_BRIGHTNESS 255 //On Top of system brightness
+#define MATRIX_BOOT_IDLE 64 //On Top of system brightness
+
 class MatrixBoot : public BootAnimation
 {
     public:
@@ -15,6 +18,7 @@ class MatrixBoot : public BootAnimation
     uint8_t counter;
 
     uint8_t boot_phase;
+    uint32_t boot_phase_1_tick_time = 0;
     uint32_t boot_phase_2_start_time = 0;
     // Color colorList[5] = {Color(64, 64, 64), Color(127, 0, 0), Color(0, 127, 0), Color(0, 0, 127), Color(0, 0, 0)};
     
