@@ -1,6 +1,6 @@
 //Declear Family specific function
 #pragma once
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
+// #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include "hal/gpio_ll.h"
 #include "hal/usb_hal.h"

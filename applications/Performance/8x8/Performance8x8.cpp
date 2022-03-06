@@ -72,7 +72,18 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
     Point xy = NoteToXY(note);
     if(xy && !(velocity == 0 && stfu))
+    {
+        // MatrixOS::Logging::LogDebug("Performance", "Set LED");
         MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
+    }
+    // else if(!xy)
+    // {
+    //     MatrixOS::Logging::LogDebug("Performance", "XY incorrect");
+    // }
+    // else if((velocity == 0 && stfu))
+    // {
+    //     MatrixOS::Logging::LogDebug("Performance", "STFU");
+    // }
     if(stfu)
     {
         if(velocity == 0)
@@ -114,7 +125,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-    MatrixOS::Logging::LogDebug(name, "Key Event");
+    // MatrixOS::Logging::LogDebug(name, "Key Event");
     if(keyID == 0 && keyInfo.state == PRESSED)
     {
         ActionMenu();

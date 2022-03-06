@@ -110,22 +110,24 @@ struct MidiPacket
         }
     }
 
-    MidiPacket(uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data) //I can prob use status to figure out length and assign it automaticlly
     {
         // ESP_LOGI("Midi Packet", "Constructor 3");
-        MidiPacket(0, length, data);
+        MidiPacket(0, status, length, data);
     }
 
-    MidiPacket(uint16_t port, uint16_t length, uint8_t* data = NULL) //I can prob use status to figure out length and assign it automaticlly
+    MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data) //I can prob use status to figure out length and assign it automaticlly
     {
         // ESP_LOGI("Midi Packet", "Constructor 4");
         this->port = port;
-        this->status = (EMidiStatus)data[0];
+        this->status = status;
         // this->length = length;
         // this->data = (uint8_t*)malloc(length); //Malloc(0) is fine, not gonna bother checking.
         // ESP_LOGI("MP pre construct", "%#02X %#02X %#02X", data[0], data[1], data[2]);
-        memcpy(this->data, &data[1], length);
-        // ESP_LOGI("MP post construct", "%#02X %#02X %#02X", data[0], data[1], data[2]);
+        memcpy(this->data, data, length);
+        // ESP_LOGI("MP post construct", "%#02X %#02X %#02X", this->data[0], this->data[1], this->data[2]);
+        // ESP_LOGI("MP post construct2", "%#02X %#02X %#02X", this->channel(), this->note(), this->velocity());
+
     }
 
     uint8_t channel()

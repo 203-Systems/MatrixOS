@@ -95,6 +95,7 @@ target_sources(${COMPONENT_TARGET} PUBLIC
 "${TINYUSB}/src/class/video/video_device.c"
 "${TINYUSB}/src/class/vendor/vendor_device.c"
 "${TINYUSB}/src/portable/espressif/esp32sx/dcd_esp32sx.c"
+"${CMAKE_SOURCE_DIR}/lib/printf/printf.c"
 )
 
 # set_source_files_properties(

@@ -83,9 +83,9 @@ namespace MatrixOS::USB
 
         void Printf(string format, ...)
         {
-            Print(format);
-            // va_list valst;
-            // fctprintf(&WrieChar, NULL, format.c_str(), valst);
+            // Print(format);
+            va_list valst;
+            fctprintf(&WriteChar, NULL, format.c_str(), valst);
         }
 
         void Flush(void)

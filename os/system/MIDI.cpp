@@ -115,6 +115,7 @@ namespace MatrixOS::MIDI
         uint8_t packet[4];
         uint8_t port = 1;
         memcpy(packet, rawPacket, 4);
+        // MatrixOS::Logging::LogDebug("USB MIDI Packet", "%#02X %#02X %#02X %#02X", packet[0], packet[1], packet[2], packet[3]);
         switch (packet[0]) 
         {
             // case CIN_SYSEX:
