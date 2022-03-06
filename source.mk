@@ -1,3 +1,5 @@
+# For ESP32, sources in the Device/family.cmake and Varitents/CbameLists.txt need to be modified.
+
 FREERTOS_SRC = lib/FreeRTOS-Kernel
 
 # ---------------------------------------

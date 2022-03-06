@@ -2,6 +2,7 @@
 
 MCU = esp32s2
 UF2_FAMILY_ID = 0xbfdd4eee
+UF2_MODEL = 203 Matrix Block 6 Prototype 1
 
 .PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
@@ -26,3 +27,8 @@ uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
 $(BUILD)/$(PROJECT)-$(DEVICE).uf2: $(BUILD)/$(PROJECT)-$(DEVICE).bin
 	@echo CREATE $@
 	python tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^
+
+upload:
+	python tools/uf2/utils/uf2upload.py -f $(BUILD)/$(PROJECT)-$(DEVICE).uf2 -d "$(UF2_MODEL)" -l
+
+uf2-upload: $(BUILD)/$(PROJECT)-$(DEVICE).uf2 upload

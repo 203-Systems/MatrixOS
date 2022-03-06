@@ -5,14 +5,14 @@ void Application(void* param)
 {
     // NVSTest nvsTest;
     // nvsTest.Start();
-    // Performance performance;
-    // performance.Start();
+    Performance performance;
+    performance.Start();
 
     // TestApp TestApp;
     // TestApp.Start();
 
-    REDACTED redacted;
-    redacted.Start();
+    // REDACTED redacted;
+    // redacted.Start();
 
     // WirelessRepeater wirelessRepeater;
     // wirelessRepeater.Start();

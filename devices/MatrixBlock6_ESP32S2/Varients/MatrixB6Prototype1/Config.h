@@ -32,7 +32,7 @@ namespace Device
     //LED
     #define MAX_LED_LAYERS 5
     inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
-    inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
+    inline uint8_t brightness_level[9] = {8, 12, 24, 40, 64, 90, 128, 168, 255};
     // const Dimension grid_size(8,8);
     // const Point grid_offset = Point(1,1);
 
