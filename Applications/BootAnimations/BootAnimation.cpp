@@ -5,7 +5,7 @@ void BootAnimation::Start()
     Setup();
     //Idle animation
     bool hold = false;
-    while(!MatrixOS::USB::Connected() || hold)
+    while(status != -1 && (!MatrixOS::USB::Connected() || hold))
     {
         LoopTask();
         hold = Idle(MatrixOS::USB::Connected());
