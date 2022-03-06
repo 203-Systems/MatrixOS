@@ -1,4 +1,4 @@
-#include "applications/Application.h"
+#include "Application.h"
 
 void Application::Start()
 {

@@ -1,9 +1,8 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "application/Applications.h"
 
-class BootAnimation : public Application
+class BootAnimation
 {
     public: 
         string name;
@@ -16,10 +15,12 @@ class BootAnimation : public Application
 
         virtual void Setup() {};
 
-        virtual void Idle() {};
+        virtual bool Idle(bool ready) {return false;}; //return true will keep render idle animation even when device is ready
         virtual void Boot() {};
         
         virtual void End() {};
+
+        void LoopTask();
 
         void Exit();
 };

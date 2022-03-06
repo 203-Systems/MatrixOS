@@ -1,5 +1,6 @@
 #include "MatrixOS.h"
 #include "applications/Setting/Setting.h"
+#include "applications/BootAnimations/BootAnimations.h"
 
 namespace MatrixOS::SYS
 {   
@@ -36,6 +37,7 @@ namespace MatrixOS::SYS
         // Logging::LogInfo(logTag, "This is an info log");
         // Logging::LogDebug(logTag, "This is a debug log");
         // Logging::LogVerbose(logTag, "This is a verbose log");
+        MatrixBoot().Start();
     }
     
     uint32_t Millis() 

@@ -23,9 +23,7 @@
 #include "WS2812/WS2812.h"
 #include "framework/Color.h"
 
-
-
-#define DONT_START_FREERTOS_SCHEDULER
+#define FUNCTION_KEY 0 //Keypad Code for main function key
 
 namespace Device
 {   

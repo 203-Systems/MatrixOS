@@ -1,13 +1,22 @@
-#include "applications/Application.h"
+#include "BootAnimation.h"
 
 void BootAnimation::Start()
 {
     Setup();
+    //Idle animation
+    bool hold = false;
+    while(!MatrixOS::USB::Connected() || hold)
+    {
+        LoopTask();
+        hold = Idle(MatrixOS::USB::Connected());
+    }
+
     while(status != -1)
     {
         LoopTask();
-        Loop();
+        Boot();
     }
+
     End();
 }
 
@@ -18,23 +27,10 @@ void BootAnimation::Exit()
 
 void BootAnimation::LoopTask()
 {
-    GetKey();
-    GetMidi();
-}
-
-void BootAnimation::GetKey()
-{
-    while(MatrixOS::KEYPAD::Available())
-    {   
-        uint16_t keyID = MatrixOS::KEYPAD::Get();
-        KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
-    }
-}
-
-void BootAnimation::GetMidi()
-{   
-    while(MatrixOS::MIDI::Available())
+    if(MatrixOS::KEYPAD::GetKey(FUNCTION_KEY))
     {
-        MidiEvent(MatrixOS::MIDI::Get());
+        Exit();
     }
+    MatrixOS::KEYPAD::Clear();
+    // while(MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)){} //Prevert FN Press leak though, will remove later when key buffer can be cleared
 }

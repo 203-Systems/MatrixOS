@@ -27,6 +27,11 @@ public:
 		return Point( x + cp.x, y + cp.y );
 	}
 
+	Point operator -(const Point& cp) const //cp stands for compare target
+	{
+		return Point( x - cp.x, y - cp.y );
+	}
+
     bool operator !=(const Point& cp) const 
     {
         return cp.x != x || cp.y != y;
@@ -35,6 +40,16 @@ public:
 	bool operator<(const Point& cp) const 
 	{
 		return x < cp.x || (x == cp.x && y < cp.y);
+	}
+
+	Point operator*(const int val) const 
+	{
+		return Point(x * val, y * val);
+	}
+
+	Point operator/(const int val) const 
+	{
+		return Point(x / val, y / val);
 	}
 
 	operator bool() { return x != INT16_MIN && y != INT16_MIN; }

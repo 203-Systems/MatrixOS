@@ -109,6 +109,12 @@ namespace MatrixOS::KEYPAD
         return Device::KeyPad::GetKey(keyID);
     }
 
+    void Clear()
+    {
+        read = 0;
+        changed = 0;
+    }
+
     uint16_t XY2ID(Point xy) //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY //TODO Compensate for rotation
     {
         return Device::KeyPad::XY2ID(xy);

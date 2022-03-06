@@ -81,6 +81,7 @@ namespace MatrixOS
     uint16_t Get();
     KeyInfo GetKey(Point keyXY);
     KeyInfo GetKey(uint16_t keyID);
+    void Clear();
     uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
     Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
 
@@ -90,7 +91,7 @@ namespace MatrixOS
   {
     noexpose void Init();
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
-    bool Connnected(void); //If USB is connected
+    bool Connected(void); //If USB is connected
     // void Poll(); 
 
     namespace CDC

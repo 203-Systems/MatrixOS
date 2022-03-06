@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "Utilts.h"
 #include "Color.h"
 #include "Point.h"
 #include "Dimension.h"
