@@ -31,9 +31,9 @@ endif
 # $(info Path from top is $(CURRENT_PATH))
 
 # Build directory
-ifeq ($(CMDEXE),1)
-$(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
-endif
+# ifeq ($(CMDEXE),1)
+# $(shell if exist build\$(DEVICE) rd build\$(DEVICE) /s /q)
+# endif
 
 # Build directory
 BUILD := build/$(DEVICE)

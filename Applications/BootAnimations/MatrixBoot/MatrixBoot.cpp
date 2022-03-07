@@ -94,7 +94,7 @@ void MatrixBoot::BootPhase1()
             {
                 boot_phase ++;
                 counter = 0;
-                MatrixOS::SYS::DelayMs(20);
+                // MatrixOS::SYS::DelayMs(20);
                 return;
             }
             boot_phase_1_tick_time = MatrixOS::SYS::Millis();

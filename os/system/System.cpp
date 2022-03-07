@@ -58,25 +58,25 @@ namespace MatrixOS::SYS
     void Bootloader()
     {
         LED::Fill(0);
-        uint8_t x = 8; //TODO, fix this after GetDeviceInfo();
-        uint8_t y = 8;
-        if(x >= 4 && y >= 4)
-        {
-            uint8_t x_center = x / 2;
-            uint8_t y_center = y / 2;
-            Color color = Color(0xFF0000);
-            LED::SetColor(Point(x_center - 1, y_center - 2), color);
-            LED::SetColor(Point(x_center, y_center - 2), color);
-            LED::SetColor(Point(x_center - 2, y_center - 1), color);
-            LED::SetColor(Point(x_center - 1, y_center - 1), color);
-            LED::SetColor(Point(x_center, y_center - 1), color);
-            LED::SetColor(Point(x_center + 1, y_center - 1), color);
-            LED::SetColor(Point(x_center - 1, y_center), color);
-            LED::SetColor(Point(x_center, y_center), color);
-            LED::SetColor(Point(x_center - 1, y_center + 1), color);
-            LED::SetColor(Point(x_center, y_center + 1), color);
-        }
-        // DelayMs(10);
+        // uint8_t x = 8; //TODO, fix this after GetDeviceInfo();
+        // uint8_t y = 8;
+        // if(x >= 4 && y >= 4)
+        // {
+        //     uint8_t x_center = x / 2;
+        //     uint8_t y_center = y / 2;
+        //     Color color = Color(0xFF0000);
+        //     LED::SetColor(Point(x_center - 1, y_center - 2), color);
+        //     LED::SetColor(Point(x_center, y_center - 2), color);
+        //     LED::SetColor(Point(x_center - 2, y_center - 1), color);
+        //     LED::SetColor(Point(x_center - 1, y_center - 1), color);
+        //     LED::SetColor(Point(x_center, y_center - 1), color);
+        //     LED::SetColor(Point(x_center + 1, y_center - 1), color);
+        //     LED::SetColor(Point(x_center - 1, y_center), color);
+        //     LED::SetColor(Point(x_center, y_center), color);
+        //     LED::SetColor(Point(x_center - 1, y_center + 1), color);
+        //     LED::SetColor(Point(x_center, y_center + 1), color);
+        // }
+        // // DelayMs(10);
         LED::Update();
         DelayMs(10); //Wait for led data to be updated first. TODO: Update with LED::updated var from device layer
         Device::Bootloader();
