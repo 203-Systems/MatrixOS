@@ -9,6 +9,12 @@ namespace Device::KeyPad
 
     void Init()
     {
+        InitKeyPad();
+        InitTouchBar();
+    }
+
+    void InitKeyPad()
+    {
         #if Key2_Pin == GPIO_NUM_26 //OOPS, used SPICS1 as keypad pin
         gpio_config_t io_conf;
         io_conf.intr_type = GPIO_INTR_DISABLE;
@@ -50,7 +56,7 @@ namespace Device::KeyPad
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        // if(!isListFull()) TouchBarScan();
+        if(!isListFull()) TouchBarScan();
 
         return changeList;
     }
@@ -137,11 +143,6 @@ namespace Device::KeyPad
             gpio_set_level(keypad_write_pins[x], 0);
             // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
-    }
-
-    void TouchBarScan()
-    {
-        
     }
 
     bool addToList(uint16_t keyID)

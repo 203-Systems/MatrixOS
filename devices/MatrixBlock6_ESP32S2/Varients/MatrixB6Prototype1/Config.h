@@ -45,7 +45,8 @@ namespace Device
         inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
 
-        void USB_Init();
+        void InitKeyPad();
+        void InitTouchBar();
 
         void FNScan();
         void KeyPadScan();

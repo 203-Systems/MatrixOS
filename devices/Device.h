@@ -75,3 +75,12 @@ namespace Device
     #endif
 
 }
+
+namespace MatrixOS::Logging
+{
+    void LogError (string tag, string format, ...);
+    void LogWarning (string tag, string format, ...);
+    void LogInfo (string tag, string format, ...);
+    void LogDebug (string tag, string format, ...);
+    void LogVerbose (string tag, string format, ...);
+}
