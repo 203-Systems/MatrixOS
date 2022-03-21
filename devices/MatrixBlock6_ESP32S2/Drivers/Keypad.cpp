@@ -108,17 +108,20 @@ namespace Device::KeyPad
 
     void KeyPadScan()
     {
-        for(uint8_t x = 0; x < Device::x_size; x ++)
+        for(uint8_t x = 0; x < 8; x ++)
         {
             gpio_set_level(keypad_write_pins[x], 1);
-            for(uint8_t y = 0; y < Device::y_size; y ++)
+            for(uint8_t y = 0; y < 8; y ++)
             {
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
                 uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
                 // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                printf("%d\n", raw_voltage));
+
+
                 
                 Fract16 read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
                 // return;

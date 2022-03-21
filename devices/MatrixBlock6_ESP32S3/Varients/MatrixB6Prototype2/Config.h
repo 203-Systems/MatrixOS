@@ -1,11 +1,16 @@
 //Define Device Specific Macro, Value and private function
 #pragma once
 
-#include "Family.h"
-
 #define GRID_8x8
 #define MODEL MXB6PT1
+
+#define DEVICE_BATTERY
+// #define DEVICE_MIDI
+
 #define MULTIPRESS 10 //Key Press will be process at once
+// #define LC8812
+
+#include "Family.h"
 
 namespace Device
 {
@@ -18,17 +23,26 @@ namespace Device
     const uint16_t usb_pid = 0x1040; //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
 
-    const uint16_t numsOfLED = 64;
+    const uint16_t numsOfLED = 64 + 32;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
 
-    const uint8_t touchbar_size = 8; //Not required by the API, private use. 16 Physical but 8 virtualized key.
+    inline uint16_t keypad_scanrate = 60;
+
+    //LED
+    #define MAX_LED_LAYERS 5
+    inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
+    inline uint8_t brightness_level[9] = {8, 12, 24, 40, 64, 90, 128, 168, 255};
+    // const Dimension grid_size(8,8);
+    // const Point grid_offset = Point(1,1);
+
+    const uint8_t touchbar_size = 16; //Not required by the API, private use.
 
     namespace KeyPad
     {
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
-        inline KeyInfo touchbarState[x_size];
+        inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
 
         void USB_Init();
@@ -43,9 +57,9 @@ namespace Device
     }
 }
 
-#define FN_Pin GPIO_NUM_0
-#define FN_PIN_ACTIVE_LOW
-#define LED_Pin GPIO_NUM_14
+#define FN_Pin GPIO_NUM_11
+#define FN_PIN_ACTIVE_HIGH
+#define LED_Pin GPIO_NUM_15
 
 #define Key1_Pin GPIO_NUM_21
 #define Key2_Pin GPIO_NUM_26
@@ -65,7 +79,7 @@ namespace Device
 #define KeyRead7_Pin GPIO_NUM_7
 #define KeyRead8_Pin GPIO_NUM_8
 
-#define FSR_KEYPAD
+// #define FSR_KEYPAD
 #define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
 #define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
 #define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2

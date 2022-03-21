@@ -1,10 +1,30 @@
 //Define Device Keypad Function
 #include "Device.h"
 
-namespace Device
+namespace Device::KeyPad
 {
-    void Keypad_Init()
+    #ifdef  FSR_KEYPAD
+    esp_adc_cal_characteristics_t adc1_chars;
+    #endif 
+
+    void Init()
     {
+        #if Key2_Pin == GPIO_NUM_26 //OOPS, used SPICS1 as keypad pin
+        gpio_config_t io_conf;
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_OUTPUT;
+        io_conf.pin_bit_mask = (1ULL<<GPIO_NUM_26);
+        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+	    gpio_config(&io_conf);
+        #endif
+        
+        #ifdef FN_PIN_ACTIVE_LOW //Active Low
+        gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
+        #else //Active High
+        gpio_set_pull_mode(FN_Pin, GPIO_PULLDOWN_ONLY);
+        #endif
+
         for(uint8_t x = 0; x < x_size; x++)
         {
             gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
@@ -18,19 +38,18 @@ namespace Device
             gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
         }
         #else
+        adc1_config_width(ADC_WIDTH_BIT_13);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
         #endif
 
     }
-}
 
-namespace Device::KeyPad
-{
     uint16_t* Scan()
     {
         clearList();
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
-        // if(!isListFull()) KeyPadScan();
+        if(!isListFull()) KeyPadScan();
         // if(!isListFull()) TouchBarScan();
 
         return changeList;
@@ -95,9 +114,14 @@ namespace Device::KeyPad
             for(uint8_t y = 0; y < Device::y_size; y ++)
             {
                 #ifndef  FSR_KEYPAD
-                Fract16 read = gpio_get_level(keypad_write_pins[x]) * UINT16_MAX;
+                Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
-                Fract16 read = gpio_get_level(keypad_write_pins[x]) * UINT16_MAX; //TODO READ ADC
+                uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+                // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                
+                Fract16 read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
+                // return;
                 #endif
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
