@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "system/Parameters.h"
 
+#define KEY_INFO_THRESHOLD 512 // 1/127
+
 //Avoid recuesive include
 namespace MatrixOS::SYS
 {
@@ -50,6 +52,9 @@ struct KeyInfo {
     Release(Pressed, Active, Hold, Hold Actived)
     Aftertouch (Pressed, Actived, Hold, Hold Actived)
     */
+
+   #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
+
     bool update(Fract16 velocity)
     {
         //Reset back to normal keys
@@ -63,12 +68,13 @@ struct KeyInfo {
             state = IDLE;
         }
 
-        if(state == HOLD)
+        if(state == HOLD || state == AFTERTOUCH)
         {
             state = ACTIVATED;
         }
 
-        if(state == IDLE && velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
+
+        if(state == IDLE && velocity > KEY_INFO_THRESHOLD * 3 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
         {
             state = PRESSED;
             this->velocity = velocity;
@@ -76,11 +82,18 @@ struct KeyInfo {
             return true;
         }
 
-        if(state == ACTIVATED && velocity == 0 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if(state == ACTIVATED && velocity < KEY_INFO_THRESHOLD * 3 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
             this->velocity = 0;
             lastEventTime = MatrixOS::SYS::Millis();
+            return true;
+        }
+
+        if(state == ACTIVATED && DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD)
+        {
+            state = AFTERTOUCH;
+            this->velocity = velocity;
             return true;
         }
 

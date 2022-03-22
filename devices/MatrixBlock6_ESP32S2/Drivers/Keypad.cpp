@@ -39,7 +39,7 @@ namespace Device::KeyPad
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_13);
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_2_5,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
         #endif
 
     }
@@ -106,8 +106,11 @@ namespace Device::KeyPad
         }
     }
 
+    uint16_t low_threshold = 1024;
+    uint16_t high_threshold = 7168;
     void KeyPadScan()
     {
+        // int64_t time =  esp_timer_get_time();
         for(uint8_t x = 0; x < 8; x ++)
         {
             gpio_set_level(keypad_write_pins[x], 1);
@@ -116,15 +119,35 @@ namespace Device::KeyPad
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
-                uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                printf("%d\n", raw_voltage));
+                // Fract16 read = gpio_get_level(keypad_read_pins[y]);
+                // if(read)
+                // {
+                    uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+                    Fract16 read = 0;
+                    if(raw_voltage < low_threshold)
+                    {
+                        read = 0;
+                    }
+                    else if(raw_voltage > high_threshold)
+                    {
+                        read = 65535;
+                    }
+                    else
+                    {
+                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * 65535;
+                        // printf("curved ");
+                    }
+                    // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
 
-
-                
-                Fract16 read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
-                // return;
+                    // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                    // uint32_t pad_r = (3300 - voltage) * 510 / voltage;
+                    // printf("%d\t%d\t%d ohm\n", (uint16_t)read, raw_voltage, pad_r);
+                    // if(read)
+                    // {
+                    //     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                    //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                    // }
+                // }
                 #endif
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
@@ -140,6 +163,8 @@ namespace Device::KeyPad
             gpio_set_level(keypad_write_pins[x], 0);
             // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
+        // int64_t time_taken =  esp_timer_get_time() - time;
+        // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
     }
 
     void TouchBarScan()

@@ -4,7 +4,7 @@
 namespace Device::KeyPad
 {
     #ifdef  FSR_KEYPAD
-    esp_adc_cal_characteristics_t adc1_chars;
+    esp_adc_cal_characteristics_t *adc1_chars;
     #endif 
 
     void Init()
@@ -38,8 +38,9 @@ namespace Device::KeyPad
             gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
         }
         #else
-        adc1_config_width(ADC_WIDTH_BIT_13);
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
+        adc1_config_width(ADC_WIDTH_BIT_12);
+        adc1_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_12, 0, adc1_chars);
         #endif
 
     }
@@ -63,7 +64,7 @@ namespace Device::KeyPad
     }
 
     KeyInfo GetKey(uint16_t keyID)
-    {
+    {  
         uint8_t keyClass = keyID >> 12;
         switch(keyClass)
         {   
@@ -108,6 +109,7 @@ namespace Device::KeyPad
 
     void KeyPadScan()
     {
+        int64_t time =  esp_timer_get_time();
         for(uint8_t x = 0; x < Device::x_size; x ++)
         {
             gpio_set_level(keypad_write_pins[x], 1);
@@ -116,11 +118,15 @@ namespace Device::KeyPad
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
-                uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                
-                Fract16 read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
+                Fract16 read = gpio_get_level(keypad_read_pins[y]);
+                if(read)
+                {
+                    uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+                    // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                    // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                    
+                    read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
+                }
                 // return;
                 #endif
                 bool updated = keypadState[x][y].update(read);
@@ -137,6 +143,8 @@ namespace Device::KeyPad
             gpio_set_level(keypad_write_pins[x], 0);
             // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
+        int64_t time_taken =  esp_timer_get_time() - time;
+        ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
     }
 
     void TouchBarScan()

@@ -4,6 +4,8 @@ namespace Device
 {
     void DeviceInit()
     {
+        // esp_timer_early_init();
+
         USB::Init();
         LED::Init();
         KeyPad::Init();
