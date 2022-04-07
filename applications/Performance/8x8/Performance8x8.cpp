@@ -7,7 +7,7 @@
 
 void Performance::Setup()
 {
-    MatrixOS::LED::StartAutoUpdate();
+    
 }
 
 void Performance::Loop()
@@ -75,6 +75,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     {
         // MatrixOS::Logging::LogDebug("Performance", "Set LED");
         MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
+        MatrixOS::LED::Update();
     }
     // else if(!xy)
     // {
@@ -148,7 +149,10 @@ void Performance::stfuScan()
         {   
             Point xy = NoteToXY(note);
             if(xy)
+            {
                 MatrixOS::LED::SetColor(xy, 0);
+                MatrixOS::LED::Update();
+            }
             stfuMap[note] = -1;
         }
     }
@@ -156,7 +160,6 @@ void Performance::stfuScan()
 
 void Performance::ActionMenu()
 {
-    MatrixOS::LED::PauseAutoUpdate();
     MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
 
     UI actionMenu("Action Menu", Color(0x00FFAA));
@@ -174,9 +177,6 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(UIElement("Menu Lock", Color(0x00FFFF), [&]() -> void {}), Point(7, 7));
     
     actionMenu.Start();
-
-    MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
-    MatrixOS::LED::StartAutoUpdate();
 }
 
 // #endif

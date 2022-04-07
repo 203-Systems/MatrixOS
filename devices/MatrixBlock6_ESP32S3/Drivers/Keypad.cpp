@@ -109,7 +109,7 @@ namespace Device::KeyPad
 
     void KeyPadScan()
     {
-        int64_t time =  esp_timer_get_time();
+        // int64_t time =  esp_timer_get_time();
         for(uint8_t x = 0; x < Device::x_size; x ++)
         {
             gpio_set_level(keypad_write_pins[x], 1);
@@ -143,8 +143,8 @@ namespace Device::KeyPad
             gpio_set_level(keypad_write_pins[x], 0);
             // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
-        int64_t time_taken =  esp_timer_get_time() - time;
-        ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
+        // int64_t time_taken =  esp_timer_get_time() - time;
+        // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
     }
 
     void TouchBarScan()

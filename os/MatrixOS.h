@@ -58,8 +58,8 @@ namespace MatrixOS
     void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
     void Fill(Color color, uint8_t layer = currentLayer);
     void Update(int8_t layer = currentLayer);
-    void PauseAutoUpdate();
-    void StartAutoUpdate();
+    // void PauseAutoUpdate();
+    // void StartAutoUpdate();
     void SwitchLayer(uint8_t layer);
 
     int8_t CreateLayer();
