@@ -32,7 +32,7 @@ namespace MatrixOS::KEYPAD
         // USB::CDC::Println("KeyPad Scan");
         if (changelist)
         {
-            free(changelist);
+            vPortFree(changelist);
             changelist = NULL;
         }
             
@@ -40,7 +40,7 @@ namespace MatrixOS::KEYPAD
         changed = device_change_list[0];
         if(changed > 0)
         {
-            changelist = (uint16_t*)malloc(sizeof(uint16_t) * changed);
+            changelist = (uint16_t*)pvPortMalloc(sizeof(uint16_t) * changed);
             memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
         }
         read = 0;

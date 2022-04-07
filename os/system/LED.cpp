@@ -21,11 +21,11 @@ namespace MatrixOS::LED
 
     void Init()
     {
-        Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
-        // for(uint32_t i = 0; i < Device::numsOfLED; i++)
-        // {
-            // frameBuffer[i] = Color();
-        // }
+        Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED * sizeof(Color));
+        for(uint32_t i = 0; i < Device::numsOfLED; i++)
+        {
+            frameBuffer[i] = Color(0);
+        }
 
         currentLayer = 0;
         frameBuffers.push_back(frameBuffer);
@@ -111,10 +111,10 @@ namespace MatrixOS::LED
     {
         if(currentLayer >= MAX_LED_LAYERS - 1)
             return -1;
-        Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
+        Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED *sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
         {
-            frameBuffer[i] = Color();
+            frameBuffer[i] = Color(0);
         }
         currentLayer++;
         frameBuffers.push_back(frameBuffer);
@@ -125,7 +125,7 @@ namespace MatrixOS::LED
     {
         if(currentLayer > 0)
         {
-            free(frameBuffers.back());
+            vPortFree(frameBuffers.back());
             frameBuffers.pop_back();
         }
         else
