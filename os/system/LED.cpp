@@ -5,13 +5,18 @@ namespace MatrixOS::LED
     // static timer
     StaticTimer_t led_tmdef;
     TimerHandle_t led_tm;
+    
+    bool needUpate = false;
 
     void LEDTimerCallback( TimerHandle_t xTimer )
     {
-        Update();
+        if(needUpate)
+        {
+            Device::LED::Update(frameBuffers[currentLayer], SYS::GetVariable("brightness"));
+            needUpate = false;
+        }
     }
 
-    bool auto_update = false;
 
 
     void Init()
@@ -27,8 +32,7 @@ namespace MatrixOS::LED
         Update();
 
         led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
-        if(auto_update)
-            xTimerStart(led_tm, 0);
+        xTimerStart(led_tm, 0);
     }
 
     void SetColor(Point xy, Color color, uint8_t layer)
@@ -72,9 +76,11 @@ namespace MatrixOS::LED
         }
     }
 
-    void Update(int8_t layer)
+    void Update(int8_t layer) 
     {
-        Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
+        // Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
+        if(layer == currentLayer)
+            needUpate = true;
     }
 
     // void SwitchLayer(uint8_t layer)
@@ -87,19 +93,19 @@ namespace MatrixOS::LED
     //     currentLayer = layer;
     // }
 
-    void PauseAutoUpdate()
-    {
-        if(auto_update)
-            xTimerStop(led_tm, 0);
-        auto_update = false;
-    }
+    // void PauseAutoUpdate()
+    // {
+    //     if(autoUpdate)
+    //         xTimerStop(led_tm, 0);
+    //     autoUpdate = false;
+    // }
 
-    void StartAutoUpdate()
-    {
-        if(!auto_update)
-            xTimerStart(led_tm, 0);
-        auto_update = true;
-    }
+    // void StartAutoUpdate()
+    // {
+    //     if(!autoUpdate)
+    //         xTimerStart(led_tm, 0);
+    //     autoUpdate = true;
+    // }
 
     int8_t CreateLayer()
     {
