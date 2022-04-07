@@ -16,7 +16,7 @@ namespace MatrixOS::SYS
         Device::DeviceInit();
         LoadVariables();
 
-        // USB::Init();
+        USB::Init();
         KEYPAD::Init();
         LED::Init();
 
