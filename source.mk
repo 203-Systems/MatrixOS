@@ -57,6 +57,7 @@ SRC_C += \
 	$(FREERTOS_SRC)/queue.c \
 	$(FREERTOS_SRC)/tasks.c \
 	$(FREERTOS_SRC)/timers.c \
+	$(FREERTOS_SRC)/portable/MemMang/heap_4.c \
 	$(subst ,,$(wildcard $(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT)/*.c))
 
 INC   += $(FAMILY_PATH)
