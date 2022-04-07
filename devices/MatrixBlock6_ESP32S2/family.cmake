@@ -7,3 +7,10 @@ set(EXTRA_COMPONENT_DIRS "os" "devices/MatrixBlock6_ESP32S2/varients" "core/esp3
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 set(SUPPORTED_TARGETS esp32s2)
 set(FAMILY_MCUS ESP32S2)
+set(IDF_TARGET "esp32s2")
+
+set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
+set(DEVICE_PATH ${FAMILY_PATH}/Varients/${DEVICE})
+
+set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.defaults)
+set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
