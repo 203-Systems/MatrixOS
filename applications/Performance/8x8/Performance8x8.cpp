@@ -177,6 +177,9 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(UIElement("Menu Lock", Color(0x00FFFF), [&]() -> void {}), Point(7, 7));
     
     actionMenu.Start();
+
+    MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
+    MatrixOS::LED::Update(); //TODO: Give UI a new LED layer
 }
 
 // #endif
