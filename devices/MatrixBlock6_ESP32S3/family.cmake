@@ -14,3 +14,5 @@ set(DEVICE_PATH ${FAMILY_PATH}/Varients/${DEVICE})
 
 set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.defaults)
 set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
+
+add_compile_options (-fdiagnostics-color=always)
