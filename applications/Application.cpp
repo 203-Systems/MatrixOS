@@ -3,17 +3,17 @@
 void Application::Start()
 {
     Setup();
-    while(status != -1)
+    while(true)
     {
         LoopTask();
         Loop();
     }
-    End();
 }
 
 void Application::Exit()
 {
-    status = -1;
+    End();
+    MatrixOS::SYS::ExitAPP();
 }
 
 void Application::LoopTask()

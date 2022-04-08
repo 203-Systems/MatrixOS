@@ -1,6 +1,8 @@
 #include "MatrixOS.h"
 #include "applications/Setting/Setting.h"
 #include "applications/BootAnimations/BootAnimations.h"
+#include "applications/Applications.h"
+
 
 namespace MatrixOS::SYS
 {   
@@ -11,6 +13,61 @@ namespace MatrixOS::SYS
 
     StaticTimer_t device_task_tmdef;
     TimerHandle_t device_task_tm;
+
+    StackType_t  application_stack[APPLICATION_STACK_SIZE];
+    StaticTask_t application_taskdef;
+
+    StackType_t  supervisor_stack[configMINIMAL_STACK_SIZE];
+    StaticTask_t supervisor_taskdef;
+
+    // Application* active_app;
+    TaskHandle_t active_app_task;
+    uint32_t active_app_id;
+
+    void ApplicationFactory(void* param)
+    {
+        // NVSTest nvsTest;
+        // nvsTest.Start();
+        switch(active_app_id)
+        {
+            case 1:
+            {
+                Performance performance;
+                performance.Start();
+                break;
+            }
+            case 2:
+            {
+                REDACTED redacted;
+                redacted.Start();
+                break;
+            }
+            case 0:
+            default:
+            {
+                //SHELL
+                //Temp Use Performance
+                Performance performance;
+                performance.Start();
+                break;
+                break;
+            }
+        }
+    }
+    
+    void Supervisor(void* param)
+    {
+        active_app_task = xTaskCreateStatic(ApplicationFactory,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+        while(true)
+        {
+            if(eTaskGetState(active_app_task) == eTaskState::eDeleted)
+            {
+                active_app_task = xTaskCreateStatic(ApplicationFactory,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+            }
+            DelayMs(100);
+        }
+    }
+
     void Init()
     {
         Device::DeviceInit();
@@ -19,6 +76,8 @@ namespace MatrixOS::SYS
         USB::Init();
         KEYPAD::Init();
         LED::Init();
+
+        active_app_id = 1;
 
         // uint32_t brightness = 64;
         // bool r = Device::NVS::Write("U_brightness", &brightness, 4);
@@ -37,9 +96,13 @@ namespace MatrixOS::SYS
         // Logging::LogInfo(logTag, "This is an info log");
         // Logging::LogDebug(logTag, "This is a debug log");
         // Logging::LogVerbose(logTag, "This is a verbose log");
-        MatrixBoot().Start();
+        MatrixBoot().Start(); //TODO Boot Animation Manager
+        LED::Fill(0);
+        LED::Update();
+
+        (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }
-    
+
     uint32_t Millis() 
     {
         return ((((uint64_t) xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ );
@@ -176,6 +239,20 @@ namespace MatrixOS::SYS
     // {
     //     SysVar::active_app = application;
     // }
+
+    void ExecuteAPP(uint32_t app_id)
+    {
+        active_app_id = app_id;
+        LED::Fill(0);
+        LED::Update();
+        vTaskDelete(active_app_task);
+    }
+
+    void ExitAPP()
+    {
+        ExecuteAPP(0);
+    }
+
 
     void ErrorHandler(string error)
     {

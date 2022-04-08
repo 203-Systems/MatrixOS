@@ -42,9 +42,10 @@ namespace MatrixOS
     void Rotate(EDirection rotation, bool absolute = false);
     void NextBrightness();
     
-    void RegisterActiveApp(Application* application);
-
-    int Execute(uint32_t addr);
+    void ExecuteAPP(uint32_t app_id);
+    void ExitAPP();
+    
+    // int Execute(uint32_t addr);
 
     void ErrorHandler(string error = NULL);
   }
