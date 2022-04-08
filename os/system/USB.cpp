@@ -77,8 +77,11 @@ namespace MatrixOS::USB
 
         void WriteChar(char c, void* arg)
         {
-            while(!tud_cdc_n_write_available(0)){}
-                tud_cdc_n_write_char(0, c);
+            while(Connected() && !tud_cdc_n_write_available(0))
+            {
+                taskYIELD();
+            }
+            tud_cdc_n_write_char(0, c);
         }
 
         void Printf(string format, ...)
