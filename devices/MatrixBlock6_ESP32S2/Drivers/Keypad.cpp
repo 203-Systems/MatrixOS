@@ -111,10 +111,10 @@ namespace Device::KeyPad
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
-        for(uint8_t x = 0; x < 8; x ++)
+        for(uint8_t x = 0; x < Device::x_size; x ++)
         {
             gpio_set_level(keypad_write_pins[x], 1);
-            for(uint8_t y = 0; y < 8; y ++)
+            for(uint8_t y = 0; y < Device::y_size; y ++)
             {
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;

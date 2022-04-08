@@ -10,7 +10,7 @@ INC += \
 	os \
 	devices \
 	lib/tinyusb/src \
-	lib/printf \
+	lib/printf/src \
 	$(FREERTOS_SRC)/include \
 	$(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT) \
 	. 

@@ -32,8 +32,8 @@ int main()
     (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
     #ifndef ESP_IDF_VERSION //ESP32s Doesn't need to start scheduler
     vTaskStartScheduler();
-    // #else
-    // Application(NULL);
+    #else
+    vTaskDelete(NULL);
     #endif
 
     return 0;             

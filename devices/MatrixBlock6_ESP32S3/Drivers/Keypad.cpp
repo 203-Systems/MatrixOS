@@ -4,7 +4,7 @@
 namespace Device::KeyPad
 {
     #ifdef  FSR_KEYPAD
-    esp_adc_cal_characteristics_t *adc1_chars;
+    esp_adc_cal_characteristics_t adc1_chars;
     #endif 
 
     void Init()
@@ -39,8 +39,7 @@ namespace Device::KeyPad
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_12);
-        adc1_chars = (esp_adc_cal_characteristics_t*)calloc(1, sizeof(esp_adc_cal_characteristics_t));
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11,  ADC_WIDTH_BIT_12, 0, adc1_chars);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_2_5,  ADC_WIDTH_BIT_12, 0, &adc1_chars);
         #endif
 
     }
@@ -107,6 +106,8 @@ namespace Device::KeyPad
         }
     }
 
+    uint16_t low_threshold = 512;
+    uint16_t high_threshold = 3584;
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
@@ -118,16 +119,35 @@ namespace Device::KeyPad
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
-                Fract16 read = gpio_get_level(keypad_read_pins[y]);
-                if(read)
-                {
+                // Fract16 read = gpio_get_level(keypad_read_pins[y]);
+                // if(read)
+                // {
                     uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+                    Fract16 read = 0;
+                    if(raw_voltage < low_threshold)
+                    {
+                        read = 0;
+                    }
+                    else if(raw_voltage > high_threshold)
+                    {
+                        read = 65535;
+                    }
+                    else
+                    {
+                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * 65535;
+                        // printf("curved ");
+                    }
+                    // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
+
                     // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                    // ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                    
-                    read =  (raw_voltage > 4095) * ((raw_voltage << 3) + (raw_voltage >> 10));
-                }
-                // return;
+                    // uint32_t pad_r = (3300 - voltage) * 510 / voltage;
+                    // printf("%d\t%d\t%d ohm\n", (uint16_t)read, raw_voltage, pad_r);
+                    // if(read)
+                    // {
+                    //     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                    //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                    // }
+                // }
                 #endif
                 bool updated = keypadState[x][y].update(read);
                 if(updated)

@@ -102,7 +102,8 @@ namespace MatrixOS
       
       void Print(string str);
       void Println(string str);
-      void Printf(string format, ...); //TODO: Not Working
+      void Printf(string format, ...);
+      void VPrintf(string format, va_list valst);
       void Flush(void);
 
       int8_t Read(void);

@@ -4,7 +4,7 @@
 
 #define MATRIXOS_LOG_LEVEL  LOG_LEVEL_DEBUG
 #define MATRIXOS_LOG_DEVICE
-// #define MATRIXOS_LOG_USBCDC
+#define MATRIXOS_LOG_USBCDC
 #define MATRIXOS_LOG_COLOR
 
 #define MATRIXOS_FLASHVERSION 0 //Each Flash data strcture change will cause this to increase

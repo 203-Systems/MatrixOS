@@ -92,11 +92,17 @@ namespace MatrixOS::KEYPAD
 
     uint16_t Get()
     {
+        Logging::LogDebug("Keypad", "%d", Available());
         if(Available() == 0)
             return 0xFFFF;
-        uint16_t keyID = (changelist[read]);
-        read++;
-        return keyID;
+        
+        if (changelist)
+        {
+            uint16_t keyID = (changelist[read]);
+            read++;
+            return keyID;
+        }
+        return 0xFFFF;
     }
 
     KeyInfo GetKey(Point keyXY)

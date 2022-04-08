@@ -1,5 +1,4 @@
 #include "MatrixOS.h"
-#include "printf.h"
 
 #define DEFAULT_LOGGING_LEVEL LOG_VERBOSE //Change this later
 
@@ -38,7 +37,7 @@ namespace MatrixOS::Logging
             #endif
 
             #ifdef MATRIXOS_LOG_USBCDC
-            USB::CDC::Printf(msg, valst);
+            USB::CDC::VPrintf(msg, valst);
             #endif
         }
 
