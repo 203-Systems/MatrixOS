@@ -50,6 +50,7 @@ void MatrixBoot::Boot()
             MatrixOS::LED::Fill(0);
             counter = 0;
             boot_phase ++;
+            [[fallthrough]];
         case 1:
             BootPhase1();
             break;
