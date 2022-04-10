@@ -2,9 +2,9 @@
 
 #include "MatrixOS.h"
 
-#define APPLICTION_REGISTION
-#define REGISTER_APPLICATION(APP_NAME, AUTHOR, APP_CLASS_NAME, COLOR, VERSION, VISABLE) \
-#define APPLICTION_REGISTION APPLICTION_REGISTION##Application_Info
+// #define APPLICTION_REGISTION
+// #define REGISTER_APPLICATION(APP_NAME, AUTHOR, APP_CLASS_NAME, COLOR, VERSION, VISABLE) 
+// #define APPLICTION_REGISTION APPLICTION_REGISTION##Application_Info
 
 struct Application_Info
 {
@@ -23,8 +23,6 @@ class Application
         string name;
         string author;
         uint32_t version;
-
-        int8_t status = 0;
 
         void* args;
 

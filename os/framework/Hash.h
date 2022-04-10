@@ -1,12 +1,12 @@
 #pragma once
 
-inline uint32_t fnv1a_hash(const char* str) //Implentmation of FNV-1a Hash
-{
-    const unsigned int FNV_PRIME = 16777619u;
-    const unsigned int OFFSET_BASIS = 2166136261u;
+const uint32_t FNV_PRIME = 16777619u;
+const uint32_t FNV_OFFSET_BASIS = 2166136261u;
 
+inline uint32_t FNV1aHash(const char* str) //Implentmation of FNV-1a Hash
+{
     const size_t length = strlen(str) + 1;
-    unsigned int hash = OFFSET_BASIS;
+    uint32_t hash = FNV_OFFSET_BASIS;
     for (size_t i = 0; i < length; ++i)
     {
         hash ^= *str++;
@@ -15,7 +15,32 @@ inline uint32_t fnv1a_hash(const char* str) //Implentmation of FNV-1a Hash
     return hash;
 } 
 
-inline uint32_t hash(string str) 
+inline uint32_t Hash(string str) 
 {
-    return fnv1a_hash(str.c_str());
+    return FNV1aHash(str.c_str());
 }
+
+template <uint32_t N, uint32_t I>
+struct HashHelper
+{
+    constexpr static uint32_t Calculate(const char (&str)[N])
+    {
+        return (HashHelper<N, I - 1>::Calculate(str) ^ (str[I - 1] & 0xFF)) * FNV_PRIME;
+    }
+};
+
+template <uint32_t N>
+struct HashHelper<N, 1>
+{
+    constexpr static uint32_t Calculate(const char (&str)[N])
+    {
+        return (FNV_OFFSET_BASIS ^ (str[0] & 0xFF)) * FNV_PRIME;
+    }
+};
+
+template<uint32_t N>
+constexpr static uint32_t StaticHash(const char (&str)[N])
+{
+    return HashHelper<N, N>::Calculate(str);
+}
+

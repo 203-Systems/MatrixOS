@@ -29,12 +29,12 @@ namespace MatrixOS::SYS
         // nvsTest.Start();
         switch(active_app_id)
         {
-            case 1:
+            case StaticHash("203 Electronics-Performance Mode"):
             {
                 active_app = new Performance();
                 break;
             }
-            case 2:
+            case StaticHash("203 Electronics-REDACTED"):
             {
                 active_app = new REDACTED();
                 break;
@@ -73,7 +73,7 @@ namespace MatrixOS::SYS
         KEYPAD::Init();
         LED::Init();
 
-        active_app_id = 1;
+        active_app_id = Hash("203 Electronics-Performance Mode");
 
         // uint32_t brightness = 64;
         // bool r = Device::NVS::Write("U_brightness", &brightness, 4);

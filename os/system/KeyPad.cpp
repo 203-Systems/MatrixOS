@@ -7,9 +7,7 @@ namespace MatrixOS::KEYPAD
     uint16_t read = 0;
     uint16_t changed = 0;
     uint16_t* changelist;
-    // uint16_t changelist[MULTIPRESS]; //Multipress limits how many press can happen at very moment. Doesn't affect how many keys can be on at the same time. Even if it excided, it will be reported in the next tick.
 
-    // static timer
     StaticTimer_t keypad_tmdef;
     TimerHandle_t keypad_tm;
 
@@ -52,42 +50,6 @@ namespace MatrixOS::KEYPAD
         read = 0;
 
         return changed;
-        // USB::CDC::Println(std::to_string(changelist[0]).c_str());
-        // if(handler)
-        // {
-        //     for(uint16_t i = 0; i < changelist[0]; i++)
-        //     {
-        //         uint16_t keyID = changelist[i+1];
-        //         handler(keyID);
-                // KeyInfo info = Device::KeyPad::GetKey(keyID);
-                // if(info.state == PRESSED || info.state == RELEASED)
-                // {
-                //     USB::CDC::Print("Key Press Detected [");
-                //     USB::CDC::Print(std::to_string(keyID).c_str());
-                //     USB::CDC::Print("] [");
-                //     Point keyXY = Device::KeyPad::ID2XY(keyID);
-                //     USB::CDC::Print(std::to_string(keyXY.x).c_str());
-                //     USB::CDC::Print(",");
-                //     USB::CDC::Print(std::to_string(keyXY.y).c_str());
-                //     USB::CDC::Print("] [");
-                //     USB::CDC::Print(std::to_string((uint16_t)info.velocity).c_str());
-                //     USB::CDC::Print("] [");
-                //     switch(info.state)
-                //     {
-                //         case PRESSED:
-                //             USB::CDC::Print("PRESSED"); 
-                //             break;
-                //         case RELEASED:
-                //             USB::CDC::Print("RELEASED"); 
-                //             break;
-                //     }
-                //     USB::CDC::Print("] [");
-                //     USB::CDC::Print(std::to_string(info.lastEventTime).c_str());
-                //     USB::CDC::Println("]");
-
-                // }
-        //     }
-        // }
     }
 
     uint16_t Available()
@@ -138,6 +100,5 @@ namespace MatrixOS::KEYPAD
         if(point)
            return point.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size), true);
         return point;
-        // return Device::KeyPad::ID2XY(keyID).Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size), true);
     }
 }
