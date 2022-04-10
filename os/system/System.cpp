@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "System.h"
 #include "applications/Setting/Setting.h"
 #include "applications/BootAnimations/BootAnimations.h"
 #include "applications/Applications.h"
@@ -6,47 +7,25 @@
 
 namespace MatrixOS::SYS
 {   
-    void LoadVariables();
-    void SaveVariables();
-
-    string logTag = logTag;
-
-    StaticTimer_t device_task_tmdef;
-    TimerHandle_t device_task_tm;
-
-    StackType_t  application_stack[APPLICATION_STACK_SIZE];
-    StaticTask_t application_taskdef;
-
-    StackType_t  supervisor_stack[configMINIMAL_STACK_SIZE];
-    StaticTask_t supervisor_taskdef;
-
-    TaskHandle_t active_app_task;
-    uint32_t active_app_id;
-
     void ApplicationFactory(void* param)
     {
-        // NVSTest nvsTest;
-        // nvsTest.Start();
+        // MatrixOS::Logging::LogInfo("Application Factory", "App ID %d", active_app_id);
         switch(active_app_id)
         {
             case StaticHash("203 Electronics-Performance Mode"):
-            {
+                // MatrixOS::Logging::LogInfo("Application Factory", "Launching Performance Mode");
                 active_app = new Performance();
                 break;
-            }
             case StaticHash("203 Electronics-REDACTED"):
-            {
                 active_app = new REDACTED();
                 break;
-            }
             case 0:
             default:
-            {
                 //SHELL
                 //Temp Use Performance
+                // Logging::LogError("System", "Requested APP not available");
                 active_app = new Performance();
                 break;
-            }
         }
         active_app->Start();
     }
@@ -73,29 +52,22 @@ namespace MatrixOS::SYS
         KEYPAD::Init();
         LED::Init();
 
-        active_app_id = Hash("203 Electronics-Performance Mode");
-
-        // uint32_t brightness = 64;
-        // bool r = Device::NVS::Write("U_brightness", &brightness, 4);
-        // ESP_LOGI("Init", "Write Status %d", r);
-        // vector<char> read = Device::NVS::Read("U_rotation");
-        // ESP_LOGI("Init", "%s : %d : %d", "U_rotation", read.size(), *(uint32_t*)read.data());
-        
-        // (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
-        
-        // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
-        // xTimerStart(device_task_tm, 0);
-
         inited = true; 
-        // Logging::LogError(logTag, "This is an error log");
-        // Logging::LogWarning(logTag, "This is a warning log");
-        // Logging::LogInfo(logTag, "This is an info log");
-        // Logging::LogDebug(logTag, "This is a debug log");
-        // Logging::LogVerbose(logTag, "This is a verbose log");
+
+        Logging::LogInfo("System", "Matrix OS initialization complete");
+
+        Logging::LogError("Logging", "This is an error log");
+        Logging::LogWarning("Logging", "This is a warning log");
+        Logging::LogInfo("Logging", "This is an info log");
+        Logging::LogDebug("Logging", "This is a debug log");
+        Logging::LogVerbose("Logging", "This is a verbose log");
+
         MatrixBoot().Start(); //TODO Boot Animation Manager
         LED::Fill(0);
         LED::Update();
 
+        active_app_id = GenerateAPPID("203 Electronics", "Performance Mode");
+        ExecuteAPP(active_app_id);
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }
 
@@ -184,8 +156,8 @@ namespace MatrixOS::SYS
     int8_t SetVariable(string variable, uint32_t value)
     {   
         //Save Variable
-        MatrixOS::Logging::LogDebug(logTag, "Set Variable [%s, %d]", variable, value);
-        // MatrixOS::Logging::LogDebug(logTag, "Set Variable");
+        MatrixOS::Logging::LogDebug("System", "Set Variable [%s, %d]", variable, value);
+        // MatrixOS::Logging::LogDebug("System", "Set Variable");
         if(userVar.find(variable) != userVar.end()) //Check User Variables First
         {   
             userVar[variable] = value;
@@ -209,25 +181,25 @@ namespace MatrixOS::SYS
 
     void NextBrightness()
     {
-        // ESP_LOGI(logTag.c_str(), "Next Brightness");
-        MatrixOS::Logging::LogDebug(logTag, "Next Brightness");
+        // ESP_LOGI("System".c_str(), "Next Brightness");
+        MatrixOS::Logging::LogDebug("System", "Next Brightness");
         uint8_t current_brightness = (uint8_t)GetVariable("brightness");
-        // ESP_LOGI(logTag.c_str(), "Current Brightness %d", current_brightness);
-        MatrixOS::Logging::LogDebug(logTag, "Current Brightness %d", current_brightness);
+        // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
+        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", current_brightness);
         for (uint8_t brightness: Device::brightness_level)
         {
-            // ESP_LOGI(logTag.c_str(), "Check Brightness Level  %d", brightness);
-            MatrixOS::Logging::LogDebug(logTag, "Check Brightness Level  %d", brightness);
+            // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
+            MatrixOS::Logging::LogDebug("System", "Check Brightness Level  %d", brightness);
             if (brightness > current_brightness)
             {
-                // ESP_LOGI(logTag.c_str(), "Brightness Level Selected");
-                MatrixOS::Logging::LogDebug(logTag, "Brightness Level Selected");
+                // ESP_LOGI("System".c_str(), "Brightness Level Selected");
+                MatrixOS::Logging::LogDebug("System", "Brightness Level Selected");
                 MatrixOS::SYS::SetVariable("brightness", brightness);
                 return;
             }
         }
-        // ESP_LOGI(logTag.c_str(), "Lowest Level Selected");
-        MatrixOS::Logging::LogDebug(logTag, "Lowest Level Selected");
+        // ESP_LOGI("System".c_str(), "Lowest Level Selected");
+        MatrixOS::Logging::LogDebug("System", "Lowest Level Selected");
         MatrixOS::SYS::SetVariable("brightness", Device::brightness_level[0]);
     }
 
@@ -236,14 +208,31 @@ namespace MatrixOS::SYS
     //     SysVar::active_app = application;
     // }
 
+    uint32_t GenerateAPPID(string author, string app_name)
+    {
+        // uint32_t app_id = Hash(author + "-" + app_name);
+        // Logging::LogInfo("System", "APP ID: %u", app_id);
+        return Hash(author + "-" + app_name);;
+    }
+
     void ExecuteAPP(uint32_t app_id)
     {
+        // Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
         active_app_id = app_id;
         LED::Fill(0);
         LED::Update();
-        vTaskDelete(active_app_task);
-        free(active_app);
-        active_app = NULL;
+        if(active_app_task != NULL)
+        {
+            vTaskDelete(active_app_task);
+            free(active_app);
+            active_app = NULL;
+        }
+    }
+
+    void ExecuteAPP(string author, string app_name)
+    {
+        Logging::LogInfo("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
+        ExecuteAPP(GenerateAPPID(author, app_name));
     }
 
     void ExitAPP()
@@ -257,7 +246,7 @@ namespace MatrixOS::SYS
         // Bootloader();
         if(error.empty())
             error = "Undefined Error";
-        Logging::LogError(logTag, "Matrix OS Error: %s", error);
+        Logging::LogError("System", "Matrix OS Error: %s", error);
 
         
         

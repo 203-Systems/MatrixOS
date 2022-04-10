@@ -20,6 +20,7 @@ inline uint32_t Hash(string str)
     return FNV1aHash(str.c_str());
 }
 
+//Static Hash: Hashing at compile time
 template <uint32_t N, uint32_t I>
 struct HashHelper
 {
