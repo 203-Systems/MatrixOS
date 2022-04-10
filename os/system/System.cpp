@@ -20,7 +20,6 @@ namespace MatrixOS::SYS
     StackType_t  supervisor_stack[configMINIMAL_STACK_SIZE];
     StaticTask_t supervisor_taskdef;
 
-    // Application* active_app;
     TaskHandle_t active_app_task;
     uint32_t active_app_id;
 
@@ -32,14 +31,12 @@ namespace MatrixOS::SYS
         {
             case 1:
             {
-                Performance performance;
-                performance.Start();
+                active_app = new Performance();
                 break;
             }
             case 2:
             {
-                REDACTED redacted;
-                redacted.Start();
+                active_app = new REDACTED();
                 break;
             }
             case 0:
@@ -47,12 +44,11 @@ namespace MatrixOS::SYS
             {
                 //SHELL
                 //Temp Use Performance
-                Performance performance;
-                performance.Start();
-                break;
+                active_app = new Performance();
                 break;
             }
         }
+        active_app->Start();
     }
     
     void Supervisor(void* param)
@@ -246,6 +242,8 @@ namespace MatrixOS::SYS
         LED::Fill(0);
         LED::Update();
         vTaskDelete(active_app_task);
+        free(active_app);
+        active_app = NULL;
     }
 
     void ExitAPP()

@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "applications/Application.h"
 #include <string> 
 
 namespace MatrixOS::KEYPAD
@@ -18,13 +19,6 @@ namespace MatrixOS::KEYPAD
         xTimerStart(keypad_tm, 0);
     }
 
-    // void (*handler)(uint16_t) = nullptr;
-
-    // void SetHandler(void (*handler)(uint16_t))
-    // {
-    //     KEYPAD::handler = handler;
-    // }
-
     uint16_t Scan(void)
     {   
         if(Available()) //Not all cache has been read yet
@@ -40,8 +34,20 @@ namespace MatrixOS::KEYPAD
         changed = device_change_list[0];
         if(changed > 0)
         {
-            changelist = (uint16_t*)pvPortMalloc(sizeof(uint16_t) * changed);
-            memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
+            // if(active_app)
+            // {
+            //     for(uint8_t i = 0; i < changed; i++)
+            //     {
+            //         uint8_t key_id = device_change_list[1 + i];
+            //         active_app->KeyEvent(key_id, GetKey(key_id));
+            //     }
+            //     changed = 0;
+            // }
+            // else
+            // {
+                changelist = (uint16_t*)pvPortMalloc(sizeof(uint16_t) * changed);
+                memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
+            // }
         }
         read = 0;
 

@@ -1,5 +1,4 @@
-#ifndef __MATRIXOS_H
-#define __MATRIXOS_H
+#pragma once
 
 #include "Device.h"
 #include "system/Parameters.h"
@@ -21,7 +20,9 @@ class Application;
 //Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
-  inline uint32_t API_version = 0;
+  inline uint32_t api_version = 0;
+  inline Application* active_app = NULL;
+
   namespace SYS
   {
     inline bool inited = false;
@@ -197,5 +198,3 @@ namespace MatrixOS
   //     void Write(uint8_t);
   //   }
 }
-
-#endif

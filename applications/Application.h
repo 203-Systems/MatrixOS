@@ -2,6 +2,21 @@
 
 #include "MatrixOS.h"
 
+#define APPLICTION_REGISTION
+#define REGISTER_APPLICATION(APP_NAME, AUTHOR, APP_CLASS_NAME, COLOR, VERSION, VISABLE) \
+#define APPLICTION_REGISTION APPLICTION_REGISTION##Application_Info
+
+struct Application_Info
+{
+    string name;
+    string author;
+    Color color;
+    uint32_t version;
+    bool visable;
+};
+
+
+
 class Application
 {
     public: 
@@ -11,7 +26,9 @@ class Application
 
         int8_t status = 0;
 
-        void Start();
+        void* args;
+
+        void Start(void* args = NULL);
 
         virtual void Setup() {};
         virtual void Loop() {};

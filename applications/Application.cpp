@@ -1,7 +1,8 @@
 #include "Application.h"
 
-void Application::Start()
+void Application::Start(void* args)
 {
+    this->args = args;
     Setup();
     while(true)
     {

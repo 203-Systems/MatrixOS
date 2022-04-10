@@ -3,12 +3,8 @@
 
 #include "framework/Framework.h"
 
-class Application;
-
 namespace MatrixOS::SysVar
 {
-    inline Application* active_app = nullptr;
-
     inline uint16_t fps_millis;
     inline uint16_t keypad_millis;
 
