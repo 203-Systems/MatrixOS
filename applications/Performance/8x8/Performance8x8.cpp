@@ -7,7 +7,7 @@
 
 void Performance::Setup()
 {
-    MatrixOS::LED::StartAutoUpdate();
+    
 }
 
 void Performance::Loop()
@@ -75,6 +75,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     {
         // MatrixOS::Logging::LogDebug("Performance", "Set LED");
         MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
+        MatrixOS::LED::Update();
     }
     // else if(!xy)
     // {
@@ -117,6 +118,10 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
     {
         MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo.velocity.to7bits()));
     }
+    else if(keyInfo.state == AFTERTOUCH)
+    {
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, 0, note, keyInfo.velocity.to7bits()));
+    } 
     else if(keyInfo.state == RELEASED)
     {
         MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, 0, note, keyInfo.velocity.to7bits()));
@@ -144,7 +149,10 @@ void Performance::stfuScan()
         {   
             Point xy = NoteToXY(note);
             if(xy)
+            {
                 MatrixOS::LED::SetColor(xy, 0);
+                MatrixOS::LED::Update();
+            }
             stfuMap[note] = -1;
         }
     }
@@ -152,7 +160,6 @@ void Performance::stfuScan()
 
 void Performance::ActionMenu()
 {
-    MatrixOS::LED::PauseAutoUpdate();
     MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
 
     UI actionMenu("Action Menu", Color(0x00FFAA));
@@ -172,7 +179,7 @@ void Performance::ActionMenu()
     actionMenu.Start();
 
     MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
-    MatrixOS::LED::StartAutoUpdate();
+    MatrixOS::LED::Update(); //TODO: Give UI a new LED layer
 }
 
 // #endif

@@ -72,7 +72,7 @@ target_include_directories(${COMPONENT_TARGET} PUBLIC
   "${CMAKE_SOURCE_DIR}/os"
   "${CMAKE_SOURCE_DIR}/os/usb"
   "${CMAKE_SOURCE_DIR}/lib/tinyusb/src"
-  "${CMAKE_SOURCE_DIR}/lib/printf"
+  "${CMAKE_SOURCE_DIR}/lib/printf/src"
   "${TINYUSB}/hw"
   "${TINYUSB}/src"
 )
@@ -95,7 +95,7 @@ target_sources(${COMPONENT_TARGET} PUBLIC
 "${TINYUSB}/src/class/video/video_device.c"
 "${TINYUSB}/src/class/vendor/vendor_device.c"
 "${TINYUSB}/src/portable/espressif/esp32sx/dcd_esp32sx.c"
-"${CMAKE_SOURCE_DIR}/lib/printf/printf.c"
+"${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
 )
 
 # set_source_files_properties(

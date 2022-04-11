@@ -53,7 +53,7 @@ struct MidiPacket
             case AfterTouch:
             case ControlChange:
                 // length = 3;
-                // data = (uint8_t*)malloc(3); 
+                // data = (uint8_t*)pvPortMalloc(3); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
                 data[1] = (uint8_t)va_arg(valst, int);
                 data[2] = (uint8_t)va_arg(valst, int);
@@ -61,14 +61,14 @@ struct MidiPacket
             case ProgramChange:
             case ChannelPressure:
                 // length = 2;
-                // data = (uint8_t*)malloc(2); 
+                // data = (uint8_t*)pvPortMalloc(2); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
                 data[1] = (uint8_t)va_arg(valst, int);
                 break;
             case PitchChange:
             {
                 // length = 3;
-                // data = (uint8_t*)malloc(3); 
+                // data = (uint8_t*)pvPortMalloc(3); 
                 data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
                 uint16_t pitch = (uint16_t)va_arg(valst, int);
                 data[1] = (uint8_t)(pitch & 0x07F);
@@ -77,14 +77,14 @@ struct MidiPacket
                 break;
             case SongSelect:
                 // length = 1;
-                // data = (uint8_t*)malloc(2); 
+                // data = (uint8_t*)pvPortMalloc(2); 
                 data[0] = SongSelect;
                 data[1] = (uint8_t)va_arg(valst, int);
                 break;
             case SongPosition:
             {
                 // length = 3;
-                // data = (uint8_t*)malloc(3); 
+                // data = (uint8_t*)pvPortMalloc(3); 
                 data[0] = SongPosition;
                 uint16_t position = (uint16_t)va_arg(valst, int);
                 data[1] = (uint8_t)(position & 0x07F);
@@ -122,7 +122,7 @@ struct MidiPacket
         this->port = port;
         this->status = status;
         // this->length = length;
-        // this->data = (uint8_t*)malloc(length); //Malloc(0) is fine, not gonna bother checking.
+        // this->data = (uint8_t*)pvPortMalloc(length); //Malloc(0) is fine, not gonna bother checking.
         // ESP_LOGI("MP pre construct", "%#02X %#02X %#02X", data[0], data[1], data[2]);
         memcpy(this->data, data, length);
         // ESP_LOGI("MP post construct", "%#02X %#02X %#02X", this->data[0], this->data[1], this->data[2]);

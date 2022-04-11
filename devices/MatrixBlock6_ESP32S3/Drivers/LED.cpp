@@ -3,13 +3,13 @@
 namespace Device
 {   
 
-    void LED_Init()
-    {
-        WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
-    }
-
     namespace LED
     {
+        void Init()
+        {
+            WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
+        }
+
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
             // ESP_LOGI("LED", "LED Update");
@@ -22,6 +22,25 @@ namespace Device
             if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
             {
                 return xy.x + xy.y * 8;
+            }
+            else if(xy.x == 8 && xy.y >= 0 && xy.y < 8) //Underglow Right Column
+            {
+                return 84 + xy.y;
+            }
+            else if(xy.y == 8 && xy.x >= 0 && xy.x < 8) //Underglow Bottom Row
+            {
+                if(xy.x < 4)
+                    return 64 + (3 - xy.x);
+                else
+                    return 92 + (7 - xy.x);
+            }
+            else if(xy.x == -1 && xy.y >= 0 && xy.y < 8) //Underglow Left Column
+            {
+                return 68 + (7 - xy.y);
+            }
+            else if(xy.y == -1 && xy.x >= 0 && xy.x < 8) //Underglow Top Row
+            {
+                return 76 + xy.x;
             }
             return UINT16_MAX;
         }

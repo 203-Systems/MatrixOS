@@ -5,30 +5,34 @@ namespace MatrixOS::LED
     // static timer
     StaticTimer_t led_tmdef;
     TimerHandle_t led_tm;
+    
+    bool needUpate = false;
 
     void LEDTimerCallback( TimerHandle_t xTimer )
     {
-        Update();
+        if(needUpate)
+        {
+            Device::LED::Update(frameBuffers[currentLayer], SYS::GetVariable("brightness"));
+            needUpate = false;
+        }
     }
 
-    bool auto_update = false;
 
 
     void Init()
     {
-        Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
-        // for(uint32_t i = 0; i < Device::numsOfLED; i++)
-        // {
-            // frameBuffer[i] = Color();
-        // }
+        Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED * sizeof(Color));
+        for(uint32_t i = 0; i < Device::numsOfLED; i++)
+        {
+            frameBuffer[i] = Color(0);
+        }
 
         currentLayer = 0;
         frameBuffers.push_back(frameBuffer);
         Update();
 
         led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
-        if(auto_update)
-            xTimerStart(led_tm, 0);
+        xTimerStart(led_tm, 0);
     }
 
     void SetColor(Point xy, Color color, uint8_t layer)
@@ -72,9 +76,11 @@ namespace MatrixOS::LED
         }
     }
 
-    void Update(int8_t layer)
+    void Update(int8_t layer) 
     {
-        Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
+        // Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
+        if(layer == currentLayer)
+            needUpate = true;
     }
 
     // void SwitchLayer(uint8_t layer)
@@ -87,28 +93,28 @@ namespace MatrixOS::LED
     //     currentLayer = layer;
     // }
 
-    void PauseAutoUpdate()
-    {
-        if(auto_update)
-            xTimerStop(led_tm, 0);
-        auto_update = false;
-    }
+    // void PauseAutoUpdate()
+    // {
+    //     if(autoUpdate)
+    //         xTimerStop(led_tm, 0);
+    //     autoUpdate = false;
+    // }
 
-    void StartAutoUpdate()
-    {
-        if(!auto_update)
-            xTimerStart(led_tm, 0);
-        auto_update = true;
-    }
+    // void StartAutoUpdate()
+    // {
+    //     if(!autoUpdate)
+    //         xTimerStart(led_tm, 0);
+    //     autoUpdate = true;
+    // }
 
     int8_t CreateLayer()
     {
         if(currentLayer >= MAX_LED_LAYERS - 1)
             return -1;
-        Color* frameBuffer = (Color*)calloc(Device::numsOfLED, sizeof(Color));
+        Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED *sizeof(Color));
         for(uint32_t i = 0; i < Device::numsOfLED; i++)
         {
-            frameBuffer[i] = Color();
+            frameBuffer[i] = Color(0);
         }
         currentLayer++;
         frameBuffers.push_back(frameBuffer);
@@ -119,7 +125,7 @@ namespace MatrixOS::LED
     {
         if(currentLayer > 0)
         {
-            free(frameBuffers.back());
+            vPortFree(frameBuffers.back());
             frameBuffers.pop_back();
         }
         else

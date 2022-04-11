@@ -10,7 +10,7 @@ INC += \
 	os \
 	devices \
 	lib/tinyusb/src \
-	lib/printf \
+	lib/printf/src \
 	$(FREERTOS_SRC)/include \
 	$(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT) \
 	. 
@@ -57,6 +57,7 @@ SRC_C += \
 	$(FREERTOS_SRC)/queue.c \
 	$(FREERTOS_SRC)/tasks.c \
 	$(FREERTOS_SRC)/timers.c \
+	$(FREERTOS_SRC)/portable/MemMang/heap_4.c \
 	$(subst ,,$(wildcard $(FREERTOS_SRC)/portable/GCC/$(FREERTOS_PORT)/*.c))
 
 INC   += $(FAMILY_PATH)

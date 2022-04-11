@@ -2,11 +2,19 @@ set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
 set(DEVICE_PATH ${FAMILY_PATH}/Varients/${DEVICE})
 
 file(GLOB_RECURSE MATRIX_OS_SRC_C
-  "${CMAKE_SOURCE_DIR}/src/*.c"
+  "${CMAKE_SOURCE_DIR}/os/*.c"
 )
 
 file(GLOB_RECURSE MATRIX_OS_SRC_CPP
-  "${CMAKE_SOURCE_DIR}/src/*.cpp"
+  "${CMAKE_SOURCE_DIR}/os/*.cpp"
+)
+
+file(GLOB_RECURSE MATRIX_OS_APPLICATION_C
+  "${CMAKE_SOURCE_DIR}/applications/*.c"
+)
+
+file(GLOB_RECURSE MATRIX_OS_APPLICATION_CPP
+  "${CMAKE_SOURCE_DIR}/applications/*.cpp"
 )
 
 file(GLOB_RECURSE DEVICE_SRC_C
@@ -22,12 +30,12 @@ file(GLOB_RECURSE DEVICE_SRC_CPP
 
 set(MATRIX_OS_SRC "${MATRIX_OS_SRC_C};${MATRIX_OS_SRC_CPP}")
 set(DEVICE_SRC "${DEVICE_SRC_C};${DEVICE_SRC_CPP}")
+set(MATRIX_OS_APPLICATION_SRC "${MATRIX_OS_APPLICATION_C};${MATRIX_OS_APPLICATION_CPP}")
 
-
-idf_component_register(SRCS "${FAMILY_PATH}/Family.cpp" "${CMAKE_SOURCE_DIR}/main.cpp" ${MATRIX_OS_SRC} ${DEVICE_SRC}
+idf_component_register(SRCS "${FAMILY_PATH}/Family.cpp" "${CMAKE_SOURCE_DIR}/main.cpp" ${MATRIX_OS_SRC} ${DEVICE_SRC} ${MATRIX_OS_APPLICATION_SRC}
                     INCLUDE_DIRS "." "${DEVICE_PATH}" "${FAMILY_PATH}"
                     PRIV_REQUIRES "driver"
-                    REQUIRES freertos nvs_flash)
+                    REQUIRES freertos nvs_flash esp_adc_cal)
 
 
 # Apply board specific content
@@ -38,17 +46,17 @@ target_include_directories(${COMPONENT_TARGET} PUBLIC
   "${FREERTOS_ORIG_INCLUDE_PATH}"
 )
 
-# message(" ")
-# message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-# message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
-# message("PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
-# message("PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
-# message("Matrix OS SRC: ${CMAKE_SOURCE_DIR}/src")
-# message(" ")
-# message("Matrix OS SRC Files: ${MATRIX_OS_SRC}")
-# message(" ")
-# message("Device SRC Files: ${DEVICE_SRC}")
-# message(" ")
+message(" ")
+message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message("PROJECT_BINARY_DIR: ${PROJECT_BINARY_DIR}")
+message("PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
+message("Matrix OS SRC: ${CMAKE_SOURCE_DIR}/os")
+message(" ")
+message("Matrix OS SRC Files: ${MATRIX_OS_SRC}")
+message(" ")
+message("Device SRC Files: ${DEVICE_SRC}")
+message(" ")
 
 # add_executable(MatrixOS ${MATRIX_OS_SRC})
 
@@ -56,12 +64,13 @@ set(TINYUSB "${CMAKE_SOURCE_DIR}/lib/tinyusb")
 # message(TINYUSB: ${TINYUSB})
 
 target_include_directories(${COMPONENT_TARGET} PUBLIC
+  "${CMAKE_SOURCE_DIR}"
   "${CMAKE_SOURCE_DIR}/core/esp32s3"
   "${CMAKE_SOURCE_DIR}/Devices"
-  "${CMAKE_SOURCE_DIR}/src"
-  "${CMAKE_SOURCE_DIR}/src/usb"
+  "${CMAKE_SOURCE_DIR}/os"
+  "${CMAKE_SOURCE_DIR}/os/usb"
   "${CMAKE_SOURCE_DIR}/lib/tinyusb/src"
-  "${CMAKE_SOURCE_DIR}/lib/printf"
+  "${CMAKE_SOURCE_DIR}/lib/printf/src"
   "${TINYUSB}/hw"
   "${TINYUSB}/src"
 )
@@ -84,6 +93,7 @@ target_sources(${COMPONENT_TARGET} PUBLIC
 "${TINYUSB}/src/class/video/video_device.c"
 "${TINYUSB}/src/class/vendor/vendor_device.c"
 "${TINYUSB}/src/portable/espressif/esp32sx/dcd_esp32sx.c"
+"${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
 )
 
 # set_source_files_properties(

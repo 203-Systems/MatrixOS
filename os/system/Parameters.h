@@ -4,7 +4,7 @@
 
 #define MATRIXOS_LOG_LEVEL  LOG_LEVEL_DEBUG
 #define MATRIXOS_LOG_DEVICE
-// #define MATRIXOS_LOG_USBCDC
+#define MATRIXOS_LOG_USBCDC
 #define MATRIXOS_LOG_COLOR
 
 #define MATRIXOS_FLASHVERSION 0 //Each Flash data strcture change will cause this to increase
@@ -13,6 +13,8 @@
 #define MATRIXOS_MINOR_VER 0
 #define MATRIXOS_PATCH_VER 0
 #define MATRIXOS_BUILD_VER 1 //0 for Release, any other number will repensent beta ver
+
+#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 16)
 
 //KeyPad
 #ifndef DEBOUNCE_THRESHOLD

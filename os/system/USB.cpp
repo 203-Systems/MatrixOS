@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "printf.h"
+#include "printf/printf.h"
 
 namespace MatrixOS::USB
 {
@@ -65,28 +65,39 @@ namespace MatrixOS::USB
                 tud_cdc_n_write_char(0, str[i]);
             }
             // tud_cdc_n_write_str(0, str);
-            // tud_cdc_n_write_flush(0);
+            Flush();
         }
 
         void Println(string str)
         {
             Print(str);
             Print("\n\r");
-            // tud_cdc_n_write_flush(0);
+            Flush();
         }
 
         void WriteChar(char c, void* arg)
         {
-            while(!tud_cdc_n_write_available(0)){}
-                tud_cdc_n_write_char(0, c);
+            while(Connected() && !tud_cdc_n_write_available(0))
+            {
+                taskYIELD();
+            }
+            tud_cdc_n_write_char(0, c);
         }
 
         void Printf(string format, ...)
         {
             // Print(format);
             va_list valst;
-            fctprintf(&WriteChar, NULL, format.c_str(), valst);
+            va_start(valst, format.c_str());
+            VPrintf(format, valst);
         }
+
+        void VPrintf(string format, va_list valst)
+        {
+            vfctprintf(&WriteChar, NULL, format.c_str(), valst);
+            Flush();
+        }
+
 
         void Flush(void)
         {
@@ -139,7 +150,7 @@ namespace MatrixOS::USB
     }
 }
 
-void _putchar(char character)
+void putchar_(char character)
 {
     tud_cdc_n_write_char(0, character);
 }

@@ -22,18 +22,18 @@ void Application(void* param)
     // }
 }
 
-#define APPLICATION_STACK_SIZE     (configMINIMAL_STACK_SIZE * 4)
+StackType_t  application_stack[APPLICATION_STACK_SIZE];
+StaticTask_t application_taskdef;
+
 int main()
 {
     MatrixOS::SYS::Init();
 
+    (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
     #ifndef ESP_IDF_VERSION //ESP32s Doesn't need to start scheduler
-    StackType_t  application_stack[APPLICATION_STACK_SIZE];
-    StaticTask_t application_taskdef;
-    (void) xTaskCreateStatic(Application,"application",  APPLICATION_STACK_SIZE, NULL, configMAX_PRIORITIES-1, application_stack, &application_taskdef);
     vTaskStartScheduler();
     #else
-    Application(NULL);
+    vTaskDelete(NULL);
     #endif
 
     return 0;             

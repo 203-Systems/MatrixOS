@@ -6,6 +6,7 @@
 
 #define DEVICE_BATTERY
 // #define DEVICE_MIDI
+#define CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID 1
 
 #define MULTIPRESS 10 //Key Press will be process at once
 // #define LC8812
@@ -80,7 +81,7 @@ namespace Device
 #define KeyRead7_Pin GPIO_NUM_7
 #define KeyRead8_Pin GPIO_NUM_8
 
-// #define FSR_KEYPAD
+#define FSR_KEYPAD
 #define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
 #define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
 #define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2

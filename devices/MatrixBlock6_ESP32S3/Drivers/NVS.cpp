@@ -1,9 +1,10 @@
 #include "Device.h"
 #include "framework/Hash.h"
 
-namespace Device
-{   nvs_handle_t nvs_handle;
-    void NVS_Init()
+namespace Device::NVS
+{
+    nvs_handle_t nvs_handle;
+    void Init()
     {
         esp_err_t err = nvs_flash_init();
         if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -15,10 +16,7 @@ namespace Device
         ESP_ERROR_CHECK( err );
         nvs_open("matrix_os", NVS_READWRITE, &nvs_handle);
     }
-}
 
-namespace Device::NVS
-{
     vector<char> Read(string name)
     {
         size_t length;

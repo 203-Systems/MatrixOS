@@ -4,9 +4,15 @@ namespace Device
 {
     void DeviceInit()
     {
-        USB_Init();
-        LED_Init();
-        NVS_Init();
+        // esp_timer_early_init();
+
+        USB::Init();
+        LED::Init();
+        KeyPad::Init();
+        NVS::Init();
+        // WIFI::Init();
+        // ESPNOW::Init();
+        // ESPNOW::BroadcastMac();
     }
 
     // bool wdt_subscribed = false;
@@ -54,6 +60,7 @@ namespace Device
     {
         // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
         // esp_log_writev(ESP_LOG_INFO, format.c_str(), valst);
+        
         vprintf(format.c_str(), valst);
     }
 
@@ -67,6 +74,33 @@ namespace Device
     {
         
     }
+
+    // namespace MIDI
+    // {
+    //     uint32_t Available()
+    //     {
+    //         uint32_t packets = 0;
+    //         packets += ESPNOW::MidiAvailable();
+    //         return packets;
+    //     }
+
+    //     MidiPacket Get()
+    //     {
+    //         // ESP_LOGI("Midi Get", "Avail %d", ESPNOW::MidiAvailable());
+    //         if(ESPNOW::MidiAvailable())
+    //         {
+    //             // ESP_LOGI("Midi Get", "Getting");
+    //             return ESPNOW::GetMidi();
+    //         }
+    //         // ESP_LOGI("Midi Get", "WTF?");
+    //         return MidiPacket(0, None);
+    //     }
+
+    //     bool Sent(MidiPacket packet)
+    //     {
+    //         return ESPNOW::SendMidi(packet.data);
+    //     }
+    // } 
 }
 
 namespace MatrixOS::SYS
