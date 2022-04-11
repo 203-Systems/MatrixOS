@@ -177,6 +177,8 @@ void Performance::ActionMenu()
     // actionMenu.AddUIElement(UIElement("Menu Lock", Color(0x00FFFF), [&]() -> void {}), Point(7, 7));
     actionMenu.AddUIElement(UIElement("REDACTED", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED");}), Point(7, 7));
 
+    actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
+
     actionMenu.Start();
 
     MatrixOS::Logging::LogDebug(name, "Exit Action Menu");

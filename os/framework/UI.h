@@ -69,7 +69,12 @@ class UI
         std::map<Point, UIElement*> uiElementsMap;
 
         void AddUIElement(UIElement uiElement, Point xy);
+        // void AddUIElement(UIElement uiElement, uint32_t keyID);
         void AddUIElement(UIElement uiElement, uint16_t count, ...);
+
+        std::function<void()> func_hold_callback = nullptr;
+        bool fn_released = false;
+        void AddFuncKeyHold(std::function<void()> callback);
 
         void ClearUIElements();
         private:

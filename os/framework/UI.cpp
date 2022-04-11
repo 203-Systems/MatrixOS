@@ -58,10 +58,24 @@ void UI::GetKey()
 
 void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-    if(keyID == 0 && keyInfo.state == PRESSED)
+    if(keyID == FUNCTION_KEY)
     {
-        Exit();
-        return;
+        if(keyInfo.state == RELEASED && !fn_released)
+        {
+            fn_released = true;
+            return;
+        }
+        else if(keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
+        {
+            Exit();
+            return;
+        }
+
+        if(keyInfo.state == HOLD)
+        {
+            func_hold_callback();
+            return;
+        }
     }
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
     if(xy && uiElementsMap.count(xy)) //Key Found
@@ -114,6 +128,11 @@ void UI::AddUIElement(UIElement uiElement, uint16_t count, ...)
     {
         uiElementsMap[(Point)va_arg(valst, Point)] = &(uiElements.back());
     }
+}
+
+void UI::AddFuncKeyHold(std::function<void()> callback)
+{
+    func_hold_callback = callback;
 }
 
 void UI::ClearUIElements()

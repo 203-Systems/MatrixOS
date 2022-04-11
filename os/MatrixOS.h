@@ -16,6 +16,7 @@
 #define noexpose //Custum keyword to remove function to be generated as exposed API
 
 class Application;
+class Application_Info;
 
 //Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS

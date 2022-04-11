@@ -4,6 +4,7 @@
 #include "applications/BootAnimations/BootAnimations.h"
 #include "applications/Applications.h"
 
+extern const Application_Info applications[] = {REGISTERED_APPS};
 
 namespace MatrixOS::SYS
 {   
@@ -24,7 +25,7 @@ namespace MatrixOS::SYS
                 //SHELL
                 //Temp Use Performance
                 // Logging::LogError("System", "Requested APP not available");
-                active_app = new Performance();
+                active_app = new Shell();
                 break;
         }
         active_app->Start();
@@ -66,7 +67,7 @@ namespace MatrixOS::SYS
         LED::Fill(0);
         LED::Update();
 
-        active_app_id = GenerateAPPID("203 Electronics", "Performance Mode");
+        // active_app_id = GenerateAPPID("203 Electronics", "Performance Mode");
         ExecuteAPP(active_app_id);
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }

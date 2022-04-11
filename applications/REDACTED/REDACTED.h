@@ -8,7 +8,7 @@ class REDACTED : public Application
 {   
     public:
     string name = "REDACTED";
-    string author = "REDACTED";
+    string author = "203 Electronics";
     uint32_t version = 0;
     
     void Setup() override;
