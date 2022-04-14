@@ -3,6 +3,9 @@
 
 #include "framework/Framework.h"
 
+#define REGISTERED_APP_INFOS
+#define REGISTERED_APP_SWITCH
+
 namespace MatrixOS::SysVar
 {
     inline uint16_t fps_millis;

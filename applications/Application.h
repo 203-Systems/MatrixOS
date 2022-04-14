@@ -2,17 +2,13 @@
 
 #include "MatrixOS.h"
 
-#define REGISTERED_APPS Application_Info("Performance Mode", "203 Electronics", Color(0xFF0000), true), Application_Info("REDACTED", "203 Electronics", Color(0xFFFFFF), true) 
-// #define REGISTER_APPLICATION(APP_NAME, AUTHOR, APP_CLASS_NAME, COLOR, VERSION, VISABLE) 
-// #define APPLICTION_REGISTION APPLICTION_REGISTION##Application_Info
-
 struct Application_Info
 {
     string name;
     string author;
     Color color;
     uint32_t version;
-    bool visible;
+    bool visibility;
 
     Application_Info(string name, string author, Color color, uint32_t version, bool visible = true)
     {
@@ -20,8 +16,9 @@ struct Application_Info
         this->author = author;
         this->color = color;
         this->version = version;
-        this->visible = visible;
+        this->visibility = visibility;
     }
+    Application_Info(){}
 };
 
 

@@ -4,7 +4,7 @@
 #include "applications/BootAnimations/BootAnimations.h"
 #include "applications/Applications.h"
 
-extern const Application_Info applications[] = {REGISTERED_APPS};
+extern const Application_Info applications[] = {REGISTERED_APP_INFOS Application_Info()}; //Add NULL at the end due to trailing comma
 
 namespace MatrixOS::SYS
 {   
@@ -13,13 +13,14 @@ namespace MatrixOS::SYS
         // MatrixOS::Logging::LogInfo("Application Factory", "App ID %d", active_app_id);
         switch(active_app_id)
         {
-            case StaticHash("203 Electronics-Performance Mode"):
-                // MatrixOS::Logging::LogInfo("Application Factory", "Launching Performance Mode");
-                active_app = new Performance();
-                break;
-            case StaticHash("203 Electronics-REDACTED"):
-                active_app = new REDACTED();
-                break;
+            REGISTERED_APP_SWITCH
+            // case StaticHash("203 Electronics-Performance Mode"):
+            //     // MatrixOS::Logging::LogInfo("Application Factory", "Launching Performance Mode");
+            //     active_app = new Performance();
+            //     break;
+            // case StaticHash("203 Electronics-REDACTED"):
+            //     active_app = new REDACTED();
+            //     break;
             case 0:
             default:
                 //SHELL
