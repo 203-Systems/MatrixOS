@@ -8,14 +8,16 @@ struct Application_Info
     string author;
     Color color;
     uint32_t version;
+    Application(*factory);
     bool visibility;
 
-    Application_Info(string name, string author, Color color, uint32_t version, bool visible = true)
+    Application_Info(string name, string author, Color color, uint32_t version, Application(*factory), bool visible = true)
     {
         this->name = name;
         this->author = author;
         this->color = color;
         this->version = version;
+        this->factory = factory;
         this->visibility = visibility;
     }
     Application_Info(){}
