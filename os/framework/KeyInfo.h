@@ -65,6 +65,7 @@ struct KeyInfo {
 
         if(state == RELEASED)
         {
+            hold = false;
             state = IDLE;
         }
 

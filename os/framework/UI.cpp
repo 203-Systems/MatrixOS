@@ -73,6 +73,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 
         if(keyInfo.state == HOLD)
         {
+            MatrixOS::Logging::LogDebug("UI", "Function Hold");
             func_hold_callback();
             return;
         }
