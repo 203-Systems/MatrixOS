@@ -9,8 +9,7 @@
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS REDACTED
 
-// If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ - 203Null
-class REDACTED : public Application
+class REDACTED : public Application // ᗜˬᗜ
 {   
     public:
     string name = "REDACTED";

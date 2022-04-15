@@ -98,7 +98,8 @@
 			"xlocmon": "cpp",
 			"future": "cpp",
 			"queue": "cpp",
-			"stack": "cpp"
+			"stack": "cpp",
+			"thread": "cpp"
 		}
 	}
 }

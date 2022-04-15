@@ -21,7 +21,7 @@ namespace MatrixOS::SYS
                 Application_Info* application = applications[i];
                 if(application->id == active_app_id)
                 {
-                    MatrixOS::Logging::LogDebug("Applications", "Launching %s-%s", application->author.c_str(), application->name.c_str());
+                    MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->author.c_str(), application->name.c_str());
                     active_app = application->factory();
                     break;
                 }
