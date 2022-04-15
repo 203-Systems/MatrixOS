@@ -10,8 +10,8 @@
 #define APPLICATION_INFO(CLASS) APPLICATION_INFO_IMPL(CLASS)
 
 #define APPLICATION_INDEX 0
-inline uint16_t registered_app_count = 0; //Would love to be able to free this after initialization 
-
+inline const uint16_t app_counter_base = __COUNTER__ + 1;
+  
 #define REGISTER_APPLICTION_H
 #endif
 
@@ -41,14 +41,11 @@ inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS) (void)
 {
   //For some reason this function is called multiple times, so check if application already registered. 
   //TODO: Need to fix
-  for(uint8_t i = 0; i < registered_app_count; i++) 
-  {
-    if(applications[i] == &APPLICATION_INFO(APPLICATION_CLASS))
-      return;
-  }
-  applications[registered_app_count] = &APPLICATION_INFO(APPLICATION_CLASS);
-  ESP_LOGI("APP REG", APPLICATION_NAME " Registered at %d", registered_app_count);
-  registered_app_count++;
+  const uint16_t index = __COUNTER__ - app_counter_base;
+  if(applications[index] == &APPLICATION_INFO(APPLICATION_CLASS))
+    return;
+  applications[index] = &APPLICATION_INFO(APPLICATION_CLASS);
+  ESP_LOGI("APP REG", APPLICATION_NAME " Registered at %d", index);
 }
 
 #pragma push_macro( "APPLICATION_INDEX" )
