@@ -81,11 +81,10 @@ namespace MatrixOS::SYS
         Logging::LogDebug("Logging", "This is a debug log");
         Logging::LogVerbose("Logging", "This is a verbose log");
 
-        // MatrixBoot().Start(); //TODO Boot Animation Manager
+        MatrixBoot().Start(); //TODO Boot Animation Manager
         LED::Fill(0);
         LED::Update();
 
-        active_app_id = GenerateAPPID("203 Electronics", "REDACTED");
         ExecuteAPP(active_app_id);
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }

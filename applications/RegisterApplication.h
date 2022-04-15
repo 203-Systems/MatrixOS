@@ -23,7 +23,6 @@ inline const uint16_t app_counter_base = __COUNTER__ + 1;
 #define APPLICATION_VISIBLITY true
 #endif
  
-// #pragma message ("APP <" APPLICATION_NAME "> Registered")
 
 extern Application_Info* applications[];
 
