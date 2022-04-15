@@ -1,39 +1,56 @@
 #include "MatrixOS.h"
-#include "System.h"
 #include "applications/Setting/Setting.h"
 #include "applications/BootAnimations/BootAnimations.h"
 #include "applications/Applications.h"
+#include "System.h"
 
-extern const Application_Info applications[] = {REGISTERED_APP_INFOS Application_Info()}; //Add NULL at the end due to trailing comma
+// std::map<uint32_t, Application_Info*> applications;
 
 namespace MatrixOS::SYS
 {   
     void ApplicationFactory(void* param)
     {
-        // MatrixOS::Logging::LogInfo("Application Factory", "App ID %d", active_app_id);
-        switch(active_app_id)
+        MatrixOS::Logging::LogDebug("Application Factory", "App ID %X", active_app_id);
+
+        active_app = NULL;
+
+        if(active_app_id != 0)
         {
-            REGISTERED_APP_SWITCH
-            // case StaticHash("203 Electronics-Performance Mode"):
-            //     // MatrixOS::Logging::LogInfo("Application Factory", "Launching Performance Mode");
-            //     active_app = new Performance();
-            //     break;
-            // case StaticHash("203 Electronics-REDACTED"):
-            //     active_app = new REDACTED();
-            //     break;
-            case 0:
-            default:
-                //SHELL
-                //Temp Use Performance
-                // Logging::LogError("System", "Requested APP not available");
-                active_app = new Shell();
-                break;
+            for(uint8_t i = 0; i < app_count; i++) //I don't like the for loop but tbh there's nothing wrong with it.
+            { 
+                Application_Info* application = applications[i];
+                if(application->id == active_app_id)
+                {
+                    MatrixOS::Logging::LogDebug("Applications", "Launching %s-%s", application->author.c_str(), application->name.c_str());
+                    active_app = application->factory();
+                    break;
+                }
+            }
         }
+        
+        if(active_app == NULL) //Default to launch shell
+        {   
+            if(active_app_id != 0)
+                MatrixOS::Logging::LogDebug("Application Factory", "Can't find target app.");
+            MatrixOS::Logging::LogDebug("Application Factory", "Launching Shell");
+            active_app = new Shell();
+        }
+
+        active_app_id = 0; //Reset active_app_id so when active app exits it will default to shell again.
         active_app->Start();
     }
     
     void Supervisor(void* param)
     {
+
+        MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", app_count);
+       
+        for(uint8_t i = 0; i < app_count; i++)
+        {
+            Application_Info* application = applications[i];
+            MatrixOS::Logging::LogDebug("Supervisor", "%X\t%s-%s v%u", application->id, application->author.c_str(), application->name.c_str(), application->version);
+        }
+
         active_app_task = xTaskCreateStatic(ApplicationFactory,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
         while(true)
         {
@@ -46,7 +63,7 @@ namespace MatrixOS::SYS
     }
 
     void Init()
-    {
+    {   
         Device::DeviceInit();
         LoadVariables();
 
@@ -64,13 +81,13 @@ namespace MatrixOS::SYS
         Logging::LogDebug("Logging", "This is a debug log");
         Logging::LogVerbose("Logging", "This is a verbose log");
 
-        MatrixBoot().Start(); //TODO Boot Animation Manager
+        // MatrixBoot().Start(); //TODO Boot Animation Manager
         LED::Fill(0);
         LED::Update();
 
-        // active_app_id = GenerateAPPID("203 Electronics", "Performance Mode");
+        active_app_id = GenerateAPPID("203 Electronics", "REDACTED");
         ExecuteAPP(active_app_id);
-        (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE, NULL, 1, supervisor_stack, &supervisor_taskdef);
+        (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }
 
     uint32_t Millis() 
@@ -278,5 +295,10 @@ namespace MatrixOS::SYS
         LED::Update();
 
         Device::ErrorHandler(); //Low level indicator in case LED and USB failed
+    }
+
+    uint16_t GetApplicationCount() //Used by shell, for some reason shell can not access app_count
+    {
+        return app_count;
     }
 }

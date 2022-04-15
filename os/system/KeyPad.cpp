@@ -60,7 +60,7 @@ namespace MatrixOS::KEYPAD
 
     uint16_t Get()
     {
-        Logging::LogDebug("Keypad", "%d", Available());
+        // Logging::LogDebug("Keypad", "%d", Available());
         if(Available() == 0)
             return 0xFFFF;
         

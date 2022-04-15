@@ -4,14 +4,12 @@
 #include "applications/Application.h"
 
 #define APPLICATION_NAME "REDACTED"
-#define APPLICATION_AUTHOR "203 Electronic"
+#define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFFFF)
-#define APPLICATION_VERSION 0
+#define APPLICATION_VERSION 1
 #define APPLICATION_CLASS REDACTED
 
-#include "applications/RegisterApplication.h"
-
-    // If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ - 203Null
+// If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ - 203Null
 class REDACTED : public Application
 {   
     public:
@@ -3444,3 +3442,5 @@ class REDACTED : public Application
         34, 40, 52, 
         31, 57, 59};
 };
+
+#include "applications/RegisterApplication.h"

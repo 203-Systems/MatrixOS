@@ -4,6 +4,13 @@
 #include "Framework/UI.h"
 #include "applications/Application.h"
 
+#define APPLICATION_NAME "Shell"
+#define APPLICATION_AUTHOR "203 Electronics"
+#define APPLICATION_COLOR Color(0xFFFFFF)
+#define APPLICATION_VERSION 0
+#define APPLICATION_CLASS Shell
+#define APPLICATION_VISIBLITY false
+
 class Shell : public Application
 {
     string name = "Matrix OS Shell";
@@ -30,3 +37,5 @@ class Shell : public Application
     // void RenderUI();
     // void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
 };
+
+#include "applications/RegisterApplication.h"
