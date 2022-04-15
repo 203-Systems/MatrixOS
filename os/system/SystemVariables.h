@@ -3,12 +3,11 @@
 
 #include "framework/Framework.h"
 
-class Application;
+#define REGISTERED_APP_INFOS
+#define REGISTERED_APP_SWITCH
 
 namespace MatrixOS::SysVar
 {
-    inline Application* active_app = nullptr;
-
     inline uint16_t fps_millis;
     inline uint16_t keypad_millis;
 

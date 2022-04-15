@@ -4,6 +4,12 @@
 #include "MatrixOS.h"
 #include "applications/Application.h"
 
+#define APPLICATION_NAME "Performance Mode"
+#define APPLICATION_AUTHOR "203 Electronics"
+#define APPLICATION_COLOR Color(0xFF0000)
+#define APPLICATION_VERSION 0
+#define APPLICATION_CLASS Performance
+
 class Performance : public Application
 {
     public:
@@ -327,6 +333,4 @@ class Performance : public Application
     Timer stfuTimer;
 };
 
-
-
-// #endif
+#include "applications/RegisterApplication.h"

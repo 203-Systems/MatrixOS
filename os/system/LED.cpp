@@ -93,20 +93,6 @@ namespace MatrixOS::LED
     //     currentLayer = layer;
     // }
 
-    // void PauseAutoUpdate()
-    // {
-    //     if(autoUpdate)
-    //         xTimerStop(led_tm, 0);
-    //     autoUpdate = false;
-    // }
-
-    // void StartAutoUpdate()
-    // {
-    //     if(!autoUpdate)
-    //         xTimerStart(led_tm, 0);
-    //     autoUpdate = true;
-    // }
-
     int8_t CreateLayer()
     {
         if(currentLayer >= MAX_LED_LAYERS - 1)

@@ -95,7 +95,11 @@
 			"xtree": "cpp",
 			"xutility": "cpp",
 			"tusb_option.h": "c",
-			"xlocmon": "cpp"
+			"xlocmon": "cpp",
+			"future": "cpp",
+			"queue": "cpp",
+			"stack": "cpp",
+			"thread": "cpp"
 		}
 	}
 }

@@ -3,12 +3,17 @@
 #include "MatrixOS.h"
 #include "applications/Application.h"
 
-    // If you figured out what this App does, please keep it as a secret. Thank you ᗜˬᗜ - 203Null
-class REDACTED : public Application
+#define APPLICATION_NAME "REDACTED"
+#define APPLICATION_AUTHOR "203 Electronics"
+#define APPLICATION_COLOR Color(0xFFFFFF)
+#define APPLICATION_VERSION 1
+#define APPLICATION_CLASS REDACTED
+
+class REDACTED : public Application // ᗜˬᗜ
 {   
     public:
     string name = "REDACTED";
-    string author = "REDACTED";
+    string author = "203 Electronics";
     uint32_t version = 0;
     
     void Setup() override;
@@ -3436,3 +3441,5 @@ class REDACTED : public Application
         34, 40, 52, 
         31, 57, 59};
 };
+
+#include "applications/RegisterApplication.h"
