@@ -1,9 +1,4 @@
-// #ifdef GRID_8x8
-
 #include "Performance8x8.h"
-#include "ActionMenu8x8.h"
-#include <functional>
-#include <string>
 
 void Performance::Setup()
 {
@@ -173,7 +168,7 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(UIElement("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
     actionMenu.AddUIElement(UIElement("Menu Lock", Color(0x00FFFF), [&]() -> void {}), Point(0, 7));
-    actionMenu.AddUIElement(UIElement("System Setting", Color(0x000000), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    actionMenu.AddUIElement(UIElement("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
 

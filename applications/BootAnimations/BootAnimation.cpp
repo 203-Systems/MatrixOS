@@ -37,6 +37,5 @@ void BootAnimation::LoopTask()
     {
         Exit();
     }
-    MatrixOS::KEYPAD::Clear();
-    // while(MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)){} //Prevert FN Press leak though, will remove later when key buffer can be cleared
+    MatrixOS::KEYPAD::Clear(); //Prevert FN Press leak though.
 }
