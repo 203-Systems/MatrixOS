@@ -88,7 +88,7 @@ namespace MatrixOS::USB
         {
             // Print(format);
             va_list valst;
-            va_start(valst, format);
+            va_start(valst, format.c_str());
             VPrintf(format, valst);
         }
 
