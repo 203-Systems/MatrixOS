@@ -2,7 +2,7 @@
 #pragma once
 
 #define GRID_8x8
-#define MODEL MXB6PT1
+#define MODEL MX1P
 
 #define DEVICE_BATTERY
 // #define DEVICE_MIDI
@@ -14,8 +14,8 @@
 
 namespace Device
 {
-    const string name = "Matrix Block6 Prototype 2";
-    const string model = "MXB6PT2";
+    const string name = "Matrix pro";
+    const string model = "MX1P";
 
     const string manufaturer_name = "203 Electronics";
     const string product_name = "Matrix";
@@ -27,7 +27,7 @@ namespace Device
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 16; //Not required by the API, private use.
-    
+
     inline uint16_t keypad_scanrate = 60;
 
     namespace KeyPad
@@ -45,50 +45,48 @@ namespace Device
     // const Point grid_offset = Point(1,1);
 }
 
-#define FN_Pin GPIO_NUM_11
-#define FN_PIN_ACTIVE_HIGH
-#define LED_Pin GPIO_NUM_15
+#define FN_Pin GPIO_NUM_16
+#define LED_Pin GPIO_NUM_38
 
 #define Key1_Pin GPIO_NUM_21
-#define Key2_Pin GPIO_NUM_26
-#define Key3_Pin GPIO_NUM_33
-#define Key4_Pin GPIO_NUM_34
-#define Key5_Pin GPIO_NUM_35
-#define Key6_Pin GPIO_NUM_36
-#define Key7_Pin GPIO_NUM_37
-#define Key8_Pin GPIO_NUM_38
+#define Key2_Pin GPIO_NUM_17
+#define Key3_Pin GPIO_NUM_1
+#define Key4_Pin GPIO_NUM_6
+#define Key5_Pin GPIO_NUM_12
+#define Key6_Pin GPIO_NUM_13
+#define Key7_Pin GPIO_NUM_14
+#define Key8_Pin GPIO_NUM_15
 
-#define KeyRead1_Pin GPIO_NUM_1
-#define KeyRead2_Pin GPIO_NUM_2
-#define KeyRead3_Pin GPIO_NUM_3
-#define KeyRead4_Pin GPIO_NUM_4
-#define KeyRead5_Pin GPIO_NUM_5
-#define KeyRead6_Pin GPIO_NUM_6
-#define KeyRead7_Pin GPIO_NUM_7
-#define KeyRead8_Pin GPIO_NUM_8
+#define KeyRead1_Pin GPIO_NUM_2
+#define KeyRead2_Pin GPIO_NUM_3
+#define KeyRead3_Pin GPIO_NUM_4
+#define KeyRead4_Pin GPIO_NUM_5
+#define KeyRead5_Pin GPIO_NUM_7
+#define KeyRead6_Pin GPIO_NUM_8
+#define KeyRead7_Pin GPIO_NUM_0
+#define KeyRead8_Pin GPIO_NUM_10
 
-// #define FSR_KEYPAD
-#define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
-#define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
-#define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2
-#define KeyRead4_ADC_CHANNEL ADC1_CHANNEL_3
-#define KeyRead5_ADC_CHANNEL ADC1_CHANNEL_4
-#define KeyRead6_ADC_CHANNEL ADC1_CHANNEL_5
-#define KeyRead7_ADC_CHANNEL ADC1_CHANNEL_6
-#define KeyRead8_ADC_CHANNEL ADC1_CHANNEL_7
+#define FSR_KEYPAD
+#define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_1
+#define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_2
+#define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_3
+#define KeyRead4_ADC_CHANNEL ADC1_CHANNEL_4
+#define KeyRead5_ADC_CHANNEL ADC1_CHANNEL_6
+#define KeyRead6_ADC_CHANNEL ADC1_CHANNEL_7
+#define KeyRead7_ADC_CHANNEL ADC1_CHANNEL_8
+#define KeyRead8_ADC_CHANNEL ADC1_CHANNEL_9
 
-#define TouchData_Pin GPIO_NUM_12
-#define TouchClock_Pin GPIO_NUM_13
+#define TouchData_Pin GPIO_NUM_33
+#define TouchClock_Pin GPIO_NUM_34
 
 #define PowerCord_Pin GPIO_NUM_18
 
-#define Battery_CHRG_Pin GPIO_NUM_17
-#define Battery_STDBY_Pin GPIO_NUM_16
+#define PMIC_INT_Pin GPIO_NUM_11
 
-#define VBAT_Sensing_Pin GPIO_NUM_9
-#define VBUS_Sensing_Pin GPIO_NUM_10
+#define Matrix_Mod_GPIO_Pin GPIO_NUM_37
 
-#define Matrix_Mod_GPIO_Pin GPIO_NUM_14
+#define I2C_SDA_Pin GPIO_NUM_46
+#define I2C_SCL_Pin GPIO_NUM_45
 
 inline gpio_num_t keypad_write_pins[] = {
     Key1_Pin,

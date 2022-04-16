@@ -11,9 +11,14 @@ namespace MatrixOS::KEYPAD
     StaticTimer_t keypad_tmdef;
     TimerHandle_t keypad_tm;
 
+    void KeypadTimerHandler()
+    {
+        Scan();
+    }
+
     void Init()
     {
-        keypad_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_tmdef);
+        keypad_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(KeypadTimerHandler), &keypad_tmdef);
         xTimerStart(keypad_tm, 0);
     }
 
