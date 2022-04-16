@@ -4,8 +4,6 @@
 #include "applications/Applications.h"
 #include "System.h"
 
-// std::map<uint32_t, Application_Info*> applications;
-
 namespace MatrixOS::SYS
 {   
     void ApplicationFactory(void* param)
@@ -220,11 +218,6 @@ namespace MatrixOS::SYS
         MatrixOS::Logging::LogDebug("System", "Lowest Level Selected");
         MatrixOS::SYS::SetVariable("brightness", Device::brightness_level[0]);
     }
-
-    // void RegisterActiveApp(Application* application)
-    // {
-    //     SysVar::active_app = application;
-    // }
 
     uint32_t GenerateAPPID(string author, string app_name)
     {

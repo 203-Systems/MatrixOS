@@ -1,8 +1,8 @@
 #pragma once
-// #ifdef GRID_8x8
 
 #include "MatrixOS.h"
 #include "applications/Application.h"
+#include "framework/UI.h"
 
 #define APPLICATION_NAME "Performance Mode"
 #define APPLICATION_AUTHOR "203 Electronics"
