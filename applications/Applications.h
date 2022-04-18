@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Shell/Shell.h"
-#include "Performance/Performance.h"
-// #include "TestApp/TestApp.h"
-// #include "NVSTest/NVSTest.h"
-#include "REDACTED/REDACTED.h"
-// #include "WirelessRepeater/WirelessRepeater.h"
+#include "SystemApplications.h"
+
+#ifdef DEVICE_APPLICATIONS
+#include "DeviceApplications.h" // This file is inside device folder to load specific applications design for each device
+#endif
+
+#include "UserApplications.h"
