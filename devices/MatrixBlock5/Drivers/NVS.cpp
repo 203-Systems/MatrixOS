@@ -79,7 +79,7 @@ namespace Device::NVS
 	std::vector<char> Read(std::string name)
 	{
 		// MatrixOS::USB::CDC::Println("Reading Key");
-		uint32_t hash = fnv1a_hash(name.c_str());
+		uint32_t hash = FNV1aHash(name.c_str());
 		uint16_t virtual_address = FindKey(hash);
 		if (virtual_address == 0xFFFF) return std::vector<char>(0);
 		HashKey* hashKey = GetKey(virtual_address);
@@ -96,7 +96,7 @@ namespace Device::NVS
 		// MatrixOS::USB::CDC::Println("Write");
 		//printf("NVS Write event - Key: %s, value %s, pointer %p, length %u\n", name.c_str(), (char*)pointer, pointer, length);
 		// Iterate through the Table section to find matching key 
-		uint32_t hash = fnv1a_hash(name.c_str());
+		uint32_t hash = FNV1aHash(name.c_str());
 		return WriteKey(hash, pointer, length);
 	}
 

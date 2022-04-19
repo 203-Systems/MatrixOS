@@ -40,6 +40,18 @@ namespace Device
     namespace KeyPad
     {
         void Init();
+
+        inline KeyInfo fnState;
+
+        void USB_Init();
+
+        void FNScan();
+        void KeyPadScan();
+        void TouchBarScan();
+
+        bool addToList(uint16_t keyID); //Return true when list is full. 
+        void clearList();
+        bool isListFull();
     }
     
     namespace TouchBar

@@ -1,5 +1,4 @@
-#ifndef __MATRIXOS_H
-#define __MATRIXOS_H
+#pragma once
 
 #include "Device.h"
 #include "system/Parameters.h"
@@ -17,11 +16,14 @@
 #define noexpose //Custum keyword to remove function to be generated as exposed API
 
 class Application;
+class Application_Info;
 
 //Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
-  inline uint32_t API_version = 0;
+  inline uint32_t api_version = 0;
+  inline Application* active_app = NULL;
+
   namespace SYS
   {
     inline bool inited = false;
@@ -42,9 +44,10 @@ namespace MatrixOS
     void Rotate(EDirection rotation, bool absolute = false);
     void NextBrightness();
     
-    void RegisterActiveApp(Application* application);
-
-    int Execute(uint32_t addr);
+    void ExecuteAPP(string author, string app_name);
+    void ExitAPP();
+    
+    // int Execute(uint32_t addr);
 
     void ErrorHandler(string error = NULL);
   }
@@ -196,5 +199,3 @@ namespace MatrixOS
   //     void Write(uint8_t);
   //   }
 }
-
-#endif

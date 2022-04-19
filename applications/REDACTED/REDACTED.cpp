@@ -11,7 +11,7 @@ void REDACTED::Setup()
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
 
-  MatrixOS::SYS::DelayMs(2000);
+  // MatrixOS::SYS::DelayMs(2000);
   redactedTimer.RecordCurrent();
   redactedTimer2.RecordCurrent();
 }

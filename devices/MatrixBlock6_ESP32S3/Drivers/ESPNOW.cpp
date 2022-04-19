@@ -201,6 +201,7 @@ namespace Device
             uint8_t mac_packet[7] = {0xF4};
             esp_read_mac(&mac_packet[1], ESP_MAC_WIFI_STA);
             esp_err_t status = esp_now_send(broadcast_mac, mac_packet, 7);
+            (void)status; //So status no longer unused
         }
 
         void UpdatePeer(const uint8_t* new_mac)

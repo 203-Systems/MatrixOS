@@ -1,19 +1,20 @@
 #include "Application.h"
 
-void Application::Start()
+void Application::Start(void* args)
 {
+    this->args = args;
     Setup();
-    while(status != -1)
+    while(true)
     {
         LoopTask();
         Loop();
     }
-    End();
 }
 
 void Application::Exit()
 {
-    status = -1;
+    End();
+    MatrixOS::SYS::ExitAPP();
 }
 
 void Application::LoopTask()

@@ -1,18 +1,67 @@
 #include "MatrixOS.h"
 #include "applications/Setting/Setting.h"
 #include "applications/BootAnimations/BootAnimations.h"
+#include "applications/Applications.h"
+#include "System.h"
 
 namespace MatrixOS::SYS
 {   
-    void LoadVariables();
-    void SaveVariables();
-
-    string logTag = logTag;
-
-    StaticTimer_t device_task_tmdef;
-    TimerHandle_t device_task_tm;
-    void Init()
+    void ApplicationFactory(void* param)
     {
+        MatrixOS::Logging::LogDebug("Application Factory", "App ID %X", active_app_id);
+
+        active_app = NULL;
+
+        if(active_app_id != 0)
+        {
+            for(uint8_t i = 0; i < app_count; i++) //I don't like the for loop but tbh there's nothing wrong with it.
+            { 
+                Application_Info* application = applications[i];
+                if(application->id == active_app_id)
+                {
+                    MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->author.c_str(), application->name.c_str());
+                    active_app = application->factory();
+                    break;
+                }
+            }
+        }
+        
+        if(active_app == NULL) //Default to launch shell
+        {   
+            if(active_app_id != 0)
+                MatrixOS::Logging::LogDebug("Application Factory", "Can't find target app.");
+            MatrixOS::Logging::LogDebug("Application Factory", "Launching Shell");
+            active_app = new Shell();
+        }
+
+        active_app_id = 0; //Reset active_app_id so when active app exits it will default to shell again.
+        active_app->Start();
+    }
+    
+    void Supervisor(void* param)
+    {
+
+        MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", app_count);
+       
+        for(uint8_t i = 0; i < app_count; i++)
+        {
+            Application_Info* application = applications[i];
+            MatrixOS::Logging::LogDebug("Supervisor", "%X\t%s-%s v%u", application->id, application->author.c_str(), application->name.c_str(), application->version);
+        }
+
+        active_app_task = xTaskCreateStatic(ApplicationFactory,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+        while(true)
+        {
+            if(eTaskGetState(active_app_task) == eTaskState::eDeleted)
+            {
+                active_app_task = xTaskCreateStatic(ApplicationFactory,"application",  APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+            }
+            DelayMs(100);
+        }
+    }
+
+    void Init()
+    {   
         Device::DeviceInit();
         LoadVariables();
 
@@ -20,26 +69,24 @@ namespace MatrixOS::SYS
         KEYPAD::Init();
         LED::Init();
 
-        // uint32_t brightness = 64;
-        // bool r = Device::NVS::Write("U_brightness", &brightness, 4);
-        // ESP_LOGI("Init", "Write Status %d", r);
-        // vector<char> read = Device::NVS::Read("U_rotation");
-        // ESP_LOGI("Init", "%s : %d : %d", "U_rotation", read.size(), *(uint32_t*)read.data());
-        
-        // (void) xTaskCreateStatic(SystemTask, "system task", SYS_TASK_STACK_SIZE, NULL, configMAX_PRIORITIES-1, system_task_stack, &system_taskdef);
-        
-        // device_task_tm = xTimerCreateStatic(NULL, pdMS_TO_TICKS(1), true, NULL, Device::DeviceTask, &device_task_tmdef);
-        // xTimerStart(device_task_tm, 0);
-
         inited = true; 
-        // Logging::LogError(logTag, "This is an error log");
-        // Logging::LogWarning(logTag, "This is a warning log");
-        // Logging::LogInfo(logTag, "This is an info log");
-        // Logging::LogDebug(logTag, "This is a debug log");
-        // Logging::LogVerbose(logTag, "This is a verbose log");
-        MatrixBoot().Start();
+
+        Logging::LogInfo("System", "Matrix OS initialization complete");
+
+        Logging::LogError("Logging", "This is an error log");
+        Logging::LogWarning("Logging", "This is a warning log");
+        Logging::LogInfo("Logging", "This is an info log");
+        Logging::LogDebug("Logging", "This is a debug log");
+        Logging::LogVerbose("Logging", "This is a verbose log");
+
+        MatrixBoot().Start(); //TODO Boot Animation Manager
+        LED::Fill(0);
+        LED::Update();
+
+        ExecuteAPP(active_app_id);
+        (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
     }
-    
+
     uint32_t Millis() 
     {
         return ((((uint64_t) xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ );
@@ -125,8 +172,8 @@ namespace MatrixOS::SYS
     int8_t SetVariable(string variable, uint32_t value)
     {   
         //Save Variable
-        MatrixOS::Logging::LogDebug(logTag, "Set Variable [%s, %d]", variable, value);
-        // MatrixOS::Logging::LogDebug(logTag, "Set Variable");
+        MatrixOS::Logging::LogDebug("System", "Set Variable [%s, %d]", variable, value);
+        // MatrixOS::Logging::LogDebug("System", "Set Variable");
         if(userVar.find(variable) != userVar.end()) //Check User Variables First
         {   
             userVar[variable] = value;
@@ -150,39 +197,67 @@ namespace MatrixOS::SYS
 
     void NextBrightness()
     {
-        // ESP_LOGI(logTag.c_str(), "Next Brightness");
-        MatrixOS::Logging::LogDebug(logTag, "Next Brightness");
+        // ESP_LOGI("System".c_str(), "Next Brightness");
+        MatrixOS::Logging::LogDebug("System", "Next Brightness");
         uint8_t current_brightness = (uint8_t)GetVariable("brightness");
-        // ESP_LOGI(logTag.c_str(), "Current Brightness %d", current_brightness);
-        MatrixOS::Logging::LogDebug(logTag, "Current Brightness %d", current_brightness);
+        // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
+        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", current_brightness);
         for (uint8_t brightness: Device::brightness_level)
         {
-            // ESP_LOGI(logTag.c_str(), "Check Brightness Level  %d", brightness);
-            MatrixOS::Logging::LogDebug(logTag, "Check Brightness Level  %d", brightness);
+            // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
+            MatrixOS::Logging::LogDebug("System", "Check Brightness Level  %d", brightness);
             if (brightness > current_brightness)
             {
-                // ESP_LOGI(logTag.c_str(), "Brightness Level Selected");
-                MatrixOS::Logging::LogDebug(logTag, "Brightness Level Selected");
+                // ESP_LOGI("System".c_str(), "Brightness Level Selected");
+                MatrixOS::Logging::LogDebug("System", "Brightness Level Selected");
                 MatrixOS::SYS::SetVariable("brightness", brightness);
                 return;
             }
         }
-        // ESP_LOGI(logTag.c_str(), "Lowest Level Selected");
-        MatrixOS::Logging::LogDebug(logTag, "Lowest Level Selected");
+        // ESP_LOGI("System".c_str(), "Lowest Level Selected");
+        MatrixOS::Logging::LogDebug("System", "Lowest Level Selected");
         MatrixOS::SYS::SetVariable("brightness", Device::brightness_level[0]);
     }
 
-    // void RegisterActiveApp(Application* application)
-    // {
-    //     SysVar::active_app = application;
-    // }
+    uint32_t GenerateAPPID(string author, string app_name)
+    {
+        // uint32_t app_id = Hash(author + "-" + app_name);
+        // Logging::LogInfo("System", "APP ID: %u", app_id);
+        return Hash(author + "-" + app_name);;
+    }
+
+    void ExecuteAPP(uint32_t app_id)
+    {
+        // Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
+        active_app_id = app_id;
+        LED::Fill(0);
+        LED::Update();
+        if(active_app_task != NULL)
+        {
+            vTaskDelete(active_app_task);
+            free(active_app);
+            active_app = NULL;
+        }
+    }
+
+    void ExecuteAPP(string author, string app_name)
+    {
+        Logging::LogInfo("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
+        ExecuteAPP(GenerateAPPID(author, app_name));
+    }
+
+    void ExitAPP()
+    {
+        ExecuteAPP(0);
+    }
+
 
     void ErrorHandler(string error)
     {
         // Bootloader();
         if(error.empty())
             error = "Undefined Error";
-        Logging::LogError(logTag, "Matrix OS Error: %s", error);
+        Logging::LogError("System", "Matrix OS Error: %s", error);
 
         
         
@@ -212,5 +287,10 @@ namespace MatrixOS::SYS
         LED::Update();
 
         Device::ErrorHandler(); //Low level indicator in case LED and USB failed
+    }
+
+    uint16_t GetApplicationCount() //Used by shell, for some reason shell can not access app_count
+    {
+        return app_count;
     }
 }
