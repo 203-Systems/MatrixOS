@@ -43,7 +43,8 @@ namespace Device
 
         inline KeyInfo fnState;
 
-        void USB_Init();
+        void InitKeyPad();
+        void InitTouchBar();
 
         void FNScan();
         void KeyPadScan();
@@ -63,8 +64,6 @@ namespace Device
     {
         void Init();
     }
-
-
 
     namespace WIFI
     {

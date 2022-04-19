@@ -38,6 +38,7 @@ namespace Device
     // const Point grid_offset = Point(1,1);
 
     const uint8_t touchbar_size = 16; //Not required by the API, private use.
+    inline uint8_t touchbar_map[touchbar_size] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3}; //Touch number as index and touch location as value (Left touch down and then right touch down)
 
     namespace KeyPad
     {
@@ -46,7 +47,8 @@ namespace Device
         inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
 
-        void USB_Init();
+        void InitKeyPad();
+        void InitTouchBar();
 
         void FNScan();
         void KeyPadScan();
