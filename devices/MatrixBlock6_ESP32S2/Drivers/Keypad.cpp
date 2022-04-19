@@ -35,11 +35,11 @@ namespace Device::KeyPad
         for(uint8_t y = 0; y < y_size; y++)
         {
             gpio_set_direction(keypad_read_pins[y], GPIO_MODE_INPUT);
-            gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+            gpio_set_pull_mode(keypad_read_pins[y], GPIO_FLOATING);
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_13);
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_2_5,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0,  ADC_WIDTH_BIT_13, 0, &adc1_chars);
         #endif
 
     }
@@ -50,7 +50,7 @@ namespace Device::KeyPad
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        // if(!isListFull()) TouchBarScan();
+        if(!isListFull()) TouchBarScan();
 
         return changeList;
     }
@@ -111,11 +111,12 @@ namespace Device::KeyPad
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
-        for(uint8_t x = 0; x < Device::x_size; x ++)
+
+        for(uint8_t y = 0; y < Device::y_size; y ++)
         {
-            gpio_set_level(keypad_write_pins[x], 1);
-            for(uint8_t y = 0; y < Device::y_size; y ++)
+            for(uint8_t x = 0; x < Device::x_size; x ++)
             {
+                gpio_set_level(keypad_write_pins[x], 1);
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
@@ -149,19 +150,18 @@ namespace Device::KeyPad
                     // }
                 // }
                 #endif
+                gpio_set_level(keypad_write_pins[x], 0);
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
                 {
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
                     if(addToList(keyID))
                     {
-                        gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                         return; //List is full
                     }
                 }
+                // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
             }
-            gpio_set_level(keypad_write_pins[x], 0);
-            // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
         // int64_t time_taken =  esp_timer_get_time() - time;
         // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
@@ -195,7 +195,7 @@ namespace Device::KeyPad
     {
         if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
         {
-            return (1 << 12) + (xy.x << 7) + xy.y;
+            return (1 << 12) + (xy.x << 6) + xy.y;
         }
         // else if(xy.x >= 0 && xy.x < 8 && xy.y == 8) //Touch Bar
         // {
@@ -211,7 +211,7 @@ namespace Device::KeyPad
     // Class 0 - System - IIIIIIIIIIII
     // Class 1 - Grid - XXXXXX YYYYYY
     // Class 2 - TouchBar - IIIIIIIIIIII
-    // Class 3 - Underglow - IIIIIIIIIIII
+    // Class 3 - Underglow - IIIIIIIIIIII (There isn't key input for underglow but just to match the ID with LED)
 
     Point ID2XY(uint16_t keyID)
     {
