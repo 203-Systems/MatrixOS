@@ -43,7 +43,8 @@ namespace Device
 
         inline KeyInfo fnState;
 
-        void USB_Init();
+        void InitKeyPad();
+        void InitTouchBar();
 
         void FNScan();
         void KeyPadScan();

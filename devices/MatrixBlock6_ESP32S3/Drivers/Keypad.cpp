@@ -9,16 +9,12 @@ namespace Device::KeyPad
 
     void Init()
     {
-        #if Key2_Pin == GPIO_NUM_26 //OOPS, used SPICS1 as keypad pin
-        gpio_config_t io_conf;
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_OUTPUT;
-        io_conf.pin_bit_mask = (1ULL<<GPIO_NUM_26);
-        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-	    gpio_config(&io_conf);
-        #endif
-        
+        InitKeyPad();
+        InitTouchBar();
+    }
+
+    void InitKeyPad()
+    {        
         #ifdef FN_PIN_ACTIVE_LOW //Active Low
         gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
         #else //Active High
@@ -39,7 +35,7 @@ namespace Device::KeyPad
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_12);
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_2_5,  ADC_WIDTH_BIT_12, 0, &adc1_chars);
+        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0,  ADC_WIDTH_BIT_12, 0, &adc1_chars);
         #endif
 
     }
@@ -50,7 +46,7 @@ namespace Device::KeyPad
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        // if(!isListFull()) TouchBarScan();
+        if(!isListFull()) TouchBarScan();
 
         return changeList;
     }
@@ -63,7 +59,7 @@ namespace Device::KeyPad
     }
 
     KeyInfo GetKey(uint16_t keyID)
-    {  
+    {
         uint8_t keyClass = keyID >> 12;
         switch(keyClass)
         {   
@@ -87,6 +83,7 @@ namespace Device::KeyPad
             case 2: //Touch Bar
             {
                 uint16_t index = keyID & (0b0000111111111111);
+                MatrixOS::Logging::LogDebug("Keypad", "Read Touch %d", index);
                 if(index < touchbar_size) return touchbarState[index];
                 break;
             }
@@ -111,11 +108,11 @@ namespace Device::KeyPad
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
-        for(uint8_t x = 0; x < Device::x_size; x ++)
+        for(uint8_t y = 0; y < Device::y_size; y ++)
         {
-            gpio_set_level(keypad_write_pins[x], 1);
-            for(uint8_t y = 0; y < Device::y_size; y ++)
+            for(uint8_t x = 0; x < Device::x_size; x ++)
             {
+                gpio_set_level(keypad_write_pins[x], 1);
                 #ifndef  FSR_KEYPAD
                 Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
                 #else
@@ -149,27 +146,21 @@ namespace Device::KeyPad
                     // }
                 // }
                 #endif
+                gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
                 {
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
                     if(addToList(keyID))
                     {
-                        gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                         return; //List is full
                     }
                 }
             }
-            gpio_set_level(keypad_write_pins[x], 0);
             // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
         }
         // int64_t time_taken =  esp_timer_get_time() - time;
         // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
-    }
-
-    void TouchBarScan()
-    {
-        
     }
 
     bool addToList(uint16_t keyID)
@@ -197,10 +188,10 @@ namespace Device::KeyPad
         {
             return (1 << 12) + (xy.x << 7) + xy.y;
         }
-        // else if(xy.x >= 0 && xy.x < 8 && xy.y == 8) //Touch Bar
-        // {
-        //     return (2 << 12) + xy.x;
-        // }
+        else if((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8)) //Touch Bar
+        {
+             return (2 << 12) + xy.y + (xy.x == 8) * 8;
+        }
         return UINT16_MAX;
     }
 
@@ -228,7 +219,17 @@ namespace Device::KeyPad
             case 2: //TouchBar
             {
                 uint16_t index = keyID & (0b0000111111111111);
-                if(index < Device::touchbar_size) return Point(Device::y_size, index);
+                if(index < Device::touchbar_size)
+                {
+                    if(index / 8) //Right
+                    {
+                        return Point(Device::x_size, index % 8);
+                    }
+                    else //Left
+                    {
+                        return Point(0, index % 8);
+                    }
+                }
                 break;
             }
         }

@@ -41,7 +41,7 @@ namespace Device::KeyPad
         for(uint8_t y = 0; y < y_size; y++)
         {
             gpio_set_direction(keypad_read_pins[y], GPIO_MODE_INPUT);
-            gpio_set_pull_mode(keypad_read_pins[y], GPIO_FLOATING);
+            gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_13);
@@ -93,6 +93,7 @@ namespace Device::KeyPad
             case 2: //Touch Bar
             {
                 uint16_t index = keyID & (0b0000111111111111);
+                MatrixOS::Logging::LogDebug("Keypad", "Read Touch %d", index);
                 if(index < touchbar_size) return touchbarState[index];
                 break;
             }
@@ -198,10 +199,10 @@ namespace Device::KeyPad
         {
             return (1 << 12) + (xy.x << 6) + xy.y;
         }
-        // else if(xy.x >= 0 && xy.x < 8 && xy.y == 8) //Touch Bar
-        // {
-        //     return (2 << 12) + xy.x;
-        // }
+        else if((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8)) //Touch Bar
+        {
+             return (2 << 12) + xy.y + (xy.x == 8) * 8;
+        }
         return UINT16_MAX;
     }
 
@@ -229,7 +230,17 @@ namespace Device::KeyPad
             case 2: //TouchBar
             {
                 uint16_t index = keyID & (0b0000111111111111);
-                if(index < Device::touchbar_size) return Point(Device::y_size, index);
+                if(index < Device::touchbar_size)
+                {
+                    if(index / 8) //Right
+                    {
+                        return Point(Device::x_size, index % 8);
+                    }
+                    else //Left
+                    {
+                        return Point(0, index % 8);
+                    }
+                }
                 break;
             }
         }

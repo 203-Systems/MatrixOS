@@ -24,17 +24,18 @@ namespace Device
 
 
     const uint16_t numsOfLED = 64 + 32;
+    inline uint16_t keypad_scanrate = 60;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 16; //Not required by the API, private use.
-
-    inline uint16_t keypad_scanrate = 60;
+    inline uint8_t touchbar_map[touchbar_size] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3}; //Touch number as index and touch location as value (Left touch down and then right touch down)
 
     namespace KeyPad
     {
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
+        
     }
 
     //LED
