@@ -65,8 +65,6 @@ namespace Device
         void Init();
     }
 
-
-
     namespace WIFI
     {
         void Init();

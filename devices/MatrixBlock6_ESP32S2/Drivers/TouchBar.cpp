@@ -22,10 +22,11 @@ namespace Device::KeyPad
 
             gpio_set_level(TouchClock_Pin, 0);
 
-            bool updated = touchbarState[i].update(reading);
+            uint8_t key_id = touchbar_map[i];
+            bool updated = touchbarState[key_id].update(reading);
             if(updated)
             {
-                uint16_t keyID = (2 << 12) + touchbar_map[i];
+                uint16_t keyID = (2 << 12) + key_id;
                 if(addToList(keyID))
                 {
                     return; //List is full
