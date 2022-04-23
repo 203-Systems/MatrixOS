@@ -22,10 +22,13 @@ namespace MatrixOS::KEYPAD
         xTimerStart(keypad_tm, 0);
     }
 
-    uint16_t Scan(void)
+    uint16_t Scan(bool force)
     {   
-        if(Available()) //Not all cache has been read yet
+        if(force)
+            Clear();
+        else if(Available()) //Not all cache has been read yet
             return Available();
+
         // USB::CDC::Println("KeyPad Scan");
         if (changelist)
         {

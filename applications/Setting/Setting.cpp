@@ -29,6 +29,8 @@ void Setting::Setup()
     AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
 
     // Device::Setting::Setup();
+
+    AddUIElement(UIElement("Test", Color(0xFFFFFF), []() -> void {MatrixOS::UIComponent::TextScroll("Hello World", Color(0xFFFFFF));}), Point(Device::x_size - 2, Device::y_size - 1));
 }
 
 

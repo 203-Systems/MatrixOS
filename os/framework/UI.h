@@ -32,7 +32,13 @@ struct UIElement
     void HoldCallback()
     {
         if(hold_callback)
+        {
             hold_callback();
+        }
+        else
+        {
+            MatrixOS::UIComponent::TextScroll(name, color);
+        }
     }
 };
 

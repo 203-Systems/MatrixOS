@@ -9,7 +9,6 @@ UI::UI(string name, Color color)
 //TODO, make new led layer
 void UI::Start()
 {
-    // MatrixOS::LED::PauseAutoUpdate();
     Setup();
     while(status != -1)
     {   
@@ -20,8 +19,6 @@ void UI::Start()
     }
     End();
     MatrixOS::LED::Fill(0);
-    // MatrixOS::LED::Update();
-    // MatrixOS::LED::StartAutoUpdate();
 }
 
 void UI::Exit()
@@ -82,22 +79,15 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     if(xy && uiElementsMap.count(xy)) //Key Found
     {   
         MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", xy.x, xy.y);
-        if(keyInfo.state == RELEASED)
+        if(keyInfo.state == RELEASED && keyInfo.hold == false) 
         {
             uiElementsMap[xy]->Callback();
             return;
         }
         else if(keyInfo.state == HOLD)
         {
-            if(uiElementsMap[xy]->hold_callback == NULL)
-            {
-                //TextScroll;
-            }
-            else
-            {
-              uiElementsMap[xy]->HoldCallback();
-              return;
-            }
+            uiElementsMap[xy]->HoldCallback();
+            return;
         }
     }
     else

@@ -79,7 +79,7 @@ namespace MatrixOS
     // extern void (*handler)(uint16_t);
     // void SetHandler(void (*handler)(uint16_t));
 
-    uint16_t Scan(void); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
+    uint16_t Scan(bool force = false); //Return # of changed key, fetch changelist manually or pass in a callback as parameter
     uint16_t Available();
     uint16_t Get();
     KeyInfo GetKey(Point keyXY);
@@ -198,4 +198,15 @@ namespace MatrixOS
   //     uint8_t Read(void);
   //     void Write(uint8_t);
   //   }
+
+  namespace UIComponent
+  {
+    void TextScroll(string ascii, Color color, uint16_t speed = 10, bool loop = false);
+    void RenderAsciiChar(char ascii, Point xy, Color color);
+    void RenderHalfHeightNum(uint16_t num, Point xy, Color color);
+    // void RenderHalfHeightDigit(uint8_t num, Point xy, Color color);
+    uint8_t Input8bit(uint8_t currentNum, Point xy, Color color);
+    uint8_t Input8bitBinary(uint8_t currentNum, Point xy, Color color);
+    uint8_t Input8bitSimple(uint8_t currentNum, Point xy, Color color);
+  }
 }
