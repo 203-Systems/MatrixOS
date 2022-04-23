@@ -12,9 +12,9 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
-#define APPLICATION_CLASS ExampleApp
+#define APPLICATION_CLASS ExampleAPP
 
-class ExampleApp : public Application
+class ExampleAPP : public Application
 {   
     public:
     void Setup() override;

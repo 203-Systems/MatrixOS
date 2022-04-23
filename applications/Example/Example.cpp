@@ -1,12 +1,12 @@
 #include "Example.h"
 
-void FactoryTest::Setup()
+void ExampleAPP::Setup()
 {
     
 }
 
 
-void FactoryTest::Loop()
+void ExampleAPP::Loop()
 {
    
 }
