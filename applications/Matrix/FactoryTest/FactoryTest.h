@@ -16,7 +16,7 @@ class FactoryTest : public Application
     void Setup() override;
     void Loop() override;
 
-    uint8_t current_test = 0;
+    uint8_t current_test = 2;
     
     uint32_t led_counter = 0;
     const Color colors[8] = {Color(0xFFFFFF), Color(0xFF0000), Color(0xFFFF00), Color(0x00FF00), Color(0x00FFFF), Color(0x0000FF), Color(0xFF00FF), Color(0x000000)};

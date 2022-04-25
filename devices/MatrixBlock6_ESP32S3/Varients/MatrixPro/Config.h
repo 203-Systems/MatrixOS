@@ -47,6 +47,8 @@ namespace Device
 }
 
 #define FN_Pin GPIO_NUM_16
+// #define FN_Pin GPIO_NUM_42 //FN got stuck on prototype so remapped
+
 #define LED_Pin GPIO_NUM_38
 
 #define Key1_Pin GPIO_NUM_21
@@ -64,7 +66,7 @@ namespace Device
 #define KeyRead4_Pin GPIO_NUM_5
 #define KeyRead5_Pin GPIO_NUM_7
 #define KeyRead6_Pin GPIO_NUM_8
-#define KeyRead7_Pin GPIO_NUM_0
+#define KeyRead7_Pin GPIO_NUM_9
 #define KeyRead8_Pin GPIO_NUM_10
 
 #define FSR_KEYPAD

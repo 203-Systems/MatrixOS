@@ -25,6 +25,7 @@
 #include "framework/Color.h"
 
 #define FUNCTION_KEY 0 //Keypad Code for main function key
+#define DEVICE_APPLICATIONS
 
 namespace Device
 {   

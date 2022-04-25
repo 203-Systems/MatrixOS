@@ -64,7 +64,7 @@ void FactoryTest::TouchBarTest()
     for(uint8_t i = 0; i < 8; i++)
     {
         Point xy = Point(-1, i);
-        Point led_xy = Point(0, i);
+        Point led_xy = Point(i, 0);
         uint8_t tested_index = i;
 
         KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(xy);
@@ -77,7 +77,7 @@ void FactoryTest::TouchBarTest()
     for(uint8_t i = 0; i < 8; i++)
     {
         Point xy = Point(8, i);
-        Point led_xy = Point(7, i);
+        Point led_xy = Point(i, 1);
         uint8_t tested_index = i + 8;
 
         KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(xy);
