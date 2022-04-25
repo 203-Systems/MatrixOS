@@ -25,10 +25,10 @@ namespace Device::KeyPad
 	    gpio_config(&io_conf);
         #endif
         
-        #ifdef FN_PIN_ACTIVE_LOW //Active Low
-        gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
-        #else //Active High
+        #ifdef FN_PIN_ACTIVE_HIGH //Active Low
         gpio_set_pull_mode(FN_Pin, GPIO_PULLDOWN_ONLY);
+        #else //Active Low
+        gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
         #endif
 
         for(uint8_t x = 0; x < x_size; x++)
@@ -104,7 +104,7 @@ namespace Device::KeyPad
     void FNScan()
     {   
         Fract16 read = gpio_get_level(FN_Pin) * UINT16_MAX;
-        #ifdef FN_PIN_ACTIVE_LOW
+        #ifndef FN_PIN_ACTIVE_HIGH
         read = UINT16_MAX - (uint16_t)read;
         #endif
         if(fnState.update(read))

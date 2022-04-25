@@ -14,29 +14,52 @@ namespace Device::KeyPad
     }
 
     void InitKeyPad()
-    {        
-        #ifdef FN_PIN_ACTIVE_LOW //Active Low
-        gpio_set_pull_mode(FN_Pin, GPIO_PULLUP_ONLY);
-        #else //Active High
-        gpio_set_pull_mode(FN_Pin, GPIO_PULLDOWN_ONLY);
-        #endif
+        {        
+        gpio_config_t io_conf;
 
-        for(uint8_t x = 0; x < x_size; x++)
-        {
-            gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
-            gpio_set_level(keypad_write_pins[x], 0);
-        }
+        //Config FN
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_INPUT;
+        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+        io_conf.pin_bit_mask = (1ULL<<FN_Pin);
+        #ifdef FN_PIN_ACTIVE_HIGH //Active HIGH
+        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        #else //Active Low
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+        #endif
+        gpio_config(&io_conf);
+
+        //Config Matrix Input
 
         #ifndef  FSR_KEYPAD
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_INPUT;
+        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
         for(uint8_t y = 0; y < y_size; y++)
         {
-            gpio_set_direction(keypad_read_pins[y], GPIO_MODE_INPUT);
+            io_conf.pin_bit_mask = (1ULL<<keypad_read_pins[y]);
+            gpio_config(&io_conf);
             gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
         }
         #else
         adc1_config_width(ADC_WIDTH_BIT_12);
         esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0,  ADC_WIDTH_BIT_12, 0, &adc1_chars);
         #endif
+
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_OUTPUT;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            io_conf.pin_bit_mask = (1ULL<<keypad_write_pins[x]);
+            gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
+            gpio_set_level(keypad_write_pins[x], 0);
+        }
 
     }
 
@@ -83,7 +106,7 @@ namespace Device::KeyPad
             case 2: //Touch Bar
             {
                 uint16_t index = keyID & (0b0000111111111111);
-                MatrixOS::Logging::LogDebug("Keypad", "Read Touch %d", index);
+                // MatrixOS::Logging::LogDebug("Keypad", "Read Touch %d", index);
                 if(index < touchbar_size) return touchbarState[index];
                 break;
             }
@@ -94,7 +117,8 @@ namespace Device::KeyPad
     void FNScan()
     {   
         Fract16 read = gpio_get_level(FN_Pin) * UINT16_MAX;
-        #ifdef FN_PIN_ACTIVE_LOW
+        ESP_LOGI("FN", "%d", gpio_get_level(FN_Pin));
+        #ifndef FN_PIN_ACTIVE_HIGH
         read = UINT16_MAX - (uint16_t)read;
         #endif
         if(fnState.update(read))

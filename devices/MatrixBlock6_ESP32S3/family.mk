@@ -2,7 +2,8 @@
 
 MCU = esp32s3
 UF2_FAMILY_ID = 0xc47e5767
-UF2_MODEL = 203 Matrix Block 6 Prototype 2
+
+include $(FAMILY_PATH)/Varients/$(DEVICE)/Device.mk
 
 .PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
