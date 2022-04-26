@@ -14,7 +14,7 @@ namespace Device::KeyPad
     }
 
     void InitKeyPad()
-        {        
+    {        
         gpio_config_t io_conf;
 
         //Config FN
