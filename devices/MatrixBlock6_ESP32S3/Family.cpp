@@ -5,7 +5,7 @@ namespace Device
     void DeviceInit()
     {
         // esp_timer_early_init();
-
+        LoadDeviceInfo();
         USB::Init();
         LED::Init();
         KeyPad::Init();
@@ -13,6 +13,14 @@ namespace Device
         // WIFI::Init();
         // ESPNOW::Init();
         // ESPNOW::BroadcastMac();
+
+        // MatrixOS::Logging::LogDebug("Matrix", "Device Inited - Device Code: %s  Reversion %s Production Time %02d-%02d", deviceInfo.DeviceCode, deviceInfo.Revision, deviceInfo.ProductionYear, deviceInfo.ProductionMonth);
+    
+    }
+
+    void LoadDeviceInfo()
+    {
+        esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
     }
 
     // bool wdt_subscribed = false;

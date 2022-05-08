@@ -1,6 +1,9 @@
 //Define Device Keypad Function
 #include "Device.h"
 
+#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_2_5
+#define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
+
 namespace Device::KeyPad
 {
     #ifdef  FSR_KEYPAD
@@ -46,8 +49,12 @@ namespace Device::KeyPad
             gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
         }
         #else
-        adc1_config_width(ADC_WIDTH_BIT_12);
-        esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0,  ADC_WIDTH_BIT_12, 0, &adc1_chars);
+        adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
+        esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN,  FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+        for(uint8_t y = 0; y < y_size; y++)
+        {
+            adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN);
+        }
         #endif
 
         io_conf.intr_type = GPIO_INTR_DISABLE;
@@ -117,7 +124,7 @@ namespace Device::KeyPad
     void FNScan()
     {   
         Fract16 read = gpio_get_level(FN_Pin) * UINT16_MAX;
-        ESP_LOGI("FN", "%d", gpio_get_level(FN_Pin));
+        // ESP_LOGI("FN", "%d", gpio_get_level(FN_Pin));
         #ifndef FN_PIN_ACTIVE_HIGH
         read = UINT16_MAX - (uint16_t)read;
         #endif
@@ -129,6 +136,7 @@ namespace Device::KeyPad
 
     uint16_t low_threshold = 512;
     uint16_t high_threshold = 3584;
+    bool key1_read = false;
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
@@ -149,25 +157,32 @@ namespace Device::KeyPad
                     {
                         read = 0;
                     }
-                    else if(raw_voltage > high_threshold)
+                    else if(raw_voltage >= high_threshold)
                     {
-                        read = 65535;
+                        read = UINT16_MAX;
                     }
                     else
                     {
-                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * 65535;
+                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * UINT16_MAX;
                         // printf("curved ");
                     }
                     // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
-
-                    // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                    // uint32_t pad_r = (3300 - voltage) * 510 / voltage;
-                    // printf("%d\t%d\t%d ohm\n", (uint16_t)read, raw_voltage, pad_r);
-                    // if(read)
-                    // {
-                    //     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                    //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                    // }
+                    
+                    if(x == 0 && y == 0)
+                    {
+                        if(raw_voltage > low_threshold)
+                            key1_read = true;
+                        if(key1_read)
+                        {
+                            uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                            uint32_t pad_r = (3300 - voltage) * 510 / ((voltage == 0) ? 1 : voltage);
+                            MatrixOS::Logging::LogDebug("FSR", "%d-%f\t%d mv\t%d ohm\n", raw_voltage, (float)raw_voltage / 4095, voltage, pad_r);
+                            // if(read)
+                            // {
+                            //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                            // }
+                        }
+                    }
                 // }
                 #endif
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
@@ -210,7 +225,7 @@ namespace Device::KeyPad
     {
         if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
         {
-            return (1 << 12) + (xy.x << 7) + xy.y;
+            return (1 << 12) + (xy.x << 6) + xy.y;
         }
         else if((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8)) //Touch Bar
         {

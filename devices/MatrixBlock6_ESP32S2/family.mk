@@ -32,3 +32,6 @@ upload:
 	python tools/uf2/utils/uf2upload.py -f $(BUILD)/$(PROJECT)-$(DEVICE).uf2 -d "$(UF2_MODEL)" -l
 
 uf2-upload: $(BUILD)/$(PROJECT)-$(DEVICE).uf2 upload
+
+menuconfig:
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) menuconfig

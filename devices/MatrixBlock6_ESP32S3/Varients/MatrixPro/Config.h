@@ -12,9 +12,18 @@
 
 #include "Family.h"
 
+struct DeviceInfo
+{
+    char DeviceCode[4];
+    char Revision[4];
+    uint8_t ProductionYear;
+    uint8_t ProductionMonth;
+};
+
 namespace Device
 {
-    const string name = "Matrix pro";
+    inline DeviceInfo deviceInfo;
+    const string name = "Matrix Pro";
     const string model = "MX1P";
 
     const string manufaturer_name = "203 Electronics";
@@ -24,7 +33,7 @@ namespace Device
 
 
     const uint16_t numsOfLED = 64 + 32;
-    inline uint16_t keypad_scanrate = 60;
+    inline uint16_t keypad_scanrate = 120;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 16; //Not required by the API, private use.

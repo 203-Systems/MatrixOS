@@ -16,6 +16,8 @@
 #include "esp_task_wdt.h"
 #include "esp_rom_gpio.h"
 #include "esp_log.h"
+#include "esp_efuse.h"
+#include "esp_efuse_table.h"
 
 #include "nvs_flash.h"
 
@@ -29,6 +31,8 @@
 
 namespace Device
 {   
+    void LoadDeviceInfo();
+
     namespace USB
     {
         void Init();

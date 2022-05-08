@@ -63,7 +63,7 @@ namespace Device
         // CCCC IIIIIIIIIIII
         // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 1 (grid), it's spilted to XXXXXXX YYYYYYY.
         // Class List:
-        // Class 0 - System - IIIIIIIIIIII
+        // Class 0 - Raw Index - IIIIIIIIIIII
         // Class 1 - Grid - XXXXXX YYYYYY
         // Class 2 - TouchBar - IIIIIIIIIIII
         // Class 3 - Underglow - IIIIIIIIIIII
@@ -73,12 +73,9 @@ namespace Device
             uint8_t ledClass = ledID >> 12;
             switch(ledClass)
             {
-                case 1: //Main Grid
-                {
-                    uint16_t index = ledID & (0b0000111111111111);
-                    if(index < 64) return index;
+                case 0:
+                    if (ledID < numsOfLED) return ledID;
                     break;
-                }
                 case 3: //Underglow
                     break;//TODO: Underglow
             }
