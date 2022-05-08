@@ -19,6 +19,7 @@ void Shell::AddCommonBarInUI(UI* ui)
 {
     ui->AddUIElement(UIElement("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
     ui->AddUIElement(UIElement("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    ui->AddFuncKeyHold([&]() -> void {});
 }
     
 namespace MatrixOS::SYS{void ExecuteAPP(uint32_t app_id); uint16_t GetApplicationCount();} //Use non exposed Matrix OS API
