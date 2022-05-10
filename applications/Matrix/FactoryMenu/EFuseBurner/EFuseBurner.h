@@ -6,14 +6,14 @@
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
 
-#define APPLICATION_NAME "Matrix EFuse Burnner"
+#define APPLICATION_NAME "Matrix EFuse Burner"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
-#define APPLICATION_CLASS EFuseBurnner
+#define APPLICATION_CLASS EFuseBurner
+#define APPLICATION_VISIBLITY false
 
-//I know this is very wasteful to memory but it is just a factory test so who gives a fuck
-class EFuseBurnner : public Application
+class EFuseBurner : public Application
 {   
     public:
     void Setup() override;

@@ -8,6 +8,7 @@
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS FactoryTest
+#define APPLICATION_VISIBLITY false
 
 //I know this is very wasteful to memory but it is just a factory test so who gives a fuck
 class FactoryTest : public Application

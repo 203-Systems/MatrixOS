@@ -1,10 +1,10 @@
-#include "EFuseBurnner.h"
+#include "EFuseBurner.h"
 
-void EFuseBurnner::Setup()
+void EFuseBurner::Setup()
 {
     if(esp_efuse_block_is_empty(EFUSE_BLK3))
     {
-        UI efuseConfirm("eFuseConfirmation", Color(0xFFFFFF));
+        UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
 
         efuseConfirm.AddUIElement(UIElement("Confirm", 
                                         Color(0x00FF00), 
@@ -38,7 +38,7 @@ void EFuseBurnner::Setup()
     }
 }
 
-void EFuseBurnner::BurnEFuse()
+void EFuseBurner::BurnEFuse()
 {
     MatrixOS::Logging::LogDebug("BurnEFuse", "Burning EFuse");
     MatrixOS::Logging::LogDebug("BurnEFuse", "Coding: %d", (int)esp_efuse_get_coding_scheme(EFUSE_BLK3));
