@@ -20,17 +20,11 @@ void Setting::Setup()
     //Device Control
     AddUIElement(UIElement("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, Device::y_size - 1));
     AddUIElement(UIElement("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, Device::y_size - 2));
-    AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {}), Point(1, Device::y_size - 1));
-    AddUIElement(UIElement("Device Bootloader Version", Color(0x00FF30), []() -> void {}), Point(2, Device::y_size - 1));
-    AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {}), Point(3, Device::y_size - 1));
+    AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
+    AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
 
 
     // AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
     AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
-
-    // Device::Setting::Setup();
-
-    AddUIElement(UIElement("Test", Color(0xFFFFFF), []() -> void {MatrixOS::UIComponent::TextScroll("Hello World", Color(0xFFFFFF));}), Point(Device::x_size - 2, Device::y_size - 1));
 }
-
 
