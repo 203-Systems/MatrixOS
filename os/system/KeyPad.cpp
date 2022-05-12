@@ -25,7 +25,7 @@ namespace MatrixOS::KEYPAD
     uint16_t Scan(bool force)
     {   
         if(force)
-            Clear();
+            ClearList();
         else if(Available()) //Not all cache has been read yet
             return Available();
 
@@ -92,6 +92,12 @@ namespace MatrixOS::KEYPAD
     }
 
     void Clear()
+    {
+        Device::KeyPad::Clear();
+        ClearList();
+    }
+
+    void ClearList()
     {
         read = 0;
         changed = 0;

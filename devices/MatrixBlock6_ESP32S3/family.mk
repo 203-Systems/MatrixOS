@@ -14,6 +14,7 @@ build: all
 
 clean:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) clean
+	
 
 # fullclean:
 # 	if exist build rmdir build /S /Q

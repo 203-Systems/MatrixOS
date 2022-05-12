@@ -1,7 +1,7 @@
 //Define Device Keypad Function
 #include "Device.h"
 
-#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_2_5
+#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_11
 #define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
 
 namespace Device::KeyPad
@@ -79,6 +79,24 @@ namespace Device::KeyPad
         if(!isListFull()) TouchBarScan();
 
         return changeList;
+    }
+
+    void Clear()
+    {
+        fnState.Clear();
+
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            for(uint8_t y = 0; y < y_size; y++)
+            {
+                keypadState[x][y].Clear();
+            }
+        }
+
+        for(uint8_t i = 0; i < touchbar_size; i++)
+        {
+            touchbarState[i].Clear();
+        }
     }
 
     KeyInfo GetKey(Point keyXY)
@@ -168,27 +186,26 @@ namespace Device::KeyPad
                     }
                     // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
                     
-                    if(x == 0 && y == 0)
-                    {
-                        if(raw_voltage > low_threshold)
-                            key1_read = true;
-                        if(key1_read)
-                        {
-                            uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                            uint32_t pad_r = (3300 - voltage) * 510 / ((voltage == 0) ? 1 : voltage);
-                            MatrixOS::Logging::LogDebug("FSR", "%d-%f\t%d mv\t%d ohm\n", raw_voltage, (float)raw_voltage / 4095, voltage, pad_r);
-                            // if(read)
-                            // {
-                            //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                            // }
-                        }
-                    }
+                    //Debug Info
+                    // if(x == 0)
+                    // {
+                        // if(raw_voltage > low_threshold)
+                        // {
+                        //     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                        //     uint32_t pad_r = (3300 - voltage) * 510 / ((voltage == 0) ? 1 : voltage);
+                        //     MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\t%d mv\t%d ohm\n", x, y, raw_voltage, (float)raw_voltage / 4095, voltage, pad_r);
+                        //     // if(read)
+                        //     // {
+                        //     //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
+                        //     // }
+                        // }
+                // }
                 // }
                 #endif
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
-                {
+                {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
                     if(addToList(keyID))
                     {

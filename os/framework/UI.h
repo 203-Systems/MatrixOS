@@ -22,24 +22,6 @@ struct UIElement
         this->callback = callback;
         this->hold_callback = hold_callback;
     }
-
-    void Callback()
-    {
-        if(callback)
-            callback();
-    }
-
-    void HoldCallback()
-    {
-        if(hold_callback)
-        {
-            hold_callback();
-        }
-        else
-        {
-            MatrixOS::UIComponent::TextScroll(name, color);
-        }
-    }
 };
 
 class UI
@@ -48,7 +30,7 @@ class UI
         string name;
         Color nameColor;
         int8_t status = 0;
-
+        
         
         Timer uiTimer;
         uint16_t uiFps = 60;
@@ -64,6 +46,8 @@ class UI
         virtual void End() {};
 
         void Exit();
+
+        void LoopTask();
 
         void GetKey();
         virtual bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {return false;}; //Return true to skip UIKeyEvent
@@ -86,4 +70,5 @@ class UI
         private:
         void RenderUI();
         void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
+        void PostCallbackCleanUp();
 };

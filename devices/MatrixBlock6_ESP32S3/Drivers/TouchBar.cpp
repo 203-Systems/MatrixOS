@@ -13,7 +13,6 @@ namespace Device::KeyPad
 
     void TouchBarScan()
     {
-        uint16_t result = 0; //Bit Map
         for (uint8_t i = 0; i < 16; i++)
         {
             gpio_set_level(TouchClock_Pin, 1);

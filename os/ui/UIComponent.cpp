@@ -13,8 +13,6 @@ namespace MatrixOS::UIComponent
 
         bool buffer[Device::x_size][Device::y_size]; // TODO 检查设备旋转
 
-        uint8_t fn_flag = 0;
-
         //清空buffer
         for (uint8_t x = 0; x < Device::x_size; x++)
         {
@@ -88,8 +86,9 @@ namespace MatrixOS::UIComponent
                                 MatrixOS::KEYPAD::Scan(true);
                                 MatrixOS::Logging::LogDebug("Text Scroll", "FN Velocity %d", (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
                                 //Let's assume we don't use FN to trigger a text scroll
-                                if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state == RELEASED)
+                                if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state == PRESSED)
                                 {
+                                    MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).Clear();
                                     MatrixOS::LED::Fill(Color(0x000000));
                                     MatrixOS::LED::Update();
                                     return;

@@ -9,13 +9,13 @@ UI::UI(string name, Color color)
 //TODO, make new led layer
 void UI::Start()
 {
+    MatrixOS::KEYPAD::Clear();
     Setup();
     while(status != -1)
     {   
+        LoopTask();
         Loop();
         RenderUI();
-        GetKey();
-        GetMidi();
     }
     End();
     MatrixOS::LED::Fill(0);
@@ -24,6 +24,12 @@ void UI::Start()
 void UI::Exit()
 {
     status = -1;
+}
+
+void UI::LoopTask()
+{
+    GetKey();
+    GetMidi();
 }
 
 void UI::RenderUI()
@@ -55,15 +61,12 @@ void UI::GetKey()
 
 void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
+    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
     if(keyID == FUNCTION_KEY)
     {
-        if(keyInfo.state == RELEASED && !fn_released)
+        if(keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
         {
-            fn_released = true;
-            return;
-        }
-        else if(keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
-        {
+            MatrixOS::Logging::LogDebug("UI", "Function Key Exit");
             Exit();
             return;
         }
@@ -72,6 +75,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         {
             MatrixOS::Logging::LogDebug("UI", "Function Hold");
             func_hold_callback();
+            PostCallbackCleanUp();
             return;
         }
     }
@@ -81,13 +85,26 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", xy.x, xy.y);
         if(keyInfo.state == RELEASED && keyInfo.hold == false) 
         {
-            uiElementsMap[xy]->Callback();
-            return;
+            if(uiElementsMap[xy]->callback != nullptr)
+            {
+                MatrixOS::Logging::LogDebug("UI", "Key Event Callback");
+                uiElementsMap[xy]->callback();
+                PostCallbackCleanUp();
+                return;
+            }
         }
         else if(keyInfo.state == HOLD)
         {
-            uiElementsMap[xy]->HoldCallback();
-            return;
+            if(uiElementsMap[xy]->hold_callback != nullptr)
+            {
+                uiElementsMap[xy]->hold_callback();
+                PostCallbackCleanUp();
+                return;
+            }
+            else
+            {
+                MatrixOS::UIComponent::TextScroll(uiElementsMap[xy]->name, uiElementsMap[xy]->color);
+            }
         }
     }
     else
@@ -129,4 +146,9 @@ void UI::AddFuncKeyHold(std::function<void()> callback)
 void UI::ClearUIElements()
 {
     uiElements.clear();
+}
+
+void UI::PostCallbackCleanUp()
+{
+    MatrixOS::KEYPAD::Clear();
 }
