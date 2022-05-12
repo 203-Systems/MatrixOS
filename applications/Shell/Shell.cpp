@@ -28,6 +28,7 @@ void Shell::ApplicationLauncher()
 {
     UI applicationLauncher("Application Launcher", Color(0x00FFAA));
 
+    applicationLauncher.disableExit = true;
     AddCommonBarInUI(&applicationLauncher);
 
     uint16_t app_count = MatrixOS::SYS::GetApplicationCount();

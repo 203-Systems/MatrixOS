@@ -31,6 +31,7 @@ class UI
         Color nameColor;
         int8_t status = 0;
         
+        bool disableExit = false;
         
         Timer uiTimer;
         uint16_t uiFps = 60;
