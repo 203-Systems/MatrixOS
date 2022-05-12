@@ -2,6 +2,12 @@
 
 #include "../BootAnimation.h"
 
+#define APPLICATION_NAME "Matrix Boot"
+#define APPLICATION_AUTHOR "203 Electronics"
+#define APPLICATION_COLOR Color(0xFF00FF)
+#define APPLICATION_VERSION 1
+#define APPLICATION_CLASS MatrixBoot
+
 #define MATRIX_BOOT_BRIGHTNESS 255 //On Top of system brightness
 #define MATRIX_BOOT_IDLE 64 //On Top of system brightness
 
@@ -21,7 +27,6 @@ class MatrixBoot : public BootAnimation
     uint32_t boot_phase_1_tick_time = 0;
     uint32_t boot_phase_2_start_time = 0;
     // Color colorList[5] = {Color(64, 64, 64), Color(127, 0, 0), Color(0, 127, 0), Color(0, 0, 127), Color(0, 0, 0)};
-    
 
     void Setup() override;
     bool Idle(bool ready) override;
@@ -33,3 +38,5 @@ class MatrixBoot : public BootAnimation
 
     void End();
 };
+
+#include "applications/RegisterApplication.h"

@@ -9,6 +9,7 @@
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS FactoryMenu
+#define APPLICATION_VISIBLITY false
 
 class FactoryMenu : public Application
 {   

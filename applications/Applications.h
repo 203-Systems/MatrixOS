@@ -7,3 +7,5 @@
 #endif
 
 #include "UserApplications.h"
+
+#include "BootAnimations/BootAnimations.h"

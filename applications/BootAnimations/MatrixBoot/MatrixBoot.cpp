@@ -6,7 +6,12 @@
 
 void MatrixBoot::Setup()
 {
-
+    for(uint8_t i = 0; i < 100; i++) //Add small delay for USB to be connected (So no idle animation would be shown)
+    {
+        MatrixOS::SYS::DelayMs(5);
+        if(MatrixOS::USB::Connected())
+            break;
+    }
 }
 
 bool MatrixBoot::Idle(bool ready)
