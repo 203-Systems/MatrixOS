@@ -1,5 +1,10 @@
 #include "Device.h"
 
+namespace MatrixOS::SYS
+{
+    void ExecuteAPP(string author, string app_name);
+}
+
 namespace Device
 {
     void DeviceInit()
@@ -21,6 +26,14 @@ namespace Device
     void LoadDeviceInfo()
     {
         esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
+    }
+
+    void PostBootTask()
+    {
+        if(KeyPad::GetKey(Point(0, 0)) && KeyPad::GetKey(Point(1, 1)))
+        {
+            MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
+        }
     }
 
     // bool wdt_subscribed = false;

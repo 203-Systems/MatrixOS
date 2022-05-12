@@ -7,6 +7,7 @@
 #define APPLICATION_COLOR Color(0xFF00FF)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS MatrixBoot
+#define APPLICATION_VISIBLITY false
 
 #define MATRIX_BOOT_BRIGHTNESS 255 //On Top of system brightness
 #define MATRIX_BOOT_IDLE 64 //On Top of system brightness
