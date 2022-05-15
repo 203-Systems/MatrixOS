@@ -4,7 +4,7 @@ void BurnEFuse(); //This is in device folder, a custom BurnEFuse will be provide
 
 void FactoryMenu::EFuseBurner()
 {
-    #ifdef EFUSE_BURNER
+    #ifdef FACTORY_CONFIG
     if(esp_efuse_block_is_empty(EFUSE_BLK3))
     {
         UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));

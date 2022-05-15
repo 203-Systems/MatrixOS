@@ -12,9 +12,9 @@
 
 #include "Family.h"
 
-#define FACTORY_CONFIG V100
-#define FACTORY_MFG_YEAR 22
-#define FACTORY_MFG_MONTH 05
+// #define FACTORY_CONFIG V100
+// #define FACTORY_MFG_YEAR 22
+// #define FACTORY_MFG_MONTH 05
 
 struct DeviceInfo
 {
