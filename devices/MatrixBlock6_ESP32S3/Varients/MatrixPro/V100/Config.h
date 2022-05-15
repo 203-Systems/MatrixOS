@@ -43,7 +43,7 @@ namespace V100{
     const gpio_num_t I2C_SDA_Pin = GPIO_NUM_46;
     const gpio_num_t I2C_SCL_Pin = GPIO_NUM_45;
 
-    #ifdef FACTORY_CONFIG==V100
+    #if FACTORY_CONFIG == V100
     const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'V', '1', '0', '0'}, 0, 0};
     #endif
 }
@@ -52,9 +52,9 @@ void Device::LoadV100()
 {
     led_pin = V100::LED_Pin;
 
-    led_pin = V100::LED_Pin;
-
     KeyPad::FSR = V100::FSR_KEYPAD;
+
+    KeyPad::fn_pin = V100::FN_Pin;
 
     gpio_num_t _keypad_write_pins[8] = {
         V100::Key1_Pin,
