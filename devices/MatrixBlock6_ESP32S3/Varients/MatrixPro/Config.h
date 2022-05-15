@@ -46,7 +46,7 @@ namespace Device
         inline bool FSR;
 
         inline gpio_num_t fn_pin;
-        inline bool fn_active_low = false;
+        inline bool fn_active_low = true;
 
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];

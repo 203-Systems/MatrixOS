@@ -61,7 +61,7 @@ void UI::GetKey()
 
 void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
+    // MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
     if(keyID == FUNCTION_KEY)
     {
         if(!disableExit && keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
