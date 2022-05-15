@@ -7,7 +7,7 @@ namespace Device
     {
         void Init()
         {
-            WS2812::Init(RMT_CHANNEL_0, LED_Pin, numsOfLED);
+            WS2812::Init(RMT_CHANNEL_0, led_pin, numsOfLED);
         }
 
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED

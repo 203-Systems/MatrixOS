@@ -32,6 +32,7 @@
 namespace Device
 {   
     void LoadDeviceInfo();
+    void LoadVarientInfo();
 
     namespace USB
     {

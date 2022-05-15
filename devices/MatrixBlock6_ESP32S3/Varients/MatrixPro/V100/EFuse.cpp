@@ -1,4 +1,6 @@
 #include "Device.h"
+
+#ifdef FACTORY_CONFIG==V100
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
 void BurnEFuse()
@@ -13,9 +15,7 @@ void BurnEFuse()
     status = esp_efuse_write_field_bit(ESP_EFUSE_DIS_USB_JTAG); 
     MatrixOS::Logging::LogDebug("BurnEFuse", "Burning EFUSE_DIS_USB_JTAG - Status: %s", esp_err_to_name(status));
 
-    // Device Info
-    DeviceInfo deviceInfo {{'M', 'X', '1', 'P'}, {'V', '1', '0', '0'}, 22, 05};
-    status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&deviceInfo, sizeof(deviceInfo) * 8);
+    status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::deviceInfo, sizeof(DeviceInfo) * 8);
     MatrixOS::Logging::LogDebug("BurnEFuse", "Burning Matrix Info - Status: %s", esp_err_to_name(status));
 
     // Write protection for DIS_ICACHE DIS_DCACHE DIS_DOWNLOAD_ICACHE DIS_DOWNLOAD_DCACHE DIS_FORCE_DOWNLOAD DIS_USB DIS_CAN SOFT_DIS_JTAG HARD_DIS_JTAG DIS_DOWNLOAD_MANUAL_ENCRYPT
@@ -43,3 +43,5 @@ void BurnEFuse()
     MatrixOS::Logging::LogDebug("BurnEFuse", "Block 3 (Matrix Info) write protected - Status: %s", esp_err_to_name(status));
     esp_efuse_batch_write_commit();
 }
+
+#endif

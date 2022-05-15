@@ -4,6 +4,7 @@ void BurnEFuse(); //This is in device folder, a custom BurnEFuse will be provide
 
 void FactoryMenu::EFuseBurner()
 {
+    #ifdef EFUSE_BURNER
     if(esp_efuse_block_is_empty(EFUSE_BLK3))
     {
         UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
@@ -39,4 +40,22 @@ void FactoryMenu::EFuseBurner()
         MatrixOS::SYS::DelayMs(2000);
         MatrixOS::LED::Fill(0);
     }
+    #else //Not in factory mode
+        MatrixOS::LED::Fill(0);
+        MatrixOS::LED::SetColor(Point(2,2), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(3,2), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(4,2), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(5,2), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(2,3), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(5,3), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(2,4), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(5,4), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(2,5), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(3,5), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(4,5), Color(0xFF00FF));
+        MatrixOS::LED::SetColor(Point(5,5), Color(0xFF00FF));
+        MatrixOS::LED::Update();
+        MatrixOS::SYS::DelayMs(2000);
+        MatrixOS::LED::Fill(0);
+    #endif
 }

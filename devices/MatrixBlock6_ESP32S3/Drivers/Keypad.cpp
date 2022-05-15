@@ -6,9 +6,7 @@
 
 namespace Device::KeyPad
 {
-    #ifdef  FSR_KEYPAD
     esp_adc_cal_characteristics_t adc1_chars;
-    #endif 
 
     void Init()
     {
@@ -25,8 +23,8 @@ namespace Device::KeyPad
         io_conf.mode = GPIO_MODE_INPUT;
         io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
         io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-        io_conf.pin_bit_mask = (1ULL<<FN_Pin);
-        #ifdef FN_PIN_ACTIVE_HIGH //Active HIGH
+        io_conf.pin_bit_mask = (1ULL<<fn_pin);
+        #ifdef fn_pin_ACTIVE_HIGH //Active HIGH
         io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
         io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
         #else //Active Low
@@ -37,25 +35,28 @@ namespace Device::KeyPad
 
         //Config Matrix Input
 
-        #ifndef  FSR_KEYPAD
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_INPUT;
-        io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-        for(uint8_t y = 0; y < y_size; y++)
+        if(!FSR) //Non FSR keypad
         {
-            io_conf.pin_bit_mask = (1ULL<<keypad_read_pins[y]);
-            gpio_config(&io_conf);
-            gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+            io_conf.intr_type = GPIO_INTR_DISABLE;
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+            io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+            for(uint8_t y = 0; y < y_size; y++)
+            {
+                io_conf.pin_bit_mask = (1ULL<<keypad_read_pins[y]);
+                gpio_config(&io_conf);
+                gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+            }
         }
-        #else
-        adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
-        esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN,  FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
-        for(uint8_t y = 0; y < y_size; y++)
+        else //FSR keypad
         {
-            adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN);
+            adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
+            esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN,  FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+            for(uint8_t y = 0; y < y_size; y++)
+            {
+                adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN);
+            }
         }
-        #endif
 
         io_conf.intr_type = GPIO_INTR_DISABLE;
         io_conf.mode = GPIO_MODE_OUTPUT;
@@ -141,11 +142,12 @@ namespace Device::KeyPad
 
     void FNScan()
     {   
-        Fract16 read = gpio_get_level(FN_Pin) * UINT16_MAX;
-        // ESP_LOGI("FN", "%d", gpio_get_level(FN_Pin));
-        #ifndef FN_PIN_ACTIVE_HIGH
-        read = UINT16_MAX - (uint16_t)read;
-        #endif
+        Fract16 read = gpio_get_level(fn_pin) * UINT16_MAX;
+        // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
+        if(fn_active_low)
+        {
+            read = UINT16_MAX - (uint16_t)read;
+        }
         if(fnState.update(read))
         {
             addToList(0);
@@ -158,19 +160,22 @@ namespace Device::KeyPad
     void KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
+        Fract16 read = 0;
         for(uint8_t y = 0; y < Device::y_size; y ++)
         {
             for(uint8_t x = 0; x < Device::x_size; x ++)
             {
                 gpio_set_level(keypad_write_pins[x], 1);
-                #ifndef  FSR_KEYPAD
-                Fract16 read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
-                #else
+                if(!FSR) //Non FSR
+                {
+                    read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
+                }
+                else //FSR
+                {
                 // Fract16 read = gpio_get_level(keypad_read_pins[y]);
                 // if(read)
                 // {
                     uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                    Fract16 read = 0;
                     if(raw_voltage < low_threshold)
                     {
                         read = 0;
@@ -200,8 +205,7 @@ namespace Device::KeyPad
                         //     // }
                         // }
                 // }
-                // }
-                #endif
+                }
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                 bool updated = keypadState[x][y].update(read);
                 if(updated)
