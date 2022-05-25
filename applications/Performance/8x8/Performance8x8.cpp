@@ -107,8 +107,34 @@ void Performance::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
 }
 
 void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
-{
-    uint8_t note = keymap[currentKeymap][xy.y][xy.x];
+{   
+    // MatrixOS::Logging::LogDebug("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
+    uint8_t note = 0;
+    if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+    {
+        note = keymap[currentKeymap][xy.y][xy.x];
+    }
+    else if(xy.y == -1 && xy.x >= 0 && xy.x < 8) //TouchBar Top Row
+    {
+        note = touch_keymap[currentKeymap][0][xy.x];
+    }
+    else if(xy.x == 8 && xy.y >= 0 && xy.y < 8) //TouchBar Right Column
+    {
+        note = touch_keymap[currentKeymap][1][xy.y];
+    }
+    else if(xy.y == 8 && xy.x >= 0 && xy.x < 8) //TouchBar Bottom Row
+    {
+        note = touch_keymap[currentKeymap][2][xy.x];
+    }
+    else if(xy.x == -1 && xy.y >= 0 && xy.y < 8) //TouchBar Left Column
+    {
+        note = touch_keymap[currentKeymap][3][xy.y];
+    }
+    else
+    {
+        return; //No suitable keymap
+    }
+
     if(keyInfo.state == PRESSED)
     {
         MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo.velocity.to7bits()));

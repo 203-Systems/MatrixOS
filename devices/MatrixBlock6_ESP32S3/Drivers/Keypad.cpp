@@ -287,7 +287,7 @@ namespace Device::KeyPad
                     }
                     else //Left
                     {
-                        return Point(0, index % 8);
+                        return Point(-1, index % 8);
                     }
                 }
                 break;

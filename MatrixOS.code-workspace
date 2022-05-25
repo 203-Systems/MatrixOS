@@ -99,7 +99,8 @@
 			"future": "cpp",
 			"queue": "cpp",
 			"stack": "cpp",
-			"thread": "cpp"
+			"thread": "cpp",
+			"xlocbuf": "cpp"
 		}
 	}
 }
