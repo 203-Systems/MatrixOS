@@ -4,7 +4,7 @@ void BurnEFuse(); //This is in device folder, a custom BurnEFuse will be provide
 
 void FactoryMenu::EFuseBurner()
 {
-    #ifdef FACTORY_CONFIG
+    #ifdef EFUSE_BURNER
     if(esp_efuse_block_is_empty(EFUSE_BLK3))
     {
         UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
@@ -40,7 +40,7 @@ void FactoryMenu::EFuseBurner()
         MatrixOS::SYS::DelayMs(2000);
         MatrixOS::LED::Fill(0);
     }
-    #else //Not in factory mode
+    #else //Not in factory mode or not ESP32
         MatrixOS::LED::Fill(0);
         MatrixOS::LED::SetColor(Point(2,2), Color(0xFF00FF));
         MatrixOS::LED::SetColor(Point(3,2), Color(0xFF00FF));

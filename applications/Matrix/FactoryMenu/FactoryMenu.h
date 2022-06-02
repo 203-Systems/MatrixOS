@@ -4,6 +4,12 @@
 #include "Framework/UI.h"
 #include "applications/Application.h"
 
+#if defined(FACTORY_CONFIG) && defined(ESP32)
+#include "esp_efuse.h"
+#define EFUSE_BURNER
+#endif
+
+
 #define APPLICATION_NAME "Matrix Factory Menu"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFFFF)

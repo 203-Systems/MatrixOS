@@ -1,5 +1,11 @@
 #include "Device.h"
 
+namespace MatrixOS::SYS
+{
+    void ExecuteAPP(string author, string app_name);
+}
+
+
 namespace Device
 {
     void DeviceInit()
@@ -15,6 +21,14 @@ namespace Device
         KeyPad_Init();
         // TouchBar_Init();
         // NVS::Init(); //Not working TODO FIX
+    }
+
+    void PostBootTask()
+    {
+        if(KeyPad::GetKey(Point(0, 0)) && KeyPad::GetKey(Point(1, 1)))
+        {
+            MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
+        }
     }
 
     void DeviceTask()

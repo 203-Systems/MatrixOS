@@ -32,7 +32,7 @@ inline Application_Info APPLICATION_INFO(APPLICATION_CLASS) = Application_Info(
                                                                               APPLICATION_AUTHOR,
                                                                               APPLICATION_COLOR,
                                                                               APPLICATION_VERSION,
-                                                                              [&]() -> Application*{ return new APPLICATION_CLASS();},
+                                                                              []() -> Application*{ return new APPLICATION_CLASS();},
                                                                               APPLICATION_VISIBLITY);
 
 __attribute__ ((__constructor__))

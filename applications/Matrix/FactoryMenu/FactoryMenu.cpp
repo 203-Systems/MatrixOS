@@ -1,5 +1,4 @@
 #include "FactoryMenu.h"
-#include "esp_efuse.h"
 
 void FactoryMenu::Setup()
 {
@@ -18,10 +17,12 @@ void FactoryMenu::Setup()
                                     [&]() -> void {TouchBarTester();}), 
                                     Point(2, 0));
 
+    #ifdef EFUSE_BURNER
     factoryMenu.AddUIElement(UIElement("Burn EFuse", 
                                         esp_efuse_block_is_empty(EFUSE_BLK3) ? Color(0xFF0000) : Color(0x00FF00), 
                                         [&]() -> void {EFuseBurner();}), 
                                         Point(0, 7));
+    #endif
 
     factoryMenu.Start();
     Exit();

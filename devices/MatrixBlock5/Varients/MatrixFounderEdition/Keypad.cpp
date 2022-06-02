@@ -14,6 +14,24 @@ namespace Device::KeyPad
         return changeList;
     }
 
+    void Clear()
+    {
+        fnState.Clear();
+
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            for(uint8_t y = 0; y < y_size; y++)
+            {
+                keypadState[x][y].Clear();
+            }
+        }
+
+        for(uint8_t i = 0; i < touchbar_size; i++)
+        {
+            touchbarState[i].Clear();
+        }
+    }
+
     KeyInfo GetKey(Point keyXY)
     {
         uint16_t keyID = XY2ID(keyXY);
