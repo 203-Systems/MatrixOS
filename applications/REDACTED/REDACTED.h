@@ -8,14 +8,11 @@
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS REDACTED
+#define APPLICATION_VISIBLITY false
 
 class REDACTED : public Application // ᗜˬᗜ
 {   
     public:
-    string name = "REDACTED";
-    string author = "203 Electronics";
-    uint32_t version = 0;
-    
     void Setup() override;
     void Loop() override;
     void End() override;

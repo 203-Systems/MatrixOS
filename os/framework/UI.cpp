@@ -53,9 +53,12 @@ void UI::GetKey()
     while(MatrixOS::KEYPAD::Available())
     {   
         uint16_t keyID = MatrixOS::KEYPAD::Get();
-        bool action = KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
+        KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(keyID);
+        MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
+        bool action = KeyEvent(keyID, keyInfo);
+        MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", action);
         if(!action)
-            UIKeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
+            UIKeyEvent(keyID, keyInfo);
     }
 }
 
@@ -82,7 +85,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
     if(xy && uiElementsMap.count(xy)) //Key Found
     {   
-        MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", xy.x, xy.y);
+        MatrixOS::Logging::LogDebug("UI", "UI Key Event %d %d", xy.x, xy.y);
         if(keyInfo.state == RELEASED && keyInfo.hold == false) 
         {
             if(uiElementsMap[xy]->callback != nullptr)

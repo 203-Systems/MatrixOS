@@ -32,6 +32,11 @@ public:
 		return Point( x - cp.x, y - cp.y );
 	}
 
+	bool operator ==(const Point& cp) const 
+    {
+        return cp.x == x && cp.y == y;
+    }
+
     bool operator !=(const Point& cp) const 
     {
         return cp.x != x || cp.y != y;

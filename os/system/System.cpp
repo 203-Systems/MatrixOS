@@ -173,7 +173,7 @@ namespace MatrixOS::SYS
     int8_t SetVariable(string variable, uint32_t value)
     {   
         //Save Variable
-        MatrixOS::Logging::LogDebug("System", "Set Variable [%s, %d]", variable, value);
+        MatrixOS::Logging::LogDebug("System", "Set Variable [%s, %d]", variable.c_str(), value);
         // MatrixOS::Logging::LogDebug("System", "Set Variable");
         if(userVar.find(variable) != userVar.end()) //Check User Variables First
         {   
