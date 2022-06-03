@@ -8,8 +8,21 @@
 #include <map>
 #include <stdarg.h>
 
-struct UIElement
+class UIElementBase
 {
+    public:
+    virtual string getName(){return NULL;}
+    virtual Color getColor(){return 0x000000;}
+    virtual Dimension getSize(){return Dimension(0,0);}
+    virtual std::function<void()> getCallback(){return NULL;}
+    virtual std::function<void()> getHoldCallback(){return NULL;}
+
+    virtual bool render(Point origin){return false;}
+};
+
+class UIElement : public UIElementBase
+{
+    public:
     string name;
     Color color;
     std::function<void()> callback;
@@ -22,7 +35,14 @@ struct UIElement
         this->callback = callback;
         this->hold_callback = hold_callback;
     }
+
+    string getName() override {return name;}
+    Color getColor() override {return color;}
+    Dimension getSize() override {return Dimension(1,1);}
+    virtual std::function<void()> getCallback() override {return callback;}
+    virtual std::function<void()> getHoldCallback() override {return hold_callback;}
 };
+
 
 class UI
 {
