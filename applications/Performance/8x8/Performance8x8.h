@@ -10,6 +10,7 @@
 #define APPLICATION_VERSION 0
 #define APPLICATION_CLASS Performance
 
+#define PERFORMANCE_VELOCITY_THRESHOLD 16384
 class Performance : public Application
 {
     public:
@@ -19,7 +20,7 @@ class Performance : public Application
 
     uint8_t currentKeymap = 0;
 
-    bool unipadMode = false;
+    bool compatibleMode = false;
     bool fnLock = false;
 
     uint8_t stfu = 2;

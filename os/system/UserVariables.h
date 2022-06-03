@@ -7,6 +7,7 @@ namespace MatrixOS
 {
     inline unordered_map<string, uint32_t> userVar = {
         {"rotation", TOP},
-        {"brightness", 16}
+        {"brightness", 16},
+        {"velocity_sensitive", 0}
     };
 }

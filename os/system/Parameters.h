@@ -23,3 +23,5 @@ inline uint16_t debounce_threshold = 24;
 
 inline uint16_t hold_threshold = 400;
 
+enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
+

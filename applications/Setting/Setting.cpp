@@ -20,6 +20,10 @@ void Setting::Setup()
     AddUIElement(UIElement("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
     AddUIElement(UIElement("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
 
+    // //Velocity Sensitive
+    // AddUIElement(UIElement("Velocity Sensitive", Color(0xFFFFFF), []() -> void {MatrixOS::SYS::NextBrightness();}), Point(0, 0));
+
+
 
     // AddUIElement(UIElement("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
     // AddUIElement(UIElement("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));

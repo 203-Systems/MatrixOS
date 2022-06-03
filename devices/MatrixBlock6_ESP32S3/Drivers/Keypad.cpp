@@ -154,8 +154,6 @@ namespace Device::KeyPad
         }
     }
 
-    uint16_t low_threshold = 512;
-    uint16_t high_threshold = 3584;
     bool key1_read = false;
     void KeyPadScan()
     {
@@ -176,20 +174,7 @@ namespace Device::KeyPad
                 // if(read)
                 // {
                     uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                    if(raw_voltage < low_threshold)
-                    {
-                        read = 0;
-                    }
-                    else if(raw_voltage >= high_threshold)
-                    {
-                        read = UINT16_MAX;
-                    }
-                    else
-                    {
-                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * UINT16_MAX;
-                        // printf("curved ");
-                    }
-                    // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
+                    Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
                     
                     //Debug Info
                     // if(x == 0)
