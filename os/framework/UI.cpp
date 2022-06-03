@@ -37,11 +37,13 @@ void UI::RenderUI()
     if(uiTimer.Tick(uiFps))
     {
         MatrixOS::LED::Fill(0);
-        for (auto const& uiElementMap : uiElementsMap)
+        for (auto const& uiElementPair : uiElementMap)
         {   
-            Point xy = uiElementMap.first;
-            UIElement* uiElement = uiElementMap.second;
-            MatrixOS::LED::SetColor(xy, uiElement->color);
+            Point xy = uiElementPair.first;
+            UIElement* uiElement = uiElementPair.second;
+            ESP_LOGI("Render UI Element", "%d %d", xy.x, xy.y);
+            ESP_LOGI("Render UI Element", "%s", uiElement->GetName().c_str());
+            uiElement->Render(xy);
         }
         Render();
         MatrixOS::LED::Update();
@@ -54,17 +56,18 @@ void UI::GetKey()
     {   
         uint16_t keyID = MatrixOS::KEYPAD::Get();
         KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(keyID);
-        MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
+        // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
         bool action = KeyEvent(keyID, keyInfo);
-        MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", action);
         if(!action)
             UIKeyEvent(keyID, keyInfo);
+        else
+            MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", keyID);
     }
 }
 
 void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
-    // MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
+    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
     if(keyID == FUNCTION_KEY)
     {
         if(!disableExit && keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
@@ -83,30 +86,31 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         }
     }
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
-    if(xy && uiElementsMap.count(xy)) //Key Found
+    if(xy)
+    {
+        MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
+    }
+    if(xy && uiElementMap.count(xy)) //Key Found
     {   
-        MatrixOS::Logging::LogDebug("UI", "UI Key Event %d %d", xy.x, xy.y);
         if(keyInfo.state == RELEASED && keyInfo.hold == false) 
         {
-            if(uiElementsMap[xy]->callback != nullptr)
+            if(uiElementMap[xy]->Callback())
             {
                 MatrixOS::Logging::LogDebug("UI", "Key Event Callback");
-                uiElementsMap[xy]->callback();
                 PostCallbackCleanUp();
                 return;
             }
         }
         else if(keyInfo.state == HOLD)
         {
-            if(uiElementsMap[xy]->hold_callback != nullptr)
+            if(uiElementMap[xy]->HoldCallback())
             {
-                uiElementsMap[xy]->hold_callback();
                 PostCallbackCleanUp();
                 return;
             }
             else
             {
-                MatrixOS::UIComponent::TextScroll(uiElementsMap[xy]->name, uiElementsMap[xy]->color);
+                MatrixOS::UIComponent::TextScroll(uiElementMap[xy]->GetName(), uiElementMap[xy]->GetColor());
             }
         }
     }
@@ -124,20 +128,21 @@ void UI::GetMidi()
     }
 }
 
-void UI::AddUIElement(UIElement uiElement, Point xy)
+void UI::AddUIElement(UIElement* uiElement, Point xy)
 {
-    uiElements.push_back(uiElement);
-    uiElementsMap[xy] = &(uiElements.back());
+    ESP_LOGI("Add UI Element", "%d %d %s", xy.x, xy.y, uiElement->GetName().c_str());
+    // uiElements.push_back(uiElement);
+    uiElementMap[xy] = uiElement;
 }
 
-void UI::AddUIElement(UIElement uiElement, uint16_t count, ...)
+void UI::AddUIElement(UIElement* uiElement, uint16_t count, ...)
 {
-    uiElements.push_back(uiElement);
+    // uiElements.push_back(uiElement);
     va_list valst;
     va_start(valst, count);
     for(uint8_t i = 0; i < count; i ++)
     {
-        uiElementsMap[(Point)va_arg(valst, Point)] = &(uiElements.back());
+        uiElementMap[(Point)va_arg(valst, Point)]  = uiElement;
     }
 }
 
@@ -148,7 +153,7 @@ void UI::AddFuncKeyHold(std::function<void()> callback)
 
 void UI::ClearUIElements()
 {
-    uiElements.clear();
+    uiElementMap.clear();
 }
 
 void UI::PostCallbackCleanUp()

@@ -17,8 +17,8 @@ void Shell::Loop()
 
 void Shell::AddCommonBarInUI(UI* ui)
 {
-    ui->AddUIElement(UIElement("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
-    ui->AddUIElement(UIElement("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    ui->AddUIElement(new UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
+    ui->AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
     ui->AddFuncKeyHold([&]() -> void {});
 }
     
@@ -46,7 +46,7 @@ void Shell::ApplicationLauncher()
             string app_name = applications[i]->name;
             Color app_color = applications[i]->color;
 
-            applicationLauncher.AddUIElement(UIElement(app_name, 
+            applicationLauncher.AddUIElement(new UIButton(app_name, 
                                     app_color, 
                                     [&, app_id]() -> void {MatrixOS::SYS::ExecuteAPP(app_id);}), 
                                     Point(x, y));

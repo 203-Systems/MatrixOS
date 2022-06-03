@@ -30,7 +30,7 @@ class Shell : public Application
     // std::list<UIElement> uiElements;
     // std::map<Point, UIElement*> uiElementsMap;
 
-    // void AddUIElement(UIElement uiElement, Point xy);
+    // void AddUIElement(new UIButton uiElement, Point xy);
     // void ClearUIElements();
 
     // private:
