@@ -41,8 +41,6 @@ void UI::RenderUI()
         {   
             Point xy = uiElementPair.first;
             UIElement* uiElement = uiElementPair.second;
-            ESP_LOGI("Render UI Element", "%d %d", xy.x, xy.y);
-            ESP_LOGI("Render UI Element", "%s", uiElement->GetName().c_str());
             uiElement->Render(xy);
         }
         Render();

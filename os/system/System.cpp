@@ -79,7 +79,7 @@ namespace MatrixOS::SYS
         Logging::LogDebug("Logging", "This is a debug log");
         Logging::LogVerbose("Logging", "This is a verbose log");
 
-        // ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
+        ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
 
         Device::PostBootTask();
 

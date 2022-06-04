@@ -15,6 +15,15 @@ namespace MatrixOS::SYS
     uint32_t GetVariable(string variable, EVarClass varClass);
 }
 
+namespace MatrixOS::Logging
+{
+    void LogError (string tag, string format, ...);
+    void LogWarning (string tag, string format, ...);
+    void LogInfo (string tag, string format, ...);
+    void LogDebug (string tag, string format, ...);
+    void LogVerbose (string tag, string format, ...);
+}
+
 namespace Device::KeyPad
 {
     extern bool FSR;
@@ -68,14 +77,15 @@ struct KeyInfo {
 
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
-        uint32_t velocity_sensitive = MatrixOS::SYS::GetVariable("velocity_sensitive", EVarClass::UserVar);
-        if(velocity_sensitive)
+        Fract16 source = velocity;
+        uint32_t velocity_sensitive_threshold = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
+        if(false) //Bad name for this, to
         {
-            if((uint16_t)velocity < velocity_sensitive)
+            if((uint16_t)velocity < velocity_sensitive_threshold)
             {
                 velocity = 0;
             }
-            else if((uint16_t)velocity >= velocity_sensitive)
+            else if((uint16_t)velocity >= velocity_sensitive_threshold)
             {
                 velocity = UINT16_MAX;
             }
@@ -89,10 +99,12 @@ struct KeyInfo {
             else if((uint16_t)velocity >= Device::KeyPad::high_threshold)
             {
                 velocity = UINT16_MAX;
+                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
             }
             else
             {
                 velocity = (float)((uint16_t)velocity - Device::KeyPad::low_threshold) / (Device::KeyPad::high_threshold - Device::KeyPad::low_threshold) * UINT16_MAX;
+                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
             }
         }
         return velocity;

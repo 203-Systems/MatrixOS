@@ -48,8 +48,8 @@ namespace Device
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
-        inline uint16_t low_threshold = 512;
-        inline uint16_t high_threshold = 3584;
+        inline uint16_t low_threshold = 8192;
+        inline uint16_t high_threshold = 57344;
 
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
