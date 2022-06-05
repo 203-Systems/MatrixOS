@@ -22,10 +22,9 @@ void Setting::Setup()
 
     // //Velocity Sensitive
     AddUIElement(new UIButtonWithColorFunc("Velocity Sensitive", 
-        []() -> Color {return (MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar) == 0 ? 0xFFFFFF : 0x3F3F3F);}, 
+        []() -> Color {return (MatrixOS::UserVar::velocity_sensitive_threshold.Get() ? 0xFFFFFF : 0x3F3F3F);}, //TODO Color Class Scale Brightness
         []() -> void {
-            uint32_t current = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
-            MatrixOS::SYS::SetVariable("velocity_sensitive_threshold", current ? 0 : Device::KeyPad::low_threshold); //TODO, allow user change threshold?
+            MatrixOS::UserVar::velocity_sensitive_threshold = MatrixOS::UserVar::velocity_sensitive_threshold.Get() ? Fract16(0) : Device::KeyPad::low_threshold; //TODO, allow user change threshold?
             }), 
         Point(0, 0));
 

@@ -5,14 +5,19 @@
 
 #include <stdint.h>
 #include "system/Parameters.h"
+#include "SavedVariable.h"
 
-#define KEY_INFO_THRESHOLD 512 // 1/127
+#define KEY_INFO_THRESHOLD 512 // 1/127 - Key Velocity has to move beyond this range in order for after touch to be triggered
 
 //Avoid recuesive include
 namespace MatrixOS::SYS
 {
     uint32_t Millis(void);
-    uint32_t GetVariable(string variable, EVarClass varClass);
+}
+
+namespace MatrixOS::UserVar
+{
+    extern SavedVariable<Fract16> velocity_sensitive_threshold;
 }
 
 namespace MatrixOS::Logging
@@ -27,8 +32,8 @@ namespace MatrixOS::Logging
 namespace Device::KeyPad
 {
     extern bool FSR;
-    extern uint16_t low_threshold;
-    extern uint16_t high_threshold;
+    extern Fract16 low_threshold;
+    extern Fract16 high_threshold;
 }
 
 enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
@@ -77,34 +82,33 @@ struct KeyInfo {
 
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
-        Fract16 source = velocity;
-        uint32_t velocity_sensitive_threshold = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
-        if(velocity_sensitive_threshold)
+        // Fract16 source = velocity;
+        if(MatrixOS::UserVar::velocity_sensitive_threshold.Get())
         {
-            if((uint16_t)velocity < velocity_sensitive_threshold)
+            if(velocity < MatrixOS::UserVar::velocity_sensitive_threshold.Get())
             {
                 velocity = 0;
             }
-            else if((uint16_t)velocity >= velocity_sensitive_threshold)
+            else if(velocity >= MatrixOS::UserVar::velocity_sensitive_threshold.Get())
             {
                 velocity = UINT16_MAX;
             }
         }
         else
         {
-            if((uint16_t)velocity < Device::KeyPad::low_threshold)
+            if(velocity < Device::KeyPad::low_threshold)
             {
                 velocity = 0;
             }
-            else if((uint16_t)velocity >= Device::KeyPad::high_threshold)
+            else if(velocity >= Device::KeyPad::high_threshold)
             {
                 velocity = UINT16_MAX;
-                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
+                // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
             }
             else
             {
-                velocity = (float)((uint16_t)velocity - Device::KeyPad::low_threshold) / (Device::KeyPad::high_threshold - Device::KeyPad::low_threshold) * UINT16_MAX;
-                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
+                velocity = (float)((uint16_t)velocity - (uint16_t)Device::KeyPad::low_threshold) / ((uint16_t)Device::KeyPad::high_threshold - (uint16_t)Device::KeyPad::low_threshold) * UINT16_MAX;
+                // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
             }
         }
         return velocity;
@@ -134,7 +138,7 @@ struct KeyInfo {
         }
 
 
-        if(state == IDLE && velocity > KEY_INFO_THRESHOLD * 3 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
+        if(state == IDLE && velocity > Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
         {
             state = PRESSED;
             this->velocity = velocity;
@@ -142,7 +146,7 @@ struct KeyInfo {
             return true;
         }
 
-        if( state == CLEARED && velocity < KEY_INFO_THRESHOLD * 3 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if( state == CLEARED && velocity < Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
             this->velocity = 0;
@@ -150,7 +154,7 @@ struct KeyInfo {
             return false;
         }
 
-        if(state == ACTIVATED&& velocity < KEY_INFO_THRESHOLD * 3 && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if(state == ACTIVATED&& velocity < Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
             this->velocity = 0;

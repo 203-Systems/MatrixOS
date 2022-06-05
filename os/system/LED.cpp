@@ -12,7 +12,7 @@ namespace MatrixOS::LED
     {
         if(needUpate)
         {
-            Device::LED::Update(frameBuffers[currentLayer], SYS::GetVariable("brightness"));
+            Device::LED::Update(frameBuffers[currentLayer], UserVar::brightness);
             needUpate = false;
         }
     }
@@ -38,7 +38,7 @@ namespace MatrixOS::LED
     void SetColor(Point xy, Color color, uint8_t layer)
     {
         // MatrixOS::Logging::LogVerbose("LED", "Set Color %d %d", xy.x, xy.y);
-        xy = xy.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size));
+        xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
         if(layer > currentLayer)
         {
             MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
@@ -78,7 +78,6 @@ namespace MatrixOS::LED
 
     void Update(int8_t layer) 
     {
-        // Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
         if(layer == currentLayer)
             needUpate = true;
     }

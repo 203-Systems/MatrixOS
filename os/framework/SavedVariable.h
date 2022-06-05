@@ -8,6 +8,7 @@ namespace MatrixOS::NVS
     bool DeleteVariable(uint32_t hash);
 }
 
+enum SavedVariableState {NotInited, Inited, Loaded, Deleted};
 #define SavedVar(scope, name, default_value) SavedVariable(StaticHash(scope "-" name), default_value) //This way the class string and name string are not gonna be compiled in
 
 template <class T>
@@ -15,29 +16,37 @@ class SavedVariable
 {
     public:
     uint32_t hash;
-    bool loaded = false;
+    SavedVariableState state = SavedVariableState::NotInited;
     T value;
 
     SavedVariable(string scope, string name, T default_value) //Scope is basiclly namespace for the variable. I can't use "namespace" or "class" as variable name but you get the point
     {
-        uint32_t hash = Hash(scope + "-" + name);
-        SavedVariable(hash, default_value);
+        this->hash = Hash(scope + "-" + name);
+        this->value = default_value;
+        this->state = SavedVariableState::Inited;
+        
     }
 
     SavedVariable(uint32_t hash, T default_value)
     {
         this->hash = hash;
-        this->loaded = Load();
+        this->value = default_value;
+        this->state = SavedVariableState::Inited;
     }
 
     bool Load()
     {
-        return MatrixOS::NVS::GetVariable(hash, &value, sizeof(T)) == 0;
+        if(MatrixOS::NVS::GetVariable(hash, &value, sizeof(T)) == 0)
+        {
+            state = SavedVariableState::Loaded;
+            return true;
+        }
+        return false;
     }
 
     bool Loaded()
     {
-        return loaded;
+        return state == SavedVariableState::Loaded;
     }
 
     bool Set(T new_value)
@@ -45,6 +54,7 @@ class SavedVariable
         if(MatrixOS::NVS::SetVariable(hash, &new_value, sizeof(T)))
         {
             value = new_value;
+            state = SavedVariableState::Loaded;
             return true;
         }
         return false;
@@ -52,6 +62,11 @@ class SavedVariable
 
     T Get()
     {
+        if(!Loaded()) //If not yet loaded, it will try to update current cache with NVS data
+        {
+            Load();
+        }
+        //Even if it didn't load, the default value will be used.
         return value;
     }
 
@@ -59,7 +74,7 @@ class SavedVariable
     {
         if(MatrixOS::NVS::DeleteVariable(hash))
         {
-            loaded = false;
+            this->state = SavedVariableState::Deleted;
             return true;
         }
         return false;

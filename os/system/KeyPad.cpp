@@ -111,7 +111,7 @@ namespace MatrixOS::KEYPAD
     {
         if(!xy)
             return UINT16_MAX;
-        xy = xy.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size));
+        xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
         return Device::KeyPad::XY2ID(xy);
     }
 
@@ -119,7 +119,7 @@ namespace MatrixOS::KEYPAD
     {
         Point point = Device::KeyPad::ID2XY(keyID);
         if(point)
-           return point.Rotate((EDirection)SYS::GetVariable("rotation"), Point(Device::x_size, Device::y_size), true);
+           return point.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size), true);
         return point;
     }
 }

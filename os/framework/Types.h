@@ -61,9 +61,10 @@ class Fract16
 {
     public:
     uint16_t value;
-    Fract16(uint32_t value)
+
+    Fract16(uint16_t value = 0)
     {
-        this->value = (uint16_t)value;
+        this->value = value;
     }
 
     Fract16(uint16_t value, uint8_t bits)
@@ -87,9 +88,12 @@ class Fract16
     operator uint8_t() {return to8bits();}
     operator uint16_t() {return value;}
     operator uint32_t() {return value;}
+    operator int() {return value;}
 
     bool operator <(int value) {return this->value < value;}
+    bool operator <=(int value) {return this->value <= value;}
     bool operator >(int value) {return this->value > value;}
+    bool operator >=(int value) {return this->value >= value;}
 
     bool operator ==(int value) {return this->value == value;}
 };
