@@ -12,3 +12,4 @@
 #include "Direction.h"
 #include "Hash.h"
 #include "LogLevel.h"
+#include "SavedVariable.h"

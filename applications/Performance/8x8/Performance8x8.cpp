@@ -2,7 +2,8 @@
 
 void Performance::Setup()
 {
-    
+    //Load variable
+    // MatrixOS
 }
 
 void Performance::Loop()
@@ -57,6 +58,10 @@ Point Performance::NoteToXY(uint8_t note)
                 return Point(note - 28, -1);
             }
             break;
+        }
+        case 1:
+        {
+
         }
     }
     return Point::Invalid();
@@ -194,7 +199,8 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
     actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
-        actionMenu.AddUIElement(new UIButton("Velocity Sensitive", Color(0x00FFFF), [&]() -> void {}), Point(7, 7));
+
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatible Mode", [&]() -> Color{return compatibleMode ? Color(0xFFFFFF) : Color(0x7F7F7F);}, [&]() -> void{compatibleMode = !compatibleMode;}), Point(7, 0));
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
 

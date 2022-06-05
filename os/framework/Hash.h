@@ -39,7 +39,7 @@ struct HashHelper<N, 1>
     }
 };
 
-template<uint32_t N>
+template <uint32_t N>
 constexpr static uint32_t StaticHash(const char (&str)[N])
 {
     return HashHelper<N, N>::Calculate(str);

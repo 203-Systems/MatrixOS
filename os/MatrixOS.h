@@ -161,10 +161,10 @@ namespace MatrixOS
 
   namespace NVS
   {
-    vector<char> GetVariable(string name);
-    int8_t GetVariable(string name, void* pointer, uint16_t length); //Load variable into pointer. If not defined, it will try to assign current pointer value into it.
-    bool SetVariable(string name, void* pointer, uint16_t length);
-    bool DeleteVariable(string name);
+    vector<char> GetVariable(uint32_t hash);
+    int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length); //Load variable into pointer. If not defined, it will try to assign current pointer value into it.
+    bool SetVariable(uint32_t hash, void* pointer, uint16_t length);
+    bool DeleteVariable(uint32_t hash);
   }
 
   // namespace GPIO

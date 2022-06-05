@@ -143,7 +143,7 @@ namespace MatrixOS::SYS
         //EEPROM is at lower version (Delete variables that no longer needed)
         //EEPROM is at correct version
         for (auto& value : userVar) {
-            vector<char> read = NVS::GetVariable("U_" + value.first);
+            vector<char> read = NVS::GetVariable(Hash("U_" + value.first));
             if(read.size() == 4)
             {
                 value.second = *(uint32_t*)read.data();
@@ -178,7 +178,7 @@ namespace MatrixOS::SYS
         if(userVar.find(variable) != userVar.end()) //Check User Variables First
         {   
             userVar[variable] = value;
-            NVS::SetVariable("U_" + variable, &value, 4);
+            NVS::SetVariable(Hash("U_" + variable), &value, 4);
         }
         else
         {

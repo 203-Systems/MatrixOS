@@ -52,10 +52,10 @@ namespace Device
 
     namespace NVS
     {
-        vector<char> Read(string name);
-        // void* Read(string name);
-        bool Write(string name, void* pointer, uint16_t length);
-        bool Delete(string name);
+        vector<char> Read(uint32_t hash);
+        // void* Read(uint32_t hash);
+        bool Write(uint32_t hash, void* pointer, uint16_t length);
+        bool Delete(uint32_t hash);
         void Clear();
     }
 
