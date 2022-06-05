@@ -10,7 +10,6 @@
 #define APPLICATION_VERSION 0
 #define APPLICATION_CLASS Performance
 
-#define PERFORMANCE_VELOCITY_THRESHOLD 16384
 class Performance : public Application
 {
     public:
