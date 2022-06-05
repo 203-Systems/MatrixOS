@@ -175,8 +175,7 @@ namespace Device::KeyPad
                 }
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                 bool updated = keypadState[x][y].update(read, false);
-                if(u
-                pdated)
+                if(updated)
                 {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
                     if(addToList(keyID))

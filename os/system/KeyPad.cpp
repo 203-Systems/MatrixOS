@@ -25,9 +25,13 @@ namespace MatrixOS::KEYPAD
     uint16_t Scan(bool force)
     {   
         if(force)
+        {
             ClearList();
+        }
         else if(Available()) //Not all cache has been read yet
+        {
             return Available();
+        }
 
         // MatrixOS::Logging::LogDebug("Keypad", "Scan");
         if (changelist)

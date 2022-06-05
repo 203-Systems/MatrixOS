@@ -8,12 +8,13 @@ namespace MatrixOS::UIComponent
     {
         MatrixOS::Logging::LogDebug("Text Scroll", "Printing %s", text.c_str());
         Timer textScrollTimer;
+        Timer keyscanTimer;
         MatrixOS::LED::Fill(Color(0x000000));
         MatrixOS::LED::Update();
 
-        bool buffer[Device::x_size][Device::y_size]; // TODO 检查设备旋转
+        bool buffer[Device::x_size][Device::y_size]; // TODO Check Device Rotation
 
-        //清空buffer
+        //Clear buffer
         for (uint8_t x = 0; x < Device::x_size; x++)
         {
             for (uint8_t y = 0; y < Device::y_size; y++)
@@ -38,7 +39,7 @@ namespace MatrixOS::UIComponent
                     current_char = ' '; // TODO add proper ending spacing so x width is not limited to 8x8
                 }
 
-                MatrixOS::Logging::LogDebug("Text Scroll", "Printing %c", current_char);
+                // MatrixOS::Logging::LogDebug("Text Scroll", "Printing %c", current_char);
                 if (current_char < 127) // Check ASCII is within bound 
                 {
                     if (current_char < 32) // Speed change control characters
@@ -84,7 +85,7 @@ namespace MatrixOS::UIComponent
                             while (!textScrollTimer.Tick(speed)) //Waiting for next frame
                             {
                                 MatrixOS::KEYPAD::Scan(true);
-                                MatrixOS::Logging::LogDebug("Text Scroll", "FN Velocity %d", (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
+                                // MatrixOS::Logging::LogDebug("Text Scroll", "FN Velocity %d", (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
                                 //Let's assume we don't use FN to trigger a text scroll
                                 if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state == PRESSED)
                                 {

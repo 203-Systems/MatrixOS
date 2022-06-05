@@ -23,19 +23,6 @@ class Shell : public Application
 
     void AddCommonBarInUI(UI* ui);
     void ApplicationLauncher();
-
-    // void GetKey();
-    // virtual bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {return false;}; //Return true to skip UIKeyEvent
-
-    // std::list<UIElement> uiElements;
-    // std::map<Point, UIElement*> uiElementsMap;
-
-    // void AddUIElement(new UIButton uiElement, Point xy);
-    // void ClearUIElements();
-
-    // private:
-    // void RenderUI();
-    // void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
 };
 
 #include "applications/RegisterApplication.h"

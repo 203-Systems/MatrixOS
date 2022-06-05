@@ -21,7 +21,13 @@ void Setting::Setup()
     AddUIElement(new UIButton("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
 
     // //Velocity Sensitive
-    // AddUIElement(new UIButton("Velocity Sensitive", Color(0xFFFFFF), []() -> void {MatrixOS::SYS::NextBrightness();}), Point(0, 0));
+    AddUIElement(new UIButtonWithColorFunc("Velocity Sensitive", 
+        []() -> Color {return (MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar) == 0 ? 0xFFFFFF : 0x3F3F3F);}, 
+        []() -> void {
+            uint32_t current = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
+            MatrixOS::SYS::SetVariable("velocity_sensitive_threshold", current ? 0 : Device::KeyPad::low_threshold); //TODO, allow user change threshold?
+            }), 
+        Point(0, 0));
 
 
 

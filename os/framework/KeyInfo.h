@@ -79,7 +79,7 @@ struct KeyInfo {
     {
         Fract16 source = velocity;
         uint32_t velocity_sensitive_threshold = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
-        if(false) //Bad name for this, to
+        if(velocity_sensitive_threshold)
         {
             if((uint16_t)velocity < velocity_sensitive_threshold)
             {
