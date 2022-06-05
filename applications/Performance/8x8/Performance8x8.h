@@ -18,9 +18,10 @@ class Performance : public Application
     uint32_t version = 0;
 
     uint8_t currentKeymap = 0;
-
-    bool compatibleMode = false;
+    // bool compatibleMode = false;
     bool fnLock = false;
+
+    SavedVariable<bool> compatibleMode = SavedVar("Performance", "compatible_mode", false);
 
     uint8_t stfu = 2;
     

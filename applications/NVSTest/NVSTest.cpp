@@ -37,7 +37,7 @@ void NVSTest::Loop()
 				MatrixOS::USB::CDC::Println("Read String from Hash Table");
 				MatrixOS::USB::CDC::Println("Enter Key Name:");
 				string str = WaitForString();
-				std::vector<char> value = Device::NVS::Read(str);
+				std::vector<char> value = Device::NVS::Read(Hash(str));
 				if (value.size() == 0)
 				{
 					MatrixOS::USB::CDC::Println("Key not found");
@@ -75,7 +75,7 @@ void NVSTest::Loop()
 				MatrixOS::USB::CDC::Print("Length: ");
         MatrixOS::USB::CDC::Println(std::to_string(length).c_str());
 
-				Device::NVS::Write(name, (void*)value_array, length);
+				Device::NVS::Write(Hash(name), (void*)value_array, length);
         MatrixOS::USB::CDC::Println("Data Wrote");
 				break;
       }

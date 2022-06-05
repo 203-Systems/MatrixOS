@@ -2,20 +2,20 @@
 
 namespace MatrixOS::NVS
 {
-    vector<char> GetVariable(string name)
+    vector<char> GetVariable(uint32_t hash)
     {
-        return Device::NVS::Read(name);
+        return Device::NVS::Read(hash);
     }
 
-    int8_t GetVariable(string name, void* pointer, uint16_t length)
+    int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length)
     {
-        vector<char> data = Device::NVS::Read(name);
+        vector<char> data = Device::NVS::Read(hash);
         if(data.size() == 0) //Havn't been saved
         {
-            SetVariable(name, pointer, length);
+            SetVariable(hash, pointer, length);
             return 1;
         }
-        else if(data.size() != length) //Size missmatched
+        else if(data.size() != length) //Size mismatched
         {
             return 2;
         }
@@ -27,14 +27,14 @@ namespace MatrixOS::NVS
         return -1;
     }
 
-    bool SetVariable(string name, void* pointer, uint16_t length)
+    bool SetVariable(uint32_t hash, void* pointer, uint16_t length)
     {   
-        MatrixOS::Logging::LogVerbose("NVS", "Variable wrote : %s : %d: %d", name.c_str(), *(uint32_t*)pointer, length);
-        return Device::NVS::Write(name, pointer, length);
+        MatrixOS::Logging::LogVerbose("NVS", "Variable wrote : 0x%08x : 0x%08x: %d", hash, *(uint32_t*)pointer, length);
+        return Device::NVS::Write(hash, pointer, length);
     }
 
-    bool DeleteVariable(string name)
+    bool DeleteVariable(uint32_t hash)
     {
-        return Device::NVS::Delete(name);
+        return Device::NVS::Delete(hash);
     }
 }

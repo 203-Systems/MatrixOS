@@ -63,7 +63,6 @@ namespace MatrixOS::SYS
     void Init()
     {   
         Device::DeviceInit();
-        LoadVariables();
 
         USB::Init();
         KEYPAD::Init();
@@ -136,63 +135,13 @@ namespace MatrixOS::SYS
         setting.Start();
     }
 
-    void LoadVariables()
-    {   
-        //EEPROM was just reseted
-        //EEPROM isn't initallized or Firmware was downgraded
-        //EEPROM is at lower version (Delete variables that no longer needed)
-        //EEPROM is at correct version
-        for (auto& value : userVar) {
-            vector<char> read = NVS::GetVariable("U_" + value.first);
-            if(read.size() == 4)
-            {
-                value.second = *(uint32_t*)read.data();
-            }
-            MatrixOS::Logging::LogVerbose("UserVar", "%s : %d", ("U_" + value.first).c_str(), value.second);
-        }
-    }
 
-    uint32_t GetVariable(string variable, EVarClass varClass)
-    {   
-        switch(varClass)
-        {   
-            case EVarClass::DeviceVar:
-                return 0; //TODO
-            case EVarClass::SystemVar:
-                return 0; //TODO
-            case EVarClass::UserVar:
-                if(userVar.find(variable) != userVar.end()) //Check User Variables First
-                    return userVar[variable];
-                return 0;
-            case EVarClass::AppVar:
-                return 0;
-        }
-        return 0;
-    }
-
-    int8_t SetVariable(string variable, uint32_t value)
-    {   
-        //Save Variable
-        MatrixOS::Logging::LogDebug("System", "Set Variable [%s, %d]", variable.c_str(), value);
-        // MatrixOS::Logging::LogDebug("System", "Set Variable");
-        if(userVar.find(variable) != userVar.end()) //Check User Variables First
-        {   
-            userVar[variable] = value;
-            NVS::SetVariable("U_" + variable, &value, 4);
-        }
-        else
-        {
-            return 0;
-        }
-        return 0;
-    }
-
-    void Rotate(EDirection rotation, bool absolute)
+    void Rotate(EDirection new_rotation, bool absolute)
     {
-        if(rotation == 90 || rotation == 180 || rotation == 270)
+        if(new_rotation == 90 || new_rotation == 180 || new_rotation == 270)
         {
-            LED::RotateCanvas(rotation);
-            SetVariable("rotation", (GetVariable("rotation") + rotation * !absolute) % 360);
+            LED::RotateCanvas(new_rotation); //TODO Does not work if absolute is true
+            UserVar::rotation = (EDirection)((UserVar::rotation + new_rotation * !absolute) % 360);
         }
     }
 
@@ -200,24 +149,23 @@ namespace MatrixOS::SYS
     {
         // ESP_LOGI("System".c_str(), "Next Brightness");
         MatrixOS::Logging::LogDebug("System", "Next Brightness");
-        uint8_t current_brightness = (uint8_t)GetVariable("brightness");
         // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
-        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", current_brightness);
-        for (uint8_t brightness: Device::brightness_level)
+        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", UserVar::brightness);
+        for (uint8_t new_brightness: Device::brightness_level)
         {
             // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
-            MatrixOS::Logging::LogDebug("System", "Check Brightness Level  %d", brightness);
-            if (brightness > current_brightness)
+            MatrixOS::Logging::LogDebug("System", "Check Brightness Level  %d", new_brightness);
+            if (new_brightness > UserVar::brightness)
             {
                 // ESP_LOGI("System".c_str(), "Brightness Level Selected");
                 MatrixOS::Logging::LogDebug("System", "Brightness Level Selected");
-                MatrixOS::SYS::SetVariable("brightness", brightness);
+                UserVar::brightness = new_brightness;
                 return;
             }
         }
         // ESP_LOGI("System".c_str(), "Lowest Level Selected");
         MatrixOS::Logging::LogDebug("System", "Lowest Level Selected");
-        MatrixOS::SYS::SetVariable("brightness", Device::brightness_level[0]);
+        UserVar::brightness = Device::brightness_level[0];
     }
 
     uint32_t GenerateAPPID(string author, string app_name)
