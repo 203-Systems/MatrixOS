@@ -4,7 +4,7 @@
 #include "framework/Framework.h"
 
 #define USER_VAR_NAMESPACE "USER_VAR"
-#define UserVar(name, type, default_value) inline SavedVariable<type> name = SavedVariable(StaticHash(USER_VAR_NAMESPACE "-" #name), (type)default_value)
+#define UserVar(name, type, default_value) inline CreateSavedVar(USER_VAR_NAMESPACE, name, type, default_value)
 
 namespace MatrixOS::UserVar
 {

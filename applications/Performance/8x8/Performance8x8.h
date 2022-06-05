@@ -22,7 +22,8 @@ class Performance : public Application
     // bool compatibleMode = false;
     bool fnLock = false;
 
-    CreateSavedVar("Performance", compatibleMode, bool, false);
+    //Saved Variables
+    CreateSavedVar(APPLICATION_NAME, compatibleMode, bool, false);
 
     uint8_t stfu = 2;
     
