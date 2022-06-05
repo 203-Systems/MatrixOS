@@ -3,6 +3,7 @@
 #include "MatrixOS.h"
 #include "applications/Application.h"
 #include "framework/UI.h"
+#include "framework/Hash.h"
 
 #define APPLICATION_NAME "Performance Mode"
 #define APPLICATION_AUTHOR "203 Electronics"
@@ -21,7 +22,7 @@ class Performance : public Application
     // bool compatibleMode = false;
     bool fnLock = false;
 
-    SavedVariable<bool> compatibleMode = SavedVar("Performance", "compatible_mode", false);
+    CreateSavedVar("Performance", compatibleMode, bool, false);
 
     uint8_t stfu = 2;
     

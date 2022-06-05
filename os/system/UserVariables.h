@@ -4,9 +4,12 @@
 #include "framework/Framework.h"
 
 #define USER_VAR_NAMESPACE "USER_VAR"
+#define UserVar(name, type, default_value) inline SavedVariable<type> name = SavedVariable(StaticHash(USER_VAR_NAMESPACE "-" #name), (type)default_value)
+
 namespace MatrixOS::UserVar
 {
-    inline SavedVariable<EDirection> rotation(USER_VAR_NAMESPACE, "rotation", TOP);
-    inline SavedVariable<uint8_t> brightness(USER_VAR_NAMESPACE, "brightness", 16);
-    inline SavedVariable<Fract16> velocity_sensitive_threshold(USER_VAR_NAMESPACE, "velocity_sensitive_threshold", 0);
+    //variable name, variable type, variable default
+    UserVar(rotation, EDirection, TOP);
+    UserVar(brightness, uint8_t, 16);
+    UserVar(velocity_sensitive_threshold, Fract16, 0);
 }
