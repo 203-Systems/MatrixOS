@@ -148,14 +148,12 @@ namespace Device::KeyPad
         {
             read = UINT16_MAX - (uint16_t)read;
         }
-        if(fnState.update(read))
+        if(fnState.update(read, false))
         {
             addToList(0);
         }
     }
 
-    uint16_t low_threshold = 512;
-    uint16_t high_threshold = 3584;
     bool key1_read = false;
     void KeyPadScan()
     {
@@ -172,42 +170,11 @@ namespace Device::KeyPad
                 }
                 else //FSR
                 {
-                // Fract16 read = gpio_get_level(keypad_read_pins[y]);
-                // if(read)
-                // {
                     uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                    if(raw_voltage < low_threshold)
-                    {
-                        read = 0;
-                    }
-                    else if(raw_voltage >= high_threshold)
-                    {
-                        read = UINT16_MAX;
-                    }
-                    else
-                    {
-                        read = (float)(raw_voltage - low_threshold) / (high_threshold - low_threshold) * UINT16_MAX;
-                        // printf("curved ");
-                    }
-                    // Fract16 read =  (raw_voltage << 3) + (raw_voltage >> 10); //Raw Voltage mapped. Will add calibration curve later.
-                    
-                    //Debug Info
-                    // if(x == 0)
-                    // {
-                        // if(raw_voltage > low_threshold)
-                        // {
-                        //     uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                        //     uint32_t pad_r = (3300 - voltage) * 510 / ((voltage == 0) ? 1 : voltage);
-                        //     MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\t%d mv\t%d ohm\n", x, y, raw_voltage, (float)raw_voltage / 4095, voltage, pad_r);
-                        //     // if(read)
-                        //     // {
-                        //     //     ESP_LOGI("Keypad", "Key %d:%d @ %d - %dmv", x, y, raw_voltage, voltage);
-                        //     // }
-                        // }
-                // }
+                    read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
                 }
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
-                bool updated = keypadState[x][y].update(read);
+                bool updated = keypadState[x][y].update(read, false);
                 if(updated)
                 {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
@@ -252,6 +219,7 @@ namespace Device::KeyPad
         {
              return (2 << 12) + xy.y + (xy.x == 8) * 8;
         }
+        // MatrixOS::Logging::LogError("Keypad", "Failed XY2ID %d %d", xy.x, xy.y);
         return UINT16_MAX;
     }
 

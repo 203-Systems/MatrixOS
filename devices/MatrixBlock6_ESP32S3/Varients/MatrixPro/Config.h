@@ -48,6 +48,9 @@ namespace Device
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
+        inline uint16_t low_threshold = 8192;
+        inline uint16_t high_threshold = 57344;
+
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
         inline adc1_channel_t keypad_read_adc_channel[8];
@@ -55,7 +58,6 @@ namespace Device
         inline gpio_num_t touchData_Pin;
         inline gpio_num_t touchClock_Pin;
         inline uint8_t touchbar_map[touchbar_size]; //Touch number as index and touch location as value (Left touch down and then right touch down)
-
 
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[touchbar_size];

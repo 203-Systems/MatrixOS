@@ -25,11 +25,15 @@ namespace MatrixOS::KEYPAD
     uint16_t Scan(bool force)
     {   
         if(force)
+        {
             ClearList();
+        }
         else if(Available()) //Not all cache has been read yet
+        {
             return Available();
+        }
 
-        // USB::CDC::Println("KeyPad Scan");
+        // MatrixOS::Logging::LogDebug("Keypad", "Scan");
         if (changelist)
         {
             vPortFree(changelist);
@@ -63,7 +67,7 @@ namespace MatrixOS::KEYPAD
     uint16_t Available()
     {
         // MatrixOS::USB::CDC::Println("KeyPad Available");
-        return changed - read;
+        return changelist ? (changed - read) : 0; //incase change list is null
     }
 
     uint16_t Get()
@@ -78,7 +82,7 @@ namespace MatrixOS::KEYPAD
             read++;
             return keyID;
         }
-        return 0xFFFF;
+        return 0xFFFE;
     }
 
     KeyInfo GetKey(Point keyXY)

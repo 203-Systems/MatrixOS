@@ -1,4 +1,6 @@
 
+// I really don't like how this works atm since it has to go back to System Layer
+// Device Keypad Driver -> KeyInfo(Update) -> Apply System configured velocity curve (with user parameter) -> Update
 #pragma once
 
 #include <stdint.h>
@@ -10,6 +12,23 @@
 namespace MatrixOS::SYS
 {
     uint32_t Millis(void);
+    uint32_t GetVariable(string variable, EVarClass varClass);
+}
+
+namespace MatrixOS::Logging
+{
+    void LogError (string tag, string format, ...);
+    void LogWarning (string tag, string format, ...);
+    void LogInfo (string tag, string format, ...);
+    void LogDebug (string tag, string format, ...);
+    void LogVerbose (string tag, string format, ...);
+}
+
+namespace Device::KeyPad
+{
+    extern bool FSR;
+    extern uint16_t low_threshold;
+    extern uint16_t high_threshold;
 }
 
 enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
@@ -56,8 +75,47 @@ struct KeyInfo {
 
    #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
 
-    bool update(Fract16 velocity)
+    Fract16 applyVelocityCurve(Fract16 velocity)
     {
+        Fract16 source = velocity;
+        uint32_t velocity_sensitive_threshold = MatrixOS::SYS::GetVariable("velocity_sensitive_threshold", EVarClass::UserVar);
+        if(velocity_sensitive_threshold)
+        {
+            if((uint16_t)velocity < velocity_sensitive_threshold)
+            {
+                velocity = 0;
+            }
+            else if((uint16_t)velocity >= velocity_sensitive_threshold)
+            {
+                velocity = UINT16_MAX;
+            }
+        }
+        else
+        {
+            if((uint16_t)velocity < Device::KeyPad::low_threshold)
+            {
+                velocity = 0;
+            }
+            else if((uint16_t)velocity >= Device::KeyPad::high_threshold)
+            {
+                velocity = UINT16_MAX;
+                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
+            }
+            else
+            {
+                velocity = (float)((uint16_t)velocity - Device::KeyPad::low_threshold) / (Device::KeyPad::high_threshold - Device::KeyPad::low_threshold) * UINT16_MAX;
+                MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", (uint16_t)source, (uint16_t)velocity);
+            }
+        }
+        return velocity;
+    }
+
+    bool update(Fract16 velocity, bool applyCurve = true)
+    {   
+        if(applyCurve && Device::KeyPad::FSR)
+        {
+            velocity = applyVelocityCurve(velocity);
+        }
         //Reset back to normal keys
         if(state == PRESSED)
         {

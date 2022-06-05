@@ -7,22 +7,7 @@
 #include <list>
 #include <map>
 #include <stdarg.h>
-
-struct UIElement
-{
-    string name;
-    Color color;
-    std::function<void()> callback;
-    std::function<void()> hold_callback;
-
-    UIElement(string name, Color color, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr)
-    {
-        this->name = name;
-        this->color = color;
-        this->callback = callback;
-        this->hold_callback = hold_callback;
-    }
-};
+#include "UIElement.h"
 
 class UI
 {
@@ -56,12 +41,11 @@ class UI
         void GetMidi();
         virtual void MidiEvent(MidiPacket midiPacket) {};
 
-        std::list<UIElement> uiElements;
-        std::map<Point, UIElement*> uiElementsMap;
+        std::map<Point, UIElement*> uiElementMap;
 
-        void AddUIElement(UIElement uiElement, Point xy);
-        // void AddUIElement(UIElement uiElement, uint32_t keyID);
-        void AddUIElement(UIElement uiElement, uint16_t count, ...);
+        void AddUIElement(UIElement* uiElement, Point xy);
+        // void AddUIElement(UIElement* uiElement, uint32_t keyID);
+        void AddUIElement(UIElement* uiElement, uint16_t count, ...);
 
         std::function<void()> func_hold_callback = nullptr;
         bool fn_released = false;

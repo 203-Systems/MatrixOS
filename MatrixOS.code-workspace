@@ -100,7 +100,11 @@
 			"queue": "cpp",
 			"stack": "cpp",
 			"thread": "cpp",
-			"xlocbuf": "cpp"
+			"xlocbuf": "cpp",
+			"locale": "cpp",
+			"mutex": "cpp",
+			"xlocmes": "cpp",
+			"xloctime": "cpp"
 		}
 	}
 }
