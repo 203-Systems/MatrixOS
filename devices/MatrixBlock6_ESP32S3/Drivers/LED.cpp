@@ -25,22 +25,19 @@ namespace Device
             }
             else if(xy.x == 8 && xy.y >= 0 && xy.y < 8) //Underglow Right Column
             {
-                return 84 + xy.y;
+                return 64 + (7 - xy.y);
             }
             else if(xy.y == 8 && xy.x >= 0 && xy.x < 8) //Underglow Bottom Row
             {
-                if(xy.x < 4)
-                    return 64 + (3 - xy.x);
-                else
-                    return 92 + (7 - xy.x);
+                return 88 + xy.x;
             }
             else if(xy.x == -1 && xy.y >= 0 && xy.y < 8) //Underglow Left Column
             {
-                return 68 + (7 - xy.y);
+                return 80 + xy.y;
             }
             else if(xy.y == -1 && xy.x >= 0 && xy.x < 8) //Underglow Top Row
             {
-                return 76 + xy.x;
+                return 72 + (7 - xy.x);
             }
             return UINT16_MAX;
         }
