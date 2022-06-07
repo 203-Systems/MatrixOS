@@ -9,8 +9,8 @@ namespace MatrixOS::NVS
 }
 
 enum SavedVariableState {NotInited, Inited, Loaded, Deleted};
-#define SavedVar(scope, name, default_value) SavedVariable(StaticHash(scope "-" name), default_value) //This way the class string and name string are not gonna be compiled in
 
+#define CreateSavedVar(scope, name, type, default_value) SavedVariable<type> name = SavedVariable(StaticHash(scope "-" #name), (type)default_value)
 template <class T>
 class SavedVariable
 {
@@ -24,7 +24,6 @@ class SavedVariable
         this->hash = Hash(scope + "-" + name);
         this->value = default_value;
         this->state = SavedVariableState::Inited;
-        
     }
 
     SavedVariable(uint32_t hash, T default_value)
