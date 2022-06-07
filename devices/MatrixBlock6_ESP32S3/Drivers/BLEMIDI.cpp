@@ -1,0 +1,100 @@
+#include "Device.h"
+#include "blemidi/blemidi.h"
+
+#define TAG "BLE-MIDI"
+
+namespace Device
+{
+    namespace BLEMIDI
+    {
+        
+        bool started = false;
+        TaskHandle_t taskHandle = NULL;
+
+        static void Task(void *pvParameters)
+        {
+            portTickType xLastExecutionTime;
+
+            // Initialise the xLastExecutionTime variable on task entry
+            xLastExecutionTime = xTaskGetTickCount();
+
+            while(true) 
+            {
+                vTaskDelayUntil(&xLastExecutionTime, 500 / portTICK_RATE_MS);
+
+                blemidi_tick(); // for timestamp and output buffer handling
+            }
+        }
+
+        void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos)
+        {
+            MatrixOS::Logging::LogInfo(TAG, "CALLBACK blemidi_port=%d, timestamp=%d, midi_status=0x%02x, len=%d, continued_sysex_pos=%d, remaining_message:", blemidi_port, timestamp, midi_status, len, continued_sysex_pos);
+            // esp_log_buffer_hex(TAG, remaining_message, len);
+
+            // loopback received message
+            {
+                // TODO: more comfortable packet creation via special APIs
+
+                // Note: by intention we create new packets for each incoming message
+                // this shows that running status is maintained, and that SysEx streams work as well
+                
+                if( midi_status == 0xf0 && continued_sysex_pos > 0 ) 
+                {
+                blemidi_send_message(0, remaining_message, len); // just forward
+                } 
+                else 
+                {
+                    size_t loopback_message_len = 1 + len; // includes MIDI status and remaining bytes
+                    uint8_t *loopback_message = (uint8_t *)malloc(loopback_message_len * sizeof(uint8_t));
+                    if( loopback_message == NULL ) {
+                        // no memory...
+                    } else {
+                        loopback_message[0] = midi_status;
+                        memcpy(&loopback_message[1], remaining_message, len);
+
+                        blemidi_send_message(0, loopback_message, loopback_message_len);
+
+                        free(loopback_message);
+                    }
+                }
+            }
+        }
+
+        void Toggle()
+        {
+            if(!started)
+            {
+                Start();
+            }
+            else
+            {
+                Stop();
+            }
+        }
+
+        void Init()
+        {
+            int status = blemidi_init((void*)Callback);
+            if( status < 0 ) {
+                ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
+            } else {
+                ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
+            }
+        }
+
+        void Start()
+        {
+            xTaskCreate(Task, "task_midi", 4096, NULL, 8, &taskHandle);
+            started = true;
+        }
+
+        void Stop()
+        {
+            if( taskHandle != NULL )
+            {
+                vTaskDelete( taskHandle );
+            }
+            started = false;
+        }
+    }
+}

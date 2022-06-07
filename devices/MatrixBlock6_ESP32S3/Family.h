@@ -86,4 +86,13 @@ namespace Device
         void BroadcastMac();
         void UpdatePeer(const uint8_t* new_mac);
     }
+
+    namespace BLEMIDI
+    {
+        extern bool started;
+        void Toggle();
+        void Init();
+        void Start();
+        void Stop();
+    }
 }

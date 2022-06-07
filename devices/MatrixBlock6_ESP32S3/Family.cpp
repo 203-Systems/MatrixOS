@@ -15,6 +15,8 @@ namespace Device
         LED::Init();
         KeyPad::Init();
         NVS::Init();
+        BLEMIDI::Init();
+        BLEMIDI::Start();
         // WIFI::Init();
         // ESPNOW::Init();
         // ESPNOW::BroadcastMac();
