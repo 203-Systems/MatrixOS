@@ -26,7 +26,6 @@ namespace Device
             while(true) 
             {
                 vTaskDelayUntil(&xLastExecutionTime, 500 / portTICK_RATE_MS);
-
                 blemidi_tick(); // for timestamp and output buffer handling
             }
         }
@@ -79,7 +78,7 @@ namespace Device
 
         void Toggle()
         {
-            if(!started)
+            if(started == false)
             {
                 Start();
             }
@@ -89,29 +88,31 @@ namespace Device
             }
         }
 
-        void Init()
+        void Start()
         {
             int status = blemidi_init((void*)Callback);
             if( status < 0 ) {
                 ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
             } else {
                 ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
+                started = true;
+                xTaskCreate(Task, "task_midi", 4096, NULL, 8, &taskHandle);
             }
-        }
-
-        void Start()
-        {
-            xTaskCreate(Task, "task_midi", 4096, NULL, 8, &taskHandle);
-            started = true;
         }
 
         void Stop()
         {
-            if( taskHandle != NULL )
-            {
-                vTaskDelete( taskHandle );
+            int status = blemidi_deinit();
+            if( status < 0 ) {
+                ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
+            } else {
+                ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
+                started = false;
+                if( taskHandle != NULL )
+                {
+                    vTaskDelete( taskHandle );
+                }
             }
-            started = false;
         }
 
         uint32_t MidiAvailable()

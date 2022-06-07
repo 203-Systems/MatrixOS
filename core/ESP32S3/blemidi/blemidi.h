@@ -70,6 +70,13 @@ extern "C" {
 extern int32_t blemidi_init(void *callback_midi_message_received);
 
 /**
+ * @brief Deinitializes the BLEMIDI Server
+ *
+ * @return < 0 on errors
+ */  
+extern int32_t blemidi_deinit();
+
+/**
  * @brief Sends a BLE MIDI message
  *
  * @param  blemidi_port currently always 0 expected (we might support multiple ports in future)

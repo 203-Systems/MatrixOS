@@ -15,8 +15,12 @@ namespace Device
         LED::Init();
         KeyPad::Init();
         NVS::Init();
-        BLEMIDI::Init();
-        BLEMIDI::Start();
+
+        if(bluetooth)
+        {
+            BLEMIDI::Start();
+        }
+
         // WIFI::Init();
         // ESPNOW::Init();
         // ESPNOW::BroadcastMac();

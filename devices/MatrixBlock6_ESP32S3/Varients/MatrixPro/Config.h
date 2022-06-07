@@ -11,6 +11,7 @@
 // #define LC8812
 
 #include "Family.h"
+#include "framework/SavedVariable.h"
 
 // #define FACTORY_CONFIG V100
 // #define FACTORY_MFG_YEAR 22

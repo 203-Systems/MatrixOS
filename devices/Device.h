@@ -3,6 +3,7 @@
 #include "framework/Framework.h"
 #include "tusb.h"
 #include "Config.h"
+// #include "framework/UI.h"
 
 namespace Device
 {  
@@ -58,6 +59,7 @@ namespace Device
         bool Delete(uint32_t hash);
         void Clear();
     }
+
 
     #ifdef DEVICE_BATTERY
     namespace Battery

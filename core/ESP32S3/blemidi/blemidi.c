@@ -841,6 +841,46 @@ int32_t blemidi_init(void *_callback_midi_message_received)
   return 0; // no error
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Deinitializes the BLE MIDI Server
+////////////////////////////////////////////////////////////////////////////////////////////////////
+int32_t blemidi_deinit()
+{
+  esp_err_t ret;
+
+  /* Denitialize Bluedroid. */
+  ret = esp_bluedroid_disable();
+  if (ret)
+  {
+    ESP_LOGE(BLEMIDI_TAG, "%s disable bluetooth failed: %s", __func__, esp_err_to_name(ret));
+    return -1;
+  }
+
+  ret = esp_bluedroid_deinit();
+  if (ret)
+  {
+    ESP_LOGE(BLEMIDI_TAG, "%s deinit bluetooth failed: %s", __func__, esp_err_to_name(ret));
+    return -2;
+  }
+
+  ret = esp_bt_controller_disable();
+  if (ret)
+  {
+    ESP_LOGE(BLEMIDI_TAG, "%s disable controller failed: %s", __func__, esp_err_to_name(ret));
+    return -3;
+  }
+
+  ret = esp_bt_controller_deinit();
+  if (ret)
+  {
+    ESP_LOGE(BLEMIDI_TAG, "%s disable controller failed: %s", __func__, esp_err_to_name(ret));
+    return -4;
+  }
+
+
+  return 0; // no error
+}
+
 #if BLEMIDI_ENABLE_CONSOLE
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Optional Console Commands
