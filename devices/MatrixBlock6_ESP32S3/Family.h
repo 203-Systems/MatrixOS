@@ -85,6 +85,7 @@ namespace Device
     namespace BLEMIDI
     {
         extern bool started;
+        void Init(string name);
         void Toggle();
         void Start();
         void Stop();

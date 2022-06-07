@@ -39,7 +39,6 @@ extern "C" {
 
 #include <stdint.h>
 
-
 #ifndef BLEMIDI_DEVICE_NAME
 #define BLEMIDI_DEVICE_NAME "Matrix OS"
 #endif  
@@ -67,7 +66,7 @@ extern "C" {
  *         API see blemidi_receive_packet_callback_for_debugging
  *         Specify NULL if no callback required in your application.
  */  
-extern int32_t blemidi_init(void *callback_midi_message_received);
+extern int32_t blemidi_init(void *callback_midi_message_received, const char* name);
 
 /**
  * @brief Deinitializes the BLEMIDI Server

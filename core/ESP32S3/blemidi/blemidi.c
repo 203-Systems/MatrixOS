@@ -193,6 +193,8 @@ static const uint8_t char_prop_read_write_writenr_notify = ESP_GATT_CHAR_PROP_BI
 static const uint8_t char_value[3] = {0x80, 0x80, 0xfe};
 static const uint8_t blemidi_ccc[2] = {0x00, 0x00};
 
+static const char* blemidi_name;
+
 void (*blemidi_callback_midi_message_received)(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -582,7 +584,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
   {
   case ESP_GATTS_REG_EVT:
   {
-    esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(BLEMIDI_DEVICE_NAME);
+    esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(blemidi_name);
     if (set_dev_name_ret)
     {
       ESP_LOGE(BLEMIDI_TAG, "set device name failed, error code = %x", set_dev_name_ret);
@@ -747,12 +749,13 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializes the BLE MIDI Server
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-int32_t blemidi_init(void *_callback_midi_message_received)
+int32_t blemidi_init(void *_callback_midi_message_received, const char* name)
 {
   esp_err_t ret;
 
   // callback will be installed if driver was booted successfully
   blemidi_callback_midi_message_received = NULL;
+  blemidi_name = name;
 
   /* Initialize NVS. */
   ret = nvs_flash_init();

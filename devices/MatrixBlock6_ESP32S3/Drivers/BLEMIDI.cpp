@@ -12,8 +12,8 @@ namespace Device
 {
     namespace BLEMIDI
     {
-        
         bool started = false;
+        string name;
         TaskHandle_t taskHandle = NULL;
 
         static void Task(void *pvParameters)
@@ -88,9 +88,14 @@ namespace Device
             }
         }
 
+        void Init(string name)
+        {
+            BLEMIDI::name = name;
+        }
+
         void Start()
         {
-            int status = blemidi_init((void*)Callback);
+            int status = blemidi_init((void*)Callback, name.c_str());
             if( status < 0 ) {
                 ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
             } else {

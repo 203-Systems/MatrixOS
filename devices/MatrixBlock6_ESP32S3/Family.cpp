@@ -16,6 +16,7 @@ namespace Device
         KeyPad::Init();
         NVS::Init();
 
+        BLEMIDI::Init(name);
         if(bluetooth)
         {
             BLEMIDI::Start();
