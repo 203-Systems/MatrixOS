@@ -83,11 +83,11 @@ namespace MatrixOS::MIDI
 
     MidiPacket Get()
     {
-        //IF USB is enabled
         if(tud_midi_available())
         {
             return GetUSB();
         }
+
         #ifdef DEVICE_MIDI
         else if(Device::MIDI::Available())
         {
@@ -209,6 +209,10 @@ namespace MatrixOS::MIDI
     void SendPacket(MidiPacket midiPacket)
     {
         SendPacketUSB(midiPacket);
+
+        #ifdef DEVICE_MIDI
+        Device::MIDI::Send(midiPacket);
+        #endif
     }
 
     void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)

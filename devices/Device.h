@@ -3,6 +3,7 @@
 #include "framework/Framework.h"
 #include "tusb.h"
 #include "Config.h"
+// #include "framework/UI.h"
 
 namespace Device
 {  
@@ -59,6 +60,7 @@ namespace Device
         void Clear();
     }
 
+
     #ifdef DEVICE_BATTERY
     namespace Battery
     {   
@@ -72,7 +74,7 @@ namespace Device
     {
         uint32_t Available();
         MidiPacket Get();
-        bool Sent(MidiPacket packet);
+        bool Send(MidiPacket packet);
     } 
     #endif
 

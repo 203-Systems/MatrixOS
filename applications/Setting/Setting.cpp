@@ -32,6 +32,10 @@ void Setting::Setup()
 
     // AddUIElement(new UIButton("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
     // AddUIElement(new UIButton("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
+
+    #ifdef DEVICE_SETTING
+    #include "DeviceSetting.h"
+    #endif
 }
 
 bool Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)

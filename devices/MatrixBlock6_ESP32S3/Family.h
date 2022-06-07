@@ -28,9 +28,15 @@
 
 #define FUNCTION_KEY 0 //Keypad Code for main function key
 #define DEVICE_APPLICATIONS
+#define DEVICE_SETTING
+
+#define DEVICE_SAVED_VAR_SCOPE "Device"
 
 namespace Device
 {   
+    //Device Variable
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
+
     void LoadDeviceInfo();
     void LoadVarientInfo();
 
@@ -76,8 +82,21 @@ namespace Device
         void Init();
     }
 
+    namespace BLEMIDI
+    {
+        extern bool started;
+        void Init(string name);
+        void Toggle();
+        void Start();
+        void Stop();
+        bool SendMidi(uint8_t* packet);
+        uint32_t MidiAvailable();
+        MidiPacket GetMidi();
+    }
+
     namespace ESPNOW
     {
+        extern bool started;
         void Init();
         void Flush(void* param);
         bool SendMidi(uint8_t* packet);
