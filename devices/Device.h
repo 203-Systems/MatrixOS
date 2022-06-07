@@ -74,7 +74,7 @@ namespace Device
     {
         uint32_t Available();
         MidiPacket Get();
-        bool Sent(MidiPacket packet);
+        bool Send(MidiPacket packet);
     } 
     #endif
 

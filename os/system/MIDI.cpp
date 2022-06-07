@@ -74,31 +74,26 @@ namespace MatrixOS::MIDI
         uint32_t packets = 0;
         packets += tud_midi_available();
 
-        // #ifdef DEVICE_MIDI
+        #ifdef DEVICE_MIDI
         packets += Device::MIDI::Available();
-        // #endif
+        #endif
 
         return packets;
     }
 
     MidiPacket Get()
     {
-        //IF USB is enabled
-        // #ifdef DEVICE_MIDI
-        if(Device::MIDI::Available())
-        {
-            // MidiPacket packet =  Device::MIDI::Get();
-            // // MatrixOS::Logging::LogDebug("Device Midi", "Status 0x%02x, Channel 0x%02x, Note 0x%02x, Velocity 0x%02x", packet.status, packet.channel(), packet.note(), packet.velocity());
-            // packet.port = 0;
-            // // SendPacket(packet);
-            // return packet;
-            return Device::MIDI::Get();
-        }
-        else if(tud_midi_available())
+        if(tud_midi_available())
         {
             return GetUSB();
         }
-        // #endif
+
+        #ifdef DEVICE_MIDI
+        else if(Device::MIDI::Available())
+        {
+            return Device::MIDI::Get();
+        }
+        #endif
         
         return MidiPacket(0, None);
     }
@@ -214,6 +209,10 @@ namespace MatrixOS::MIDI
     void SendPacket(MidiPacket midiPacket)
     {
         SendPacketUSB(midiPacket);
+
+        #ifdef DEVICE_MIDI
+        Device::MIDI::Send(midiPacket);
+        #endif
     }
 
     void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity)

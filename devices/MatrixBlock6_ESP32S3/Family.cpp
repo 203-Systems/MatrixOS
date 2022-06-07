@@ -137,7 +137,7 @@ namespace Device
             return MidiPacket(0, None);
         }
 
-        bool Sent(MidiPacket packet)
+        bool Send(MidiPacket packet)
         {
             if(BLEMIDI::started)
             {
