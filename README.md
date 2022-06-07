@@ -45,9 +45,14 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 ## Acknowledgments
 This project have used following projects:
+
 [FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) - RTOS kernal 
+
 [TinyUSB](https://github.com/hathach/tinyusb) - USB Communlication
+
 [Printf](https://github.com/eyalroz/printf/) - Logging Printf
+
+Special thanks to [LA104](https://github.com/gabonator/LA104) for a lot of inspiration of this OS
 
 
 
