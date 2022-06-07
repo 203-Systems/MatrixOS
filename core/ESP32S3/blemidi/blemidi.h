@@ -53,12 +53,12 @@ extern "C" {
 #endif
 
 #ifndef BLEMIDI_OUTBUFFER_FLUSH_MS
-#define BLEMIDI_OUTBUFFER_FLUSH_MS 15
+#define BLEMIDI_OUTBUFFER_FLUSH_MS 10
 #endif
 
-#ifndef BLEMIDI_ENABLE_CONSOLE
-#define BLEMIDI_ENABLE_CONSOLE 1
-#endif
+// #ifndef BLEMIDI_ENABLE_CONSOLE
+// #define BLEMIDI_ENABLE_CONSOLE 1
+// #endif
   
 /**
  * @brief Initializes the BLEMIDI Server

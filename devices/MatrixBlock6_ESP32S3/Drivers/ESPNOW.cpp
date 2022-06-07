@@ -39,6 +39,7 @@ namespace Device
 {
     namespace ESPNOW
     {
+        bool started = false;
         void ESPNOW_Recv_CB(const uint8_t *mac_addr, const uint8_t *data, int len);
 
         nvs_handle_t esp_now_nvs;
@@ -185,7 +186,7 @@ namespace Device
         }
 
         MidiPacket GetMidi()
-        {;
+        {
             if(midi_buffer.size())
             {   
                 MidiPacket packet = midi_buffer.front();

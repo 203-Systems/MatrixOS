@@ -101,32 +101,50 @@ namespace Device
         
     }
 
-    // namespace MIDI
-    // {
-    //     uint32_t Available()
-    //     {
-    //         uint32_t packets = 0;
-    //         packets += ESPNOW::MidiAvailable();
-    //         return packets;
-    //     }
+    namespace MIDI
+    {
+        uint32_t Available()
+        {   
+            uint32_t packets = 0;
+            if(BLEMIDI::started)
+            {
+                packets += BLEMIDI::MidiAvailable();
+            }
+            if(ESPNOW::started)
+            {
+                packets += ESPNOW::MidiAvailable();
+            }
+            packets += ESPNOW::MidiAvailable();
+            return packets;
+        }
 
-    //     MidiPacket Get()
-    //     {
-    //         // ESP_LOGI("Midi Get", "Avail %d", ESPNOW::MidiAvailable());
-    //         if(ESPNOW::MidiAvailable())
-    //         {
-    //             // ESP_LOGI("Midi Get", "Getting");
-    //             return ESPNOW::GetMidi();
-    //         }
-    //         // ESP_LOGI("Midi Get", "WTF?");
-    //         return MidiPacket(0, None);
-    //     }
+        MidiPacket Get()
+        {
+            if(BLEMIDI::started && BLEMIDI::MidiAvailable())
+            {
+                return BLEMIDI::GetMidi();
+            }
+            if(ESPNOW::started && ESPNOW::MidiAvailable())
+            {
+                return ESPNOW::GetMidi();
+            }
+            // ESP_LOGI("Midi Get", "WTF?");
+            return MidiPacket(0, None);
+        }
 
-    //     bool Sent(MidiPacket packet)
-    //     {
-    //         return ESPNOW::SendMidi(packet.data);
-    //     }
-    // } 
+        bool Sent(MidiPacket packet)
+        {
+            if(BLEMIDI::started)
+            {
+                BLEMIDI::SendMidi(packet.data);
+            }
+            if(ESPNOW::started)
+            {
+                ESPNOW::SendMidi(packet.data);
+            }
+            return true; //idk what bool should mean in a multi port situation. Leave it be for now
+        }
+    } 
 }
 
 namespace MatrixOS::SYS

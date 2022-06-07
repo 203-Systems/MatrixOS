@@ -76,17 +76,6 @@ namespace Device
         void Init();
     }
 
-    namespace ESPNOW
-    {
-        void Init();
-        void Flush(void* param);
-        bool SendMidi(uint8_t* packet);
-        uint32_t MidiAvailable();
-        MidiPacket GetMidi();
-        void BroadcastMac();
-        void UpdatePeer(const uint8_t* new_mac);
-    }
-
     namespace BLEMIDI
     {
         extern bool started;
@@ -94,5 +83,20 @@ namespace Device
         void Init();
         void Start();
         void Stop();
+        bool SendMidi(uint8_t* packet);
+        uint32_t MidiAvailable();
+        MidiPacket GetMidi();
+    }
+
+    namespace ESPNOW
+    {
+        extern bool started;
+        void Init();
+        void Flush(void* param);
+        bool SendMidi(uint8_t* packet);
+        uint32_t MidiAvailable();
+        MidiPacket GetMidi();
+        void BroadcastMac();
+        void UpdatePeer(const uint8_t* new_mac);
     }
 }

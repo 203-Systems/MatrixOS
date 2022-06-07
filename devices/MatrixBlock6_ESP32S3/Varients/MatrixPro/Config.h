@@ -5,7 +5,7 @@
 #define MODEL MX1P
 
 #define DEVICE_BATTERY
-// #define DEVICE_MIDI
+#define DEVICE_MIDI
 
 #define MULTIPRESS 10 //Key Press will be process at once
 // #define LC8812
