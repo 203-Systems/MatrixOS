@@ -18,8 +18,16 @@ void Shell::Loop()
 void Shell::AddCommonBarInUI(UI* ui)
 {
     ui->AddUIElement(new UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
-    ui->AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
-    ui->AddFuncKeyHold([&]() -> void {});
+
+    #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG //Logging Mode Indicator
+        #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFBF00)
+    #elif MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE
+        #define SHELL_SYSTEM_SETTING_COLOR Color(0xFF007F)
+    #else
+        #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
+    #endif
+    ui->AddUIElement(new UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR, [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    ui->AddFuncKeyHold([&]() -> void {}); //So nothing happens
 }
     
 namespace MatrixOS::SYS{void ExecuteAPP(uint32_t app_id); uint16_t GetApplicationCount();} //Use non exposed Matrix OS API

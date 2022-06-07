@@ -71,6 +71,12 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
     // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
     Point xy = NoteToXY(note);
+
+    if(compatibilityMode && channel == 6)
+    {
+        channel = 1; //So it will use legacy palette
+    }
+
     if(xy && !(velocity == 0 && stfu))
     {
         // MatrixOS::Logging::LogDebug("Performance", "Set LED");
@@ -150,7 +156,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
     } 
     else if(keyInfo.state == RELEASED)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, 0, note, keyInfo.velocity.to7bits()));
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo.velocity.to7bits()));
     } 
 }
 
@@ -200,7 +206,7 @@ void Performance::ActionMenu()
 
     actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
 
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatible Mode", [&]() -> Color{return compatibleMode ? Color(0xFFFFFF) : Color(0x7F7F7F);}, [&]() -> void{compatibleMode = !compatibleMode;}), Point(7, 0));
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return compatibilityMode ? Color(0xFFFFFF) : Color(0x7F7F7F);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
 
