@@ -44,6 +44,20 @@ uint32_t Color::GRB(uint8_t brightness)
 	return (G << 16) | (R << 8) | B;
 }
 
+Color Color::Scale(uint8_t brightness)
+{
+	return Color(scale8(R, brightness), scale8(G, brightness), scale8(B, brightness));
+}
+
+Color Color::ToLowBrightness(bool cancel, uint8_t scale)
+{
+	if(!cancel)
+	{
+		return Scale(scale);
+	}
+	return Color(R, G, B, W);
+}
+
 // uint32_t Color::RGB(uint8_t brightness)
 // {
 // 	if(brightness != 255)

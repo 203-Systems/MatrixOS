@@ -163,7 +163,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
 {
     // MatrixOS::Logging::LogDebug(name, "Key Event");
-    if(keyID == 0 && keyInfo.state == PRESSED)
+    if(keyID == 0 && keyInfo.state == (menuLock ? HOLD : PRESSED))
     {
         ActionMenu();
     }
@@ -204,9 +204,10 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, Point(3, 5), Point(4, 5));
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
-    actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(0, 7));
+    actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
 
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return compatibilityMode ? Color(0xFFFFFF) : Color(0x7F7F7F);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return Color(0xFFFFFF).ToLowBrightness(compatibilityMode);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 7)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
 

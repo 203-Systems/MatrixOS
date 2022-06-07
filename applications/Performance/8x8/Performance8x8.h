@@ -19,10 +19,10 @@ class Performance : public Application
     uint32_t version = 0;
 
     uint8_t currentKeymap = 0;
-    bool fnLock = false;
 
     //Saved Variables
     CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);
+    CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
 
     uint8_t stfu = 2;
     

@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define COLOR_LOW_STATE_SCALE 75 //30% ish brightness
+
 class Color
 {
 	public:
@@ -16,6 +18,8 @@ class Color
 
 		uint32_t RGB(uint8_t brightness = 255);
 		uint32_t GRB(uint8_t brightness = 255);
+        Color Scale(uint8_t scale);
+        Color ToLowBrightness(bool cancel = false, uint8_t scale = COLOR_LOW_STATE_SCALE); //Helper for UI, make ui variable as parameter so the output dynamiclly change based on the variable
 
 		static uint8_t scale8(uint8_t i, uint8_t scale);
 		static uint8_t scale8_video(uint8_t i, uint8_t scale);
