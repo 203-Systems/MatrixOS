@@ -14,3 +14,11 @@ void BootAnimation::Loop()
         Boot();
     }
 }
+
+void BootAnimation::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
+{
+    if(KeyID == FUNCTION_KEY && keyInfo.state == PRESSED)
+    {
+        Exit();
+    }
+}
