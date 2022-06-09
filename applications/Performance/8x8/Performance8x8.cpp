@@ -200,14 +200,14 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(new UIButton("Brightness", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
 
     //Rotation control and canvas
-    actionMenu.AddUIElement(new UIButton("Clear Canvas", Color(0x00FF00), [&]() -> void {MatrixOS::Logging::LogDebug(name, "Clear Canvas");}), 2, Point(3, 2), Point(4, 2));
+    actionMenu.AddUIElement(new UIButton("Clear Canvas", Color(0x00FF00), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), 2, Point(3, 2), Point(4, 2));
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(RIGHT);}), 2, Point(5, 3), Point(5, 4));
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, Point(3, 5), Point(4, 5));
     actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
 
     actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
 
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return Color(0xFFFFFF).ToLowBrightness(compatibilityMode);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return Color(0xFFFF00).ToLowBrightness(compatibilityMode);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
     actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 7)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
