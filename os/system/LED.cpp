@@ -7,15 +7,15 @@ namespace MatrixOS::LED
     TimerHandle_t led_tm;
     
     vector<Color*> frameBuffers;
-    bool needUpate = false;
+    bool needUpdate = false;
     bool pauseAutoUpdate = false;
 
     void LEDTimerCallback( TimerHandle_t xTimer )
     {
-        if(needUpate && pauseAutoUpdate == false)
+        if(needUpdate && pauseAutoUpdate == false)
         {
             Device::LED::Update(frameBuffers.back(), UserVar::brightness);
-            needUpate = false;
+            needUpdate = false;
         }
     }
 
@@ -87,7 +87,7 @@ namespace MatrixOS::LED
     void Update(uint8_t layer) 
     {
         if(layer == 255 || layer == CurrentLayer())
-            needUpate = true;
+            needUpdate = true;
     }
 
     int8_t CurrentLayer()
@@ -110,7 +110,7 @@ namespace MatrixOS::LED
         }
         frameBuffers.push_back(frameBuffer);
         Fill(0);
-        // needUpate = true; //Not gonna update till next drawing
+        // needUpdate = true; //Not gonna update till next drawing
         return CurrentLayer();
     }
 
@@ -120,13 +120,13 @@ namespace MatrixOS::LED
         {
             vPortFree(frameBuffers.back());
             frameBuffers.pop_back();
-            needUpate = true;
+            needUpdate = true;
             return true;
         }
         else
         {
             Fill(0);
-            needUpate = true;
+            needUpdate = true;
             return false;
         }
     }

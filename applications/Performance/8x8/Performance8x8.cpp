@@ -4,6 +4,7 @@ void Performance::Setup()
 {
     //Load variable
     // MatrixOS
+    canvasLedLayer = MatrixOS::LED::CurrentLayer();
 }
 
 void Performance::Loop()
@@ -80,8 +81,8 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     if(xy && !(velocity == 0 && stfu))
     {
         // MatrixOS::Logging::LogDebug("Performance", "Set LED");
-        MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity]);
-        MatrixOS::LED::Update();
+        MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], canvasLedLayer);
+        MatrixOS::LED::Update(canvasLedLayer);
     }
     // else if(!xy)
     // {
@@ -182,8 +183,8 @@ void Performance::stfuScan()
             Point xy = NoteToXY(note);
             if(xy)
             {
-                MatrixOS::LED::SetColor(xy, 0);
-                MatrixOS::LED::Update();
+                MatrixOS::LED::SetColor(xy, 0, canvasLedLayer);
+                MatrixOS::LED::Update(canvasLedLayer);
             }
             stfuMap[note] = -1;
         }
@@ -210,6 +211,7 @@ void Performance::ActionMenu()
     actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 7)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
+    actionMenu.SetLoopFunc([&]() -> void{GetMidi();});
 
     actionMenu.Start();
 

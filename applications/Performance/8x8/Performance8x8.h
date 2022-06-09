@@ -19,6 +19,8 @@ class Performance : public Application
     uint32_t version = 0;
 
     uint8_t currentKeymap = 0;
+    
+    uint8_t canvasLedLayer;
 
     //Saved Variables
     CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);

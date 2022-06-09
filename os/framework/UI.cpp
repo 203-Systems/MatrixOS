@@ -190,8 +190,14 @@ void UI::UIEnd()
         MatrixOS::LED::Fill(0);
 
     // Free up heap
+    vector<UIElement*> deletedElements; //Pervent pointer is deleted twice
+    deletedElements.reserve(uiElementMap.size());
     for (auto const &uiElementPair : uiElementMap)
     {
-        delete uiElementPair.second;
+        if(std::find(deletedElements.begin(), deletedElements.end(), uiElementPair.second) == deletedElements.end())
+        {
+            deletedElements.push_back(uiElementPair.second);
+            delete uiElementPair.second;
+        }
     }
 }
