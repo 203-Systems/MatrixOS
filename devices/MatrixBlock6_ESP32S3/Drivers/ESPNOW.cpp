@@ -173,9 +173,9 @@ namespace Device
                         continue;
                         
                     }
-                    MidiPacket packet = MidiPacket(ESP_NOW_MIDI_PORT_ID, (EMidiStatus)(data[i] & 0xF0), data[i], data[i + 1], data[i + 2]);
+                    // MidiPacket packet = MidiPacket(ESP_NOW_MIDI_PORT_ID, (EMidiStatus)(data[i] & 0xF0), data[i], data[i + 1], data[i + 2]);
                     // ESP_LOGI("Got Midi 2", "%#02X %#02X %#02X", packet.data[0], packet.data[1], packet.data[2]);
-                    midi_buffer.push(packet);
+                    midi_buffer.emplace(ESP_NOW_MIDI_PORT_ID, (EMidiStatus)(data[i] & 0xF0), data[i], data[i + 1], data[i + 2]);
                 }
             }
         }
