@@ -179,8 +179,10 @@ namespace MatrixOS::SYS
     {
         // Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
         active_app_id = app_id;
-        LED::Fill(0);
-        LED::Update();
+
+        //Clean up layers that the previous app might have made
+        while(LED::DestoryLayer()){}
+
         if(active_app_task != NULL)
         {
             vTaskDelete(active_app_task);
