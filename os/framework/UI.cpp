@@ -32,7 +32,7 @@ void UI::Exit()
 void UI::LoopTask()
 {
     GetKey();
-    GetMidi();
+    // GetMidi();
 }
 
 void UI::RenderUI()
@@ -118,14 +118,6 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     else
     {
         // MatrixOS::Logging::LogDebug("UI", "Key Event %d", keyID);
-    }
-}
-
-void UI::GetMidi()
-{
-    while (MatrixOS::MIDI::Available())
-    {
-        MidiEvent(MatrixOS::MIDI::Get());
     }
 }
 

@@ -47,9 +47,6 @@ class UI
         void GetKey();
         virtual bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {return false;}; //Return true to skip UIKeyEvent
 
-        void GetMidi();
-        virtual void MidiEvent(MidiPacket midiPacket) {};
-
         void SetSetupFunc(std::function<void()> setup_func);
         void SetLoopFunc(std::function<void()> loop_func);
         void SetEndFunc(std::function<void()> end_func);
