@@ -108,8 +108,8 @@ namespace MatrixOS::LED
             MatrixOS::SYS::ErrorHandler("Failed to allocate new led buffer");
             return -1;
         }
-        Fill(0);
         frameBuffers.push_back(frameBuffer);
+        Fill(0);
         // needUpate = true; //Not gonna update till next drawing
         return CurrentLayer();
     }
