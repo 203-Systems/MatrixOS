@@ -9,6 +9,8 @@ class UIElement
 
     virtual bool Render(Point origin){return false;}
 
+    virtual ~UIElement() {};
+
     operator UIElement*() {return this;}
 };
 
@@ -34,8 +36,6 @@ class UIButton : public UIElement
     virtual bool Callback() {if(callback != nullptr){callback(); return true;} return false;}
     virtual bool HoldCallback() {if(hold_callback){hold_callback(); return true;} return false;}
     virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, color); return true;}
-
-
 };
 
 class UIButtonWithColorFunc : public UIElement

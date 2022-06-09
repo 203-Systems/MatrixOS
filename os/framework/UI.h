@@ -20,17 +20,25 @@ class UI
         bool disableExit = false;
         
         Timer uiTimer;
-        uint16_t uiFps = 60;
+        const uint16_t uiFps = 60;
+
+
+        std::function<void()>* setup_func = nullptr;
+        std::function<void()>* loop_func = nullptr;
+        std::function<void()>* render_func = nullptr;
+        std::function<void()>* end_func = nullptr;
+
+        std::function<void()>* func_hold_callback = nullptr;
 
         UI() {};
         UI(string name, Color color,bool newLedLayer = false);
 
         void Start();
 
-        virtual void Setup() {};
-        virtual void Loop() {};
-        virtual void Render() {};
-        virtual void End() {};
+        virtual void Setup() {if(setup_func) (*setup_func)();};
+        virtual void Loop() {if(loop_func) (*loop_func)();};
+        virtual void Render() {if(render_func) (*render_func)();};
+        virtual void End() {if(end_func) (*end_func)();};
 
         void Exit();
 
@@ -42,20 +50,24 @@ class UI
         void GetMidi();
         virtual void MidiEvent(MidiPacket midiPacket) {};
 
+        void SetSetupFunc(std::function<void()> setup_func);
+        void SetLoopFunc(std::function<void()> loop_func);
+        void SetEndFunc(std::function<void()> end_func);
+
+        void AddFuncKeyHold(std::function<void()> callback);
+
         std::map<Point, UIElement*> uiElementMap;
 
         void AddUIElement(UIElement* uiElement, Point xy);
         // void AddUIElement(UIElement* uiElement, uint32_t keyID);
         void AddUIElement(UIElement* uiElement, uint16_t count, ...);
 
-        std::function<void()> func_hold_callback = nullptr;
-        void AddFuncKeyHold(std::function<void()> callback);
-
         void AllowExit(bool allow);
 
         void ClearUIElements();
         private:
         void RenderUI();
+        void UIEnd();
         void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
         void PostCallbackCleanUp();
 };
