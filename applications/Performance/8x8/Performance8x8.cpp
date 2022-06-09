@@ -194,7 +194,7 @@ void Performance::ActionMenu()
 {
     MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
 
-    UI actionMenu("Action Menu", Color(0x00FFAA));
+    UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
     actionMenu.AddUIElement(new UIButton("Brightness", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
 
@@ -214,7 +214,6 @@ void Performance::ActionMenu()
     actionMenu.Start();
 
     MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
-    MatrixOS::LED::Update(); //TODO: Give UI a new LED layer
 }
 
 // #endif

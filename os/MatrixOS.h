@@ -50,22 +50,20 @@ namespace MatrixOS
 
   namespace LED
   {
-    inline uint8_t currentLayer;
-    inline vector<Color*> frameBuffers;
     void Init(void);
-    void SetColor(Point xy, Color color, uint8_t layer = currentLayer);
-    void SetColor(uint16_t ID, Color color, uint8_t layer = currentLayer);
-    void Fill(Color color, uint8_t layer = currentLayer);
-    void Update(int8_t layer = currentLayer);
-    // void PauseAutoUpdate();
-    // void StartAutoUpdate();
-    void SwitchLayer(uint8_t layer);
+    void SetColor(Point xy, Color color, uint8_t layer = 255);
+    void SetColor(uint16_t ID, Color color, uint8_t layer = 255);
+    void Fill(Color color, uint8_t layer = 255);
+    void Update(uint8_t layer = 255);
 
+    int8_t CurrentLayer();
     int8_t CreateLayer();
-    void DestoryLayer();
+    bool DestoryLayer();
     
-    void ShiftCanvas(EDirection direction, int8_t distance, int8_t layer = currentLayer);
-    void RotateCanvas(EDirection direction, int8_t layer = currentLayer);
+    void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer = 255);
+    void RotateCanvas(EDirection direction, uint8_t layer = 255);
+
+    void PauseUpdate(bool pause);
   }
 
   namespace KEYPAD

@@ -71,7 +71,7 @@ namespace Device
             // MatrixOS::Logging::LogDebug(TAG, "Recived 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0], remaining_message[1]);
             if(len == 2)
             {
-                midi_buffer.emplace(BLE_MIDI_PORT_ID, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1])
+                midi_buffer.emplace(BLE_MIDI_PORT_ID, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1]);
             }
         }
 

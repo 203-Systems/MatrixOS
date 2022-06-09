@@ -1,14 +1,16 @@
 #include "UI.h"
 
-UI::UI(string name, Color color)
+UI::UI(string name, Color color, bool newLedLayer)
 {
     this->name = name;
     this->nameColor = color;
+    this->newLedLayer = newLedLayer;
 }
 
 //TODO, make new led layer
 void UI::Start()
 {
+    if(newLedLayer) MatrixOS::LED::CreateLayer();
     MatrixOS::KEYPAD::Clear();
     Setup();
     while(status != -1)
@@ -18,7 +20,7 @@ void UI::Start()
         RenderUI();
     }
     End();
-    MatrixOS::LED::Fill(0);
+    if(newLedLayer) MatrixOS::LED::DestoryLayer(); else MatrixOS::LED::Fill(0);
 }
 
 void UI::Exit()
@@ -142,6 +144,11 @@ void UI::AddUIElement(UIElement* uiElement, uint16_t count, ...)
     {
         uiElementMap[(Point)va_arg(valst, Point)]  = uiElement;
     }
+}
+
+void UI::AllowExit(bool allow)
+{
+    disableExit = !allow;
 }
 
 void UI::AddFuncKeyHold(std::function<void()> callback)

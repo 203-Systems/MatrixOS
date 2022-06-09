@@ -27,7 +27,7 @@ void Shell::AddCommonBarInUI(UI* ui)
         #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
     #endif
     ui->AddUIElement(new UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR, [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
-    ui->AddFuncKeyHold([&]() -> void {}); //So nothing happens
+    ui->AllowExit(false); //So nothing happens
 }
     
 namespace MatrixOS::SYS{void ExecuteAPP(uint32_t app_id); uint16_t GetApplicationCount();} //Use non exposed Matrix OS API

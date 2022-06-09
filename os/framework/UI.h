@@ -16,13 +16,14 @@ class UI
         Color nameColor;
         int8_t status = 0;
         
+        bool newLedLayer = false;
         bool disableExit = false;
         
         Timer uiTimer;
         uint16_t uiFps = 60;
 
         UI() {};
-        UI(string name, Color color);
+        UI(string name, Color color,bool newLedLayer = false);
 
         void Start();
 
@@ -48,8 +49,9 @@ class UI
         void AddUIElement(UIElement* uiElement, uint16_t count, ...);
 
         std::function<void()> func_hold_callback = nullptr;
-        bool fn_released = false;
         void AddFuncKeyHold(std::function<void()> callback);
+
+        void AllowExit(bool allow);
 
         void ClearUIElements();
         private:
