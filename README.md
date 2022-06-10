@@ -1,6 +1,6 @@
 # Matrix OS
 
-An operation system for human interface controllers that is designed to be cross-platform and moudlar.
+An operation system for human interface devices that is designed to be cross-platform and moudlar.
 
 Currently the OS only supports MIDI but more to come in later revisions.
 
