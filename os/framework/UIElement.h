@@ -1,11 +1,12 @@
 class UIElement
 {
     public:
-    virtual string GetName(){return NULL;}
+    virtual string GetName(){return "Unnamed UI Element";}
     virtual Color GetColor(){return 0xFFFFFF;}
     virtual Dimension GetSize(){return Dimension(0,0);}
-    virtual bool Callback(){return false;}
-    virtual bool HoldCallback(){return false;}
+    virtual void KeyEvent(Point xy, KeyInfo keyInfo) {} //
+    // virtual bool Callback(Point xy){return false;}
+    // virtual bool HoldCallback(Point xy){return false;}
 
     virtual bool Render(Point origin){return false;}
 
@@ -33,31 +34,74 @@ class UIButton : public UIElement
     virtual string GetName() {return name;}
     virtual Color GetColor() {return color;}
     virtual Dimension GetSize() {return Dimension(1,1);}
+
     virtual bool Callback() {if(callback != nullptr){callback(); return true;} return false;}
     virtual bool HoldCallback() {if(hold_callback){hold_callback(); return true;} return false;}
     virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, color); return true;}
+
+    virtual void KeyEvent(Point xy, KeyInfo keyInfo)
+    {
+        if (keyInfo.state == RELEASED && keyInfo.hold == false)
+        {
+            if (Callback())
+            {
+                MatrixOS::Logging::LogDebug("UI Button", "Key Event Callback");
+                MatrixOS::KEYPAD::Clear();
+                return;
+            }
+        }
+        else if (keyInfo.state == HOLD)
+        {
+            if (HoldCallback())
+            {
+                MatrixOS::KEYPAD::Clear();
+                return;
+            }
+            else
+            {
+                MatrixOS::UIComponent::TextScroll(GetName(), GetColor());
+            }
+        }
+    }
 };
 
-class UIButtonWithColorFunc : public UIElement
+class UIButtonLarge : public UIButton
 {
     public:
-    string name;
     std::function<Color()> color_func;
-    std::function<void()> callback;
-    std::function<void()> hold_callback;
+    Dimension dimension;
 
-    UIButtonWithColorFunc(string name, std::function<Color()> color_func, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr)
+    UIButtonLarge(string name, Color color, Dimension dimension, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr) 
+    : UIButton(name, color, callback, hold_callback)
     {
-        this->name = name;
-        this->color_func = color_func;
-        this->callback = callback;
-        this->hold_callback = hold_callback;
+        this->dimension = dimension;
     }
 
-    string GetName() override {return name;}
-    Color GetColor() override {return color_func();}
-    Dimension GetSize() override {return Dimension(1,1);}
-    virtual bool Callback() override {if(callback){callback(); return true;} return false;}
-    virtual bool HoldCallback() override {if(hold_callback){hold_callback(); return true;} return false;}
-    bool Render(Point origin){MatrixOS::LED::SetColor(origin, color_func()); return true;}
+    virtual Dimension GetSize(){return dimension;}
+
+    virtual bool Render(Point origin) {
+        for(uint16_t x = 0; x < dimension.x; x++)
+        {
+            for(uint16_t y = 0; y < dimension.y; y++)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+        }
+        return true;
+    }
+};
+
+
+class UIButtonWithColorFunc : public UIButton
+{
+    public:
+    std::function<Color()> color_func;
+
+    UIButtonWithColorFunc(string name, std::function<Color()> color_func, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr) 
+    : UIButton(name, color_func(), callback, hold_callback)
+    {
+        this->color_func = color_func;
+    }
+
+    virtual Color GetColor() {return color_func();}
 };

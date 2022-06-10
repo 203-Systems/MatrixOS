@@ -22,6 +22,11 @@ public:
 		y = (int16_t)(rawByte & 0xFFFF);
 	}
 
+	bool Inside(Point point)
+	{
+		return point.x >= 0 && point.y >= 0 && point.x < x && point.y < y;
+	}
+
 	Dimension operator +(const Dimension& cp) const //cp stands for compare target
 	{
 		return Dimension( x + cp.x, y + cp.y );

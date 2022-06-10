@@ -11,6 +11,8 @@
 #define APPLICATION_VERSION 0
 #define APPLICATION_CLASS Performance
 
+#define NUMS_OF_KEYMAP 2
+
 class Performance : public Application
 {
     public:
@@ -47,7 +49,9 @@ class Performance : public Application
 
     void stfuScan();
 
-    const uint8_t keymap[2][8][8] =
+    const Color keymap_color[NUMS_OF_KEYMAP] = {Color(0xFF00FF), Color(0xFF5400)};
+
+    const uint8_t keymap[NUMS_OF_KEYMAP][8][8] =
     {{{64, 65, 66, 67, 96, 97, 98, 99}, //Drum Rack
       {60, 61, 62, 63, 92, 93, 94, 95},
       {56, 57, 58, 59, 88, 89, 90, 91},
@@ -65,7 +69,7 @@ class Performance : public Application
       {21, 22, 23, 24, 25, 26, 27, 28},
       {11, 12, 13, 14, 15, 16, 17, 18}}};
 
-    const uint8_t touch_keymap[2][4][8] //Touchbar map, top mirors left and right (For Matrix rotation)
+    const uint8_t touch_keymap[NUMS_OF_KEYMAP][4][8] //Touchbar map, top mirors left and right (For Matrix rotation)
     {{{100,101,102,103,104,105,106,107}, //Drum Rack
       {100,101,102,103,104,105,106,107},
       {108,109,110,111,112,113,114,115},
@@ -80,7 +84,12 @@ class Performance : public Application
     // {116,117,118,119,120,121,122,123},
     // {108,109,110,111,112,113,114,115}
 
-
+    const uint8_t note_pad_map[NUMS_OF_KEYMAP][2][8]
+    {{{100,101,102,103,104,105,106,107}, //Drum Rack
+      {108,109,110,111,112,113,114,115}},
+     {{89, 79, 69, 59, 49, 39, 29, 19}, //Unmapped XY
+      {81, 71, 61, 51, 41, 31, 21, 11}}};
+      
     const uint8_t user1_keymap_optimized[64] =
     {0x07, 0x17, 0x27, 0x37, 0x06, 0x16, 0x26, 0x36, 0x05, 0x15, 0x25, 0x35, 0x04, 0x14, 0x24, 0x34, 0x03, 0x13, 0x23, 0x33, 0x02, 0x12, 0x22, 0x32, 0x01, 0x11, 0x21, 0x31, 0x00, 0x10, 0x20, 0x30, 0x47, 0x57, 0x67, 0x77, 0x46, 0x56, 0x66, 0x76, 0x45, 0x55, 0x65, 0x75, 0x44, 0x54, 0x64, 0x74, 0x43, 0x53, 0x63, 0x73, 0x42, 0x52, 0x62, 0x72, 0x41, 0x51, 0x61, 0x71, 0x40, 0x50, 0x60, 0x70};
 

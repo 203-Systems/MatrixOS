@@ -197,18 +197,22 @@ void Performance::ActionMenu()
 
     UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-    actionMenu.AddUIElement(new UIButton("Brightness", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::NextBrightness();}), 4, Point(3, 3), Point(3, 4), Point(4, 3), Point(4, 4));
+    // UINotePad notePad = new UINotePad("Note Pad", 
 
+    actionMenu.AddUIElement(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}), Point(3, 3));
+    
     //Rotation control and canvas
-    actionMenu.AddUIElement(new UIButton("Clear Canvas", Color(0x00FF00), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), 2, Point(3, 2), Point(4, 2));
-    actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(RIGHT);}), 2, Point(5, 3), Point(5, 4));
-    actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, Point(3, 5), Point(4, 5));
-    actionMenu.AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, Point(2, 3), Point(2, 4));
+    actionMenu.AddUIElement(new UIButtonLarge("Clear Canvas", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), Point(3, 2));
+    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(RIGHT);}), Point(5, 3));
+    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), Point(3, 5));
+    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), Point(2, 3));
 
-    actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 5));
 
     actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return Color(0xFFFF00).ToLowBrightness(compatibilityMode);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 7)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    
+    // actionMenu.AddUIElement(); 
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
     actionMenu.SetLoopFunc([&]() -> void{GetMidi();});

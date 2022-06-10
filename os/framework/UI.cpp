@@ -82,7 +82,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
         {
             MatrixOS::Logging::LogDebug("UI", "Function Hold");
             (*func_hold_callback)();
-            PostCallbackCleanUp();
+            MatrixOS::KEYPAD::Clear();
             return;
         }
     }
@@ -90,34 +90,15 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     if (xy)
     {
         MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
-    }
-    if (xy && uiElementMap.count(xy)) // Key Found
-    {
-        if (keyInfo.state == RELEASED && keyInfo.hold == false)
+        for (auto const &uiElementPair : uiElementMap)
         {
-            if (uiElementMap[xy]->Callback())
+            Point relative_xy = xy - uiElementPair.first;
+            UIElement *uiElement = uiElementPair.second;
+            if (uiElement->GetSize().Inside(relative_xy)) // Key Found
             {
-                MatrixOS::Logging::LogDebug("UI", "Key Event Callback");
-                PostCallbackCleanUp();
-                return;
+                uiElement->KeyEvent(relative_xy, keyInfo);
             }
         }
-        else if (keyInfo.state == HOLD)
-        {
-            if (uiElementMap[xy]->HoldCallback())
-            {
-                PostCallbackCleanUp();
-                return;
-            }
-            else
-            {
-                MatrixOS::UIComponent::TextScroll(uiElementMap[xy]->GetName(), uiElementMap[xy]->GetColor());
-            }
-        }
-    }
-    else
-    {
-        // MatrixOS::Logging::LogDebug("UI", "Key Event %d", keyID);
     }
 }
 
@@ -167,11 +148,6 @@ void UI::AddFuncKeyHold(std::function<void()> callback)
 void UI::ClearUIElements()
 {
     uiElementMap.clear();
-}
-
-void UI::PostCallbackCleanUp()
-{
-    MatrixOS::KEYPAD::Clear();
 }
 
 void UI::UIEnd()
