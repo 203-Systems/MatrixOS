@@ -140,7 +140,11 @@ namespace MatrixOS::SYS
     {
         if(new_rotation == 90 || new_rotation == 180 || new_rotation == 270)
         {
-            LED::RotateCanvas(new_rotation); //TODO Does not work if absolute is true
+            // LED::RotateCanvas(new_rotation); //TODO Does not work if absolute is true
+            for(uint8_t ledLayer = 0; ledLayer < LED::CurrentLayer(); ledLayer++)
+            {
+                LED::fill(0, ledLayer);
+            }
             UserVar::rotation = (EDirection)((UserVar::rotation + new_rotation * !absolute) % 360);
         }
     }
