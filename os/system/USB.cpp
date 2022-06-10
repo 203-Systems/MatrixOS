@@ -34,11 +34,6 @@ namespace MatrixOS::USB
         return tud_ready();
     }
 
-    // void Poll()
-    // {
-    //     tud_task();
-    // }
-
     namespace CDC
     {
 

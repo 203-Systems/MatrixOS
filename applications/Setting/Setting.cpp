@@ -29,8 +29,6 @@ void Setting::Setup()
             }), 
         Point(0, 0));
 
-
-
     // AddUIElement(new UIButton("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
     // AddUIElement(new UIButton("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
 
