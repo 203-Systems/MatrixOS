@@ -6,13 +6,13 @@ void Setting::Setup()
     //Also assume at least 4x4
 
     //Brightness Control
-    AddUIElement(new UIButton("Brightness", Color(0xFFFFFF), []() -> void {MatrixOS::SYS::NextBrightness();}), 4, origin, origin + Point(0, 1), origin + Point(1, 0), origin + Point(1, 1));
+    AddUIElement(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}), origin);
 
     //Rotation control and canvas
-    AddUIElement(new UIButton("This does nothing", Color(0x00FF00), []() -> void {}), 2, origin + Point(0, -1), origin + Point(1, -1));
-    AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(RIGHT);}), 2, origin + Point(2, 0), origin + Point(2, 1));
-    AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(DOWN);}), 2, origin + Point(0, 2), origin + Point(1, 2));
-    AddUIElement(new UIButton("Rotate to this side", Color(0x00FF00), []() -> void {MatrixOS::SYS::Rotate(LEFT);}), 2, origin + Point(-1, 0), origin + Point(-1, 1));
+    AddUIElement(new UIButtonLarge("This does nothing", Color(0x00FF00), Dimension(2,1), []() -> void {}), origin + Point(0, -1));
+    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(RIGHT);}), origin + Point(2, 0));
+    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), []() -> void {MatrixOS::SYS::Rotate(DOWN);}), origin + Point(0, 2));
+    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(LEFT);}), origin + Point(-1, 0));
 
     //Device Control
     AddUIElement(new UIButton("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, Device::y_size - 1));
@@ -70,8 +70,8 @@ bool Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
             {
                 UI ab("A & B",  Color(0xFF0000));
 
-                ab.AddUIElement(new UIButton("A", Color(0xFF0000), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), 4, origin + Point(-1, 0), origin + Point(-1, 1), origin + Point(-2, 0), origin + Point(-2, 1));
-                ab.AddUIElement(new UIButton("B", Color(0xFF0000), [&]() -> void {if(konami == 8) konami++; else ab.Exit();}), 4, origin + Point(2, 0), origin + Point(2, 1), origin + Point(3, 0), origin + Point(3, 1));
+                ab.AddUIElement(new UIButtonLarge("A", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), origin + Point(-1, 0));
+                ab.AddUIElement(new UIButtonLarge("B", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 8) konami++; else ab.Exit();}), origin + Point(2, 0));
 
                 ab.Start();
             }
