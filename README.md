@@ -9,7 +9,7 @@ Matrix OS is composited by 4 different layers:
 #### Core Layer
 Handles the basic of the chip. Located at core/
 #### Device Layer
-Functions and configurations of target device. Located at devices/
+Drivers and configurations of target device. Located at devices/
 #### System Layer
 Handles the system and application runtime. Located at os/
 #### Application Layer
