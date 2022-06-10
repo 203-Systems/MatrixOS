@@ -5,6 +5,8 @@
 #include "framework/UI.h"
 #include "framework/Hash.h"
 
+#include "UINotePad.h"
+
 #define APPLICATION_NAME "Performance Mode"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFF0000)
@@ -50,6 +52,8 @@ class Performance : public Application
     void stfuScan();
 
     const Color keymap_color[NUMS_OF_KEYMAP] = {Color(0xFF00FF), Color(0xFF5400)};
+
+    const uint8_t keymap_channel[NUMS_OF_KEYMAP] = {0, 0};
 
     const uint8_t keymap[NUMS_OF_KEYMAP][8][8] =
     {{{64, 65, 66, 67, 96, 97, 98, 99}, //Drum Rack

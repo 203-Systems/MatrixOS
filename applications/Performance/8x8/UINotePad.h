@@ -1,34 +1,34 @@
-#include "UI.h"
+#include "MatrixOS.h"
 
-template<uint8_t tx, uint8_t ty>
 class UINotePad : public UIElement
 {
     public:
-    string name;
     Color color;
     uint8_t channel;
-    uint8_t (*map)[tx][ty];
+    // uint8_t (*map)[tx][ty];
+    Dimension dimension;
 
-    UINotePad(string name, Color color, uint8_t channel, uint8 map[tx][ty])
+    UINotePad(Dimension dimension, Color color, uint8_t channel)
     {
-        this->name = name;
         this->color = color;
         this->channel = channel;
-        this->map = map;
+        this->dimension = dimension;
+        // this->map = map;
     }
 
-
-
-    virtual string GetName() {return name;}
     virtual Color GetColor() {return color;}
-    virtual Dimension GetSize() {return Dimension(1,1);}
-    virtual bool Callback() {if(return true;}
-    virtual bool HoldCallback() {if return true;}
+    virtual Dimension GetSize() {return dimension;}
+
+
+    // void SetChannel(uint8_t channel) {this->channel = channel;}
+    // void SetMap(uint8_t map[tx][ty]){this->map = map;}
+    void SetColor(Color color){this->color = color;}
+    
     virtual bool Render(Point origin) 
     {
-        for(uint8_t x = 0; x < tx; x++)
+        for(uint8_t x = 0; x < dimension.x; x++)
         {
-            for(uint8_t y = 0; y < ty; y++)
+            for(uint8_t y = 0; y < dimension.y; y++)
             {
                 Point target_coord = origin + Point(x, y);
                 Color target_color = MatrixOS::KEYPAD::GetKey(target_coord) ? Color(0xFFFFFF) : color;

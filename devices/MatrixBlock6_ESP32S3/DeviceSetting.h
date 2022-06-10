@@ -2,8 +2,10 @@
 
 //Setting::Setup()
 {
-    AddUIElement(new UIButtonWithColorFunc("Bluetooth", 
-            []() -> Color {return Color(0x0082fc).ToLowBrightness(Device::BLEMIDI::started);}, //TODO Color Class Scale Brightness
+    AddUIElement(new UIButtonDimmable(
+            "Bluetooth", 
+            Color(0x0082fc),
+            []() -> bool {return Device::BLEMIDI::started;},
             []() -> void {
                 Device::BLEMIDI::Toggle();
                 Device::bluetooth = Device::BLEMIDI::started;

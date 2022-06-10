@@ -37,7 +37,7 @@ class UIButton : public UIElement
 
     virtual bool Callback() {if(callback != nullptr){callback(); return true;} return false;}
     virtual bool HoldCallback() {if(hold_callback){hold_callback(); return true;} return false;}
-    virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, color); return true;}
+    virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, GetColor()); return true;}
 
     virtual void KeyEvent(Point xy, KeyInfo keyInfo)
     {
@@ -98,10 +98,24 @@ class UIButtonWithColorFunc : public UIButton
     std::function<Color()> color_func;
 
     UIButtonWithColorFunc(string name, std::function<Color()> color_func, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr) 
-    : UIButton(name, color_func(), callback, hold_callback)
+    : UIButton(name, Color(0xFFFFFF), callback, hold_callback)
     {
         this->color_func = color_func;
     }
 
     virtual Color GetColor() {return color_func();}
+};
+
+class UIButtonDimmable : public UIButton
+{
+    public:
+    std::function<bool()> dim_func; //If this returns false, then dim button
+
+    UIButtonDimmable(string name, Color color, std::function<bool()> dim_func, std::function<void()> callback = nullptr, std::function<void()> hold_callback = nullptr) 
+    : UIButton(name, color, callback, hold_callback)
+    {
+        this->dim_func = dim_func;
+    }
+
+    virtual Color GetColor() {return color.ToLowBrightness(dim_func());}
 };

@@ -5,6 +5,7 @@ void Performance::Setup()
     //Load variable
     // MatrixOS
     canvasLedLayer = MatrixOS::LED::CurrentLayer();
+    currentKeymap = compatibilityMode;
 }
 
 void Performance::Loop()
@@ -197,7 +198,7 @@ void Performance::ActionMenu()
 
     UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-    // UINotePad notePad = new UINotePad("Note Pad", 
+    UINotePad* notePad = new UINotePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap]);
 
     actionMenu.AddUIElement(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}), Point(3, 3));
     
@@ -209,10 +210,10 @@ void Performance::ActionMenu()
 
     actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 5));
 
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Compatibility Mode", [&]() -> Color{return Color(0xFFFF00).ToLowBrightness(compatibilityMode);}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode;}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
-    actionMenu.AddUIElement(new UIButtonWithColorFunc("Menu Lock", [&]() -> Color{return Color(0xA0FF00).ToLowBrightness(menuLock);}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonDimmable("Compatibility Mode", Color(0xFFFF00), [&]() -> bool{return compatibilityMode;}, [&]() -> void{compatibilityMode = !compatibilityMode; currentKeymap = compatibilityMode; notePad->SetColor(keymap_color[currentKeymap]);}), Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    actionMenu.AddUIElement(new UIButtonDimmable("Menu Lock", Color(0xA0FF00), [&]() -> bool{return menuLock;}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
     
-    // actionMenu.AddUIElement(); 
+    actionMenu.AddUIElement(notePad, Point(0, 6)); 
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
     actionMenu.SetLoopFunc([&]() -> void{GetMidi();});
