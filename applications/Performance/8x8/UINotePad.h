@@ -5,23 +5,23 @@ class UINotePad : public UIElement
     public:
     Color color;
     uint8_t channel;
-    // uint8_t (*map)[tx][ty];
+    uint8_t* map;
     Dimension dimension;
 
-    UINotePad(Dimension dimension, Color color, uint8_t channel)
+    UINotePad(Dimension dimension, Color color, uint8_t channel, uint8_t* map)
     {
         this->color = color;
         this->channel = channel;
         this->dimension = dimension;
-        // this->map = map;
+        this->map = map;
     }
 
     virtual Color GetColor() {return color;}
     virtual Dimension GetSize() {return dimension;}
 
 
-    // void SetChannel(uint8_t channel) {this->channel = channel;}
-    // void SetMap(uint8_t map[tx][ty]){this->map = map;}
+    void SetChannel(uint8_t channel) {this->channel = channel;}
+    void SetMap(uint8_t* map){this->map = map;}
     void SetColor(Color color){this->color = color;}
     
     virtual bool Render(Point origin) 
@@ -36,5 +36,22 @@ class UINotePad : public UIElement
             }
         }    
         return true;
+    }
+
+    virtual void KeyEvent(Point xy, KeyInfo keyInfo) 
+    {
+        uint8_t note = map[xy.y * dimension.x + xy.x];
+        if(keyInfo.state == PRESSED)
+        {
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, keyInfo.velocity.to7bits()));
+        }
+        else if(keyInfo.state == AFTERTOUCH)
+        {
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, channel, note, keyInfo.velocity.to7bits()));
+        } 
+        else if(keyInfo.state == RELEASED)
+        {
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo.velocity.to7bits()));
+        } 
     }
 };
