@@ -4,7 +4,7 @@ class UIElement
     virtual string GetName(){return "Unnamed UI Element";}
     virtual Color GetColor(){return 0xFFFFFF;}
     virtual Dimension GetSize(){return Dimension(0,0);}
-    virtual void KeyEvent(Point xy, KeyInfo keyInfo) {} //
+    virtual bool KeyEvent(Point xy, KeyInfo keyInfo) {return false;} //
     // virtual bool Callback(Point xy){return false;}
     // virtual bool HoldCallback(Point xy){return false;}
 
@@ -39,7 +39,7 @@ class UIButton : public UIElement
     virtual bool HoldCallback() {if(hold_callback){hold_callback(); return true;} return false;}
     virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, GetColor()); return true;}
 
-    virtual void KeyEvent(Point xy, KeyInfo keyInfo)
+    virtual bool KeyEvent(Point xy, KeyInfo keyInfo)
     {
         if (keyInfo.state == RELEASED && keyInfo.hold == false)
         {
@@ -47,7 +47,7 @@ class UIButton : public UIElement
             {
                 MatrixOS::Logging::LogDebug("UI Button", "Key Event Callback");
                 MatrixOS::KEYPAD::Clear();
-                return;
+                return true;
             }
         }
         else if (keyInfo.state == HOLD)
@@ -55,13 +55,15 @@ class UIButton : public UIElement
             if (HoldCallback())
             {
                 MatrixOS::KEYPAD::Clear();
-                return;
+                return true;
             }
             else
             {
                 MatrixOS::UIComponent::TextScroll(GetName(), GetColor());
+                return true;
             }
         }
+        return false;
     }
 };
 

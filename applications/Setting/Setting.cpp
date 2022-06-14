@@ -5,6 +5,10 @@ void Setting::Setup()
     //TODO: Let's assume all dimension are even atm. (No device with odd dimension should exist. Srsly why does Samson Conspiracy exists?)
     //Also assume at least 4x4
 
+    name = "Setting";
+    nameColor = Color(0x00FFFF);
+
+
     //Brightness Control
     AddUIElement(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}), origin);
 

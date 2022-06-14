@@ -90,16 +90,22 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     if (xy)
     {
         MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
+        bool hasAction = false;
         for (auto const &uiElementPair : uiElementMap)
         {
             Point relative_xy = xy - uiElementPair.first;
             UIElement *uiElement = uiElementPair.second;
             if (uiElement->GetSize().Inside(relative_xy)) // Key Found
             {
-                uiElement->KeyEvent(relative_xy, keyInfo);
+                hasAction |= uiElement->KeyEvent(relative_xy, keyInfo);
             }
         }
+        if(hasAction == false && keyInfo.state == HOLD)
+        {
+            MatrixOS::UIComponent::TextScroll(this->name, this->nameColor);
+        }
     }
+
 }
 
 void UI::AddUIElement(UIElement *uiElement, Point xy)

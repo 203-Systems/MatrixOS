@@ -38,7 +38,7 @@ class UINotePad : public UIElement
         return true;
     }
 
-    virtual void KeyEvent(Point xy, KeyInfo keyInfo) 
+    virtual bool KeyEvent(Point xy, KeyInfo keyInfo) 
     {
         uint8_t note = map[xy.y * dimension.x + xy.x];
         if(keyInfo.state == PRESSED)
@@ -53,5 +53,6 @@ class UINotePad : public UIElement
         {
             MatrixOS::MIDI::SendPacket(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo.velocity.to7bits()));
         } 
+        return true;
     }
 };
