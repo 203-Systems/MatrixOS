@@ -35,6 +35,7 @@
 namespace Device
 {   
     //Device Variable
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
     void LoadDeviceInfo();

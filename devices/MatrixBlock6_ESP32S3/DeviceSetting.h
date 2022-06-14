@@ -11,4 +11,11 @@
                 Device::bluetooth = Device::BLEMIDI::started;
                 }), 
             Point(0, 0));
+
+    AddUIElement(new UIButtonDimmable(
+        "Touchbar", 
+        Color(0x7957FB),
+        []() -> bool {return Device::touchbar_enable;},
+        []() -> void {Device::touchbar_enable = !Device::touchbar_enable;}), 
+        Point(0, 2));
 }

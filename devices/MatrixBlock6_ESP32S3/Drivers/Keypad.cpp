@@ -77,7 +77,7 @@ namespace Device::KeyPad
 
         if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        if(!isListFull()) TouchBarScan();
+        if(!isListFull() && touchbar_enable) TouchBarScan();
 
         return changeList;
     }
