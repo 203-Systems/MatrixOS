@@ -13,9 +13,9 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-// #define FACTORY_CONFIG V100
-// #define FACTORY_MFG_YEAR 22
-// #define FACTORY_MFG_MONTH 05
+#define FACTORY_CONFIG V100
+#define FACTORY_MFG_YEAR 22
+#define FACTORY_MFG_MONTH 06
 
 struct DeviceInfo
 {
@@ -49,7 +49,7 @@ namespace Device
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
-        inline Fract16 low_threshold = 8192;
+        inline Fract16 low_threshold = 2048;
         inline Fract16 high_threshold = 57344;
 
         inline gpio_num_t keypad_write_pins[8];

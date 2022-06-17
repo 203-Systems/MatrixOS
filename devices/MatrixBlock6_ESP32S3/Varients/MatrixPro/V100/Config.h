@@ -50,6 +50,7 @@ namespace V100{
 
 void Device::LoadV100()
 {
+    ESP_LOGI("Device Init", "Matrix Pro V100 Config Loaded");
     led_pin = V100::LED_Pin;
 
     KeyPad::FSR = V100::FSR_KEYPAD;

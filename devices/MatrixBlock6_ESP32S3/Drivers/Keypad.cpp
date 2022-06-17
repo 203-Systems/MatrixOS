@@ -1,7 +1,7 @@
 //Define Device Keypad Function
 #include "Device.h"
 
-#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_11
+#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
 #define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
 
 namespace Device::KeyPad

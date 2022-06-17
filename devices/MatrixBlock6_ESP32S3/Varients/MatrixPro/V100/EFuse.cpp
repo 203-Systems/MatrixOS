@@ -11,12 +11,13 @@ void BurnEFuse()
 
     esp_err_t status;
 
+    // Device Info
+    status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::deviceInfo, sizeof(DeviceInfo) * 8);
+    MatrixOS::Logging::LogDebug("BurnEFuse", "Burning Matrix Info - Status: %s", esp_err_to_name(status));
+
     // Disable USB Jtag (Enable Jtag via Pin) 
     status = esp_efuse_write_field_bit(ESP_EFUSE_DIS_USB_JTAG); 
     MatrixOS::Logging::LogDebug("BurnEFuse", "Burning EFUSE_DIS_USB_JTAG - Status: %s", esp_err_to_name(status));
-
-    status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::deviceInfo, sizeof(DeviceInfo) * 8);
-    MatrixOS::Logging::LogDebug("BurnEFuse", "Burning Matrix Info - Status: %s", esp_err_to_name(status));
 
     // Write protection for DIS_ICACHE DIS_DCACHE DIS_DOWNLOAD_ICACHE DIS_DOWNLOAD_DCACHE DIS_FORCE_DOWNLOAD DIS_USB DIS_CAN SOFT_DIS_JTAG HARD_DIS_JTAG DIS_DOWNLOAD_MANUAL_ENCRYPT
     status = esp_efuse_write_field_bit(ESP_EFUSE_WR_DIS_GROUP_1); 

@@ -80,7 +80,7 @@ namespace MatrixOS::SYS
 
         ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
 
-        Device::PostBootTask();
+        Device::PostBootTask(); //App won't run till supervisor is running
 
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
         
