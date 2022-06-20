@@ -1,16 +1,16 @@
 #include "MatrixOS.h"
 #include "../data/font.h"
 
+    #define TEXT_SCROLL_SPACING 2
+
 namespace MatrixOS::UIInterface
 {
-#define TEXT_SCROLL_SPACING 2
     void TextScroll(string text, Color color, uint16_t speed, bool loop)
     {
         MatrixOS::Logging::LogDebug("Text Scroll", "Printing %s", text.c_str());
         Timer textScrollTimer;
         Timer keyscanTimer;
-        MatrixOS::LED::Fill(Color(0x000000));
-        MatrixOS::LED::Update();
+        MatrixOS::LED::CreateLayer();
 
         bool buffer[Device::x_size][Device::y_size]; // TODO Check Device Rotation
 
@@ -91,7 +91,7 @@ namespace MatrixOS::UIInterface
                                 if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state == PRESSED)
                                 {
                                     MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).Clear();
-                                    MatrixOS::LED::Fill(Color(0x000000));
+                                    MatrixOS::LED::DestoryLayer();
                                     MatrixOS::LED::Update();
                                     return;
                                 }
@@ -104,7 +104,7 @@ namespace MatrixOS::UIInterface
         } while (loop);
         
         //Exit
-        MatrixOS::LED::Fill(Color(0x000000));
+        MatrixOS::LED::DestoryLayer();
         MatrixOS::LED::Update();
         return;
     }
