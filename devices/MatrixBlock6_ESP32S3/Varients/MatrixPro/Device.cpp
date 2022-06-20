@@ -1,6 +1,9 @@
 //Define Device Specific Function
 #include "Device.h"
+
+//Device Configs
 #include "V100/Config.h"
+#include "V110/Config.h"
 
 void BurnEFuse(); //This is in device folder, a custom BurnEFuse will be provided
 
@@ -10,8 +13,9 @@ namespace Device
     {
         //Define device version to add factory functions
         #ifdef FACTORY_CONFIG
-        //Todo Add V1.1
-        #pragma message("Factory config - Matrix Pro " FACTORY_CONFIG)
+        #define DEViCE_XSTR(x) STR(x)
+        #define DEViCE_STR(x) #x
+        #pragma message("Factory config - Matrix Pro " DEViCE_XSTR(FACTORY_CONFIG))
         memcpy(&deviceInfo, &FACTORY_CONFIG::deviceInfo, sizeof(DeviceInfo));
         deviceInfo.ProductionYear = FACTORY_MFG_YEAR;
         deviceInfo.ProductionMonth = FACTORY_MFG_MONTH;
@@ -22,10 +26,17 @@ namespace Device
         {
             LoadV100();
         }
+        else if(string(deviceInfo.Revision).compare("V110"))
+        {
+            LoadV110();
+        }
         else
         {
             ESP_LOGE("Device Init", "Failed to find config for Matrix Pro %.4s", deviceInfo.Revision);
             LoadV100();
+            #ifdef FACTORY_CONFIG
+            MatrixOS::SYS::ErrorHandler("Unable to find device config");
+            #endif
         }
     }
 }

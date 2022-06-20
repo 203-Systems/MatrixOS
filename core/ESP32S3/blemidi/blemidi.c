@@ -395,7 +395,7 @@ static int32_t blemidi_receive_packet(uint8_t blemidi_port, uint8_t *stream, siz
     }
 
     uint8_t command = runningStatus >> 4;
-    uint8_t channel = runningStatus & 0b1111;
+    // uint8_t channel = runningStatus & 0b1111;
 
     if (command == 0)
     {

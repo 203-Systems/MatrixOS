@@ -2,7 +2,7 @@
 
 namespace WS2812
 {
-    static const char *TAG = "WS2812";
+    // static const char *TAG = "WS2812";
 
     rmt_item32_t* rmtBuffer;
     // bool transmit_in_progress = false;

@@ -88,3 +88,8 @@ namespace MatrixOS::Logging
     void LogDebug (string tag, string format, ...);
     void LogVerbose (string tag, string format, ...);
 }
+
+namespace MatrixOS::SYS
+{
+    void ErrorHandler(string error);
+}

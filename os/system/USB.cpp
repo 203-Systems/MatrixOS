@@ -83,7 +83,12 @@ namespace MatrixOS::USB
         {
             // Print(format);
             va_list valst;
+
+            #pragma GCC diagnostic push
+            #pragma GCC diagnostic ignored "-Wvarargs"
             va_start(valst, format.c_str());
+            #pragma GCC diagnostic pop
+
             VPrintf(format, valst);
         }
 
