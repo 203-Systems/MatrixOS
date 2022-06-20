@@ -98,7 +98,17 @@ namespace Device
 
     string GetSerial()
     {
-        return "<Serial Number>"; //TODO
+        uint8_t uuid[16];
+        esp_efuse_read_field_blob(ESP_EFUSE_OPTIONAL_UNIQUE_ID, (void*)uuid, 128);
+        string uuid_str;
+        uuid_str.reserve(33);
+        const char char_table[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+        for(uint8_t i = 0; i < 16; i++)
+        {
+            uuid_str += char_table[uuid[i] >> 4];
+            uuid_str += char_table[uuid[i] & 0x0F];
+        }
+        return uuid_str; //TODO
     }
 
     

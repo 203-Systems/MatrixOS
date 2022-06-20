@@ -23,6 +23,7 @@ void Setting::Setup()
     // AddUIElement(new UIButton("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, Device::y_size - 2));
     AddUIElement(new UIButton("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
     AddUIElement(new UIButton("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
+    AddUIElement(new UIButton("Device Serial", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::GetSerial(), Color(0x00FFFF));}), Point(3, Device::y_size - 1));
 
     // //Velocity Sensitive
     AddUIElement(new UIButtonDimmable("Velocity Sensitive", 

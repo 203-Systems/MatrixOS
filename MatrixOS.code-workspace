@@ -104,7 +104,10 @@
 			"locale": "cpp",
 			"mutex": "cpp",
 			"xlocmes": "cpp",
-			"xloctime": "cpp"
+			"xloctime": "cpp",
+			"resumable": "cpp",
+			"xthread": "cpp",
+			"cstdbool": "cpp"
 		}
 	}
 }

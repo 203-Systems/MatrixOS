@@ -13,6 +13,7 @@ namespace Device
     const uint16_t numsOfLED;
     const uint8_t x_size;
     const uint8_t y_size;
+    string serial_number;
     */
     
     void DeviceInit();

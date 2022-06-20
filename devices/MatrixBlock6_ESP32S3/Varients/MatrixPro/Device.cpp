@@ -21,7 +21,7 @@ namespace Device
         deviceInfo.ProductionMonth = FACTORY_MFG_MONTH;
         #endif
 
-        ESP_LOGI("Device Init", "Loading config for Matrix Pro %.4s (MFG: %02d-%02d)", deviceInfo.Revision, deviceInfo.ProductionYear, deviceInfo.ProductionMonth); //It seems excesive but deviceInfo.Revision does not have null terminator
+        ESP_LOGI("Device Init", "Loading config for Matrix Pro %.4s (MFG: %02d-%02d) (Serial: %s)", deviceInfo.Revision, deviceInfo.ProductionYear, deviceInfo.ProductionMonth, GetSerial().c_str()); //It seems excesive but deviceInfo.Revision does not have null terminator
         if(string(deviceInfo.Revision).compare("V100"))
         {
             LoadV100();

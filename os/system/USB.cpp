@@ -3,6 +3,12 @@
 
 namespace MatrixOS::USB
 {
+    uint8_t midi_count = 1;
+    uint8_t cdc_count = 1;
+    uint8_t hid_count = 0;
+    uint8_t msc_count = 0;
+    uint8_t vendor_count = 0;
+
     void usb_device_task(void* param)
     {
         (void) param;
@@ -147,6 +153,17 @@ namespace MatrixOS::USB
             // Println(std::to_string(i).c_str());
             return str;
         }
+    }
+
+    uint16_t GetBCDID()
+    {
+        return 
+            ((cdc_count & 0b11) << 14)    + 
+            ((midi_count & 0b11) << 12)   +
+            ((hid_count & 0b11) << 10)    +
+            ((msc_count & 0b11) << 8)     +
+            ((vendor_count & 0b11) << 6)  +
+            (MatrixOS::UserVar::device_id & 0b111111);
     }
 }
 
