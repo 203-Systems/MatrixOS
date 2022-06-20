@@ -22,11 +22,11 @@ namespace Device
         #endif
 
         ESP_LOGI("Device Init", "Loading config for Matrix Pro %.4s (MFG: %02d-%02d) (Serial: %s)", deviceInfo.Revision, deviceInfo.ProductionYear, deviceInfo.ProductionMonth, GetSerial().c_str()); //It seems excesive but deviceInfo.Revision does not have null terminator
-        if(string(deviceInfo.Revision).compare("V100"))
+        if(string(deviceInfo.Revision).compare(0, 4, "V100") == 0)
         {
             LoadV100();
         }
-        else if(string(deviceInfo.Revision).compare("V110"))
+        else if(string(deviceInfo.Revision).compare(0, 4, "V110") == 0)
         {
             LoadV110();
         }
