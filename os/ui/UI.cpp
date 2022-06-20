@@ -40,11 +40,11 @@ void UI::RenderUI()
     if (uiTimer.Tick(uiFps))
     {
         MatrixOS::LED::Fill(0);
-        for (auto const &uiElementPair : uiElementMap)
+        for (auto const &uiComponentPair : uiComponentMap)
         {
-            Point xy = uiElementPair.first;
-            UIElement *uiElement = uiElementPair.second;
-            uiElement->Render(xy);
+            Point xy = uiComponentPair.first;
+        UIComponent *uiComponent = uiComponentPair.second;
+        uiComponent->Render(xy);
         }
         Render();
         MatrixOS::LED::Update();
@@ -91,38 +91,38 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
     {
         MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
         bool hasAction = false;
-        for (auto const &uiElementPair : uiElementMap)
+        for (auto const &uiComponentPair : uiComponentMap)
         {
-            Point relative_xy = xy - uiElementPair.first;
-            UIElement *uiElement = uiElementPair.second;
-            if (uiElement->GetSize().Inside(relative_xy)) // Key Found
+            Point relative_xy = xy - uiComponentPair.first;
+            UIComponent *uiComponent = uiComponentPair.second;
+            if (uiComponent->GetSize().Inside(relative_xy)) // Key Found
             {
-                hasAction |= uiElement->KeyEvent(relative_xy, keyInfo);
+                hasAction |= uiComponent->KeyEvent(relative_xy, keyInfo);
             }
         }
         if(hasAction == false && keyInfo.state == HOLD)
         {
-            MatrixOS::UIComponent::TextScroll(this->name, this->nameColor);
+            MatrixOS::UIInterface::TextScroll(this->name, this->nameColor);
         }
     }
 
 }
 
-void UI::AddUIElement(UIElement *uiElement, Point xy)
+void UI::AddUIComponent(UIComponent *uiComponent, Point xy)
 {
-    ESP_LOGI("Add UI Element", "%d %d %s", xy.x, xy.y, uiElement->GetName().c_str());
-    // uiElements.push_back(uiElement);
-    uiElementMap[xy] = uiElement;
+    ESP_LOGI("Add UI Component", "%d %d %s", xy.x, xy.y, uiComponent->GetName().c_str());
+    // uiComponents.push_back(uiComponent);
+    uiComponentMap[xy] = uiComponent;
 }
 
-void UI::AddUIElement(UIElement *uiElement, uint16_t count, ...)
+void UI::AddUIComponent(UIComponent *uiComponent, uint16_t count, ...)
 {
-    // uiElements.push_back(uiElement);
+    // uiComponents.push_back(uiComponent);
     va_list valst;
     va_start(valst, count);
     for (uint8_t i = 0; i < count; i++)
     {
-        uiElementMap[(Point)va_arg(valst, Point)] = uiElement;
+        uiComponentMap[(Point)va_arg(valst, Point)] = uiComponent;
     }
 }
 
@@ -151,9 +151,9 @@ void UI::AddFuncKeyHold(std::function<void()> callback)
     UI::func_hold_callback = &callback;
 }
 
-void UI::ClearUIElements()
+void UI::ClearUIComponents()
 {
-    uiElementMap.clear();
+    uiComponentMap.clear();
 }
 
 void UI::UIEnd()
@@ -164,14 +164,14 @@ void UI::UIEnd()
         MatrixOS::LED::Fill(0);
 
     // Free up heap
-    vector<UIElement*> deletedElements; //Pervent pointer is deleted twice
-    deletedElements.reserve(uiElementMap.size());
-    for (auto const &uiElementPair : uiElementMap)
+    vector<UIComponent*> deletedComponents; //Pervent pointer is deleted twice
+    deletedComponents.reserve(uiComponentMap.size());
+    for (auto const &uiComponentPair : uiComponentMap)
     {
-        if(std::find(deletedElements.begin(), deletedElements.end(), uiElementPair.second) == deletedElements.end())
+        if(std::find(deletedComponents.begin(), deletedComponents.end(), uiComponentPair.second) == deletedComponents.end())
         {
-            deletedElements.push_back(uiElementPair.second);
-            delete uiElementPair.second;
+            deletedComponents.push_back(uiComponentPair.second);
+            delete uiComponentPair.second;
         }
     }
 }

@@ -1,6 +1,6 @@
 #include "MatrixOS.h"
 
-class UINotePad : public UIElement
+class UINotePad : public UIComponent
 {
     public:
     Color color;

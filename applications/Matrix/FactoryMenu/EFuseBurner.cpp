@@ -9,12 +9,12 @@ void FactoryMenu::EFuseBurner()
     {
         UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
 
-        efuseConfirm.AddUIElement(new UIButton("Confirm", 
+        efuseConfirm.AddUIComponent(new UIButton("Confirm", 
                                         Color(0x00FF00), 
                                         [&]() -> void {BurnEFuse(); Exit();}), 
                                         4, Point(1, 5), Point(2, 5), Point(1, 6), Point(2, 6));
 
-        efuseConfirm.AddUIElement(new UIButton("Cancel", 
+        efuseConfirm.AddUIComponent(new UIButton("Cancel", 
                                     Color(0xFF0000), 
                                     [&]() -> void {Exit();}), 
                                     4, Point(5, 5), Point(6, 5), Point(5, 6), Point(6, 6));

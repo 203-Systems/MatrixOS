@@ -1,13 +1,12 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
 #include <string>
 #include <functional>
 #include <list>
 #include <map>
 #include <stdarg.h>
-#include "UIElement.h"
+#include "Component/UIComponents.h"
 
 class UI
 {
@@ -53,15 +52,15 @@ class UI
 
         void AddFuncKeyHold(std::function<void()> callback);
 
-        std::map<Point, UIElement*> uiElementMap;
+        std::map<Point, UIComponent*> uiComponentMap;
 
-        void AddUIElement(UIElement* uiElement, Point xy);
-        // void AddUIElement(UIElement* uiElement, uint32_t keyID);
-        void AddUIElement(UIElement* uiElement, uint16_t count, ...);
+        void AddUIComponent(UIComponent* uiComponent, Point xy);
+        // void AddUIComponent(UIComponent* uiComponent, uint32_t keyID);
+        void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
 
         void AllowExit(bool allow);
 
-        void ClearUIElements();
+        void ClearUIComponents();
         private:
         void RenderUI();
         void UIEnd();

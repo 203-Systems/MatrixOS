@@ -200,18 +200,18 @@ void Performance::ActionMenu()
 
     UINotePad* notePad = new UINotePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap]);
 
-    actionMenu.AddUIElement(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}), Point(3, 3));
+    actionMenu.AddUIComponent(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}), Point(3, 3));
     
     //Rotation control and canvas
-    actionMenu.AddUIElement(new UIButtonLarge("Clear Canvas", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), Point(3, 2));
-    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(RIGHT);}), Point(5, 3));
-    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), Point(3, 5));
-    actionMenu.AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), Point(2, 3));
+    actionMenu.AddUIComponent(new UIButtonLarge("Clear Canvas", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), Point(3, 2));
+    actionMenu.AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(RIGHT);}), Point(5, 3));
+    actionMenu.AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::SYS::Rotate(DOWN);}), Point(3, 5));
+    actionMenu.AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), [&]() -> void {MatrixOS::SYS::Rotate(LEFT);}), Point(2, 3));
 
-    actionMenu.AddUIElement(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 5));
+    actionMenu.AddUIComponent(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 5));
 
-    actionMenu.AddUIElement(new UIButtonDimmable("Menu Lock", Color(0xA0FF00), [&]() -> bool{return menuLock;}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
-     actionMenu.AddUIElement(new UIButtonDimmable(
+    actionMenu.AddUIComponent(new UIButtonDimmable("Menu Lock", Color(0xA0FF00), [&]() -> bool{return menuLock;}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+     actionMenu.AddUIComponent(new UIButtonDimmable(
          "Compatibility Mode", 
          Color(0xFFFF00), 
          [&]() -> bool{return compatibilityMode;}, 
@@ -224,7 +224,7 @@ void Performance::ActionMenu()
         }), 
         Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 
-    actionMenu.AddUIElement(notePad, Point(0, 6)); 
+    actionMenu.AddUIComponent(notePad, Point(0, 6)); 
 
     actionMenu.AddFuncKeyHold([&]() -> void {Exit();});
     actionMenu.SetLoopFunc([&]() -> void{GetMidi();});

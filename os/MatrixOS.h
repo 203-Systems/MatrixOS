@@ -194,14 +194,9 @@ namespace MatrixOS
   //     void Write(uint8_t);
   //   }
 
-  namespace UIComponent
+  namespace UIInterface
   {
     void TextScroll(string ascii, Color color, uint16_t speed = 10, bool loop = false);
-    void RenderAsciiChar(char ascii, Point xy, Color color);
-    void RenderHalfHeightNum(uint16_t num, Point xy, Color color);
-    // void RenderHalfHeightDigit(uint8_t num, Point xy, Color color);
-    uint8_t Input8bit(uint8_t currentNum, Point xy, Color color);
-    uint8_t Input8bitBinary(uint8_t currentNum, Point xy, Color color);
-    uint8_t Input8bitSimple(uint8_t currentNum, Point xy, Color color);
+    uint8_t Input8bit(uint8_t currentNum, Color color);
   }
 }

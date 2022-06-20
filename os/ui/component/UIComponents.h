@@ -1,7 +1,7 @@
-class UIElement
+class UIComponent
 {
     public:
-    virtual string GetName(){return "Unnamed UI Element";}
+    virtual string GetName(){return "Unnamed UI Component";}
     virtual Color GetColor(){return 0xFFFFFF;}
     virtual Dimension GetSize(){return Dimension(0,0);}
     virtual bool KeyEvent(Point xy, KeyInfo keyInfo) {return false;} //
@@ -10,12 +10,12 @@ class UIElement
 
     virtual bool Render(Point origin){return false;}
 
-    virtual ~UIElement() {};
+    virtual ~UIComponent() {};
 
-    operator UIElement*() {return this;}
+    operator UIComponent*() {return this;}
 };
 
-class UIButton : public UIElement
+class UIButton : public UIComponent
 {
     public:
     string name;
@@ -59,7 +59,7 @@ class UIButton : public UIElement
             }
             else
             {
-                MatrixOS::UIComponent::TextScroll(GetName(), GetColor());
+                MatrixOS::UIInterface::TextScroll(GetName(), GetColor());
                 return true;
             }
         }

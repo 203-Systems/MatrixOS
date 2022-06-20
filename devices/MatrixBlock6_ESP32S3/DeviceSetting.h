@@ -2,7 +2,7 @@
 
 //Setting::Setup()
 {
-    AddUIElement(new UIButtonDimmable(
+    AddUIComponent(new UIButtonDimmable(
             "Bluetooth", 
             Color(0x0082fc),
             []() -> bool {return Device::BLEMIDI::started;},
@@ -12,7 +12,7 @@
                 }), 
             Point(0, 0));
 
-    AddUIElement(new UIButtonDimmable(
+    AddUIComponent(new UIButtonDimmable(
         "Touchbar", 
         Color(0x7957FB),
         []() -> bool {return Device::touchbar_enable;},

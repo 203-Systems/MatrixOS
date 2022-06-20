@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
-#include "font.h"
+#include "../data/font.h"
 
-namespace MatrixOS::UIComponent
+namespace MatrixOS::UIInterface
 {
 #define TEXT_SCROLL_SPACING 2
     void TextScroll(string text, Color color, uint16_t speed, bool loop)

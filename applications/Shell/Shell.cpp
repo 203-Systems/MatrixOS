@@ -17,7 +17,7 @@ void Shell::Loop()
 
 void Shell::AddCommonBarInUI(UI* ui)
 {
-    ui->AddUIElement(new UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
+    ui->AddUIComponent(new UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
 
     #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG //Logging Mode Indicator
         #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFBF00)
@@ -26,7 +26,7 @@ void Shell::AddCommonBarInUI(UI* ui)
     #else
         #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
     #endif
-    ui->AddUIElement(new UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR, [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
+    ui->AddUIComponent(new UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR, [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
     ui->AllowExit(false); //So nothing happens
 }
     
@@ -54,7 +54,7 @@ void Shell::ApplicationLauncher()
             string app_name = applications[i]->name;
             Color app_color = applications[i]->color;
 
-            applicationLauncher.AddUIElement(new UIButton(app_name, 
+            applicationLauncher.AddUIComponent(new UIButton(app_name, 
                                     app_color, 
                                     [&, app_id]() -> void {MatrixOS::SYS::ExecuteAPP(app_id);}), 
                                     Point(x, y));

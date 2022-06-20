@@ -10,23 +10,23 @@ void Setting::Setup()
 
 
     //Brightness Control
-    AddUIElement(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}), origin);
+    AddUIComponent(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}), origin);
 
     //Rotation control and canvas
-    AddUIElement(new UIButtonLarge("This does nothing", Color(0x00FF00), Dimension(2,1), []() -> void {}), origin + Point(0, -1));
-    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(RIGHT);}), origin + Point(2, 0));
-    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), []() -> void {MatrixOS::SYS::Rotate(DOWN);}), origin + Point(0, 2));
-    AddUIElement(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(LEFT);}), origin + Point(-1, 0));
+    AddUIComponent(new UIButtonLarge("This does nothing", Color(0x00FF00), Dimension(2,1), []() -> void {}), origin + Point(0, -1));
+    AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(RIGHT);}), origin + Point(2, 0));
+    AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(2,1), []() -> void {MatrixOS::SYS::Rotate(DOWN);}), origin + Point(0, 2));
+    AddUIComponent(new UIButtonLarge("Rotate to this side", Color(0x00FF00), Dimension(1,2), []() -> void {MatrixOS::SYS::Rotate(LEFT);}), origin + Point(-1, 0));
 
     //Device Control
-    AddUIElement(new UIButton("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, Device::y_size - 1));
-    // AddUIElement(new UIButton("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, Device::y_size - 2));
-    AddUIElement(new UIButton("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
-    AddUIElement(new UIButton("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
-    AddUIElement(new UIButton("Device Serial", Color(0x00FF30), []() -> void {MatrixOS::UIComponent::TextScroll(Device::GetSerial(), Color(0x00FFFF));}), Point(3, Device::y_size - 1));
+    AddUIComponent(new UIButton("Enter DFU Mode", Color(0xFF0000), []() -> void {MatrixOS::SYS::Bootloader();}), Point(0, Device::y_size - 1));
+    // AddUIComponent(new UIButton("Clear Device Config", Color(0xFF00FF), []() -> void {}), Point(0, Device::y_size - 2));
+    AddUIComponent(new UIButton("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
+    AddUIComponent(new UIButton("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
+    AddUIComponent(new UIButton("Device Serial", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF));}), Point(3, Device::y_size - 1));
 
     // //Velocity Sensitive
-    AddUIElement(new UIButtonDimmable("Velocity Sensitive", 
+    AddUIComponent(new UIButtonDimmable("Velocity Sensitive", 
         Color(0xFFFFFF),
         []() -> bool {return MatrixOS::UserVar::velocity_sensitive_threshold.Get() == 0;}, //TODO Color Class Scale Brightness
         []() -> void {
@@ -34,8 +34,8 @@ void Setting::Setup()
             }), 
         Point(7, 0));
 
-    // AddUIElement(new UIButton("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
-    // AddUIElement(new UIButton("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
+    // AddUIComponent(new UIButton("Color Correction", Color(0xFFFFFF), []() -> void {}), Point(6, 7));
+    // AddUIComponent(new UIButton("Device ID", Color(0x00FFAA), []() -> void {}), Point(Device::x_size - 1, Device::y_size - 1));
 
     #ifdef DEVICE_SETTING
     #include "DeviceSetting.h"
@@ -73,8 +73,8 @@ bool Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
             {
                 UI ab("A & B",  Color(0xFF0000));
 
-                ab.AddUIElement(new UIButtonLarge("A", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), origin + Point(-1, 0));
-                ab.AddUIElement(new UIButtonLarge("B", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 8) konami++; else ab.Exit();}), origin + Point(2, 0));
+                ab.AddUIComponent(new UIButtonLarge("A", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), origin + Point(-1, 0));
+                ab.AddUIComponent(new UIButtonLarge("B", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 8) konami++; else ab.Exit();}), origin + Point(2, 0));
 
                 ab.Start();
             }

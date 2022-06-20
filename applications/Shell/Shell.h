@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "Framework/UI.h"
+#include "UI/UI.h"
 #include "applications/Application.h"
 
 #define APPLICATION_NAME "Shell"
