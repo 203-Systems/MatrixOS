@@ -59,6 +59,12 @@ class SavedVariable
         return false;
     }
 
+    bool TempSet(T new_value) //Update the variable but do not save it.
+    {
+        value = new_value;
+        return true;
+    }
+
     T Get()
     {
         if(!Loaded()) //If not yet loaded, it will try to update current cache with NVS data
