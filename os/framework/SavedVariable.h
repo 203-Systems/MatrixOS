@@ -62,6 +62,7 @@ class SavedVariable
     bool TempSet(T new_value) //Update the variable but do not save it.
     {
         value = new_value;
+        state = SavedVariableState::Loaded;
         return true;
     }
 

@@ -4,7 +4,9 @@ void FactoryMenu::TouchBarTester()
 {
     bool touchbar_tested[16];
     memset(touchbar_tested, false, 16);
+
     MatrixOS::LED::Fill(0);
+    Device::touchbar_enable.TempSet(true);
     while(!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->velocity) //TODO Factor in the rotation or limit rotation
     {
         LoopTask();
@@ -61,4 +63,5 @@ void FactoryMenu::TouchBarTester()
         // }
         MatrixOS::LED::Update();
     }
+    Device::touchbar_enable.Load();
 }
