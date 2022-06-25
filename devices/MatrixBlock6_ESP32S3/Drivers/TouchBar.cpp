@@ -5,10 +5,22 @@ namespace Device::KeyPad
     void InitTouchBar()
     {
         //Set Touch Data Pin
-        gpio_set_direction(touchData_Pin, GPIO_MODE_INPUT);
+        gpio_config_t data_io_conf;
+        data_io_conf.intr_type = GPIO_INTR_DISABLE;
+        data_io_conf.mode = GPIO_MODE_INPUT;
+        data_io_conf.pin_bit_mask = (1ULL<<touchData_Pin);
+        data_io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        data_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+	    gpio_config(&data_io_conf);
 
         //Set Touch Clock Pin
-        gpio_set_direction(touchClock_Pin, GPIO_MODE_OUTPUT);
+        gpio_config_t clock_io_conf;
+        clock_io_conf.intr_type = GPIO_INTR_DISABLE;
+        clock_io_conf.mode = GPIO_MODE_OUTPUT;
+        clock_io_conf.pin_bit_mask = (1ULL<<touchClock_Pin);
+        clock_io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        clock_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+	    gpio_config(&clock_io_conf);
     }
 
     void TouchBarScan()
