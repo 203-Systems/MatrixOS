@@ -56,7 +56,7 @@ void UI::GetKey()
     while (MatrixOS::KEYPAD::Available())
     {
         uint16_t keyID = MatrixOS::KEYPAD::Get();
-        KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(keyID);
+        KeyInfo* keyInfo = MatrixOS::KEYPAD::GetKey(keyID);
         // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
         bool action = KeyEvent(keyID, keyInfo);
         if (!action)
@@ -66,19 +66,19 @@ void UI::GetKey()
     }
 }
 
-void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
+void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
 {
-    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo.state);
+    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo->state);
     if (keyID == FUNCTION_KEY)
     {
-        if (!disableExit && keyInfo.state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
+        if (!disableExit && keyInfo->state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
         {
             MatrixOS::Logging::LogDebug("UI", "Function Key Exit");
             Exit();
             return;
         }
 
-        if (keyInfo.state == HOLD && func_hold_callback)
+        if (keyInfo->state == HOLD && func_hold_callback)
         {
             MatrixOS::Logging::LogDebug("UI", "Function Hold");
             (*func_hold_callback)();
@@ -100,7 +100,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo keyInfo)
                 hasAction |= uiComponent->KeyEvent(relative_xy, keyInfo);
             }
         }
-        if(hasAction == false && keyInfo.state == HOLD)
+        if(hasAction == false && keyInfo->state == HOLD)
         {
             MatrixOS::UIInterface::TextScroll(this->name, this->nameColor);
         }

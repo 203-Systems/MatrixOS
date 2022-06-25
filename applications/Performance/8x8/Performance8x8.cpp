@@ -106,7 +106,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     }
 }
 
-void Performance::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
+void Performance::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo)
 {
     Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
     if(xy) //IF XY is vaild, means it's on the main grid
@@ -119,7 +119,7 @@ void Performance::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
     }
 }
 
-void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
+void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo)
 {   
     // MatrixOS::Logging::LogDebug("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
     uint8_t note = 0;
@@ -148,24 +148,24 @@ void Performance::GridKeyEvent(Point xy, KeyInfo keyInfo)
         return; //No suitable keymap
     }
 
-    if(keyInfo.state == PRESSED)
+    if(keyInfo->state == PRESSED)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo.velocity.to7bits()));
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));
     }
-    else if(keyInfo.state == AFTERTOUCH)
+    else if(keyInfo->state == AFTERTOUCH)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, 0, note, keyInfo.velocity.to7bits()));
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits()));
     } 
-    else if(keyInfo.state == RELEASED)
+    else if(keyInfo->state == RELEASED)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo.velocity.to7bits()));
+        MatrixOS::MIDI::SendPacket(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo->velocity.to7bits()));
     } 
 }
 
-void Performance::IDKeyEvent(uint16_t keyID, KeyInfo keyInfo)
+void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
 {
     // MatrixOS::Logging::LogDebug(name, "Key Event");
-    if(keyID == 0 && keyInfo.state == (menuLock ? HOLD : PRESSED))
+    if(keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
     {
         ActionMenu();
     }

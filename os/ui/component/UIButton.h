@@ -25,9 +25,9 @@ class UIButton : public UIComponent
     virtual bool HoldCallback() {if(hold_callback){hold_callback(); return true;} return false;}
     virtual bool Render(Point origin) {MatrixOS::LED::SetColor(origin, GetColor()); return true;}
 
-    virtual bool KeyEvent(Point xy, KeyInfo keyInfo)
+    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
-        if (keyInfo.state == RELEASED && keyInfo.hold == false)
+        if (keyInfo->state == RELEASED && keyInfo->hold == false)
         {
             if (Callback())
             {
@@ -36,7 +36,7 @@ class UIButton : public UIComponent
                 return true;
             }
         }
-        else if (keyInfo.state == HOLD)
+        else if (keyInfo->state == HOLD)
         {
             if (HoldCallback())
             {

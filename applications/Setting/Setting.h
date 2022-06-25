@@ -18,7 +18,7 @@ class Setting: public UI
     static void RotateClockwise(EDirection rotation);
     static void NextBrightness();
 
-    bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) override;
+    bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) override;
 
     private:
     uint8_t konami = 0;

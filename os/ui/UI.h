@@ -44,7 +44,7 @@ class UI
         void LoopTask();
 
         void GetKey();
-        virtual bool KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {return false;}; //Return true to skip UIKeyEvent
+        virtual bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {return false;}; //Return true to skip UIKeyEvent
 
         void SetSetupFunc(std::function<void()> setup_func);
         void SetLoopFunc(std::function<void()> loop_func);
@@ -64,6 +64,6 @@ class UI
         private:
         void RenderUI();
         void UIEnd();
-        void UIKeyEvent(uint16_t KeyID, KeyInfo keyInfo);
+        void UIKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
         void PostCallbackCleanUp();
 };

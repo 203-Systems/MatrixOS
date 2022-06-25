@@ -31,27 +31,27 @@ class UINotePad : public UIComponent
             for(uint8_t y = 0; y < dimension.y; y++)
             {
                 Point target_coord = origin + Point(x, y);
-                Color target_color = MatrixOS::KEYPAD::GetKey(target_coord) ? Color(0xFFFFFF) : color;
+                Color target_color = MatrixOS::KEYPAD::GetKey(target_coord)->velocity ? Color(0xFFFFFF) : color;
                 MatrixOS::LED::SetColor(target_coord,  target_color);
             }
         }    
         return true;
     }
 
-    virtual bool KeyEvent(Point xy, KeyInfo keyInfo) 
+    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) 
     {
         uint8_t note = map[xy.y * dimension.x + xy.x];
-        if(keyInfo.state == PRESSED)
+        if(keyInfo->state == PRESSED)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, keyInfo.velocity.to7bits()));
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, keyInfo->velocity.to7bits()));
         }
-        else if(keyInfo.state == AFTERTOUCH)
+        else if(keyInfo->state == AFTERTOUCH)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, channel, note, keyInfo.velocity.to7bits()));
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits()));
         } 
-        else if(keyInfo.state == RELEASED)
+        else if(keyInfo->state == RELEASED)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo.velocity.to7bits()));
+            MatrixOS::MIDI::SendPacket(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo->velocity.to7bits()));
         } 
         return true;
     }

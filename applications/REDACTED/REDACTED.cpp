@@ -95,9 +95,9 @@ void REDACTED::End()
   MatrixOS::LED::Update();
 }
 
-void REDACTED::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
+void REDACTED::KeyEvent(uint16_t keyID, KeyInfo* keyInfo)
 {
-    if(keyID == 0 && keyInfo.state == PRESSED)
+    if(keyID == 0 && keyInfo->state == PRESSED)
     {
         Exit();
         return;

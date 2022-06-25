@@ -85,12 +85,12 @@ namespace MatrixOS::KEYPAD
         return 0xFFFE;
     }
 
-    KeyInfo GetKey(Point keyXY)
+    KeyInfo* GetKey(Point keyXY)
     {
         return GetKey(XY2ID(keyXY));
     }
 
-    KeyInfo GetKey(uint16_t keyID)
+    KeyInfo* GetKey(uint16_t keyID)
     {
         return Device::KeyPad::GetKey(keyID);
     }

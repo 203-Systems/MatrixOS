@@ -41,7 +41,7 @@ namespace Device
     void PostBootTask()
     {
         KeyPad::Scan();
-        if(KeyPad::GetKey(Point(0, 0)) && KeyPad::GetKey(Point(1, 1)))
+        if(KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0))) && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1))))
         {
             MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
         }

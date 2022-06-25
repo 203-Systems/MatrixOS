@@ -20,7 +20,7 @@ class REDACTED : public Application // ᗜˬᗜ
     void Task1();
     void Task2();
 
-    void KeyEvent(uint16_t keyID, KeyInfo keyInfo) override;
+    void KeyEvent(uint16_t keyID, KeyInfo* keyInfo) override;
 
     uint8_t x_offset;
     uint8_t y_offset;

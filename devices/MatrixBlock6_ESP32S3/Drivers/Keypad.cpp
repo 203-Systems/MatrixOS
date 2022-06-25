@@ -100,14 +100,14 @@ namespace Device::KeyPad
         }
     }
 
-    KeyInfo GetKey(Point keyXY)
-    {
-        uint16_t keyID = XY2ID(keyXY);
-        return GetKey(keyID);
+    // KeyInfo GetKey(Point keyXY)
+    // {
+    //     uint16_t keyID = XY2ID(keyXY);
+    //     return GetKey(keyID);
         
-    }
+    // }
 
-    KeyInfo GetKey(uint16_t keyID)
+    KeyInfo* GetKey(uint16_t keyID)
     {
         uint8_t keyClass = keyID >> 12;
         switch(keyClass)
@@ -118,7 +118,7 @@ namespace Device::KeyPad
                 switch(index)
                 {
                     case 0:
-                        return fnState;
+                        return &fnState;
                 }
                 break;
             }
@@ -126,18 +126,18 @@ namespace Device::KeyPad
             {
                 int16_t x = (keyID & (0b0000111111000000)) >> 6;
                 int16_t y = keyID & (0b0000000000111111);
-                if(x < x_size && y < y_size)  return keypadState[x][y];
+                if(x < x_size && y < y_size)  return &keypadState[x][y];
                 break;
             }
             case 2: //Touch Bar
             {
                 uint16_t index = keyID & (0b0000111111111111);
                 // MatrixOS::Logging::LogDebug("Keypad", "Read Touch %d", index);
-                if(index < touchbar_size) return touchbarState[index];
+                if(index < touchbar_size) return &touchbarState[index];
                 break;
             }
         }
-        return KeyInfo(); //Return an empty KeyInfo
+        return nullptr; //Return an empty KeyInfo
     }
 
     void FNScan()

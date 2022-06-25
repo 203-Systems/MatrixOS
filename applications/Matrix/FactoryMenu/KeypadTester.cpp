@@ -4,16 +4,16 @@ void FactoryMenu::KeyPadTester()
     bool keypad_tested[Device::x_size][Device::y_size];
     memset(keypad_tested, false, Device::x_size * Device::y_size);
     MatrixOS::LED::Fill(0);
-    while(!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)) //Break when fn pressed
+    while(!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->velocity) //Break when fn pressed
     {
         LoopTask();
         for(uint8_t x = 0; x < Device::x_size; x++)
         {
             for(uint8_t y = 0; y < Device::y_size; y++)
             {
-                KeyInfo keyInfo = MatrixOS::KEYPAD::GetKey(Point(x, y));
+                KeyInfo* keyInfo = MatrixOS::KEYPAD::GetKey(Point(x, y));
 
-                if(keyInfo.velocity)
+                if(keyInfo->velocity)
                 {
                     keypad_tested[x][y] = true;
                     MatrixOS::LED::SetColor(Point(x, y), Color(0x00FF00));

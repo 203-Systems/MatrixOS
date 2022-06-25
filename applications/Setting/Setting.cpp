@@ -42,10 +42,10 @@ void Setting::Setup()
     #endif
 }
 
-bool Setting::KeyEvent(uint16_t KeyID, KeyInfo keyInfo)
+bool Setting::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo)
 {
     Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-    if(xy && keyInfo.state == RELEASED) //IF XY is vaild, means it's on the main grid
+    if(xy && keyInfo->state == RELEASED) //IF XY is vaild, means it's on the main grid
     {
         if((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
         {

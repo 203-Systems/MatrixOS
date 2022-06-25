@@ -48,7 +48,7 @@ class Application
         void LoopTask();
 
         void GetKey();
-        virtual void KeyEvent(uint16_t KeyID, KeyInfo keyInfo) {};
+        virtual void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {};
 
         void GetMidi();
         virtual void MidiEvent(MidiPacket midiPacket) {};

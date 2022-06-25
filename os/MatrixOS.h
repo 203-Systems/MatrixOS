@@ -76,8 +76,8 @@ namespace MatrixOS
     uint16_t Scan(bool force = false); //Return # of changed key, will not rescan until Available() == 0. set force to true to clear list and force rescan
     uint16_t Available();
     uint16_t Get();
-    KeyInfo GetKey(Point keyXY);
-    KeyInfo GetKey(uint16_t keyID);
+    KeyInfo* GetKey(Point keyXY);
+    KeyInfo* GetKey(uint16_t keyID);
     void Clear(); //Don't handle any keyEvent till their next Press event (So no Release, Hold, etc)
     void ClearList(); //Clear the current KeyEvent queue
     uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY

@@ -88,9 +88,9 @@ namespace MatrixOS::UIInterface
                                 MatrixOS::KEYPAD::ClearList(); //Keypad will scan itself after list is cleared
                                 // MatrixOS::Logging::LogDebug("Text Scroll", "FN Velocity %d", (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
                                 //Let's assume we don't use FN to trigger a text scroll
-                                if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state == PRESSED)
+                                if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)
                                 {
-                                    MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).Clear();
+                                    MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
                                     MatrixOS::LED::DestoryLayer();
                                     MatrixOS::LED::Update();
                                     return;
