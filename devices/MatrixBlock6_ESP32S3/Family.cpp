@@ -5,6 +5,11 @@ namespace MatrixOS::SYS
     void ExecuteAPP(string author, string app_name);
 }
 
+namespace MatrixOS::UIInterface
+{
+void TextScroll(string ascii, Color color, uint16_t speed = 10, bool loop = false);
+}
+
 namespace Device
 {
     void DeviceInit()
@@ -39,9 +44,16 @@ namespace Device
     }
 
     void PostBootTask()
-    {
+    {   
         KeyPad::Scan();
-        if(KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0))) && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1))))
+        #ifdef FACTORY_CONFIG
+        if(esp_efuse_block_is_empty(EFUSE_BLK3))
+        {
+            MatrixOS::UIInterface::TextScroll("Factory Test", Color(0xFF00FF));
+            MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
+        }
+        #endif
+        if(KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->velocity)
         {
             MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
         }
