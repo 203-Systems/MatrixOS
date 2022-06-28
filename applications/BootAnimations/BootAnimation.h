@@ -12,6 +12,6 @@ class BootAnimation : public Application
         virtual void Boot() {};
         
         virtual void End() {};
-        virtual void KeyEvent(uint16_t KeyID, KeyInfo keyInfo);
+        virtual void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
         
 };
