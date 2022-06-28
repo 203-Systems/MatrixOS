@@ -73,7 +73,7 @@ bool Setting::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo)
             {
                 UI ab("A & B",  Color(0xFF0000));
 
-                ab.AddUIComponent(new UIButtonLarge("A", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), origin + Point(-1, 0));
+                ab.AddUIComponent(new UIButtonLarge("A", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 9) MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED"); else ab.Exit();}), origin + Point(-2, 0));
                 ab.AddUIComponent(new UIButtonLarge("B", Color(0xFF0000), Dimension(2,2), [&]() -> void {if(konami == 8) konami++; else ab.Exit();}), origin + Point(2, 0));
 
                 ab.Start();
