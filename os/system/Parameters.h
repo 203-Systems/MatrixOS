@@ -24,7 +24,7 @@
 
 //KeyPad
 #ifndef DEBOUNCE_THRESHOLD
-inline uint16_t debounce_threshold = 24;
+inline uint16_t debounce_threshold = 5;
 #else
 inline uint16_t debounce_threshold = DEBOUNCE_THRESHOLD;
 #endif

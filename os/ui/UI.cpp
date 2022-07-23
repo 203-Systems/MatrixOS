@@ -100,7 +100,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
                 hasAction |= uiComponent->KeyEvent(relative_xy, keyInfo);
             }
         }
-        if(hasAction == false && keyInfo->state == HOLD)
+        if(hasAction == false && keyInfo->state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
         {
             MatrixOS::UIInterface::TextScroll(this->name, this->nameColor);
         }
