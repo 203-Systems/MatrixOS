@@ -87,7 +87,7 @@ struct KeyInfo {
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
         // Fract16 source = velocity;
-        if(MatrixOS::UserVar::velocity_sensitive_threshold.Get())
+        if(MatrixOS::UserVar::velocity_sensitive_threshold.Get()) //FSR disabled
         {
             if(velocity < MatrixOS::UserVar::velocity_sensitive_threshold.Get())
             {
@@ -167,12 +167,13 @@ struct KeyInfo {
                 lastEventTime = MatrixOS::SYS::Millis();
                 return false;
             }
-            else if(MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
+            else if((MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) || velocity > 1024) //High Velocity override
             {
                 state = PRESSED;
                 lastEventTime = MatrixOS::SYS::Millis();
                 return true;
             }
+            return false;
         }
 
         if( state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early

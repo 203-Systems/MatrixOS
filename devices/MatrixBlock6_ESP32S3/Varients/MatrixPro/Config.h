@@ -49,8 +49,8 @@ namespace Device
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
-        inline Fract16 low_threshold = 2048;
-        inline Fract16 high_threshold = 57344;
+        inline Fract16 low_threshold = 1536;
+        inline Fract16 high_threshold = 65535;
 
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
