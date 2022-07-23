@@ -38,8 +38,10 @@ namespace Device::KeyPad
 
 enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
                 /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH,
-                CLEARED = 254u,
+                /*Special*/ DEBUNCING = 253u, CLEARED = 254u,
                 /*Placeholder Keys*/ INVAILD = 255u};
+// When adding new state, remember to update active() as well
+
 
 struct KeyInfo {
     KeyInfo() {}
@@ -67,7 +69,9 @@ struct KeyInfo {
         return MatrixOS::SYS::Millis() - lastEventTime;
     }
 
-    operator bool() { return velocity > 0; }
+    bool active() {return state >= ACTIVATED && state <= AFTERTOUCH;} 
+
+    operator bool() {return active();}
 
     /*
     Action Checklist:
@@ -120,11 +124,22 @@ struct KeyInfo {
         {
             velocity = applyVelocityCurve(velocity);
         }
+
         //Reset back to normal keys
         if(state == PRESSED)
         {
             state = ACTIVATED;
         }
+
+        //Check aftertouch before previous velocity get overwritten
+        if(state == ACTIVATED && DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD)
+        {
+            state = AFTERTOUCH;
+            return true;
+        }
+
+        //Update current velocity
+        this->velocity = velocity;
 
         if(state == RELEASED)
         {
@@ -137,35 +152,40 @@ struct KeyInfo {
             state = ACTIVATED;
         }
 
-
-        if(state == IDLE && velocity > Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
+        if(state == IDLE && velocity)
         {
-            state = PRESSED;
-            this->velocity = velocity;
+            state = DEBUNCING;
             lastEventTime = MatrixOS::SYS::Millis();
-            return true;
+            return false;
+        }
+        
+        if(state == DEBUNCING)
+        {
+            if(velocity == 0)
+            {
+                state = IDLE;
+                lastEventTime = MatrixOS::SYS::Millis();
+                return false;
+            }
+            else if(MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
+            {
+                state = PRESSED;
+                lastEventTime = MatrixOS::SYS::Millis();
+                return true;
+            }
         }
 
-        if( state == CLEARED && velocity < Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if( state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
-            this->velocity = 0;
             lastEventTime = MatrixOS::SYS::Millis();
             return false;
         }
 
-        if(state == ACTIVATED&& velocity < Device::KeyPad::low_threshold && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
+        if(state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) //May result in key released early
         {
             state = RELEASED;
-            this->velocity = 0;
             lastEventTime = MatrixOS::SYS::Millis();
-            return true;
-        }
-
-        if(state == ACTIVATED && DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD)
-        {
-            state = AFTERTOUCH;
-            this->velocity = velocity;
             return true;
         }
 
