@@ -107,7 +107,8 @@
 			"xloctime": "cpp",
 			"resumable": "cpp",
 			"xthread": "cpp",
-			"cstdbool": "cpp"
+			"cstdbool": "cpp",
+			"forward_list": "cpp"
 		}
 	}
 }

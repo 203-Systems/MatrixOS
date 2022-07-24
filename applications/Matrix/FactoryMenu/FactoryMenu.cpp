@@ -2,6 +2,8 @@
 
 void FactoryMenu::Setup()
 {
+    MatrixOS::SYS::Rotate(EDirection::UP, true);
+    
     UI factoryMenu("Factory Menu", Color(0xFFFFFF));
 
     factoryMenu.AddUIComponent(new UIButton("LED Test", 
