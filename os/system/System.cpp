@@ -84,7 +84,8 @@ namespace MatrixOS::SYS
 
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
         
-        ExecuteAPP(active_app_id);
+        // ExecuteAPP(active_app_id);
+        // ExecuteAPP("203 Electronics", "Performance Mode"); //Launch Performance mode by default for now
     }
 
     uint32_t Millis() 

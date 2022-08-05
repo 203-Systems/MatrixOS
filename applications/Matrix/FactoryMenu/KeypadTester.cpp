@@ -13,7 +13,7 @@ void FactoryMenu::KeyPadTester()
             {
                 KeyInfo* keyInfo = MatrixOS::KEYPAD::GetKey(Point(x, y));
 
-                if(keyInfo->velocity)
+                if(keyInfo->active())
                 {
                     keypad_tested[x][y] = true;
                     MatrixOS::LED::SetColor(Point(x, y), Color(0x00FF00));

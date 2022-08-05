@@ -30,7 +30,7 @@ class Performance : public Application
     //Saved Variables
     CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);
     CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
-    CreateSavedVar(APPLICATION_NAME, stfu, uint8_t, STFU_DEFAULT);
+    CreateSavedVar(APPLICATION_NAME, stfu, uint8_t, 0);
     
     void Setup() override;
     void Loop() override;

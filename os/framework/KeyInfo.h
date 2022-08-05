@@ -82,18 +82,21 @@ struct KeyInfo {
     Aftertouch (Pressed, Actived, Hold, Hold Actived)
     */
 
-   #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
+    #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
+
+    inline uint16_t MAX(uint16_t a, uint16_t b) { return((a) > (b) ? a : b); }
 
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
         // Fract16 source = velocity;
         if(MatrixOS::UserVar::velocity_sensitive_threshold.Get()) //FSR disabled
-        {
-            if(velocity < MatrixOS::UserVar::velocity_sensitive_threshold.Get())
+        {   
+            uint16_t threshold = MAX(MatrixOS::UserVar::velocity_sensitive_threshold.Get(), Device::KeyPad::low_threshold);
+            if(velocity < threshold)
             {
                 velocity = 0;
             }
-            else if(velocity >= MatrixOS::UserVar::velocity_sensitive_threshold.Get())
+            else if(velocity >= threshold)
             {
                 velocity = UINT16_MAX;
             }
@@ -167,7 +170,7 @@ struct KeyInfo {
                 lastEventTime = MatrixOS::SYS::Millis();
                 return false;
             }
-            else if((MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold) || velocity > 1024) //High Velocity override
+            else if(MatrixOS::SYS::Millis() - lastEventTime > debounce_threshold)
             {
                 state = PRESSED;
                 lastEventTime = MatrixOS::SYS::Millis();
