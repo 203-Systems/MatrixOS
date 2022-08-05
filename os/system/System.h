@@ -20,6 +20,7 @@ namespace MatrixOS::SYS
 
     inline TaskHandle_t active_app_task = NULL;
     inline uint32_t active_app_id = 0;
+    inline uint32_t next_app = 0;
     
     void ExecuteAPP(uint32_t app_id);
     uint32_t GenerateAPPID(string author, string app_name);

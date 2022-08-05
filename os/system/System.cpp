@@ -42,7 +42,7 @@ namespace MatrixOS::SYS
     {
 
         MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", app_count);
-       
+
         for(uint8_t i = 0; i < app_count; i++)
         {
             Application_Info* application = applications[i];
@@ -84,8 +84,7 @@ namespace MatrixOS::SYS
 
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
         
-        // ExecuteAPP(active_app_id);
-        // ExecuteAPP("203 Electronics", "Performance Mode"); //Launch Performance mode by default for now
+        next_app = GenerateAPPID("203 Electronics", "Performance Mode"); //Launch Performance mode by default for now
     }
 
     uint32_t Millis() 
@@ -205,7 +204,9 @@ namespace MatrixOS::SYS
 
     void ExitAPP()
     {
-        ExecuteAPP(0);
+        uint32_t app_id = next_app;
+        next_app = 0;
+        ExecuteAPP(app_id);
     }
 
 
