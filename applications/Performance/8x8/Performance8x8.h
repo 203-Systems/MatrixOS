@@ -14,6 +14,7 @@
 #define APPLICATION_CLASS Performance
 
 #define NUMS_OF_KEYMAP 2
+#define STFU_DEFAULT 2
 
 class Performance : public Application
 {
@@ -29,8 +30,7 @@ class Performance : public Application
     //Saved Variables
     CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);
     CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
-
-    uint8_t stfu = 2;
+    CreateSavedVar(APPLICATION_NAME, stfu, uint8_t, STFU_DEFAULT);
     
     void Setup() override;
     void Loop() override;

@@ -211,16 +211,18 @@ void Performance::ActionMenu()
     actionMenu.AddUIComponent(new UIButton("System Setting", Color(0xFFFFFF), [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 5));
 
     actionMenu.AddUIComponent(new UIButtonDimmable("Menu Lock", Color(0xA0FF00), [&]() -> bool{return menuLock;}, [&]() -> void{menuLock = !menuLock;}), Point(0, 5)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
-     actionMenu.AddUIComponent(new UIButtonDimmable(
-         "Compatibility Mode", 
-         Color(0xFFFF00), 
-         [&]() -> bool{return compatibilityMode;}, 
-         [&]() -> void{
-             compatibilityMode = !compatibilityMode; 
-             currentKeymap = compatibilityMode; 
-             notePad->SetColor(keymap_color[currentKeymap]);
-             notePad->SetChannel(keymap_channel[currentKeymap]);
-             notePad->SetMap((uint8_t*)note_pad_map[currentKeymap]);
+    actionMenu.AddUIComponent(new UIButtonDimmable("Flicker Reduction", Color(0xAAFF00), [&]() -> bool{return stfu;}, [&]() -> void{stfu = bool(!stfu) * STFU_DEFAULT;}), Point(0, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
+    
+    actionMenu.AddUIComponent(new UIButtonDimmable(
+        "Compatibility Mode", 
+        Color(0xFFFF00), 
+        [&]() -> bool{return compatibilityMode;}, 
+        [&]() -> void{
+            compatibilityMode = !compatibilityMode; 
+            currentKeymap = compatibilityMode; 
+            notePad->SetColor(keymap_color[currentKeymap]);
+            notePad->SetChannel(keymap_channel[currentKeymap]);
+            notePad->SetMap((uint8_t*)note_pad_map[currentKeymap]);
         }), 
         Point(7, 0)); //Current the currentKeymap is directly linked to compatibilityMode. Do we really need > 2 keymap tho?
 

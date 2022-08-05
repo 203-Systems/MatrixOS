@@ -65,7 +65,7 @@ bool Setting::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo)
             MatrixOS::Logging::LogDebug("Konami", "Left prssed, %d", konami);
             return true;
         }
-        else if((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(1, 2)))
+        else if((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(2, 1)))
         {
             konami ++;
             MatrixOS::Logging::LogDebug("Konami", "Right prssed, %d", konami);
