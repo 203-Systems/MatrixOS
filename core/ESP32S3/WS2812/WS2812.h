@@ -27,11 +27,16 @@
 // #define T1H 52  // 1 bit high time
 // #define TL  52  // low time for either bit
 
-
+struct ws2812_chunk
+{
+    uint16_t length;
+    Color correction;
+    float brightness_multiplier;
+};
 
 namespace WS2812
 {
-    void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint16_t numsOfLED);
+    void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint8_t chunk_count, ws2812_chunk* chunk_info);
     uint8_t Show(Color *array, uint8_t brightness = 255);
 
     void setup_rmt_data_buffer(Color *array, uint8_t brightness);

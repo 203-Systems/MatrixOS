@@ -1,4 +1,6 @@
 #include "WS2812.h"
+#include <algorithm>
+// #include "MatrixOS.h"
 
 namespace WS2812
 {
@@ -7,8 +9,10 @@ namespace WS2812
     rmt_item32_t* rmtBuffer;
     // bool transmit_in_progress = false;
     uint16_t numsOfLED;
+    uint8_t chunkCount;
+    ws2812_chunk* chunkInfo;
+
     rmt_channel_t rmt_channel;
-    gpio_num_t gpio_tx;
 
     static uint32_t ws2812_t0h_ticks = 0;
     static uint32_t ws2812_t1h_ticks = 0;
@@ -16,7 +20,7 @@ namespace WS2812
     static uint32_t ws2812_t1l_ticks = 0;
     static uint32_t ws2812_reset_ticks = 0;
 
-    void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint16_t numsOfLED)
+    void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint8_t chunk_count, ws2812_chunk* chunk_info)
     {
         rmt_config_t config = RMT_DEFAULT_CONFIG_TX(gpio_tx, rmt_channel);
         // set counter clock to 40MHz
@@ -27,8 +31,15 @@ namespace WS2812
         ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
 
         WS2812::rmt_channel = rmt_channel;
-        // this.gpio_tx = gpio_tx;
-        WS2812::numsOfLED = numsOfLED;
+        WS2812::numsOfLED = 0;
+        WS2812::chunkInfo = chunk_info;
+        WS2812::chunkCount = chunk_count;
+
+        for(uint8_t chunk_index = 0; chunk_index < chunk_count; chunk_index++)
+        {
+            numsOfLED += chunk_info[chunk_index].length;
+            // ESP_LOGI("LED Init", "Chunk #%d - Size: %d", chunk_index, chunk_info[chunk_index].length);
+        }
         
         //TODO Free rmtBuffer if reinit()
 
@@ -58,7 +69,7 @@ namespace WS2812
         // ESP_LOGV(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
     }
 
-    uint8_t Show(Color *array, uint8_t brightness)
+    uint8_t Show(Color *buffer, uint8_t brightness)
     {
         // ESP_LOGV(TAG, "Show");
         uint32_t status;
@@ -68,26 +79,30 @@ namespace WS2812
             // ESP_LOGI(TAG, "transmit still in progress, abort");
             return -1;
         }
-        setup_rmt_data_buffer(array, brightness);
+        setup_rmt_data_buffer(buffer, brightness);
         ESP_ERROR_CHECK(rmt_write_items(rmt_channel, rmtBuffer, numsOfLED * BITS_PER_LED_CMD + 1, true)); //Block the thread because FreeRTOS is gonna handle it
         // ESP_ERROR_CHECK(rmt_wait_tx_done(LED_RMT_TX_CHANNEL, portMAX_DELAY));
         return 0;
     }
 
-    void setup_rmt_data_buffer(Color *array, uint8_t brightness) 
+    void setup_rmt_data_buffer(Color *buffer, uint8_t brightness) 
     {
         const rmt_item32_t bit0 = {{{ ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0 }}}; //Logical 0
         const rmt_item32_t bit1 = {{{ ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0 }}}; //Logical 1
         const rmt_item32_t reset = {{{ ws2812_reset_ticks, 0, 0, 0 }}}; //Reset
-        // rmtBuffer[0] = reset;
-        for (uint16_t led = 0; led < numsOfLED; led++) {
-            // ESP_LOGV("RMT", "LED %d", led);
-            uint32_t bits_to_send = array[led].GRB(brightness);
-            uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
-            for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++) {
-            uint32_t bit_is_set = bits_to_send & mask;
-            rmtBuffer[led * BITS_PER_LED_CMD + bit] = bit_is_set ? bit1 : bit0;
-            mask >>= 1;
+        uint16_t buffer_index = 0;
+        for(uint8_t chunk_index = 0; chunk_index < chunkCount; chunk_index++)
+        {
+            uint8_t local_brightness = std::clamp<uint16_t>(brightness * chunkInfo[chunk_index].brightness_multiplier, 0, 255);
+            for (uint16_t led = 0; led < chunkInfo[chunk_index].length; led++) {
+                uint32_t bits_to_send = buffer[buffer_index].GRB(local_brightness);
+                uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
+                for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++) {
+                    uint32_t bit_is_set = bits_to_send & mask;
+                    rmtBuffer[buffer_index * BITS_PER_LED_CMD + bit] = bit_is_set ? bit1 : bit0;
+                    mask >>= 1;
+                }
+                buffer_index++;
             }
         }
         rmtBuffer[numsOfLED * BITS_PER_LED_CMD] = reset;

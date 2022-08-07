@@ -69,7 +69,12 @@ namespace Device
     #define MAX_LED_LAYERS 5
     inline gpio_num_t led_pin;
     inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
-    inline uint8_t brightness_level[9] = {8, 12, 24, 40, 64, 90, 128, 168, 255};
+    inline uint8_t brightness_level[9] = {8, 12, 24, 40, 64, 90, 128, 168, 255}; 
+    inline uint8_t led_chunk_count = 2;
+    inline ws2812_chunk led_chunk[2] = {
+        {64, Color(0xFFFFFF), 1.0},
+        {32, Color(0xFFFFFF), 1.5}
+    };
     // const Dimension grid_size(8,8);
     // const Point grid_offset = Point(1,1);
 
