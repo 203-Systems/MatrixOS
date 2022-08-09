@@ -55,6 +55,8 @@ extern "C" {
 #define BLEMIDI_OUTBUFFER_FLUSH_MS 10
 #endif
 
+#include "freertos/timers.h"
+
 // #ifndef BLEMIDI_ENABLE_CONSOLE
 // #define BLEMIDI_ENABLE_CONSOLE 1
 // #endif
@@ -118,7 +120,7 @@ extern void blemidi_receive_packet_callback_for_debugging(uint8_t blemidi_port, 
  *
  * @return < 0 on errors
  */  
-extern void blemidi_tick(void);
+extern void blemidi_tick(TimerHandle_t xTimer);
   
 /**
  * @brief This function returns the high part of the timestamp

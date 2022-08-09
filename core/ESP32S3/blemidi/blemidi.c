@@ -35,6 +35,8 @@
 #include <string.h>
 #include <sys/time.h>
 
+#define CONFIG_BT_STACK_NO_LOG
+
 #include "esp_system.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -195,12 +197,17 @@ static const uint8_t blemidi_ccc[2] = {0x00, 0x00};
 
 static const char* blemidi_name;
 
+static StaticTimer_t tickTimer;
+static TimerHandle_t tickTimerHandle;
+
+static bool blemidi_connected = false;
+
 void (*blemidi_callback_midi_message_received)(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Timestamp handling
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-void blemidi_tick(void)
+void blemidi_tick(TimerHandle_t xTimer)
 {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -320,6 +327,7 @@ static int32_t blemidi_outbuffer_push(uint8_t blemidi_port, uint8_t *stream, siz
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 int32_t blemidi_send_message(uint8_t blemidi_port, uint8_t *stream, size_t len)
 {
+  if(!blemidi_connected) return -1;
   const size_t max_header_size = 2;
 
   if (blemidi_port >= BLEMIDI_NUM_PORTS)
@@ -673,10 +681,13 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     conn_params.timeout = 400;  // timeout = 400*10ms = 4000ms
     // start sent the update connection parameters to the peer device.
     esp_ble_gap_update_conn_params(&conn_params);
+
+    blemidi_connected = true;
     break;
   case ESP_GATTS_DISCONNECT_EVT:
     ESP_LOGI(BLEMIDI_TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
     esp_ble_gap_start_advertising(&adv_params);
+    blemidi_connected = false;
     break;
   case ESP_GATTS_CREAT_ATTR_TAB_EVT:
   {
@@ -756,6 +767,7 @@ int32_t blemidi_init(void *_callback_midi_message_received, const char* name)
   // callback will be installed if driver was booted successfully
   blemidi_callback_midi_message_received = NULL;
   blemidi_name = name;
+  blemidi_connected = false;
 
   /* Initialize NVS. */
   ret = nvs_flash_init();
@@ -836,6 +848,10 @@ int32_t blemidi_init(void *_callback_midi_message_received, const char* name)
     }
   }
 
+  //Timer for tick event
+  tickTimerHandle = xTimerCreateStatic("BleMidiTick", configTICK_RATE_HZ / (1000 / BLEMIDI_OUTBUFFER_FLUSH_MS), true, NULL, blemidi_tick, &tickTimer);
+  xTimerStart(tickTimerHandle, 0);
+
   // Finally install callback
   blemidi_callback_midi_message_received = _callback_midi_message_received;
 
@@ -850,6 +866,7 @@ int32_t blemidi_init(void *_callback_midi_message_received, const char* name)
 int32_t blemidi_deinit()
 {
   esp_err_t ret;
+  blemidi_connected = false;
 
   /* Denitialize Bluedroid. */
   ret = esp_bluedroid_disable();
@@ -879,6 +896,9 @@ int32_t blemidi_deinit()
     ESP_LOGE(BLEMIDI_TAG, "%s disable controller failed: %s", __func__, esp_err_to_name(ret));
     return -4;
   }
+
+  //Delete Timer
+  xTimerDelete(tickTimerHandle, 0);
 
 
   return 0; // no error

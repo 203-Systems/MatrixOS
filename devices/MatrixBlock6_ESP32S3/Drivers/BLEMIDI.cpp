@@ -14,21 +14,6 @@ namespace Device
     {
         bool started = false;
         string name;
-        TaskHandle_t taskHandle = NULL;
-
-        static void Task(void *pvParameters)
-        {
-            portTickType xLastExecutionTime;
-
-            // Initialise the xLastExecutionTime variable on task entry
-            xLastExecutionTime = xTaskGetTickCount();
-
-            while(true) 
-            {
-                vTaskDelayUntil(&xLastExecutionTime, 500 / portTICK_RATE_MS);
-                blemidi_tick(); // for timestamp and output buffer handling
-            }
-        }
 
         // void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos)
         // {
@@ -100,7 +85,6 @@ namespace Device
             } else {
                 ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
                 started = true;
-                xTaskCreate(Task, "task_midi", 4096, NULL, 8, &taskHandle);
             }
         }
 
@@ -112,10 +96,6 @@ namespace Device
             } else {
                 ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
                 started = false;
-                if( taskHandle != NULL )
-                {
-                    vTaskDelete( taskHandle );
-                }
             }
         }
 

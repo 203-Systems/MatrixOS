@@ -110,7 +110,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
 
 void UI::AddUIComponent(UIComponent *uiComponent, Point xy)
 {
-    ESP_LOGI("Add UI Component", "%d %d %s", xy.x, xy.y, uiComponent->GetName().c_str());
+    // ESP_LOGI("Add UI Component", "%d %d %s", xy.x, xy.y, uiComponent->GetName().c_str());
     // uiComponents.push_back(uiComponent);
     uiComponentMap[xy] = uiComponent;
 }
