@@ -159,9 +159,15 @@ void UI::ClearUIComponents()
 void UI::UIEnd()
 {
     if (newLedLayer)
+    {
         MatrixOS::LED::DestoryLayer();
+    }
     else
+    {
         MatrixOS::LED::Fill(0);
+    }
+
+    MatrixOS::LED::Update();
 
     // Free up heap
     vector<UIComponent*> deletedComponents; //Pervent pointer is deleted twice

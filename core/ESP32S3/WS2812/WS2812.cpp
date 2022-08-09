@@ -28,7 +28,7 @@ namespace WS2812
         config.mem_block_num = 3;
  
         ESP_ERROR_CHECK(rmt_config(&config));
-        ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
+        ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, ESP_INTR_FLAG_IRAM));
 
         WS2812::rmt_channel = rmt_channel;
         WS2812::numsOfLED = 0;
