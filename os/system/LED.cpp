@@ -8,12 +8,12 @@ namespace MatrixOS::LED
     
     vector<Color*> frameBuffers;
     bool needUpdate = false;
-    bool pauseAutoUpdate = false;
 
     void LEDTimerCallback( TimerHandle_t xTimer )
     {
-        if(needUpdate && pauseAutoUpdate == false)
+        if(needUpdate)
         {
+            // MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
             Device::LED::Update(frameBuffers.back(), UserVar::brightness);
             needUpdate = false;
         }
@@ -111,6 +111,7 @@ namespace MatrixOS::LED
         frameBuffers.push_back(frameBuffer);
         Fill(0);
         // needUpdate = true; //Not gonna update till next drawing
+        MatrixOS::Logging::LogDebug("LED Layer", "Layer Created - %d", CurrentLayer());
         return CurrentLayer();
     }
 
@@ -118,8 +119,11 @@ namespace MatrixOS::LED
     {
         if(CurrentLayer() > 0)
         {
+            // PauseUpdate(true);
             vPortFree(frameBuffers.back());
             frameBuffers.pop_back();
+            MatrixOS::Logging::LogDebug("LED Layer", "Layer Destoried - %d", CurrentLayer());
+            // PauseUpdate(false);
             needUpdate = true;
             return true;
         }
@@ -127,6 +131,7 @@ namespace MatrixOS::LED
         {
             Fill(0);
             needUpdate = true;
+            MatrixOS::Logging::LogDebug("LED Layer", "Already at layer 0, can not delete layer");
             return false;
         }
     }
@@ -143,6 +148,13 @@ namespace MatrixOS::LED
 
     void PauseUpdate(bool pause)
     {
-        pauseAutoUpdate = pause;
+        if(pause)
+        {
+            xTimerStop(led_tm, 0);
+        }
+        else
+        {
+            xTimerStart(led_tm, 0);
+        }
     }
 }

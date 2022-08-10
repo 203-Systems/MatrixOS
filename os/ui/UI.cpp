@@ -68,7 +68,7 @@ void UI::GetKey()
 
 void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
 {
-    MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo->state);
+    // MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo->state);
     if (keyID == FUNCTION_KEY)
     {
         if (!disableExit && keyInfo->state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
@@ -89,7 +89,7 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo)
     Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
     if (xy)
     {
-        MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
+        // MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
         bool hasAction = false;
         for (auto const &uiComponentPair : uiComponentMap)
         {
@@ -167,7 +167,7 @@ void UI::UIEnd()
         MatrixOS::LED::Fill(0);
     }
 
-    MatrixOS::LED::Update();
+    // MatrixOS::LED::Update();
 
     // Free up heap
     vector<UIComponent*> deletedComponents; //Pervent pointer is deleted twice
