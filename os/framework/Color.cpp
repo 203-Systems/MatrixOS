@@ -58,24 +58,6 @@ Color Color::ToLowBrightness(bool cancel, uint8_t scale)
 	return Color(R, G, B, W);
 }
 
-// uint32_t Color::RGB(uint8_t brightness)
-// {
-// 	if(brightness != 255)
-// 		return (led_gamma[scale8_video(R, brightness)] << 16) | 
-// 			   (led_gamma[scale8_video(G, brightness)] << 8) | 
-// 			    led_gamma[scale8_video(B, brightness)];
-// 	return (led_gamma[R] << 16) | (led_gamma[G] << 8) | led_gamma[B];
-// }
-
-// uint32_t Color::GRB(uint8_t brightness)
-// {
-// 	if(brightness != 255)
-// 		return (led_gamma[scale8_video(G, brightness)] << 16) | 
-// 			   (led_gamma[scale8_video(R, brightness)] << 8) | 
-// 			    led_gamma[scale8_video(B, brightness)];
-// 	return (led_gamma[G] << 16) | (led_gamma[R] << 8) | led_gamma[B];
-// }
-
 uint8_t Color::scale8(uint8_t i, uint8_t scale)
 {
 	return ((uint16_t)i * (uint16_t)scale) >> 8;

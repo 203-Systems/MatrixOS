@@ -77,7 +77,7 @@ namespace MatrixOS::UIInterface
                             {
                                 for (uint8_t y = 0; y < 8; y++)
                                 {
-                                    MatrixOS::LED::SetColor(Point(x, y), buffer[x][y] ? color : 0);
+                                    MatrixOS::LED::SetColor(Point(x, y), buffer[x][y] ? color : Color(0));
                                 }
                             }
                             MatrixOS::LED::Update();
