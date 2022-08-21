@@ -155,7 +155,7 @@ namespace MatrixOS::SYS
         // ESP_LOGI("System".c_str(), "Next Brightness");
         MatrixOS::Logging::LogDebug("System", "Next Brightness");
         // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
-        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", UserVar::brightness);
+        MatrixOS::Logging::LogDebug("System", "Current Brightness %d", UserVar::brightness.value);
         for (uint8_t new_brightness: Device::brightness_level)
         {
             // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
