@@ -110,7 +110,6 @@ namespace MatrixOS::LED
         }
         frameBuffers.push_back(frameBuffer);
         Fill(0);
-        // needUpdate = true; //Not gonna update till next drawing
         MatrixOS::Logging::LogDebug("LED Layer", "Layer Created - %d", CurrentLayer());
         return CurrentLayer();
     }
@@ -124,13 +123,13 @@ namespace MatrixOS::LED
             frameBuffers.pop_back();
             MatrixOS::Logging::LogDebug("LED Layer", "Layer Destoried - %d", CurrentLayer());
             // PauseUpdate(false);
-            needUpdate = true;
+            Update();
             return true;
         }
         else
         {
             Fill(0);
-            needUpdate = true;
+            Update();
             MatrixOS::Logging::LogDebug("LED Layer", "Already at layer 0, can not delete layer");
             return false;
         }

@@ -163,7 +163,7 @@ namespace Device::KeyPad
         {
             for(uint8_t x = 0; x < Device::x_size; x ++)
             {
-                gpio_set_level(keypad_write_pins[x], 1);
+                gpio_set_level(keypad_write_pins[x], 1); //Just more stable to turn off the pin and turn back on for each read
                 if(!FSR) //Non FSR
                 {
                     read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
