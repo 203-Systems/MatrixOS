@@ -24,7 +24,7 @@ class UI4pxNumber : public UIComponent
 
     virtual Dimension GetSize() {return Dimension(digits * 3 + (digits - 1) * (digits > 0)  * spacing, 4);}
     virtual Color GetColor() {return color;};
-    virtual Color GetAlternativeColor() {return alternative_color;};
+    virtual Color GetAlternativeColor() {return alternative_color ? alternative_color : color;};
 
     void render4pxNumber(Point origin, Color color, uint8_t value)
     {
