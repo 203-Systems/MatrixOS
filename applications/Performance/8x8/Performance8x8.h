@@ -7,6 +7,8 @@
 
 #include "UINotePad.h"
 
+#include "applications/BrightnessControl/BrightnessControl.h"
+
 #define APPLICATION_NAME "Performance Mode"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFF0000)

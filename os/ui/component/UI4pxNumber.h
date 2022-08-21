@@ -28,7 +28,7 @@ class UI4pxNumber : public UIComponent
 
     void render4pxNumber(Point origin, Color color, uint8_t value)
     {
-      MatrixOS::Logging::LogDebug("4PX", "Num: %d, render at %d-%d", value, origin.x, origin.y);
+      // MatrixOS::Logging::LogDebug("4PX", "Num: %d, render at %d-%d", value, origin.x, origin.y);
       if(value < 10 /*&& value >= 0*/)
       {
         for(int8_t x = 0; x < 3; x++)
@@ -44,7 +44,7 @@ class UI4pxNumber : public UIComponent
     virtual bool Render(Point origin) {
       uint8_t sig_figure = int(log10(*value) + 1);
       Point render_origin = origin;
-      MatrixOS::Logging::LogDebug("4PX", "Render %d, sigfig %d", *value, sig_figure);
+      // MatrixOS::Logging::LogDebug("4PX", "Render %d, sigfig %d", *value, sig_figure);
       for(int8_t digit = digits - 1; digit >= 0; digit--)
       {
         if(digit < sig_figure)

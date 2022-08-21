@@ -1,4 +1,5 @@
 #include "Setting.h"
+#include "applications/BrightnessControl/BrightnessControl.h"
 
 void Setting::Setup()
 {   
@@ -10,7 +11,7 @@ void Setting::Setup()
 
 
     //Brightness Control
-    AddUIComponent(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}), origin);
+    AddUIComponent(new UIButtonLarge("UIButtonLarge", Color(0xFFFFFF), Dimension(2,2), []() -> void {MatrixOS::SYS::NextBrightness();}, [&]() -> void {BrightnessControl().Start();}), origin);
 
     //Rotation control and canvas
     AddUIComponent(new UIButtonLarge("This does nothing", Color(0x00FF00), Dimension(2,1), []() -> void {}), origin + Point(0, -1));

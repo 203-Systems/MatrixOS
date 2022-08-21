@@ -200,7 +200,7 @@ void Performance::ActionMenu()
 
     UINotePad* notePad = new UINotePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap]);
 
-    actionMenu.AddUIComponent(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}), Point(3, 3));
+    actionMenu.AddUIComponent(new UIButtonLarge("Brightness", Color(0xFFFFFF), Dimension(2,2), [&]() -> void {MatrixOS::SYS::NextBrightness();}, [&]() -> void {BrightnessControl().Start();}), Point(3, 3));
     
     //Rotation control and canvas
     actionMenu.AddUIComponent(new UIButtonLarge("Clear Canvas", Color(0x00FF00), Dimension(2,1), [&]() -> void {MatrixOS::LED::Fill(0, canvasLedLayer);}), Point(3, 2));
