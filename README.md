@@ -44,7 +44,7 @@ Any advice for common problems or issues, please post it in the GitHub issues.
 This project is licensed under the MIT License - see the LICENSE.md file for details
 
 ## Acknowledgments
-This project has used following projects:
+This project has used the following projects:
 
 [FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) - RTOS kernel 
 
