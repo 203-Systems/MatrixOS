@@ -54,8 +54,6 @@ namespace Device
     {
         void Init();
 
-        inline KeyInfo fnState;
-
         void InitKeyPad();
         void InitTouchBar();
 

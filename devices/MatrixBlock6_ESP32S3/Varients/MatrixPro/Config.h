@@ -49,9 +49,29 @@ namespace Device
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
-        inline Fract16 low_threshold = 1024;
-        inline Fract16 high_threshold = 65535;
+        inline KeyConfig fn_config = 
+        {
+            .FSR = false,
+            .low_threshold = 0,
+            .high_threshold = 65535,
+        };
 
+        inline KeyConfig keypad_config = 
+        {
+            .FSR = true,
+            .low_threshold = 0,
+            .high_threshold = 65535,
+        };
+
+        inline KeyConfig touch_config = 
+        {
+            .FSR = false,
+            .low_threshold = 0,
+            .high_threshold = 65535,
+        };
+
+        
+        #define DEBOUNCE_THRESHOLD 0
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
         inline adc1_channel_t keypad_read_adc_channel[8];
@@ -60,6 +80,7 @@ namespace Device
         inline gpio_num_t touchClock_Pin;
         inline uint8_t touchbar_map[touchbar_size]; //Touch number as index and touch location as value (Left touch down and then right touch down)
 
+        inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];

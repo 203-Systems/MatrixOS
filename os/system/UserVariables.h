@@ -13,5 +13,5 @@ namespace MatrixOS::UserVar
 
     UserVar(rotation, EDirection, TOP);
     UserVar(brightness, uint8_t, 16);
-    UserVar(velocity_sensitive_threshold, Fract16, 0);
+    UserVar(velocity_sensitive, bool, true);
 }

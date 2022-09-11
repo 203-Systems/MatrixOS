@@ -69,6 +69,15 @@ namespace Device::KeyPad
             gpio_set_level(keypad_write_pins[x], 0);
         }
 
+        fnState.setConfig(&fn_config);
+
+        for(uint8_t x = 0; x < x_size; x++)
+        {
+            for(uint8_t y = 0; y < y_size; y++)
+            {
+                keypadState[x][y].setConfig(&keypad_config);
+            }
+        }
     }
 
     uint16_t* Scan()

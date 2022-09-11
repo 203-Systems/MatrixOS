@@ -21,11 +21,16 @@ namespace Device::KeyPad
         clock_io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
         clock_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
 	    gpio_config(&clock_io_conf);
+
+        for(uint8_t i = 0; i < touchbar_size; i++)
+        {
+            touchbarState[i].setConfig(&touch_config);
+        }
     }
 
     void TouchBarScan()
     {
-        for (uint8_t i = 0; i < 16; i++)
+        for (uint8_t i = 0; i < touchbar_size; i++)
         {
             gpio_set_level(touchClock_Pin, 1);
 

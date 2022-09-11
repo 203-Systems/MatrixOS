@@ -17,7 +17,7 @@ namespace MatrixOS::SYS
 
 namespace MatrixOS::UserVar
 {
-    extern SavedVariable<Fract16> velocity_sensitive_threshold;
+    extern SavedVariable<bool> velocity_sensitive;
 }
 
 namespace MatrixOS::Logging
@@ -36,6 +36,12 @@ namespace Device::KeyPad
     extern Fract16 high_threshold;
 }
 
+struct KeyConfig {
+    bool FSR;
+    Fract16 low_threshold;
+    Fract16 high_threshold;
+};
+
 enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
                 /*Event Keys*/ PRESSED, RELEASED, HOLD, AFTERTOUCH,
                 /*Special*/ DEBUNCING = 253u, CLEARED = 254u,
@@ -44,20 +50,23 @@ enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED,
 
 
 struct KeyInfo {
-    KeyInfo() {}
-    KeyInfo(Fract16 velocity) {this->velocity = velocity;}
-
+    KeyConfig* config = nullptr;
     KeyStates state = IDLE;
     uint32_t lastEventTime = 0; //PRESSED and RELEASED event only
     Fract16 velocity = 0;
     bool hold = false;
-    
-    // bool hold(uint32_t threshold = hold_threshold)
-    // {   
-    //     if
-    //     return holdTime() > threshold; 
-    // }
-    
+
+    KeyInfo(){}
+
+    KeyInfo(KeyConfig* config) {
+        this->config = config;
+    }
+
+    void setConfig(KeyConfig* config)
+    {
+        this->config = config;
+    }
+
     uint32_t holdTime(void)
     {
         if(state == IDLE)
@@ -89,9 +98,9 @@ struct KeyInfo {
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
         // Fract16 source = velocity;
-        if(MatrixOS::UserVar::velocity_sensitive_threshold.Get()) //FSR disabled
+        if(MatrixOS::UserVar::velocity_sensitive.Get()) //FSR disabled
         {   
-            uint16_t threshold = MAX(MatrixOS::UserVar::velocity_sensitive_threshold.Get(), Device::KeyPad::low_threshold);
+            uint16_t threshold = (uint16_t)config->low_threshold;
             if(velocity < threshold)
             {
                 velocity = 0;
@@ -103,18 +112,18 @@ struct KeyInfo {
         }
         else
         {
-            if(velocity < Device::KeyPad::low_threshold)
+            if(velocity < config->low_threshold)
             {
                 velocity = 0;
             }
-            else if(velocity >= Device::KeyPad::high_threshold)
+            else if(velocity >= config->high_threshold)
             {
                 velocity = UINT16_MAX;
                 // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
             }
             else
             {
-                velocity = (float)((uint16_t)velocity - (uint16_t)Device::KeyPad::low_threshold) / ((uint16_t)Device::KeyPad::high_threshold - (uint16_t)Device::KeyPad::low_threshold) * UINT16_MAX;
+                velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold);
                 // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
             }
         }
@@ -123,7 +132,8 @@ struct KeyInfo {
 
     bool update(Fract16 velocity, bool applyCurve = true)
     {   
-        if(applyCurve && Device::KeyPad::FSR)
+        if(config == nullptr)
+        if(applyCurve && config->FSR)
         {
             velocity = applyVelocityCurve(velocity);
         }

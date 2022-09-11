@@ -29,9 +29,9 @@ void Setting::Setup()
     // //Velocity Sensitive
     AddUIComponent(new UIButtonDimmable("Velocity Sensitive", 
         Color(0xFFFFFF),
-        []() -> bool {return MatrixOS::UserVar::velocity_sensitive_threshold.Get() == 0;}, //TODO Color Class Scale Brightness
+        []() -> bool {return MatrixOS::UserVar::velocity_sensitive.Get();}, //TODO Color Class Scale Brightness
         []() -> void {
-            MatrixOS::UserVar::velocity_sensitive_threshold = MatrixOS::UserVar::velocity_sensitive_threshold.Get() ? Fract16(0) : Device::KeyPad::low_threshold; //TODO, allow user change threshold?
+            MatrixOS::UserVar::velocity_sensitive = !MatrixOS::UserVar::velocity_sensitive.Get(); //TODO, allow user change threshold?
             }), 
         Point(7, 0));
 
