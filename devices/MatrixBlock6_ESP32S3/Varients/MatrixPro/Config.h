@@ -54,6 +54,7 @@ namespace Device
             .FSR = false,
             .low_threshold = 0,
             .high_threshold = 65535,
+            .debounce_threshold = 0,
         };
 
         inline KeyConfig keypad_config = 
@@ -61,6 +62,7 @@ namespace Device
             .FSR = true,
             .low_threshold = 0,
             .high_threshold = 65535,
+            .debounce_threshold = 0,
         };
 
         inline KeyConfig touch_config = 
@@ -68,6 +70,7 @@ namespace Device
             .FSR = false,
             .low_threshold = 0,
             .high_threshold = 65535,
+            .debounce_threshold = 0,
         };
 
         

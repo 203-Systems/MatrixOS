@@ -22,13 +22,6 @@
 
 #define MATRIXOS_FLASHVERSION 0 //Each Flash data strcture change will cause this to increase 
 
-//KeyPad
-#ifndef DEBOUNCE_THRESHOLD
-inline uint16_t debounce_threshold = 10;
-#else
-inline uint16_t debounce_threshold = DEBOUNCE_THRESHOLD;
-#endif
-
 inline uint16_t hold_threshold = 400;
 
 // enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
