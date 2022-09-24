@@ -62,8 +62,10 @@ Point Performance::NoteToXY(uint8_t note)
             break;
         }
         case 1:
-        {
-
+        {   
+            int8_t x = (note % 10) - 1;
+            int8_t y = 8 - ((note / 10));
+            return Point(x, y);
         }
     }
     return Point::Invalid();
@@ -74,7 +76,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
     // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
     Point xy = NoteToXY(note);
 
-    if(compatibilityMode && channel == 6)
+    if(compatibilityMode)
     {
         channel = 1; //So it will use legacy palette
     }
