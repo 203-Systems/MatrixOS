@@ -1,14 +1,5 @@
 #include "Device.h"
-
-namespace MatrixOS::SYS
-{
-    void ExecuteAPP(string author, string app_name);
-}
-
-namespace MatrixOS::UIInterface
-{
-void TextScroll(string ascii, Color color, uint16_t speed = 10, bool loop = false);
-}
+#include "MatrixOS.h"
 
 namespace Device
 {
@@ -17,9 +8,10 @@ namespace Device
         // esp_timer_early_init();
         LoadDeviceInfo();
         USB::Init();
+        NVS::Init();
         LED::Init();
         KeyPad::Init();
-        NVS::Init();
+        KeyPad::LoadCustomSettings();
 
         BLEMIDI::Init(name);
         if(bluetooth)
@@ -56,6 +48,21 @@ namespace Device
         if(KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->velocity)
         {
             MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
+        }
+        else if(KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->velocity)
+        {
+            MatrixOS::UserVar::brightness.Set(Device::brightness_level[0]);
+        }
+        else if(KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->velocity)
+        {
+            MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF00FF));
+            MatrixOS::LED::SetColor(Point(5, 2), Color(0xFF00FF));
+            MatrixOS::LED::SetColor(Point(2, 5), Color(0xFF00FF));
+            MatrixOS::LED::SetColor(Point(5, 5), Color(0xFF00FF));
+            MatrixOS::LED::Update();
+            MatrixOS::SYS::DelayMs(1500);
+            Device::NVS::Clear();
+            MatrixOS::SYS::Reboot();
         }
     }
 
