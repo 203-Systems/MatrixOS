@@ -66,11 +66,6 @@ namespace Device
         bool isListFull();
     }
     
-    namespace TouchBar
-    {
-        void Init();
-    }
-    
     namespace NVS
     {
         void Init();

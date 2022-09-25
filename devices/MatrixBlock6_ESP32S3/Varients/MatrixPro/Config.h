@@ -54,15 +54,15 @@ namespace Device
             .FSR = false,
             .low_threshold = 0,
             .high_threshold = 65535,
-            .debounce_threshold = 0,
+            .debounce = 0,
         };
-
+    
         inline KeyConfig keypad_config = 
         {
             .FSR = true,
-            .low_threshold = 0,
+            .low_threshold = 1024,
             .high_threshold = 65535,
-            .debounce_threshold = 0,
+            .debounce = 5,
         };
 
         inline KeyConfig touch_config = 
@@ -70,11 +70,9 @@ namespace Device
             .FSR = false,
             .low_threshold = 0,
             .high_threshold = 65535,
-            .debounce_threshold = 0,
+            .debounce = 0,
         };
 
-        
-        #define DEBOUNCE_THRESHOLD 0
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
         inline adc1_channel_t keypad_read_adc_channel[8];
@@ -87,6 +85,27 @@ namespace Device
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[touchbar_size];
         inline uint16_t changeList[MULTIPRESS + 1];
+
+        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
+        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
+        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
+        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
+
+        inline void LoadCustomSettings()
+        {
+            if(keypad_custom_setting)
+            {
+                keypad_config.low_threshold = keypad_low_threshold;
+                keypad_config.high_threshold = keypad_high_threshold;
+                keypad_config.debounce = keypad_debounce;
+            }
+            else
+            {
+                keypad_low_threshold = keypad_config.low_threshold;
+                keypad_high_threshold = keypad_config.high_threshold;
+                keypad_debounce = keypad_config.debounce;
+            }
+        }
     }
 
     //LED
@@ -107,4 +126,5 @@ namespace Device
     //Load Device config
     void LoadV100();
     void LoadV110();
+    void LoadKeypadSetting();
 }

@@ -40,7 +40,7 @@ struct KeyConfig {
     bool FSR;
     Fract16 low_threshold;
     Fract16 high_threshold;
-    uint16_t debounce_threshold;
+    uint16_t debounce;
 };
 
 enum KeyStates : uint8_t {/*Status Keys*/ IDLE, ACTIVATED, 
@@ -181,7 +181,7 @@ struct KeyInfo {
                 lastEventTime = MatrixOS::SYS::Millis();
                 return false;
             }
-            else if(MatrixOS::SYS::Millis() - lastEventTime > config->debounce_threshold)
+            else if(MatrixOS::SYS::Millis() - lastEventTime > config->debounce)
             {
                 state = PRESSED;
                 lastEventTime = MatrixOS::SYS::Millis();
@@ -190,14 +190,14 @@ struct KeyInfo {
             return false;
         }
 
-        if( state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce_threshold) //May result in key released early
+        if( state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce) //May result in key released early
         {
             state = RELEASED;
             lastEventTime = MatrixOS::SYS::Millis();
             return false;
         }
 
-        if(state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce_threshold) //May result in key released early
+        if(state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce) //May result in key released early
         {
             state = RELEASED;
             lastEventTime = MatrixOS::SYS::Millis();
