@@ -30,6 +30,8 @@ class FactoryMenu : public Application
     void KeyPadTester();
     void TouchBarTester();
 
+    void KeyPadSettings();
+
     void EFuseBurner();
 };
 

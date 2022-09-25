@@ -10,6 +10,7 @@ void FactoryMenu::Setup()
                                     Color(0xFFFFFF),
                                     [&]() -> void {LEDTester();}), 
                                     Point(0, 0));
+                                    
     factoryMenu.AddUIComponent(new UIButton("Keypad Test", 
                                     Color(0xFFFFFF),
                                     [&]() -> void {KeyPadTester();}), 
@@ -18,6 +19,11 @@ void FactoryMenu::Setup()
                                     Color(0xFFFFFF),
                                     [&]() -> void {TouchBarTester();}), 
                                     Point(2, 0));
+
+    factoryMenu.AddUIComponent(new UIButton("Keypad Settings", 
+                                Color(0x00FFFF),
+                                [&]() -> void {KeyPadSettings();}), 
+                                Point(7, 0));
 
     factoryMenu.AddUIComponent(new UIButtonWithColorFunc("Burn EFuse", 
                                         [&]() -> Color{return esp_efuse_block_is_empty(EFUSE_BLK3) ? Color(0xFF0000) : Color(0x00FF00);}, 
