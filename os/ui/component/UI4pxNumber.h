@@ -13,7 +13,7 @@ class UI4pxNumber : public UIComponent
     int32_t* value;
     uint8_t spacing;
 
-    UI4pxNumber(Color color, uint8_t digits, int32_t* value, Color alternative_color = Color(0), uint8_t spacing = 0)
+    UI4pxNumber(Color color, uint8_t digits, int32_t* value, Color alternative_color = Color(0xFFFFFF), uint8_t spacing = 0)
     {
         this->color = color;
         this->digits = digits;
@@ -47,7 +47,7 @@ class UI4pxNumber : public UIComponent
       // MatrixOS::Logging::LogDebug("4PX", "Render %d, sigfig %d", *value, sig_figure);
       for(int8_t digit = digits - 1; digit >= 0; digit--)
       {
-        if(digit < sig_figure)
+        if(digit < sig_figure || digit == 0)
         {
           render4pxNumber(render_origin, digit % 2 ? GetAlternativeColor() : GetColor(), (int)(*value / std::pow(10, digit)) % 10);
         }
