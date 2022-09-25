@@ -25,6 +25,9 @@ void Setting::Setup()
     AddUIComponent(new UIButton("Matrix OS Version", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));}), Point(1, Device::y_size - 1));
     AddUIComponent(new UIButton("Device Name", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll(Device::name, Color(0x00FFFF));}), Point(2, Device::y_size - 1));
     AddUIComponent(new UIButton("Device Serial", Color(0x00FF30), []() -> void {MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF));}), Point(3, Device::y_size - 1));
+    
+    
+    AddUIComponent(new UIButton("Device ID", Color(0x00FFFF), []() -> void {MatrixOS::UserVar::device_id = MatrixOS::UIInterface::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Keypad High Threshold", 0, 255);}), Point(Device::x_size - 1, Device::y_size - 1));
 
     // //Velocity Sensitive
     AddUIComponent(new UIButtonDimmable("Velocity Sensitive", 
