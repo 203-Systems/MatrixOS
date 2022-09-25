@@ -54,7 +54,7 @@ namespace Device::NVS
 
     void Clear()
     {
-        nvs_flash_erase_partition("matrix_os");
+        nvs_erase_all(nvs_handle);
         nvs_commit(nvs_handle);
     }
 }
