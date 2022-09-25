@@ -197,6 +197,6 @@ namespace MatrixOS
   namespace UIInterface
   {
     void TextScroll(string ascii, Color color, uint16_t speed = 10, bool loop = false);
-    uint8_t Input8bit(uint8_t currentNum, Color color);
+    int32_t NumberSelector8x8(int32_t value, Color color, string name, int32_t lower_limit, int32_t upper_limit); 
   }
 }
