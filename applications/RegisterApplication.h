@@ -44,7 +44,6 @@ inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS) (void)
   if(applications[index] == &APPLICATION_INFO(APPLICATION_CLASS))
     return;
   applications[index] = &APPLICATION_INFO(APPLICATION_CLASS);
-  // ESP_LOGI("APP REG", APPLICATION_NAME " Registered at %d", index);
 }
 
 #pragma push_macro( "APPLICATION_INDEX" )

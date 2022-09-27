@@ -1,20 +1,27 @@
 #include "MatrixOS.h"
 #include "../data/font.h"
 
-    #define TEXT_SCROLL_SPACING 2
+#define TEXT_SCROLL_SPACING 2
 
 namespace MatrixOS::UIInterface
 {
+    //This function displays a given string on the LED screen in a given color, at a given scroll speed, optionally looping
     void TextScroll(string text, Color color, uint16_t speed, bool loop)
     {
+        //Log the text we're about to scroll
         MatrixOS::Logging::LogDebug("Text Scroll", "Printing %s", text.c_str());
+
+        //Create two timers - one for scrolling and one for scanning the keyboard
         Timer textScrollTimer;
         Timer keyscanTimer;
+
+        //Create a new layer on the LED screen
         MatrixOS::LED::CreateLayer();
 
+        //Create a buffer to store the state of each LED
         bool buffer[Device::x_size][Device::y_size]; // TODO Check Device Rotation
 
-        //Clear buffer
+        //Clear the buffer
         for (uint8_t x = 0; x < Device::x_size; x++)
         {
             for (uint8_t y = 0; y < Device::y_size; y++)
@@ -23,16 +30,20 @@ namespace MatrixOS::UIInterface
             }
         }
 
+        //Convert the scroll speed from frames per second to milliseconds per frame
         speed = 1000 / speed;
 
-        do //Main loop (if loop == true)
+        //Main loop (if loop == true)
+        do 
         {
-            for (uint8_t i = 0; i < text.length() + 1; i++) //iterate string
+            //Iterate through each character in the string
+            for (uint8_t i = 0; i < text.length() + 1; i++) 
             {
+                //Save the current character into a variable
                 char current_char;
                 if (i < text.length())
                 {
-                    current_char = text[i];
+                    current_char = text[I];
                 }
                 else
                 {
@@ -49,9 +60,10 @@ namespace MatrixOS::UIInterface
                     }
                     else // Regular text
                     {
-                        for (uint8_t current_char_progress = 0; current_char_progress < font8[current_char - 32][0] + TEXT_SCROLL_SPACING; current_char_progress++) //枚举字体的竖列
+                        //Iterate through each column in the character
+                        for (uint8_t current_char_progress = 0; current_char_progress < font8[current_char - 32][0] + TEXT_SCROLL_SPACING; current_char_progress++) 
                         {
-                            //Shift buffer to the left
+                            //Shift the buffer to the left
                             for (uint8_t x = 1; x < Device::x_size; x++)
                             {
                                 memcpy(buffer[x - 1], buffer[x], 8);
@@ -59,8 +71,10 @@ namespace MatrixOS::UIInterface
 
                             if (current_char_progress < font8[current_char - 32][0]) // Render Text colume
                             {
+                                //Iterate through each row in the character
                                 for (uint8_t y = 0; y < 8; y++)
                                 {
+                                    //Set the state of the LED at the end of the buffer to the corresponding bit in the character's column
                                     buffer[Device::x_size - 1][y] = bitRead(font8[current_char - 32][current_char_progress + 1], 7 - y);
                                 }
                             }
@@ -72,7 +86,7 @@ namespace MatrixOS::UIInterface
                                 }
                             }
 
-                            //Render to LED
+                            //Render the buffer to the LED screen
                             for (uint8_t x = 0; x < Device::x_size; x++)
                             {
                                 for (uint8_t y = 0; y < 8; y++)
@@ -82,7 +96,8 @@ namespace MatrixOS::UIInterface
                             }
                             MatrixOS::LED::Update();
 
-                            while (!textScrollTimer.Tick(speed)) //Waiting for next frame
+                            //Wait for the next frame
+                            while (!textScrollTimer.Tick(speed)) 
                             {
                                 // MatrixOS::KEYPAD::Scan(true);
                                 MatrixOS::KEYPAD::ClearList(); //Keypad will scan itself after list is cleared
