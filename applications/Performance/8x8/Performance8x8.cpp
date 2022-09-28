@@ -19,10 +19,11 @@ void Performance::Loop()
 
 void Performance::MidiEvent(MidiPacket midiPacket) 
 {
-    // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d", midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
+    // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d %d", midiPacket.status, midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
     switch(midiPacket.status)
     {
         case NoteOn:
+        case ControlChange:
             NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
             break;
         case NoteOff:
@@ -32,6 +33,7 @@ void Performance::MidiEvent(MidiPacket midiPacket)
             break;
     }
 }
+
 Point Performance::NoteToXY(uint8_t note)
 {
     switch(currentKeymap)
@@ -70,6 +72,47 @@ Point Performance::NoteToXY(uint8_t note)
     }
     return Point::Invalid();
 }
+
+// Returns -1 when no note
+int8_t Performance::XYToNote(Point xy)
+{
+    switch(currentKeymap)
+    {
+        case 0:
+        {
+            if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+            {
+                return keymap[currentKeymap][xy.y][xy.x];
+            }
+            else if(xy.y == -1 && xy.x >= 0 && xy.x < 8) //TouchBar Top Row
+            {
+                return touch_keymap[currentKeymap][0][xy.x];
+            }
+            else if(xy.x == 8 && xy.y >= 0 && xy.y < 8) //TouchBar Right Column
+            {
+                return touch_keymap[currentKeymap][1][xy.y];
+            }
+            else if(xy.y == 8 && xy.x >= 0 && xy.x < 8) //TouchBar Bottom Row
+            {
+                return touch_keymap[currentKeymap][2][xy.x];
+            }
+            else if(xy.x == -1 && xy.y >= 0 && xy.y < 8) //TouchBar Left Column
+            {
+                return touch_keymap[currentKeymap][3][xy.y];
+            }
+            else
+            {
+                return -1; //No suitable keymap
+            }
+        }
+        case 1:
+        {   
+            return (8 - xy.y) * 10 + (xy.x + 1);
+        }
+    }
+    return -1;
+}
+
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
@@ -124,30 +167,11 @@ void Performance::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo)
 void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo)
 {   
     // MatrixOS::Logging::LogDebug("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
-    uint8_t note = 0;
-    if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+    int8_t note = XYToNote(xy);
+
+    if(note == -1)
     {
-        note = keymap[currentKeymap][xy.y][xy.x];
-    }
-    else if(xy.y == -1 && xy.x >= 0 && xy.x < 8) //TouchBar Top Row
-    {
-        note = touch_keymap[currentKeymap][0][xy.x];
-    }
-    else if(xy.x == 8 && xy.y >= 0 && xy.y < 8) //TouchBar Right Column
-    {
-        note = touch_keymap[currentKeymap][1][xy.y];
-    }
-    else if(xy.y == 8 && xy.x >= 0 && xy.x < 8) //TouchBar Bottom Row
-    {
-        note = touch_keymap[currentKeymap][2][xy.x];
-    }
-    else if(xy.x == -1 && xy.y >= 0 && xy.y < 8) //TouchBar Left Column
-    {
-        note = touch_keymap[currentKeymap][3][xy.y];
-    }
-    else
-    {
-        return; //No suitable keymap
+        return;
     }
 
     if(keyInfo->state == PRESSED)

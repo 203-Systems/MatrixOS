@@ -43,7 +43,7 @@ namespace MatrixOS::UIInterface
                 char current_char;
                 if (i < text.length())
                 {
-                    current_char = text[I];
+                    current_char = text[i];
                 }
                 else
                 {

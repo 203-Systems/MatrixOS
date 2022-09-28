@@ -38,6 +38,7 @@ class Performance : public Application
     void Loop() override;
 
     Point NoteToXY(uint8_t note);
+    int8_t XYToNote(Point xy);
 
     void MidiEvent(MidiPacket midiPacket) override;
     void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);

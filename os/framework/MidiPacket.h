@@ -154,6 +154,7 @@ struct MidiPacket
             case NoteOn:
             case NoteOff:
             case AfterTouch:
+            case ControlChange: //To be honest this shouldn't be here but close enough
             case ProgramChange: //To be honest this shouldn't be here but close enough
                 return data[1];
             default:
