@@ -42,8 +42,6 @@ namespace MatrixOS
     
     void ExecuteAPP(string author, string app_name);
     void ExitAPP();
-    
-    // int Execute(uint32_t addr);
 
     void ErrorHandler(string error = NULL);
   }

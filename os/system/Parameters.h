@@ -2,15 +2,15 @@
 
 #include "framework/LogLevel.h"
 
-// #define MATRIXOS_BUILD_RELEASE
-#define MATRIXOS_BUILD_RELEASE_CANDIDATE
+#define MATRIXOS_BUILD_RELEASE
+// #define MATRIXOS_BUILD_RELEASE_CANDIDATE
 // #define MATRIXOS_BUILD_BETA
 // #define MATRIXOS_BUILD_NIGHTY
 // #define MATRIXOS_BUILD_INDEV
 
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 1
-#define MATRIXOS_PATCH_VER 2
+#define MATRIXOS_PATCH_VER 0
 
 #include "ReleaseConfig.h"
 
