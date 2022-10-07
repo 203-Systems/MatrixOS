@@ -99,7 +99,7 @@ struct KeyInfo {
     Fract16 applyVelocityCurve(Fract16 velocity)
     {
         // Fract16 source = velocity;
-        if(MatrixOS::UserVar::velocity_sensitive.Get()) //FSR disabled
+        if(MatrixOS::UserVar::velocity_sensitive.Get() == false) //FSR Disabled
         {   
             uint16_t threshold = (uint16_t)config->low_threshold;
             if(velocity < threshold)
