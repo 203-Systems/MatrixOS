@@ -52,8 +52,7 @@ class UINumberModifier: public UIComponent
             }
 
             *value = (int32_t)new_value;
-            return true;
         }
-        return false;
+        return true; //Prevent leak though to cause UI text scroll
     }
 };
