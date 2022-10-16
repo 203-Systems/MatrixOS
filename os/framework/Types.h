@@ -92,9 +92,20 @@ class Fract16
     operator int() {return value;}
 
     bool operator <(int value) {return this->value < value;}
+    bool operator <(Fract16 value) {return this->value < (uint16_t)value;}
+
     bool operator <=(int value) {return this->value <= value;}
+    bool operator <=(Fract16 value) {return this->value <= (uint16_t)value;}
+
     bool operator >(int value) {return this->value > value;}
+    bool operator >(Fract16 value) {return this->value > (uint16_t)value;}
+
     bool operator >=(int value) {return this->value >= value;}
+    bool operator >=(Fract16 value) {return this->value >= (uint16_t)value;}
 
     bool operator ==(int value) {return this->value == value;}
+    bool operator ==(Fract16 value) {return this->value == (uint16_t)value;}
+
+    bool operator !=(int value) {return this->value != value;}
+    bool operator !=(Fract16 value) {return this->value != (uint16_t)value;}
 };

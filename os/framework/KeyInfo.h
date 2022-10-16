@@ -134,6 +134,10 @@ struct KeyInfo {
     bool update(Fract16 velocity, bool applyCurve = true)
     {   
         if(config == nullptr)
+        {
+            return false;
+        }
+
         if(applyCurve && config->FSR)
         {
             velocity = applyVelocityCurve(velocity);
@@ -146,8 +150,13 @@ struct KeyInfo {
         }
 
         //Check aftertouch before previous velocity get overwritten
-        if(state == ACTIVATED && DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD)
+        if(state == ACTIVATED && (
+            DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD || //Change Must larger than info threshold Or ...
+            ((velocity != this->velocity) && (uint16_t)velocity == UINT16_MAX) //Value changed and max value is reached
+        ))
         {
+            //Update current velocity
+            this->velocity = velocity;
             state = AFTERTOUCH;
             return true;
         }
