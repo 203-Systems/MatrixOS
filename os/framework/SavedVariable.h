@@ -88,5 +88,30 @@ class SavedVariable
 
     bool operator = (T new_value) {return Set(new_value);}
 
+    bool operator == (T new_value) {return value == new_value;}
+    bool operator != (T new_value) {return value != new_value;}
+    bool operator > (T new_value) {return value == new_value;}
+    bool operator < (T new_value) {return value < new_value;}
+    bool operator >= (T new_value) {return value >= new_value;}
+    bool operator <= (T new_value) {return value <= new_value;}
+
+    T operator + (T operation_value) {return value + operation_value;}
+    T operator - (T operation_value) {return value - operation_value;}
+    T operator * (T operation_value) {return value * operation_value;}
+    T operator / (T operation_value) {return value / operation_value;}
+    T operator % (T operation_value) {return value % operation_value;}
+
+    T& operator += (T operation_value) {Set(value + operation_value); return *value;}
+    T& operator -= (T operation_value) {Set(value - operation_value); return *value;}
+    T& operator *= (T operation_value) {Set(value * operation_value); return *value;}
+    T& operator /= (T operation_value) {Set(value / operation_value); return *value;}
+    T& operator %= (T operation_value) {Set(value % operation_value); return *value;}
+
+    T& operator ++ () {Set(value + 1); return *value;};
+    T operator ++ (int) {T temp_value = value; Set(value + 1); return temp_value;};
+
+    T& operator -- () {Set(value + 1); return *value;};
+    T operator -- (int) {T temp_value = value; Set(value - 1); return temp_value;};
+
     operator T() {return Get();}
 };
