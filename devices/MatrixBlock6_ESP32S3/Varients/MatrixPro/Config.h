@@ -95,6 +95,10 @@ namespace Device
         {
             if(keypad_custom_setting)
             {
+                if(keypad_low_threshold == 0) //Can't be lower than 1
+                {
+                    keypad_low_threshold = 1;
+                }
                 keypad_config.low_threshold = keypad_low_threshold;
                 keypad_config.high_threshold = keypad_high_threshold;
                 keypad_config.debounce = keypad_debounce;
