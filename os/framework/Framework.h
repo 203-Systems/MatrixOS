@@ -6,7 +6,7 @@
 #include "Point.h"
 #include "Dimension.h"
 #include "Handler.h"
-#include "KeyInfo.h"
+#include "KeyEvent.h"
 #include "Timer.h"
 #include "MidiPacket.h"
 #include "Direction.h"

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "MatrixOS.h"
 #include <functional>
 

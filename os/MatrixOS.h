@@ -67,13 +67,9 @@ namespace MatrixOS
   namespace KEYPAD
   {
     noexpose void Init(void);
-
-    // extern void (*handler)(uint16_t);
-    // void SetHandler(void (*handler)(uint16_t));
-
-    uint16_t Scan(bool force = false); //Return # of changed key, will not rescan until Available() == 0. set force to true to clear list and force rescan
-    uint16_t Available();
-    uint16_t Get();
+    uint16_t Scan(); //Return # of changed key
+    bool NewEvent(KeyEvent* keyevent); //Adding keyevent, return true when queue is full
+    bool Get(KeyEvent* keyEvent_dest, uint16_t timeout_ms = 0);
     KeyInfo* GetKey(Point keyXY);
     KeyInfo* GetKey(uint16_t keyID);
     void Clear(); //Don't handle any keyEvent till their next Press event (So no Release, Hold, etc)
@@ -86,9 +82,9 @@ namespace MatrixOS
   namespace USB
   {
     noexpose void Init();
+
     bool Inited(void); //If USB Stack is initlized, not sure what it will be needed but I added it anyways
     bool Connected(void); //If USB is connected
-    // void Poll(); 
 
     namespace CDC
     {
@@ -111,7 +107,6 @@ namespace MatrixOS
   namespace MIDI
     {
       noexpose void Init(void);
-      // void Poll(void); //Not intented for app use. called from SystemTask()
 
       uint32_t Available();
       MidiPacket Get();
@@ -121,25 +116,6 @@ namespace MatrixOS
       noexpose MidiPacket DispatchUSBPacket(uint8_t packet[4]);
 
       void SendPacket(MidiPacket midiPacket);
-      // void SendNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
-      // void SendNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
-      // void SendAfterTouch(uint8_t channel, uint8_t note, uint8_t velocity);
-      // void SendControlChange(uint8_t channel, uint8_t controller, uint8_t value);
-      // void SendProgramChange(uint8_t channel, uint8_t program);
-      // void SendChannelPressure(uint8_t channel, uint8_t velocity);
-      // void SendPitchChange(uint8_t channel, uint16_t pitch);
-      // void SendSongPosition(uint16_t position);
-      // void SendSongSelect(uint8_t song);
-      // void SendTuneRequest(void);
-      // void SendSync(void);
-      // void SendStart(void);
-      // void SendContinue(void);
-      // void SendStop(void);
-      // void SendActiveSense(void);
-      // void SendReset(void);
-
-      // extern void (*handler)(MidiPacket);
-      // void SetHandler(void (*new_handler)(MidiPacket));
     }
 
   namespace Logging
@@ -151,6 +127,7 @@ namespace MatrixOS
     void LogDebug (string tag, string format, ...);
     void LogVerbose (string tag, string format, ...);
   }
+
 
   namespace NVS
   {

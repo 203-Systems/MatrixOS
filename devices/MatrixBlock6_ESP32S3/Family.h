@@ -57,13 +57,13 @@ namespace Device
         void InitKeyPad();
         void InitTouchBar();
 
-        void FNScan();
-        void KeyPadScan();
-        void TouchBarScan();
 
-        bool addToList(uint16_t keyID); //Return true when list is full. 
-        void clearList();
-        bool isListFull();
+        //If return true, meaning the scan in intrupted 
+        bool FNScan();
+        bool KeyPadScan();
+        bool TouchBarScan();
+
+        bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); //Passthough MatrixOS::KeyPad::NewEvent() result
     }
     
     namespace NVS

@@ -22,6 +22,8 @@
 
 #define MATRIXOS_FLASHVERSION 0 //Each Flash data strcture change will cause this to increase 
 
+#define KEYEVENT_QUEUE_SIZE 8
+
 inline uint16_t hold_threshold = 400;
 
 // enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};

@@ -1,5 +1,6 @@
 //Define Device Keypad Function
 #include "Device.h"
+#include "timers.h"
 
 #define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
 #define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
@@ -7,11 +8,19 @@
 namespace Device::KeyPad
 {
     esp_adc_cal_characteristics_t adc1_chars;
+    StaticTimer_t keypad_timer_def;
+    TimerHandle_t keypad_timer;  
 
     void Init()
     {
         InitKeyPad();
         InitTouchBar();
+    }
+
+    void Scan()
+    {
+        if(FNScan()) return;
+        if(KeyPadScan()) return;
     }
 
     void InitKeyPad()
@@ -78,17 +87,9 @@ namespace Device::KeyPad
                 keypadState[x][y].setConfig(&keypad_config);
             }
         }
-    }
 
-    uint16_t* Scan()
-    {
-        clearList();
-
-        if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
-        if(!isListFull()) KeyPadScan();
-        if(!isListFull() && touchbar_enable) TouchBarScan();
-
-        return changeList;
+        keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
+        xTimerStart(keypad_timer, 0);
     }
 
     void Clear()
@@ -108,13 +109,6 @@ namespace Device::KeyPad
             touchbarState[i].Clear();
         }
     }
-
-    // KeyInfo GetKey(Point keyXY)
-    // {
-    //     uint16_t keyID = XY2ID(keyXY);
-    //     return GetKey(keyID);
-        
-    // }
 
     KeyInfo* GetKey(uint16_t keyID)
     {
@@ -149,7 +143,7 @@ namespace Device::KeyPad
         return nullptr; //Return an empty KeyInfo
     }
 
-    void FNScan()
+    bool FNScan()
     {   
         Fract16 read = gpio_get_level(fn_pin) * UINT16_MAX;
         // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
@@ -159,12 +153,16 @@ namespace Device::KeyPad
         }
         if(fnState.update(read, false))
         {
-            addToList(0);
+            if(NotifyOS(0, &fnState))
+            {
+                return true;
+            }
         }
+        return false;
     }
 
     bool key1_read = false;
-    void KeyPadScan()
+    bool KeyPadScan()
     {
         // int64_t time =  esp_timer_get_time();
         Fract16 read = 0;
@@ -187,9 +185,9 @@ namespace Device::KeyPad
                 if(updated)
                 {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
-                    if(addToList(keyID))
+                    if(NotifyOS(keyID, &keypadState[x][y]))
                     {
-                        return; //List is full
+                        return true;
                     }
                 }
             }
@@ -197,25 +195,15 @@ namespace Device::KeyPad
         }
         // int64_t time_taken =  esp_timer_get_time() - time;
         // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
+        return false;
     }
 
-    bool addToList(uint16_t keyID)
+    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo)
     {   
-        if(isListFull()) return true; //Prevent overwrite
-
-        changeList[0]++;
-        changeList[changeList[0]] = keyID;
-        return isListFull();
-    }
-
-    void clearList()
-    {
-        changeList[0] = 0;
-    }
-
-    bool isListFull()
-    {
-        return changeList[0] == MULTIPRESS;
+        KeyEvent keyEvent;
+        keyEvent.id = keyID;
+        keyEvent.info = *keyInfo; 
+        return MatrixOS::KEYPAD::NewEvent(&keyEvent);
     }
 
     uint16_t XY2ID(Point xy)

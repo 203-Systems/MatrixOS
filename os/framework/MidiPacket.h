@@ -22,7 +22,7 @@ enum EMidiStatus : uint8_t {None = 0,
                            Reset = MIDIv1_RESET,
                            SysexData = MIDIv1_SYSEX_START,
                            SysexEnd = MIDIv1_SYSEX_END
-                            };
+                        };
 
 
 struct MidiPacket

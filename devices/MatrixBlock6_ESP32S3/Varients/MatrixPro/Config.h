@@ -38,6 +38,7 @@ namespace Device
 
     const uint16_t numsOfLED = 64 + 32;
     inline uint16_t keypad_scanrate = 120;
+    inline uint16_t touchbar_scanrate = 60;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 16; //Not required by the API, private use.
@@ -84,7 +85,6 @@ namespace Device
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[touchbar_size];
-        inline uint16_t changeList[MULTIPRESS + 1];
 
         inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
         inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);

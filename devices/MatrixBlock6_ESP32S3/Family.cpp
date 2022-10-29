@@ -2,7 +2,12 @@
 #include "MatrixOS.h"
 
 namespace Device
-{
+{  
+    namespace KeyPad
+    {
+        void Scan();
+    }
+
     void DeviceInit()
     {
         // esp_timer_early_init();
@@ -37,7 +42,7 @@ namespace Device
 
     void PostBootTask()
     {   
-        KeyPad::Scan();
+        Device::KeyPad::Scan();
         #ifdef FACTORY_CONFIG
         if(esp_efuse_block_is_empty(EFUSE_BLK3))
         {

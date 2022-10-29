@@ -233,3 +233,9 @@ struct KeyInfo {
         }
     }
 };
+
+struct KeyEvent
+{
+    uint16_t id;
+    KeyInfo info;
+};

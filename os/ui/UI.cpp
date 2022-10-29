@@ -53,16 +53,15 @@ void UI::RenderUI()
 
 void UI::GetKey()
 {
-    while (MatrixOS::KEYPAD::Available())
-    {
-        uint16_t keyID = MatrixOS::KEYPAD::Get();
-        KeyInfo* keyInfo = MatrixOS::KEYPAD::GetKey(keyID);
+    struct KeyEvent keyEvent;
+    while (MatrixOS::KEYPAD::Get(&keyEvent))
+    {   
         // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
-        bool action = KeyEvent(keyID, keyInfo);
+        bool action = KeyEvent(keyEvent.id, &keyEvent.info);
         if (!action)
-            UIKeyEvent(keyID, keyInfo);
+            UIKeyEvent(keyEvent.id, &keyEvent.info);
         else
-            MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", keyID);
+            MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", keyEvent.id);
     }
 }
 

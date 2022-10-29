@@ -1,3 +1,4 @@
+#include "MatrixOS.h"
 #include "Application.h"
 
 void Application::Start(void* args)
@@ -25,10 +26,10 @@ void Application::LoopTask()
 
 void Application::GetKey()
 {
-    while(MatrixOS::KEYPAD::Available())
+    struct KeyEvent keyEvent;
+    while (MatrixOS::KEYPAD::Get(&keyEvent))
     {   
-        uint16_t keyID = MatrixOS::KEYPAD::Get();
-        KeyEvent(keyID, MatrixOS::KEYPAD::GetKey(keyID));
+        KeyEvent(keyEvent.id, &keyEvent.info);
     }
 }
 

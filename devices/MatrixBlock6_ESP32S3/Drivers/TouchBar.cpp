@@ -1,7 +1,16 @@
 #include "Device.h"
+#include "timers.h"
 
 namespace Device::KeyPad
 {
+    StaticTimer_t touchbar_timer_def;
+    TimerHandle_t touchbar_timer;  
+
+    void TouchBarTimerHandler() //This exists because return type of TouchBarScan is bool
+    {
+        TouchBarScan();
+    }
+
     void InitTouchBar()
     {
         //Set Touch Data Pin
@@ -26,9 +35,12 @@ namespace Device::KeyPad
         {
             touchbarState[i].setConfig(&touch_config);
         }
+
+        touchbar_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::touchbar_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(TouchBarTimerHandler), &touchbar_timer_def);
+        xTimerStart(touchbar_timer, 0);
     }
 
-    void TouchBarScan()
+    bool TouchBarScan()
     {
         for (uint8_t i = 0; i < touchbar_size; i++)
         {
@@ -43,11 +55,12 @@ namespace Device::KeyPad
             if(updated)
             {
                 uint16_t keyID = (2 << 12) + key_id;
-                if(addToList(keyID))
+                if(NotifyOS(keyID, &touchbarState[key_id]))
                 {
-                    return; //List is full
+                    return true;
                 }
             }
         }
+        return false;
     }
 }

@@ -3,7 +3,6 @@
 #include "framework/Framework.h"
 #include "tusb.h"
 #include "Config.h"
-// #include "UI/UI.h"
 
 namespace Device
 {  
@@ -36,10 +35,8 @@ namespace Device
 
     namespace KeyPad
     {
-        uint16_t* Scan(); //Returns an array, first element will be # of key changed, following elements are keyID
-        // KeyInfo* GetKey(Point keyXY);
         KeyInfo* GetKey(uint16_t keyID);
-        void Clear(); //Since only Device layer aware the keyInfo buffer, the function's job is to run Clear() on all keyInfo
+        void Clear(); //Since only Device layer awares the keyInfo buffer, the function's job is to run Clear() on all keyInfo
         uint16_t XY2ID(Point xy); //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY
         Point ID2XY(uint16_t keyID); //Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for given ID;
     }   
@@ -81,16 +78,26 @@ namespace Device
 
 }
 
-namespace MatrixOS::Logging
-{
-    void LogError (string tag, string format, ...);
-    void LogWarning (string tag, string format, ...);
-    void LogInfo (string tag, string format, ...);
-    void LogDebug (string tag, string format, ...);
-    void LogVerbose (string tag, string format, ...);
-}
 
-namespace MatrixOS::SYS
+//Matrix OS APIs available for Device Layer
+namespace MatrixOS
 {
-    void ErrorHandler(string error);
+    namespace Logging
+    {
+        void LogError (string tag, string format, ...);
+        void LogWarning (string tag, string format, ...);
+        void LogInfo (string tag, string format, ...);
+        void LogDebug (string tag, string format, ...);
+        void LogVerbose (string tag, string format, ...);
+    }
+
+    namespace SYS
+    {
+        void ErrorHandler(string error);
+    }
+
+    namespace KEYPAD
+    {
+        bool NewEvent(KeyEvent* keyevent);
+    }
 }

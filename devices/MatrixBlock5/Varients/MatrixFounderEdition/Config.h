@@ -41,7 +41,6 @@ namespace Device
         inline KeyInfo fnState;
         inline KeyInfo keypadState[x_size][y_size];
         inline KeyInfo touchbarState[x_size];
-        inline uint16_t changeList[MULTIPRESS + 1];
 
         void FNScan();
         void KeyPadScan();

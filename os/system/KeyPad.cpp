@@ -4,85 +4,26 @@
 
 namespace MatrixOS::KEYPAD
 {   
-    uint16_t read = 0;
-    uint16_t changed = 0;
-    uint16_t* changelist;
-
-    StaticTimer_t keypad_tmdef;
-    TimerHandle_t keypad_tm;
-
-    void KeypadTimerHandler()
-    {
-        Scan();
-    }
+    QueueHandle_t keyevent_queue; 
 
     void Init()
-    {
-        keypad_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(KeypadTimerHandler), &keypad_tmdef);
-        xTimerStart(keypad_tm, 0);
-    }
-
-    uint16_t Scan(bool force)
     {   
-        if(force)
-        {
-            ClearList();
-        }
-        else if(Available()) //Not all cache has been read yet
-        {
-            return Available();
-        }
-
-        // MatrixOS::Logging::LogDebug("Keypad", "Scan");
-        if (changelist)
-        {
-            vPortFree(changelist);
-            changelist = NULL;
-        }
-            
-        uint16_t* device_change_list = Device::KeyPad::Scan();
-        changed = device_change_list[0];
-        if(changed > 0)
-        {
-            // if(active_app)
-            // {
-            //     for(uint8_t i = 0; i < changed; i++)
-            //     {
-            //         uint8_t key_id = device_change_list[1 + i];
-            //         active_app->KeyEvent(key_id, GetKey(key_id));
-            //     }
-            //     changed = 0;
-            // }
-            // else
-            // {
-                changelist = (uint16_t*)pvPortMalloc(sizeof(uint16_t) * changed);
-                memcpy(changelist, &device_change_list[1], sizeof(uint16_t) * changed);
-            // }
-        }
-        read = 0;
-
-        return changed;
+        keyevent_queue = xQueueCreate(KEYEVENT_QUEUE_SIZE, sizeof(KeyEvent));
     }
 
-    uint16_t Available()
+    bool NewEvent(KeyEvent* keyevent)
     {
-        // MatrixOS::USB::CDC::Println("KeyPad Available");
-        return changelist ? (changed - read) : 0; //incase change list is null
+        if(uxQueueSpacesAvailable(keyevent_queue) == 0)
+        {
+            //TODO: Drop first element
+        }
+        xQueueSend(keyevent_queue, keyevent, 0);
+        return uxQueueSpacesAvailable(keyevent_queue) == 0;
     }
 
-    uint16_t Get()
+    bool Get(KeyEvent* keyevent_dest, uint16_t timeout_ms)
     {
-        // Logging::LogDebug("Keypad", "%d", Available());
-        if(Available() == 0)
-            return 0xFFFF;
-        
-        if (changelist)
-        {
-            uint16_t keyID = (changelist[read]);
-            read++;
-            return keyID;
-        }
-        return 0xFFFE;
+        return xQueueReceive(keyevent_queue, (void*)keyevent_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
     }
 
     KeyInfo* GetKey(Point keyXY)
@@ -103,8 +44,7 @@ namespace MatrixOS::KEYPAD
 
     void ClearList()
     {
-        read = 0;
-        changed = 0;
+        xQueueReset(keyevent_queue);
     }
 
     uint16_t XY2ID(Point xy) //Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID is assigned to given XY //TODO Compensate for rotation
