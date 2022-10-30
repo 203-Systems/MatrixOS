@@ -65,7 +65,7 @@ namespace Device
             {
                 ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
                 midiPort = MidiPort("Bluetooth", MIDI_PORT_BLUETOOTH);
-                xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE, &midiPort, configMAX_PRIORITIES - 2, &portTaskHandle);
+                // xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE, &midiPort, configMAX_PRIORITIES - 2, &portTaskHandle);
                 started = true;
             }
         }

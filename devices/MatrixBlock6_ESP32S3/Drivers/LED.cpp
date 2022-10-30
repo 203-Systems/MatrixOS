@@ -9,6 +9,12 @@ namespace Device
             WS2812::Init(RMT_CHANNEL_0, led_pin, led_chunk_count, led_chunk);
         }
 
+        void Start()
+        {
+            
+        }
+
+
         void Update(Color* frameBuffer, uint8_t brightness) //Render LED
         {
             // ESP_LOGI("LED", "LED Update");

@@ -48,20 +48,23 @@ namespace Device
     namespace LED
     {
         void Init();
+        void Start();
     }
     
     namespace KeyPad
     {
         void Init();
-
         void InitKeyPad();
         void InitTouchBar();
 
+        void Start();
+        void StartKeyPad();
+        void StartTouchBar();
 
         //If return true, meaning the scan in intrupted 
-        bool FNScan();
-        bool KeyPadScan();
-        bool TouchBarScan();
+        bool ScanFN();
+        bool ScanKeyPad();
+        bool ScanTouchBar();
 
         bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); //Passthough MatrixOS::KeyPad::NewEvent() result
     }

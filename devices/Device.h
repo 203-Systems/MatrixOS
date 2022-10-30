@@ -16,8 +16,7 @@ namespace Device
     */
     
     void DeviceInit();
-    void PostBootTask();
-    void DeviceTask();
+    void DeviceStart();
     void Reboot();
     void Bootloader();
     void ErrorHandler();

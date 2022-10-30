@@ -19,10 +19,6 @@ namespace Device
         KeyPad::LoadCustomSettings();
 
         BLEMIDI::Init(name);
-        if(bluetooth)
-        {
-            BLEMIDI::Start();
-        }
 
         // WIFI::Init();
         // ESPNOW::Init();
@@ -32,17 +28,16 @@ namespace Device
     
     }
 
-    void LoadDeviceInfo()
-    {
-        #ifndef FACTORY_CONFIG
-        esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
-        #endif
-        LoadVarientInfo();
-    }
-
-    void PostBootTask()
+    void DeviceStart()
     {   
-        Device::KeyPad::Scan();
+        Device::KeyPad::Start();
+        Device::LED::Start();
+
+        if(bluetooth)
+        {
+            BLEMIDI::Start();
+        }
+
         #ifdef FACTORY_CONFIG
         if(esp_efuse_block_is_empty(EFUSE_BLK3))
         {
@@ -71,18 +66,12 @@ namespace Device
         }
     }
 
-    // bool wdt_subscribed = false;
-    void DeviceTask()
-    {   
-        // if(wdt_subscribed == false)
-        // {
-        //     esp_task_wdt_add(NULL);
-        //     esp_task_wdt_status(NULL);
-        // }
-
-        // ESP_LOGI("Device", "Task Watchdog Reset1");
-        // esp_task_wdt_reset();
-        // ESP_LOGI("Device", "Task Watchdog Reset2");
+    void LoadDeviceInfo()
+    {
+        #ifndef FACTORY_CONFIG
+        esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
+        #endif
+        LoadVarientInfo();
     }
 
     void Bootloader()

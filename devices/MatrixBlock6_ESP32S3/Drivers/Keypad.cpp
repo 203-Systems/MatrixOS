@@ -19,8 +19,8 @@ namespace Device::KeyPad
 
     void Scan()
     {
-        if(FNScan()) return;
-        if(KeyPadScan()) return;
+        if(ScanFN()) return;
+        if(ScanKeyPad()) return;
     }
 
     void InitKeyPad()
@@ -88,8 +88,19 @@ namespace Device::KeyPad
             }
         }
 
+
+    }
+    
+    void StartKeyPad()
+    {
         keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
         xTimerStart(keypad_timer, 0);
+    }
+
+    void Start()
+    {
+        StartKeyPad();
+        StartTouchBar();
     }
 
     void Clear()
@@ -143,7 +154,7 @@ namespace Device::KeyPad
         return nullptr; //Return an empty KeyInfo
     }
 
-    bool FNScan()
+    bool ScanFN()
     {   
         Fract16 read = gpio_get_level(fn_pin) * UINT16_MAX;
         // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
@@ -161,8 +172,7 @@ namespace Device::KeyPad
         return false;
     }
 
-    bool key1_read = false;
-    bool KeyPadScan()
+    bool ScanKeyPad()
     {
         // int64_t time =  esp_timer_get_time();
         Fract16 read = 0;

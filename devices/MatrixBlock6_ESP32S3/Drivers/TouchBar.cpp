@@ -8,7 +8,7 @@ namespace Device::KeyPad
 
     void TouchBarTimerHandler() //This exists because return type of TouchBarScan is bool
     {
-        TouchBarScan();
+        ScanTouchBar();
     }
 
     void InitTouchBar()
@@ -35,12 +35,15 @@ namespace Device::KeyPad
         {
             touchbarState[i].setConfig(&touch_config);
         }
+    }
 
+    void StartTouchBar()
+    {
         touchbar_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::touchbar_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(TouchBarTimerHandler), &touchbar_timer_def);
         xTimerStart(touchbar_timer, 0);
     }
 
-    bool TouchBarScan()
+    bool ScanTouchBar()
     {
         for (uint8_t i = 0; i < touchbar_size; i++)
         {
