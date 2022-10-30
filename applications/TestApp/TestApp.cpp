@@ -34,7 +34,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
       uint8_t channel = midiPacket.data[0];
       uint8_t note = midiPacket.data[1];
       uint8_t velocity = midiPacket.data[2];
-      MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, velocity));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, velocity));
       // MidiPacket newPacket = MidiPacket(0, NoteOn, channel, note, velocity);
 
       // MatrixOS::USB::CDC::Print("New - Port:");
@@ -52,8 +52,8 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 
       // MatrixOS::USB::CDC::Println("");
 
-      // MatrixOS::MIDI::SendPacket(midiPacket);
-      // MatrixOS::MIDI::SendPacket(newPacket);
+      // MatrixOS::MIDI::Send(midiPacket);
+      // MatrixOS::MIDI::Send(newPacket);
       break;
     }
     case NoteOff:
@@ -61,11 +61,11 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
       uint8_t channel = midiPacket.data[0];
       uint8_t note = midiPacket.data[1];
       uint8_t velocity = midiPacket.data[2];
-      MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, channel, note, velocity));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOff, channel, note, velocity));
       break;
     }
     //   MatrixOS::USB::CDC::Println("Note Off Handler");
-    //   MatrixOS::MIDI::SendPacket(midiPacket);
+    //   MatrixOS::MIDI::Send(MidiPacket);
     //   break;
     default:
       break;
@@ -75,7 +75,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 // void TestApp::KeyEvent(uint16_t keyID, KeyInfo keyInfo)
 // {
 // //   MatrixOS::Logging::LogInfo(name, "Key Event Handler %d", keyID);
-//   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, 127, 127));
+//   MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, 127, 127));
 // }
 
 // #define NUMSLEDS 64

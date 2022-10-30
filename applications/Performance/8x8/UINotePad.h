@@ -43,15 +43,15 @@ class UINotePad : public UIComponent
         uint8_t note = map[xy.y * dimension.x + xy.x];
         if(keyInfo->state == PRESSED)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, channel, note, keyInfo->velocity.to7bits()));
+            MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, keyInfo->velocity.to7bits()));
         }
         else if(keyInfo->state == AFTERTOUCH)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits()));
+            MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits()));
         } 
         else if(keyInfo->state == RELEASED)
         {
-            MatrixOS::MIDI::SendPacket(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo->velocity.to7bits()));
+            MatrixOS::MIDI::Send(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note, keyInfo->velocity.to7bits()));
         } 
         return true;
     }

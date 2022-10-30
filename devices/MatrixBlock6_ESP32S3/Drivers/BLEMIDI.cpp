@@ -14,49 +14,16 @@ namespace Device
     {
         bool started = false;
         string name;
-
-        // void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos)
-        // {
-        //     MatrixOS::Logging::LogInfo(TAG, "CALLBACK blemidi_port=%d, timestamp=%d, midi_status=0x%02x, len=%d, continued_sysex_pos=%d, remaining_message:", blemidi_port, timestamp, midi_status, len, continued_sysex_pos);
-        //     // esp_log_buffer_hex(TAG, remaining_message, len);
-
-        //     // loopback received message
-        //     {
-        //         // TODO: more comfortable packet creation via special APIs
-
-        //         // Note: by intention we create new packets for each incoming message
-        //         // this shows that running status is maintained, and that SysEx streams work as well
-                
-        //         if( midi_status == 0xf0 && continued_sysex_pos > 0 ) 
-        //         {
-        //         blemidi_send_message(0, remaining_message, len); // just forward
-        //         } 
-        //         else 
-        //         {
-        //             size_t loopback_message_len = 1 + len; // includes MIDI status and remaining bytes
-        //             uint8_t *loopback_message = (uint8_t *)malloc(loopback_message_len * sizeof(uint8_t));
-        //             if( loopback_message == NULL ) {
-        //                 // no memory...
-        //             } else {
-        //                 loopback_message[0] = midi_status;
-        //                 memcpy(&loopback_message[1], remaining_message, len);
-
-        //                 blemidi_send_message(0, loopback_message, loopback_message_len);
-
-        //                 free(loopback_message);
-        //             }
-        //         }
-        //     }
-        // }
+        MidiPort midiPort;
+        TaskHandle_t portTaskHandle = NULL;
         
-        queue<MidiPacket> midi_buffer;
         void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos)
         {
             // MatrixOS::Logging::LogDebug(TAG, "CALLBACK blemidi_port=%d, timestamp=%d, midi_status=0x%02x, len=%d, continued_sysex_pos=%d, remaining_message:", blemidi_port, timestamp, midi_status, len, continued_sysex_pos);
             // MatrixOS::Logging::LogDebug(TAG, "Recived 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0], remaining_message[1]);
             if(len == 2)
             {
-                midi_buffer.emplace(BLE_MIDI_PORT_ID, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1]);
+                midiPort.Recive(MidiPacket(midiPort.id, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1]));
             }
         }
 
@@ -77,13 +44,28 @@ namespace Device
             BLEMIDI::name = name;
         }
 
+        void portTask(void * param)
+        {
+            MidiPort* port = (MidiPort*)param;
+            MidiPacket packet;
+            while(port->Get(&packet, portMAX_DELAY))
+            {
+                blemidi_send_message(port->id % 0x100, packet.data, 3);
+            }
+        }
+
         void Start()
         {
             int status = blemidi_init((void*)Callback, name.c_str());
-            if( status < 0 ) {
+            if( status < 0 ) 
+            {
                 ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
-            } else {
+            } 
+            else 
+            {
                 ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
+                midiPort = MidiPort("Bluetooth", MIDI_PORT_BLUETOOTH);
+                xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE, &midiPort, configMAX_PRIORITIES - 2, &portTaskHandle);
                 started = true;
             }
         }
@@ -95,32 +77,10 @@ namespace Device
                 ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
             } else {
                 ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
+                midiPort.Unregister();
+                vTaskDelete(portTaskHandle);
                 started = false;
             }
-        }
-
-        uint32_t MidiAvailable()
-        {
-            // ESP_LOGI(TAG, "Available: %d", midi_buffer.size());
-            return midi_buffer.size();
-        }
-
-        MidiPacket GetMidi()
-        {
-            if(midi_buffer.size())
-            {   
-                MidiPacket packet = midi_buffer.front();
-                midi_buffer.pop();
-                return packet;
-            }
-            return MidiPacket(BLE_MIDI_PORT_ID, None);
-        }
-
-        bool SendMidi(uint8_t* packet)
-        {
-            // MatrixOS::Logging::LogDebug(TAG, "Sent 0x%02x 0x%02x 0x%02x", packet[0], packet[1], packet[2]);
-            blemidi_send_message(0, packet, 3);
-            return true;
         }
     }
 }

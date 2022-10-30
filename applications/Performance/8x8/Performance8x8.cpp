@@ -176,15 +176,15 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo)
 
     if(keyInfo->state == PRESSED)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));
+        MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));
     }
     else if(keyInfo->state == AFTERTOUCH)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits()));
+        MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits()));
     } 
     else if(keyInfo->state == RELEASED)
     {
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo->velocity.to7bits()));
+        MatrixOS::MIDI::Send(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo->velocity.to7bits()));
     } 
 }
 

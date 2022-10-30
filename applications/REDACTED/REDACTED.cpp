@@ -63,7 +63,7 @@ void REDACTED::Task2()
       for(uint8_t i = 0; i <= (data2[offset2] >> 5); i++)
       {
         uint8_t v =  80 * (data2[offset2 + bufferOffset] >> 7);
-        MatrixOS::MIDI::SendPacket(MidiPacket(0, v > 0 ? NoteOn : NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
+        MatrixOS::MIDI::Send(MidiPacket(0, v > 0 ? NoteOn : NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
         // uint8_t packet[] = {v>0 ? MIDIv1_NOTE_ON : MIDIv1_NOTE_OFF, data2[offset2 + bufferOffset] & 0x7F, v};
         // tud_midi_stream_write(0, packet, 3);
 
@@ -89,7 +89,7 @@ void REDACTED::End()
 {
   // for(uint8_t n = 0; n < 127; n ++)
   // {
-  //   MatrixOS::MIDI::SendPacket(MidiPacket(0, NoteOff, n, 0));
+  //   MatrixOS::MIDI::Send(MidiPacket(0, NoteOff, n, 0));
   // }
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();

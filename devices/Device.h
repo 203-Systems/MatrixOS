@@ -66,16 +66,6 @@ namespace Device
         float Voltage();
     }
     #endif
-
-    #ifdef DEVICE_MIDI
-    namespace MIDI
-    {
-        uint32_t Available();
-        MidiPacket Get();
-        bool Send(MidiPacket packet);
-    } 
-    #endif
-
 }
 
 

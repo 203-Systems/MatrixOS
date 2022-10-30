@@ -114,13 +114,7 @@ namespace MatrixOS
     //Those APIs are only for MidiPort to use
     noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
     noexpose void UnregisterMidiPort(uint16_t port_id);
-    noexpose bool Recive(MidiPacket* midipacket_prt, uint32_t timeout_ms = 0);
-
-    //USB
-    noexpose MidiPacket GetUSB();
-    noexpose MidiPacket DispatchUSBPacket(uint8_t packet[4]);
-
-    void SendPacket(MidiPacket midiPacket);
+    noexpose bool Recive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
   namespace Logging

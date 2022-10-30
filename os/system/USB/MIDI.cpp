@@ -3,14 +3,27 @@
 namespace MatrixOS::USB::MIDI
 {
     MidiPort* ports;
+    TaskHandle_t* portTasks;
+
+    void portTask(void * param)
+    {
+        MidiPort* port = (MidiPort*)param;
+        MidiPacket packet;
+        while(port->Get(&packet, portMAX_DELAY))
+        {
+            tud_midi_stream_write(port->id % 0x100, packet.data, packet.Length());
+        }
+    }
 
     void Init()
     {
         ports = (MidiPort*)pvPortMalloc(USB_MIDI_COUNT * sizeof(MidiPort));
+        portTasks = (TaskHandle_t*)pvPortMalloc(USB_MIDI_COUNT * sizeof(TaskHandle_t));
         for(uint8_t i = 0; i < USB_MIDI_COUNT; i++)
         {  
-           string portname = "USB " + std::to_string(i+1);
+           string portname = "USB MIDI " + std::to_string(i+1);
            ports[0] = MidiPort(portname, MIDI_PORT_USB + i);
+           xTaskCreate(portTask, portname.c_str(), configMINIMAL_STACK_SIZE, &ports[i], configMAX_PRIORITIES - 2, &portTasks[i]); 
         }
     }
 }
@@ -90,8 +103,6 @@ void tud_midi_rx_cb(uint8_t itf)
                     break;
             }
             break;
-        default:
-            return;
     }
-    MatrixOS::MIDI::Recive(&packet);
+    MatrixOS::USB::MIDI::ports[itf].Send(packet);
 }

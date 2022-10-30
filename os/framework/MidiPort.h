@@ -6,6 +6,7 @@ namespace MatrixOS::MIDI
 {
     bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
     void UnregisterMidiPort(uint16_t port_id);
+    bool Recive(MidiPacket midipacket, uint32_t timeout_ms);
 }
 
 class MidiPort
@@ -53,16 +54,25 @@ class MidiPort
         return xQueueReceive(midi_queue, (void*)midipacket_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
     }
 
-    bool Recive(MidiPacket* midipacket_prt, uint32_t timeout_ms = 0)
+    //This will modify the midipacket to be the same as the midiport
+    bool Send(MidiPacket midipacket, uint32_t timeout_ms = 0)
+    {
+        midipacket.port = this->id;
+        return MatrixOS::MIDI::Recive(midipacket, timeout_ms);
+    }
+
+    //This is for Matrix OS kernal to call
+    bool Recive(MidiPacket midipacket, uint32_t timeout_ms = 0)
     {
         if(uxQueueSpacesAvailable(midi_queue) == 0)
         {
             //TODO: Drop first element
         }
-        xQueueSend(midi_queue, midipacket_prt, pdMS_TO_TICKS(timeout_ms));
+        xQueueSend(midi_queue, &midipacket, pdMS_TO_TICKS(timeout_ms));
         return uxQueueSpacesAvailable(midi_queue) == 0;
     }
 
+    MidiPort(){}
     MidiPort(string name, uint16_t id, uint16_t queue_size = 64) {this->name = name; midi_queue = xQueueCreate(64, sizeof(midi_queue)); Register(id);}
     MidiPort(string name, EMidiPortID port_class, uint16_t queue_size = 64) {this->name = name; midi_queue = xQueueCreate(64, sizeof(midi_queue)); Register(port_class, 0x100);}
 

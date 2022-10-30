@@ -7,6 +7,6 @@ void WirelessRepeater::MidiEvent(MidiPacket midiPacket)
   {
     MidiPacket usbPacket = midiPacket;
     usbPacket.port = 1;
-    MatrixOS::MIDI::SendPacket(usbPacket);
+    MatrixOS::MIDI::Send(usbPacket);
   }
 }

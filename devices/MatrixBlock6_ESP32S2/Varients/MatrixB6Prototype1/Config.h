@@ -5,7 +5,7 @@
 #define MODEL MXB6PT1
 
 #define DEVICE_BATTERY
-// #define DEVICE_MIDI
+
 #define CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID 1
 
 #define MULTIPRESS 10 //Key Press will be process at once
