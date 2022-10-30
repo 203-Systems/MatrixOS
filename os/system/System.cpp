@@ -67,6 +67,8 @@ namespace MatrixOS::SYS
         USB::Init();
         KEYPAD::Init();
         LED::Init();
+        
+        MIDI::Init();
 
         inited = true; 
 
