@@ -1,114 +1,77 @@
 #include "MatrixOS.h"
+#include <map>
+
 namespace MatrixOS::MIDI
-{
+{  
+    QueueHandle_t midi_queue; 
+    std::map<uint16_t, MidiPort*> midiPortMap;
+
     void Init(void)
     {
-        // ClearAllHandler();
+        midi_queue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
     }
 
-    // void (* handler)(MidiPacket) = nullptr;
-
-    // void SetHandler(void (*new_handler)(MidiPacket))
-    // {
-    //     handler = new_handler;
-    // }
-
-    // void ClearHandler(Status status)
-    // {
-    //     handlers[status] = nullptr;
-    // }
-
-    // void ClearAllHandler(void)
-    // {
-    //     for(uint16_t i = 0; i < HandlerCount; i++)
-    //     {
-    //        handlers[i] = nullptr;  
-    //     }
-    // }
-
-    // void CallHandler(Status status, uint32_t value1, uint32_t value2, uint32_t value3)
-    // {
-    //     if(handlers[status])
-    //     {
-    //         switch(status)
-    //         {
-    //             case NoteOn:
-    //             case NoteOff:
-    //             case AfterTouch:
-    //             case ControlChange:
-    //                 ((void (*)(uint8_t, uint8_t, uint8_t))(handlers[status]))(value1, value2, value3);
-    //                 break;
-    //             case ProgramChange:
-    //             case ChannelPressure:
-    //                 ((void (*)(uint8_t, uint8_t))(handlers[status]))(value1, value2);
-    //                 break;
-    //             case PitchChange:
-    //                 ((void (*)(uint8_t, uint16_t))(handlers[status]))(value1, value2);
-    //                 break;
-    //             case SongSelect:
-    //                 ((void (*)(uint8_t))(handlers[status]))(value1);
-    //                 break;
-    //             case SongPosition:
-    //                 ((void (*)(uint16_t))(handlers[status]))(value1);
-    //                 break;
-    //             case TuneRequest:
-    //             case Sync:
-    //             case Start:
-    //             case Continue:
-    //             case Stop:
-    //             case ActiveSense:
-    //             case Reset:
-    //                 ((void (*)())(handlers[status]))();
-    //                 break;
-    //             case SysexData:
-    //             case SysexEnd:
-    //                 //TODO: Need to determain if sysex is system level or application level
-    //                 break;
-    //         }
-    //     }
-    // }
-
-    uint32_t Available()
+    bool Get(MidiPacket* midipacket_dest, uint16_t timeout_ms)
     {
-        // MatrixOS::USB::CDC::Println("Midi Available");
-        uint32_t packets = 0;
-        packets += tud_midi_available();
-
-        #ifdef DEVICE_MIDI
-        packets += Device::MIDI::Available();
-        #endif
-
-        return packets;
+        return xQueueReceive(midi_queue, midipacket_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
     }
 
-    MidiPacket Get()
+    bool Send(MidiPacket* midiPacket)
     {
-        if(tud_midi_available())
+        if(midiPacket->port == MIDI_PORT_ALL_CLASS)
         {
-            return GetUSB();
+            uint16_t targetClass = MIDI_PORT_USB;
+            bool send = false;
+            for(std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.begin(); port != midiPortMap.end(); ++port)
+            {
+                if(port->first >= MIDI_PORT_DEVICE_CUSTOM + 0x100)
+                {
+                    return send;
+                }
+                if(port->first >= targetClass)
+                {
+                    send |= port->second->Recive(midiPacket, 0);
+                    targetClass = (port->first / 0x100 + 1) * 0x100;
+                }
+            }
         }
-
-        #ifdef DEVICE_MIDI
-        else if(Device::MIDI::Available())
+        else
         {
-            return Device::MIDI::Get();
+            std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.find(midiPacket->port);
+            if(port != midiPortMap.end())
+            {
+                return port->second->Recive(midiPacket, 0);
+            }
         }
-        #endif
-        
-        return MidiPacket(0, None);
+        return false;
     }
 
-    MidiPacket GetUSB()
+    bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort)
+    {   
+        if(port_id < 0x100) return false;
+
+        if (midiPortMap.find(port_id) == midiPortMap.end()) 
+        {
+            midiPortMap[port_id] = midiPort;
+            return true;
+        }
+        return false;
+    }
+
+    void UnregisterMidiPort(uint16_t port_id)
     {
-        uint8_t packet[4];
-        if(tud_midi_packet_read(packet))
-        {
-            return DispatchUSBPacket(packet);
-        }
-        return MidiPacket(1, None);
+        midiPortMap.erase(port_id);
     }
 
-
+    bool Recive(MidiPacket* midipacket_prt, uint32_t timeout_ms)
+    {
+        if(uxQueueSpacesAvailable(midi_queue) == 0)
+        {
+            //TODO: Drop first element
+        }
+        xQueueSend(midi_queue, midipacket_prt, pdMS_TO_TICKS(timeout_ms));
+        return uxQueueSpacesAvailable(midi_queue) == 0;
+    }
 
     MidiPacket DispatchUSBPacket(uint8_t rawPacket[4])
     {
@@ -118,25 +81,6 @@ namespace MatrixOS::MIDI
         // MatrixOS::Logging::LogDebug("USB MIDI Packet", "%#02X %#02X %#02X %#02X", packet[0], packet[1], packet[2], packet[3]);
         switch (packet[0]) 
         {
-            // case CIN_SYSEX:
-            //     CallHandler(SysexData, packet[1]);
-            //     CallHandler(SysexData, packet[2]);
-            //     CallHandler(SysexData, packet[3]);
-            // break;
-            // case CIN_SYSEX_ENDS_IN_1:
-            //     CallHandler(SysexData, packet[1]);
-            //     CallHandler(SysexEnd);
-            //     break;
-            // case CIN_SYSEX_ENDS_IN_2:
-            //     CallHandler(SysexData, packet[1]);
-            //     CallHandler(SysexData, packet[2]);
-            //     break;
-            // case CIN_SYSEX_ENDS_IN_3:
-            //     CallHandler(SysexData, packet[1]);
-            //     CallHandler(SysexData, packet[2]);
-            //     CallHandler(SysexData, packet[3]);
-            //     CallHandler(SysexEnd);
-            //     break;
             case CIN_3BYTE_SYS_COMMON:
                 if (packet[1] == MIDIv1_SONG_POSITION_PTR) 
                     return MidiPacket(port, SongPosition, 2, &packet[2]);

@@ -21,7 +21,7 @@ namespace MatrixOS::KEYPAD
         return uxQueueSpacesAvailable(keyevent_queue) == 0;
     }
 
-    bool Get(KeyEvent* keyevent_dest, uint16_t timeout_ms)
+    bool Get(KeyEvent* keyevent_dest, uint32_t timeout_ms)
     {
         return xQueueReceive(keyevent_queue, (void*)keyevent_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
     }

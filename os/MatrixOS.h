@@ -69,7 +69,7 @@ namespace MatrixOS
     noexpose void Init(void);
     uint16_t Scan(); //Return # of changed key
     bool NewEvent(KeyEvent* keyevent); //Adding keyevent, return true when queue is full
-    bool Get(KeyEvent* keyEvent_dest, uint16_t timeout_ms = 0);
+    bool Get(KeyEvent* keyEvent_dest, uint32_t timeout_ms = 0);
     KeyInfo* GetKey(Point keyXY);
     KeyInfo* GetKey(uint16_t keyID);
     void Clear(); //Don't handle any keyEvent till their next Press event (So no Release, Hold, etc)
@@ -105,18 +105,23 @@ namespace MatrixOS
   }
 
   namespace MIDI
-    {
-      noexpose void Init(void);
+  {
+    noexpose void Init(void);
 
-      uint32_t Available();
-      MidiPacket Get();
+    bool Get(MidiPacket* midipacket_dest, uint16_t timeout_ms = 0);
+    bool Send(MidiPacket midiPacket);
 
-      //USB
-      noexpose MidiPacket GetUSB();
-      noexpose MidiPacket DispatchUSBPacket(uint8_t packet[4]);
+    //Those APIs are only for MidiPort to use
+    noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
+    noexpose void UnregisterMidiPort(uint16_t port_id);
+    noexpose bool Recive(MidiPacket* midipacket_prt, uint32_t timeout_ms = 0);
 
-      void SendPacket(MidiPacket midiPacket);
-    }
+    //USB
+    noexpose MidiPacket GetUSB();
+    noexpose MidiPacket DispatchUSBPacket(uint8_t packet[4]);
+
+    void SendPacket(MidiPacket midiPacket);
+  }
 
   namespace Logging
   {

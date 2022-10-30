@@ -24,13 +24,28 @@ enum EMidiStatus : uint8_t {None = 0,
                            SysexEnd = MIDIv1_SYSEX_END
                         };
 
+//Port number can be any of the following class + 0~0xFF
+enum EMidiPortID : uint16_t {
+                            MIDI_PORT_ALL_CLASS = 0x0, // This is the default midi out mode, it will send midi from first of all output type
+                            MIDI_PORT_USB = 0x100,
+                            MIDI_PORT_PHYISCAL = 0x200,
+                            MIDI_PORT_BLUETOOTH = 0x300,
+                            MIDI_PORT_WIRELESS = 0x400,
+                            MIDI_PORT_RTP = 0x500,
+                            MIDI_PORT_DEVICE_CUSTOM = 0x600,
+                            MIDI_PORT_SYNTH = 0x8000,
+                            MIDI_PORT_INVAILD = 0xFFFF
+                        };
+
 
 struct MidiPacket
 {
-    uint16_t port;
-    EMidiStatus status;
-    // uint16_t length;
+    uint16_t port = MIDI_PORT_INVAILD;
+    EMidiStatus status = None;
     uint8_t data[3] = {0, 0, 0};
+
+
+    MidiPacket(){} //Place Holder data
 
     MidiPacket(EMidiStatus status, ...)
     {   

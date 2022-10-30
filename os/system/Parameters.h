@@ -22,7 +22,14 @@
 
 #define MATRIXOS_FLASHVERSION 0 //Each Flash data strcture change will cause this to increase 
 
-#define KEYEVENT_QUEUE_SIZE 8
+#define KEYEVENT_QUEUE_SIZE 16
+#define MIDI_QUEUE_SIZE 128
+
+#define USB_CDC_COUNT 0 //There will be one extra  used by the system, actual count is USB_CDC_COUNT + 1
+#define USB_MIDI_COUNT 1
+#define USB_HID_COUNT 0
+#define USB_MSC_COUNT 0
+#define USB_VENDOR_COUNT 0
 
 inline uint16_t hold_threshold = 400;
 

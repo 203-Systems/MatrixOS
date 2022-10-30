@@ -9,6 +9,7 @@
 #include "KeyEvent.h"
 #include "Timer.h"
 #include "MidiPacket.h"
+#include "MidiPort.h"
 #include "Direction.h"
 #include "Hash.h"
 #include "LogLevel.h"

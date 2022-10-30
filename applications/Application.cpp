@@ -35,8 +35,9 @@ void Application::GetKey()
 
 void Application::GetMidi()
 {   
-    while(MatrixOS::MIDI::Available())
-    {
-        MidiEvent(MatrixOS::MIDI::Get());
+    struct MidiPacket midiPacket;
+    while (MatrixOS::MIDI::Get(&midiPacket))
+    {   
+        MidiEvent(midiPacket);
     }
 }
