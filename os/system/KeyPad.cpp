@@ -13,6 +13,7 @@ namespace MatrixOS::KEYPAD
 
     bool NewEvent(KeyEvent* keyevent)
     {
+        
         if(uxQueueSpacesAvailable(keyevent_queue) == 0)
         {
             //TODO: Drop first element

@@ -18,7 +18,6 @@ namespace MatrixOS::MIDI
 
     bool Send(MidiPacket midiPacket)
     {
-        MatrixOS::Logging::LogDebug("MIDI", "Midi Sending  to %d", midiPacket.port);
         if(midiPacket.port == MIDI_PORT_ALL_CLASS)
         {
             uint16_t targetClass = MIDI_PORT_USB;
@@ -63,6 +62,7 @@ namespace MatrixOS::MIDI
     {
         midiPortMap.erase(port_id);
     }
+
 
     bool Recive(MidiPacket midipacket, uint32_t timeout_ms)
     {
