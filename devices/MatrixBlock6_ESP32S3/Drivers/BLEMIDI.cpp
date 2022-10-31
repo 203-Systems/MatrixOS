@@ -14,7 +14,7 @@ namespace Device
     {
         bool started = false;
         string name;
-        MidiPort midiPort;
+        MidiPort* midiPort;
         TaskHandle_t portTaskHandle = NULL;
         
         void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t *remaining_message, size_t len, size_t continued_sysex_pos)
@@ -23,7 +23,7 @@ namespace Device
             // MatrixOS::Logging::LogDebug(TAG, "Recived 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0], remaining_message[1]);
             if(len == 2)
             {
-                midiPort.Recive(MidiPacket(midiPort.id, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1]));
+                midiPort->Send(MidiPacket(midiPort->id, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0], remaining_message[1]));
             }
         }
 
@@ -46,11 +46,15 @@ namespace Device
 
         void portTask(void * param)
         {
-            MidiPort* port = (MidiPort*)param;
+            MidiPort port = MidiPort("Bluetooth", MIDI_PORT_BLUETOOTH);
+            midiPort = &port;
             MidiPacket packet;
-            while(port->Get(&packet, portMAX_DELAY))
+            while(true)
             {
-                blemidi_send_message(port->id % 0x100, packet.data, 3);
+                if(port.Get(&packet, portMAX_DELAY))
+                {
+                    blemidi_send_message(port.id % 0x100, packet.data, 3);
+                }
             }
         }
 
@@ -64,8 +68,7 @@ namespace Device
             else 
             {
                 ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
-                midiPort = MidiPort("Bluetooth", MIDI_PORT_BLUETOOTH);
-                // xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE, &midiPort, configMAX_PRIORITIES - 2, &portTaskHandle);
+                xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2, &portTaskHandle);
                 started = true;
             }
         }
@@ -77,7 +80,7 @@ namespace Device
                 ESP_LOGE(TAG, "BLE MIDI Driver returned status=%d", status);
             } else {
                 ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
-                midiPort.Unregister();
+                midiPort->Unregister();
                 vTaskDelete(portTaskHandle);
                 started = false;
             }

@@ -28,7 +28,7 @@ namespace MatrixOS::USB::MIDI
         for(uint8_t i = 0; i < USB_MIDI_COUNT; i++)
         {  
            string portname = "USB MIDI " + std::to_string(i + 1);
-           xTaskCreate(portTask, portname.c_str(), configMINIMAL_STACK_SIZE * 4, NULL, configMAX_PRIORITIES - 2, &portTasks[i]); 
+           xTaskCreate(portTask, portname.c_str(), configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2, &portTasks[i]); 
         }
     }
 }
