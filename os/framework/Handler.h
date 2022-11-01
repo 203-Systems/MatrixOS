@@ -1,7 +1,6 @@
 #pragma once
 
-struct handler
-{
+struct handler {
   void (*value)();
 
   // accept any free function pointer type
@@ -14,6 +13,6 @@ struct handler
   // implicit conversion (no need for custom `operator ()` and pointer operations
   typedef void (*value_t)();
 
-  operator value_t&() { return this -> value; }
-  operator value_t const&() const { return this -> value; }
+  operator value_t&() { return this->value; }
+  operator value_t const&() const { return this->value; }
 };

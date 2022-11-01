@@ -8,62 +8,73 @@
 #include <stdarg.h>
 #include "Component/UIComponents.h"
 
-class UI
-{
-    public:
-        string name;
-        Color nameColor;
-        int8_t status = 0;
-        
-        bool newLedLayer = false;
-        bool disableExit = false;
-        
-        Timer uiTimer;
-        const uint16_t uiFps = 60;
+class UI {
+ public:
+  string name;
+  Color nameColor;
+  int8_t status = 0;
 
+  bool newLedLayer = false;
+  bool disableExit = false;
 
-        std::function<void()>* setup_func = nullptr;
-        std::function<void()>* loop_func = nullptr;
-        std::function<void()>* render_func = nullptr;
-        std::function<void()>* end_func = nullptr;
+  Timer uiTimer;
+  const uint16_t uiFps = 60;
 
-        std::function<void()>* func_hold_callback = nullptr;
+  std::function<void()>* setup_func = nullptr;
+  std::function<void()>* loop_func = nullptr;
+  std::function<void()>* render_func = nullptr;
+  std::function<void()>* end_func = nullptr;
 
-        UI() {};
-        UI(string name, Color color,bool newLedLayer = false);
+  std::function<void()>* func_hold_callback = nullptr;
 
-        void Start();
+  UI(){};
+  UI(string name, Color color, bool newLedLayer = false);
 
-        virtual void Setup() {if(setup_func) (*setup_func)();};
-        virtual void Loop() {if(loop_func) (*loop_func)();};
-        virtual void Render() {if(render_func) (*render_func)();};
-        virtual void End() {if(end_func) (*end_func)();};
+  void Start();
 
-        void Exit();
+  virtual void Setup() {
+    if (setup_func)
+      (*setup_func)();
+  };
+  virtual void Loop() {
+    if (loop_func)
+      (*loop_func)();
+  };
+  virtual void Render() {
+    if (render_func)
+      (*render_func)();
+  };
+  virtual void End() {
+    if (end_func)
+      (*end_func)();
+  };
 
-        void LoopTask();
+  void Exit();
 
-        void GetKey();
-        virtual bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {return false;}; //Return true to skip UIKeyEvent
+  void LoopTask();
 
-        void SetSetupFunc(std::function<void()> setup_func);
-        void SetLoopFunc(std::function<void()> loop_func);
-        void SetEndFunc(std::function<void()> end_func);
+  void GetKey();
+  virtual bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) { return false; };  // Return true to skip UIKeyEvent
 
-        void AddFuncKeyHold(std::function<void()> callback);
+  void SetSetupFunc(std::function<void()> setup_func);
+  void SetLoopFunc(std::function<void()> loop_func);
+  void SetEndFunc(std::function<void()> end_func);
 
-        std::map<Point, UIComponent*> uiComponentMap;
+  void AddFuncKeyHold(std::function<void()> callback);
 
-        void AddUIComponent(UIComponent* uiComponent, Point xy);
-        // void AddUIComponent(UIComponent* uiComponent, uint32_t keyID);
-        void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
+  std::map<Point, UIComponent*> uiComponentMap;
 
-        void AllowExit(bool allow);
+  void AddUIComponent(UIComponent* uiComponent, Point xy);
+  // void AddUIComponent(UIComponent* uiComponent, uint32_t keyID);
+  void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
 
-        void ClearUIComponents();
-        private:
-        void RenderUI();
-        void UIEnd();
-        void UIKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
-        void PostCallbackCleanUp();
+  void AllowExit(bool allow);
+
+  void ClearUIComponents();
+
+ private:
+  void RenderUI();
+  void UIEnd();
+  void UIKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
+  void PostCallbackCleanUp();
 };

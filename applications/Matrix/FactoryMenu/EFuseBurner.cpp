@@ -8,7 +8,10 @@ void FactoryMenu::EFuseBurner() {
   {
     UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
 
-    UIButtonLarge confirmBtn("Confirm", Color(0x00FF00), Dimension(2, 2), [&]() -> void {BurnEFuse(); Exit();});
+    UIButtonLarge confirmBtn("Confirm", Color(0x00FF00), Dimension(2, 2), [&]() -> void {
+      BurnEFuse();
+      Exit();
+    });
     efuseConfirm.AddUIComponent(confirmBtn, Point(1, 5));
 
     UIButtonLarge cancelBtn("Cancel", Color(0xFF0000), Dimension(2, 2), [&]() -> void { Exit(); });

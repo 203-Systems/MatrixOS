@@ -1,12 +1,5 @@
 #include "Example.h"
 
-void ExampleAPP::Setup()
-{
-    
-}
+void ExampleAPP::Setup() {}
 
-
-void ExampleAPP::Loop()
-{
-   
-}
+void ExampleAPP::Loop() {}

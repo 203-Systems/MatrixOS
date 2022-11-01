@@ -47,6 +47,7 @@ DerivePointerAlignment: false  # Make sure the * or & align on the left
 EmptyLineBeforeAccessModifier: LogicalBlock
 FixNamespaceComments: false
 IncludeBlocks: Preserve
+SortIncludes: false
 IndentCaseLabels: true
 IndentPPDirectives: None
 IndentWidth: 2

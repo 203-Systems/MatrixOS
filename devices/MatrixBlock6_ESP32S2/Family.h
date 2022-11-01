@@ -1,4 +1,4 @@
-//Declear Family specific function
+// Declear Family specific function
 #pragma once
 // #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
@@ -24,50 +24,48 @@
 #include "WS2812/WS2812.h"
 #include "framework/Color.h"
 
-#define FUNCTION_KEY 0 //Keypad Code for main function key
+#define FUNCTION_KEY 0  // Keypad Code for main function key
 #define DEVICE_APPLICATIONS
 
 namespace Device
-{   
-    namespace USB
-    {
-        void Init();
-    }
-    namespace LED
-    {
-        void Init();
-    }
-    
-    namespace KeyPad
-    {
-        void Init();
-    }
-    
-    namespace TouchBar
-    {
-        void Init();
-    }
-    
-    namespace NVS
-    {
-        void Init();
-    }
+{
+  namespace USB
+  {
+    void Init();
+  }
+  namespace LED
+  {
+    void Init();
+  }
 
+  namespace KeyPad
+  {
+    void Init();
+  }
 
+  namespace TouchBar
+  {
+    void Init();
+  }
 
-    namespace WIFI
-    {
-        void Init();
-    }
+  namespace NVS
+  {
+    void Init();
+  }
 
-    namespace ESPNOW
-    {
-        void Init();
-        void Flush(void* param);
-        bool SendMidi(uint8_t* packet);
-        uint32_t MidiAvailable();
-        MidiPacket GetMidi();
-        void BroadcastMac();
-        void UpdatePeer(const uint8_t* new_mac);
-    }
+  namespace WIFI
+  {
+    void Init();
+  }
+
+  namespace ESPNOW
+  {
+    void Init();
+    void Flush(void* param);
+    bool SendMidi(uint8_t* packet);
+    uint32_t MidiAvailable();
+    MidiPacket GetMidi();
+    void BroadcastMac();
+    void UpdatePeer(const uint8_t* new_mac);
+  }
 }

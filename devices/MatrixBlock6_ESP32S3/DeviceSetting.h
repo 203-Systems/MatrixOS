@@ -1,6 +1,6 @@
 #pragma once
 
-//Setting::Setup()
+// Setting::Setup()
 {
   UIButtonDimmable bluetoothToggle(
       "Bluetooth", Color(0x0082fc), []() -> bool { return Device::BLEMIDI::started; },

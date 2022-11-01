@@ -6,14 +6,14 @@
 // }
 
 // void TestApp::Loop()
-// { 
+// {
 //     LED_task();
 // }
 
-void TestApp::MidiEvent(MidiPacket midiPacket)
-{
-  // MatrixOS::Logging::LogInfo("TestApp", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
-  switch(midiPacket.status)
+void TestApp::MidiEvent(MidiPacket midiPacket) {
+  // MatrixOS::Logging::LogInfo("TestApp", "Midi Recived %d %d %d", midiPacket.data[0], midiPacket.data[1],
+  // midiPacket.data[2]);
+  switch (midiPacket.status)
   {
     case NoteOn:
     {
@@ -83,7 +83,7 @@ void TestApp::MidiEvent(MidiPacket midiPacket)
 // {
 //   // MatrixOS::Logging::Debug("TestApp", "LED_Task");
 //   if (TestApp::timer.Tick(100))
-//   { 
+//   {
 //     MatrixOS::LED::SetColor((1 << 12) + led_id, colorList[colorIndex]);
 //     led_id ++;
 //     if(led_id == NUMSLEDS)

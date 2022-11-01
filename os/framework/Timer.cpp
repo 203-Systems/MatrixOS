@@ -1,42 +1,33 @@
 #include "Timer.h"
 
-Timer::Timer()
-{
+Timer::Timer() {
   Timer::RecordCurrent();
 }
 
-bool Timer::Tick(uint32_t ms, bool continuous_mode)
-{
-  if(MatrixOS::SYS::Millis() < previous)
+bool Timer::Tick(uint32_t ms, bool continuous_mode) {
+  if (MatrixOS::SYS::Millis() < previous)
     previous = 0;
 
-  if(Timer::IsLonger(ms))
+  if (Timer::IsLonger(ms))
   {
-    if(continuous_mode)
-    {
-      previous += ms;
-    }
+    if (continuous_mode)
+    { previous += ms; }
     else
-    {
-      Timer::RecordCurrent();
-    }
+    { Timer::RecordCurrent(); }
     return true;
   }
   return false;
 }
 
-bool Timer::IsLonger(uint32_t ms)
-{
+bool Timer::IsLonger(uint32_t ms) {
   return (previous + ms) <= MatrixOS::SYS::Millis();
 }
 
-uint32_t Timer::SinceLastTick()
-{
+uint32_t Timer::SinceLastTick() {
   return MatrixOS::SYS::Millis() - previous;
 }
 
-void Timer::RecordCurrent()
-{
+void Timer::RecordCurrent() {
   previous = MatrixOS::SYS::Millis();
 }
 

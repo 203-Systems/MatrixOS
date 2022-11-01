@@ -1,4 +1,4 @@
-//This file is for user modifiable variables
+// This file is for user modifiable variables
 #pragma once
 
 #include "framework/Framework.h"
@@ -8,10 +8,10 @@
 
 namespace MatrixOS::UserVar
 {
-    //variable name, variable type, variable default
-    UserVar(device_id, uint16_t, 0);
+  // variable name, variable type, variable default
+  UserVar(device_id, uint16_t, 0);
 
-    UserVar(rotation, EDirection, TOP);
-    UserVar(brightness, uint8_t, 16);
-    UserVar(velocity_sensitive, bool, true);
+  UserVar(rotation, EDirection, TOP);
+  UserVar(brightness, uint8_t, 16);
+  UserVar(velocity_sensitive, bool, true);
 }

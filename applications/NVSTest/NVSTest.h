@@ -4,20 +4,19 @@
 #include "framework/Timer.h"
 #include "applications/Application.h"
 
-class NVSTest : public Application
-{   
-    // using Application::Application;
+class NVSTest : public Application {
+  // using Application::Application;
 
-    public:
-    string name = "NVS Tester";
-    string author = "203 Electronics";
-    uint32_t version = 0;
-    
-    void Setup() override;
-    void Loop() override;
+ public:
+  string name = "NVS Tester";
+  string author = "203 Electronics";
+  uint32_t version = 0;
 
-    void PrintMenu();
+  void Setup() override;
+  void Loop() override;
 
-    string WaitForString();
-    void StripString(std::string& str);
+  void PrintMenu();
+
+  string WaitForString();
+  void StripString(std::string& str);
 };

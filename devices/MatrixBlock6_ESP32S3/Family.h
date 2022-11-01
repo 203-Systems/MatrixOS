@@ -1,4 +1,4 @@
-//Declear Family specific function
+// Declear Family specific function
 #pragma once
 // #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
@@ -26,80 +26,80 @@
 #include "WS2812/WS2812.h"
 #include "framework/Color.h"
 
-#define FUNCTION_KEY 0 //Keypad Code for main function key
+#define FUNCTION_KEY 0  // Keypad Code for main function key
 #define DEVICE_APPLICATIONS
 #define DEVICE_SETTING
 
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
 namespace Device
-{   
-    //Device Variable
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
+{
+  // Device Variable
+  inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
+  inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
-    void LoadDeviceInfo();
-    void LoadVarientInfo();
+  void LoadDeviceInfo();
+  void LoadVarientInfo();
 
-    namespace USB
-    {
-        void Init();
-    }
-    namespace LED
-    {
-        void Init();
-        void Start();
-    }
-    
-    namespace KeyPad
-    {
-        void Init();
-        void InitKeyPad();
-        void InitTouchBar();
+  namespace USB
+  {
+    void Init();
+  }
+  namespace LED
+  {
+    void Init();
+    void Start();
+  }
 
-        void Start();
-        void StartKeyPad();
-        void StartTouchBar();
+  namespace KeyPad
+  {
+    void Init();
+    void InitKeyPad();
+    void InitTouchBar();
 
-        //If return true, meaning the scan in intrupted 
-        bool ScanFN();
-        bool ScanKeyPad();
-        bool ScanTouchBar();
+    void Start();
+    void StartKeyPad();
+    void StartTouchBar();
 
-        bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); //Passthough MatrixOS::KeyPad::NewEvent() result
-    }
-    
-    namespace NVS
-    {
-        void Init();
-    }
+    // If return true, meaning the scan in intrupted
+    bool ScanFN();
+    bool ScanKeyPad();
+    bool ScanTouchBar();
 
-    namespace WIFI
-    {
-        void Init();
-    }
+    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthough MatrixOS::KeyPad::NewEvent() result
+  }
 
-    namespace BLEMIDI
-    {
-        extern bool started;
-        void Init(string name);
-        void Toggle();
-        void Start();
-        void Stop();
-        bool SendMidi(uint8_t* packet);
-        uint32_t MidiAvailable();
-        MidiPacket GetMidi();
-    }
+  namespace NVS
+  {
+    void Init();
+  }
 
-    namespace ESPNOW
-    {
-        extern bool started;
-        void Init();
-        void Flush(void* param);
-        bool SendMidi(uint8_t* packet);
-        uint32_t MidiAvailable();
-        MidiPacket GetMidi();
-        void BroadcastMac();
-        void UpdatePeer(const uint8_t* new_mac);
-    }
+  namespace WIFI
+  {
+    void Init();
+  }
+
+  namespace BLEMIDI
+  {
+    extern bool started;
+    void Init(string name);
+    void Toggle();
+    void Start();
+    void Stop();
+    bool SendMidi(uint8_t* packet);
+    uint32_t MidiAvailable();
+    MidiPacket GetMidi();
+  }
+
+  namespace ESPNOW
+  {
+    extern bool started;
+    void Init();
+    void Flush(void* param);
+    bool SendMidi(uint8_t* packet);
+    uint32_t MidiAvailable();
+    MidiPacket GetMidi();
+    void BroadcastMac();
+    void UpdatePeer(const uint8_t* new_mac);
+  }
 }

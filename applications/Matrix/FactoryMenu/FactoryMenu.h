@@ -9,7 +9,6 @@
 #define EFUSE_BURNER
 #endif
 
-
 #define APPLICATION_NAME "Matrix Factory Menu"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFFFF)
@@ -17,22 +16,21 @@
 #define APPLICATION_CLASS FactoryMenu
 #define APPLICATION_VISIBLITY false
 
-class FactoryMenu : public Application
-{   
-    void Setup() override;
-    
-    // void LEDTest();
-    // void TouchBarTest();
-    // void KeyPadTest();
+class FactoryMenu : public Application {
+  void Setup() override;
 
-    // void BurnEFuse();
-    void LEDTester();
-    void KeyPadTester();
-    void TouchBarTester();
+  // void LEDTest();
+  // void TouchBarTest();
+  // void KeyPadTest();
 
-    void KeyPadSettings();
+  // void BurnEFuse();
+  void LEDTester();
+  void KeyPadTester();
+  void TouchBarTester();
 
-    void EFuseBurner();
+  void KeyPadSettings();
+
+  void EFuseBurner();
 };
 
 #include "applications/RegisterApplication.h"

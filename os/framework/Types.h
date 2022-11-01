@@ -1,22 +1,22 @@
 #pragma once
-#include <string>
-#include <list>
-#include <vector>
-#include <unordered_map>
-#include <string.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
+#include <list>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 using std::string;
-using std::vector;
 using std::unordered_map;
+using std::vector;
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 #endif
 
-typedef uint8_t u8;
+    typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -57,55 +57,50 @@ typedef volatile const int32_t vsc32;
 typedef volatile const int64_t vsc64;
 typedef void* PVOID;
 
-class Fract16
-{
-    public:
-    uint16_t value;
+class Fract16 {
+ public:
+  uint16_t value;
 
-    Fract16(uint16_t value = 0)
-    {
-        this->value = value;
-    }
+  Fract16(uint16_t value = 0) { this->value = value; }
 
-    Fract16(uint16_t value, uint8_t bits)
-    {
-        this->value = value << (16 - bits);
-        // TODO: Fill the empty part of the 
-        // uint16_t fill = value 
-        // for(uint8_t i = 0; i < (16 - bits) / bits)
-        // {
+  Fract16(uint16_t value, uint8_t bits) {
+    this->value = value << (16 - bits);
+    // TODO: Fill the empty part of the
+    // uint16_t fill = value
+    // for(uint8_t i = 0; i < (16 - bits) / bits)
+    // {
 
-        // }
-    }
+    // }
+  }
 
-    // uint8_t to14bits(){return value >> 2;}
-    // uint8_t to12bits(){return value >> 4;}
-    // uint8_t to10bits(){return value >> 6;}
-    uint8_t to8bits(){return value >> 8;}
-    uint8_t to7bits(){return value >> 9;}
-    
-    operator bool() {return value > 0;}
-    operator uint8_t() {return to8bits();}
-    operator uint16_t() {return value;}
-    operator uint32_t() {return value;}
-    operator float() {return (float)value / UINT16_MAX;}
-    operator int() {return value;}
+  // uint8_t to14bits(){return value >> 2;}
+  // uint8_t to12bits(){return value >> 4;}
+  // uint8_t to10bits(){return value >> 6;}
+  uint8_t to8bits() { return value >> 8; }
+  uint8_t to7bits() { return value >> 9; }
 
-    bool operator <(int value) {return this->value < value;}
-    bool operator <(Fract16 value) {return this->value < (uint16_t)value;}
+  operator bool() { return value > 0; }
+  operator uint8_t() { return to8bits(); }
+  operator uint16_t() { return value; }
+  operator uint32_t() { return value; }
+  operator float() { return (float)value / UINT16_MAX; }
+  operator int() { return value; }
 
-    bool operator <=(int value) {return this->value <= value;}
-    bool operator <=(Fract16 value) {return this->value <= (uint16_t)value;}
+  bool operator<(int value) { return this->value < value; }
+  bool operator<(Fract16 value) { return this->value < (uint16_t)value; }
 
-    bool operator >(int value) {return this->value > value;}
-    bool operator >(Fract16 value) {return this->value > (uint16_t)value;}
+  bool operator<=(int value) { return this->value <= value; }
+  bool operator<=(Fract16 value) { return this->value <= (uint16_t)value; }
 
-    bool operator >=(int value) {return this->value >= value;}
-    bool operator >=(Fract16 value) {return this->value >= (uint16_t)value;}
+  bool operator>(int value) { return this->value > value; }
+  bool operator>(Fract16 value) { return this->value > (uint16_t)value; }
 
-    bool operator ==(int value) {return this->value == value;}
-    bool operator ==(Fract16 value) {return this->value == (uint16_t)value;}
+  bool operator>=(int value) { return this->value >= value; }
+  bool operator>=(Fract16 value) { return this->value >= (uint16_t)value; }
 
-    bool operator !=(int value) {return this->value != value;}
-    bool operator !=(Fract16 value) {return this->value != (uint16_t)value;}
+  bool operator==(int value) { return this->value == value; }
+  bool operator==(Fract16 value) { return this->value == (uint16_t)value; }
+
+  bool operator!=(int value) { return this->value != value; }
+  bool operator!=(Fract16 value) { return this->value != (uint16_t)value; }
 };

@@ -14,11 +14,10 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS ExampleAPP
 
-class ExampleAPP : public Application
-{   
-    public:
-    void Setup() override;
-    void Loop() override;
+class ExampleAPP : public Application {
+ public:
+  void Setup() override;
+  void Loop() override;
 };
 
 #include "applications/RegisterApplication.h"

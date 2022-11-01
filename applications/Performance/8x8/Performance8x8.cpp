@@ -206,13 +206,13 @@ void Performance::ActionMenu() {
   UIButtonDimmable menuLockBtn(
       "Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));  // Current the currentKeymap is directly linked to
-                                                         // compatibilityMode. Do we really need > 2 keymap tho?
+                                                        // compatibilityMode. Do we really need > 2 keymap tho?
 
   UIButtonDimmable flickerReductionBtn(
       "Flicker Reduction", Color(0xAAFF00), [&]() -> bool { return stfu; },
       [&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
   actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));  // Current the currentKeymap is directly linked to
-                                                                 // compatibilityMode. Do we really need > 2 keymap tho?
+                                                                // compatibilityMode. Do we really need > 2 keymap tho?
 
   UIButtonDimmable compatibilityModeBtn(
       "Compatibility Mode", Color(0xFFFF00), [&]() -> bool { return compatibilityMode; },
@@ -224,8 +224,8 @@ void Performance::ActionMenu() {
         notePad.SetMap((uint8_t*)note_pad_map[currentKeymap]);
       });
   actionMenu.AddUIComponent(compatibilityModeBtn, Point(7, 0));  // Current the currentKeymap is directly linked to
-                                                                  // compatibilityMode. Do we really need > 2 keymap
-                                                                  // tho?
+                                                                 // compatibilityMode. Do we really need > 2 keymap
+                                                                 // tho?
 
   actionMenu.AddFuncKeyHold([&]() -> void { Exit(); });
   actionMenu.SetLoopFunc([&]() -> void { GetMidi(); });

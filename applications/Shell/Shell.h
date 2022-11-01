@@ -11,18 +11,17 @@
 #define APPLICATION_CLASS Shell
 #define APPLICATION_VISIBLITY false
 
-class Shell : public Application
-{
-    string name = "Matrix OS Shell";
-    string author = "203 Electronics";
-    uint32_t version = 10000;
+class Shell : public Application {
+  string name = "Matrix OS Shell";
+  string author = "203 Electronics";
+  uint32_t version = 10000;
 
-    uint8_t current_page = 0;
+  uint8_t current_page = 0;
 
-    void Loop() override;
+  void Loop() override;
 
-    void AddCommonBarInUI(UI* ui);
-    void ApplicationLauncher();
+  void AddCommonBarInUI(UI* ui);
+  void ApplicationLauncher();
 };
 
 #include "applications/RegisterApplication.h"

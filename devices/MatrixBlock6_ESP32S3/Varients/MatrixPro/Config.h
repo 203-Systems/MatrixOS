@@ -1,4 +1,4 @@
-//Define Device Specific Macro, Value and private function
+// Define Device Specific Macro, Value and private function
 #pragma once
 
 #define GRID_8x8
@@ -6,7 +6,7 @@
 
 #define DEVICE_BATTERY
 
-#define MULTIPRESS 10 //Key Press will be process at once
+#define MULTIPRESS 10  // Key Press will be process at once
 // #define LC8812
 
 #include "Family.h"
@@ -16,118 +16,109 @@
 #define FACTORY_MFG_YEAR 22
 #define FACTORY_MFG_MONTH 06
 
-struct DeviceInfo
-{
-    char DeviceCode[4];
-    char Revision[4];
-    uint8_t ProductionYear;
-    uint8_t ProductionMonth;
+struct DeviceInfo {
+  char DeviceCode[4];
+  char Revision[4];
+  uint8_t ProductionYear;
+  uint8_t ProductionMonth;
 };
 
 namespace Device
 {
-    inline DeviceInfo deviceInfo;
-    const string name = "Matrix Pro";
-    const string model = "MX1P";
+  inline DeviceInfo deviceInfo;
+  const string name = "Matrix Pro";
+  const string model = "MX1P";
 
-    const string manufaturer_name = "203 Electronics";
-    const string product_name = "Matrix";
-    const uint16_t usb_vid = 0x0203; 
-    const uint16_t usb_pid = 0x1040; //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
+  const string manufaturer_name = "203 Electronics";
+  const string product_name = "Matrix";
+  const uint16_t usb_vid = 0x0203;
+  const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
-    const uint16_t numsOfLED = 64 + 32;
-    inline uint16_t keypad_scanrate = 120;
-    inline uint16_t touchbar_scanrate = 60;
-    const uint8_t x_size = 8;
-    const uint8_t y_size = 8;
-    const uint8_t touchbar_size = 16; //Not required by the API, private use.
+  const uint16_t numsOfLED = 64 + 32;
+  inline uint16_t keypad_scanrate = 120;
+  inline uint16_t touchbar_scanrate = 60;
+  const uint8_t x_size = 8;
+  const uint8_t y_size = 8;
+  const uint8_t touchbar_size = 16;  // Not required by the API, private use.
 
-    namespace KeyPad
-    {
-        inline bool FSR;
+  namespace KeyPad
+  {
+    inline bool FSR;
 
-        inline gpio_num_t fn_pin;
-        inline bool fn_active_low = true;
+    inline gpio_num_t fn_pin;
+    inline bool fn_active_low = true;
 
-        inline KeyConfig fn_config = 
-        {
-            .FSR = false,
-            .low_threshold = 0,
-            .high_threshold = 65535,
-            .debounce = 0,
-        };
-    
-        inline KeyConfig keypad_config = 
-        {
-            .FSR = true,
-            .low_threshold = 1024,
-            .high_threshold = 65535,
-            .debounce = 5,
-        };
-
-        inline KeyConfig touch_config = 
-        {
-            .FSR = false,
-            .low_threshold = 0,
-            .high_threshold = 65535,
-            .debounce = 0,
-        };
-
-        inline gpio_num_t keypad_write_pins[8];
-        inline gpio_num_t keypad_read_pins[8];
-        inline adc1_channel_t keypad_read_adc_channel[8];
-
-        inline gpio_num_t touchData_Pin;
-        inline gpio_num_t touchClock_Pin;
-        inline uint8_t touchbar_map[touchbar_size]; //Touch number as index and touch location as value (Left touch down and then right touch down)
-
-        inline KeyInfo fnState;
-        inline KeyInfo keypadState[x_size][y_size];
-        inline KeyInfo touchbarState[touchbar_size];
-
-        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
-        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
-        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
-        inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
-
-        inline void LoadCustomSettings()
-        {
-            if(keypad_custom_setting)
-            {
-                if(keypad_low_threshold == 0) //Can't be lower than 1
-                {
-                    keypad_low_threshold = 1;
-                }
-                keypad_config.low_threshold = keypad_low_threshold;
-                keypad_config.high_threshold = keypad_high_threshold;
-                keypad_config.debounce = keypad_debounce;
-            }
-            else
-            {
-                keypad_low_threshold = keypad_config.low_threshold;
-                keypad_high_threshold = keypad_config.high_threshold;
-                keypad_debounce = keypad_config.debounce;
-            }
-        }
-    }
-
-    //LED
-    #define MAX_LED_LAYERS 5
-    inline gpio_num_t led_pin;
-    inline uint16_t fps = 120; //Depends on the FreeRTOS tick speed
-    inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168}; 
-    #define FINE_LED_BRIGHTNESS
-    inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 170, 198, 232, 255};
-    inline uint8_t led_chunk_count = 2;
-    inline ws2812_chunk led_chunk[2] = {
-        {64, Color(0xFFFFFF), 1.0},
-        {32, Color(0xFFFFFF), 1.5}
+    inline KeyConfig fn_config = {
+        .FSR = false,
+        .low_threshold = 0,
+        .high_threshold = 65535,
+        .debounce = 0,
     };
-    // const Dimension grid_size(8,8);
-    // const Point grid_offset = Point(1,1);
 
-    //Load Device config
-    void LoadV100();
-    void LoadV110();
-    void LoadKeypadSetting();
+    inline KeyConfig keypad_config = {
+        .FSR = true,
+        .low_threshold = 1024,
+        .high_threshold = 65535,
+        .debounce = 5,
+    };
+
+    inline KeyConfig touch_config = {
+        .FSR = false,
+        .low_threshold = 0,
+        .high_threshold = 65535,
+        .debounce = 0,
+    };
+
+    inline gpio_num_t keypad_write_pins[8];
+    inline gpio_num_t keypad_read_pins[8];
+    inline adc1_channel_t keypad_read_adc_channel[8];
+
+    inline gpio_num_t touchData_Pin;
+    inline gpio_num_t touchClock_Pin;
+    inline uint8_t touchbar_map[touchbar_size];  // Touch number as index and touch location as value (Left touch down
+                                                 // and then right touch down)
+
+    inline KeyInfo fnState;
+    inline KeyInfo keypadState[x_size][y_size];
+    inline KeyInfo touchbarState[touchbar_size];
+
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
+
+    inline void LoadCustomSettings() {
+      if (keypad_custom_setting)
+      {
+        if (keypad_low_threshold == 0)  // Can't be lower than 1
+        { keypad_low_threshold = 1; }
+        keypad_config.low_threshold = keypad_low_threshold;
+        keypad_config.high_threshold = keypad_high_threshold;
+        keypad_config.debounce = keypad_debounce;
+      }
+      else
+      {
+        keypad_low_threshold = keypad_config.low_threshold;
+        keypad_high_threshold = keypad_config.high_threshold;
+        keypad_debounce = keypad_config.debounce;
+      }
+    }
+  }
+
+// LED
+#define MAX_LED_LAYERS 5
+  inline gpio_num_t led_pin;
+  inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
+  inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 128, 168};
+#define FINE_LED_BRIGHTNESS
+  inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 170, 198, 232, 255};
+  inline uint8_t led_chunk_count = 2;
+  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 1.5}};
+  // const Dimension grid_size(8,8);
+  // const Point grid_offset = Point(1,1);
+
+  // Load Device config
+  void LoadV100();
+  void LoadV110();
+  void LoadKeypadSetting();
 }
