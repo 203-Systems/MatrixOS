@@ -1,4 +1,5 @@
 #pragma once
+#include "Types.h"
 
 const uint32_t FNV_PRIME = 16777619u;
 const uint32_t FNV_OFFSET_BASIS = 2166136261u;

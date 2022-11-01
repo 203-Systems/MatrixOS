@@ -1,4 +1,5 @@
 #pragma once
+#include "Point.h"
 #include "Direction.h"
 
 class Dimension {

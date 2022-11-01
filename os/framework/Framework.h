@@ -1,17 +1,26 @@
 #pragma once
 
-//Order matters atm, do not fuck around
+//Custom Data Type
 #include "Types.h"
-#include "Utilts.h"
-#include "Color.h"
+#include "Fract16.h"
 #include "Point.h"
-#include "Dimension.h"
-#include "KeyEvent.h"
-#include "Timer.h"
-#include "MidiPacket.h"
-#include "MidiPort.h"
-#include "MidiSpecs.h"
 #include "Direction.h"
-#include "Hash.h"
+#include "Dimension.h"
+#include "Color.h"
 #include "LogLevel.h"
+
+//Custom Data Struct
+#include "KeyEvent.h"
+#include "MidiPacket.h"
+
+//Defination
+#include "MidiSpecs.h"
+
+//Helper Classes 
+#include "Timer.h" 
+#include "Utilts.h"
+#include "Hash.h"
+
+//OS Component
+#include "MidiPort.h"
 #include "SavedVariable.h"
