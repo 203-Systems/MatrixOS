@@ -10,6 +10,7 @@
 			"/k",
 			"C:/Espressif/frameworks/esp-idf-v4.4/export.bat"
 		],
+		"editor.formatOnType": true,
 		"files.associations": {
 			"*.mk": "makefile",
 			"stm32f1xx_hal.h": "c",
@@ -108,7 +109,8 @@
 			"resumable": "cpp",
 			"xthread": "cpp",
 			"cstdbool": "cpp",
-			"forward_list": "cpp"
+			"forward_list": "cpp",
+			"format": "cpp"
 		}
 	}
 }
