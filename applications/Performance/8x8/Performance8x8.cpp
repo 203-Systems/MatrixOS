@@ -10,6 +10,14 @@ void Performance::Setup() {
 void Performance::Loop() {
   if (stfuTimer.Tick(10))
   { stfuScan(); }
+
+  struct KeyEvent keyEvent;
+  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  { KeyEvent(keyEvent.id, &keyEvent.info); }
+
+  struct MidiPacket midiPacket;
+  while (MatrixOS::MIDI::Get(&midiPacket))
+  { MidiEvent(midiPacket); }
 }
 
 void Performance::MidiEvent(MidiPacket midiPacket) {
@@ -228,7 +236,11 @@ void Performance::ActionMenu() {
                                                                  // tho?
 
   actionMenu.AddFuncKeyHold([&]() -> void { Exit(); });
-  actionMenu.SetLoopFunc([&]() -> void { GetMidi(); });
+  actionMenu.SetLoopFunc([&]() -> void { 
+      struct MidiPacket midiPacket;
+      while (MatrixOS::MIDI::Get(&midiPacket))
+      { MidiEvent(midiPacket); }
+  });
 
   actionMenu.Start();
 

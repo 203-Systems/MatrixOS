@@ -1,11 +1,13 @@
 #pragma once
 // #ifdef GRID_8x8
 
+// This technically not an APP but a UI so it coexists with an active APP.
+
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
 class Setting : public UI {
- public:
+  public:
   // string name = "Setting";
   // Color nameColor = Color(0x00FFFF);
 
@@ -19,6 +21,6 @@ class Setting : public UI {
 
   bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) override;
 
- private:
+  private:
   uint8_t konami = 0;
 };

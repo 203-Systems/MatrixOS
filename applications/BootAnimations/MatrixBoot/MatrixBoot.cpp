@@ -13,10 +13,10 @@ void MatrixBoot::Setup() {
 }
 
 bool MatrixBoot::Idle(bool ready) {
+  uint8_t step = counter % 12;
   if (timer.Tick(80))
   {
     MatrixOS::LED::Fill(0);
-    uint8_t step = counter % 12;
     const Color local_color = Color(MATRIX_BOOT_IDLE, MATRIX_BOOT_IDLE, MATRIX_BOOT_IDLE);
     if (step <= 3)
     {
@@ -32,10 +32,8 @@ bool MatrixBoot::Idle(bool ready) {
     }
     MatrixOS::LED::Update();
     counter++;
-    if (step > 6)
-      return false;
   }
-  return true;
+  return step > 6 && ready;
 }
 
 void MatrixBoot::Boot() {

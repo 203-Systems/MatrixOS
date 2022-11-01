@@ -197,6 +197,7 @@ namespace MatrixOS::SYS
   }
 
   void ExitAPP() {
+    active_app->~Application();
     uint32_t app_id = next_app;
     next_app = 0;
     ExecuteAPP(app_id);

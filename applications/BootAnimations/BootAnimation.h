@@ -7,9 +7,12 @@ class BootAnimation : public Application {
  public:
   void Loop() override;
 
+  uint8_t stage = 0;
+  bool idle_hold = false;
+
   virtual bool Idle(bool ready) {
-    return false;
-  };  // return true will keep render idle animation even when device is ready
+    return true;
+  };  // return true will signal the Boot Animation to enter Boot Animation
   virtual void Boot(){};
 
   virtual void End(){};

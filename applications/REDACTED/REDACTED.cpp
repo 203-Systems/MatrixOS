@@ -81,6 +81,10 @@ void REDACTED::Loop() {
     Task2();
   if (complete && complete2)
     Exit();
+
+  struct KeyEvent keyEvent;
+  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  { KeyEvent(keyEvent.id, &keyEvent.info); }
 }
 
 void REDACTED::End() {

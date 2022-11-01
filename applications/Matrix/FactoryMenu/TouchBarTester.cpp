@@ -8,7 +8,6 @@ void FactoryMenu::TouchBarTester() {
   Device::touchbar_enable.TempSet(true);
   while (!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())  // TODO Factor in the rotation or limit rotation
   {
-    LoopTask();
     // Left
     for (uint8_t i = 0; i < 8; i++)
     {

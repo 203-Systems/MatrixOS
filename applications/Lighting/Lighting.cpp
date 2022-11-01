@@ -5,10 +5,12 @@ void Lighting::Setup() {
   MatrixOS::LED::Update();
 }
 
-// void Lighting::Loop()
-// {
-
-// }
+void Lighting::Loop()
+{
+  struct KeyEvent keyEvent;
+  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  { KeyEvent(keyEvent.id, &keyEvent.info); }
+}
 
 void Lighting::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == FUNCTION_KEY)

@@ -1,10 +1,5 @@
 #include "Shell.h"
 
-// void Shell::main()
-// {
-//     return;
-// }
-
 void Shell::Loop() {
   switch (current_page)
   {

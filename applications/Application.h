@@ -39,12 +39,4 @@ class Application {
   virtual void End(){};
 
   void Exit();
-
-  void LoopTask();
-
-  void GetKey();
-  virtual void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo){};
-
-  void GetMidi();
-  virtual void MidiEvent(MidiPacket midiPacket){};
 };

@@ -1,17 +1,21 @@
 #include "BootAnimation.h"
 
 void BootAnimation::Loop() {
-  bool idle_hold = false;
-  while (!MatrixOS::USB::Connected() || idle_hold)
+  switch(stage)
   {
-    LoopTask();
-    idle_hold = Idle(MatrixOS::USB::Connected());
+    case 0:
+      if(Idle(MatrixOS::USB::Connected())) {stage++;}
+      break;
+    case 1:
+      Boot();
+      break;
+    default:
+      Exit();
   }
-  while (true)
-  {
-    LoopTask();
-    Boot();
-  }
+
+  struct KeyEvent keyEvent;
+  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  { KeyEvent(keyEvent.id, &keyEvent.info); }
 }
 
 void BootAnimation::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {

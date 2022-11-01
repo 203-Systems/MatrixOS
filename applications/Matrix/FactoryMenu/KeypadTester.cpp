@@ -5,7 +5,6 @@ void FactoryMenu::KeyPadTester() {
   MatrixOS::LED::Fill(0);
   while (!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())  // Break when fn pressed
   {
-    LoopTask();
     for (uint8_t x = 0; x < Device::x_size; x++)
     {
       for (uint8_t y = 0; y < Device::y_size; y++)
