@@ -32,7 +32,6 @@ void UI::Exit()
 void UI::LoopTask()
 {
     GetKey();
-    // GetMidi();
 }
 
 void UI::RenderUI()
@@ -167,16 +166,4 @@ void UI::UIEnd()
     }
 
     // MatrixOS::LED::Update();
-
-    // Free up heap
-    vector<UIComponent*> deletedComponents; //Pervent pointer is deleted twice
-    deletedComponents.reserve(uiComponentMap.size());
-    for (auto const &uiComponentPair : uiComponentMap)
-    {
-        if(std::find(deletedComponents.begin(), deletedComponents.end(), uiComponentPair.second) == deletedComponents.end())
-        {
-            deletedComponents.push_back(uiComponentPair.second);
-            delete uiComponentPair.second;
-        }
-    }
 }

@@ -15,9 +15,19 @@ void Shell::Loop()
     }
 }
 
+std::vector<UIButton> commonBarBtns; //Because the UI in the common bar need to exist after the function ends
 void Shell::AddCommonBarInUI(UI* ui)
 {
-    ui->AddUIComponent(new UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {if(current_page != 0) {current_page = 0; ui->Exit();}}), Point(0, 7));
+  commonBarBtns.clear();
+  commonBarBtns.reserve(2); //Make sure to change this after adding more stuffs, if vector content got relocated, UI will not be able to find it and will hardfault!
+  commonBarBtns.push_back(UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {
+    if (current_page != 0)
+    {
+      current_page = 0;
+      ui->Exit();
+    }
+  }));
+  ui->AddUIComponent(commonBarBtns.back(), Point(0, 7));
 
     #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG //Logging Mode Indicator
         #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFBF00)
@@ -26,8 +36,11 @@ void Shell::AddCommonBarInUI(UI* ui)
     #else
         #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
     #endif
-    ui->AddUIComponent(new UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR, [&]() -> void {MatrixOS::SYS::OpenSetting();}), Point(7, 7));
-    ui->AllowExit(false); //So nothing happens
+
+  commonBarBtns.push_back(UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR,
+                                  [&]() -> void { MatrixOS::SYS::OpenSetting(); }));
+  ui->AddUIComponent(commonBarBtns.back(), Point(7, 7));
+  ui->AllowExit(false);  // So nothing happens
 }
     
 namespace MatrixOS::SYS{void ExecuteAPP(uint32_t app_id); uint16_t GetApplicationCount();} //Use non exposed Matrix OS API
@@ -42,24 +55,29 @@ void Shell::ApplicationLauncher()
     uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
     MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
 
-    uint16_t rendered_app_count = 0;
-    for(uint8_t i = 0; i < app_count; i++) //I don't like the for loop but tbh there's nothing wrong with it.
+    uint16_t visable_app_count = 0;
+    for(uint8_t i = 0; i < app_count; i++)
+    { 
+        if(applications[i]->visibility) {visable_app_count ++;}
+    }
+
+    std::vector<UIButton> appBtns;
+    appBtns.reserve(visable_app_count);
+    for(uint8_t i = 0; i < app_count; i++)
     { 
         if(applications[i]->visibility)
         {
-            uint8_t x = rendered_app_count % 8; 
-            uint8_t y = rendered_app_count / 8;
+            uint8_t x = appBtns.size() % 8; 
+            uint8_t y = appBtns.size() / 8;
 
             uint32_t app_id = applications[i]->id;
             string app_name = applications[i]->name;
             Color app_color = applications[i]->color;
 
-            applicationLauncher.AddUIComponent(new UIButton(app_name, 
-                                    app_color, 
-                                    [&, app_id]() -> void {MatrixOS::SYS::ExecuteAPP(app_id);}), 
-                                    Point(x, y));
-            MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", rendered_app_count, applications[i]->author.c_str(), applications[i]->name.c_str());
-            rendered_app_count ++;
+            appBtns.push_back(UIButton(app_name, app_color,
+                                       [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
+            applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
+            MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, applications[i]->author.c_str(), applications[i]->name.c_str());
         }
         else
         {
