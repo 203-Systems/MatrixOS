@@ -1,4 +1,4 @@
-# For ESP32, sources in the Device/family.cmake and Varitents/CbameLists.txt need to be modified.
+# For ESP32, sources in the Device/family.cmake and Variants/CmameLists.txt need to be modified.
 
 FREERTOS_SRC = lib/FreeRTOS-Kernel
 
@@ -6,8 +6,8 @@ FREERTOS_SRC = lib/FreeRTOS-Kernel
 # Code Include
 # ---------------------------------------
 INC += \
-	os/usb \
 	os \
+	os/system/USB \
 	devices \
 	lib/tinyusb/src \
 	lib/printf/src \

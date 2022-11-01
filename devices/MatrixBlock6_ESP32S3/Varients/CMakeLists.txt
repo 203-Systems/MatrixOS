@@ -68,7 +68,7 @@ target_include_directories(${COMPONENT_TARGET} PUBLIC
   "${CMAKE_SOURCE_DIR}/core/esp32s3"
   "${CMAKE_SOURCE_DIR}/Devices"
   "${CMAKE_SOURCE_DIR}/os"
-  "${CMAKE_SOURCE_DIR}/os/usb"
+  "${CMAKE_SOURCE_DIR}/os/system/USB"
   "${CMAKE_SOURCE_DIR}/lib/tinyusb/src"
   "${CMAKE_SOURCE_DIR}/lib/printf/src"
   "${TINYUSB}/hw"

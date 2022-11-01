@@ -11,7 +11,6 @@
 #include "task.h"
 #include "timers.h"
 #include "tusb.h"
-#include "usb/MidiSpecs.h"
 
 #define noexpose  // Custum keyword to remove function to be generated as exposed API
 

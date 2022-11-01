@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include "usb/MidiSpecs.h"
+#include "MidiSpecs.h"
 // #include "esp_log.h"
 
 enum EMidiStatus : uint8_t {
