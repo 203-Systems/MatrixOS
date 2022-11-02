@@ -84,7 +84,7 @@ void REDACTED::Loop() {
 
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
-  { KeyEvent(keyEvent.id, &keyEvent.info); }
+  { KeyEventHandler(&keyEvent); }
 }
 
 void REDACTED::End() {
@@ -96,8 +96,8 @@ void REDACTED::End() {
   MatrixOS::LED::Update();
 }
 
-void REDACTED::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == 0 && keyInfo->state == PRESSED)
+void REDACTED::KeyEventHandler(KeyEvent* keyEvent) {
+  if (keyEvent->id == 0 && keyEvent->info.state == PRESSED)
   {
     Exit();
     return;

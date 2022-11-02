@@ -50,34 +50,25 @@ void UI::GetKey() {
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   {
     // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
-    bool action = KeyEvent(keyEvent.id, &keyEvent.info);
-    if (!action)
-      UIKeyEvent(keyEvent.id, &keyEvent.info);
+    if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
+      UIKeyEvent(&keyEvent);
     else
       MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", keyEvent.id);
   }
 }
 
-void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
+void UI::UIKeyEvent(KeyEvent* keyEvent) {
   // MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo->state);
-  if (keyID == FUNCTION_KEY)
+  if (keyEvent->id == FUNCTION_KEY)
   {
-    if (!disableExit && keyInfo->state == ((func_hold_callback == nullptr) ? PRESSED : RELEASED))
+    if (!disableExit && keyEvent->info.state == PRESSED)
     {
       MatrixOS::Logging::LogDebug("UI", "Function Key Exit");
       Exit();
       return;
     }
-
-    if (keyInfo->state == HOLD && func_hold_callback)
-    {
-      MatrixOS::Logging::LogDebug("UI", "Function Hold");
-      (*func_hold_callback)();
-      MatrixOS::KEYPAD::Clear();
-      return;
-    }
   }
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+  Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
   if (xy)
   {
     // MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
@@ -87,9 +78,9 @@ void UI::UIKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
       Point relative_xy = xy - uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       if (uiComponent->GetSize().Inside(relative_xy))  // Key Found
-      { hasAction |= uiComponent->KeyEvent(relative_xy, keyInfo); }
+      { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
     }
-    if (hasAction == false && keyInfo->state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
+    if (hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
     { MatrixOS::UIInterface::TextScroll(this->name, this->nameColor); }
   }
 }
@@ -124,8 +115,8 @@ void UI::SetEndFunc(std::function<void()> end_func) {
   UI::end_func = &end_func;
 }
 
-void UI::AddFuncKeyHold(std::function<void()> callback) {
-  UI::func_hold_callback = &callback;
+void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler){
+  UI::key_event_handler = &key_event_handler;
 }
 
 void UI::ClearUIComponents() {

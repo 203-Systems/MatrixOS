@@ -8,8 +8,8 @@
 #include "system/Parameters.h"
 #include "Types.h"
 
-#define KEY_INFO_THRESHOLD \
-  512  // 1/127 - Key Velocity has to move beyond this range in order for after touch to be triggered
+#define KEY_INFO_THRESHOLD 512  
+// 1/127 - Key Velocity has to move beyond this range in order for after touch to be triggered
 
 // Avoid recuesive include
 namespace MatrixOS::SYS

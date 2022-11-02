@@ -13,14 +13,14 @@ void Performance::Loop() {
 
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
-  { KeyEvent(keyEvent.id, &keyEvent.info); }
+  { KeyEventHandler(keyEvent.id, &keyEvent.info); }
 
   struct MidiPacket midiPacket;
   while (MatrixOS::MIDI::Get(&midiPacket))
-  { MidiEvent(midiPacket); }
+  { MidiEventHandler(midiPacket); }
 }
 
-void Performance::MidiEvent(MidiPacket midiPacket) {
+void Performance::MidiEventHandler(MidiPacket midiPacket) {
   // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d %d", midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
@@ -128,7 +128,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   }
 }
 
-void Performance::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {
+void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
   Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
   if (xy)  // IF XY is vaild, means it's on the main grid
   { GridKeyEvent(xy, keyInfo); }
@@ -234,13 +234,23 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(compatibilityModeBtn, Point(7, 0));  // Current the currentKeymap is directly linked to
                                                                  // compatibilityMode. Do we really need > 2 keymap
                                                                  // tho?
-
-  actionMenu.AddFuncKeyHold([&]() -> void { Exit(); });
-  actionMenu.SetLoopFunc([&]() -> void { 
+  actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
       struct MidiPacket midiPacket;
       while (MatrixOS::MIDI::Get(&midiPacket))
-      { MidiEvent(midiPacket); }
+      { MidiEventHandler(midiPacket); }
   });
+
+  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
+    if(keyEvent->id == FUNCTION_KEY)
+    {
+      if(keyEvent->info.state == HOLD)
+      { Exit(); }
+      else if(keyEvent->info.state == RELEASED)
+      { actionMenu.Exit(); }
+      return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+    }
+    return false;
+   });
 
   actionMenu.Start();
 

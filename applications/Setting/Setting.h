@@ -13,13 +13,12 @@ class Setting : public UI {
 
   const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
 
-  void Setup() override;
-  // void End() override;
+  void Start();
 
   static void RotateClockwise(EDirection rotation);
   static void NextBrightness();
 
-  bool KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) override;
+  bool CustomKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
 
   private:
   uint8_t konami = 0;

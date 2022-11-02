@@ -3,7 +3,6 @@
 #include "MatrixOS.h"
 #include "applications/Application.h"
 #include "UI/UI.h"
-#include "framework/Hash.h"
 
 #include "UINotePad.h"
 
@@ -39,12 +38,12 @@ class Performance : public Application {
   Point NoteToXY(uint8_t note);
   int8_t XYToNote(Point xy);
 
-  void MidiEvent(MidiPacket midiPacket);
+  void MidiEventHandler(MidiPacket midiPacket);
   void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
   // void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity);
   // void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity);
 
-  void KeyEvent(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
 
   void GridKeyEvent(Point xy, KeyInfo* KeyInfo);
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);

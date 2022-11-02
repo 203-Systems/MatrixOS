@@ -1,7 +1,7 @@
 #include "Setting.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
-void Setting::Setup() {
+void Setting::Start() {
   // TODO: Let's assume all dimension are even atm. (No device with odd dimension should exist. Srsly why does Samson
   // Conspiracy exists?) Also assume at least 4x4
 
@@ -70,65 +70,67 @@ void Setting::Setup() {
 #ifdef DEVICE_SETTING
 #include "DeviceSetting.h"
 #endif
+
+  UI::Start();
 }
 
-bool Setting::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {
-  Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
+// bool Setting::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {
+//   Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
 
-  if (xy && keyInfo->state == RELEASED)  // IF XY is vaild, means it's on the main grid
-  {
-    if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
-    {
-      konami++;
-      MatrixOS::Logging::LogDebug("Konami", "Up prssed, %d", konami);
-      return false;
-    }
-    else if ((konami == 2 || konami == 3) && (xy == origin + Point(0, 2) || xy == origin + Point(1, 2)))
-    {
-      konami++;
-      MatrixOS::Logging::LogDebug("Konami", "Down prssed, %d", konami);
-      return true;
-    }
-    else if ((konami == 4 || konami == 6) && (xy == origin + Point(-1, 0) || xy == origin + Point(-1, 1)))
-    {
-      konami++;
-      MatrixOS::Logging::LogDebug("Konami", "Left prssed, %d", konami);
-      return true;
-    }
-    else if ((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(2, 1)))
-    {
-      konami++;
-      MatrixOS::Logging::LogDebug("Konami", "Right prssed, %d", konami);
-      if (konami == 8)
-      {
-        UI ab("A & B", Color(0xFF0000));
+//   if (xy && keyInfo->state == RELEASED)  // IF XY is vaild, means it's on the main grid
+//   {
+//     if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
+//     {
+//       konami++;
+//       MatrixOS::Logging::LogDebug("Konami", "Up prssed, %d", konami);
+//       return false;
+//     }
+//     else if ((konami == 2 || konami == 3) && (xy == origin + Point(0, 2) || xy == origin + Point(1, 2)))
+//     {
+//       konami++;
+//       MatrixOS::Logging::LogDebug("Konami", "Down prssed, %d", konami);
+//       return true;
+//     }
+//     else if ((konami == 4 || konami == 6) && (xy == origin + Point(-1, 0) || xy == origin + Point(-1, 1)))
+//     {
+//       konami++;
+//       MatrixOS::Logging::LogDebug("Konami", "Left prssed, %d", konami);
+//       return true;
+//     }
+//     else if ((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(2, 1)))
+//     {
+//       konami++;
+//       MatrixOS::Logging::LogDebug("Konami", "Right prssed, %d", konami);
+//       if (konami == 8)
+//       {
+//         UI ab("A & B", Color(0xFF0000));
 
-        UIButtonLarge aBtn("A", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
-          if (konami == 9)
-            MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED");
-          else
-            ab.Exit();
-        });
-        ab.AddUIComponent(aBtn, origin + Point(-2, 0));
+//         UIButtonLarge aBtn("A", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
+//           if (konami == 9)
+//             MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED");
+//           else
+//             ab.Exit();
+//         });
+//         ab.AddUIComponent(aBtn, origin + Point(-2, 0));
 
-        UIButtonLarge bBtn("B", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
-          if (konami == 8)
-            konami++;
-          else
-            ab.Exit();
-        });
-        ab.AddUIComponent(bBtn, origin + Point(2, 0));
+//         UIButtonLarge bBtn("B", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
+//           if (konami == 8)
+//             konami++;
+//           else
+//             ab.Exit();
+//         });
+//         ab.AddUIComponent(bBtn, origin + Point(2, 0));
 
-        ab.Start();
-      }
-      return true;
-    }
-    else
-    {
-      MatrixOS::Logging::LogDebug("Konami", "Cleared");
-      konami = 0;
-      return false;
-    }
-  }
-  return false;
-}
+//         ab.Start();
+//       }
+//       return true;
+//     }
+//     else
+//     {
+//       MatrixOS::Logging::LogDebug("Konami", "Cleared");
+//       konami = 0;
+//       return false;
+//     }
+//   }
+//   return false;
+// }
