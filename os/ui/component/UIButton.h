@@ -1,5 +1,5 @@
 #pragma once
-#include "UIComponent.h"
+#include "../UIInterfaces.h"
 
 class UIButton : public UIComponent {
  public:

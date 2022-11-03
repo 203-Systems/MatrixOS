@@ -1,5 +1,6 @@
 #include "Device.h"
 #include "MatrixOS.h"
+#include "ui/UI.h"
 
 namespace Device
 {

@@ -6,7 +6,8 @@
 #include <list>
 #include <map>
 #include <stdarg.h>
-#include "Component/UIComponents.h"
+#include "UIComponents.h"
+#include "UIInterfaces.h"
 
 class UI {
  public:
@@ -25,7 +26,7 @@ class UI {
   std::function<void()>* render_func = nullptr;
   std::function<void()>* end_func = nullptr;
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
-  
+
   UI(){};
   UI(string name, Color color, bool newLedLayer = false);
 
