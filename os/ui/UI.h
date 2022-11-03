@@ -28,7 +28,7 @@ class UI {
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
   UI(){};
-  UI(string name, Color color, bool newLedLayer = false);
+  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = false);
 
   void Start();
 
