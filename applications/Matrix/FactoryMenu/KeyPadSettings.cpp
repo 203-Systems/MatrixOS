@@ -26,7 +26,7 @@ void FactoryMenu::KeyPadSettings() {
 
   UIButtonWithColorFunc keypadLowThresholdCtrl(
       "Keypad Low Threshold",
-      [&]() -> Color { return Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive) ? Color(0xFFFFFF) : Color(0x000000); },
+      [&]() -> Color { return Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive ? Color(0xFFFFFF) : Color(0x400000); },
       [&]() -> void {
         if (Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive)
         {
@@ -42,7 +42,7 @@ void FactoryMenu::KeyPadSettings() {
 
   UIButtonWithColorFunc keypadHighThresholdCtrl(
       "Keypad High Threshold",
-      [&]() -> Color { return Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive) ? Color(0xFFFFFF) : Color(0x000000); },
+      [&]() -> Color { return Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive ? Color(0xFFFFFF) : Color(0x400000); },
       [&]() -> void {
         if (Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive)
         {
@@ -59,9 +59,9 @@ void FactoryMenu::KeyPadSettings() {
 
   UIButtonWithColorFunc keypadDebounceCtrl(
       "Keypad Debounce (ms)",
-      [&]() -> Color { return Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive) ? Color(0xFFFFFF) : Color(0x000000); },
+      [&]() -> Color { return Device::KeyPad::keypad_custom_setting ? Color(0xFFFFFF) : Color(0x000000); },
       [&]() -> void {
-        if (Device::KeyPad::keypad_custom_setting && Device::KeyPad::keypad_velocity_sensitive)
+        if (Device::KeyPad::keypad_custom_setting)
         {
           Device::KeyPad::keypad_debounce =
               MatrixOS::UIInterface::NumberSelector8x8((uint16_t)Device::KeyPad::keypad_debounce.Get(), 0x00FFFF,
