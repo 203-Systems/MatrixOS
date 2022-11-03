@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define COLOR_LOW_STATE_SCALE 75  // 30% ish brightness
+#define COLOR_LOW_STATE_SCALE 40
 
 class Color {
  public:
