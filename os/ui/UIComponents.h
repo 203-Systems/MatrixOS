@@ -9,3 +9,5 @@
 #include "component/UINumModifier.h"
 
 #include "component/UI4pxNumber.h"
+
+#include "component/UISelector.h"
