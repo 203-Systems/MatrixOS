@@ -2,7 +2,28 @@
 #include "ScaleVisualizer.h"
 
 void Note::Setup() {
-  ActionMenu();
+  UI actionMenu("Action Menu", Color(0x00FFFF));
+
+  ScaleVisualizer scaleVisualizer(&configs[activeConfig].rootKey, &configs[activeConfig].scale, configs[activeConfig].color, configs[activeConfig].rootColor);
+  actionMenu.AddUIComponent(scaleVisualizer, Point(0, 0));
+
+  UISelector scaleSelector(Dimension(8, 2), Color(0xD41B73), &configs[activeConfig].scale, 16, scales, scale_names);
+  actionMenu.AddUIComponent(scaleSelector, Point(0, 6));
+
+  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
+    if(keyEvent->id == FUNCTION_KEY)
+    {
+      if(keyEvent->info.state == HOLD)
+      { Exit(); }
+      else if(keyEvent->info.state == RELEASED)
+      { actionMenu.Exit(); }
+      return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+    }
+    return false;
+   });
+  actionMenu.Start();
+
+  Exit();
 }
 
 // void Note::Loop() {
@@ -62,14 +83,6 @@ void Note::Setup() {
 //   }
 // }
 
-void Note::ActionMenu() {
-  uint8_t rootKey = 0;
-  uint16_t scale = NATURAL_MINOR;
-  UI actionMenu("Action Menu", Color(0x00FFFF));
-
-  ScaleVisualizer(&rootKey, &scale);
-  actionMenu.Start();
-}
 //   MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
 
 //   UI actionMenu("Action Menu", Color(0x00FFAA), true);

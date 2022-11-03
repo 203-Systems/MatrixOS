@@ -31,19 +31,28 @@ enum EScale : uint16_t {
   CHROMATIC = 0b111111111111,
 };
 
+struct NoteLayoutConfig
+{
+  uint8_t rootKey = 0;
+  uint16_t scale = NATURAL_MINOR;
+  int8_t octane = 0;
+  uint8_t channel = 0;
+  Color color = Color(0x0040FF);
+  Color rootColor = Color(0x00FFFF);
+};
+
 class Note : public Application {
  public:
   string name = "Note Mode";
   string author = "203 Electronics";
   uint32_t version = 0;
 
-  int8_t octane = 0;
 
   // Saved Variables
   // CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
 
   void Setup() override;
-  void Loop() override;
+  // void Loop() override;
 
 //   void MidiEventHandler(MidiPacket midiPacket);
 //   void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
@@ -54,6 +63,19 @@ class Note : public Application {
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);
 
   void ActionMenu();
+
+  NoteLayoutConfig configs[2];
+  uint8_t activeConfig = 0;
+
+  uint16_t scales[16] = {
+      NATURAL_MINOR,  MAJOR,        DORIAN,     PHRYGIAN,         MIXOLYDIAN,      MELODIC_MINOR_ASCENDING,
+      HARMONIC_MINOR, BEBOP_DORIAN, BLUES,      MINOR_PENTATONIC, HUNGARIAN_MINOR, UKRANIAN_DORIAN,
+      MARVA,          TODI,         WHOLE_TONE, HIRAJOSHI};
+
+  string scale_names[16] = {
+      "Natural Minor",  "Major",        "Dorian",     "Phrygian",         "Mixolydian",      "Melodic Minor Ascending",
+      "Harmonic Minor", "Bebop Dorian", "Blues",      "Minor Pentatonic", "Hungarian Minor", "Ukranian Dorian",
+      "Marva",          "Todi",         "Whole Tone", "Hirajoshi"};
 };
 
 #include "applications/RegisterApplication.h"
