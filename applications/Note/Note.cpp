@@ -1,14 +1,60 @@
 #include "Note.h"
 #include "ScaleVisualizer.h"
+#include "applications/BrightnessControl/BrightnessControl.h"
 
 void Note::Setup() {
   UI actionMenu("Action Menu", Color(0x00FFFF));
 
-  ScaleVisualizer scaleVisualizer(&configs[activeConfig].rootKey, &configs[activeConfig].scale, configs[activeConfig].color, configs[activeConfig].rootColor);
-  actionMenu.AddUIComponent(scaleVisualizer, Point(0, 0));
+  UIButtonLarge brightnessBtn(
+      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); },
+      [&]() -> void { BrightnessControl().Start(); });
+  actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
-  UISelector scaleSelector(Dimension(8, 2), Color(0xD41B73), &configs[activeConfig].scale, 16, scales, scale_names);
-  actionMenu.AddUIComponent(scaleSelector, Point(0, 6));
+  // Rotation control and canvas
+  UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1),
+                               [&]() -> void {});
+  actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
+
+  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
+                              [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+
+  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
+                              [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
+
+  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
+                              [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
+
+
+  // Note Pad Control
+  UIButton scaleSelectorBtn("Scale Selector", Color(0xD41B73), [&]() -> void { ScaleSelector(); });
+  actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
+
+  UIButtonDimmable enforceScaleBtn(
+      "Enforce Scale", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; },
+      [&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
+  actionMenu.AddUIComponent(enforceScaleBtn, Point(7, 3));
+
+  UIButtonDimmable alignRootBtn(
+      "Aligh Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
+      [&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
+  actionMenu.AddUIComponent(alignRootBtn, Point(7, 4));
+
+  UIButton overlapSelectorBtn("Overlap Selector", Color(0xFFFFFF), [&]() -> void {
+    notePadConfigs[activeConfig].overlap = MatrixOS::UIInterface::NumberSelector8x8(notePadConfigs[activeConfig].overlap, 0x00FFFF, "Overlap", 0, 6);
+  });
+  actionMenu.AddUIComponent(overlapSelectorBtn, Point(7, 5));
+
+  UIButton octaneSelectorBtn("Octane Selector", Color(0xFFFFFF), [&]() -> void {
+    notePadConfigs[activeConfig].octane = MatrixOS::UIInterface::NumberSelector8x8(notePadConfigs[activeConfig].octane, 0x00FFFF, "Octane", 0, 6);
+  });
+  actionMenu.AddUIComponent(octaneSelectorBtn, Point(0, 0));
+
+  // Other Controls
+  UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
+  actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
     if(keyEvent->id == FUNCTION_KEY)
@@ -16,14 +62,37 @@ void Note::Setup() {
       if(keyEvent->info.state == HOLD)
       { Exit(); }
       else if(keyEvent->info.state == RELEASED)
-      { actionMenu.Exit(); }
+      { PlayView();}
       return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
     }
     return false;
    });
+  actionMenu.AllowExit(false);
   actionMenu.Start();
 
   Exit();
+}
+
+void Note::PlayView()
+{
+  UI playView("Note Play View");
+
+  NotePad notePad1(Dimension(spiltView ? 4 : 8, 8), &notePadConfigs[0]);
+  playView.AddUIComponent(notePad1, Point(0, 0));
+  playView.Start();
+}
+
+void Note::ScaleSelector()
+{
+  UI scaleSelector("Scale Selector", Color(0x00FFFF));
+
+  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale, notePadConfigs[activeConfig].rootColor, notePadConfigs[activeConfig].color);
+  scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
+
+  UISelector scaleSelectorBar(Dimension(8, 2), Color(0xD41B73), &notePadConfigs[activeConfig].scale, 16, scales, scale_names);
+  scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 6));
+
+  scaleSelector.Start();
 }
 
 // void Note::Loop() {
