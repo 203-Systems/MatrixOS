@@ -22,6 +22,8 @@ class Dimension {
 
   bool Inside(Point point) { return point.x >= 0 && point.y >= 0 && point.x < x && point.y < y; }
 
+  uint32_t Area() { return x * y; }
+
   Dimension operator+(const Dimension& cp) const  // cp stands for compare target
   {
     return Dimension(x + cp.x, y + cp.y);
