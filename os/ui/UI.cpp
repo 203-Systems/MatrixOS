@@ -129,5 +129,6 @@ void UI::UIEnd() {
   else
   { MatrixOS::LED::Fill(0); }
 
+  MatrixOS::KEYPAD::Clear();
   // MatrixOS::LED::Update();
 }
