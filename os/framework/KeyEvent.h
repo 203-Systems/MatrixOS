@@ -31,15 +31,8 @@ namespace MatrixOS::Logging
   void LogVerbose(string tag, string format, ...);
 }
 
-namespace Device::KeyPad
-{
-  extern bool FSR;
-  extern Fract16 low_threshold;
-  extern Fract16 high_threshold;
-}
-
 struct KeyConfig {
-  bool FSR;
+  bool velocity_sensitive;
   Fract16 low_threshold;
   Fract16 high_threshold;
   uint16_t debounce;
@@ -131,7 +124,7 @@ struct KeyInfo {
     if (config == nullptr)
     { return false; }
 
-    if (applyCurve && config->FSR)
+    if (applyCurve && config->velocity_sensitive)
     { velocity = applyVelocityCurve(velocity); }
 
     // Reset back to normal keys

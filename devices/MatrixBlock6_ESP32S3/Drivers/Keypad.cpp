@@ -2,8 +2,8 @@
 #include "Device.h"
 #include "timers.h"
 
-#define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
-#define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
+#define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
+#define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
 
 namespace Device::KeyPad
 {
@@ -12,6 +12,7 @@ namespace Device::KeyPad
   TimerHandle_t keypad_timer;
 
   void Init() {
+    LoadCustomSettings();
     InitKeyPad();
     InitTouchBar();
   }
@@ -43,7 +44,7 @@ namespace Device::KeyPad
 
     // Config Matrix Input
 
-    if (!FSR)  // Non FSR keypad
+    if (!keypad_config.velocity_sensitive)  // Non velocity sensitive keypad
     {
       io_conf.intr_type = GPIO_INTR_DISABLE;
       io_conf.mode = GPIO_MODE_INPUT;
@@ -56,12 +57,12 @@ namespace Device::KeyPad
         gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
       }
     }
-    else  // FSR keypad
+    else  // Velocity sensitive keypad
     {
-      adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
-      esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN, FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+      adc1_config_width(VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH);
+      esp_adc_cal_characterize(ADC_UNIT_1, VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN, VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
       for (uint8_t y = 0; y < y_size; y++)
-      { adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN); }
+      { adc1_config_channel_atten(keypad_read_adc_channel[y], VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN); }
     }
 
     io_conf.intr_type = GPIO_INTR_DISABLE;
@@ -163,9 +164,9 @@ namespace Device::KeyPad
       for (uint8_t x = 0; x < Device::x_size; x++)
       {
         gpio_set_level(keypad_write_pins[x], 1);  // Just more stable to turn off the pin and turn back on for each read
-        if (!FSR)                                 // Non FSR
+        if (!keypad_config.velocity_sensitive)  // Non velocity sensitive keypad
         { read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX; }
-        else  // FSR
+        else  // Velocity sensitive keypad
         {
           uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
           read = (raw_voltage << 4) + (raw_voltage >> 8);  // Raw Voltage mapped. Will add calibration curve later.

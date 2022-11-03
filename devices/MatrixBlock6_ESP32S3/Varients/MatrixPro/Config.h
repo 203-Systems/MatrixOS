@@ -49,21 +49,21 @@ namespace Device
     inline bool fn_active_low = true;
 
     inline KeyConfig fn_config = {
-        .FSR = false,
+        .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .debounce = 0,
     };
 
     inline KeyConfig keypad_config = {
-        .FSR = true,
+        .velocity_sensitive = true,
         .low_threshold = 1024,
         .high_threshold = 65535,
         .debounce = 5,
     };
 
     inline KeyConfig touch_config = {
-        .FSR = false,
+        .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .debounce = 0,
