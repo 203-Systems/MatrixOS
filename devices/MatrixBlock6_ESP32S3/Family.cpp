@@ -16,16 +16,12 @@ namespace Device
     NVS::Init();
     LED::Init();
     KeyPad::Init();
-    KeyPad::LoadCustomSettings();
 
     BLEMIDI::Init(name);
 
     // WIFI::Init();
     // ESPNOW::Init();
     // ESPNOW::BroadcastMac();
-
-    // MatrixOS::Logging::LogDebug("Matrix", "Device Inited - Device Code: %s  Reversion %s Production Time %02d-%02d",
-    // deviceInfo.DeviceCode, deviceInfo.Revision, deviceInfo.ProductionYear, deviceInfo.ProductionMonth);
   }
 
   void DeviceStart() {
