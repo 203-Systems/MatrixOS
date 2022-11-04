@@ -1,7 +1,7 @@
 #include "Lighting.h"
 
 void Lighting::Setup() {
-  MatrixOS::LED::Fill(colors[color_index]);
+  MatrixOS::LED::Fill(color);
   MatrixOS::LED::Update();
 }
 
@@ -17,9 +17,9 @@ void Lighting::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   {
     if (keyInfo->state == RELEASED)
     {
-      color_index++;
-      color_index %= 7;
-      MatrixOS::LED::Fill(colors[color_index]);
+      if(MatrixOS::UIInterface::ColorPicker(color.value))
+      { color.Set(color.value); }
+      MatrixOS::LED::Fill(color);
       MatrixOS::LED::Update();
     }
     else if (keyInfo->state == HOLD)
