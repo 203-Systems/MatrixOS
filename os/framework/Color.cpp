@@ -1,4 +1,13 @@
 #include "Color.h"
+#include <cmath>
+
+float fract(float x) { return x - int(x); }
+
+float mix(float a, float b, float t) { return a + (b - a) * t; }
+
+float step(float e, float x) { return x < e ? 0.0 : 1.0; }
+
+#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
 Color::Color() {
   W = 0;
@@ -49,4 +58,11 @@ uint8_t Color::scale8(uint8_t i, uint8_t scale) {
 
 uint8_t Color::scale8_video(uint8_t i, uint8_t scale) {
   return (((uint16_t)i * (uint16_t)scale) >> 8) + ((i && scale) ? 1 : 0);
+}
+
+Color Color::HsvToRgb(float h, float s, float v) {
+  uint8_t r = int(255 * v * mix(1.0, constrain(std::abs(fract(h + 1.0) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s));
+  uint8_t g = int(255 * v * mix(1.0, constrain(std::abs(fract(h + 0.6666666) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s));
+  uint8_t b = int(255 * v * mix(1.0, constrain(std::abs(fract(h + 0.3333333) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s));
+  return Color(r, g, b);
 }
