@@ -18,7 +18,7 @@ class UIButtonLarge : public UIButton {
     for (uint16_t x = 0; x < dimension.x; x++)
     {
       for (uint16_t y = 0; y < dimension.y; y++)
-      { MatrixOS::LED::SetColor(origin + Point(x, y), color); }
+      { MatrixOS::LED::SetColor(origin + Point(x, y), GetColor()); }
     }
     return true;
   }

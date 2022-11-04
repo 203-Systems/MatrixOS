@@ -53,7 +53,7 @@ void Device::LoadV110() {
   ESP_LOGI("Device Init", "Matrix Pro V110 Config Loaded");
   led_pin = V110::LED_Pin;
 
-  KeyPad::FSR = V110::FSR_KEYPAD;
+  KeyPad::keypad_config.velocity_sensitive = V110::FSR_KEYPAD;
 
   KeyPad::fn_pin = V110::FN_Pin;
 

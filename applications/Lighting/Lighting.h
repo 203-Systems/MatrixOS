@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
+#include "UI/UIInterfaces.h"
 #include "applications/Application.h"
 
 #define APPLICATION_NAME "Lighting"
@@ -16,9 +17,7 @@ class Lighting : public Application {
 
   void KeyEvent(uint16_t keyID, KeyInfo* keyInfo);
 
-  uint8_t color_index = 0;
-  const Color colors[7] = {Color(0xFFFFFF), Color(0xFF0000), Color(0xFFFF00), Color(0x00FF00),
-                           Color(0x00FFFF), Color(0x0000FF), Color(0xFF00FF)};
+  CreateSavedVar(APPLICATION_NAME, color, Color, Color(0xFFFFFF));
 };
 
 #include "applications/RegisterApplication.h"

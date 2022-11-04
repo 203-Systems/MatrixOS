@@ -5,10 +5,10 @@
 
 #include <stdint.h>
 #include "SavedVariable.h"
-#include "system/Parameters.h"
 #include "Types.h"
+#include "system/Parameters.h"
 
-#define KEY_INFO_THRESHOLD 512  
+#define KEY_INFO_THRESHOLD 512
 // 1/127 - Key Velocity has to move beyond this range in order for after touch to be triggered
 
 // Avoid recuesive include
@@ -31,15 +31,8 @@ namespace MatrixOS::Logging
   void LogVerbose(string tag, string format, ...);
 }
 
-namespace Device::KeyPad
-{
-  extern bool FSR;
-  extern Fract16 low_threshold;
-  extern Fract16 high_threshold;
-}
-
 struct KeyConfig {
-  bool FSR;
+  bool velocity_sensitive;
   Fract16 low_threshold;
   Fract16 high_threshold;
   uint16_t debounce;
@@ -119,8 +112,7 @@ struct KeyInfo {
       }
       else
       {
-        velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX /
-                   ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold);
+        velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold);
         // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
       }
     }
@@ -131,7 +123,7 @@ struct KeyInfo {
     if (config == nullptr)
     { return false; }
 
-    if (applyCurve && config->FSR)
+    if (applyCurve && config->velocity_sensitive)
     { velocity = applyVelocityCurve(velocity); }
 
     // Reset back to normal keys
@@ -139,17 +131,9 @@ struct KeyInfo {
     { state = ACTIVATED; }
 
     // Check aftertouch before previous velocity get overwritten
-    if (state == ACTIVATED && (DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD ||  // Change
-                                                                                                                 // Must
-                                                                                                                 // larger
-                                                                                                                 // than
-                                                                                                                 // info
-                                                                                                                 // threshold
-                                                                                                                 // Or
-                                                                                                                 // ...
-                               ((velocity != this->velocity) && (uint16_t)velocity == UINT16_MAX)  // Value changed and
-                                                                                                   // max value is
-                                                                                                   // reached
+    if (config->velocity_sensitive && state == ACTIVATED && (uint16_t)velocity != 0 &&  // Keypad must support FSR AND Velocity must be above 0 (So no aftertouch will triggered when key released)
+    (DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD ||  // AND Change Must larger than info threshold Or ...
+                               ((velocity != this->velocity) && (uint16_t)velocity == UINT16_MAX)                // Value changed and max value is reached
                                ))
     {
       // Update current velocity
@@ -194,18 +178,14 @@ struct KeyInfo {
       return false;
     }
 
-    if (state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in
-                                                                                                      // key released
-                                                                                                      // early
+    if (state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();
       return false;
     }
 
-    if (state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in
-                                                                                                        // key released
-                                                                                                        // early
+    if (state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();

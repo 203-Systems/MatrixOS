@@ -15,5 +15,5 @@ class BrightnessControl : public UI {
 
   const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
 
-  void Setup() override;
+  void Start();
 };

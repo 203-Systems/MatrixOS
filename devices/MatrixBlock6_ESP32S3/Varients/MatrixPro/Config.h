@@ -43,27 +43,25 @@ namespace Device
 
   namespace KeyPad
   {
-    inline bool FSR;
-
     inline gpio_num_t fn_pin;
     inline bool fn_active_low = true;
 
     inline KeyConfig fn_config = {
-        .FSR = false,
+        .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .debounce = 0,
     };
 
     inline KeyConfig keypad_config = {
-        .FSR = true,
+        .velocity_sensitive = true,
         .low_threshold = 1024,
         .high_threshold = 65535,
         .debounce = 5,
     };
 
     inline KeyConfig touch_config = {
-        .FSR = false,
+        .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .debounce = 0,
@@ -83,6 +81,7 @@ namespace Device
     inline KeyInfo touchbarState[touchbar_size];
 
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
+    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_velocity_sensitive, bool, KeyPad::keypad_config.velocity_sensitive);
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
@@ -92,12 +91,14 @@ namespace Device
       {
         if (keypad_low_threshold == 0)  // Can't be lower than 1
         { keypad_low_threshold = 1; }
+        keypad_config.velocity_sensitive = keypad_velocity_sensitive;
         keypad_config.low_threshold = keypad_low_threshold;
         keypad_config.high_threshold = keypad_high_threshold;
         keypad_config.debounce = keypad_debounce;
       }
       else
       {
+        keypad_velocity_sensitive = keypad_config.velocity_sensitive;
         keypad_low_threshold = keypad_config.low_threshold;
         keypad_high_threshold = keypad_config.high_threshold;
         keypad_debounce = keypad_config.debounce;

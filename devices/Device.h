@@ -44,15 +44,14 @@ namespace Device
                                   // given ID;
   }
 
-#undef BKP
-  namespace BKP  // Back up register, presistant ram after software reset.
-  {
-    extern uint16_t size;
-    uint32_t Read(uint32_t address);
-    int8_t Write(uint32_t address, uint32_t data);
-  }
+  // namespace BKP  // Back up register, presistant ram after software reset.
+  // {
+  //   extern uint16_t size;
+  //   uint32_t Read(uint32_t address);
+  //   int8_t Write(uint32_t address, uint32_t data);
+  // }
 
-  namespace NVS
+  namespace NVS //Device should also implentment duplication check. If new value is equal to the old one, then skip the write. 
   {
     vector<char> Read(uint32_t hash);
     // void* Read(uint32_t hash);

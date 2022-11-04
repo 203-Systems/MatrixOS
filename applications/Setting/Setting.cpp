@@ -42,7 +42,7 @@ void Setting::Start() {
 
   // TODO Move this to Matrix Device Settings or figure out how to implentment this better.
   UIButtonDimmable velocitySensitiveToggle(
-      "Velocity Sensitive", Color(0xFFFFFF),
+      "Velocity Sensitive", Color(0x00FFB0),
       []() -> bool { return MatrixOS::UserVar::velocity_sensitive.Get(); },  // TODO Color Class Scale Brightness
       []() -> void {
         MatrixOS::UserVar::velocity_sensitive = !MatrixOS::UserVar::velocity_sensitive.Get();  // TODO, allow user

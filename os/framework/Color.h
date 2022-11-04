@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define COLOR_LOW_STATE_SCALE 75  // 30% ish brightness
+#define COLOR_LOW_STATE_SCALE 56
 
 class Color {
  public:
@@ -27,6 +27,8 @@ class Color {
 
   static uint8_t scale8(uint8_t i, uint8_t scale);
   static uint8_t scale8_video(uint8_t i, uint8_t scale);
+
+  static Color HsvToRgb(float h, float s, float v);
 
   operator bool() { return R || G || B || W; }
 };
