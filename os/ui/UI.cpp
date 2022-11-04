@@ -8,6 +8,7 @@ UI::UI(string name, Color color, bool newLedLayer) {
 
 // TODO, make new led layer
 void UI::Start() {
+  status = 0;
   if (newLedLayer)
     MatrixOS::LED::CreateLayer();
   MatrixOS::KEYPAD::Clear();
