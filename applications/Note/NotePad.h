@@ -2,6 +2,8 @@
 #pragma once
 
 #include "MatrixOS.h"
+#include "Scales.h"
+#include "UI/UI.h"
 
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;
@@ -10,7 +12,8 @@ struct NoteLayoutConfig {
   uint16_t scale = NATURAL_MINOR;
   int8_t octane = 0;
   uint8_t channel = 0;
-  uint8_t overlap = 0;  
+  uint8_t overlap = 0;
+  bool velocitySensitive = true;
   Color color = Color(0x00FFFF);
   Color rootColor = Color(0x0040FF);
 };
@@ -38,7 +41,7 @@ class NotePad : public UIComponent {
   void GenerateKeymap() {
     noteMap.reserve(dimension.Area());
 
-    uint8_t root = 12 * config->octane;
+    uint8_t root = 12 * config->octane + config->rootKey;
     uint8_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++)
@@ -123,14 +126,14 @@ class NotePad : public UIComponent {
     { return false; }
     if (keyInfo->state == PRESSED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, config->channel, note, keyInfo->velocity.to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
       activeNotes[note]++;  // If this key doesn't exist, unordered_map will auto assign it to 0.
     }
-    else if (keyInfo->state == AFTERTOUCH)
+    else if (config->velocitySensitive && keyInfo->state == AFTERTOUCH)
     { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, config->channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == RELEASED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(0, NoteOff, config->channel, note, keyInfo->velocity.to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOff, config->channel, note, 0));
       if (activeNotes[note]-- <= 1)
       { activeNotes.erase(note); }
     }

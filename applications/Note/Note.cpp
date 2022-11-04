@@ -1,236 +1,181 @@
 #include "Note.h"
+#include "OctaneShifter.h"
 #include "ScaleVisualizer.h"
+
 #include "applications/BrightnessControl/BrightnessControl.h"
 
 void Note::Setup() {
+  // Set up / Load configs --------------------------------------------------------------------------
+
+  // Default Values
+  notePadConfigs[1].color = Color(0xFF00FF);
+  notePadConfigs[1].rootColor = Color(0x8800FF);
+
+  // Load From NVS
+  if (nvsVersion == version)
+  { MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }
+  else
+  { MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }
+
+  activeConfig.Get(); //Load it first
+
+  // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF));
 
   UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); },
-      [&]() -> void { BrightnessControl().Start(); });
+      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas
-  UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1),
-                               [&]() -> void {});
+  UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1), [&]() -> void {});
   actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
   actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
-                              [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
-
   // Note Pad Control
-  UIButton scaleSelectorBtn("Scale Selector", Color(0xD41B73), [&]() -> void { ScaleSelector(); });
+  UIButton scaleSelectorBtn("Scale Selector", Color(0xFF0090), [&]() -> void { ScaleSelector(); });
   actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
 
-  UIButtonDimmable enforceScaleBtn(
-      "Enforce Scale", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; },
+  UIButtonDimmable enforceScaleToggle(
+      "Enforce Scale", Color(0xff5000), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; },
       [&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
-  actionMenu.AddUIComponent(enforceScaleBtn, Point(7, 3));
+  actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
-  UIButtonDimmable alignRootBtn(
-      "Aligh Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
-      [&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
-  actionMenu.AddUIComponent(alignRootBtn, Point(7, 4));
+  UIButton overlapSelectorBtn("Overlap Selector", Color(0xFFFF00), [&]() -> void { OverlapSelector(); });
+  actionMenu.AddUIComponent(overlapSelectorBtn, Point(7, 4));
 
-  UIButton overlapSelectorBtn("Overlap Selector", Color(0xFFFFFF), [&]() -> void {
-    notePadConfigs[activeConfig].overlap = MatrixOS::UIInterface::NumberSelector8x8(notePadConfigs[activeConfig].overlap, 0x00FFFF, "Overlap", 0, 6);
-  });
-  actionMenu.AddUIComponent(overlapSelectorBtn, Point(7, 5));
+  UIButton channelSelectorBtn("Channel Selector", Color(0x60FF00), [&]() -> void { ChannelSelector(); });
+  actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 5));
 
-  UIButton octaneSelectorBtn("Octane Selector", Color(0xFFFFFF), [&]() -> void {
-    notePadConfigs[activeConfig].octane = MatrixOS::UIInterface::NumberSelector8x8(notePadConfigs[activeConfig].octane, 0x00FFFF, "Octane", 0, 6);
-  });
-  actionMenu.AddUIComponent(octaneSelectorBtn, Point(0, 0));
+  UIButtonDimmable velocitySensitiveToggle(
+      "Velocity Sensitive", Color(0x00FFB0), [&]() -> bool { return notePadConfigs[activeConfig].velocitySensitive; },
+      [&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
+  actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
+
+  OctaneShifter octaneShifter(8, "Octane", notePadConfigs, &activeConfig.value);
+  actionMenu.AddUIComponent(octaneShifter, Point(0, 0));
+
+  // Spilt View
+  UIButtonDimmable spiltViewToggle(
+      "Spilt View", Color(0xFFFFFF), [&]() -> bool { return spiltView; }, [&]() -> void { spiltView = !spiltView; });
+  actionMenu.AddUIComponent(spiltViewToggle, Point(1, 0));
+
+  UIButtonWithColorFunc notepad1SelectBtn(
+      "Note Pad 1", [&]() -> Color { return notePadConfigs[0].color.ToLowBrightness(activeConfig.Get() == 0); }, [&]() -> void { activeConfig = 0; });
+  actionMenu.AddUIComponent(notepad1SelectBtn, Point(3, 0));
+
+  UIButtonWithColorFunc notepad2SelectBtn(
+      "Note Pad 2", [&]() -> Color { return notePadConfigs[1].color.ToLowBrightness(activeConfig.Get() == 1); }, [&]() -> void { activeConfig = 1; });
+  actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
+
+  UIButtonWithColorFunc notepadColorBtn(
+      "Note Pad Color", [&]() -> Color { return notePadConfigs[activeConfig].color; }, [&]() -> void { ColorSelector(); });
+  actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
   // Other Controls
   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
-    if(keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+    if (keyEvent->id == FUNCTION_KEY)
     {
-      if(keyEvent->info.state == HOLD)
+      if (keyEvent->info.state == HOLD)
       { Exit(); }
-      else if(keyEvent->info.state == RELEASED)
-      { PlayView();}
-      return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+      else if (keyEvent->info.state == RELEASED)
+      {
+        PlayView();
+        MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+      }
+      return true;  // Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
     }
     return false;
-   });
+  });
   actionMenu.AllowExit(false);
   actionMenu.Start();
 
   Exit();
 }
 
-void Note::PlayView()
-{
+void Note::PlayView() {
   UI playView("Note Play View");
 
-  NotePad notePad1(Dimension(spiltView ? 4 : 8, 8), &notePadConfigs[0]);
+  NotePad notePad1(Dimension(spiltView ? 4 : 8, 8), &notePadConfigs[!spiltView && activeConfig.Get() == 1]);
   playView.AddUIComponent(notePad1, Point(0, 0));
+
+  NotePad notePad2(Dimension(4, 8), &notePadConfigs[1]);
+  if (spiltView)
+  { playView.AddUIComponent(notePad2, Point(4, 0)); }
+
   playView.Start();
 }
 
-void Note::ScaleSelector()
-{
-  UI scaleSelector("Scale Selector", Color(0x00FFFF));
+void Note::ScaleSelector() {
+  UI scaleSelector("Scale Selector", Color(0xFF0090));
 
-  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale, notePadConfigs[activeConfig].rootColor, notePadConfigs[activeConfig].color);
+  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale, notePadConfigs[activeConfig].color,
+                                  notePadConfigs[activeConfig].rootColor);
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
-  UISelector scaleSelectorBar(Dimension(8, 2), Color(0xD41B73), &notePadConfigs[activeConfig].scale, 16, scales, scale_names);
+  UIItemSelector scaleSelectorBar(Dimension(8, 2), Color(0xFF0090), &notePadConfigs[activeConfig].scale, 16, scales, scale_names);
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 6));
 
   scaleSelector.Start();
 }
 
-// void Note::Loop() {
-//   struct KeyEvent keyEvent;
-//   while (MatrixOS::KEYPAD::Get(&keyEvent))
-//   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
+void Note::ColorSelector() {
+  UI colorSelector("Color Selector", notePadConfigs[activeConfig].color);
 
-//   // struct MidiPacket midiPacket;
-//   // while (MatrixOS::MIDI::Get(&midiPacket))
-//   // { MidiEventHandler(midiPacket); }
-// }
+  NotePad notePad(Dimension(8, 4), &notePadConfigs[activeConfig]);
+  colorSelector.AddUIComponent(notePad, Point(0, 0));
 
-// void Note::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
-//   Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-//   if (xy)  // IF XY is vaild, means it's on the main grid
-//   { GridKeyEvent(xy, keyInfo); }
-//   else  // XY Not vaild,
-//   { IDKeyEvent(KeyID, keyInfo); }
-// }
+  UIButtonLargeWithColorFunc rootColorSelectorBtn(
+      "Root Key Color", [&]() -> Color { return notePadConfigs[activeConfig].rootColor; }, Dimension(2, 2),
+      [&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].rootColor); });
+  colorSelector.AddUIComponent(rootColorSelectorBtn, Point(1, 5));
 
-// void Note::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
-//   // MatrixOS::Logging::LogDebug("Note Mode", "KeyEvent %d %d", xy.x, xy.y);
-//   int8_t note = XYToNote(xy);
+  UIButtonLargeWithColorFunc notePadColorSelectorBtn(
+      "Note Pad Color", [&]() -> Color { return notePadConfigs[activeConfig].color; }, Dimension(2, 2),
+      [&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].color); });
+  colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(5, 5));
 
-//   if (note == -1)
-//   { return; }
+  colorSelector.Start();
+}
 
-//   if (keyInfo->state == PRESSED)
-//   { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits())); }
-//   else if (keyInfo->state == AFTERTOUCH)
-//   { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
-//   else if (keyInfo->state == RELEASED)
-//   { MatrixOS::MIDI::Send(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo->velocity.to7bits())); }
-// }
+void Note::OverlapSelector() {
+  UI overlapSelector("Overlap Selector", Color(0xFFFF00));
 
-// void Note::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-//   // MatrixOS::Logging::LogDebug(name, "Key Event");
-//   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
-//   { ActionMenu(); }
-// }
+  UI4pxNumber numDisplay(Color(0xFFFF00), 1, (int32_t*)&notePadConfigs[activeConfig].overlap, notePadConfigs[activeConfig].rootColor);
+  overlapSelector.AddUIComponent(numDisplay, Point(5, 0));
 
-// void Note::stfuScan() {
-//   for (uint8_t note = 0; note < 128; note++)
-//   {
-//     if (stfuMap[note] > 0)
-//     { stfuMap[note]--; }
-//     else if (stfuMap[note] == 0)
-//     {
-//       Point xy = NoteToXY(note);
-//       if (xy)
-//       {
-//         MatrixOS::LED::SetColor(xy, 0, canvasLedLayer);
-//         MatrixOS::LED::Update(canvasLedLayer);
-//       }
-//       stfuMap[note] = -1;
-//     }
-//   }
-// }
+  UISelector overlapInput(Dimension(7, 1), "Overlap", Color(0xFFFF00), 7, (uint16_t*)&notePadConfigs[activeConfig].overlap);
+  overlapSelector.AddUIComponent(overlapInput, Point(0, 7));
 
-//   MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
+  UIButtonDimmable alignRootToggle(
+      "Aligh Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
+      [&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
+  overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
 
-//   UI actionMenu("Action Menu", Color(0x00FFAA), true);
+  overlapSelector.Start();
+}
 
-//   UIButtonLarge brightnessBtn(
-//       "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); },
-//       [&]() -> void { BrightnessControl().Start(); });
-//   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
+void Note::ChannelSelector() {
+  UI channelSelector("Channel Selector", Color(0x60FF00));
 
-//   // Rotation control and canvas
-//   UIButtonLarge clearCanvasBtn("Clear Canvas", Color(0x00FF00), Dimension(2, 1),
-//                                [&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
-//   actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
+  int32_t offsettedChannel = notePadConfigs[activeConfig].channel + 1;
+  UI4pxNumber numDisplay(Color(0x60FF00), 2, &offsettedChannel, notePadConfigs[activeConfig].rootColor, 1);
+  channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 
-//   UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-//                               [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-//   actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&notePadConfigs[activeConfig].channel,
+                          [&](uint16_t val) -> void { offsettedChannel = val + 1; });
 
-//   UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
-//                               [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-//   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
+  channelSelector.AddUIComponent(channelInput, Point(0, 6));
 
-//   UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-//                               [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-//   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
-
-//   // Note Pad
-//   UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap],
-//                     (uint8_t*)note_pad_map[currentKeymap]);
-//   actionMenu.AddUIComponent(notePad, Point(0, 6));
-
-//   // Other Controls
-//   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
-//   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
-
-//   UIButtonDimmable menuLockBtn(
-//       "Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
-//   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));  // Current the currentKeymap is directly linked to
-//                                                         // compatibilityMode. Do we really need > 2 keymap tho?
-
-//   UIButtonDimmable flickerReductionBtn(
-//       "Flicker Reduction", Color(0xAAFF00), [&]() -> bool { return stfu; },
-//       [&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
-//   actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));  // Current the currentKeymap is directly linked to
-//                                                                 // compatibilityMode. Do we really need > 2 keymap tho?
-
-//   UIButtonDimmable compatibilityModeBtn(
-//       "Compatibility Mode", Color(0xFFFF00), [&]() -> bool { return compatibilityMode; },
-//       [&]() -> void {
-//         compatibilityMode = !compatibilityMode;
-//         currentKeymap = compatibilityMode;
-//         notePad.SetColor(keymap_color[currentKeymap]);
-//         notePad.SetChannel(keymap_channel[currentKeymap]);
-//         notePad.SetMap((uint8_t*)note_pad_map[currentKeymap]);
-//       });
-//   actionMenu.AddUIComponent(compatibilityModeBtn, Point(7, 0));  // Current the currentKeymap is directly linked to
-//                                                                  // compatibilityMode. Do we really need > 2 keymap
-//                                                                  // tho?
-//   actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
-//       struct MidiPacket midiPacket;
-//       while (MatrixOS::MIDI::Get(&midiPacket))
-//       { MidiEventHandler(midiPacket); }
-//   });
-
-//   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
-//     if(keyEvent->id == FUNCTION_KEY)
-//     {
-//       if(keyEvent->info.state == HOLD)
-//       { Exit(); }
-//       else if(keyEvent->info.state == RELEASED)
-//       { actionMenu.Exit(); }
-//       return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
-//     }
-//     return false;
-//    });
-
-//   actionMenu.Start();
-
-//   MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
-// }
-
-// // #endif
+  channelSelector.Start();
+}

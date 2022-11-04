@@ -1,3 +1,5 @@
+#pragma once
+
 //Bit map for scales, LSB(Bit0) is C and Bit11 is B. First 4 bits are reserved
 enum EScale : uint16_t {
   NATURAL_MINOR = 0b010110101101,
