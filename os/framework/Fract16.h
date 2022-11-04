@@ -1,4 +1,6 @@
 #pragma once
+
+#define FRACT16_MAX UINT16_MAX
 class Fract16 {
  public:
   uint16_t value;
@@ -45,4 +47,9 @@ class Fract16 {
 
   bool operator!=(int value) { return this->value != value; }
   bool operator!=(Fract16 value) { return this->value != (uint16_t)value; }
+
+  Fract16 operator-(Fract16 value) { 
+    if(value >= this->value) {return 0;}
+    return this->value - (uint16_t)value;
+  }
 };
