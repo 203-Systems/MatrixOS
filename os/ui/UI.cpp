@@ -32,8 +32,9 @@ void UI::LoopTask() {
 }
 
 void UI::RenderUI() {
-  if (uiTimer.Tick(uiFps))
+  if (uiTimer.Tick(uiUpdateMS) || needRender)
   {
+    needRender = false;
     MatrixOS::LED::Fill(0);
     for (auto const& uiComponentPair : uiComponentMap)
     {
@@ -132,4 +133,12 @@ void UI::UIEnd() {
 
   MatrixOS::KEYPAD::Clear();
   // MatrixOS::LED::Update();
+}
+
+void UI::SetFPS(uint16_t fps)
+{
+  if (fps == 0)
+    uiUpdateMS = UINT32_MAX;
+  else
+    uiUpdateMS = 1000 / fps;
 }

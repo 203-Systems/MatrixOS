@@ -9,6 +9,8 @@
 #include "UIComponents.h"
 #include "UIInterfaces.h"
 
+#define UI_DEFAULT_FPS 60
+
 class UI {
  public:
   string name;
@@ -17,9 +19,10 @@ class UI {
 
   bool newLedLayer = false;
   bool disableExit = false;
+  bool needRender = false;
 
   Timer uiTimer;
-  const uint16_t uiFps = 60;
+  uint32_t uiUpdateMS = 1000 / UI_DEFAULT_FPS;
 
   std::function<void()>* setup_func = nullptr;
   std::function<void()>* loop_func = nullptr;
@@ -73,6 +76,8 @@ class UI {
   void AllowExit(bool allow);
 
   void ClearUIComponents();
+
+  void SetFPS(uint16_t fps);
 
  private:
   void RenderUI();
