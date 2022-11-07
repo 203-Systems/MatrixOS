@@ -35,7 +35,7 @@ void UI::RenderUI() {
   if (uiTimer.Tick(uiUpdateMS) || needRender)
   {
     needRender = false;
-    MatrixOS::LED::Fill(0);
+    // MatrixOS::LED::Fill(0);
     for (auto const& uiComponentPair : uiComponentMap)
     {
       Point xy = uiComponentPair.first;
@@ -82,6 +82,8 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       if (uiComponent->GetSize().Inside(relative_xy))  // Key Found
       { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
     }
+    // if(hasAction)
+    // { needRender = true; }
     if (hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
     { MatrixOS::UIInterface::TextScroll(this->name, this->nameColor); }
   }

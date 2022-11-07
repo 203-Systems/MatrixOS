@@ -9,7 +9,7 @@
 #include "UIComponents.h"
 #include "UIInterfaces.h"
 
-#define UI_DEFAULT_FPS 60
+#define UI_DEFAULT_FPS 100
 
 class UI {
  public:
@@ -31,7 +31,7 @@ class UI {
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
   UI(){};
-  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = false);
+  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
 
   void Start();
 
