@@ -1,8 +1,8 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "Scales.h"
 #include "NotePad.h"
+#include "Scales.h"
 #include "UI/UI.h"
 #include "applications/Application.h"
 
@@ -41,12 +41,71 @@ class Note : public Application {
 
   NoteLayoutConfig notePadConfigs[2];
 
-  uint16_t scales[16] = {NATURAL_MINOR,   MAJOR, DORIAN, PHRYGIAN,   MIXOLYDIAN, MELODIC_MINOR_ASCENDING, HARMONIC_MINOR, BEBOP_DORIAN, BLUES, MINOR_PENTATONIC, HUNGARIAN_MINOR,
-                         UKRANIAN_DORIAN, MARVA, TODI,   WHOLE_TONE, HIRAJOSHI};
+  uint16_t scales[32] = {NATURAL_MINOR,
+                         MAJOR,
+                         DORIAN,
+                         PHRYGIAN,
+                         MIXOLYDIAN,
+                         MELODIC_MINOR_ASCENDING,
+                         HARMONIC_MINOR,
+                         BEBOP_DORIAN,
+                         BLUES,
+                         MINOR_PENTATONIC,
+                         HUNGARIAN_MINOR,
+                         UKRANIAN_DORIAN,
+                         MARVA,
+                         TODI,
+                         WHOLE_TONE,
+                         CHROMATIC,
+                         LYDIAN,
+                         LOCRIAN,
+                         MAJOR_PENTATONIC,
+                         PHYRIGIAN_DOMINATE,
+                         HALF_WHOLE_DIMINISHED,
+                         MIXOLYDIAN_BEBOP,
+                         SUPER_LOCRIAN,
+                         HIRAJOSHI,
+                         IN_SEN,
+                         YO_SCALE,
+                         IWATO,
+                         WHOLE_HALF,
+                         BEBOP_MINOR,
+                         MAJOR_BLUES,
+                         KUMOI,
+                         BEBOP_MAJOR};
 
-  string scale_names[16] = {"Natural Minor",  "Major",        "Dorian",     "Phrygian",         "Mixolydian",      "Melodic Minor Ascending",
-                            "Harmonic Minor", "Bebop Dorian", "Blues",      "Minor Pentatonic", "Hungarian Minor", "Ukranian Dorian",
-                            "Marva",          "Todi",         "Whole Tone", "Hirajoshi"};
+  string scale_names[32] = {"Natural Minor",
+                            "Major",
+                            "Dorian",
+                            "Phrygian",
+                            "Mixolydian",
+                            "Melodic Minor Ascending",
+                            "Harmonic Minor",
+                            "Bebop Dorian",
+                            "Blues",
+                            "Minor Pentatonic",
+                            "Hungarian Minor",
+                            "Ukranian Dorian",
+                            "Marva",
+                            "Todi",
+                            "Whole Tone",
+                            "Chromatic",
+                            "Lydian",
+                            "Locrian",
+                            "Major Pentatonic",
+                            "Phyrigian Dominate",
+                            "Half-Whole Diminished",
+                            "Mixolydian BeBop",
+                            "Super Locrian",
+                            "Hirajoshi",
+                            "In Sen",
+                            "Yo Scale",
+                            "Iwato",
+                            "Whole Half",
+                            "BeBop Minor",
+                            "Major Blues",
+                            "Kumoi",
+                            "BeBop Major"};
 };
 
 #include "applications/RegisterApplication.h"

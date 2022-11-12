@@ -123,8 +123,8 @@ void Note::ScaleSelector() {
                                   notePadConfigs[activeConfig].rootColor);
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
-  UIItemSelector scaleSelectorBar(Dimension(8, 2), Color(0xFF0090), &notePadConfigs[activeConfig].scale, 16, scales, scale_names);
-  scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 6));
+  UIItemSelector scaleSelectorBar(Dimension(8, 4), Color(0xFF0090), &notePadConfigs[activeConfig].scale, 32, scales, scale_names);
+  scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
   scaleSelector.Start();
 }
