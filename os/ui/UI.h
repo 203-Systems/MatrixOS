@@ -17,7 +17,7 @@ class UI {
   Color nameColor;
   int8_t status = 0;
 
-  bool newLedLayer = false;
+  bool newLedLayer = true;
   bool disableExit = false;
   bool needRender = false;
 
