@@ -59,7 +59,7 @@ void Note::Setup() {
       [&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
-  OctaneShifter octaneShifter(8, "Octane", notePadConfigs, &activeConfig.value);
+  OctaneShifter octaneShifter(8, notePadConfigs, &activeConfig.value);
   actionMenu.AddUIComponent(octaneShifter, Point(0, 0));
 
   // Spilt View

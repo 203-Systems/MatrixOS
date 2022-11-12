@@ -4,12 +4,10 @@
 class OctaneShifter : public UIComponent {
  public:
   uint8_t count;
-  string name;
   NoteLayoutConfig* configs;
   uint8_t* activeConfig;
 
-  OctaneShifter(uint8_t count, string name, NoteLayoutConfig* configs, uint8_t* activeConfig) {
-    this->name = name;
+  OctaneShifter(uint8_t count, NoteLayoutConfig* configs, uint8_t* activeConfig) {
     this->count = count;
     this->configs = configs;
     this->activeConfig = activeConfig;
@@ -35,7 +33,7 @@ class OctaneShifter : public UIComponent {
     //   return true;
     // }
     int8_t octane = count - xy.y - 1;
-    if (keyInfo->state == RELEASED)
+    if (keyInfo->state == PRESSED)
     { configs[*activeConfig].octane = octane; }
     return true;
   }
