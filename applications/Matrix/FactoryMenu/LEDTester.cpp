@@ -16,4 +16,5 @@ void FactoryMenu::LEDTester() {
     MatrixOS::SYS::DelayMs(30);
   }
   MatrixOS::KEYPAD::Clear();
+  MatrixOS::LED::Fill(0);
 }

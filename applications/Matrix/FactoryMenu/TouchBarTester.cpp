@@ -67,4 +67,5 @@ void FactoryMenu::TouchBarTester() {
   }
   Device::touchbar_enable.Load();
   MatrixOS::KEYPAD::Clear();
+  MatrixOS::LED::Fill(0);
 }
