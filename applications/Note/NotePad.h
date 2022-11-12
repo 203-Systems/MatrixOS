@@ -47,7 +47,7 @@ class NotePad : public UIComponent {
     for (int8_t y = 0; y < dimension.y; y++)
     {
       int8_t ui_y = dimension.y - y - 1;
-      if(config->overlap)
+      if(config->overlap && config->overlap < dimension.x)
       { 
         if(y != 0) nextNote = noteMap[(ui_y + 1) * dimension.x + config->overlap]; 
       }
