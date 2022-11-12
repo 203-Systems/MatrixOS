@@ -42,20 +42,19 @@ namespace Device::KeyPad
 #endif
     gpio_config(&io_conf);
 
-    // Config Matrix Input
-
+    // Config Input Pins
     if (!keypad_config.velocity_sensitive)  // Non velocity sensitive keypad
     {
       io_conf.intr_type = GPIO_INTR_DISABLE;
       io_conf.mode = GPIO_MODE_INPUT;
       io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
       io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+      io_conf.pin_bit_mask = 0;
       for (uint8_t y = 0; y < y_size; y++)
       {
-        io_conf.pin_bit_mask = (1ULL << keypad_read_pins[y]);
-        gpio_config(&io_conf);
-        gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+        io_conf.pin_bit_mask |= (1ULL << keypad_read_pins[y]);
       }
+      gpio_config(&io_conf);
     }
     else  // Velocity sensitive keypad
     {
@@ -65,17 +64,19 @@ namespace Device::KeyPad
       { adc1_config_channel_atten(keypad_read_adc_channel[y], VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN); }
     }
 
+    // Config Output Pins
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+    io_conf.pin_bit_mask = 0;
     for (uint8_t x = 0; x < x_size; x++)
     {
-      io_conf.pin_bit_mask = (1ULL << keypad_write_pins[x]);
-      gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
-      gpio_set_level(keypad_write_pins[x], 0);
+      io_conf.pin_bit_mask |= (1ULL << keypad_write_pins[x]);
     }
+    gpio_config(&io_conf);
 
+    // Set up Matrix OS key config
     fnState.setConfig(&fn_config);
 
     for (uint8_t x = 0; x < x_size; x++)
