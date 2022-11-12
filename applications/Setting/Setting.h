@@ -11,14 +11,16 @@ class Setting : public UI {
   // string name = "Setting";
   // Color nameColor = Color(0x00FFFF);
 
-  const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
+   Setting();
 
-  void Start();
+   const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
 
-  static void RotateClockwise(EDirection rotation);
-  static void NextBrightness();
+   void Start();
 
-  bool CustomKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
+   static void RotateClockwise(EDirection rotation);
+   static void NextBrightness();
+
+   bool CustomKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
 
   private:
   uint8_t konami = 0;
