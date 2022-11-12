@@ -99,6 +99,7 @@ namespace MatrixOS::UIInterface
                 if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)
                 {
                   MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
+                  MatrixOS::KEYPAD::ClearList();
                   MatrixOS::LED::DestoryLayer();
                   MatrixOS::LED::Update();
                   return;
