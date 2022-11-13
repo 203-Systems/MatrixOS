@@ -10,7 +10,7 @@
 
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 2
-#define MATRIXOS_PATCH_VER 4
+#define MATRIXOS_PATCH_VER 5
 
 #include "ReleaseConfig.h"
 
