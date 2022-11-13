@@ -108,8 +108,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   if (xy && !(velocity == 0 && stfu))
   {
     // MatrixOS::Logging::LogDebug("Performance", "Set LED");
-    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], canvasLedLayer);
-    MatrixOS::LED::Update(canvasLedLayer);
+    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], 0);
   }
   // else if(!xy)
   // {
@@ -154,7 +153,10 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   // MatrixOS::Logging::LogDebug(name, "Key Event");
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
-  { ActionMenu(); }
+  {
+    // MatrixOS::LED::CopyLayer(0, canvasLedLayer);
+    ActionMenu(); 
+  }
 }
 
 void Performance::stfuScan() {
@@ -167,8 +169,7 @@ void Performance::stfuScan() {
       Point xy = NoteToXY(note);
       if (xy)
       {
-        MatrixOS::LED::SetColor(xy, 0, canvasLedLayer);
-        MatrixOS::LED::Update(canvasLedLayer);
+        MatrixOS::LED::SetColor(xy, 0, 0);
       }
       stfuMap[note] = -1;
     }
