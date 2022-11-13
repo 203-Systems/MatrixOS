@@ -13,6 +13,7 @@ void FactoryMenu::LEDTester() {
     MatrixOS::LED::SetColor(led_index, colors[led_color_index]);
     MatrixOS::LED::Update();
     led_counter++;
+    MatrixOS::KEYPAD::Clear();
     MatrixOS::SYS::DelayMs(30);
   }
   MatrixOS::KEYPAD::Clear();
