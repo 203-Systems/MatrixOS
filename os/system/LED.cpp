@@ -6,6 +6,7 @@ namespace MatrixOS::LED
   StaticTimer_t led_tmdef;
   TimerHandle_t led_tm;
 
+  SemaphoreHandle_t activeBufferSemaphore;
   vector<Color*> frameBuffers; //0 is the active layer
   // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficent for real time rendering.
   // Otherwise, render to layer 255 (Top layer). Content will be updated on the next Update();
@@ -16,13 +17,16 @@ namespace MatrixOS::LED
   void LEDTimerCallback(TimerHandle_t xTimer) {
     if (needUpdate)
     {
+      xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
       MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
       Device::LED::Update(frameBuffers[0], UserVar::brightness);
       needUpdate = false;
+      xSemaphoreGive(activeBufferSemaphore);
     }
   }
 
   void Init() {
+    activeBufferSemaphore = xSemaphoreCreateMutex();
     CreateLayer(); //Create Layer 0 - The active layer
     CreateLayer(); //Create Layer 1 - Swap Layer 1
     led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
@@ -93,13 +97,13 @@ namespace MatrixOS::LED
   void Update(uint8_t layer) {
     if (layer == 255 || layer == CurrentLayer())
     {
-      vTaskSuspendAll();
+      xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
       Color* swapBufferPtr = frameBuffers[0];
       frameBuffers[0] = frameBuffers.back();
       frameBuffers.back() = swapBufferPtr;
       CopyLayer(CurrentLayer(), 0);
       needUpdate = true;
-      xTaskResumeAll();
+      xSemaphoreGive(activeBufferSemaphore);
     }
   }
 
