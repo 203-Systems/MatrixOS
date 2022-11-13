@@ -6,20 +6,25 @@ namespace MatrixOS::LED
   StaticTimer_t led_tmdef;
   TimerHandle_t led_tm;
 
-  vector<Color*> frameBuffers;
+  vector<Color*> frameBuffers; //0 is the active layer
+  // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficent for real time rendering.
+  // Otherwise, render to layer 255 (Top layer). Content will be updated on the next Update();
+  // If directly write to the active buffer, before NewLayer, CopyLayer(0, currentLayer) need to be called to resync the buffer.
+
   bool needUpdate = false;
 
   void LEDTimerCallback(TimerHandle_t xTimer) {
     if (needUpdate)
     {
-      // MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
-      Device::LED::Update(frameBuffers.back(), UserVar::brightness);
+      MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
+      Device::LED::Update(frameBuffers[0], UserVar::brightness);
       needUpdate = false;
     }
   }
 
   void Init() {
-    CreateLayer();
+    CreateLayer(); //Create Layer 0 - The active layer
+    CreateLayer(); //Create Layer 1 - Swap Layer 1
     led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
     xTimerStart(led_tm, 0);
   }
@@ -34,15 +39,13 @@ namespace MatrixOS::LED
     }
     // MatrixOS::Logging::LogVerbose("LED", "Set Color %d %d", xy.x, xy.y);
     xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
-    if (layer > CurrentLayer())
-    {
-      MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
-      return;
-    }
     uint16_t index = Device::LED::XY2Index(xy);
-    if (index == UINT16_MAX)
-      return;
+    if (index == UINT16_MAX)return;
+
     frameBuffers[layer][index] = color;
+
+    if(layer == 0)
+    { needUpdate = true; }
   }
 
   void SetColor(uint16_t ID, Color color, uint8_t layer) {
@@ -53,11 +56,14 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
+
     uint16_t index = Device::LED::ID2Index(ID);
-    if (index == UINT16_MAX)
-      return;
-    uint16_t bufferIndex = index + Device::numsOfLED * layer;
-    frameBuffers[layer][bufferIndex] = color;
+    if (index == UINT16_MAX) return;
+      
+    frameBuffers[layer][index] = color;
+
+    if(layer == 0)
+    { needUpdate = true; }
   }
 
   void Fill(Color color, uint8_t layer) {
@@ -68,13 +74,33 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
+    vTaskSuspendAll();
+    // MatrixOS::Logging::LogVerbose("LED", "Fill Layer %d", layer);
     for (uint16_t index = 0; index < Device::numsOfLED; index++)
     { frameBuffers[layer][index] = color; }
+
+    xTaskResumeAll();
+
+    if(layer == 0)
+    { needUpdate = true; }
+  }
+
+  void CopyLayer(uint8_t dest, uint8_t src)
+  {
+    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::numsOfLED * sizeof(Color));
   }
 
   void Update(uint8_t layer) {
     if (layer == 255 || layer == CurrentLayer())
+    {
+      vTaskSuspendAll();
+      Color* swapBufferPtr = frameBuffers[0];
+      frameBuffers[0] = frameBuffers.back();
+      frameBuffers.back() = swapBufferPtr;
+      CopyLayer(CurrentLayer(), 0);
       needUpdate = true;
+      xTaskResumeAll();
+    }
   }
 
   int8_t CurrentLayer() {
@@ -94,27 +120,25 @@ namespace MatrixOS::LED
       return -1;
     }
     frameBuffers.push_back(frameBuffer);
-    Fill(0);
+    Fill(0, CurrentLayer());
     MatrixOS::Logging::LogDebug("LED Layer", "Layer Created - %d", CurrentLayer());
     return CurrentLayer();
   }
 
   bool DestoryLayer() {
-    if (CurrentLayer() > 0)
+    if (CurrentLayer() > 1)
     {
-      // PauseUpdate(true);
       vPortFree(frameBuffers.back());
       frameBuffers.pop_back();
       MatrixOS::Logging::LogDebug("LED Layer", "Layer Destoried - %d", CurrentLayer());
-      // PauseUpdate(false);
       Update();
       return true;
     }
     else
     {
-      Fill(0);
+      Fill(0, 1);
       Update();
-      MatrixOS::Logging::LogDebug("LED Layer", "Already at layer 0, can not delete layer");
+      MatrixOS::Logging::LogDebug("LED Layer", "Already at layer 1, can not delete layer");
       return false;
     }
   }

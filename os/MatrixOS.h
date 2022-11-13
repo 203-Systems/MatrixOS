@@ -55,6 +55,7 @@ namespace MatrixOS
 
     int8_t CurrentLayer();
     int8_t CreateLayer();
+    void CopyLayer(uint8_t dest, uint8_t src);
     bool DestoryLayer();
 
     void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer = 255);
