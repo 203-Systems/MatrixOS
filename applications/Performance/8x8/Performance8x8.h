@@ -38,8 +38,8 @@ class Performance : public Application {
   Point NoteToXY(uint8_t note);
   int8_t XYToNote(Point xy);
 
-  void MidiEventHandler(MidiPacket midiPacket);
-  void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
+  void MidiEventHandler(MidiPacket midiPacket, bool renderOnActive);
+  void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity, bool renderOnActive);
   // void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity);
   // void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity);
 

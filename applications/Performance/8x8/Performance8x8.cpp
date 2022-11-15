@@ -2,7 +2,6 @@
 
 void Performance::Setup() {
   // Load variable
-  //  MatrixOS
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
   currentKeymap = compatibilityMode;
 }
@@ -17,20 +16,20 @@ void Performance::Loop() {
 
   struct MidiPacket midiPacket;
   while (MatrixOS::MIDI::Get(&midiPacket))
-  { MidiEventHandler(midiPacket); }
+  { MidiEventHandler(midiPacket, true); }
 }
 
-void Performance::MidiEventHandler(MidiPacket midiPacket) {
+void Performance::MidiEventHandler(MidiPacket midiPacket, bool renderOnActive) {
   // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d %d", midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
     case NoteOn:
     case ControlChange:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
+      NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity(), renderOnActive);
       break;
     case NoteOff:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), 0);
+      NoteHandler(midiPacket.channel(), midiPacket.note(), 0, renderOnActive);
       break;
     default:
       break;
@@ -96,7 +95,7 @@ int8_t Performance::XYToNote(Point xy) {
   return -1;
 }
 
-void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
+void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity, bool renderOnActive) {
   // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
   Point xy = NoteToXY(note);
 
@@ -108,7 +107,7 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   if (xy && !(velocity == 0 && stfu))
   {
     // MatrixOS::Logging::LogDebug("Performance", "Set LED");
-    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], 0);
+    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], renderOnActive? 0 : canvasLedLayer);
   }
   // else if(!xy)
   // {
@@ -238,7 +237,7 @@ void Performance::ActionMenu() {
   actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
       struct MidiPacket midiPacket;
       while (MatrixOS::MIDI::Get(&midiPacket))
-      { MidiEventHandler(midiPacket); }
+      { MidiEventHandler(midiPacket, false); }
   });
 
   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
