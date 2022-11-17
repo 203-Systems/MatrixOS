@@ -12,6 +12,7 @@ namespace Device
   void DeviceInit() {
     // esp_timer_early_init();
     LoadDeviceInfo();
+    gpio_install_isr_service(0);
     USB::Init();
     NVS::Init();
     LED::Init();
@@ -38,14 +39,18 @@ namespace Device
       MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu");
     }
 #endif
-    if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->velocity && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->velocity)
+    Device::KeyPad::Scan();
+    if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->active() && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->active())
     { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu"); }
-    else if (KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->velocity &&
-             KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->velocity)
-    { MatrixOS::UserVar::brightness.Set(Device::brightness_level[0]); }
-    else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->velocity &&
-             KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->velocity &&
-             KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->velocity)
+    else if (KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->active() &&
+             KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->active())
+    {
+      KeyPad::Clear();
+      MatrixOS::UserVar::brightness.Set(Device::brightness_level[0]);
+    }
+    else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->active() &&
+             KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->active() &&
+             KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->active())
     {
       MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF00FF));
       MatrixOS::LED::SetColor(Point(5, 2), Color(0xFF00FF));

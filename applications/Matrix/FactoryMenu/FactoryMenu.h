@@ -14,7 +14,12 @@
 #define APPLICATION_COLOR Color(0xFFFFFF)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS FactoryMenu
+
+#if MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+#define APPLICATION_VISIBLITY true
+#else
 #define APPLICATION_VISIBLITY false
+#endif
 
 class FactoryMenu : public Application {
   void Setup() override;

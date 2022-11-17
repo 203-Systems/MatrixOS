@@ -55,8 +55,8 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
-        .low_threshold = 1024,
-        .high_threshold = 65535,
+        .low_threshold = 512,
+        .high_threshold = 49152,
         .debounce = 5,
     };
 
@@ -114,7 +114,7 @@ namespace Device
 #define FINE_LED_BRIGHTNESS
   inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 170, 198, 232, 255};
   inline uint8_t led_chunk_count = 2;
-  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 1.5}};
+  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 4}};
   // const Dimension grid_size(8,8);
   // const Point grid_offset = Point(1,1);
 

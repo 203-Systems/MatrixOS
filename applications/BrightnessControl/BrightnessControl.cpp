@@ -5,7 +5,7 @@
 void BrightnessControl::Start() {
   name = "Brightness Control";
   nameColor = Color(0xFFFFFF);
-
+  
   // Brightness Control
   threshold = Device::brightness_level[sizeof(Device::brightness_level) / sizeof(Device::brightness_level[0]) - 1];
 #ifndef FINE_LED_BRIGHTNESS

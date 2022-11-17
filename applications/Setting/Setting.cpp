@@ -1,12 +1,15 @@
 #include "Setting.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
+Setting::Setting()
+{
+  name = "Setting";
+  nameColor = Color(0x00FFFF);
+}
+
 void Setting::Start() {
   // TODO: Let's assume all dimension are even atm. (No device with odd dimension should exist. Srsly why does Samson
   // Conspiracy exists?) Also assume at least 4x4
-
-  name = "Setting";
-  nameColor = Color(0x00FFFF);
 
   // Brightness Control
   UIButtonLarge brightnessBtn(

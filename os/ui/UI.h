@@ -9,17 +9,20 @@
 #include "UIComponents.h"
 #include "UIInterfaces.h"
 
+#define UI_DEFAULT_FPS 100
+
 class UI {
  public:
   string name;
   Color nameColor;
   int8_t status = 0;
 
-  bool newLedLayer = false;
+  bool newLedLayer = true;
   bool disableExit = false;
+  bool needRender = false;
 
   Timer uiTimer;
-  const uint16_t uiFps = 60;
+  uint32_t uiUpdateMS = 1000 / UI_DEFAULT_FPS;
 
   std::function<void()>* setup_func = nullptr;
   std::function<void()>* loop_func = nullptr;
@@ -28,7 +31,7 @@ class UI {
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
   UI(){};
-  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = false);
+  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
 
   void Start();
 
@@ -73,6 +76,8 @@ class UI {
   void AllowExit(bool allow);
 
   void ClearUIComponents();
+
+  void SetFPS(uint16_t fps);
 
  private:
   void RenderUI();

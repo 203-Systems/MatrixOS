@@ -32,9 +32,10 @@ void UI::LoopTask() {
 }
 
 void UI::RenderUI() {
-  if (uiTimer.Tick(uiFps))
+  if (uiTimer.Tick(uiUpdateMS) || needRender)
   {
-    MatrixOS::LED::Fill(0);
+    needRender = false;
+    // MatrixOS::LED::Fill(0);
     for (auto const& uiComponentPair : uiComponentMap)
     {
       Point xy = uiComponentPair.first;
@@ -81,6 +82,8 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       if (uiComponent->GetSize().Inside(relative_xy))  // Key Found
       { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
     }
+    // if(hasAction)
+    // { needRender = true; }
     if (hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
     { MatrixOS::UIInterface::TextScroll(this->name, this->nameColor); }
   }
@@ -132,4 +135,12 @@ void UI::UIEnd() {
 
   MatrixOS::KEYPAD::Clear();
   // MatrixOS::LED::Update();
+}
+
+void UI::SetFPS(uint16_t fps)
+{
+  if (fps == 0)
+    uiUpdateMS = UINT32_MAX;
+  else
+    uiUpdateMS = 1000 / fps;
 }

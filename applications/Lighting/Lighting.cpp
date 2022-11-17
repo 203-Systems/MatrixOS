@@ -19,7 +19,7 @@ void Lighting::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
     {
       if(MatrixOS::UIInterface::ColorPicker(color.value))
       { color.Set(color.value); }
-      MatrixOS::LED::Fill(color);
+      MatrixOS::LED::Fill(color.value);
       MatrixOS::LED::Update();
     }
     else if (keyInfo->state == HOLD)
