@@ -1,5 +1,5 @@
 #include "Note.h"
-#include "OctaneShifter.h"
+#include "OctaveShifter.h"
 #include "ScaleVisualizer.h"
 
 #include "applications/BrightnessControl/BrightnessControl.h"
@@ -59,8 +59,8 @@ void Note::Setup() {
       [&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
-  OctaneShifter octaneShifter(8, notePadConfigs, &activeConfig.value);
-  actionMenu.AddUIComponent(octaneShifter, Point(0, 0));
+  OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
+  actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
 
   // Spilt View
   UIButtonDimmable spiltViewToggle(

@@ -10,7 +10,7 @@ struct NoteLayoutConfig {
   bool enfourceScale = true; 
   bool alignRoot = true; //Only works when overlap is set to 0
   uint16_t scale = NATURAL_MINOR;
-  int8_t octane = 0;
+  int8_t octave = 0;
   uint8_t channel = 0;
   uint8_t overlap = 0;
   bool velocitySensitive = true;
@@ -41,7 +41,7 @@ class NotePad : public UIComponent {
   void GenerateKeymap() {
     noteMap.reserve(dimension.Area());
 
-    uint8_t root = 12 * config->octane + config->rootKey;
+    uint8_t root = 12 * config->octave + config->rootKey;
     uint8_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++)
