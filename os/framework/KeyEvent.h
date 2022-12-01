@@ -112,7 +112,8 @@ struct KeyInfo {
       }
       else
       {
-        velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold);
+        uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX;
+        velocity = (Fract16)(pre_division_velocity / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold));
         // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
       }
     }
