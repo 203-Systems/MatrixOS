@@ -8,7 +8,7 @@ namespace Device::KeyPad
 
   void TouchBarTimerHandler()  // This exists because return type of TouchBarScan is bool
   {
-    ScanTouchBar();
+    if(touchbar_enable) ScanTouchBar();
   }
 
   void InitTouchBar() {
