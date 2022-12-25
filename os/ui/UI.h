@@ -57,7 +57,7 @@ class UI {
   void LoopTask();
 
   void GetKey();
-  bool CustomKeyEvent(KeyEvent* keyEvent) { 
+  virtual bool CustomKeyEvent(KeyEvent* keyEvent) { 
     if (key_event_handler)
       return (*key_event_handler)(keyEvent);
     return false; 

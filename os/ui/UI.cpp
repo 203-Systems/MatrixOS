@@ -52,7 +52,7 @@ void UI::GetKey() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   {
-    // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
+    // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
       UIKeyEvent(&keyEvent);
     else
