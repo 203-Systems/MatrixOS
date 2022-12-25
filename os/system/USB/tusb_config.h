@@ -65,17 +65,11 @@ extern "C" {
 #endif
 
 #define CFG_TUSB_OS OPT_OS_FREERTOS
-// #define CFG_TUSB_OS_INC_PATH    freertos/
+
 // // Espressif IDF requires "freertos/" prefix in include path
-// #if TU_CHECK_MCU(ESP32S2) || TU_CHECK_MCU(ESP32S3)
-// #pragma message "TUSB FREERTOS MODE"
-//   #define CFG_TUSB_OS               OPT_OS_FREERTOS
-//   #define CFG_TUSB_OS_INC_PATH    freertos/
-// #endif
-// #ifndef CFG_TUSB_OS
-// #pragma message "TUSB OSLESS MODE"
-// #define CFG_TUSB_OS               OPT_OS_NONE
-// #endif
+#if TU_CHECK_MCU(ESP32S2) || TU_CHECK_MCU(ESP32S3)
+  #define CFG_TUSB_OS_INC_PATH    freertos/
+#endif
 
 // CFG_TUSB_DEBUG is defined by compiler in DEBUG build
 // #define CFG_TUSB_DEBUG           0

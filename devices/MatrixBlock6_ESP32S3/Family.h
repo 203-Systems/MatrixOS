@@ -6,7 +6,6 @@
 #include "hal/usb_hal.h"
 #include "soc/usb_periph.h"
 
-#include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
 
 // #include "esp_timer.h"
