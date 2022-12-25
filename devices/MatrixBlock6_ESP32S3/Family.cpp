@@ -13,7 +13,7 @@ namespace Device
     // esp_timer_early_init();
     LoadDeviceInfo();
     gpio_install_isr_service(0);
-    USB::Init();
+    // USB::Init();
     NVS::Init();
     LED::Init();
     KeyPad::Init();

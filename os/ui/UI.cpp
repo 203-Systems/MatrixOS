@@ -24,6 +24,7 @@ void UI::Start() {
 }
 
 void UI::Exit() {
+  MatrixOS::Logging::LogDebug("UI", "UI Exit signaled");
   status = -1;
 }
 
@@ -128,6 +129,7 @@ void UI::ClearUIComponents() {
 }
 
 void UI::UIEnd() {
+  MatrixOS::Logging::LogDebug("UI", "UI Exited");
   if (newLedLayer)
   { MatrixOS::LED::DestoryLayer(); }
   else
