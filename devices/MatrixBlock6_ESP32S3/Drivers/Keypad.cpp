@@ -3,11 +3,11 @@
 #include "timers.h"
 
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
-#define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
+#define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
 
 namespace Device::KeyPad
 {
-  esp_adc_cal_characteristics_t adc1_chars;
+  adc_oneshot_unit_handle_t adc_handle;
   StaticTimer_t keypad_timer_def;
   TimerHandle_t keypad_timer;
 
@@ -58,10 +58,18 @@ namespace Device::KeyPad
     }
     else  // Velocity sensitive keypad
     {
-      adc1_config_width(VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH);
-      esp_adc_cal_characterize(ADC_UNIT_1, VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN, VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+      adc_oneshot_unit_init_cfg_t init_config = {
+          .unit_id = ADC_UNIT_1,
+      };
+      adc_oneshot_new_unit(&init_config, &adc_handle);
+
+      adc_oneshot_chan_cfg_t adc_config = {
+        .atten = VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN,
+        .bitwidth = VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH,
+      };
+    
       for (uint8_t y = 0; y < y_size; y++)
-      { adc1_config_channel_atten(keypad_read_adc_channel[y], VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN); }
+      { adc_oneshot_config_channel(adc_handle, keypad_read_adc_channel[y], &adc_config); }
     }
 
     // Config Output Pins
@@ -169,7 +177,8 @@ namespace Device::KeyPad
         { read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX; }
         else  // Velocity sensitive keypad
         {
-          uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+          int raw_voltage;
+          adc_oneshot_read(adc_handle, keypad_read_adc_channel[y], &raw_voltage);
           read = (raw_voltage << 4) + (raw_voltage >> 8);  // Raw Voltage mapped. Will add calibration curve later.
         }
         gpio_set_level(keypad_write_pins[x], 0);  // Set pin back to low

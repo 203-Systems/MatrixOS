@@ -8,16 +8,14 @@
 
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
-#include "driver/adc.h"
-#include "driver/adc_common.h"
 
-#include "esp_timer.h"
-#include "esp_adc_cal.h"
+// #include "esp_timer.h"
 #include "esp_task_wdt.h"
 #include "esp_rom_gpio.h"
 #include "esp_log.h"
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
+#include "esp_adc/adc_oneshot.h"
 
 #include "nvs_flash.h"
 

@@ -69,7 +69,7 @@ namespace Device
 
     inline gpio_num_t keypad_write_pins[8];
     inline gpio_num_t keypad_read_pins[8];
-    inline adc1_channel_t keypad_read_adc_channel[8];
+    inline adc_channel_t keypad_read_adc_channel[8];
 
     inline gpio_num_t touchData_Pin;
     inline gpio_num_t touchClock_Pin;
