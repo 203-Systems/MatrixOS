@@ -10,17 +10,41 @@ void Shell::Loop() {
 }
 
 std::vector<UIButton> commonBarBtns;  // Because the UI in the common bar need to exist after the function ends
+uint8_t tap_counter = 0;
+uint32_t last_tap = 0;
+
 void Shell::AddCommonBarInUI(UI* ui) {
   commonBarBtns.clear();
   commonBarBtns.reserve(2);  // Make sure to change this after adding more stuffs, if vector content got relocated, UI
                              // will not be able to find it and will hardfault!
-  commonBarBtns.push_back(UIButton("Application Launcher", Color(0x00FFAA), [&]() -> void {
-    if (current_page != 0)
-    {
-      current_page = 0;
-      ui->Exit();
-    }
-  }));
+  commonBarBtns.push_back(UIButtonDimmable(
+      "Application Launcher", Color(0x00FFAA), [&]() -> bool { return current_page == 0; },
+      [&]() -> void {
+        if (current_page != 0)
+        {
+          current_page = 0;
+          ui->Exit();
+        }
+        else 
+        {
+          // Tap on the application launcher button 10 times to show hidden apps
+          if (MatrixOS::SYS::Millis() - last_tap < 1000)
+          {
+            tap_counter++;
+          }
+
+          last_tap = MatrixOS::SYS::Millis();
+
+          // MatrixOS::Logging::LogInfo("Hidden Launcher", "Tap %d", tap_counter);
+
+          if (tap_counter >= 10)
+          {
+            tap_counter = 0;
+            MatrixOS::Logging::LogInfo("Hidden Launcher", "Enter");
+            HiddenApplicationLauncher();
+          }
+        }
+      }));
   ui->AddUIComponent(commonBarBtns.back(), Point(0, 7));
 
 #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG  // Logging Mode Indicator
@@ -81,4 +105,41 @@ void Shell::ApplicationLauncher() {
     { MatrixOS::Logging::LogDebug("Shell", "%s not visible, skip.", applications[i]->name.c_str()); }
   }
   applicationLauncher.Start();
+}
+
+void Shell::HiddenApplicationLauncher() {
+  UI hiddenApplicationLauncher("Hidden Application Launcher", Color(0xFFFFFF));
+
+  uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
+  MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
+
+  uint16_t invisable_app_count = 0;
+  for (uint8_t i = 0; i < app_count; i++)
+  {
+    if (!applications[i]->visibility)
+    { invisable_app_count++; }
+  }
+
+  std::vector<UIButton> appBtns;
+  appBtns.reserve(invisable_app_count);
+  for (uint8_t i = 0; i < app_count; i++)
+  {
+    if (!applications[i]->visibility)
+    {
+      uint8_t x = appBtns.size() % 8;
+      uint8_t y = appBtns.size() / 8;
+
+      uint32_t app_id = applications[i]->id;
+      string app_name = applications[i]->name;
+      Color app_color = applications[i]->color;
+
+      appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
+      hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
+      MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, applications[i]->author.c_str(),
+                                  applications[i]->name.c_str());
+    }
+    else
+    { MatrixOS::Logging::LogDebug("Shell", "%s is visible, skip.", applications[i]->name.c_str()); }
+  }
+  hiddenApplicationLauncher.Start();
 }

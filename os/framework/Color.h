@@ -26,6 +26,8 @@ class Color {
                                                                                       // variable
 
   static uint8_t scale8(uint8_t i, uint8_t scale);
+
+  // A special type of scale. It ensures value won't be 0 after the scale.
   static uint8_t scale8_video(uint8_t i, uint8_t scale);
 
   static Color HsvToRgb(float h, float s, float v);

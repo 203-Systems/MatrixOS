@@ -18,7 +18,7 @@ namespace MatrixOS::LED
     if (needUpdate)
     {
       xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
-      MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
+      // MatrixOS::Logging::LogDebug("LED", "Update layer #%d", CurrentLayer());
       Device::LED::Update(frameBuffers[0], UserVar::brightness);
       needUpdate = false;
       xSemaphoreGive(activeBufferSemaphore);

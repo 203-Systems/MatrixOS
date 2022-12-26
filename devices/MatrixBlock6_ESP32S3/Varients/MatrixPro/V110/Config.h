@@ -23,14 +23,14 @@ namespace V110
   const gpio_num_t KeyRead8_Pin = GPIO_NUM_10;
 
   const bool FSR_KEYPAD = true;
-  const adc1_channel_t KeyRead1_ADC_CHANNEL = ADC1_CHANNEL_1;
-  const adc1_channel_t KeyRead2_ADC_CHANNEL = ADC1_CHANNEL_2;
-  const adc1_channel_t KeyRead3_ADC_CHANNEL = ADC1_CHANNEL_3;
-  const adc1_channel_t KeyRead4_ADC_CHANNEL = ADC1_CHANNEL_4;
-  const adc1_channel_t KeyRead5_ADC_CHANNEL = ADC1_CHANNEL_6;
-  const adc1_channel_t KeyRead6_ADC_CHANNEL = ADC1_CHANNEL_7;
-  const adc1_channel_t KeyRead7_ADC_CHANNEL = ADC1_CHANNEL_8;
-  const adc1_channel_t KeyRead8_ADC_CHANNEL = ADC1_CHANNEL_9;
+  const adc_channel_t KeyRead1_ADC_CHANNEL = ADC_CHANNEL_1;
+  const adc_channel_t KeyRead2_ADC_CHANNEL = ADC_CHANNEL_2;
+  const adc_channel_t KeyRead3_ADC_CHANNEL = ADC_CHANNEL_3;
+  const adc_channel_t KeyRead4_ADC_CHANNEL = ADC_CHANNEL_4;
+  const adc_channel_t KeyRead5_ADC_CHANNEL = ADC_CHANNEL_6;
+  const adc_channel_t KeyRead6_ADC_CHANNEL = ADC_CHANNEL_7;
+  const adc_channel_t KeyRead7_ADC_CHANNEL = ADC_CHANNEL_8;
+  const adc_channel_t KeyRead8_ADC_CHANNEL = ADC_CHANNEL_9;
 
   const gpio_num_t TouchData_Pin = GPIO_NUM_47;
   const gpio_num_t TouchClock_Pin = GPIO_NUM_33;
@@ -69,7 +69,7 @@ void Device::LoadV110() {
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
-  adc1_channel_t _keypad_read_adc_channel[8] = {
+  adc_channel_t _keypad_read_adc_channel[8] = {
       V110::KeyRead1_ADC_CHANNEL, V110::KeyRead2_ADC_CHANNEL, V110::KeyRead3_ADC_CHANNEL, V110::KeyRead4_ADC_CHANNEL,
       V110::KeyRead5_ADC_CHANNEL, V110::KeyRead6_ADC_CHANNEL, V110::KeyRead7_ADC_CHANNEL, V110::KeyRead8_ADC_CHANNEL,
   };

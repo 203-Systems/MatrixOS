@@ -50,7 +50,7 @@ void FactoryMenu::KeyPadSettings() {
               (Fract16)(MatrixOS::UIInterface::NumberSelector8x8((uint16_t)Device::KeyPad::keypad_high_threshold.Get() /
                                                                      256,
                                                                  0x00FFFF, "Keypad High Threshold",
-                                                                 Device::KeyPad::keypad_low_threshold.Get(), 255) *
+                                                                 1, 255) *
                         256);
           Device::KeyPad::keypad_config.high_threshold = Device::KeyPad::keypad_high_threshold;
         }

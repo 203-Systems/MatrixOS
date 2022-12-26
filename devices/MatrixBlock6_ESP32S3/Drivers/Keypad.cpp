@@ -2,12 +2,21 @@
 #include "Device.h"
 #include "timers.h"
 
+#include "ulp_riscv.h"
+#include "ulp_keypad.h"
+
+#include "esp_private/esp_sleep_internal.h"
+#include "esp_private/adc_share_hw_ctrl.h"
+
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
-#define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
+#define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
+
+extern const uint8_t ulp_keypad_bin_start[] asm("_binary_ulp_keypad_bin_start");
+extern const uint8_t ulp_keypad_bin_end[] asm("_binary_ulp_keypad_bin_end");
 
 namespace Device::KeyPad
 {
-  esp_adc_cal_characteristics_t adc1_chars;
+  adc_oneshot_unit_handle_t adc_handle;
   StaticTimer_t keypad_timer_def;
   TimerHandle_t keypad_timer;
 
@@ -51,17 +60,24 @@ namespace Device::KeyPad
       io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
       io_conf.pin_bit_mask = 0;
       for (uint8_t y = 0; y < y_size; y++)
-      {
-        io_conf.pin_bit_mask |= (1ULL << keypad_read_pins[y]);
-      }
+      { io_conf.pin_bit_mask |= (1ULL << keypad_read_pins[y]); }
       gpio_config(&io_conf);
     }
     else  // Velocity sensitive keypad
     {
-      adc1_config_width(VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH);
-      esp_adc_cal_characterize(ADC_UNIT_1, VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN, VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+      adc_oneshot_unit_init_cfg_t init_config = {
+          .unit_id = ADC_UNIT_1,
+          .ulp_mode = ADC_ULP_MODE_RISCV,
+      };
+      adc_oneshot_new_unit(&init_config, &adc_handle);
+
+      adc_oneshot_chan_cfg_t adc_config = {
+          .atten = VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN,
+          .bitwidth = VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH,
+      };
+
       for (uint8_t y = 0; y < y_size; y++)
-      { adc1_config_channel_atten(keypad_read_adc_channel[y], VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN); }
+      { adc_oneshot_config_channel(adc_handle, keypad_read_adc_channel[y], &adc_config); }
     }
 
     // Config Output Pins
@@ -71,10 +87,14 @@ namespace Device::KeyPad
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     io_conf.pin_bit_mask = 0;
     for (uint8_t x = 0; x < x_size; x++)
-    {
-      io_conf.pin_bit_mask |= (1ULL << keypad_write_pins[x]);
-    }
+    { io_conf.pin_bit_mask |= (1ULL << keypad_write_pins[x]); }
     gpio_config(&io_conf);
+
+    // Calibrate the ADC
+    adc_set_hw_calibration_code(ADC_UNIT_1, VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN);
+
+    // Enables the use of ADC and temperature sensor in monitor (ULP) mode
+    esp_sleep_enable_adc_tsens_monitor(true);
 
     // Set up Matrix OS key config
     fnState.setConfig(&fn_config);
@@ -87,8 +107,10 @@ namespace Device::KeyPad
   }
 
   void StartKeyPad() {
-    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL,
-                                      reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
+    ulp_riscv_load_binary(ulp_keypad_bin_start, (ulp_keypad_bin_end - ulp_keypad_bin_start));
+    ulp_riscv_run();
+
+    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
     xTimerStart(keypad_timer, 0);
   }
 
@@ -157,34 +179,69 @@ namespace Device::KeyPad
     return false;
   }
 
-  bool ScanKeyPad() {
-    // int64_t time =  esp_timer_get_time();
-    Fract16 read = 0;
-    for (uint8_t y = 0; y < Device::y_size; y++)
+  uint16_t middleOfThree(uint16_t a, uint16_t b, uint16_t c)
+  {
+      // Checking for a
+      if ((b <= a && a <= c) || (c <= a && a <= b))
+      return a;
+
+      // Checking for b
+      if ((a <= b && b <= c) || (c <= b && b <= a))
+      return b;
+
+      return c;
+  }
+
+  uint16_t minOfThree(uint16_t a, uint16_t b, uint16_t c)
+  {
+      // Checking for a
+      if (a < b && a < c)
+      return a;
+  
+      // Checking for b
+      if (b < a && b < c)
+      return b;
+  
+      return c;
+  }
+
+  bool ScanKeyPad()
+  {
+    // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
+    uint16_t (*result)[8][3] = (uint16_t(*)[8][3])&ulp_result;
+    for(uint8_t y = 0; y < Device::y_size; y ++)
     {
-      for (uint8_t x = 0; x < Device::x_size; x++)
+      for(uint8_t x = 0; x < Device::x_size; x++)
       {
-        gpio_set_level(keypad_write_pins[x], 1);  // Just more stable to turn off the pin and turn back on for each read
-        if (!keypad_config.velocity_sensitive)  // Non velocity sensitive keypad
-        { read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX; }
-        else  // Velocity sensitive keypad
+        // printf("%d,", result[x][y][0]);
+        uint16_t reading = 0;
+        if(result[x][y][0] != 0 && result[x][y][1] != 0 && result[x][y][2] != 0)
         {
-          uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-          read = (raw_voltage << 4) + (raw_voltage >> 8);  // Raw Voltage mapped. Will add calibration curve later.
+          reading = middleOfThree(result[x][y][0], result[x][y][1], result[x][y][2]);
         }
-        gpio_set_level(keypad_write_pins[x], 0);  // Set pin back to low
+        // uint16_t reading = resxult[x][y][0] + result[x][y][1] + result[x][y][2] + result[x][y][ulp_latest];
+        Fract16 read = (reading << 4) + (reading >> 8);  // Raw Voltage mapped. Will add calibration curve later.
         bool updated = keypadState[x][y].update(read, true);
+        // if(keypadState[x][y].state == DEBUNCING)
+        // {
+        //   printf("Key %d %d Debuncing - %d - [%d, %d, %d]\n", x, y, (uint16_t)read, result[x][y][ulp_latest], result[x][y][(ulp_latest + 1) % 3], result[x][y][(ulp_latest + 2) % 3]);
+        // }
+        // else if(keypadState[x][y].state == PRESSED)
+        // {
+        //   printf("Key %d %d Pressed - %d - [%d, %d, %d]\n", x, y, (uint16_t)read, result[x][y][ulp_latest], result[x][y][(ulp_latest + 1) % 3], result[x][y][(ulp_latest + 2) % 3]);
+        // }
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
           if (NotifyOS(keyID, &keypadState[x][y]))
-          { return true; }
+          {           
+            // printf("\n");
+            return true; 
+          }
         }
       }
-      // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
     }
-    // int64_t time_taken =  esp_timer_get_time() - time;
-    // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
+    // printf("\n");
     return false;
   }
 

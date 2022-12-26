@@ -20,7 +20,7 @@ class Setting : public UI {
    static void RotateClockwise(EDirection rotation);
    static void NextBrightness();
 
-   bool CustomKeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
+   bool CustomKeyEvent(KeyEvent* keyEvent);
 
   private:
   uint8_t konami = 0;

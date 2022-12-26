@@ -12,9 +12,9 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-#define FACTORY_CONFIG V110
-#define FACTORY_MFG_YEAR 22
-#define FACTORY_MFG_MONTH 06
+// #define FACTORY_CONFIG V110
+// #define FACTORY_MFG_YEAR 22
+// #define FACTORY_MFG_MONTH 06
 
 struct DeviceInfo {
   char DeviceCode[4];
@@ -35,7 +35,7 @@ namespace Device
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
   const uint16_t numsOfLED = 64 + 32;
-  inline uint16_t keypad_scanrate = 120;
+  inline uint16_t keypad_scanrate = 480;
   inline uint16_t touchbar_scanrate = 60;
   const uint8_t x_size = 8;
   const uint8_t y_size = 8;
@@ -56,7 +56,7 @@ namespace Device
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
         .low_threshold = 512,
-        .high_threshold = 49152,
+        .high_threshold = 65535,
         .debounce = 5,
     };
 
@@ -69,7 +69,7 @@ namespace Device
 
     inline gpio_num_t keypad_write_pins[8];
     inline gpio_num_t keypad_read_pins[8];
-    inline adc1_channel_t keypad_read_adc_channel[8];
+    inline adc_channel_t keypad_read_adc_channel[8];
 
     inline gpio_num_t touchData_Pin;
     inline gpio_num_t touchClock_Pin;
@@ -87,6 +87,7 @@ namespace Device
     inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
 
     inline void LoadCustomSettings() {
+      return;
       if (keypad_custom_setting)
       {
         if (keypad_low_threshold == 0)  // Can't be lower than 1

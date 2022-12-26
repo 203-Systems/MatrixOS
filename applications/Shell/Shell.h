@@ -22,6 +22,7 @@ class Shell : public Application {
 
   void AddCommonBarInUI(UI* ui);
   void ApplicationLauncher();
+  void HiddenApplicationLauncher();
 };
 
 #include "applications/RegisterApplication.h"

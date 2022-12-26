@@ -24,6 +24,7 @@ void UI::Start() {
 }
 
 void UI::Exit() {
+  MatrixOS::Logging::LogDebug("UI", "UI Exit signaled");
   status = -1;
 }
 
@@ -51,7 +52,7 @@ void UI::GetKey() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   {
-    // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyID, keyInfo.state);
+    // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
       UIKeyEvent(&keyEvent);
     else
@@ -128,6 +129,7 @@ void UI::ClearUIComponents() {
 }
 
 void UI::UIEnd() {
+  MatrixOS::Logging::LogDebug("UI", "UI Exited");
   if (newLedLayer)
   { MatrixOS::LED::DestoryLayer(); }
   else
