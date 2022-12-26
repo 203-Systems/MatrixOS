@@ -9,8 +9,8 @@
 // #define MATRIXOS_BUILD_INDEV
 
 #define MATRIXOS_MAJOR_VER 2
-#define MATRIXOS_MINOR_VER 2
-#define MATRIXOS_PATCH_VER 1
+#define MATRIXOS_MINOR_VER 3
+#define MATRIXOS_PATCH_VER 0
 
 #include "ReleaseConfig.h"
 
