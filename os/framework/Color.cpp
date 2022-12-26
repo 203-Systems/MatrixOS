@@ -32,18 +32,18 @@ Color::Color(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nW) {
 
 uint32_t Color::RGB(uint8_t brightness) {
   if (brightness != 255)
-    return (scale8(R, brightness) << 16) | (scale8(G, brightness) << 8) | scale8(B, brightness);
+    return (scale8_video(R, brightness) << 16) | (scale8_video(G, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (R << 16) | (G << 8) | B;
 }
 
 uint32_t Color::GRB(uint8_t brightness) {
   if (brightness != 255)
-    return (scale8(G, brightness) << 16) | (scale8(R, brightness) << 8) | scale8(B, brightness);
+    return (scale8_video(G, brightness) << 16) | (scale8_video(R, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (G << 16) | (R << 8) | B;
 }
 
 Color Color::Scale(uint8_t brightness) {
-  return Color(scale8(R, brightness), scale8(G, brightness), scale8(B, brightness));
+  return Color(scale8_video(R, brightness), scale8_video(G, brightness), scale8_video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
 }
 
 Color Color::ToLowBrightness(bool cancel, uint8_t scale) {
