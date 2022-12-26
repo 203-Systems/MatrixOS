@@ -12,9 +12,9 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-#define FACTORY_CONFIG V110
-#define FACTORY_MFG_YEAR 22
-#define FACTORY_MFG_MONTH 06
+// #define FACTORY_CONFIG V110
+// #define FACTORY_MFG_YEAR 22
+// #define FACTORY_MFG_MONTH 06
 
 struct DeviceInfo {
   char DeviceCode[4];
