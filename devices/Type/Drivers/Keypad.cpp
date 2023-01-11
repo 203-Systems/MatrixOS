@@ -152,7 +152,7 @@ namespace Device::KeyPad
     return MatrixOS::KEYPAD::NewEvent(&keyEvent);
   }
 
-  uint16_t GetKeyID(Point xy) {
+  uint16_t XY2ID(Point xy) {
     if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)  // Main grid
     { return (1 << 12) + (xy.x << 6) + xy.y; }
     else if ((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8))  // Touch Bar
