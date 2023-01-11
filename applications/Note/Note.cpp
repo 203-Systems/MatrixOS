@@ -62,10 +62,10 @@ void Note::Setup() {
   OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
   actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
 
-  // Spilt View
-  UIButtonDimmable spiltViewToggle(
-      "Spilt View", Color(0xFFFFFF), [&]() -> bool { return spiltView; }, [&]() -> void { spiltView = !spiltView; });
-  actionMenu.AddUIComponent(spiltViewToggle, Point(1, 0));
+  // Split View
+  UIButtonDimmable splitViewToggle(
+      "Split View", Color(0xFFFFFF), [&]() -> bool { return splitView; }, [&]() -> void { splitView = !splitView; });
+  actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
 
   UIButtonWithColorFunc notepad1SelectBtn(
       "Note Pad 1", [&]() -> Color { return notePadConfigs[0].color.ToLowBrightness(activeConfig.Get() == 0); }, [&]() -> void { activeConfig = 0; });
@@ -106,11 +106,11 @@ void Note::Setup() {
 void Note::PlayView() {
   UI playView("Note Play View");
 
-  NotePad notePad1(Dimension(spiltView ? 4 : 8, 8), &notePadConfigs[!spiltView && activeConfig.Get() == 1]);
+  NotePad notePad1(Dimension(splitView ? 4 : 8, 8), &notePadConfigs[!splitView && activeConfig.Get() == 1]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
   NotePad notePad2(Dimension(4, 8), &notePadConfigs[1]);
-  if (spiltView)
+  if (splitView)
   { playView.AddUIComponent(notePad2, Point(4, 0)); }
 
   playView.Start();

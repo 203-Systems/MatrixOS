@@ -23,7 +23,7 @@ class Note : public Application {
   // Saved Variables
   CreateSavedVar(APPLICATION_NAME, nvsVersion, uint32_t, version);  // In case NoteLayoutConfig got changed
   CreateSavedVar(APPLICATION_NAME, activeConfig, uint8_t, 0);
-  CreateSavedVar(APPLICATION_NAME, spiltView, bool, false);
+  CreateSavedVar(APPLICATION_NAME, splitView, bool, false);
 
   void Setup() override;
 
