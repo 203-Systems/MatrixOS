@@ -11,6 +11,12 @@ namespace MatrixOS::UIInterface
     // Log the text we're about to scroll
     MatrixOS::Logging::LogDebug("Text Scroll", "Printing %s", text.c_str());
 
+    if(Device::y_size < 8)
+    {
+      MatrixOS::Logging::LogError("Text Scroll", "Not enough vertical space, abort");
+      return;
+    }
+
     // Create two timers - one for scrolling and one for scanning the keyboard
     Timer textScrollTimer;
     Timer keyscanTimer;
