@@ -120,6 +120,13 @@ namespace MatrixOS
     noexpose bool Recive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
+  namespace HID
+  {
+    bool Ready(void);
+    bool KeyboardPress(uint8_t keycode);
+    void KeyboardRelease(uint8_t keycode);
+  }
+
   namespace Logging
   {
     void LogLevelSet(string tag, ELogLevel level);
