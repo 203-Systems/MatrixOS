@@ -18,6 +18,7 @@ class HIDtest : public Application {
  public:
   void Setup() override;
   void Loop() override;
+  void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
 #include "applications/RegisterApplication.h"
