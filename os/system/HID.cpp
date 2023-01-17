@@ -15,9 +15,6 @@ namespace MatrixOS::HID
   {
     activeKeycode.reserve(6);
     // MatrixOS::Logging::LogDebug("HID", "Send keypress %d", keycode);
-    if(!Ready()) {
-       MatrixOS::Logging::LogDebug("HID", "HID not ready");
-       return false; }
 
     if (activeKeycode.size() >= NKRO_COUNT)
     { return false; }
@@ -38,6 +35,10 @@ namespace MatrixOS::HID
     activeKeycode.resize(6); //Pad out the data() array with 0s
     activeKeycode.resize(new_size); //Shrink back to the correct size
 
+    if(!Ready()) {
+    // MatrixOS::Logging::LogDebug("HID", "HID not ready");
+    return false; }
+
     if (tud_suspended())
     {
       // Wake up host if we are in suspend mode
@@ -54,7 +55,6 @@ namespace MatrixOS::HID
   void KeyboardRelease(uint8_t keycode) 
   {
     // MatrixOS::Logging::LogDebug("HID", "Release keypress %d", keycode);
-    if(!Ready()) { return; }
     
     // Check if keycode is in activeKeycode
     for (uint8_t i = 0; i < activeKeycode.size(); i++)
@@ -69,8 +69,13 @@ namespace MatrixOS::HID
       }
     }
 
+    if(!Ready()) {
+      // MatrixOS::Logging::LogDebug("HID", "HID not ready");
+      return;
+    }
+
     uint8_t const modifier  = 0;
-    if (activeKeycode.empty())
+    if(!activeKeycode.empty())
     { tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifier, activeKeycode.data()); }
     else
     { tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifier, NULL); }
