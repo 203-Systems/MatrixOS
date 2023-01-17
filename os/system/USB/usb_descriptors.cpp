@@ -116,7 +116,7 @@ uint8_t const desc_fs_configuration[] = {
     // TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, CFG_TUD_HID_EP_BUFSIZE, 5)
 
     // Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval
-    TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, CFG_TUD_HID_EP_BUFSIZE, 10)
+    TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, CFG_TUD_HID_EP_BUFSIZE, 5)
   };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
