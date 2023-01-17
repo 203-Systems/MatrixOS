@@ -11,6 +11,10 @@ namespace MatrixOS::HID
 
   vector<uint8_t> activeKeycode;
 
+
+  // TODO: Current implentment has a know issue
+  // If the key is pressed when HID isn't ready
+  // That key won't be sent untill the next keypress (They will be batched together)
   bool KeyboardPress(uint8_t keycode) 
   {
     activeKeycode.reserve(6);
