@@ -1,6 +1,6 @@
 #include "MatrixOS.h"
 
-#define NKRO_COUNT 6
+#define NKRO_COUNT 6 // Only 6 is supported by the current USB stack
 
 namespace MatrixOS::HID
 {
@@ -36,7 +36,7 @@ namespace MatrixOS::HID
     activeKeycode.push_back(keycode);
     
     uint8_t new_size = activeKeycode.size();
-    activeKeycode.resize(6); //Pad out the data() array with 0s
+    activeKeycode.resize(NKRO_COUNT); //Pad out the data() array with 0s
     activeKeycode.resize(new_size); //Shrink back to the correct size
 
     if(!Ready()) {
@@ -67,7 +67,7 @@ namespace MatrixOS::HID
       {
         activeKeycode.erase(activeKeycode.begin() + i);
         uint8_t new_size = activeKeycode.size();
-        activeKeycode.resize(6); //Pad out the data() array with 0s
+        activeKeycode.resize(NKRO_COUNT); //Pad out the data() array with 0s
         activeKeycode.resize(new_size); //Shrink back to the correct size
         break;
       }
