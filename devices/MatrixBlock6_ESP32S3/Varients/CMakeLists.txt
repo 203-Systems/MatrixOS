@@ -11,10 +11,12 @@ file(GLOB_RECURSE MATRIX_OS_SRC_CPP
 
 file(GLOB_RECURSE MATRIX_OS_APPLICATION_C
   "${CMAKE_SOURCE_DIR}/applications/*.c"
+  "${FAMILY_PATH}/Applications/*.cpp"
 )
 
 file(GLOB_RECURSE MATRIX_OS_APPLICATION_CPP
   "${CMAKE_SOURCE_DIR}/applications/*.cpp"
+  "${FAMILY_PATH}/Applications/*.cpp"
 )
 
 file(GLOB_RECURSE DEVICE_SRC_C
