@@ -2,6 +2,7 @@ import shutil
 import re
 import argparse
 from os.path import exists
+from os import listdir
 import sys
 
 try:
@@ -41,14 +42,30 @@ class uf2:
 def get_uf2_drives(name = None):
     if name:
         name = name.replace("\'", "").replace("\"", "")
-    drives = list(filter(lambda x: 'removable' in x.opts, psutil.disk_partitions()))
+    mount_drives = []
+
+    if sys.platform == "darwin":
+        volumes = listdir("/Volumes")
+
+        def mount_map(volume):
+            return f"/Volumes/{volume}/"
+
+        mount_drives = list(map(mount_map, volumes))
+    else:
+        disk_partitions = list(filter(lambda x: 'removable' in x.opts, psutil.disk_partitions()))
+
+        def mount_map(key):
+            return key.mountpoint
+
+        mount_drives = list(map(mount_map, disk_partitions))
+
     uf2_devices = []
-    for drive in drives:
-        if exists(drive.mountpoint + "INFO_UF2.TXT"):
-            with open(drive.mountpoint + 'INFO_UF2.TXT', "r") as f:
+    for drive_mount in mount_drives:
+        if exists(drive_mount + "INFO_UF2.TXT"):
+            with open(drive_mount + 'INFO_UF2.TXT', "r") as f:
                 info = f.read()
                 uf2_device = uf2()
-                uf2_device.mountpoint = drive.mountpoint
+                uf2_device.mountpoint = drive_mount
                 uf2_device.info = info.partition('\n')[0]
                 uf2_device.model = re.search('(?:Model: )([^\r\n]+)', info).group(1)
                 uf2_device.board_id = re.search('(?:Board-ID: )([^\r\n]+)', info).group(1)
