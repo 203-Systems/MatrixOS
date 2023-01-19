@@ -214,8 +214,12 @@ struct MidiPacket {
         return 1;
       case SysExEnd:
       {
-        //TODO: Length of the end frame
-        return 3;
+        if(data[0] == 0xF7)
+          return 1;
+        else if(data[1] == 0xF7)
+          return 2;
+        else
+          return 3;
       }
       case TuneRequest:
       case Sync:
