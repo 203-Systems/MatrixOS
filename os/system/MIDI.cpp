@@ -3,7 +3,7 @@
 
 // TODO Put this in device layer
 const uint8_t SYSEX_MFG_ID[3] = {0x00, 0x02, 0x03};
-const uint8_t SYSEX_FAMILY_ID[3] = {'M', 'X'};
+const uint8_t SYSEX_FAMILY_ID[3] = {0x4D, 0x58}; // {'M', 'X'}
 const uint8_t SYSEX_MODEL_ID[3] = {0x06, 0x00};
 
 namespace MatrixOS::MIDI
@@ -139,7 +139,7 @@ namespace MatrixOS::MIDI
       return SysExState::COMPLETE;
     }
     else if(
-      sysExBuffer.size() > 6 &&
+      sysExBuffer.size() >= 6 &&
       sysExBuffer[1] == SYSEX_MFG_ID[0] && sysExBuffer[2] == SYSEX_MFG_ID[1] && sysExBuffer[3] == SYSEX_MFG_ID[2] && 
       sysExBuffer[4] == SYSEX_FAMILY_ID[0] && sysExBuffer[5] == SYSEX_FAMILY_ID[1])
     {
@@ -152,9 +152,9 @@ namespace MatrixOS::MIDI
   uint16_t activeSysExPort = MIDI_PORT_INVAILD;
   SysExState currentSysExState = SysExState::IDLE;
   bool Recive(MidiPacket midiPacket, uint32_t timeout_ms) {
+    // Handle SysEx
     if (midiPacket.SysEx())
     {
-
       // Concurrent SysEx, drop the later one -- TODO: Handle this better
       if (activeSysExPort != MIDI_PORT_INVAILD && midiPacket.port != activeSysExPort)
       {
@@ -191,6 +191,7 @@ namespace MatrixOS::MIDI
       // TODO: Drop first element
       return false;
     }
+
     xQueueSend(midi_queue, &midiPacket, pdMS_TO_TICKS(timeout_ms));
 
     // If current SysEx is the SysexEnd, free up the sysex lock for more sysex.
