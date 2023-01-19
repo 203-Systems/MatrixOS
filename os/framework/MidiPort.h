@@ -57,9 +57,10 @@ class MidiPort {
     if (uxQueueSpacesAvailable(midi_queue) == 0)
     {
       // TODO: Drop first element
+      return false;
     }
     xQueueSend(midi_queue, &midipacket, pdMS_TO_TICKS(timeout_ms));
-    return uxQueueSpacesAvailable(midi_queue) == 0;
+    return true;
   }
 
   MidiPort() {}

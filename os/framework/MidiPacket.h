@@ -21,8 +21,8 @@ enum EMidiStatus : uint8_t {
   Stop = MIDIv1_STOP,
   ActiveSense = MIDIv1_ACTIVE_SENSE,
   Reset = MIDIv1_RESET,
-  SysexData = MIDIv1_SYSEX_START,
-  SysexEnd = MIDIv1_SYSEX_END
+  SysExData = MIDIv1_SYSEX_START,
+  SysExEnd = MIDIv1_SYSEX_END
 };
 
 // Port number can be any of the following class + 0~0xFF
@@ -46,13 +46,11 @@ struct MidiPacket {
   MidiPacket() {}  // Place Holder data
 
   MidiPacket(EMidiStatus status, ...) {
-    // ESP_LOGI("Midi Packet", "Constructor 1");
     va_list valst;
     MidiPacket(0, status, valst);
   }
-
+  
   MidiPacket(uint16_t port, EMidiStatus status, ...) {
-    // ESP_LOGI("Midi Packet", "Constructor 2");
     this->port = port;
     this->status = status;
     va_list valst;
@@ -63,23 +61,17 @@ struct MidiPacket {
       case NoteOff:
       case AfterTouch:
       case ControlChange:
-        // length = 3;
-        // data = (uint8_t*)pvPortMalloc(3);
         data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
         data[1] = (uint8_t)va_arg(valst, int);
         data[2] = (uint8_t)va_arg(valst, int);
         break;
       case ProgramChange:
       case ChannelPressure:
-        // length = 2;
-        // data = (uint8_t*)pvPortMalloc(2);
         data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
         data[1] = (uint8_t)va_arg(valst, int);
         break;
       case PitchChange:
       {
-        // length = 3;
-        // data = (uint8_t*)pvPortMalloc(3);
         data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
         uint16_t pitch = (uint16_t)va_arg(valst, int);
         data[1] = (uint8_t)(pitch & 0x07F);
@@ -87,21 +79,23 @@ struct MidiPacket {
       }
       break;
       case SongSelect:
-        // length = 1;
-        // data = (uint8_t*)pvPortMalloc(2);
         data[0] = SongSelect;
         data[1] = (uint8_t)va_arg(valst, int);
         break;
       case SongPosition:
       {
-        // length = 3;
-        // data = (uint8_t*)pvPortMalloc(3);
         data[0] = SongPosition;
         uint16_t position = (uint16_t)va_arg(valst, int);
         data[1] = (uint8_t)(position & 0x07F);
         data[2] = (uint8_t)((position >> 7) & 0x7f);
         break;
       }
+      case SysExData:
+      case SysExEnd:
+        data[0] = (uint8_t)va_arg(valst, int);
+        data[1] = (uint8_t)va_arg(valst, int);
+        data[2] = (uint8_t)va_arg(valst, int);
+        break;
       case TuneRequest:
       case Sync:
       case Start:
@@ -109,14 +103,8 @@ struct MidiPacket {
       case Stop:
       case ActiveSense:
       case Reset:
-        // length = 0;
-        break;
-      case SysexData:
-        // TODO
-        break;
       case None:
       default:
-        // length = 0;
         break;
     }
   }
@@ -124,22 +112,15 @@ struct MidiPacket {
   MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out length and
                                                                   // assign it automaticlly
   {
-    // ESP_LOGI("Midi Packet", "Constructor 3");
-    MidiPacket(0, status, length, data);
+    MidiPacket(0, status, data);
   }
 
   MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out
                                                                                  // length and assign it automaticlly
   {
-    // ESP_LOGI("Midi Packet", "Constructor 4");
     this->port = port;
     this->status = status;
-    // this->length = length;
-    // this->data = (uint8_t*)pvPortMalloc(length); //Malloc(0) is fine, not gonna bother checking.
-    // ESP_LOGI("MP pre construct", "%#02X %#02X %#02X", data[0], data[1], data[2]);
     memcpy(this->data, data, length);
-    // ESP_LOGI("MP post construct", "%#02X %#02X %#02X", this->data[0], this->data[1], this->data[2]);
-    // ESP_LOGI("MP post construct2", "%#02X %#02X %#02X", this->channel(), this->note(), this->velocity());
   }
 
   uint8_t channel() {
@@ -215,12 +196,6 @@ struct MidiPacket {
     }
   }
 
-  // ~MidiPacket()
-  // {
-  // ESP_LOGI("Midi Packet", "Free %d %p", (int)status, data);
-  // free(data); //free(NULL) is fine
-  // }
-
   uint8_t Length() {
     switch (status)
     {
@@ -230,13 +205,18 @@ struct MidiPacket {
       case ControlChange:
       case PitchChange:
       case SongPosition:
+      case SysExData:
         return 3;
       case ProgramChange:
       case ChannelPressure:
         return 2;
-
       case SongSelect:
         return 1;
+      case SysExEnd:
+      {
+        //TODO: Length of the end frame
+        return 3;
+      }
       case TuneRequest:
       case Sync:
       case Start:
@@ -244,10 +224,24 @@ struct MidiPacket {
       case Stop:
       case ActiveSense:
       case Reset:
-      case SysexData:  // TODO
       case None:
       default:
         return 0;
     }
   }
+
+  bool SysEx()
+  {
+    return status == SysExData || status == SysExEnd;
+  }
+
+  bool SysExStart()
+  {
+    return status == SysExData && data[0] == 0xF0;
+  }
+
+  // bool SysExEnd()
+  // {
+  //   return status == SysExEnd;
+  // }
 };
