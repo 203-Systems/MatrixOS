@@ -38,8 +38,6 @@ void tud_midi_rx_cb(uint8_t itf) {
   MidiPacket packet = MidiPacket(port, None);
   while (tud_midi_n_packet_read(itf, raw_packet))
   {
-    ESP_LOGI("USB-MIDI", "Packet %d %d %d %d", raw_packet[0], raw_packet[1], raw_packet[2], raw_packet[3]);
-
     switch (raw_packet[0])
     {
       case CIN_3BYTE_SYS_COMMON:
@@ -108,13 +106,11 @@ void tud_midi_rx_cb(uint8_t itf) {
         }
         break;
       case CIN_SYSEX:
-        ESP_LOGI("Sysex", "Data: %d %d %d", raw_packet[1], raw_packet[2], raw_packet[3]);
         packet = MidiPacket(port, SysExData, 3, &raw_packet[1]);
         break;
       case CIN_SYSEX_ENDS_IN_1:
       case CIN_SYSEX_ENDS_IN_2:
       case CIN_SYSEX_ENDS_IN_3:
-        ESP_LOGI("Sysex", "End: %d %d %d", raw_packet[1], raw_packet[2], raw_packet[3]);
         packet = MidiPacket(port, SysExEnd, 3, &raw_packet[1]);
         break;
       default: 

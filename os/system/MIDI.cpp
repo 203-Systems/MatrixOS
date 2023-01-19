@@ -46,23 +46,18 @@ namespace MatrixOS::MIDI
 
   bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta)
   {
-    ESP_LOGI("MIDI", "Sending SysEx of length %d to port %d", length, port);
     if(includeMeta)
     {
       uint8_t header[6] = {MIDIv1_SYSEX_START, SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1]};
-
-      ESP_LOGI("Send SysEx Data", "%.2X %.2X %.2x", header[0], header[1], header[2]);   
       if(!Send(MidiPacket(port, SysExData, 3, header), 5))
       { return false; }
 
-      ESP_LOGI("Send SysEx Data", "%.2X %.2X %.2x", header[3], header[4], header[5]);   
       if(!Send(MidiPacket(port, SysExData, 3, header + 3), 5))
       { return false; }
     }
 
     for (uint8_t index = 0; index < length - 3 - !includeMeta; index += 3)
     {
-      ESP_LOGI("Send SysEx Data", "%.2X %.2X %.2x", data[index], data[index + 1], data[index + 2]);   
       if(!Send(MidiPacket(port, SysExData, 3, data + index), 5))
       { return false; }
     }
@@ -77,7 +72,7 @@ namespace MatrixOS::MIDI
         footer[i] = data[start_ptr + i];
       }
       footer[length % 3] = MIDIv1_SYSEX_END;
-      ESP_LOGI("Send SysEx End", "%.2X %.2X %.2x", footer[0], footer[1], footer[2]);   
+      
       if(!Send(MidiPacket(port, SysExEnd, length % 3 + 1, footer), 5))
       { return false;}
      }
@@ -91,7 +86,6 @@ namespace MatrixOS::MIDI
         footer[i] = data[start_ptr + i];
       }
       
-      ESP_LOGI("Send SysEx End", "%.2X %.2X %.2x", footer[0], footer[1], footer[2]); 
       if(!Send(MidiPacket(port, SysExEnd, end_frame_length, footer), 5))
       { return false; }
     }
@@ -181,7 +175,6 @@ namespace MatrixOS::MIDI
       if (currentSysExState != SysExState::RELEASE)
       {
         sysExBuffer.insert(sysExBuffer.end(), midiPacket.data, midiPacket.data + 3);
-        ESP_LOGI("Sysex", "Pending: %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
         currentSysExState = ProcessSysEx(midiPacket.port, sysExBuffer, midiPacket.status == SysExEnd); 
 
         if(midiPacket.status == SysExEnd)
@@ -191,7 +184,6 @@ namespace MatrixOS::MIDI
         }
         return true; //Signal that we have handled this packet
       }
-      ESP_LOGI("Sysex", "Release: %d %d %d", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
     }
 
     if (uxQueueSpacesAvailable(midi_queue) == 0)
