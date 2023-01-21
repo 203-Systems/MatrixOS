@@ -126,11 +126,10 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
 vector<uint8_t> sysExBuffer;
 void Performance::SysExHandler(MidiPacket midiPacket)
 {
-  MatrixOS::Logging::LogDebug("Performance", "SysEx Recived %.2X %.2X %.2X", midiPacket.data[0], midiPacket.data[1], midiPacket.data[2]);
   // New SysEx, clear buffer
   if(sysExBuffer.empty())
   {
-    sysExBuffer.reserve(128);
+    sysExBuffer.reserve(400);
   }
   
   // Insert data to buffer
@@ -148,7 +147,7 @@ void Performance::SysExHandler(MidiPacket midiPacket)
   {
     case 0x5f: //Apollo batch fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L54-L120
     {
-      MatrixOS::Logging::LogDebug("Performance", "Apollo batch Fill");
+      // MatrixOS::Logging::LogDebug("Performance", "Apollo batch Fill");
       if(sysExBuffer.size() < 5) { return; }
 
       uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
@@ -177,18 +176,17 @@ void Performance::SysExHandler(MidiPacket midiPacket)
         //If nums of NN is 0, then the next byte is the number of NN
         if(n_count == 0) { n_count = sysExBuffer[ptr++]; } //If all 3 bits are 0, then it's 64 (0b111111
 
-        MatrixOS::Logging::LogDebug("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
+        // MatrixOS::Logging::LogDebug("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
 
         // Goes through all N
         for (uint16_t n = 0; n < n_count; n++)
         {
-          MatrixOS::Logging::LogDebug("Performance", "NN: %d", sysExBuffer[ptr]);
           if (sysExBuffer[ptr] == 0)  // Global full
           { MatrixOS::LED::Fill(color, targetLayer); }
           else if (sysExBuffer[ptr] < 99)  // Grid
           {
             Point xy = Point(sysExBuffer[ptr] % 10 - 1, 8 - (sysExBuffer[ptr] / 10));
-            MatrixOS::Logging::LogDebug("Performance", "Grid %d %d", xy.x, xy.y);
+            // MatrixOS::Logging::LogDebug("Performance", "Grid %d %d", xy.x, xy.y);
             MatrixOS::LED::SetColor(xy, color, targetLayer);
           }
           else if (sysExBuffer[ptr] == 99)  // Mode Light
