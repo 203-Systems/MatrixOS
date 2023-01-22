@@ -4,7 +4,7 @@
 // TODO Put this in device layer
 const uint8_t SYSEX_MFG_ID[3] = {0x00, 0x02, 0x03};
 const uint8_t SYSEX_FAMILY_ID[3] = {0x4D, 0x58}; // {'M', 'X'}
-const uint8_t SYSEX_MODEL_ID[3] = {0x06, 0x00};
+const uint8_t SYSEX_MODEL_ID[3] = {0x11, 0x01};
 
 namespace MatrixOS::MIDI
 {
