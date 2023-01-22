@@ -42,7 +42,7 @@ namespace Device::KeyPad
     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     io_conf.pin_bit_mask = (1ULL << fn_pin);
-#ifdef fn_pin_ACTIVE_HIGH  // Active HIGH
+#ifdef FN_PIN_ACTIVE_HIGH  // Active HIGH
     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
 #else  // Active Low
