@@ -208,11 +208,65 @@ void Performance::SysExHandler(MidiPacket midiPacket)
           ptr++; //Since ptr is the pointer of in vector, we need to read the next NN, inc the ptr by 1
         }
       }
+      break;
     }
-    break;
+    case 0x5e: //Apollo regular fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L115
+    {
+      // MatrixOS::Logging::LogDebug("Performance", "Apollo batch Fill");
+      if(sysExBuffer.size() < 5) { return; }
+
+      uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+
+      uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
+      while (ptr < sysExBuffer.size())
+      {
+        // Extract the color data
+        uint8_t index = sysExBuffer[ptr];
+        uint8_t colorR = (sysExBuffer[ptr + 1] & 0x3F);
+        uint8_t colorG = (sysExBuffer[ptr + 2] & 0x3F);
+        uint8_t colorB = (sysExBuffer[ptr + 3] & 0x3F);
+        
+        // Remapped color from 6 bit to 8 bit
+        colorR = (colorR << 2) + (colorR >> 4);
+        colorG = (colorG << 2) + (colorG >> 4);
+        colorB = (colorB << 2) + (colorB >> 4);
+
+        // Create the color
+        Color color = Color(colorR, colorG, colorB);
+
+        ptr += 4; //We finish reading the first 3 bit, inc the ptr by 3
+
+        // MatrixOS::Logging::LogDebug("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
+
+        if (index == 0)  // Global full
+        { MatrixOS::LED::Fill(color, targetLayer); }
+        else if (index < 99)  // Grid
+        {
+          Point xy = Point(index % 10 - 1, 8 - (index / 10));
+          MatrixOS::LED::SetColor(xy, color, targetLayer);
+        }
+        else if (index == 99)  // Mode Light
+        {
+          // Not implemented - Maybe a TODO
+        }
+        else if (index < 110)  // Row Fill
+        {
+          int8_t row = 108 - index;
+          for (int8_t x = 0; x < 10; x++)
+          { MatrixOS::LED::SetColor(Point(x, row), color, targetLayer); }
+        }
+        else if (index < 120)  // Column Fill
+        {
+          int8_t column = index - 111;
+          for (int8_t y = 0; y < 10; y++)
+          { MatrixOS::LED::SetColor(Point(column, y), color, targetLayer); }
+        }
+      }
+      break;
+    }
   
-  default:
-    break;
+    default:
+      break;
   }
 
   // Clear buffer since we are done parsing SysEx
