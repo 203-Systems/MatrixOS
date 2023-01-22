@@ -301,6 +301,7 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
     // MatrixOS::LED::CopyLayer(0, canvasLedLayer);
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, 121, 0)); //For Apollo Clearing
     ActionMenu(); 
   }
 }
