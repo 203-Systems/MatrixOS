@@ -31,7 +31,7 @@ namespace Device
     else
     {
       ESP_LOGE("Device Init", "Failed to find config for Matrix Pro %.4s", deviceInfo.Revision);
-      LoadV100();
+      LoadV110();
 #ifdef FACTORY_CONFIG
       MatrixOS::SYS::ErrorHandler("Unable to find device config");
 #endif
