@@ -400,6 +400,8 @@ void Performance::ActionMenu() {
     return false;
    });
 
+  MatrixOS::LED::CopyLayer(canvasLedLayer, 0);
+
   uiOpened = true;
   actionMenu.Start();
   uiOpened = false;
