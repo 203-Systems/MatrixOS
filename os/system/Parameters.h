@@ -11,6 +11,8 @@
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 4
 #define MATRIXOS_PATCH_VER 1
+#define MATRIXOS_RELEASE_VER 1 //This is for beta etc, doesn't take effect in Stable Release
+
 
 #include "ReleaseConfig.h"
 

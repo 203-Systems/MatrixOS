@@ -125,12 +125,22 @@ namespace MatrixOS::MIDI
       {
        if(sysExBuffer[3] == USYSEX_GENERAL_INFO && sysExBuffer[4] == USYSEX_GI_ID_REQUEST) //General Info - Identity Request I should be check channel here but it doesn't matter
        {
+        #if MATRIXOS_BUILD_VER == 0 // Release Version
+        uint8_t osReleaseVersion = 0;
+        #elif (MATRIXOS_BUILD_VER == 4) // Nighty Version
+        uint8_t osReleaseVersion = 0x31; // 0b0011111 - Shares the same first two bit as release version but the last 5 bits are set
+        #elif(MATRIXOS_RELEASE_VER < 32) // Speial Release Version
+        uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
+        #else
+        uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
+        #endif
+
          uint8_t reply[] = {
           MIDIv1_SYSEX_START, MIDIv1_UNIVERSAL_NON_REALTIME_ID, USYSEX_ALL_CHANNELS, USYSEX_GENERAL_INFO, USYSEX_GI_ID_RESPONSE, 
           SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], 
           SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1], 
           SYSEX_MODEL_ID[0], SYSEX_MODEL_ID[1],
-          MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER, MATRIXOS_PATCH_VER, MATRIXOS_BUILD_VER,
+          MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER, MATRIXOS_PATCH_VER, osReleaseVersion,
           MIDIv1_SYSEX_END};
 
           SendSysEx(port, sizeof(reply), reply, false);
