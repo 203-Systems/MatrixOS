@@ -127,8 +127,6 @@ enum
   REPORT_ID_COUNT
 };
 
-#define CFG_TUD_HID_EP_BUFSIZE  64
-
 #ifdef __cplusplus
 }
 #endif
