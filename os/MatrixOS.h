@@ -139,6 +139,7 @@ namespace MatrixOS
 
   namespace NVS
   {
+    size_t GetSize(uint32_t hash);
     vector<char> GetVariable(uint32_t hash);
     int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length);  // Load variable into pointer. If not defined,
                                                                         // it will try to assign current pointer value
