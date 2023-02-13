@@ -42,7 +42,8 @@ SRC_C += \
 	lib\tinyusb\src\class\usbtmc\usbtmc_device.c \
 	lib\tinyusb\src\class\video\video_device.c \
 	lib\tinyusb\src\class\vendor\vendor_device.c \
-	lib\printf\src\printf\printf.c
+	lib\printf\src\printf\printf.c \
+	lib\cb0r\src\cb0r.c
 
 # Include all source C in family & device folder
 SRC_C += $(subst ,,$(wildcard $(DEVICE_PATH)/*.c))

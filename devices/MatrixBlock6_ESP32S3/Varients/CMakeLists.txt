@@ -57,6 +57,7 @@ set(LIB_SRC
   "${TINYUSB}/src/class/vendor/vendor_device.c"
   "${TINYUSB}/src/portable/espressif/esp32sx/dcd_esp32sx.c"
   "${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
+  "${CMAKE_SOURCE_DIR}/lib/cb0r/src/cb0r.c"
 )
 
 set(MATRIX_OS_INC
@@ -70,6 +71,7 @@ set(MATRIX_OS_INC
 set(LIB_INC 
   "${CMAKE_SOURCE_DIR}/lib/tinyusb/src"
   "${CMAKE_SOURCE_DIR}/lib/printf/src"
+  "${CMAKE_SOURCE_DIR}/lib/cb0r/include"
   "${TINYUSB}/hw"
   "${TINYUSB}/src"
 )
