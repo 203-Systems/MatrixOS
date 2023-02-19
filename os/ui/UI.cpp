@@ -80,12 +80,12 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
     {
       Point relative_xy = xy - uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
-      if (uiComponent->GetSize().Inside(relative_xy))  // Key Found
+      if (uiComponent->GetSize().Contains(relative_xy))  // Key Found
       { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
     }
     // if(hasAction)
     // { needRender = true; }
-    if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Inside(xy))
+    if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Contains(xy))
     { MatrixOS::UIInterface::TextScroll(this->name, this->nameColor); }
   }
 }
