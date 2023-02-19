@@ -19,8 +19,7 @@ class CustomKeymap : public Application {
   void Setup() override;
   void Loop() override;
   private:
-  void* keymap = NULL;
-  uint8_t currentLayer = 0;
+  void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
 #include "applications/RegisterApplication.h"
