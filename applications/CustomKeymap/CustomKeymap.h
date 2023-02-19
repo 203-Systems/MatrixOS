@@ -1,8 +1,3 @@
-/*
-This is the example application for Matrix OS
-Remember to include this header file in the UserApplications.h in the Applications folder
-*/
-
 #pragma once
 
 #include "MatrixOS.h"

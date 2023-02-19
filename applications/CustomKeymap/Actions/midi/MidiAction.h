@@ -1,13 +1,11 @@
-#include "./Action.h"
+#include "MatrixOS.h"
 
-class MidiAction: public Action
+namespace MidiAction
 {
-    public:
-     static string name = "midi";
-     static uint32_t hash = StaticHash("midi");
+    const static uint32_t signature = StaticHash("midi");
 
-     virtual bool KeyEvent(cb0r_t action, uint16_t keyID, KeyInfo* keyInfo)
-     {
+    static bool KeyEvent(cb0r_t action, uint16_t keyID, KeyInfo* keyInfo)
+    {
         return true;
-     }
-}
+    }
+};

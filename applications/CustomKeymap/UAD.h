@@ -1,3 +1,5 @@
+#pragma once
+
 #include "MatrixOS.h"
 #include "cb0r.h"
 
