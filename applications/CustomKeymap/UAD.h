@@ -10,6 +10,7 @@
 class UAD
 {
   public:
+  UAD();
   UAD(uint8_t* uad, size_t size);
   ~UAD();
 

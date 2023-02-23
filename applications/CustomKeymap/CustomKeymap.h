@@ -2,6 +2,7 @@
 
 #include "MatrixOS.h"
 #include "applications/Application.h"
+#include "UAD.h"
 
 #define APPLICATION_NAME "Custom Keymap"
 #define APPLICATION_AUTHOR "203 Electronics"
@@ -14,7 +15,8 @@ class CustomKeymap : public Application {
   void Setup() override;
   void Loop() override;
   private:
-  void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
+   UAD uad;
+   void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
 #include "applications/RegisterApplication.h"

@@ -37,7 +37,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
 
   // Get Action Layer Array
   cb0r_s layer_array;
-  if (!cb0r(uad + offset, uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
+  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
   {
     MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Layer Array");
     return false;

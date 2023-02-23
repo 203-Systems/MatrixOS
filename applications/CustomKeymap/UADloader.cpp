@@ -2,6 +2,10 @@
 
 #define TAG "UAD Loader"
 
+UAD::UAD()
+{
+}
+
 UAD::UAD(uint8_t* uad, size_t size)
 {
     LoadUAD(uad, size);
