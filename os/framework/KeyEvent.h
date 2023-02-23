@@ -38,7 +38,7 @@ struct KeyConfig {
   uint16_t debounce;
 };
 
-enum KeyStates : uint8_t { /*Status Keys*/ IDLE,
+enum KeyState : uint8_t { /*Status Keys*/ IDLE,
                            ACTIVATED,
                            /*Event Keys*/ PRESSED,
                            RELEASED,
@@ -51,7 +51,7 @@ enum KeyStates : uint8_t { /*Status Keys*/ IDLE,
 
 struct KeyInfo {
   KeyConfig* config = nullptr;
-  KeyStates state = IDLE;
+  KeyState state = IDLE;
   uint32_t lastEventTime = 0;  // PRESSED and RELEASED event only
   Fract16 velocity = 0;
   bool hold = false;
