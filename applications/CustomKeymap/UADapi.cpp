@@ -44,19 +44,3 @@ void UAD::UnsetLayer(uint8_t layer)
 {
     layerOverrided &= ~(1 << layer);
 }
-
-int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index)
-{
-    if(IsBitSet(bitmap, index))
-    {
-        return -1;
-    }
-
-    // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < index; i++)
-    {
-        count += IsBitSet(bitmap, i);
-    }
-    return count + 1;
-}

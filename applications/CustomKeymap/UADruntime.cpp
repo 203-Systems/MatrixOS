@@ -4,6 +4,8 @@
 #define TAG "UAD Runtime"
 
 void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
+  if (!loaded) { return; }
+
   ActionInfo actionInfo;
   Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
   if (xy)
@@ -39,7 +41,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   cb0r_s layer_array;
   if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
   {
-    MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Layer Array");
+    MatrixOS::Logging::LogError(TAG, "Failed to get Action Layer Array");
     return false;
   }
 
@@ -47,7 +49,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   cb0r_s bitmap;
   if (!cb0r_get(&layer_array, 0, &bitmap) || bitmap.type != CB0R_INT)
   {
-    MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Layer Bitmap");
+    MatrixOS::Logging::LogError(TAG, "Failed to get Action Layer Bitmap");
     return false;
   }
 
@@ -80,7 +82,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
     cb0r_s actions;
     if(!cb0r_get(&layer_array, layer_index, &actions) || actions.type != CB0R_ARRAY)
     {
-        MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Array");
+        MatrixOS::Logging::LogError(TAG, "Failed to get Action Array");
         return false;
     }
 
@@ -102,40 +104,22 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   return true;
 }
 
-// bool UAD::GetActionsFromOffset(uint16_t offset, cb0r_t result)
-// {
-//     if(offset == 0) { return false; }
-
-//     cb0r_s layer_array;
-//     cb0r(uad + offset, uad + uadSize, 0, &layer_array);
-
-//     if(layer_array.type != CB0R_ARRAY)
-//     {
-//         MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Layer Array");
-//         return false;
-//     }
-
-//     cb0r_s bitmap;
-//     if(!cb0r_get(&layer_array, 0, &bitmap) || bitmap.type != CB0R_INT)
-//     {
-//         MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Layer Bitmap");
-//         return false;
-//     }
-//     uint8_t layer_index = IndexInBitmap(bitmap.value, layer);
-//     if(!cb0r_get(&layer_array, layer_index, result) || layer_array.type != CB0R_ARRAY)
-//     {
-//         MatrixOS::Logging::LogDebug(TAG, "Failed to get Action Array");
-//         return false;
-//     }
-
-//     return true;
-// }
-
 uint8_t UAD::GetTopLayer() {
   return std::log2(layerEnabled);
 }
 
-// uint16_t GetLayerBitmap()
-// {
-//     return (layerOverrided & layerEnabled) | (layerDefault & ~layerOverrided);
-// }
+int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index)
+{
+    if(!IsBitSet(bitmap, index))
+    {
+        return -1;
+    }
+
+    // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < index; i++)
+    {
+        count += IsBitSet(bitmap, i);
+    }
+    return count + 1;
+}

@@ -14,32 +14,8 @@ class UAD
   UAD(uint8_t* uad, size_t size);
   ~UAD();
 
-  void UpdateEffects();
-  void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
-
- private:
-  uint8_t* uad;
-  size_t uadSize;
-  Dimension mapSize;
-  uint8_t layerCount;
-  vector<uint32_t> actionList;
-  vector<uint32_t> effectList;
-  uint16_t layerEnabled = 1;
-  uint16_t layerPassthough = 0xFFFF;
-
-  uint16_t** actionLUT;
-  uint16_t** effectLUT;
-
-  // std::unordered_map<ActionInfo, uint32_t> registers;
-
-  // UAD Loader
   bool LoadUAD(uint8_t* uad, size_t size);
-  bool CheckVersion(cb0r_t uadMap);
-  bool LoadActionList(cb0r_t uadMap);
-  bool LoadEffectList(cb0r_t uadMap);
-  bool CreateHashList(cb0r_t cborArray, vector<uint32_t>* list); // Used to generate hash for action names
-  bool CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
-  bool LoadDevice(cb0r_t uadMap);
+  void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
 
   // UAD Runtime
   bool ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo); //WIll pick a layer and index for ExeciteAction
@@ -56,6 +32,30 @@ class UAD
   // Helpers
   int8_t IndexInBitmap(uint64_t bitmap, uint8_t index); // Not this one has +1 offset (Because usually used in array index look up)
   uint8_t GetTopLayer();
+
+ private:
+  uint8_t* uad;
+  bool loaded = false;
+  size_t uadSize;
+  Dimension mapSize;
+  uint8_t layerCount;
+  vector<uint32_t> actionList;
+  vector<uint32_t> effectList;
+  uint16_t layerEnabled = 1;
+  uint16_t layerPassthough = 0xFFFF;
+
+  uint16_t** actionLUT;
+  uint16_t** effectLUT;
+
+  // std::unordered_map<ActionInfo, uint32_t> registers;
+
+  // UAD Loader
+  bool CheckVersion(cb0r_t uadMap);
+  bool LoadActionList(cb0r_t uadMap);
+  bool LoadEffectList(cb0r_t uadMap);
+  bool CreateHashList(cb0r_t cborArray, vector<uint32_t>* list); // Used to generate hash for action names
+  bool CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
+  bool LoadDevice(cb0r_t uadMap);
 };
 
 #define IsBitSet(byte, bit) ((byte & (1 << bit)) != 0)

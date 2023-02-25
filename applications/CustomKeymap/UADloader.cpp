@@ -21,7 +21,6 @@ UAD::~UAD()
             free(actionLUT[x]);
         }
     }
-    free(actionLUT);
 
     if(effectLUT != NULL)
     {
@@ -29,8 +28,8 @@ UAD::~UAD()
         {
             free(effectLUT[x]);
         }
+            free(effectLUT);
     }
-    free(effectLUT);
 }
 
 bool UAD::CheckVersion(cb0r_t uadMap)
@@ -99,50 +98,67 @@ bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list)
 
 bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
 {
-    *lut = (uint16_t**)pvPortMalloc(lutSize.x * sizeof(uint16_t*));
-    cb0r_s bitmap;
+    cb0r_s x_bitmap;
+    if(!cb0r_get(actionMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+    {
+        MatrixOS::Logging::LogError(TAG, "Failed to get Action X Bitmap\n");
+        return false;
+    }
 
+    *lut = (uint16_t**)pvPortMalloc(lutSize.x * sizeof(uint16_t*));
+
+    // Layer 1
     for(uint8_t x = 0; x < lutSize.x; x++)
     {   
         (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t*));
-        
-        // Layer 1
-        if(!cb0r_get(actionMatrix, 0, &bitmap) || bitmap.type != CB0R_INT)
-        {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Action X Bitmap\n");
-            return false;
-        }
-        
-        uint8_t x_index = IndexInBitmap(bitmap.value, x);
-        cb0r_s y_array;
-
-        if(!cb0r_get(actionMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
-        {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Action Y Array\n");
-            return false;
-        }
 
         for(uint8_t y = 0; y < lutSize.y; y++)
+        {
+            (*lut)[x][y] = 0;
+        }
+        
+        int8_t x_index = IndexInBitmap(x_bitmap.value, x);
+        // MatrixOS::Logging::LogVerbose(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
+
+        if(x_index == -1) {continue;}
+
+        cb0r_s y_array;
+        if(!cb0r_get(actionMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+        {
+            MatrixOS::Logging::LogError(TAG, "Failed to get Action X Array\n");
+            return false;
+        }
+
+        cb0r_s y_bitmap;
+        if(!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+        {
+            MatrixOS::Logging::LogError(TAG, "Failed to get Action Y Bitmap\n");
+            return false;
+        }
+
+        // Layer 2
+        for(uint8_t y = 0; y < lutSize.y; y++)
         {   
-            if(!cb0r_get(&y_array, 0, &bitmap) || bitmap.type != CB0R_INT)
-            {
-                MatrixOS::Logging::LogError(TAG, "Failed to get Action Y Bitmap\n");
-                return false;
-            }
+            int8_t y_index = IndexInBitmap(y_bitmap.value, y);
+            // MatrixOS::Logging::LogVerbose(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
 
-            uint8_t layer_index = IndexInBitmap(bitmap.value, x);
+            // MatrixOS::Logging::LogVerbose(TAG, "X: %d, Y: %d", x, y);
+
+            if(y_index == -1) {continue;}
+
+            MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF), 0);
+
             cb0r_s layer_array;
-
-            if(!cb0r_get(&y_array, layer_index, &layer_array) || layer_array.type != CB0R_ARRAY)
+            if(!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
             {
-                MatrixOS::Logging::LogError(TAG, "Failed to get Action Layer Array\n");
+                MatrixOS::Logging::LogError(TAG, "Failed to get Layer Array\n");
                 return false;
             }
 
             uint32_t offset = layer_array.start - uad;
             if(offset > UINT16_MAX)
             {
-                MatrixOS::Logging::LogError(TAG, "Action Offset is too large\n");
+                MatrixOS::Logging::LogError(TAG, "Y Offset is too large\n");
                 return false;
             }
 
@@ -154,13 +170,21 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
 
 bool UAD::LoadDevice(cb0r_t uadMap)
 {
+
+    cb0r_s devices;
+    if(!cb0r_find(uadMap, CB0R_UTF8, 7, (uint8_t*)"devices", &devices) || devices.type != CB0R_ARRAY)
+    {
+        MatrixOS::Logging::LogError(TAG, "Devices not found");
+        return false;
+    }
+
     bool device_found = false;
     // for (size_t i = 0; i < uad_section.length; i++) // We don't support multiple devices yet
     size_t i = 0; // Device 1
     {
         cb0r_s device;
         
-        if(!cb0r_get(uadMap, i, &device) || device.type != CB0R_MAP)
+        if(!cb0r_get(&devices, i, &device) || device.type != CB0R_MAP)
         {
             MatrixOS::Logging::LogError(TAG, "Failed to get Device");
             return false;
@@ -273,6 +297,8 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size)
     if(!LoadActionList(&uad_map)) { return false;}
     if(!LoadEffectList(&uad_map)) { return false;}
     if(!LoadDevice(&uad_map)) { return false;}
+
+    loaded = true;
 
     printf("Done parsing UAD");
     return true;

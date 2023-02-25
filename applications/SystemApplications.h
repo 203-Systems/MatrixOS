@@ -8,3 +8,4 @@
 #include "REDACTED/REDACTED.h"
 // #include "WirelessRepeater/WirelessRepeater.h"
 #include "Lighting/Lighting.h"
+#include "CustomKeymap/CustomKeymap.h"
