@@ -39,7 +39,10 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
 
   // If the offset is 0, there are no actions to execute
   if (offset == 0)
-  { return false; }
+  { 
+    MatrixOS::Logging::LogVerbose(TAG, "No actions to execute");
+    return false; 
+  }
 
   // Get Action Layer Array
   cb0r_s layer_array;
