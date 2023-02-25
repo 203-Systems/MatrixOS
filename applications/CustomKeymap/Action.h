@@ -23,4 +23,17 @@ struct ActionInfo
   };
   uint8_t layer;
   uint8_t index;
+
+  bool operator==(const ActionInfo& other) const
+  {
+    return memcmp(this, &other, sizeof(ActionInfo)) == 0;
+  }
+};
+
+struct ActionInfoHash
+{
+  size_t operator()(ActionInfo const& actionInfo) const
+  {
+    return FNV1aHash((const char*)&actionInfo, sizeof(ActionInfo));
+  }
 };

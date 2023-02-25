@@ -25,7 +25,7 @@ class UAD
   // Action API
   bool SetRegister(ActionInfo actionInfo, uint32_t value);
   bool GetRegister(ActionInfo actionInfo, uint32_t* value);
-  void ClearRegister(ActionInfo actionInfo);
+  bool ClearRegister(ActionInfo actionInfo);
   void SetLayer(uint8_t layer, bool state);
   void UnsetLayer(uint8_t layer);
 
@@ -47,7 +47,7 @@ class UAD
   uint16_t** actionLUT;
   uint16_t** effectLUT;
 
-  // std::unordered_map<ActionInfo, uint32_t> registers;
+  std::unordered_map<ActionInfo, uint32_t, ActionInfoHash> registers;
 
   // UAD Loader
   bool CheckVersion(cb0r_t uadMap);

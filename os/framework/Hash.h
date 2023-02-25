@@ -4,17 +4,23 @@
 const uint32_t FNV_PRIME = 16777619u;
 const uint32_t FNV_OFFSET_BASIS = 2166136261u;
 
-inline uint32_t FNV1aHash(const char* str)  // Implentmation of FNV-1a Hash
+inline uint32_t FNV1aHash(const char* ptr, size_t length)  // Implentmation of FNV-1a Hash
 {
-  const size_t length = strlen(str) + 1;
   uint32_t hash = FNV_OFFSET_BASIS;
   for (size_t i = 0; i < length; ++i)
   {
-    hash ^= *str++;
+    hash ^= *ptr++;
     hash *= FNV_PRIME;
   }
   return hash;
 }
+
+inline uint32_t FNV1aHash(const char* str)
+{
+  const size_t length = strlen(str) + 1;
+  return FNV1aHash(str, length);
+}
+
 
 inline uint32_t Hash(string str) {
   return FNV1aHash(str.c_str());

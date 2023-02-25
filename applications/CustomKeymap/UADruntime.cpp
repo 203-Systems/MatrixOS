@@ -27,9 +27,13 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   // Get Offset based on index type
   uint16_t offset;
   if (actionInfo->indexType == ActionIndexType::COORD)
-  { offset = actionLUT[actionInfo->coord.x][actionInfo->coord.y]; }
+  { 
+    MatrixOS::Logging::LogVerbose(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
+    offset = actionLUT[actionInfo->coord.x][actionInfo->coord.y]; 
+  }
   else
   {
+    MatrixOS::Logging::LogVerbose(TAG, "Executing actions for key %d", actionInfo->ID);
     return false;  // Doesn't not support off grid keys yet
   }
 
@@ -106,20 +110,4 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
 
 uint8_t UAD::GetTopLayer() {
   return std::log2(layerEnabled);
-}
-
-int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index)
-{
-    if(!IsBitSet(bitmap, index))
-    {
-        return -1;
-    }
-
-    // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < index; i++)
-    {
-        count += IsBitSet(bitmap, i);
-    }
-    return count + 1;
 }
