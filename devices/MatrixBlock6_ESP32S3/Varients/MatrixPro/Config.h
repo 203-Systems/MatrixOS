@@ -107,6 +107,12 @@ namespace Device
     }
   }
 
+  namespace HWMidi
+  {
+    inline gpio_num_t tx_gpio = GPIO_NUM_18;
+    inline gpio_num_t rx_gpio = GPIO_NUM_NC;
+  }
+
 // LED
 #define MAX_LED_LAYERS 5
   inline gpio_num_t led_pin;

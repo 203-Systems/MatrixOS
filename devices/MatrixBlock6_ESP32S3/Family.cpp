@@ -17,7 +17,9 @@ namespace Device
     NVS::Init();
     LED::Init();
     KeyPad::Init();
+    
 
+    HWMidi::Init();
     BLEMIDI::Init(name);
 
     // WIFI::Init();

@@ -16,6 +16,9 @@
 #include "esp_efuse_table.h"
 #include "esp_adc/adc_oneshot.h"
 
+#include "driver/uart.h"
+#include "driver/gpio.h"
+
 #include "nvs_flash.h"
 
 #include "esp_private/system_internal.h"
@@ -86,6 +89,11 @@ namespace Device
     bool SendMidi(uint8_t* packet);
     uint32_t MidiAvailable();
     MidiPacket GetMidi();
+  }
+
+  namespace HWMidi
+  {
+    void Init();
   }
 
   namespace ESPNOW
