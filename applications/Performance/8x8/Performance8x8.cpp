@@ -7,7 +7,7 @@ void Performance::Setup() {
 }
 
 void Performance::Loop() {
-  if (stfuTimer.Tick(10))
+  if (stfu && stfuTimer.Tick(10))
   { stfuScan(); }
 
   struct KeyEvent keyEvent;
@@ -16,20 +16,24 @@ void Performance::Loop() {
 
   struct MidiPacket midiPacket;
   while (MatrixOS::MIDI::Get(&midiPacket))
-  { MidiEventHandler(midiPacket, true); }
+  { MidiEventHandler(midiPacket); }
 }
 
-void Performance::MidiEventHandler(MidiPacket midiPacket, bool renderOnActive) {
+void Performance::MidiEventHandler(MidiPacket midiPacket) {
   // MatrixOS::Logging::LogDebug("Performance", "Midi Recived %d %d %d %d", midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
     case NoteOn:
     case ControlChange:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity(), renderOnActive);
+      NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
       break;
     case NoteOff:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), 0, renderOnActive);
+      NoteHandler(midiPacket.channel(), midiPacket.note(), 0);
+      break;
+    case SysExData:
+    case SysExEnd:
+      SysExHandler(midiPacket);
       break;
     default:
       break;
@@ -95,7 +99,7 @@ int8_t Performance::XYToNote(Point xy) {
   return -1;
 }
 
-void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity, bool renderOnActive) {
+void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   // MatrixOS::Logging::LogDebug("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
   Point xy = NoteToXY(note);
 
@@ -104,26 +108,169 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity, b
     channel = 1;  // So it will use legacy palette
   }
 
+
   if (xy && !(velocity == 0 && stfu))
   {
     // MatrixOS::Logging::LogDebug("Performance", "Set LED");
-    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], renderOnActive? 0 : canvasLedLayer);
+    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], uiOpened ? canvasLedLayer : 0);
   }
-  // else if(!xy)
-  // {
-  //     MatrixOS::Logging::LogDebug("Performance", "XY incorrect");
-  // }
-  // else if((velocity == 0 && stfu))
-  // {
-  //     MatrixOS::Logging::LogDebug("Performance", "STFU");
-  // }
-  if (stfu)
+  else if (stfu)
   {
     if (velocity == 0)
     { stfuMap[note] = stfu; }
     else
     { stfuMap[note] = -1; }
   }
+}
+
+vector<uint8_t> sysExBuffer;
+void Performance::SysExHandler(MidiPacket midiPacket)
+{
+  // New SysEx, clear buffer
+  if(sysExBuffer.empty())
+  {
+    sysExBuffer.reserve(400);
+  }
+  
+  // Insert data to buffer
+  sysExBuffer.insert(sysExBuffer.end(), midiPacket.data, midiPacket.data + midiPacket.Length());
+
+  // If not end of sysex, return, do not parse
+  if(midiPacket.status != SysExEnd)
+  { return; }
+
+  //Get rid of the 0xF7 ending byte
+  sysExBuffer.pop_back(); 
+
+  // Parsing because sysex is completed
+  switch (sysExBuffer[0])
+  {
+    case 0x5f: //Apollo batch fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L54-L120
+    {
+      // MatrixOS::Logging::LogDebug("Performance", "Apollo batch Fill");
+      if(sysExBuffer.size() < 5) { return; }
+
+      uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+
+      uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
+      while (ptr < sysExBuffer.size())
+      {
+        // Extract the color data
+        uint8_t colorR = (sysExBuffer[ptr] & 0x3F);
+        uint8_t colorG = (sysExBuffer[ptr + 1] & 0x3F);
+        uint8_t colorB = (sysExBuffer[ptr + 2] & 0x3F);
+        
+        // Remapped color from 6 bit to 8 bit
+        colorR = (colorR << 2) + (colorR >> 4);
+        colorG = (colorG << 2) + (colorG >> 4);
+        colorB = (colorB << 2) + (colorB >> 4);
+
+        // Create the color
+        Color color = Color(colorR, colorG, colorB);
+
+        // Get how many NN (Note Numbers) follows
+        uint8_t n_count = ((sysExBuffer[ptr] & 0x40) >> 4) | ((sysExBuffer[ptr + 1] & 0x40) >> 5) | ((sysExBuffer[ptr + 2] & 0x40) >> 6);
+
+        ptr += 3; //We finish reading the first 3 bit, inc the ptr by 3
+
+        //If nums of NN is 0, then the next byte is the number of NN
+        if(n_count == 0) { n_count = sysExBuffer[ptr++]; } //If all 3 bits are 0, then it's 64 (0b111111
+
+        // MatrixOS::Logging::LogDebug("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
+
+        // Goes through all N
+        for (uint16_t n = 0; n < n_count; n++)
+        {
+          if (sysExBuffer[ptr] == 0)  // Global full
+          { MatrixOS::LED::Fill(color, targetLayer); }
+          else if (sysExBuffer[ptr] < 99)  // Grid
+          {
+            Point xy = Point(sysExBuffer[ptr] % 10 - 1, 8 - (sysExBuffer[ptr] / 10));
+            // MatrixOS::Logging::LogDebug("Performance", "Grid %d %d", xy.x, xy.y);
+            MatrixOS::LED::SetColor(xy, color, targetLayer);
+          }
+          else if (sysExBuffer[ptr] == 99)  // Mode Light
+          {
+            // Not implemented - Maybe a TODO
+          }
+          else if (sysExBuffer[ptr] < 110)  // Row Fill
+          {
+            int8_t row = 108 - sysExBuffer[ptr];
+            for (int8_t x = 0; x < 10; x++)
+            { MatrixOS::LED::SetColor(Point(x, row), color, targetLayer); }
+          }
+          else if (sysExBuffer[ptr] < 120)  // Column Fill
+          {
+            int8_t column = sysExBuffer[ptr] - 111;
+            for (int8_t y = 0; y < 10; y++)
+            { MatrixOS::LED::SetColor(Point(column, y), color, targetLayer); }
+          }
+          ptr++; //Since ptr is the pointer of in vector, we need to read the next NN, inc the ptr by 1
+        }
+      }
+      break;
+    }
+    case 0x5e: //Apollo regular fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L115
+    {
+      // MatrixOS::Logging::LogDebug("Performance", "Apollo batch Fill");
+      if(sysExBuffer.size() < 5) { return; }
+
+      uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+
+      uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
+      while (ptr < sysExBuffer.size())
+      {
+        // Extract the color data
+        uint8_t index = sysExBuffer[ptr];
+        uint8_t colorR = (sysExBuffer[ptr + 1] & 0x3F);
+        uint8_t colorG = (sysExBuffer[ptr + 2] & 0x3F);
+        uint8_t colorB = (sysExBuffer[ptr + 3] & 0x3F);
+        
+        // Remapped color from 6 bit to 8 bit
+        colorR = (colorR << 2) + (colorR >> 4);
+        colorG = (colorG << 2) + (colorG >> 4);
+        colorB = (colorB << 2) + (colorB >> 4);
+
+        // Create the color
+        Color color = Color(colorR, colorG, colorB);
+
+        ptr += 4; //We finish reading the first 3 bit, inc the ptr by 3
+
+        // MatrixOS::Logging::LogDebug("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
+
+        if (index == 0)  // Global full
+        { MatrixOS::LED::Fill(color, targetLayer); }
+        else if (index < 99)  // Grid
+        {
+          Point xy = Point(index % 10 - 1, 8 - (index / 10));
+          MatrixOS::LED::SetColor(xy, color, targetLayer);
+        }
+        else if (index == 99)  // Mode Light
+        {
+          // Not implemented - Maybe a TODO
+        }
+        else if (index < 110)  // Row Fill
+        {
+          int8_t row = 108 - index;
+          for (int8_t x = 0; x < 10; x++)
+          { MatrixOS::LED::SetColor(Point(x, row), color, targetLayer); }
+        }
+        else if (index < 120)  // Column Fill
+        {
+          int8_t column = index - 111;
+          for (int8_t y = 0; y < 10; y++)
+          { MatrixOS::LED::SetColor(Point(column, y), color, targetLayer); }
+        }
+      }
+      break;
+    }
+  
+    default:
+      break;
+  }
+
+  // Clear buffer since we are done parsing SysEx
+  sysExBuffer.clear();
 }
 
 void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
@@ -154,6 +301,7 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
     // MatrixOS::LED::CopyLayer(0, canvasLedLayer);
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, 121, 0)); //For Apollo Clearing
     ActionMenu(); 
   }
 }
@@ -237,7 +385,7 @@ void Performance::ActionMenu() {
   actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
       struct MidiPacket midiPacket;
       while (MatrixOS::MIDI::Get(&midiPacket))
-      { MidiEventHandler(midiPacket, false); }
+      { MidiEventHandler(midiPacket); }
   });
 
   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
@@ -252,7 +400,11 @@ void Performance::ActionMenu() {
     return false;
    });
 
+  MatrixOS::LED::CopyLayer(canvasLedLayer, 0);
+
+  uiOpened = true;
   actionMenu.Start();
+  uiOpened = false;
 
   MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
 }

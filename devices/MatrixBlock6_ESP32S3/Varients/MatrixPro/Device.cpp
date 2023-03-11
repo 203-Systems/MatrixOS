@@ -4,6 +4,7 @@
 // Device Configs
 #include "V100/Config.h"
 #include "V110/Config.h"
+#include "RevC/Config.h"
 
 void BurnEFuse();  // This is in device folder, a custom BurnEFuse will be provided
 
@@ -28,10 +29,12 @@ namespace Device
     { LoadV100(); }
     else if (string(deviceInfo.Revision).compare(0, 4, "V110") == 0)
     { LoadV110(); }
+    else if (string(deviceInfo.Revision).compare(0, 4, "REVC") == 0)
+    { LoadRevC(); }
     else
     {
       ESP_LOGE("Device Init", "Failed to find config for Matrix Pro %.4s", deviceInfo.Revision);
-      LoadV100();
+      LoadV110();
 #ifdef FACTORY_CONFIG
       MatrixOS::SYS::ErrorHandler("Unable to find device config");
 #endif

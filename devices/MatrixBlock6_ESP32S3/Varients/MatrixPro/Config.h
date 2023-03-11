@@ -12,9 +12,9 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-// #define FACTORY_CONFIG V110
-// #define FACTORY_MFG_YEAR 22
-// #define FACTORY_MFG_MONTH 06
+#define FACTORY_CONFIG REVC
+#define FACTORY_MFG_YEAR 23
+#define FACTORY_MFG_MONTH 03
 
 struct DeviceInfo {
   char DeviceCode[4];
@@ -128,5 +128,6 @@ namespace Device
   // Load Device config
   void LoadV100();
   void LoadV110();
+  void LoadRevC();
   void LoadKeypadSetting();
 }

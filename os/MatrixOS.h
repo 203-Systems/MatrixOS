@@ -110,8 +110,9 @@ namespace MatrixOS
   {
     noexpose void Init(void);
 
-    bool Get(MidiPacket* midipacket_dest, uint16_t timeout_ms = 0);
-    bool Send(MidiPacket midiPacket);
+    bool Get(MidiPacket* midiPacketDest, uint16_t timeout_ms = 0);
+    bool Send(MidiPacket midiPacket, uint16_t timeout_ms = 0);
+    bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta = true);  // If include meta, it will send the correct header and ending;
 
     // Those APIs are only for MidiPort to use
     noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);

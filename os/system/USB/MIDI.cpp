@@ -4,6 +4,8 @@ namespace MatrixOS::USB::MIDI
 {
   std::vector<MidiPort*> ports;
   std::vector<TaskHandle_t> portTasks;
+  
+  std::vector<uint8_t> sysex_buffer;
 
   void portTask(void* param) {
     uint8_t itf = ports.size();
@@ -103,8 +105,20 @@ void tud_midi_rx_cb(uint8_t itf) {
             break;
         }
         break;
-    }
-    MatrixOS::MIDI::Recive(packet);  // Since we know what we are doing here, just gonna skip the wrapper
-    // MatrixOS::USB::MIDI::ports[itf]->Send(packet);
+      case CIN_SYSEX:
+        packet = MidiPacket(port, SysExData, 3, &raw_packet[1]);
+        break;
+      case CIN_SYSEX_ENDS_IN_1:
+      case CIN_SYSEX_ENDS_IN_2:
+      case CIN_SYSEX_ENDS_IN_3:
+        packet = MidiPacket(port, SysExEnd, 3, &raw_packet[1]);
+        break;
+      default: 
+        return;
+    }  
+
+    // Since we know what we are doing here, just gonna skip the wrapper
+    // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implentmentation
+    MatrixOS::MIDI::Recive(packet); //Direct call to MIDI::Recive
   }
 }
