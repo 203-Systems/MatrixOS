@@ -2,7 +2,8 @@
 #pragma once
 
 #define GRID_8x8
-#define MODEL MX1P
+#define FAMILY MATRIX
+#define MODEL MX1
 
 #define DEVICE_BATTERY
 
