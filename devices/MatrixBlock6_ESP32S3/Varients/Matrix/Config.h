@@ -13,14 +13,24 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-#define FACTORY_CONFIG REVC
+#define FACTORY_CONFIG //Global switch for using factory config
+
+#define FACTORY_DEVICE_VERSION STANDARD
+// #define FACTORY_DEVICE_VERSION PRO
+
+#if FACTORY_DEVICE_VERSION == STANDARD
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
+#elif FACTORY_DEVICE_VERSION == PRO
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
+#endif
+
+#define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
+
 #define FACTORY_MFG_YEAR 23
 #define FACTORY_MFG_MONTH 03
-// #define FACTORY_DEVICE_VERSION STANDARD
-#define FACTORY_DEVICE_VERSION PRO
 
 struct DeviceInfo {
-  char DeviceCode[4];
+  char Model[4];
   char Revision[4];
   uint8_t ProductionYear;
   uint8_t ProductionMonth;

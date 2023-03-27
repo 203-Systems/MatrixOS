@@ -42,10 +42,6 @@ namespace V100
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_46;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_45;
-
-#if FACTORY_CONFIG == V100
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'V', '1', '0', '0'}, 0, 0};
-#endif
 }
 
 void Device::LoadV100() {

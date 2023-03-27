@@ -42,16 +42,6 @@ namespace REVC
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
-
-#if FACTORY_CONFIG == REVC
-  #if FACTORY_DEVICE_VERSION == PRO
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
-  #elif FACTORY_DEVICE_VERSION == STANDARD
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'S'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
-  #else 
-  #error "FACTORY_DEVICE_VERSION not defined"
-  #endif
-#endif
 }
 
 void Device::LoadRevC() {

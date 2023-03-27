@@ -42,10 +42,6 @@ namespace V110
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
-
-#if FACTORY_CONFIG == V110
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'V', '1', '1', '0'}, 0, 0};
-#endif
 }
 
 void Device::LoadV110() {
