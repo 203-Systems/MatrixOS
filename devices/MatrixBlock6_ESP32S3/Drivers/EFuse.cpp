@@ -1,6 +1,6 @@
 #include "Device.h"
 
-#if FACTORY_CONFIG == V100
+#ifdef FACTORY_CONFIG
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
 void BurnEFuse() {
