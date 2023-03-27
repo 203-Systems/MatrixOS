@@ -23,18 +23,18 @@ namespace Device
     // Load Velocity Sensitive Config
     if(deviceInfo.Model[3] == 'P')
     {
-      KeyPad::keypad_config.velocity_sensitive = true;
       name += " Pro";
       model = "MX1P";
     }
     else if(deviceInfo.Model[3] == 'S')
     {
-      KeyPad::keypad_config.velocity_sensitive = false;
+      // TODO: Temp solution. Signal Matrix OS that this device does not have velocity sensitive
+      MatrixOS::UserVar::velocity_sensitive.TempSet(false);
     }
     else
     {
+      MatrixOS::UserVar::velocity_sensitive.TempSet(false);
       ESP_LOGE("Device Init", "Failed to find config for %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
-      KeyPad::keypad_config.velocity_sensitive = false;
     }
 
     ESP_LOGI("Device Init", "Loading config for %s (%.4s %.4s) (MFG: %02d-%02d) (Serial: %s)", Device::name.c_str(), deviceInfo.Model, deviceInfo.Revision,
