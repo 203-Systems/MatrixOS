@@ -15,13 +15,15 @@
 
 #define FACTORY_CONFIG //Global switch for using factory config
 
-#define FACTORY_DEVICE_VERSION STANDARD
-// #define FACTORY_DEVICE_VERSION PRO
+// #define FACTORY_DEVICE_VERSION 'S' // Standard
+#define FACTORY_DEVICE_VERSION 'P' // Pro
 
-#if FACTORY_DEVICE_VERSION == STANDARD
+#if FACTORY_DEVICE_VERSION == 'S'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
-#elif FACTORY_DEVICE_VERSION == PRO
+#elif FACTORY_DEVICE_VERSION == 'P'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
+#else 
+#error "FACTORY_DEVICE_VERSION is not correct"
 #endif
 
 #define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
