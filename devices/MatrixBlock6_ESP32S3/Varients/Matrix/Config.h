@@ -15,6 +15,8 @@
 #define FACTORY_CONFIG REVC
 #define FACTORY_MFG_YEAR 23
 #define FACTORY_MFG_MONTH 03
+// #define FACTORY_DEVICE_VERSION STANDARD
+#define FACTORY_DEVICE_VERSION PRO
 
 struct DeviceInfo {
   char DeviceCode[4];
@@ -26,8 +28,8 @@ struct DeviceInfo {
 namespace Device
 {
   inline DeviceInfo deviceInfo;
-  const string name = "Matrix Pro";
-  const string model = "MX1P";
+  inline string name = "Matrix";
+  inline string model = "MX1S";
 
   const string manufaturer_name = "203 Electronics";
   const string product_name = "Matrix";

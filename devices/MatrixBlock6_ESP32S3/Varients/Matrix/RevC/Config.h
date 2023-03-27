@@ -1,4 +1,4 @@
-namespace V110
+namespace REVC
 {
   const gpio_num_t FN_Pin = GPIO_NUM_16;
 
@@ -22,7 +22,6 @@ namespace V110
   const gpio_num_t KeyRead7_Pin = GPIO_NUM_9;
   const gpio_num_t KeyRead8_Pin = GPIO_NUM_10;
 
-  const bool FSR_KEYPAD = true;
   const adc_channel_t KeyRead1_ADC_CHANNEL = ADC_CHANNEL_1;
   const adc_channel_t KeyRead2_ADC_CHANNEL = ADC_CHANNEL_2;
   const adc_channel_t KeyRead3_ADC_CHANNEL = ADC_CHANNEL_3;
@@ -44,39 +43,43 @@ namespace V110
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
 
-#if FACTORY_CONFIG == V110
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'V', '1', '1', '0'}, 0, 0};
+#if FACTORY_CONFIG == REVC
+  #if FACTORY_DEVICE_VERSION == PRO
+  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
+  #elif FACTORY_DEVICE_VERSION == STANDARD
+  const DeviceInfo deviceInfo{{'M', 'X', '1', 'C'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
+  #else 
+  #error "FACTORY_DEVICE_VERSION not defined"
+  #endif
 #endif
 }
 
-void Device::LoadV110() {
-  ESP_LOGI("Device Init", "Matrix Pro V110 Config Loaded");
-  led_pin = V110::LED_Pin;
+void Device::LoadRevC() {
+  ESP_LOGI("Device Init", "Matrix Rev C Config Loaded");
+  led_pin = REVC::LED_Pin;
 
-  KeyPad::keypad_config.velocity_sensitive = V110::FSR_KEYPAD;
-
-  KeyPad::fn_pin = V110::FN_Pin;
+  KeyPad::fn_pin = REVC::FN_Pin;
 
   gpio_num_t _keypad_write_pins[8] = {
-      V110::Key1_Pin, V110::Key2_Pin, V110::Key3_Pin, V110::Key4_Pin,
-      V110::Key5_Pin, V110::Key6_Pin, V110::Key7_Pin, V110::Key8_Pin,
+      REVC::Key1_Pin, REVC::Key2_Pin, REVC::Key3_Pin, REVC::Key4_Pin,
+      REVC::Key5_Pin, REVC::Key6_Pin, REVC::Key7_Pin, REVC::Key8_Pin,
   };
   memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
 
   gpio_num_t _keypad_read_pins[8] = {
-      V110::KeyRead1_Pin, V110::KeyRead2_Pin, V110::KeyRead3_Pin, V110::KeyRead4_Pin,
-      V110::KeyRead5_Pin, V110::KeyRead6_Pin, V110::KeyRead7_Pin, V110::KeyRead8_Pin,
+      REVC::KeyRead1_Pin, REVC::KeyRead2_Pin, REVC::KeyRead3_Pin, REVC::KeyRead4_Pin,
+      REVC::KeyRead5_Pin, REVC::KeyRead6_Pin, REVC::KeyRead7_Pin, REVC::KeyRead8_Pin,
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
   adc_channel_t _keypad_read_adc_channel[8] = {
-      V110::KeyRead1_ADC_CHANNEL, V110::KeyRead2_ADC_CHANNEL, V110::KeyRead3_ADC_CHANNEL, V110::KeyRead4_ADC_CHANNEL,
-      V110::KeyRead5_ADC_CHANNEL, V110::KeyRead6_ADC_CHANNEL, V110::KeyRead7_ADC_CHANNEL, V110::KeyRead8_ADC_CHANNEL,
+      REVC::KeyRead1_ADC_CHANNEL, REVC::KeyRead2_ADC_CHANNEL, REVC::KeyRead3_ADC_CHANNEL, REVC::KeyRead4_ADC_CHANNEL,
+      REVC::KeyRead5_ADC_CHANNEL, REVC::KeyRead6_ADC_CHANNEL, REVC::KeyRead7_ADC_CHANNEL, REVC::KeyRead8_ADC_CHANNEL,
   };
   memcpy(KeyPad::keypad_read_adc_channel, _keypad_read_adc_channel, sizeof(_keypad_read_adc_channel));
 
-  KeyPad::touchData_Pin = V110::TouchData_Pin;
-  KeyPad::touchClock_Pin = V110::TouchClock_Pin;
-  uint8_t _touchbar_map[16] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
+  KeyPad::touchData_Pin = REVC::TouchData_Pin;
+  KeyPad::touchClock_Pin = REVC::TouchClock_Pin;
+  uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
 };

@@ -22,7 +22,6 @@ namespace V100
   const gpio_num_t KeyRead7_Pin = GPIO_NUM_9;
   const gpio_num_t KeyRead8_Pin = GPIO_NUM_10;
 
-  const bool FSR_KEYPAD = true;
   const adc_channel_t KeyRead1_ADC_CHANNEL = ADC_CHANNEL_1;
   const adc_channel_t KeyRead2_ADC_CHANNEL = ADC_CHANNEL_2;
   const adc_channel_t KeyRead3_ADC_CHANNEL = ADC_CHANNEL_3;
@@ -52,8 +51,6 @@ namespace V100
 void Device::LoadV100() {
   ESP_LOGI("Device Init", "Matrix Pro V100 Config Loaded");
   led_pin = V100::LED_Pin;
-
-  KeyPad::keypad_config.velocity_sensitive = V100::FSR_KEYPAD;
 
   KeyPad::fn_pin = V100::FN_Pin;
 
