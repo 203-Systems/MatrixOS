@@ -29,7 +29,7 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
    Compile and Upload for Matrix Pro:
    Set Matrix Pro into bootloader mode (Hold the FN key while powering up or going though system settings) and the following
    ```
-   make DEVICE=MatrixPro build uf2-upload
+   make DEVICE=Matrix build uf2-upload
    ```
    TODO
 ### Make your own Matrix OS applications
