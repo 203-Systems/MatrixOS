@@ -47,7 +47,7 @@ namespace REVC
   #if FACTORY_DEVICE_VERSION == PRO
   const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
   #elif FACTORY_DEVICE_VERSION == STANDARD
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'C'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
+  const DeviceInfo deviceInfo{{'M', 'X', '1', 'S'}, {'R', 'E', 'V', 'C'}, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
   #else 
   #error "FACTORY_DEVICE_VERSION not defined"
   #endif
