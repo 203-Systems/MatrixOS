@@ -27,6 +27,19 @@ void FactoryMenu::Setup() {
       [&]() -> void {});
   factoryMenu.AddUIComponent(usbConnection, Point(7, 7));
 
+  Color deviceColor = Color(0xFFFFFF);
+  if(Device::deviceInfo.Model[3] == 'S')
+  {
+    deviceColor = Color(0x00FFFF);
+  }
+  else if(Device::deviceInfo.Model[3] == 'P')
+  {
+    deviceColor = Color(0xFF00FF);
+  }
+
+  UIButtonLarge deviceVersionBtn("Device Version", deviceColor, Dimension(4, 1), [&]() -> void {});
+  factoryMenu.AddUIComponent(deviceVersionBtn, Point(2, 7));
+
   factoryMenu.Start();
   Exit();
 }

@@ -1,4 +1,4 @@
-namespace V100
+namespace V110
 {
   const gpio_num_t FN_Pin = GPIO_NUM_16;
 
@@ -22,7 +22,6 @@ namespace V100
   const gpio_num_t KeyRead7_Pin = GPIO_NUM_9;
   const gpio_num_t KeyRead8_Pin = GPIO_NUM_10;
 
-  const bool FSR_KEYPAD = true;
   const adc_channel_t KeyRead1_ADC_CHANNEL = ADC_CHANNEL_1;
   const adc_channel_t KeyRead2_ADC_CHANNEL = ADC_CHANNEL_2;
   const adc_channel_t KeyRead3_ADC_CHANNEL = ADC_CHANNEL_3;
@@ -32,8 +31,8 @@ namespace V100
   const adc_channel_t KeyRead7_ADC_CHANNEL = ADC_CHANNEL_8;
   const adc_channel_t KeyRead8_ADC_CHANNEL = ADC_CHANNEL_9;
 
-  const gpio_num_t TouchData_Pin = GPIO_NUM_33;
-  const gpio_num_t TouchClock_Pin = GPIO_NUM_34;
+  const gpio_num_t TouchData_Pin = GPIO_NUM_47;
+  const gpio_num_t TouchClock_Pin = GPIO_NUM_33;
 
   const gpio_num_t PowerCord_Pin = GPIO_NUM_18;
 
@@ -41,42 +40,36 @@ namespace V100
 
   const gpio_num_t Matrix_Mod_GPIO_Pin = GPIO_NUM_37;
 
-  const gpio_num_t I2C_SDA_Pin = GPIO_NUM_46;
-  const gpio_num_t I2C_SCL_Pin = GPIO_NUM_45;
-
-#if FACTORY_CONFIG == V100
-  const DeviceInfo deviceInfo{{'M', 'X', '1', 'P'}, {'V', '1', '0', '0'}, 0, 0};
-#endif
+  const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
+  const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
 }
 
-void Device::LoadV100() {
-  ESP_LOGI("Device Init", "Matrix Pro V100 Config Loaded");
-  led_pin = V100::LED_Pin;
+void Device::LoadV110() {
+  ESP_LOGI("Device Init", "Matrix Pro V110 Config Loaded");
+  led_pin = V110::LED_Pin;
 
-  KeyPad::keypad_config.velocity_sensitive = V100::FSR_KEYPAD;
-
-  KeyPad::fn_pin = V100::FN_Pin;
+  KeyPad::fn_pin = V110::FN_Pin;
 
   gpio_num_t _keypad_write_pins[8] = {
-      V100::Key1_Pin, V100::Key2_Pin, V100::Key3_Pin, V100::Key4_Pin,
-      V100::Key5_Pin, V100::Key6_Pin, V100::Key7_Pin, V100::Key8_Pin,
+      V110::Key1_Pin, V110::Key2_Pin, V110::Key3_Pin, V110::Key4_Pin,
+      V110::Key5_Pin, V110::Key6_Pin, V110::Key7_Pin, V110::Key8_Pin,
   };
   memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
 
   gpio_num_t _keypad_read_pins[8] = {
-      V100::KeyRead1_Pin, V100::KeyRead2_Pin, V100::KeyRead3_Pin, V100::KeyRead4_Pin,
-      V100::KeyRead5_Pin, V100::KeyRead6_Pin, V100::KeyRead7_Pin, V100::KeyRead8_Pin,
+      V110::KeyRead1_Pin, V110::KeyRead2_Pin, V110::KeyRead3_Pin, V110::KeyRead4_Pin,
+      V110::KeyRead5_Pin, V110::KeyRead6_Pin, V110::KeyRead7_Pin, V110::KeyRead8_Pin,
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
   adc_channel_t _keypad_read_adc_channel[8] = {
-      V100::KeyRead1_ADC_CHANNEL, V100::KeyRead2_ADC_CHANNEL, V100::KeyRead3_ADC_CHANNEL, V100::KeyRead4_ADC_CHANNEL,
-      V100::KeyRead5_ADC_CHANNEL, V100::KeyRead6_ADC_CHANNEL, V100::KeyRead7_ADC_CHANNEL, V100::KeyRead8_ADC_CHANNEL,
+      V110::KeyRead1_ADC_CHANNEL, V110::KeyRead2_ADC_CHANNEL, V110::KeyRead3_ADC_CHANNEL, V110::KeyRead4_ADC_CHANNEL,
+      V110::KeyRead5_ADC_CHANNEL, V110::KeyRead6_ADC_CHANNEL, V110::KeyRead7_ADC_CHANNEL, V110::KeyRead8_ADC_CHANNEL,
   };
   memcpy(KeyPad::keypad_read_adc_channel, _keypad_read_adc_channel, sizeof(_keypad_read_adc_channel));
 
-  KeyPad::touchData_Pin = V100::TouchData_Pin;
-  KeyPad::touchClock_Pin = V100::TouchClock_Pin;
+  KeyPad::touchData_Pin = V110::TouchData_Pin;
+  KeyPad::touchClock_Pin = V110::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
 };

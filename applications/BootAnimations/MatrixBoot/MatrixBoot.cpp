@@ -188,7 +188,15 @@ void MatrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Colo
 }
 
 void MatrixBoot::BootPhase2() {
-  const uint8_t hue[2] = {127, 212};
+  uint8_t hue[2] = {127, 212};
+
+  #if FAMILY == MATRIX
+    if(Device::deviceInfo.Model[3] == 'S')
+    { hue[1] = 43; }
+    else if(Device::deviceInfo.Model[3] == 'P')
+    { hue[1] = 212; }
+  #endif
+
   const uint16_t start_offset = 150;
   if (timer.Tick(10))
   {

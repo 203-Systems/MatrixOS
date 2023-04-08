@@ -5,6 +5,7 @@
 
 #define X_SIZE 8
 #define Y_SIZE 8
+#define SAMPLES 3
 
 volatile gpio_num_t keypad_write_pins[X_SIZE] = 
 {
@@ -18,22 +19,22 @@ volatile gpio_num_t keypad_write_pins[X_SIZE] =
   GPIO_NUM_15
 };
 
-volatile gpio_num_t keypad_read_pins[Y_SIZE] = 
+volatile adc_channel_t keypad_read_adc_channel[Y_SIZE] = 
 {
-  GPIO_NUM_2,
-  GPIO_NUM_3,
-  GPIO_NUM_4,
-  GPIO_NUM_5,
-  GPIO_NUM_7,
-  GPIO_NUM_8,
-  GPIO_NUM_9,
-  GPIO_NUM_10
+    ADC_CHANNEL_1,
+    ADC_CHANNEL_2,
+    ADC_CHANNEL_3,
+    ADC_CHANNEL_4,
+    ADC_CHANNEL_6,
+    ADC_CHANNEL_7,
+    ADC_CHANNEL_8,
+    ADC_CHANNEL_9
 };
 
-// TODO Add bit map mode
-volatile uint8_t result[X_SIZE][Y_SIZE];
+volatile uint16_t result[X_SIZE][Y_SIZE][SAMPLES];
 
 volatile uint32_t count;
+volatile uint32_t latest;
 
 int main(void)
 {
@@ -45,22 +46,19 @@ int main(void)
     ulp_riscv_gpio_set_output_mode(keypad_write_pins[x], RTCIO_MODE_OUTPUT);
     ulp_riscv_gpio_output_level(keypad_write_pins[x], 0);
   }
-  for (uint8_t y = 0; y < Y_SIZE; y++)
-  {
-    ulp_riscv_gpio_init(keypad_read_pins[y]);
-    ulp_riscv_gpio_input_enable(keypad_write_pins[y]);
-  }
   while(true)
   {
+    uint8_t sample_index = count % SAMPLES;
     for (uint8_t x = 0; x < X_SIZE; x++)
     {
       ulp_riscv_gpio_output_level(keypad_write_pins[x], 1);
       for (uint8_t y = 0; y < Y_SIZE; y++)
       {
-        result[x][y] = ulp_riscv_gpio_get_level(keypad_read_pins[y]);
+        result[x][y][sample_index] = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
       }
       ulp_riscv_gpio_output_level(keypad_write_pins[x], 0);
     }
+    latest = sample_index;
     count++;
   }
 }

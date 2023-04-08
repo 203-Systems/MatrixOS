@@ -16,6 +16,9 @@
 #include "esp_efuse_table.h"
 #include "esp_adc/adc_oneshot.h"
 
+#include "driver/uart.h"
+#include "driver/gpio.h"
+
 #include "nvs_flash.h"
 
 #include "esp_private/system_internal.h"
@@ -51,6 +54,7 @@ namespace Device
   namespace KeyPad
   {
     void Init();
+    void InitFN();
     void InitKeyPad();
     void InitTouchBar();
 
@@ -59,9 +63,24 @@ namespace Device
     void StartTouchBar();
 
     // If return true, meaning the scan in intrupted
-    bool ScanFN();
+    void Scan();
     bool ScanKeyPad();
+    bool ScanFN();
     bool ScanTouchBar();
+
+    namespace Binary
+    {
+      void Init();
+      void Start();
+      bool Scan();
+    }
+
+    namespace FSR
+    {
+      void Init();
+      void Start();
+      bool Scan();
+    }
 
     bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthough MatrixOS::KeyPad::NewEvent() result
   }
@@ -86,6 +105,11 @@ namespace Device
     bool SendMidi(uint8_t* packet);
     uint32_t MidiAvailable();
     MidiPacket GetMidi();
+  }
+
+  namespace HWMidi
+  {
+    void Init();
   }
 
   namespace ESPNOW

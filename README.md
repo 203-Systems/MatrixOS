@@ -19,7 +19,7 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
 | Device Name            | Type | Chip     | Supported | Note              | Purchase                                       |
 |------------------------|------|----------|-----------|-------------------|------------------------------------------------|
 | Matrix Pro             | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/matrix-pro-pre-order)   |
-| Matrix Founder Edition | Grid | STM32F1  | Partially | Not fully working | [203.io](https://203.io/products/matrix-founder-edition) |
+| Matrix Founder Edition | Grid | STM32F1  | Partially | Not fully stable | [203.io](https://203.io/products/matrix-founder-edition) |
 
 
 ## Getting Started
@@ -29,7 +29,7 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
    Compile and Upload for Matrix Pro:
    Set Matrix Pro into bootloader mode (Hold the FN key while powering up or going though system settings) and the following
    ```
-   make DEVICE=MatrixPro build uf2-upload
+   make DEVICE=Matrix build uf2-upload
    ```
    TODO
 ### Make your own Matrix OS applications

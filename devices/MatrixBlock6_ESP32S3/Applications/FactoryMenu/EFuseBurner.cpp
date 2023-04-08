@@ -4,17 +4,17 @@ void BurnEFuse();  // This is in device folder, a custom BurnEFuse will be provi
 
 void FactoryMenu::EFuseBurner() {
 #ifdef EFUSE_BURNER
-  if (esp_efuse_block_is_empty(EFUSE_BLK3))
+  if (true)
   {
     UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
 
     UIButtonLarge confirmBtn("Confirm", Color(0x00FF00), Dimension(2, 2), [&]() -> void {
       BurnEFuse();
-      Exit();
+      efuseConfirm.Exit();
     });
     efuseConfirm.AddUIComponent(confirmBtn, Point(1, 5));
 
-    UIButtonLarge cancelBtn("Cancel", Color(0xFF0000), Dimension(2, 2), [&]() -> void { Exit(); });
+    UIButtonLarge cancelBtn("Cancel", Color(0xFF0000), Dimension(2, 2), [&]() -> void { efuseConfirm.Exit(); });
     efuseConfirm.AddUIComponent(cancelBtn, Point(5, 5));
 
     efuseConfirm.Start();
