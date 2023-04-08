@@ -54,6 +54,7 @@ namespace Device
   namespace KeyPad
   {
     void Init();
+    void InitFN();
     void InitKeyPad();
     void InitTouchBar();
 
@@ -62,9 +63,24 @@ namespace Device
     void StartTouchBar();
 
     // If return true, meaning the scan in intrupted
-    bool ScanFN();
+    void Scan();
     bool ScanKeyPad();
+    bool ScanFN();
     bool ScanTouchBar();
+
+    namespace Binary
+    {
+      void Init();
+      void Start();
+      bool Scan();
+    }
+
+    namespace FSR
+    {
+      void Init();
+      void Start();
+      bool Scan();
+    }
 
     bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthough MatrixOS::KeyPad::NewEvent() result
   }

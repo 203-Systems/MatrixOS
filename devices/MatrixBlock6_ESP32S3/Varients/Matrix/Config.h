@@ -2,7 +2,8 @@
 #pragma once
 
 #define GRID_8x8
-#define MODEL MX1P
+#define FAMILY MATRIX
+#define MODEL MX1
 
 #define DEVICE_BATTERY
 
@@ -12,12 +13,26 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
-#define FACTORY_CONFIG REVC
+#define FACTORY_CONFIG //Global switch for using factory config
+
+#define FACTORY_DEVICE_VERSION 'S' // Standard
+// #define FACTORY_DEVICE_VERSION 'P' // Pro
+
+#if FACTORY_DEVICE_VERSION == 'S'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
+#elif FACTORY_DEVICE_VERSION == 'P'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
+#else 
+#error "FACTORY_DEVICE_VERSION is not correct"
+#endif
+
+#define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
+
 #define FACTORY_MFG_YEAR 23
 #define FACTORY_MFG_MONTH 03
 
 struct DeviceInfo {
-  char DeviceCode[4];
+  char Model[4];
   char Revision[4];
   uint8_t ProductionYear;
   uint8_t ProductionMonth;
@@ -26,8 +41,8 @@ struct DeviceInfo {
 namespace Device
 {
   inline DeviceInfo deviceInfo;
-  const string name = "Matrix Pro";
-  const string model = "MX1P";
+  inline string name = "Matrix";
+  inline string model = "MX1S";
 
   const string manufaturer_name = "203 Electronics";
   const string product_name = "Matrix";
@@ -45,6 +60,7 @@ namespace Device
   {
     inline gpio_num_t fn_pin;
     inline bool fn_active_low = true;
+    inline bool velocity_sensitivity = false;
 
     inline KeyConfig fn_config = {
         .velocity_sensitive = false,

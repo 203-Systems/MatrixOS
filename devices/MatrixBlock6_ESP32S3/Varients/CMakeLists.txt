@@ -95,20 +95,5 @@ include("${DEVICE}/device.cmake")
 # message(STATUS "Matrix OS SRC Files: ${MATRIX_OS_SRC}")
 # message(STATUS "Device SRC Files: ${DEVICE_SRC}")
 
-# ULP support additions to component CMakeLists.txt.
-#
-# 1. The ULP app name must be unique (if multiple components use ULP).
-set(ulp_app_name ulp_keypad)
-
-# 2. Specify all C and Assembly source files.
-#    Files should be placed into a separate directory (in this case, ulp/),
-#    which should not be added to COMPONENT_SRCS.
-set(ulp_riscv_sources "${FAMILY_PATH}/ULP/keypad.c")
-
-# 3. List all the component source files which include automatically
-#    generated ULP export file, ${ulp_app_name}.h:
-set(ulp_exp_dep_srcs "${FAMILY_PATH}/Drivers/Keypad.cpp")
-
-# 4. Call function to build ULP binary and embed in project using the argument
-#    values above.
-ulp_embed_binary(${ulp_app_name} "${ulp_riscv_sources}" "${ulp_exp_dep_srcs}")
+ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
+# ulp_embed_binary(ulp_keypad "${FAMILY_PATH}/ULP/keypad.c" "${FAMILY_PATH}/Drivers/KeypadBinary.cpp")
