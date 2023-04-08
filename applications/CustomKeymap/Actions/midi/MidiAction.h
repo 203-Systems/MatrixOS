@@ -8,10 +8,10 @@ namespace MidiAction
 
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
-        MatrixOS::Logging::LogVerbose(TAG, "KeyEvent - Data Length: %d", actionData->length);
+        MLOGV(TAG, "KeyEvent - Data Length: %d", actionData->length);
         if(keyInfo->state != PRESSED && keyInfo->state != RELEASED && keyInfo->state != AFTERTOUCH ) 
         {
-            MatrixOS::Logging::LogVerbose(TAG, "Not useful");
+            MLOGV(TAG, "Not useful");
             return false;
         }
 
@@ -22,13 +22,13 @@ namespace MidiAction
             cb0r_s cbor_data;
             if(!cb0r_get(actionData, i, &cbor_data) || cbor_data.type != CB0R_INT)
             {
-                MatrixOS::Logging::LogError(TAG, "Failed to get action data %d", i - 1);
+                MLOGE(TAG, "Failed to get action data %d", i - 1);
                 return false;
             }
             data[i - 1] = cbor_data.value;
         }
 
-        // MatrixOS::Logging::LogVerbose(TAG, "Data: %d, %d, %d", data[0], data[1], data[2]);
+        // MLOGV(TAG, "Data: %d, %d, %d", data[0], data[1], data[2]);
         if((data[0] & 0xF0) == NoteOn)
         {
             // data[1] = bit 0-6 is note, bit 7 is a bool of use velocity from the keypad
@@ -52,7 +52,7 @@ namespace MidiAction
             return true;
         }
         
-        MatrixOS::Logging::LogDebug(TAG, "Midi Sent %d %d %d %d", (EMidiStatus)data[0], data[0], data[1], data[2]);
+        MLOGD(TAG, "Midi Sent %d %d %d %d", (EMidiStatus)data[0], data[0], data[1], data[2]);
         MatrixOS::MIDI::Send(MidiPacket(0, (EMidiStatus)(data[0] & 0xF0), data[0] & 0x0F, data[1], data[2]));
         return true;
     }

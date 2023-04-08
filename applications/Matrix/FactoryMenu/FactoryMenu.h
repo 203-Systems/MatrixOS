@@ -9,7 +9,7 @@
 #define EFUSE_BURNER
 #endif
 
-#if MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+#if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
 #define APPLICATION_VISIBLITY true
 #else
 #define APPLICATION_VISIBLITY false
@@ -39,7 +39,7 @@ inline Application_Info FactoryMenu::info = {
     .author = "203 Electronics",
     .color =  Color(0xFFFFFF),
     .version = 1,
-    #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+    #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
     .visibility = true,
     #else
     .visibility = false,

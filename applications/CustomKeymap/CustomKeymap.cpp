@@ -4,7 +4,7 @@
 void CustomKeymap::Setup() {
   if(!uad.LoadUAD((uint8_t*)sample_uad, sizeof(sample_uad)))
   {
-    MatrixOS::Logging::LogError("CustomKeymap", "Failed to load UAD");
+    MLOGE("CustomKeymap", "Failed to load UAD");
   }
 }
 

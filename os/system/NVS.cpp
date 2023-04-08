@@ -28,7 +28,7 @@ namespace MatrixOS::NVS
   }
 
   bool SetVariable(uint32_t hash, void* pointer, uint16_t length) {
-    // MatrixOS::Logging::LogVerbose("NVS", "Variable wrote : 0x%08x : 0x%08x: %d", hash, *(uint32_t*)pointer, length);
+    // MLOGV("NVS", "Variable wrote : 0x%08x : 0x%08x: %d", hash, *(uint32_t*)pointer, length);
     // //Sometimes this will cause kernal panic
     return Device::NVS::Write(hash, pointer, length);
   }

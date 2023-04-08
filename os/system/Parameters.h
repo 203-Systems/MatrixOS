@@ -2,11 +2,11 @@
 
 #include "framework/LogLevel.h"
 
-// #define MATRIXOS_BUILD_RELEASE
+#define MATRIXOS_BUILD_RELEASE
 // #define MATRIXOS_BUILD_RELEASE_CANDIDATE
 // #define MATRIXOS_BUILD_BETA
 // #define MATRIXOS_BUILD_NIGHTY
-#define MATRIXOS_BUILD_INDEV
+// #define MATRIXOS_BUILD_INDEV
 
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 5
@@ -16,9 +16,9 @@
 
 #include "ReleaseConfig.h"
 
-#define MATRIXOS_LOG_DEVICE
-#define MATRIXOS_LOG_USBCDC
-#define MATRIXOS_LOG_COLOR
+#define MLOG_DEVICE
+#define MLOG_USBCDC
+#define MLOG_COLOR
 
 #define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 16)
 

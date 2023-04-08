@@ -7,12 +7,12 @@
 
 bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
 {
-    MatrixOS::Logging::LogVerbose(TAG, "Executing action");
+    MLOGV(TAG, "Executing action");
     cb0r_s action_index;
 
     if(!cb0r_get(actionData, 0, &action_index) || action_index.type != CB0R_INT)
     {
-        MatrixOS::Logging::LogError(TAG, "Failed to get action index");
+        MLOGE(TAG, "Failed to get action index");
         return false;
     }
 

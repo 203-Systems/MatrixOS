@@ -9,11 +9,11 @@ namespace MatrixOS::UIInterface
   // looping
   void TextScroll(string text, Color color, uint16_t speed, bool loop) {
     // Log the text we're about to scroll
-    MatrixOS::Logging::LogDebug("Text Scroll", "Printing %s", text.c_str());
+    MLOGD("Text Scroll", "Printing %s", text.c_str());
 
     if(Device::y_size < 8)
     {
-      MatrixOS::Logging::LogError("Text Scroll", "Not enough vertical space, abort");
+      MLOGE("Text Scroll", "Not enough vertical space, abort");
       return;
     }
 
@@ -52,7 +52,7 @@ namespace MatrixOS::UIInterface
           current_char = ' ';  // TODO add proper ending spacing so x width is not limited to 8x8
         }
 
-        // MatrixOS::Logging::LogDebug("Text Scroll", "Printing %c", current_char);
+        // MLOGD("Text Scroll", "Printing %c", current_char);
         if (current_char < 127)  // Check ASCII is within bound
         {
           if (current_char < 32)  // Speed change control characters
@@ -99,7 +99,7 @@ namespace MatrixOS::UIInterface
               {
                 // MatrixOS::KEYPAD::Scan(true);
                 MatrixOS::KEYPAD::ClearList();  // Keypad will scan itself after list is cleared
-                // MatrixOS::Logging::LogDebug("Text Scroll", "FN Velocity %d",
+                // MLOGD("Text Scroll", "FN Velocity %d",
                 // (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
                 // Let's assume we don't use FN to trigger a text scroll
                 if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)

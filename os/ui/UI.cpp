@@ -24,7 +24,7 @@ void UI::Start() {
 }
 
 void UI::Exit() {
-  MatrixOS::Logging::LogDebug("UI", "UI Exit signaled");
+  MLOGD("UI", "UI Exit signaled");
   status = -1;
 }
 
@@ -52,21 +52,21 @@ void UI::GetKey() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   {
-    // MatrixOS::Logging::LogDebug("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
+    // MLOGD("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
       UIKeyEvent(&keyEvent);
     else
-      MatrixOS::Logging::LogDebug("UI", "KeyEvent Skip: %d", keyEvent.id);
+      MLOGD("UI", "KeyEvent Skip: %d", keyEvent.id);
   }
 }
 
 void UI::UIKeyEvent(KeyEvent* keyEvent) {
-  // MatrixOS::Logging::LogDebug("UI Key Event", "%d - %d", keyID, keyInfo->state);
+  // MLOGD("UI Key Event", "%d - %d", keyID, keyInfo->state);
   if (keyEvent->id == FUNCTION_KEY)
   {
     if (!disableExit && keyEvent->info.state == PRESSED)
     {
-      MatrixOS::Logging::LogDebug("UI", "Function Key Exit");
+      MLOGD("UI", "Function Key Exit");
       Exit();
       return;
     }
@@ -74,7 +74,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
   Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
   if (xy)
   {
-    // MatrixOS::Logging::LogDebug("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
+    // MLOGD("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
     bool hasAction = false;
     for (auto const& uiComponentPair : uiComponentMap)
     {
@@ -129,7 +129,7 @@ void UI::ClearUIComponents() {
 }
 
 void UI::UIEnd() {
-  MatrixOS::Logging::LogDebug("UI", "UI Exited");
+  MLOGD("UI", "UI Exited");
   if (newLedLayer)
   { MatrixOS::LED::DestoryLayer(); }
   else

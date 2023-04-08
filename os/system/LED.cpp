@@ -18,7 +18,7 @@ namespace MatrixOS::LED
     if (needUpdate)
     {
       xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
-      // MatrixOS::Logging::LogDebug("LED", "Update");
+      // MLOGD("LED", "Update");
       needUpdate = false;
       Device::LED::Update(frameBuffers[0], UserVar::brightness);
       xSemaphoreGive(activeBufferSemaphore);
@@ -41,7 +41,7 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
-    // MatrixOS::Logging::LogVerbose("LED", "Set Color #%.2X%.2X%.2X to %d %d at Layer %d", color.R, color.G, color.B, xy.x, xy.y, layer);
+    // MLOGV("LED", "Set Color #%.2X%.2X%.2X to %d %d at Layer %d", color.R, color.G, color.B, xy.x, xy.y, layer);
     xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
     uint16_t index = Device::LED::XY2Index(xy);
     if (index == UINT16_MAX)return;
@@ -79,7 +79,7 @@ namespace MatrixOS::LED
       return;
     }
     vTaskSuspendAll();
-    // MatrixOS::Logging::LogVerbose("LED", "Fill Layer %d", layer);
+    // MLOGV("LED", "Fill Layer %d", layer);
     for (uint16_t index = 0; index < Device::numsOfLED; index++)
     { frameBuffers[layer][index] = color; }
 
@@ -125,7 +125,7 @@ namespace MatrixOS::LED
     }
     frameBuffers.push_back(frameBuffer);
     Fill(0, CurrentLayer());
-    MatrixOS::Logging::LogDebug("LED Layer", "Layer Created - %d", CurrentLayer());
+    MLOGD("LED Layer", "Layer Created - %d", CurrentLayer());
     return CurrentLayer();
   }
 
@@ -134,7 +134,7 @@ namespace MatrixOS::LED
     {
       vPortFree(frameBuffers.back());
       frameBuffers.pop_back();
-      MatrixOS::Logging::LogDebug("LED Layer", "Layer Destoried - %d", CurrentLayer());
+      MLOGD("LED Layer", "Layer Destoried - %d", CurrentLayer());
       Update();
       return true;
     }
@@ -142,7 +142,7 @@ namespace MatrixOS::LED
     {
       Fill(0, 1);
       Update();
-      MatrixOS::Logging::LogDebug("LED Layer", "Already at layer 1, can not delete layer");
+      MLOGD("LED Layer", "Already at layer 1, can not delete layer");
       return false;
     }
   }

@@ -46,7 +46,7 @@ class UIButton : public UIComponent {
     {
       if (Callback())
       {
-        MatrixOS::Logging::LogDebug("UI Button", "Key Event Callback");
+        MLOGD("UI Button", "Key Event Callback");
         MatrixOS::KEYPAD::Clear();
         return true;
       }

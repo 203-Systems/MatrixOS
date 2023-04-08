@@ -78,7 +78,7 @@ namespace Device::KeyPad::Binary
       for(uint8_t y = 0; y < Device::y_size; y++)
       {
         Fract16 reading = gpio_get_level(keypad_read_pins[y]) * FRACT16_MAX;
-        // MatrixOS::Logging::LogDebug("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));
+        // MLOGD("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));
         bool updated = keypadState[x][y].update(reading, true);
         if (updated)
         {

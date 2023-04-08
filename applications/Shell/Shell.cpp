@@ -35,12 +35,12 @@ void Shell::AddCommonBarInUI(UI* ui) {
 
           last_tap = MatrixOS::SYS::Millis();
 
-          // MatrixOS::Logging::LogInfo("Hidden Launcher", "Tap %d", tap_counter);
+          // MLOGI("Hidden Launcher", "Tap %d", tap_counter);
 
           if (tap_counter >= 10)
           {
             tap_counter = 0;
-            MatrixOS::Logging::LogInfo("Hidden Launcher", "Enter");
+            MLOGI("Hidden Launcher", "Enter");
             HiddenApplicationLauncher();
           }
         }
@@ -74,7 +74,7 @@ void Shell::ApplicationLauncher() {
   AddCommonBarInUI(&applicationLauncher);
 
   uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
-  MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
+  MLOGD("Shell", "%d apps detected", app_count);
 
   uint16_t visable_app_count = 0;
 
@@ -108,11 +108,11 @@ void Shell::ApplicationLauncher() {
 
       appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
       applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+      MLOGD("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
     }
     else
-    { MatrixOS::Logging::LogDebug("Shell", "%s not visible, skip.", application->name.c_str()); }
+    { MLOGD("Shell", "%s not visible, skip.", application->name.c_str()); }
   }
   applicationLauncher.Start();
 }
@@ -121,7 +121,7 @@ void Shell::HiddenApplicationLauncher() {
   UI hiddenApplicationLauncher("Hidden Application Launcher", Color(0xFFFFFF));
 
   uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
-  MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
+  MLOGD("Shell", "%d apps detected", app_count);
 
   uint16_t invisable_app_count = 0;
 
@@ -153,11 +153,11 @@ void Shell::HiddenApplicationLauncher() {
 
       appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
       hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MatrixOS::Logging::LogDebug("Shell (invisable)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+      MLOGD("Shell (invisable)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
     }
     else
-    { MatrixOS::Logging::LogDebug("Shell", "%s visible, skip.", application->name.c_str()); }
+    { MLOGD("Shell", "%s visible, skip.", application->name.c_str()); }
   }
   hiddenApplicationLauncher.Start();
 }

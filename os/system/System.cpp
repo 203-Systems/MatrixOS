@@ -9,7 +9,7 @@ extern std::unordered_map<uint32_t, Application_Info*> applications;
 namespace MatrixOS::SYS
 {
   void ApplicationFactory(void* param) {
-    MatrixOS::Logging::LogDebug("Application Factory", "App ID %X", active_app_id);
+    MLOGD("Application Factory", "App ID %X", active_app_id);
 
     active_app = NULL;
 
@@ -18,7 +18,7 @@ namespace MatrixOS::SYS
       auto application = applications.find(active_app_id);
       if (application != applications.end())
       {
-        MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->second->author.c_str(),
+        MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
         active_app = application->second->factory();
       }
@@ -27,13 +27,13 @@ namespace MatrixOS::SYS
     if (active_app == NULL)  // Default to launch shell
     {
       if (active_app_id != 0)
-        MatrixOS::Logging::LogDebug("Application Factory", "Can't find target app.");
-      MatrixOS::Logging::LogDebug("Application Factory", "Launching Shell");
+        MLOGD("Application Factory", "Can't find target app.");
+      MLOGD("Application Factory", "Launching Shell");
       active_app_id = OS_SHELL;
       auto application = applications.find(active_app_id);
       if (application != applications.end())
       {
-        MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->second->author.c_str(),
+        MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
         active_app = application->second->factory();
       }
@@ -45,10 +45,10 @@ namespace MatrixOS::SYS
 
   void Supervisor(void* param) {
 
-    MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", applications.size());
+    MLOGD("Supervisor", "%d Apps registered", applications.size());
 
     for (const auto & [ id, application ] : applications) {
-      MatrixOS::Logging::LogDebug("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(),
+      MLOGD("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(),
                                   application->name.c_str(), application->version);
     }
 
@@ -76,13 +76,13 @@ namespace MatrixOS::SYS
 
     inited = true;
 
-    Logging::LogInfo("System", "Matrix OS initialization complete");
+    MLOGI("System", "Matrix OS initialization complete");
 
-    Logging::LogError("Logging", "This is an error log");
-    Logging::LogWarning("Logging", "This is a warning log");
-    Logging::LogInfo("Logging", "This is an info log");
-    Logging::LogDebug("Logging", "This is a debug log");
-    Logging::LogVerbose("Logging", "This is a verbose log");
+    MLOGE("Logging", "This is an error log");
+    MLOGW("Logging", "This is a warning log");
+    MLOGI("Logging", "This is an info log");
+    MLOGD("Logging", "This is a debug log");
+    MLOGV("Logging", "This is a verbose log");
 
     ExecuteAPP(DEFAULT_BOOTANIMATION);
 
@@ -151,35 +151,35 @@ namespace MatrixOS::SYS
 
   void NextBrightness() {
     // ESP_LOGI("System".c_str(), "Next Brightness");
-    MatrixOS::Logging::LogDebug("System", "Next Brightness");
+    MLOGD("System", "Next Brightness");
     // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
-    MatrixOS::Logging::LogDebug("System", "Current Brightness %d", UserVar::brightness.value);
+    MLOGD("System", "Current Brightness %d", UserVar::brightness.value);
     for (uint8_t new_brightness : Device::brightness_level)
     {
       // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
-      MatrixOS::Logging::LogDebug("System", "Check Brightness Level  %d", new_brightness);
+      MLOGD("System", "Check Brightness Level  %d", new_brightness);
       if (new_brightness > UserVar::brightness)
       {
         // ESP_LOGI("System".c_str(), "Brightness Level Selected");
-        MatrixOS::Logging::LogDebug("System", "Brightness Level Selected");
+        MLOGD("System", "Brightness Level Selected");
         UserVar::brightness = new_brightness;
         return;
       }
     }
     // ESP_LOGI("System".c_str(), "Lowest Level Selected");
-    MatrixOS::Logging::LogDebug("System", "Lowest Level Selected");
+    MLOGD("System", "Lowest Level Selected");
     UserVar::brightness = Device::brightness_level[0];
   }
 
   uint32_t GenerateAPPID(string author, string app_name) {
     // uint32_t app_id = Hash(author + "-" + app_name);
-    // Logging::LogInfo("System", "APP ID: %u", app_id);
+    // MLOG("System", "APP ID: %u", app_id);
     return Hash(author + "-" + app_name);
     ;
   }
 
   void ExecuteAPP(uint32_t app_id) {
-    // Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
+    // MLOG("System", "Launching APP ID\t%u", app_id);
     active_app_id = app_id;
 
     // Clean up layers that the previous app might have made
@@ -195,7 +195,7 @@ namespace MatrixOS::SYS
   }
 
   void ExecuteAPP(string author, string app_name) {
-    Logging::LogInfo("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
+    MLOGD("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
     ExecuteAPP(GenerateAPPID(author, app_name));
   }
 
@@ -210,7 +210,7 @@ namespace MatrixOS::SYS
     // Bootloader();
     if (error.empty())
       error = "Undefined Error";
-    Logging::LogError("System", "Matrix OS Error: %s", error);
+    MLOGE("System", "Matrix OS Error: %s", error);
 
     // Show Blue Screen
     LED::Fill(0x00adef);

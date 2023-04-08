@@ -157,7 +157,7 @@ namespace Device::KeyPad
     { return (1 << 12) + (xy.x << 6) + xy.y; }
     else if ((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8))  // Touch Bar
     { return (2 << 12) + xy.y + (xy.x == 8) * 8; }
-    // MatrixOS::Logging::LogError("Keypad", "Failed GetKeyID %d %d", xy.x, xy.y);
+    // MLOGE("Keypad", "Failed GetKeyID %d %d", xy.x, xy.y);
     return UINT16_MAX;
   }
 

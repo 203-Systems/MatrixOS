@@ -39,14 +39,14 @@ bool UAD::CheckVersion(cb0r_t uadMap)
     // Get UAD version
     if(!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"uad_version", &uad_section) || uad_section.type != CB0R_INT)
     {
-        MatrixOS::Logging::LogError(TAG, "UAD version not found");
+        MLOGE(TAG, "UAD version not found");
         return false;
     }
-    MatrixOS::Logging::LogVerbose(TAG, "UAD version: %d", uad_section.value);
+    MLOGV(TAG, "UAD version: %d", uad_section.value);
 
     if(uad_section.value != UAD_VERSION)
     {
-        MatrixOS::Logging::LogError(TAG, "UAD version not supported");
+        MLOGE(TAG, "UAD version not supported");
         return false;
     }
     return true;
@@ -58,7 +58,7 @@ bool UAD::LoadActionList(cb0r_t uadMap)
     
     if(!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"action_list", &action_list)) // || action_list.type != CB0R_ARRAY)
     {
-        MatrixOS::Logging::LogError(TAG, "Action List not found");
+        MLOGE(TAG, "Action List not found");
         return false;
     }
     
@@ -71,7 +71,7 @@ bool UAD::LoadEffectList(cb0r_t uadMap)
     
     if(!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"effect_list", &effect_list)) // || effect_list.type != CB0R_ARRAY)
     {
-        MatrixOS::Logging::LogError(TAG, "Effect List not found");
+        MLOGE(TAG, "Effect List not found");
         return false;
     }
     
@@ -88,7 +88,7 @@ bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list)
         cb0r_s item;
         if(!cb0r_get(cborArray, i, &item) || item.type != CB0R_UTF8)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to create hash list\n");
+            MLOGE(TAG, "Failed to create hash list\n");
             return false;
         }
         list->push_back(Hash(string((const char*)(item.start + item.header), item.length))); //Beecause array was not null terimated.
@@ -101,7 +101,7 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
     cb0r_s x_bitmap;
     if(!cb0r_get(actionMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
     {
-        MatrixOS::Logging::LogError(TAG, "Failed to get Action X Bitmap\n");
+        MLOGE(TAG, "Failed to get Action X Bitmap\n");
         return false;
     }
 
@@ -118,21 +118,21 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
         }
         
         int8_t x_index = IndexInBitmap(x_bitmap.value, x);
-        // MatrixOS::Logging::LogVerbose(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
+        // MLOGV(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
 
         if(x_index == -1) {continue;}
 
         cb0r_s y_array;
         if(!cb0r_get(actionMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Action X Array\n");
+            MLOGE(TAG, "Failed to get Action X Array\n");
             return false;
         }
 
         cb0r_s y_bitmap;
         if(!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Action Y Bitmap\n");
+            MLOGE(TAG, "Failed to get Action Y Bitmap\n");
             return false;
         }
 
@@ -140,9 +140,9 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
         for(uint8_t y = 0; y < lutSize.y; y++)
         {   
             int8_t y_index = IndexInBitmap(y_bitmap.value, y);
-            // MatrixOS::Logging::LogVerbose(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
+            // MLOGV(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
 
-            // MatrixOS::Logging::LogVerbose(TAG, "X: %d, Y: %d", x, y);
+            // MLOGV(TAG, "X: %d, Y: %d", x, y);
 
             if(y_index == -1) {continue;}
 
@@ -151,14 +151,14 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
             cb0r_s layer_array;
             if(!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
             {
-                MatrixOS::Logging::LogError(TAG, "Failed to get Layer Array\n");
+                MLOGE(TAG, "Failed to get Layer Array\n");
                 return false;
             }
 
             uint32_t offset = layer_array.start - uad;
             if(offset > UINT16_MAX)
             {
-                MatrixOS::Logging::LogError(TAG, "Y Offset is too large\n");
+                MLOGE(TAG, "Y Offset is too large\n");
                 return false;
             }
 
@@ -174,7 +174,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
     cb0r_s devices;
     if(!cb0r_find(uadMap, CB0R_UTF8, 7, (uint8_t*)"devices", &devices) || devices.type != CB0R_ARRAY)
     {
-        MatrixOS::Logging::LogError(TAG, "Devices not found");
+        MLOGE(TAG, "Devices not found");
         return false;
     }
 
@@ -186,7 +186,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         
         if(!cb0r_get(&devices, i, &device) || device.type != CB0R_MAP)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Device");
+            MLOGE(TAG, "Failed to get Device");
             return false;
         }
         
@@ -195,14 +195,14 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // // Get Device Name
         // if(!cb0r_find(&device, CB0R_UTF8, 4, (uint8_t*)"name", &device_data) || device_data.type != CB0R_UTF8)
         // {
-        //     MatrixOS::Logging::LogError(TAG, "Failed to get Device");
+        //     MLOGE(TAG, "Failed to get Device");
         //     return false;
         // }
         
         // // Get Device ID
         // if(!cb0r_find(&device, CB0R_UTF8, 2, (uint8_t*)"id", &device_data) || device_data.type != CB0R_ARRAY || device_data.length != 2)
         // {
-        //     MatrixOS::Logging::LogError(TAG, "Failed to get Device ID Array");
+        //     MLOGE(TAG, "Failed to get Device ID Array");
         //     return false;
         // }
         // printf("\tID: ");
@@ -212,7 +212,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         //     cb0r_s device_id;
         //     if(!cb0r_get(&device_data, i, &device_id) || device_id.type != CB0R_INT)
         //     {
-        //         MatrixOS::Logging::LogError(TAG, "Failed to get Device ID");
+        //         MLOGE(TAG, "Failed to get Device ID");
         //         return false;
         //     }
         //     printf("%.4X ", device_id.value);
@@ -227,7 +227,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // Get Device Size
         if(!cb0r_find(&device, CB0R_UTF8, 4, (uint8_t*)"size", &device_data) || device_data.type != CB0R_ARRAY || device_data.length != 2)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Device Size Array");
+            MLOGE(TAG, "Failed to get Device Size Array");
             return false;
         }
 
@@ -236,7 +236,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
             cb0r_s device_size;
             if(!cb0r_get(&device_data, i, &device_size) || device_size.type != CB0R_INT)
             {
-                MatrixOS::Logging::LogError(TAG, "Failed to get Device Size");
+                MLOGE(TAG, "Failed to get Device Size");
                 return false;
             }
 
@@ -253,7 +253,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // Get Layer Count
         if(!cb0r_find(&device, CB0R_UTF8, 6, (uint8_t*)"layers", &device_data) || device_data.type != CB0R_INT)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Device Layer Count");
+            MLOGE(TAG, "Failed to get Device Layer Count");
             return false;
         }
         layerCount = device_data.value;
@@ -261,7 +261,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // Get Device Actions
         if(!cb0r_find(&device, CB0R_UTF8, 7, (uint8_t*)"actions", &device_data) || device_data.type != CB0R_ARRAY)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Device Actions");
+            MLOGE(TAG, "Failed to get Device Actions");
             return false;
         }
         CreateLUT(&device_data, &actionLUT, mapSize);
@@ -269,7 +269,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // Get Device Effects
         if(!cb0r_find(&device, CB0R_UTF8, 7, (uint8_t*)"effects", &device_data) || device_data.type != CB0R_ARRAY)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get Device Effects");
+            MLOGE(TAG, "Failed to get Device Effects");
             return false;
         }
         CreateLUT(&device_data, &effectLUT, mapSize);
@@ -282,14 +282,14 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size)
 {  
     this->uad = uad;
     this->uadSize = size;
-    MatrixOS::Logging::LogVerbose(TAG, "Loading UAD");
+    MLOGV(TAG, "Loading UAD");
     cb0r_s uad_map;
     
     // TODO: Checking without CB0R - CB0R need to return size which will cause it to iterate the entire data. That is not needed and SLOW
     cb0r(uad, uad + size, 0, &uad_map);
     if(uad_map.type != CB0R_MAP)
     {
-        MatrixOS::Logging::LogError(TAG, "UAD is not a map");
+        MLOGE(TAG, "UAD is not a map");
         return false;
     }
 

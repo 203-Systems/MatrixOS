@@ -18,7 +18,7 @@ namespace MatrixOS::HID
   bool KeyboardPress(uint8_t keycode) 
   {
     activeKeycode.reserve(6);
-    // MatrixOS::Logging::LogDebug("HID", "Send keypress %d", keycode);
+    // MLOGD("HID", "Send keypress %d", keycode);
 
     if (activeKeycode.size() >= NKRO_COUNT)
     { return false; }
@@ -40,7 +40,7 @@ namespace MatrixOS::HID
     activeKeycode.resize(new_size); //Shrink back to the correct size
 
     if(!Ready()) {
-    // MatrixOS::Logging::LogDebug("HID", "HID not ready");
+    // MLOGD("HID", "HID not ready");
     return false; }
 
     if (tud_suspended())
@@ -52,13 +52,13 @@ namespace MatrixOS::HID
 
     uint8_t const modifier = 0;
     tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifier, activeKeycode.data());
-      // MatrixOS::Logging::LogDebug("HID", "Keypress %d sent - %d %d %d %d %d %d", keycode, activeKeycode[0], activeKeycode[1], activeKeycode[2], activeKeycode[3], activeKeycode[4], activeKeycode[5]);
+      // MLOGD("HID", "Keypress %d sent - %d %d %d %d %d %d", keycode, activeKeycode[0], activeKeycode[1], activeKeycode[2], activeKeycode[3], activeKeycode[4], activeKeycode[5]);
     return true;
   }
 
   void KeyboardRelease(uint8_t keycode) 
   {
-    // MatrixOS::Logging::LogDebug("HID", "Release keypress %d", keycode);
+    // MLOGD("HID", "Release keypress %d", keycode);
     
     // Check if keycode is in activeKeycode
     for (uint8_t i = 0; i < activeKeycode.size(); i++)
@@ -74,7 +74,7 @@ namespace MatrixOS::HID
     }
 
     if(!Ready()) {
-      // MatrixOS::Logging::LogDebug("HID", "HID not ready");
+      // MLOGD("HID", "HID not ready");
       return;
     }
 
@@ -84,7 +84,7 @@ namespace MatrixOS::HID
     else
     { tud_hid_keyboard_report(REPORT_ID_KEYBOARD, modifier, NULL); }
 
-    // MatrixOS::Logging::LogDebug("HID", "Keypress %d released - %d %d %d %d %d %d", keycode, activeKeycode[0], activeKeycode[1], activeKeycode[2], activeKeycode[3], activeKeycode[4], activeKeycode[5]);
+    // MLOGD("HID", "Keypress %d released - %d %d %d %d %d %d", keycode, activeKeycode[0], activeKeycode[1], activeKeycode[2], activeKeycode[3], activeKeycode[4], activeKeycode[5]);
     
   }
 }

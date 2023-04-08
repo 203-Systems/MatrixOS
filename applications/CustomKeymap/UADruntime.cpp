@@ -28,19 +28,19 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   uint16_t offset;
   if (actionInfo->indexType == ActionIndexType::COORD)
   { 
-    MatrixOS::Logging::LogVerbose(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
+    MLOGV(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
     offset = actionLUT[actionInfo->coord.x][actionInfo->coord.y]; 
   }
   else
   {
-    MatrixOS::Logging::LogVerbose(TAG, "Executing actions for key %d", actionInfo->ID);
+    MLOGV(TAG, "Executing actions for key %d", actionInfo->ID);
     return false;  // Doesn't not support off grid keys yet
   }
 
   // If the offset is 0, there are no actions to execute
   if (offset == 0)
   { 
-    MatrixOS::Logging::LogVerbose(TAG, "No actions to execute");
+    MLOGV(TAG, "No actions to execute");
     return false; 
   }
 
@@ -48,7 +48,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   cb0r_s layer_array;
   if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
   {
-    MatrixOS::Logging::LogError(TAG, "Failed to get Action Layer Array");
+    MLOGE(TAG, "Failed to get Action Layer Array");
     return false;
   }
 
@@ -56,7 +56,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   cb0r_s bitmap;
   if (!cb0r_get(&layer_array, 0, &bitmap) || bitmap.type != CB0R_INT)
   {
-    MatrixOS::Logging::LogError(TAG, "Failed to get Action Layer Bitmap");
+    MLOGE(TAG, "Failed to get Action Layer Bitmap");
     return false;
   }
 
@@ -89,7 +89,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
     cb0r_s actions;
     if(!cb0r_get(&layer_array, layer_index, &actions) || actions.type != CB0R_ARRAY)
     {
-        MatrixOS::Logging::LogError(TAG, "Failed to get Action Array");
+        MLOGE(TAG, "Failed to get Action Array");
         return false;
     }
 
@@ -103,7 +103,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
         actionInfo->index = action_index;
         if(!cb0r_get(&actions, action_index, &action) || action.type != CB0R_ARRAY)
         {
-            MatrixOS::Logging::LogError(TAG, "Failed to get action %d from action list", action_index);
+            MLOGE(TAG, "Failed to get action %d from action list", action_index);
         }
         ExecuteAction(actionInfo, &action, keyInfo);
     }
