@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../BootAnimation.h"
+#include "applications/BootAnimation/BootAnimation.h"
 
 #define APPLICATION_NAME "Matrix Boot"
 #define APPLICATION_AUTHOR "203 Electronics"

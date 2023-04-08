@@ -1,6 +1,5 @@
 // Declear Family specific function
 #pragma once
-// #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include "hal/gpio_ll.h"
 #include "hal/usb_hal.h"
@@ -8,7 +7,6 @@
 
 #include "driver/rmt.h"
 
-// #include "esp_timer.h"
 #include "esp_task_wdt.h"
 #include "esp_rom_gpio.h"
 #include "esp_log.h"
@@ -27,7 +25,6 @@
 #include "framework/Color.h"
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
-#define DEVICE_APPLICATIONS
 #define DEVICE_SETTING
 
 #define DEVICE_SAVED_VAR_SCOPE "Device"

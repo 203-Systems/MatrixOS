@@ -2,6 +2,8 @@
 #include "MatrixOS.h"
 #include <functional>
 
+#define APPID(author, name) StaticHash(author "-" name)
+
 struct Application_Info {
   uint32_t id;
   string name;
@@ -40,3 +42,5 @@ class Application {
 
   void Exit();
 };
+
+

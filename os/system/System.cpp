@@ -1,7 +1,6 @@
 #include "MatrixOS.h"
 #include "applications/Setting/Setting.h"
-#include "applications/BootAnimations/BootAnimations.h"
-#include "applications/Applications.h"
+#include "Applications.h" // This is from device layer
 #include "System.h"
 
 namespace MatrixOS::SYS
@@ -31,7 +30,18 @@ namespace MatrixOS::SYS
       if (active_app_id != 0)
         MatrixOS::Logging::LogDebug("Application Factory", "Can't find target app.");
       MatrixOS::Logging::LogDebug("Application Factory", "Launching Shell");
-      active_app = new Shell();
+      active_app_id = OS_SHELL;
+      for (uint8_t i = 0; i < app_count; i++)  // I don't like the for loop but tbh there's nothing wrong with it.
+      {
+        Application_Info* application = applications[i];
+        if (application->id == active_app_id)
+        {
+          MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->author.c_str(),
+                                      application->name.c_str());
+          active_app = application->factory();
+          break;
+        }
+      }
     }
 
     active_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
@@ -81,7 +91,7 @@ namespace MatrixOS::SYS
     Logging::LogDebug("Logging", "This is a debug log");
     Logging::LogVerbose("Logging", "This is a verbose log");
 
-    ExecuteAPP("203 Electronics", "Matrix Boot");  // Seperate boot animation with Application Class
+    ExecuteAPP(DEFAULT_BOOTANIMATION);
 
     Device::DeviceStart();  // App won't run till supervisor is running
 

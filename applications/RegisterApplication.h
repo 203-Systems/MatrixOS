@@ -23,10 +23,11 @@ inline const uint16_t app_counter_base = __COUNTER__ + 1;
 #define APPLICATION_VISIBLITY true
 #endif
 
+
 extern Application_Info* applications[];
 
 inline Application_Info APPLICATION_INFO(APPLICATION_CLASS) = Application_Info(
-    StaticHash(APPLICATION_AUTHOR "-" APPLICATION_NAME), APPLICATION_NAME, APPLICATION_AUTHOR, APPLICATION_COLOR,
+    APPID(APPLICATION_AUTHOR, APPLICATION_NAME), APPLICATION_NAME, APPLICATION_AUTHOR, APPLICATION_COLOR,
     APPLICATION_VERSION, []() -> Application* { return new APPLICATION_CLASS(); }, APPLICATION_VISIBLITY);
 
 __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) {

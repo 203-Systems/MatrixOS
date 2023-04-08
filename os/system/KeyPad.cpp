@@ -1,5 +1,4 @@
 #include "MatrixOS.h"
-#include "applications/Application.h"
 #include <string>
 
 namespace MatrixOS::KEYPAD
