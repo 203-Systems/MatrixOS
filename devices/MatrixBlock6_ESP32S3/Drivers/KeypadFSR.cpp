@@ -80,6 +80,7 @@ namespace Device::KeyPad::FSR
   }
 
   void Start() {
+    ulp_riscv_halt();
     ulp_riscv_load_binary(ulp_fsr_keypad_bin_start, (ulp_fsr_keypad_bin_end - ulp_fsr_keypad_bin_start));
     ulp_riscv_run();
   }
