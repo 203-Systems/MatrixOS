@@ -2,6 +2,10 @@
 
 namespace MatrixOS::NVS
 {
+  size_t GetSize(uint32_t hash) {
+    return Device::NVS::Size(hash);
+  }
+  
   vector<char> GetVariable(uint32_t hash) {
     return Device::NVS::Read(hash);
   }

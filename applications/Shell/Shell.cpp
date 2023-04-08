@@ -77,32 +77,42 @@ void Shell::ApplicationLauncher() {
   MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
 
   uint16_t visable_app_count = 0;
-  for (uint8_t i = 0; i < app_count; i++)
+
+  // Iterate though map
+  for (auto const& [app_id, application] : applications)
   {
-    if (applications[i]->visibility)
+    if (application->visibility)
     { visable_app_count++; }
   }
 
   std::vector<UIButton> appBtns;
   appBtns.reserve(visable_app_count);
-  for (uint8_t i = 0; i < app_count; i++)
+
+  // Iterate though deque 
+  for (uint32_t app_id: application_ids)
   {
-    if (applications[i]->visibility)
+    auto application_it = applications.find(app_id);
+    if(application_it == applications.end())
+    {
+      continue;
+    }
+    Application_Info* application = application_it->second;
+
+    if (application->visibility)
     {
       uint8_t x = appBtns.size() % 8;
       uint8_t y = appBtns.size() / 8;
 
-      uint32_t app_id = applications[i]->id;
-      string app_name = applications[i]->name;
-      Color app_color = applications[i]->color;
+      string app_name = application->name;
+      Color app_color = application->color;
 
       appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
       applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, applications[i]->author.c_str(),
-                                  applications[i]->name.c_str());
+      MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+                                  application->name.c_str());
     }
     else
-    { MatrixOS::Logging::LogDebug("Shell", "%s not visible, skip.", applications[i]->name.c_str()); }
+    { MatrixOS::Logging::LogDebug("Shell", "%s not visible, skip.", application->name.c_str()); }
   }
   applicationLauncher.Start();
 }
@@ -114,32 +124,40 @@ void Shell::HiddenApplicationLauncher() {
   MatrixOS::Logging::LogDebug("Shell", "%d apps detected", app_count);
 
   uint16_t invisable_app_count = 0;
-  for (uint8_t i = 0; i < app_count; i++)
+
+  // Iterate though map
+  for (auto const& [app_id, application] : applications)
   {
-    if (!applications[i]->visibility)
+    if (application->visibility)
     { invisable_app_count++; }
   }
 
   std::vector<UIButton> appBtns;
   appBtns.reserve(invisable_app_count);
-  for (uint8_t i = 0; i < app_count; i++)
+  for (uint32_t app_id: application_ids)
   {
-    if (!applications[i]->visibility)
+    auto application_it = applications.find(app_id);
+    if(application_it == applications.end())
+    {
+      continue;
+    }
+    Application_Info* application = application_it->second;
+
+    if (application->visibility == false)
     {
       uint8_t x = appBtns.size() % 8;
       uint8_t y = appBtns.size() / 8;
 
-      uint32_t app_id = applications[i]->id;
-      string app_name = applications[i]->name;
-      Color app_color = applications[i]->color;
+      string app_name = application->name;
+      Color app_color = application->color;
 
       appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
       hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MatrixOS::Logging::LogDebug("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, applications[i]->author.c_str(),
-                                  applications[i]->name.c_str());
+      MatrixOS::Logging::LogDebug("Shell (invisable)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+                                  application->name.c_str());
     }
     else
-    { MatrixOS::Logging::LogDebug("Shell", "%s is visible, skip.", applications[i]->name.c_str()); }
+    { MatrixOS::Logging::LogDebug("Shell", "%s visible, skip.", application->name.c_str()); }
   }
   hiddenApplicationLauncher.Start();
 }

@@ -44,15 +44,14 @@ Any advice for common problems or issues, please post it in the GitHub issues.
 This project is licensed under the MIT License - see the LICENSE.md file for details
 
 ## Acknowledgments
-This project has used the following projects:
+This project has made possible with the following open source projects:
 
-[FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) - RTOS kernel 
+[FreeRTOS](https://github.com/FreeRTOS/FreeRTOS-Kernel) - Real Time OS Kernel 
 
-[TinyUSB](https://github.com/hathach/tinyusb) - USB Communlication
+[TinyUSB](https://github.com/hathach/tinyusb) - USB Host/Device stack
 
-[Printf](https://github.com/eyalroz/printf/) - Logging Printf
+[Printf](https://github.com/eyalroz/printf/) - Formatted Printing Functions
+
+[CB0R](https://github.com/quartzjer/cb0r) -  Zero-Footprint CBOR Decoder (Modified by @All-Your-Locks-Are-Belong-To-Us)
 
 Special thanks to [LA104](https://github.com/gabonator/LA104) for a lot of inspiration for this OS
-
-
-

@@ -33,20 +33,20 @@ struct KeyConfig {
   uint16_t debounce;
 };
 
-enum KeyStates : uint8_t { /*Status Keys*/ IDLE,
+enum KeyState : uint8_t { /*Status Keys*/ IDLE,
                            ACTIVATED,
                            /*Event Keys*/ PRESSED,
                            RELEASED,
                            HOLD,
                            AFTERTOUCH,
-                           /*Special*/ DEBUNCING = 253u,
+                           /*Special*/ DEBUNCING = 240u, RELEASE_DEBUNCING = 241u, RELEASE_DEBUNCING_CLEARED = 242u,
                            CLEARED = 254u,
                            /*Placeholder Keys*/ INVAILD = 255u };
 // When adding new state, remember to update active() as well
 
 struct KeyInfo {
   KeyConfig* config = nullptr;
-  KeyStates state = IDLE;
+  KeyState state = IDLE;
   uint32_t lastEventTime = 0;  // PRESSED and RELEASED event only
   Fract16 velocity = 0;
   bool hold = false;
@@ -67,7 +67,7 @@ struct KeyInfo {
     return MatrixOS::SYS::Millis() - lastEventTime;
   }
 
-  bool active() { return state >= ACTIVATED && state <= AFTERTOUCH; }
+  bool active() { return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING; }
 
   operator bool() { return active(); }
 
@@ -136,16 +136,16 @@ struct KeyInfo {
     }
 
     if (state == HOLD || state == AFTERTOUCH)
-    { state = ACTIVATED; }
-
-    if (state == IDLE && velocity)
+    { 
+      state = ACTIVATED; 
+    }
+    else if (state == IDLE && velocity)
     {
       state = DEBUNCING;
       lastEventTime = MatrixOS::SYS::Millis();
       return false;
     }
-
-    if (state == DEBUNCING)
+    else if (state == DEBUNCING)
     {
       if (velocity == 0)
       {
@@ -162,14 +162,38 @@ struct KeyInfo {
       return false;
     }
 
-    if (state == CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
+    if (state == CLEARED && !velocity)  // May result in key released early
+    {
+      state = RELEASE_DEBUNCING_CLEARED;
+      lastEventTime = MatrixOS::SYS::Millis();
+      return false;
+    }
+    else if (state == RELEASE_DEBUNCING && velocity)
+    {
+      state = ACTIVATED;
+      lastEventTime = MatrixOS::SYS::Millis();
+      return false;
+    }
+    else if (state == RELEASE_DEBUNCING_CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();
       return false;
     }
 
-    if (state == ACTIVATED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
+    if (state == ACTIVATED && !velocity)
+    {
+      state = RELEASE_DEBUNCING;
+      lastEventTime = MatrixOS::SYS::Millis();
+      return false;
+    }
+    else if (state == RELEASE_DEBUNCING && velocity)
+    {
+      state = ACTIVATED;
+      lastEventTime = MatrixOS::SYS::Millis();
+      return false;
+    }
+    else if (state == RELEASE_DEBUNCING && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();

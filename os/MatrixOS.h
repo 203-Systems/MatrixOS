@@ -120,6 +120,13 @@ namespace MatrixOS
     noexpose bool Recive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
+  namespace HID
+  {
+    bool Ready(void);
+    bool KeyboardPress(uint8_t keycode);
+    void KeyboardRelease(uint8_t keycode);
+  }
+
   namespace Logging
   {
     void LogLevelSet(string tag, ELogLevel level);
@@ -132,6 +139,7 @@ namespace MatrixOS
 
   namespace NVS
   {
+    size_t GetSize(uint32_t hash);
     vector<char> GetVariable(uint32_t hash);
     int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length);  // Load variable into pointer. If not defined,
                                                                         // it will try to assign current pointer value

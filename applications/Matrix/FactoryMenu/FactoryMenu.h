@@ -9,12 +9,6 @@
 #define EFUSE_BURNER
 #endif
 
-#define APPLICATION_NAME "Matrix Factory Menu"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFFFFFF)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS FactoryMenu
-
 #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
 #define APPLICATION_VISIBLITY true
 #else
@@ -22,6 +16,8 @@
 #endif
 
 class FactoryMenu : public Application {
+  public:
+  static Application_Info info;
   void Setup() override;
 
   // void LEDTest();
@@ -38,4 +34,16 @@ class FactoryMenu : public Application {
   void EFuseBurner();
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info FactoryMenu::info = {
+    .name = "Factory Menu",
+    .author = "203 Electronics",
+    .color =  Color(0xFFFFFF),
+    .version = 1,
+    #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+    .visibility = true,
+    #else
+    .visibility = false,
+    #endif
+};
+
+REGISTER_APPLICATION(FactoryMenu);

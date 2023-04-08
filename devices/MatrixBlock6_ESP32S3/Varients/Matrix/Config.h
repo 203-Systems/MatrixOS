@@ -11,9 +11,10 @@
 // #define LC8812
 
 #include "Family.h"
+
 #include "framework/SavedVariable.h"
 
-#define FACTORY_CONFIG //Global switch for using factory config
+// #define FACTORY_CONFIG //Global switch for using factory config
 
 #define FACTORY_DEVICE_VERSION 'S' // Standard
 // #define FACTORY_DEVICE_VERSION 'P' // Pro

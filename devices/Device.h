@@ -53,8 +53,8 @@ namespace Device
 
   namespace NVS //Device should also implentment duplication check. If new value is equal to the old one, then skip the write. 
   {
+    size_t Size(uint32_t hash);
     vector<char> Read(uint32_t hash);
-    // void* Read(uint32_t hash);
     bool Write(uint32_t hash, void* pointer, uint16_t length);
     bool Delete(uint32_t hash);
     void Clear();

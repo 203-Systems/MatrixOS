@@ -55,6 +55,7 @@ struct MidiPacket {
     this->status = status;
     va_list valst;
     va_start(valst, status);
+    status = (EMidiStatus)(status & 0xF0);
     switch (status)
     {
       case NoteOn:

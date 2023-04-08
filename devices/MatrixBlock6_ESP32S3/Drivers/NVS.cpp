@@ -22,6 +22,15 @@ namespace Device::NVS
     nvs_open("matrix_os", NVS_READWRITE, &nvs_handle);
   }
 
+  size_t Size(uint32_t hash) {
+    char hash_array[5] = U32_TO_CHAR_ARRAY(hash);
+    size_t length;
+
+    if (nvs_get_blob(nvs_handle, hash_array, NULL, &length) != ESP_OK)
+    { return -1; }
+    return length;
+  }
+
   vector<char> Read(uint32_t hash) {
     char hash_array[5] = U32_TO_CHAR_ARRAY(hash);
     size_t length;
