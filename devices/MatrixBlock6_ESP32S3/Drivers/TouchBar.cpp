@@ -3,6 +3,8 @@
 
 namespace Device::KeyPad
 {
+  // TODO Change to use interrupt
+
   StaticTimer_t touchbar_timer_def;
   TimerHandle_t touchbar_timer;
 

@@ -15,8 +15,8 @@
 
 #define FACTORY_CONFIG //Global switch for using factory config
 
-// #define FACTORY_DEVICE_VERSION 'S' // Standard
-#define FACTORY_DEVICE_VERSION 'P' // Pro
+#define FACTORY_DEVICE_VERSION 'S' // Standard
+// #define FACTORY_DEVICE_VERSION 'P' // Pro
 
 #if FACTORY_DEVICE_VERSION == 'S'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
@@ -60,6 +60,7 @@ namespace Device
   {
     inline gpio_num_t fn_pin;
     inline bool fn_active_low = true;
+    inline bool velocity_sensitivity = false;
 
     inline KeyConfig fn_config = {
         .velocity_sensitive = false,

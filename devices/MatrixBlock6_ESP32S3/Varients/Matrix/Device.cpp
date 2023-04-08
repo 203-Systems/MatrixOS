@@ -25,11 +25,11 @@ namespace Device
     {
       name += " Pro";
       model = "MX1P";
+      KeyPad::velocity_sensitivity = true;
     }
     else if(deviceInfo.Model[3] == 'S')
     {
-      // TODO: Temp solution. Signal Matrix OS that this device does not have velocity sensitive
-      MatrixOS::UserVar::velocity_sensitive.TempSet(false);
+      KeyPad::velocity_sensitivity = false;
     }
     else
     {
