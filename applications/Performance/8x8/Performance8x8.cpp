@@ -288,12 +288,20 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   if (note == -1)
   { return; }
 
-  if (keyInfo->state == PRESSED)
-  { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits())); }
-  else if (keyInfo->state == AFTERTOUCH)
-  { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
-  else if (keyInfo->state == RELEASED)
-  { MatrixOS::MIDI::Send(MidiPacket(0, compatibilityMode ? NoteOn : NoteOff, 0, note, keyInfo->velocity.to7bits())); }
+  if(velocitySensitive)
+  {
+    if (keyInfo->state == PRESSED)
+    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits())); }
+    else if (keyInfo->state == AFTERTOUCH)
+    { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
+    else if (keyInfo->state == RELEASED)
+    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 0)); }
+  } else {
+    if(keyInfo->state == PRESSED)
+    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 127)); }
+    else if(keyInfo->state == RELEASED)
+    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 0)); }
+  }
 }
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
@@ -356,6 +364,9 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
+  UIButtonDimmable velocityToggle("Velocity Sensitive", Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; }, [&]() -> void { velocitySensitive = !velocitySensitive;});
+  actionMenu.AddUIComponent(velocityToggle, Point(6, 0));
+
   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 

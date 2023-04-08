@@ -33,7 +33,7 @@ namespace Device
     }
     else
     {
-      MatrixOS::UserVar::velocity_sensitive.TempSet(false);
+      KeyPad::velocity_sensitivity = false;
       ESP_LOGE("Device Init", "Failed to find config for %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
     }
 

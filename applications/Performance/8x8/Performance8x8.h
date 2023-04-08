@@ -29,6 +29,7 @@ class Performance : public Application {
   bool uiOpened = false;
 
   // Saved Variables
+  CreateSavedVar(APPLICATION_NAME, velocitySensitive, bool, true);
   CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);
   CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
   CreateSavedVar(APPLICATION_NAME, stfu, uint8_t, 0);
