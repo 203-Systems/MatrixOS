@@ -43,16 +43,6 @@ void Setting::Start() {
   UIButton enterDfuBtn("Enter DFU Mode", Color(0xFF0000), []() -> void { MatrixOS::SYS::Bootloader(); });
   AddUIComponent(enterDfuBtn, Point(0, Device::y_size - 1));
 
-  // TODO Move this to Matrix Device Settings or figure out how to implentment this better.
-  UIButtonDimmable velocitySensitiveToggle(
-      "Velocity Sensitive", Color(0x00FFB0),
-      []() -> bool { return MatrixOS::UserVar::velocity_sensitive.Get(); },  // TODO Color Class Scale Brightness
-      []() -> void {
-        MatrixOS::UserVar::velocity_sensitive = !MatrixOS::UserVar::velocity_sensitive.Get();  // TODO, allow user
-                                                                                               // change threshold?
-      });
-  AddUIComponent(velocitySensitiveToggle, Point(Device::x_size - 1, 0));
-
   // UIButton clearConfigBtn("Clear Device Config", Color(0xFF00FF), []() -> void {})
   // AddUIComponent(clearConfigBtn, Point(0, Device::y_size - 2));
 

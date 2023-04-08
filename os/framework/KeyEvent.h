@@ -17,11 +17,6 @@ namespace MatrixOS::SYS
   uint32_t Millis(void);
 }
 
-namespace MatrixOS::UserVar
-{
-  extern SavedVariable<bool> velocity_sensitive;
-}
-
 namespace MatrixOS::Logging
 {
   void LogError(string tag, string format, ...);
@@ -92,30 +87,18 @@ struct KeyInfo {
   }
 
   Fract16 applyVelocityCurve(Fract16 velocity) {
-    // Fract16 source = velocity;
-    if (MatrixOS::UserVar::velocity_sensitive.Get() == false)  // FSR Disabled
+    if (velocity < config->low_threshold)
+    { velocity = 0; }
+    else if (velocity >= config->high_threshold)
     {
-      uint16_t threshold = (uint16_t)config->low_threshold;
-      if (velocity < threshold)
-      { velocity = 0; }
-      else if (velocity >= threshold)
-      { velocity = UINT16_MAX; }
+      velocity = UINT16_MAX;
+      // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
     }
     else
     {
-      if (velocity < config->low_threshold)
-      { velocity = 0; }
-      else if (velocity >= config->high_threshold)
-      {
-        velocity = UINT16_MAX;
-        // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
-      }
-      else
-      {
-        uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX;
-        velocity = (Fract16)(pre_division_velocity / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold));
-        // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
-      }
+      uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX;
+      velocity = (Fract16)(pre_division_velocity / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold));
+      // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
     }
     return velocity;
   }
