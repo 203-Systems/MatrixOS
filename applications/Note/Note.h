@@ -6,24 +6,18 @@
 #include "UI/UI.h"
 #include "applications/Application.h"
 
-#define APPLICATION_NAME "Note Mode"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0x00FFFF)
-#define APPLICATION_VERSION 0
-#define APPLICATION_CLASS Note
+#define NOTE_APP_VERSION 1
 
-#define NOTE_CONFIGS_HASH StaticHash("203 Electronics-Note Mode-NotePadConfigs")
+#define NOTE_CONFIGS_HASH StaticHash("203 Electronics-Note-NotePadConfigs")
 
 class Note : public Application {
  public:
-  string name = "Note Mode";
-  string author = "203 Electronics";
-  uint32_t version = 0;
+  static Application_Info info;
 
   // Saved Variables
-  CreateSavedVar(APPLICATION_NAME, nvsVersion, uint32_t, version);  // In case NoteLayoutConfig got changed
-  CreateSavedVar(APPLICATION_NAME, activeConfig, uint8_t, 0);
-  CreateSavedVar(APPLICATION_NAME, splitView, bool, false);
+  CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NoteLayoutConfig got changed
+  CreateSavedVar("Note", activeConfig, uint8_t, 0);
+  CreateSavedVar("Note", splitView, bool, false);
 
   void Setup() override;
 
@@ -108,4 +102,12 @@ class Note : public Application {
                             "BeBop Major"};
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info Note::info = {
+    .name = "Note",
+    .author = "203 Electronics",
+    .color =  Color(0x00FFFF),
+    .version = NOTE_APP_VERSION,
+    .visibility = true,
+};
+
+REGISTER_APPLICATION(Note);

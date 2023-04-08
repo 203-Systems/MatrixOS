@@ -3,8 +3,7 @@
 // #define XSTR(x) STR(x)
 // #define STR(x) #x
 // #pragma message "app index" XSTR(APPLICATION_INDEX)
-const inline uint16_t app_count = APPLICATION_INDEX;
-Application_Info* applications[app_count];
+// const inline uint16_t app_count = APPLICATION_INDEX;
 
 namespace MatrixOS::SYS
 {

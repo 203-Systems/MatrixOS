@@ -4,17 +4,9 @@
 #include "UI/UI.h"
 #include "applications/Application.h"
 
-#define APPLICATION_NAME "Shell"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFFFFFF)
-#define APPLICATION_VERSION 0
-#define APPLICATION_CLASS Shell
-#define APPLICATION_VISIBLITY false
-
 class Shell : public Application {
-  string name = "Matrix OS Shell";
-  string author = "203 Electronics";
-  uint32_t version = 10000;
+  public:
+  static Application_Info info;
 
   uint8_t current_page = 0;
 
@@ -25,4 +17,12 @@ class Shell : public Application {
   void HiddenApplicationLauncher();
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info Shell::info = {
+    .name = "Shell",
+    .author = "203 Electronics",
+    .color = Color(0x00FFAA),
+    .version = 1,
+    .visibility = false,
+};
+
+REGISTER_APPLICATION(Shell);

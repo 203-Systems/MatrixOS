@@ -297,7 +297,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
 }
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-  // MatrixOS::Logging::LogDebug(name, "Key Event");
+  // MatrixOS::Logging::LogDebug("Performance", "Key Event");
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
     // MatrixOS::LED::CopyLayer(0, canvasLedLayer);
@@ -324,7 +324,7 @@ void Performance::stfuScan() {
 }
 
 void Performance::ActionMenu() {
-  MatrixOS::Logging::LogDebug(name, "Enter Action Menu");
+  MatrixOS::Logging::LogDebug("Performance", "Enter Action Menu");
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
@@ -406,7 +406,7 @@ void Performance::ActionMenu() {
   actionMenu.Start();
   uiOpened = false;
 
-  MatrixOS::Logging::LogDebug(name, "Exit Action Menu");
+  MatrixOS::Logging::LogDebug("Performance", "Exit Action Menu");
 }
 
 // #endif

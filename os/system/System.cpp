@@ -1,7 +1,10 @@
 #include "MatrixOS.h"
 #include "applications/Setting/Setting.h"
-#include "Applications.h" // This is from device layer
 #include "System.h"
+
+#include "Applications.h" // This is from device layer
+
+extern std::unordered_map<uint32_t, Application_Info*> applications;
 
 namespace MatrixOS::SYS
 {
@@ -12,18 +15,14 @@ namespace MatrixOS::SYS
 
     if (active_app_id != 0)
     {
-      for (uint8_t i = 0; i < app_count; i++)  // I don't like the for loop but tbh there's nothing wrong with it.
+      auto application = applications.find(active_app_id);
+      if (application != applications.end())
       {
-        Application_Info* application = applications[i];
-        if (application->id == active_app_id)
-        {
-          MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->author.c_str(),
-                                      application->name.c_str());
-          active_app = application->factory();
-          break;
-        }
+        MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->second->author.c_str(),
+                                    application->second->name.c_str());
+        active_app = application->second->factory();
       }
-    }
+    } 
 
     if (active_app == NULL)  // Default to launch shell
     {
@@ -31,16 +30,12 @@ namespace MatrixOS::SYS
         MatrixOS::Logging::LogDebug("Application Factory", "Can't find target app.");
       MatrixOS::Logging::LogDebug("Application Factory", "Launching Shell");
       active_app_id = OS_SHELL;
-      for (uint8_t i = 0; i < app_count; i++)  // I don't like the for loop but tbh there's nothing wrong with it.
+      auto application = applications.find(active_app_id);
+      if (application != applications.end())
       {
-        Application_Info* application = applications[i];
-        if (application->id == active_app_id)
-        {
-          MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->author.c_str(),
-                                      application->name.c_str());
-          active_app = application->factory();
-          break;
-        }
+        MatrixOS::Logging::LogDebug("Application Factory", "Launching %s-%s", application->second->author.c_str(),
+                                    application->second->name.c_str());
+        active_app = application->second->factory();
       }
     }
 
@@ -50,12 +45,10 @@ namespace MatrixOS::SYS
 
   void Supervisor(void* param) {
 
-    MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", app_count);
+    MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", applications.size());
 
-    for (uint8_t i = 0; i < app_count; i++)
-    {
-      Application_Info* application = applications[i];
-      MatrixOS::Logging::LogDebug("Supervisor", "%X\t%s-%s v%u", application->id, application->author.c_str(),
+    for (const auto & [ id, application ] : applications) {
+      MatrixOS::Logging::LogDebug("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(),
                                   application->name.c_str(), application->version);
     }
 
@@ -249,6 +242,6 @@ namespace MatrixOS::SYS
 
   uint16_t GetApplicationCount()  // Used by shell, for some reason shell can not access app_count
   {
-    return app_count;
+    return applications.size();
   }
 }

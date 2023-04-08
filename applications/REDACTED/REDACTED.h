@@ -3,16 +3,10 @@
 #include "MatrixOS.h"
 #include "applications/Application.h"
 
-#define APPLICATION_NAME "REDACTED"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFFFFFF)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS REDACTED
-#define APPLICATION_VISIBLITY false
-
 class REDACTED : public Application  // ᗜˬᗜ
 {
  public:
+  static Application_Info info;
   void Setup() override;
   void Loop() override;
   void End() override;
@@ -1044,4 +1038,12 @@ class REDACTED : public Application  // ᗜˬᗜ
       187, 62,  185, 187, 34,  40,  52,  31,  57,  59};
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info REDACTED::info = {
+    .name = "REDACTED",
+    .author = "203 Electronics",
+    .color = Color(0xFFFFFF),
+    .version = 1,
+    .visibility = false,
+};
+
+REGISTER_APPLICATION(REDACTED);

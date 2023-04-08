@@ -16,9 +16,19 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 
 class HIDtest : public Application {
  public:
+  static Application_Info info;
+
   void Setup() override;
   void Loop() override;
   void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info HIDtest::info = {
+    .name = "HID Test",
+    .author = "203 Electronics",
+    .color = Color(0xFFFF00),
+    .version = 1,
+    .visibility = true,
+};
+
+REGISTER_APPLICATION(HIDtest);

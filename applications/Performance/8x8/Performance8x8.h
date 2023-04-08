@@ -8,20 +8,12 @@
 
 #include "applications/BrightnessControl/BrightnessControl.h"
 
-#define APPLICATION_NAME "Performance Mode"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFF0000)
-#define APPLICATION_VERSION 0
-#define APPLICATION_CLASS Performance
-
 #define NUMS_OF_KEYMAP 2
 #define STFU_DEFAULT 2
 
 class Performance : public Application {
  public:
-  string name = "Performance Mode";
-  string author = "203 Electronics";
-  uint32_t version = 0;
+  static Application_Info info;
 
   uint8_t currentKeymap = 0;
 
@@ -29,9 +21,9 @@ class Performance : public Application {
   bool uiOpened = false;
 
   // Saved Variables
-  CreateSavedVar(APPLICATION_NAME, compatibilityMode, bool, false);
-  CreateSavedVar(APPLICATION_NAME, menuLock, bool, false);
-  CreateSavedVar(APPLICATION_NAME, stfu, uint8_t, 0);
+  CreateSavedVar("Performance", compatibilityMode, bool, false);
+  CreateSavedVar("Performance", menuLock, bool, false);
+  CreateSavedVar("Performance", stfu, uint8_t, 0);
 
   void Setup() override;
   void Loop() override;
@@ -368,4 +360,12 @@ class Performance : public Application {
   Timer stfuTimer;
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info Performance::info = {
+    .name = "Performance",
+    .author = "203 Electronics",
+    .color =  Color(0xFF0000),
+    .version = 1,
+    .visibility = true,
+};
+
+REGISTER_APPLICATION(Performance);

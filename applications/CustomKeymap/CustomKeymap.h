@@ -4,14 +4,10 @@
 #include "applications/Application.h"
 #include "UAD.h"
 
-#define APPLICATION_NAME "Custom Keymap"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFFFF00)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS CustomKeymap
-
 class CustomKeymap : public Application {
  public:
+  static Application_Info info;
+  
   void Setup() override;
   void Loop() override;
   private:
@@ -19,4 +15,13 @@ class CustomKeymap : public Application {
    void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info CustomKeymap::info = {
+    .name = "Custom Keymap",
+    .author = "203 Electronics",
+    .color =  Color(0xFFFF00),
+    .version = 1,
+    .visibility = true,
+};
+
+REGISTER_APPLICATION(CustomKeymap);
+

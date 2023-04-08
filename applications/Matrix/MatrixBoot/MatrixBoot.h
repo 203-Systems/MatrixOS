@@ -2,18 +2,13 @@
 
 #include "applications/BootAnimation/BootAnimation.h"
 
-#define APPLICATION_NAME "Matrix Boot"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFF00FF)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS MatrixBoot
-#define APPLICATION_VISIBLITY false
-
 #define MATRIX_BOOT_BRIGHTNESS 255  // On Top of system brightness
 #define MATRIX_BOOT_IDLE 64         // On Top of system brightness
 
 class MatrixBoot : public BootAnimation {
  public:
+ static Application_Info info; 
+
   string name = "Matrix Boot";
   string author = "203 Electronics";
   uint32_t version = 0;
@@ -39,4 +34,12 @@ class MatrixBoot : public BootAnimation {
   void End();
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info MatrixBoot::info = {
+    .name = "Matrix Boot",
+    .author = "203 Electronics",
+    .color =  Color(0xFFFFFFFF),
+    .version = 1,
+    .visibility = false,
+};
+
+REGISTER_APPLICATION(MatrixBoot);

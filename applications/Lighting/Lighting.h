@@ -4,20 +4,23 @@
 #include "UI/UIInterfaces.h"
 #include "applications/Application.h"
 
-#define APPLICATION_NAME "Lighting"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFF00FF)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS Lighting
-
 class Lighting : public Application {
  public:
+  static Application_Info info;
   void Setup() override;
   void Loop() override;
 
   void KeyEvent(uint16_t keyID, KeyInfo* keyInfo);
 
-  CreateSavedVar(APPLICATION_NAME, color, Color, Color(0xFFFFFF));
+  CreateSavedVar("Lighting", color, Color, Color(0xFFFFFF));
 };
 
-#include "applications/RegisterApplication.h"
+inline Application_Info Lighting::info = {
+    .name = "Lighting",
+    .author = "203 Electronics",
+    .color = Color(0xFF00FF),
+    .version = 1,
+    .visibility = true,
+};
+
+REGISTER_APPLICATION(Lighting);
