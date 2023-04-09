@@ -7,13 +7,14 @@
 #include "applications/REDACTED/REDACTED.h"
 // #include "applications/CustomKeymap/CustomKeymap.h"
 
-// // USER APPLICATION
+// USER APPLICATION
 #include "applications/Lighting/Lighting.h"
+#include "applications/HIDtest/HIDtest.h"
 
-// // BOOT ANIMATION
+// BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
 
-// // DEVICE APPLICATION
+// DEVICE APPLICATION
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
 // #include "applications/Matrix/ForceCalibration/ForceCalibration.h"
 #include "applications/Debug/ForceGridVisualizer/ForceGridVisualizer.h"

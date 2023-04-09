@@ -4,10 +4,10 @@
 class UIKeyboardKey : public UIComponent {
  public:
   Color color;
-  uint8_t keycode;
+  KeyboardKeycode keycode;
   bool active = false;
 
-  UIKeyboardKey(Color color, uint8_t keycode) {
+  UIKeyboardKey(Color color, KeyboardKeycode keycode) {
     this->color = color;
     this->keycode = keycode;
   }
@@ -25,12 +25,12 @@ class UIKeyboardKey : public UIComponent {
     if (keyInfo->state == PRESSED)
     {
       active = true;
-      MatrixOS::HID::KeyboardPress(keycode); 
+      MatrixOS::HID::Keyboard::Press(keycode); 
     }
     else if (keyInfo->state == RELEASED)
     {
       active = false;
-      MatrixOS::HID::KeyboardRelease(keycode);
+      MatrixOS::HID::Keyboard::Release(keycode);
     }
     return true;
   }
