@@ -12,6 +12,8 @@
 #include "timers.h"
 #include "tusb.h"
 
+#include "./system/HID/HIDSpecs.h"
+
 #define noexpose  // Custum keyword to remove function to be generated as exposed API
 
 class Application;
@@ -123,8 +125,78 @@ namespace MatrixOS
   namespace HID
   {
     bool Ready(void);
-    bool KeyboardPress(uint8_t keycode);
-    void KeyboardRelease(uint8_t keycode);
+    
+    namespace Keyboard
+    {
+      size_t Write(KeyboardKeycode k);
+      size_t Press(KeyboardKeycode k);
+      size_t Release(KeyboardKeycode k);
+      size_t Remove(KeyboardKeycode k);
+      size_t ReleaseAll(void);
+    }
+
+    namespace Mouse
+    {
+      void Click(MouseKeycode b = MOUSE_LEFT);
+      void press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
+      void release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void ReleaseAll(void);
+      void Move(signed char x, signed char y, signed char wheel = 0);
+    }
+
+    namespace Touch // Absolute Mouse
+    {
+      void Click(MouseKeycode b = MOUSE_LEFT);
+      void Press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
+      void Release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void ReleaseAll(void);
+      void MoveTo(signed char x, signed char y, signed char wheel = 0);
+      void Move(signed char x, signed char y, signed char wheel = 0);
+    }
+
+    namespace Gamepad
+    {
+      void Press(uint8_t b);
+      void Release(uint8_t b);
+      void ReleaseAll(void);
+
+      void Buttons(uint32_t b);
+      void XAxis(int16_t a);
+      void YAxis(int16_t a);
+      void ZAxis(int8_t a);
+      void RXAxis(int16_t a);
+      void RYAxis(int16_t a);
+      void RZAxis(int8_t a);
+      void DPad1(int8_t d);
+      void DPad2(int8_t d);
+    }
+
+    namespace Consumer
+    {
+      void Write(ConsumerKeycode c);
+      void Press(ConsumerKeycode c);
+      void Release(ConsumerKeycode c);
+      void ReleaseAll(void);
+    }
+
+    namespace System
+    {
+      void Write(SystemKeycode s);
+      void Press(SystemKeycode s);
+      void Release(void);
+      void ReleaseAll(void);
+    }
+
+    namespace Raw
+    {
+      int Available(void);
+      int Read(void);
+      int Peek(void);
+      void Flush(void);
+
+      size_t Write(uint8_t c);
+      size_t Write(uint8_t* buffer, size_t size);
+    }
   }
 
   namespace Logging
