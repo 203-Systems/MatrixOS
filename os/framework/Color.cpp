@@ -66,3 +66,34 @@ Color Color::HsvToRgb(float h, float s, float v) {
   uint8_t b = int(255 * v * mix(1.0, constrain(std::abs(fract(h + 0.3333333) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s));
   return Color(r, g, b);
 }
+
+void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
+{
+  float r = rgb.R / 255.0;
+  float g = rgb.G / 255.0;
+  float b = rgb.B / 255.0;
+
+  float max = std::max(r, std::max(g, b));
+  float min = std::min(r, std::min(g, b));
+
+  *v = max;
+  float delta = max - min;
+  if (max != 0)
+    *s = delta / max;
+  else
+  {
+    // r = g = b = 0
+    *s = 0;
+    *h = -1;
+    return;
+  }
+  if (r == max)
+    *h = (g - b) / delta; // between yellow & magenta
+  else if (g == max)
+    *h = 2 + (b - r) / delta; // between cyan & yellow
+  else
+    *h = 4 + (r - g) / delta; // between magenta & cyan
+  *h *= 1.0/6; // degrees
+  if (*h < 0)
+    *h += 1.0;
+}
