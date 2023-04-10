@@ -209,31 +209,31 @@ namespace MatrixOS
     void LogVerbose(string tag, string format, ...);
 
     // Macro version is perfered because it will not generate any code if the log level is lower than the log level
-    #if (MXOS_LOG_LEVEL >= LOG_LEVEL_ERROR)
+    #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_ERROR)
       #define MLOGE(tag, format, ...) MatrixOS::Logging::LogError(tag, format, ##__VA_ARGS__)
     #else
       #define MLOGE(tag, format, ...)
     #endif
     
-    #if (MXOS_LOG_LEVEL >= LOG_LEVEL_WARNING)
+    #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_WARNING)
       #define MLOGW(tag, format, ...) MatrixOS::Logging::LogWarning(tag, format, ##__VA_ARGS__)
     #else
       #define MLOGW(tag, format, ...)
     #endif
 
-    #if (MXOS_LOG_LEVEL >= LOG_LEVEL_INFO)
+    #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_INFO)
       #define MLOGI(tag, format, ...) MatrixOS::Logging::LogInfo(tag, format, ##__VA_ARGS__)
     #else
       #define MLOGI(tag, format, ...)
     #endif
 
-    #if (MXOS_LOG_LEVEL >= LOG_LEVEL_DEBUG)
+    #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_DEBUG)
       #define MLOGD(tag, format, ...) MatrixOS::Logging::LogDebug(tag, format, ##__VA_ARGS__)
     #else
       #define MLOGD(tag, format, ...)
     #endif
 
-    #if (MXOS_LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+    #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       #define MLOGV(tag, format, ...) MatrixOS::Logging::LogVerbose(tag, format, ##__VA_ARGS__)
     #else
       #define MLOGV(tag, format, ...)
