@@ -16,9 +16,9 @@
 
 #include "ReleaseConfig.h"
 
-#define MLOG_DEVICE
-#define MLOG_USBCDC
-#define MLOG_COLOR
+#define MATRIXOS_LOG_DEVICE
+#define MATRIXOS_LOG_USBCDC
+#define MATRIXOS_LOG_COLOR
 
 #define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 16)
 

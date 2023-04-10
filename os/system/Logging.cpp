@@ -13,7 +13,7 @@ namespace MatrixOS::Logging
   void Log(ELogLevel level, string tag, string format, va_list valst)  // DO NOT USE THIS DIRECTLY. STRING WILL NOT BE
                                                                        // REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
   {
-#ifdef MLOG_COLOR
+#ifdef MATRIXOS_LOG_COLOR
       string msg = string() + "\033[0;" + logLevelColor[level - 1] + "m" + logLevel[level - 1] + " (" +
                    std::to_string(SYS::Millis()) + ") " + tag + ": " + format + "\033[0m\n";
 #else
@@ -21,17 +21,17 @@ namespace MatrixOS::Logging
           string() + logLevel[level - 1] + " (" + std::to_string(SYS::Millis()) + ") " + tag + ": " + format + "\n";
 #endif
 
-#ifdef MLOG_DEVICE
+#ifdef MATRIXOS_LOG_DEVICE
       Device::Log(msg, valst);
 #endif
 
-#ifdef MLOG_USBCDC
+#ifdef MATRIXOS_LOG_USBCDC
       USB::CDC::VPrintf(msg, valst);
 #endif
   }
 
   void LogError(string tag, string format, ...) {
-#if MLOG_LEVEL >= 1
+#if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_ERROR
     va_list valst;
     va_start(valst, format);
     Log(LOG_ERROR, tag, format, valst);
@@ -40,7 +40,7 @@ namespace MatrixOS::Logging
   }
 
   void LogWarning(string tag, string format, ...) {
-#if MLOG_LEVEL >= 2
+#if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_WARNING
     va_list valst;
     va_start(valst, format);
     Log(LOG_WARNING, tag, format, valst);
@@ -49,7 +49,7 @@ namespace MatrixOS::Logging
   }
 
   void LogInfo(string tag, string format, ...) {
-#if MLOG_LEVEL >= 3
+#if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_INFO
     va_list valst;
     va_start(valst, format);
     Log(LOG_INFO, tag, format, valst);
@@ -58,7 +58,7 @@ namespace MatrixOS::Logging
   }
 
   void LogDebug(string tag, string format, ...) {
-#if MLOG_LEVEL >= 4
+#if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_DEBUG
     va_list valst;
     va_start(valst, format);
     Log(LOG_DEBUG, tag, format, valst);
@@ -67,7 +67,7 @@ namespace MatrixOS::Logging
   }
 
   void LogVerbose(string tag, string format, ...) {
-#if MLOG_LEVEL >= 5
+#if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_VERBOSE
     va_list valst;
     va_start(valst, format);
     Log(LOG_VERBOSE, tag, format, valst);
