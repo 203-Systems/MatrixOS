@@ -35,6 +35,7 @@ class Color {
   static uint8_t scale8_video(uint8_t i, uint8_t scale);
 
   static Color HsvToRgb(float h, float s, float v);
+  static void RgbToHsv(Color rgb, float* h, float* s, float* v);
 
   static Color Crossfade(Color color1, Color color2, Fract16 ratio);
 
