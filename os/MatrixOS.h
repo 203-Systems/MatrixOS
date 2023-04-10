@@ -163,19 +163,18 @@ namespace MatrixOS
 
     namespace Gamepad
     {
-      void Press(uint8_t b);
-      void Release(uint8_t b);
+      void Press(GamepadKeycode b);
+      void Release(GamepadKeycode b);
       void ReleaseAll(void);
 
       void Buttons(uint32_t b);
-      void XAxis(int16_t a);
-      void YAxis(int16_t a);
+      void XAxis(int8_t a);
+      void YAxis(int8_t a);
       void ZAxis(int8_t a);
-      void RXAxis(int16_t a);
-      void RYAxis(int16_t a);
+      void RXAxis(int8_t a);
+      void RYAxis(int8_t a);
       void RZAxis(int8_t a);
-      void DPad1(int8_t d);
-      void DPad2(int8_t d);
+      void DPad(GamepadDPadDirection d);
     }
 
     namespace Consumer

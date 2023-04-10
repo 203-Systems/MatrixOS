@@ -114,7 +114,6 @@ namespace MatrixOS::HID::Keyboard
     }
 
     // User API
-
     size_t Write(KeyboardKeycode k)
     {
     auto ret = Press(k);
