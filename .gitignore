@@ -12,6 +12,9 @@ build/
 *.o
 *.obj
 
+# Python cache files
+**/__pycache__
+
 # Precompiled Headers
 *.gch
 *.pch
