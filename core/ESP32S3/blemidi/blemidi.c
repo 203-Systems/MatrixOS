@@ -918,7 +918,7 @@ int32_t blemidi_init(void* _callback_midi_message_received, const char* name) {
   // Finally install callback
   blemidi_callback_midi_message_received = _callback_midi_message_received;
 
-  esp_log_level_set(BLEMIDI_TAG, ESP_LOG_INFO);  // can be changed with the "blemidi_debug on" console command
+  esp_log_level_set(BLEMIDI_TAG, ESP_LOG_NONE);  // can be changed with the "blemidi_debug on" console command
 
   return 0;  // no error
 }
