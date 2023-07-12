@@ -540,20 +540,20 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
       ESP_LOGI(BLEMIDI_TAG, "ESP_GAP_BLE_SEC_REQ_EVT Triggered.");
       esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, false);
       break;
-        case ESP_GAP_BLE_AUTH_CMPL_EVT: {
-        esp_bd_addr_t bd_addr;
-        memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
-        ESP_LOGI(BLEMIDI_TAG, "remote BD_ADDR: %08x%04x",\
-                (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
-                (bd_addr[4] << 8) + bd_addr[5]);
-        ESP_LOGI(BLEMIDI_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
-        ESP_LOGI(BLEMIDI_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
-        if(!param->ble_security.auth_cmpl.success) {
-            ESP_LOGI(BLEMIDI_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
-        } else {
-            ESP_LOGI(BLEMIDI_TAG, "auth mode = %s", esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
-        }
-        break;
+    case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+      esp_bd_addr_t bd_addr;
+      memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
+      ESP_LOGI(BLEMIDI_TAG, "remote BD_ADDR: %08x%04x",\
+              (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
+              (bd_addr[4] << 8) + bd_addr[5]);
+      ESP_LOGI(BLEMIDI_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
+      ESP_LOGI(BLEMIDI_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
+      if(!param->ble_security.auth_cmpl.success) {
+          ESP_LOGI(BLEMIDI_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+      } else {
+          ESP_LOGI(BLEMIDI_TAG, "auth mode = %s", esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
+      }
+      break;
     }
     case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT: {
       ESP_LOGD(BLEMIDI_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT status = %d", param->remove_bond_dev_cmpl.status);
