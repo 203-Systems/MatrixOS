@@ -3,7 +3,7 @@
 
 #include "MatrixOS.h"
 #include "Scales.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;

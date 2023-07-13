@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 namespace MatrixOS::UIInterface
 {

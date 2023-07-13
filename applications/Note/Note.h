@@ -3,7 +3,7 @@
 #include "MatrixOS.h"
 #include "NotePad.h"
 #include "Scales.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 #include "applications/Application.h"
 
 #define NOTE_APP_VERSION 1

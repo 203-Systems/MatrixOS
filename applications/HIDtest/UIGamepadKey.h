@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 class UIGamepadKey : public UIComponent {
  public:

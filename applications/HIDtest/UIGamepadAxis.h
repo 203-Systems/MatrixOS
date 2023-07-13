@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 enum GamepadAxis {
   GAMEPAD_AXIS_LEFT_X = 0,

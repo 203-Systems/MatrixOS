@@ -1,4 +1,4 @@
-set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
+set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/devices/${FAMILY})
 set(DEVICE_PATH ${FAMILY_PATH}/Varients/${DEVICE})
 
 file(GLOB_RECURSE MATRIX_OS_SRC_C
@@ -62,8 +62,8 @@ set(LIB_SRC
 
 set(MATRIX_OS_INC
   "${CMAKE_SOURCE_DIR}"
-  "${CMAKE_SOURCE_DIR}/core/esp32s3"
-  "${CMAKE_SOURCE_DIR}/Devices"
+  "${CMAKE_SOURCE_DIR}/core/ESP32S3"
+  "${CMAKE_SOURCE_DIR}/devices"
   "${CMAKE_SOURCE_DIR}/os"
   "${CMAKE_SOURCE_DIR}/os/system/USB"
 )
