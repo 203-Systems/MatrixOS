@@ -9,7 +9,8 @@
 
 // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
-#include "applications/HIDtest/HIDtest.h"
+// #include "applications/HIDtest/HIDtest.h"
+#include "applications/Example/Example.h"
 
 // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
