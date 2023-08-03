@@ -2,7 +2,7 @@
 // #ifdef GRID_8x8
 
 #include "MatrixOS.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 class BrightnessControl : public UI {
  public:

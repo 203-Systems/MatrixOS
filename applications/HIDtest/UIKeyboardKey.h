@@ -1,5 +1,5 @@
 #pragma once
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 class UIKeyboardKey : public UIComponent {
  public:

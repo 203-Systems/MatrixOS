@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "UI/UIInterfaces.h"
+#include "ui/UIInterfaces.h"
 #include "applications/Application.h"
 
 class Lighting : public Application {

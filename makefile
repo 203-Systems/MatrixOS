@@ -18,16 +18,16 @@ TOP := $(patsubst %makefile,%,$(THIS_MAKEFILE))
 ifeq ($(CMDEXE),1)
 TOP := $(subst \,/,$(shell for %%i in ( $(TOP) ) do echo %%~fi))
 else
-TOP := $(shell realpath $(TOP))
+TOP := $(dir $(realpath $(THIS_MAKEFILE)))
 endif
 # $(info Top directory is $(TOP))
 
-ifeq ($(CMDEXE),1)
-CURRENT_PATH := $(subst ,,$(subst \,/,$(shell echo %CD%)))
-else
-CURRENT_PATH := $(shell realpath --relative-to=$(TOP) `pwd`)
-endif
-
+# ifeq ($(CMDEXE),1)
+# CURRENT_PATH := $(subst ,,$(subst \,/,$(shell echo %CD%)))
+# else
+# CURRENT_PATH := $(shell realpath --relative-to=$(TOP) `pwd`)
+# endif
+#
 # $(info Path from top is $(CURRENT_PATH))
 
 # Build directory
@@ -59,7 +59,7 @@ endif
 
 # Device within family
 ifeq ($(DEVICE_PATH),)
-  DEVICE_PATH := $(subst ,,$(wildcard devices/*/varients/$(DEVICE)))
+  DEVICE_PATH := $(subst ,,$(wildcard devices/*/Varients/$(DEVICE)))
   FAMILY := $(word 2, $(subst /, ,$(DEVICE_PATH)))
   FAMILY_PATH = devices/$(FAMILY)
 endif
