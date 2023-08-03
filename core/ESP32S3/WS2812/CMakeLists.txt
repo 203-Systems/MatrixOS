@@ -1,4 +1,4 @@
-set(component_srcs "ws2812.cpp")
+set(component_srcs "WS2812.cpp")
 
 idf_component_register(SRCS "${component_srcs}"
                        INCLUDE_DIRS "." "${CMAKE_SOURCE_DIR}/os" #Uses Matrix OS Framework

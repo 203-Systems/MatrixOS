@@ -1,6 +1,6 @@
 #pragma once
-#include "UI/UI.h"
-#include <Functional>
+#include "ui/UI.h"
+#include <functional>
 
 // TODO add negative support?
 class UI4pxNumberWithColorFunc : public UI4pxNumber {
