@@ -208,6 +208,45 @@ static bool blemidi_connected = false;
 void (*blemidi_callback_midi_message_received)(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status,
                                                uint8_t* remaining_message, size_t len, size_t continued_sysex_pos);
 
+/*
+From ESP-IDF examples/bluetooth/bluedroid/ble/gatt_security_server/main/example_ble_sec_gatts_demo.c
+*/
+static char *esp_auth_req_to_str(esp_ble_auth_req_t auth_req)
+{
+   char *auth_str = NULL;
+   switch(auth_req) {
+    case ESP_LE_AUTH_NO_BOND:
+        auth_str = "ESP_LE_AUTH_NO_BOND";
+        break;
+    case ESP_LE_AUTH_BOND:
+        auth_str = "ESP_LE_AUTH_BOND";
+        break;
+    case ESP_LE_AUTH_REQ_MITM:
+        auth_str = "ESP_LE_AUTH_REQ_MITM";
+        break;
+    case ESP_LE_AUTH_REQ_BOND_MITM:
+        auth_str = "ESP_LE_AUTH_REQ_BOND_MITM";
+        break;
+    case ESP_LE_AUTH_REQ_SC_ONLY:
+        auth_str = "ESP_LE_AUTH_REQ_SC_ONLY";
+        break;
+    case ESP_LE_AUTH_REQ_SC_BOND:
+        auth_str = "ESP_LE_AUTH_REQ_SC_BOND";
+        break;
+    case ESP_LE_AUTH_REQ_SC_MITM:
+        auth_str = "ESP_LE_AUTH_REQ_SC_MITM";
+        break;
+    case ESP_LE_AUTH_REQ_SC_MITM_BOND:
+        auth_str = "ESP_LE_AUTH_REQ_SC_MITM_BOND";
+        break;
+    default:
+        auth_str = "INVALID BLE AUTH REQ";
+        break;
+   }
+
+   return auth_str;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Timestamp handling
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,13 +490,13 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] = {
     /* Characteristic Value */
     [IDX_CHAR_VAL_A] = {{ESP_GATT_AUTO_RSP},
                         {ESP_UUID_LEN_128, (uint8_t*)&midi_characteristics_uuid,
-                         ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, GATTS_MIDI_CHAR_VAL_LEN_MAX, sizeof(char_value),
+                         ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED, GATTS_MIDI_CHAR_VAL_LEN_MAX, sizeof(char_value),
                          (uint8_t*)char_value}},
 
     /* Client Characteristic Configuration Descriptor (this is a BLE2902 descriptor) */
     [IDX_CHAR_CFG_A] = {{ESP_GATT_AUTO_RSP},
                         {ESP_UUID_LEN_16, (uint8_t*)&character_client_config_uuid,
-                         ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, sizeof(uint16_t), sizeof(blemidi_ccc),
+                         ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED , sizeof(uint16_t), sizeof(blemidi_ccc),
                          (uint8_t*)blemidi_ccc}},
 };
 
@@ -494,6 +533,36 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
           param->update_conn_params.status, param->update_conn_params.min_int, param->update_conn_params.max_int,
           param->update_conn_params.conn_int, param->update_conn_params.latency, param->update_conn_params.timeout);
       break;
+    case ESP_GAP_BLE_KEY_EVT:
+      ESP_LOGI(BLEMIDI_TAG, "ESP_GAP_BLE_KEY_EVT Triggered.");
+      break;
+    case ESP_GAP_BLE_SEC_REQ_EVT:
+      ESP_LOGI(BLEMIDI_TAG, "ESP_GAP_BLE_SEC_REQ_EVT Triggered.");
+      esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, false);
+      break;
+    case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+      esp_bd_addr_t bd_addr;
+      memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
+      ESP_LOGI(BLEMIDI_TAG, "remote BD_ADDR: %08x%04x",\
+              (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
+              (bd_addr[4] << 8) + bd_addr[5]);
+      ESP_LOGI(BLEMIDI_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
+      ESP_LOGI(BLEMIDI_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
+      if(!param->ble_security.auth_cmpl.success) {
+          ESP_LOGI(BLEMIDI_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+      } else {
+          ESP_LOGI(BLEMIDI_TAG, "auth mode = %s", esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
+      }
+      break;
+    }
+    case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT: {
+      ESP_LOGD(BLEMIDI_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT status = %d", param->remove_bond_dev_cmpl.status);
+      ESP_LOGI(BLEMIDI_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV");
+      ESP_LOGI(BLEMIDI_TAG, "-----ESP_GAP_BLE_REMOVE_BOND_DEV----");
+      esp_log_buffer_hex(BLEMIDI_TAG, (void *)param->remove_bond_dev_cmpl.bd_addr, sizeof(esp_bd_addr_t));
+      ESP_LOGI(BLEMIDI_TAG, "------------------------------------");
+      break;
+    }
     default:
       break;
   }
@@ -529,7 +598,7 @@ static void blemidi_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type
       gatt_rsp->attr_value.len = param->write.len;
       gatt_rsp->attr_value.handle = param->write.handle;
       gatt_rsp->attr_value.offset = param->write.offset;
-      gatt_rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+      gatt_rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NO_MITM;
       memcpy(gatt_rsp->attr_value.value, param->write.value, param->write.len);
       esp_err_t response_err =
           esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, gatt_rsp);
@@ -640,6 +709,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
       esp_log_buffer_hex(BLEMIDI_TAG, param->connect.remote_bda, 6);
       esp_ble_conn_update_params_t conn_params = {0};
       memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
+      esp_ble_set_encryption(param->connect.remote_bda, ESP_BLE_SEC_ENCRYPT_MITM);
       /* For the iOS system, please refer to Apple official documents about the BLE connection parameters restrictions.
        */
       conn_params.latency = 0;
@@ -650,6 +720,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
       esp_ble_gap_update_conn_params(&conn_params);
 
       blemidi_connected = true;
+      ESP_LOGI(BLEMIDI_TAG, "blemidi_connected status: %d", blemidi_connected);
       break;
     case ESP_GATTS_DISCONNECT_EVT:
       ESP_LOGI(BLEMIDI_TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
@@ -718,6 +789,36 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+// Sets GAP Authorization Parameters for BLE Secure Connection (Without MITM)
+// From ESP-IDF examples/bluetooth/bluedroid/ble/gatt_security_server/main/example_ble_sec_gatts_demo.c
+// TODO: Implement MITM
+////////////////////////////////////////////////////////////////////////////////////////////////////
+  void gap_set_auth_params(void) {
+    /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM_BOND;     //bonding with peer device after authentication
+    esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
+    uint8_t key_size = 16;      //the key size should be 7~16 bytes
+    uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
+    uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
+    //set static passkey
+    // uint32_t passkey = 123456;
+    uint8_t auth_option = ESP_BLE_ONLY_ACCEPT_SPECIFIED_AUTH_DISABLE;
+    uint8_t oob_support = ESP_BLE_OOB_DISABLE;
+    // esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(uint32_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_ONLY_ACCEPT_SPECIFIED_SEC_AUTH, &auth_option, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_OOB_SUPPORT, &oob_support, sizeof(uint8_t));
+    /* If your BLE device acts as a Slave, the init_key means you hope which types of key of the master should distribute to you,
+    and the response key means which key you can distribute to the master;
+    If your BLE device acts as a master, the response key means you hope which types of key of the slave should distribute to you,
+    and the init key means which key you can distribute to the slave. */
+    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));
+    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
+  }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Initializes the BLE MIDI Server
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 int32_t blemidi_init(void* _callback_midi_message_received, const char* name) {
@@ -767,6 +868,8 @@ int32_t blemidi_init(void* _callback_midi_message_received, const char* name) {
   {
     ESP_LOGE(BLEMIDI_TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
     return -4;
+  } else {
+    gap_set_auth_params(); // Set authorization parameters for Secure Connection
   }
 
   ret = esp_ble_gatts_register_callback(gatts_event_handler);
