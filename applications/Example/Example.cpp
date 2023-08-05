@@ -1,5 +1,5 @@
 #include "Example.h"
-#include "UI/UI.h" // Include the UI Framework
+#include "ui/UI.h" // Include the UI Framework
 
 // Run once
 void ExampleAPP::Setup() {
