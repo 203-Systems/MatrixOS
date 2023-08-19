@@ -36,12 +36,12 @@ namespace KeyboardAction
 
         if(keyInfo->state == KeyState::PRESSED)
         {
-            MatrixOS::Keyboard::Press(action.key);
+            MatrixOS::HID::Keyboard::Press((KeyboardKeycode)action.key);
             return true;
         }
         else if(keyInfo->state == KeyState::RELEASED)
         {
-            MatrixOS::Keyboard::Release(action.key);
+            MatrixOS::HID::Keyboard::Release((KeyboardKeycode)action.key);
             return true;
         }
 
