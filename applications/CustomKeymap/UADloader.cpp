@@ -251,18 +251,18 @@ bool UAD::LoadDevice(cb0r_t uadMap)
     }
 
     bool device_found = false;
+    cb0r_s device;
+    cb0r_s device_data;
+
     // for (size_t i = 0; i < uad_section.length; i++) // We don't support multiple devices yet
     size_t i = 0; // Device 1
     {
-        cb0r_s device;
         
         if(!cb0r_get(&devices, i, &device) || device.type != CB0R_MAP)
         {
             MLOGE(TAG, "Failed to get Device");
             return false;
         }
-        
-        cb0r_s device_data;
 
         // // Get Device Name
         // if(!cb0r_find(&device, CB0R_UTF8, 4, (uint8_t*)"name", &device_data) || device_data.type != CB0R_UTF8)
@@ -295,8 +295,9 @@ bool UAD::LoadDevice(cb0r_t uadMap)
         // if(loadedDevice != thisDevice) {continue;}
 
         device_found = true;
+    }
 
-        // Get Device Size
+     // Get Device Size
         if(!cb0r_find(&device, CB0R_UTF8, 4, (uint8_t*)"size", &device_data) || device_data.type != CB0R_ARRAY || device_data.length != 2)
         {
             MLOGE(TAG, "Failed to get Device Size Array");
@@ -345,8 +346,6 @@ bool UAD::LoadDevice(cb0r_t uadMap)
             return false;
         }
         CreateEffectLUT(&device_data, &effectLUT, mapSize);
-       
-    }
     return device_found;
 }
 
