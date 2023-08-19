@@ -2,6 +2,7 @@
 
 #include "midi/MidiAction.h"
 #include "keyboard/KeyboardAction.h"
+#include "layer/LayerAction.h"
 
 #define TAG "UAD Actions"
 
@@ -23,6 +24,8 @@ bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyI
             return MidiAction::KeyEvent(this, actionInfo, actionData, keyInfo);
         case KeyboardAction::signature:
             return KeyboardAction::KeyEvent(this, actionInfo, actionData, keyInfo);
+        case LayerAction::signature:
+            return LayerAction::KeyEvent(this, actionInfo, actionData, keyInfo);
     }
     return false;
 }
