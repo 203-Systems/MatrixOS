@@ -54,7 +54,8 @@ class UAD
   bool LoadActionList(cb0r_t uadMap);
   bool LoadEffectList(cb0r_t uadMap);
   bool CreateHashList(cb0r_t cborArray, vector<uint32_t>* list); // Used to generate hash for action names
-  bool CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
+  bool CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
+  bool CreateEffectLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
   bool LoadDevice(cb0r_t uadMap);
 };
 

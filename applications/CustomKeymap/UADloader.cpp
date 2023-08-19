@@ -96,7 +96,7 @@ bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list)
     return true;
 }
 
-bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
+bool UAD::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
 {
     cb0r_s x_bitmap;
     if(!cb0r_get(actionMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
@@ -124,6 +124,78 @@ bool UAD::CreateLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize)
 
         cb0r_s y_array;
         if(!cb0r_get(actionMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+        {
+            MLOGE(TAG, "Failed to get Action X Array\n");
+            return false;
+        }
+
+        cb0r_s y_bitmap;
+        if(!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get Action Y Bitmap\n");
+            return false;
+        }
+
+        // Layer 2
+        for(uint8_t y = 0; y < lutSize.y; y++)
+        {   
+            int8_t y_index = IndexInBitmap(y_bitmap.value, y);
+            // MLOGV(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
+
+            // MLOGV(TAG, "X: %d, Y: %d", x, y);
+
+            if(y_index == -1) {continue;}
+
+            MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF), 0);
+
+            cb0r_s layer_array;
+            if(!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
+            {
+                MLOGE(TAG, "Failed to get Layer Array\n");
+                return false;
+            }
+
+            uint32_t offset = layer_array.start - uad;
+            if(offset > UINT16_MAX)
+            {
+                MLOGE(TAG, "Y Offset is too large\n");
+                return false;
+            }
+
+            (*lut)[x][y] = (uint16_t)offset;
+        }
+    }
+    return true;
+}
+
+bool UAD::CreateEffectLUT(cb0r_t effectMatrix, uint16_t*** lut, Dimension lutSize)
+{
+    cb0r_s x_bitmap;
+    if(!cb0r_get(effectMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+    {
+        MLOGE(TAG, "Failed to get Action X Bitmap\n");
+        return false;
+    }
+
+    *lut = (uint16_t**)pvPortMalloc(lutSize.x * sizeof(uint16_t*));
+
+    // Layer 1
+    for(uint8_t x = 0; x < lutSize.x; x++)
+    {   
+        (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t*));
+
+        for(uint8_t y = 0; y < lutSize.y; y++)
+        {
+            (*lut)[x][y] = 0;
+        }
+        
+        int8_t x_index = IndexInBitmap(x_bitmap.value, x);
+        // MLOGV(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
+
+        if(x_index == -1) {continue;}
+
+        cb0r_s y_array;
+        if(!cb0r_get(effectMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
         {
             MLOGE(TAG, "Failed to get Action X Array\n");
             return false;
@@ -264,7 +336,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
             MLOGE(TAG, "Failed to get Device Actions");
             return false;
         }
-        CreateLUT(&device_data, &actionLUT, mapSize);
+        CreateActionLUT(&device_data, &actionLUT, mapSize);
 
         // Get Device Effects
         if(!cb0r_find(&device, CB0R_UTF8, 7, (uint8_t*)"effects", &device_data) || device_data.type != CB0R_ARRAY)
@@ -272,7 +344,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
             MLOGE(TAG, "Failed to get Device Effects");
             return false;
         }
-        CreateLUT(&device_data, &effectLUT, mapSize);
+        CreateEffectLUT(&device_data, &effectLUT, mapSize);
        
     }
     return device_found;
@@ -293,10 +365,10 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size)
         return false;
     }
 
-    if(!CheckVersion(&uad_map)) { return false;}
-    if(!LoadActionList(&uad_map)) { return false;}
-    if(!LoadEffectList(&uad_map)) { return false;}
-    if(!LoadDevice(&uad_map)) { return false;}
+    if(!CheckVersion(&uad_map)) { return false;} // Check if version is supported
+    if(!LoadActionList(&uad_map)) { return false;} // Create a hash list for action names
+    if(!LoadEffectList(&uad_map)) { return false;} // Create a hash list for effect names
+    if(!LoadDevice(&uad_map)) { return false;} // Load map of current device, including action and effect.
 
     loaded = true;
 
