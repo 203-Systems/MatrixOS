@@ -1,9 +1,9 @@
 #include "MatrixOS.h"
 
-#define TAG "WrapAction"
-
 namespace WrapAction
 {
+    constexpr string TAG = "WarpAction";
+
     constexpr uint32_t signature = StaticHash("wrap");
 
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)

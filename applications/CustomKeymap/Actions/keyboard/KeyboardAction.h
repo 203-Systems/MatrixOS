@@ -2,6 +2,8 @@
 
 namespace KeyboardAction
 {
+    const char* TAG = "KeyboardAction";
+
     constexpr uint32_t signature = StaticHash("keyboard");
 
     struct KeyboardAction
@@ -14,7 +16,7 @@ namespace KeyboardAction
         cb0r_s cbor_data;
         if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
         {
-            MLOGE(TAG, "Failed to get action data %d", 1);
+            MLOGE(TAG, "Failed to get action data");
             return false;
         }
         action->key = cbor_data.value;
