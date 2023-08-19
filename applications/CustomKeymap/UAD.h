@@ -23,14 +23,15 @@ class UAD
   // bool GetActionsFromOffset(uint16_t offset, cb0r_t result);
 
   // Action API
-  bool SetRegister(ActionInfo actionInfo, uint32_t value);
-  bool GetRegister(ActionInfo actionInfo, uint32_t* value);
-  bool ClearRegister(ActionInfo actionInfo);
-  void SetLayer(uint8_t layer, bool state);
-  void UnsetLayer(uint8_t layer);
+  bool SetRegister(ActionInfo* actionInfo, uint32_t value);
+  bool GetRegister(ActionInfo* actionInfo, uint32_t* value);
+  bool ClearRegister(ActionInfo* actionInfo);
+  enum LayerInfoType { ACTIVE, PASSTHROUGH };
+  void SetLayerState(uint8_t layer, LayerInfoType type, bool state);
+  bool GetLayerState(uint8_t layer, LayerInfoType type);
 
   // Helpers
-  int8_t IndexInBitmap(uint64_t bitmap, uint8_t index); // Not this one has +1 offset (Because usually used in array index look up)
+  int8_t IndexInBitmap(uint64_t bitmap, uint8_t index);  // Not this one has +1 offset (Because usually used in array index look up)
   uint8_t GetTopLayer();
 
  private:

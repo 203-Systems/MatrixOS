@@ -2,52 +2,123 @@
 
 namespace LayerAction
 {
-
-    enum LayerMode
-    {
-        PERSISTANCE = 0,
-        MONENTARY = 1,
-    };
-
-    enum LayerType
-    {
-        ACTIVE = 0,
-        PASSTHOUGH = 1,
-    };
-
-    enum LayerOption
-    {
-        TOGGLE = 0,
-        ENABLE = 1,
-        DISABLE = 2,
-    };
+    const char* TAG = "LayerAction";
 
     constexpr uint32_t signature = StaticHash("layer");
 
-    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
-    {
-        if(keyInfo->state != KeyState::PRESSED) return false;
+    enum LayerActionMode : uint8_t { PERSISTANCE = 0, MOMENTARY = 1 };
 
-        uint16_t data[2];
-        for(uint8_t i = 1; i < actionData->length; i++)
+    enum LayerActionType : uint8_t { ACTIVE = 0, PASSTHROUGH = 1 };
+
+    enum LayerActionOption : uint8_t { TOGGLE = 0, ENABLE = 1, DISABLE = 2 };
+
+    struct LayerAction
+    {
+      LayerActionMode mode;
+      LayerActionType type;
+      LayerActionOption option;
+      bool relative;
+      uint8_t layer;
+    };
+
+    static bool LoadAction(cb0r_t actionData, LayerAction* action)
+    {
+        cb0r_s cbor_data;
+        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
         {
-            cb0r_s cbor_data;
-            if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
-            {
-                MLOGE(TAG, "Failed to get action data %d", i - 1);
-                return false;
-            }
-            data[i - 1] = cbor_data.value;
+            MLOGE(TAG, "Failed to get action data 0");
+            return false;
         }
 
-        LayerMode mode = data[0] & 0x0F;
-        LayerType type = (data[0] & 0xF0) >> 4;
-        LayerOption option = data[0] & 0xF00 >> 8;
-        bool relativeLayer = data[0] >> 15;
-        int16_t layer = (int16_t)data[1];
+        action->mode = (LayerActionMode)(cbor_data.value & 0x0F);
+        action->type = (LayerActionType)((cbor_data.value >> 4) & 0x0F);
+        action->option = (LayerActionOption)((cbor_data.value >> 8) & 0x0F);
+        action->relative = (bool)((cbor_data.value >> 15) & 0x01);
 
-        // TODO
-
+        if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get action data 1");
+            return false;
+        }
+        action->layer = cbor_data.value;
         return true;
+    }
+    
+
+    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    {
+        if(keyInfo->state != KeyState::PRESSED || keyInfo->state != KeyState::RELEASED) return false;
+
+        struct LayerAction action;
+        if(!LoadAction(actionData, &action))
+        {
+            MLOGE(TAG, "Failed to load action");
+            return false;
+        }
+
+        // Process Layer Action
+        uint8_t targetLayer = action.layer;
+        if(action.relative)
+        {
+          targetLayer = actionInfo->layer + action.layer;
+        }
+
+        UAD::LayerInfoType targetLayerInfo;
+        if(action.type == LayerActionType::ACTIVE)
+        {
+          targetLayerInfo = UAD::LayerInfoType::ACTIVE;
+        }
+        else if(action.type == LayerActionType::PASSTHROUGH)
+        {
+          targetLayerInfo = UAD::LayerInfoType::PASSTHROUGH;
+        }
+
+        bool targetLayerState;
+        if(action.option == LayerActionOption::ENABLE)
+        {
+          targetLayerState = true;
+        }
+        else if(action.option == LayerActionOption::DISABLE)
+        {
+          targetLayerState = false;
+        }
+        else if(action.option == LayerActionOption::TOGGLE)
+        {
+          targetLayerState = !UAD->GetLayerState(targetLayer, targetLayerInfo);
+          // Save togged state to register
+          UAD->SetRegister(actionInfo, targetLayerState);
+        }
+
+        // Process Key Event
+        if(keyInfo->state == KeyState::PRESSED)
+        {
+            UAD->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
+            return true;
+        }
+        else if(action.mode == LayerActionMode::MOMENTARY && keyInfo->state == KeyState::RELEASED)
+        {
+
+            // Flip Back!
+            if(action.option == LayerActionOption::ENABLE)
+            {
+                targetLayerState = true;
+            }
+            else if(action.option == LayerActionOption::DISABLE)
+            {
+                targetLayerState = false;
+            }
+            else if(action.option == LayerActionOption::TOGGLE)
+            {   
+                // Load Toggle State from register
+                uint32_t registerValue;
+                UAD->GetRegister(actionInfo, &registerValue);
+                targetLayerState = !(bool)registerValue;
+            }
+
+            UAD->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
+            return true;
+        }
+
+        return false;
     }
 };
