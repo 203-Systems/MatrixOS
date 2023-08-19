@@ -4,28 +4,48 @@ namespace KeyboardAction
 {
     constexpr uint32_t signature = StaticHash("keyboard");
 
+    struct KeyboardAction
+    {
+        uint8_t key;
+    };
+
+    static bool LoadAction(cb0r_t actionData, KeyboardAction* action)
+    {
+        cb0r_s cbor_data;
+        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get action data %d", 1);
+            return false;
+        }
+        action->key = cbor_data.value;
+        return true;
+    }
+    
+
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         if(keyInfo->state != KeyState::PRESSED || keyInfo->state != KeyState::RELEASED) return false;
 
-        cb0r_s cbor_data;
-        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        struct KeyboardAction action;
+
+        if(!LoadAction(actionData, &action))
         {
-            MLOGE(TAG, "Failed to get action data %d", i - 1);
+            MLOGE(TAG, "Failed to load action");
             return false;
         }
 
-        uint8_t keycode = cbor_data.value;
-
         if(keyInfo->state == KeyState::PRESSED)
         {
-            MatrixOS::KEYPAD::Press(keycode);
+            MatrixOS::Keyboard::Press(action.key);
+            return true;
         }
-        else
+        else if(keyInfo->state == KeyState::RELEASED)
         {
-            MatrixOS::KEYPAD::Release(keycode);
+            MatrixOS::Keyboard::Release(action.key);
+            return true;
         }
 
-        return true;
+        
+        return false;
     }
 };
