@@ -6,6 +6,40 @@ namespace MidiAction
 {
     constexpr uint32_t signature = StaticHash("midi");
 
+    struct MidiAction
+    {
+      uint8_t data0;
+      uint8_t data1;
+      uint8_t data2;
+    };
+
+    static bool LoadAction(cb0r_t actionData, MidiAction* action)
+    {
+        cb0r_s cbor_data;
+        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get action data 0");
+            return false;
+        }
+        action->data0 = cbor_data.value;
+
+        if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get action data 1");
+            return false;
+        }
+        action->data1 = cbor_data.value;
+
+        if(!cb0r_get(actionData, 3, &cbor_data) || cbor_data.type != CB0R_INT)
+        {
+            MLOGE(TAG, "Failed to get action data 2");
+            return false;
+        }
+        action->data2 = cbor_data.value;
+        return true;
+    }
+    
+
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         MLOGV(TAG, "KeyEvent - Data Length: %d", actionData->length);
@@ -15,36 +49,31 @@ namespace MidiAction
             return false;
         }
 
-        uint8_t data[3];
-        
-        for(uint8_t i = 1; i < actionData->length; i++)
+        struct MidiAction action;
+
+        if(!LoadAction(actionData, &action))
         {
-            cb0r_s cbor_data;
-            if(!cb0r_get(actionData, i, &cbor_data) || cbor_data.type != CB0R_INT)
-            {
-                MLOGE(TAG, "Failed to get action data %d", i - 1);
-                return false;
-            }
-            data[i - 1] = cbor_data.value;
+            MLOGE(TAG, "Failed to load action");
+            return false;
         }
 
-        // MLOGV(TAG, "Data: %d, %d, %d", data[0], data[1], data[2]);
-        if((data[0] & 0xF0) == NoteOn)
+        // MLOGV(TAG, "Data: %d, %d, %d", action.data0, action.data1, action.data2);
+        if((action.data0 & 0xF0) == NoteOn)
         {
-            // data[1] = bit 0-6 is note, bit 7 is a bool of use velocity from the keypad
-            // data[2] = velocity
-            if(data[1] >> 7)
+            // action.data1 = bit 0-6 is note, bit 7 is a bool of use velocity from the keypad
+            // action.data2 = velocity
+            if(action.data1 >> 7)
             {
-                data[1] &= 0x7F;
-                data[2] = keyInfo->velocity;
+                action.data1 &= 0x7F;
+                action.data2 = keyInfo->velocity;
                 if(keyInfo->state == AFTERTOUCH)
                 {
-                    data[0] = EMidiStatus::AfterTouch + (data[0] & 0x0F); 
+                    action.data0 = EMidiStatus::AfterTouch + (action.data0 & 0x0F); 
                 }
             }
             else
             { 
-                data[2] *= keyInfo->active();  // Use data[2] as velocity
+                action.data2 *= keyInfo->active();  // Use action.data2 as velocity
             }
         }
         else if(keyInfo->state != PRESSED) // Only note need to handle Release and After Touch.
@@ -52,8 +81,8 @@ namespace MidiAction
             return true;
         }
         
-        MLOGD(TAG, "Midi Sent %d %d %d %d", (EMidiStatus)data[0], data[0], data[1], data[2]);
-        MatrixOS::MIDI::Send(MidiPacket(0, (EMidiStatus)(data[0] & 0xF0), data[0] & 0x0F, data[1], data[2]));
+        MLOGD(TAG, "Midi Sent %d %d %d %d", (EMidiStatus)action.data0, action.data0, action.data1, action.data2);
+        MatrixOS::MIDI::Send(MidiPacket(0, (EMidiStatus)(action.data0 & 0xF0), action.data0 & 0x0F, action.data1, action.data2));
         return true;
     }
 };
