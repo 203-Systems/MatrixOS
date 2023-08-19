@@ -1,9 +1,9 @@
 #include "MatrixOS.h"
 
-#define TAG "MidiAction"
-
 namespace MidiAction
 {
+    const char* TAG = "MidiAction";
+
     constexpr uint32_t signature = StaticHash("midi");
 
     struct MidiAction
