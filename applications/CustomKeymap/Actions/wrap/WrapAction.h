@@ -15,7 +15,7 @@ namespace WrapAction
         int8_t y;
     };
 
-    static bool LoadAction(cb0r_t actionData, WrapAction* action)
+    static bool LoadData(cb0r_t actionData, WrapAction* action)
     {
         cb0r_s cbor_data;
         if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
@@ -51,8 +51,8 @@ namespace WrapAction
 
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
-        WrapAction action;
-        if(!LoadAction(actionData, &action))
+        WrapAction data;
+        if(!LoadData(actionData, &data))
         {
             MLOGE(TAG, "Failed to load action");
             return false;
@@ -60,7 +60,7 @@ namespace WrapAction
         
 
         // If index type is via ID. Only different layer of same ID is supported! No relative position!
-        if(!(actionInfo->indexType == ActionIndexType::ID && action.relativePos == true && action.x == 0 && action.y == 0))
+        if(!(actionInfo->indexType == ActionIndexType::ID && data.relativePos == true && data.x == 0 && data.y == 0))
         {
             MLOGE(TAG, "Invalid action");
             return false;
@@ -68,33 +68,33 @@ namespace WrapAction
 
         ActionInfo newAction = *actionInfo;
 
-        if(action.relativeLayer == true)
+        if(data.relativeLayer == true)
         {
-            int8_t newLayer = newAction.layer + action.layer;
+            int8_t newLayer = newAction.layer + data.layer;
             if(newLayer < 0 || newLayer >= UAD->GetLayerCount())
             {
                 MLOGE(TAG, "Relative Layer out of range");
                 return false;
             }
-            newAction.layer += action.layer;
+            newAction.layer += data.layer;
         }
-        else if(action.relativeLayer == false)
+        else if(data.relativeLayer == false)
         {
-            newAction.layer = action.layer;
+            newAction.layer = data.layer;
         }
 
         
-        if (action.relativePos == true && action.x == 0 && action.y == 0 && actionInfo->indexType == ActionIndexType::ID)
+        if (data.relativePos == true && data.x == 0 && data.y == 0 && actionInfo->indexType == ActionIndexType::ID)
         {
            // Nothing
         }
-        else if(action.relativePos == true)
+        else if(data.relativePos == true)
         {
-            newAction.coord = newAction.coord + Point(action.x, action.y);
+            newAction.coord = newAction.coord + Point(data.x, data.y);
         }
-        else if(!action.relativePos == false)
+        else if(!data.relativePos == false)
         {
-            newAction.coord = Point(action.x, action.y);
+            newAction.coord = Point(data.x, data.y);
         }
 
         UAD::ActionEvent actionEvent = {.type = UAD::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
