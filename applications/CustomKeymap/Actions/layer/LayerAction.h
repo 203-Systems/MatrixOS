@@ -57,10 +57,16 @@ namespace LayerAction
         }
 
         // Process Layer Action
-        uint8_t targetLayer = action.layer;
+        int8_t targetLayer = action.layer;
         if(action.relative)
         {
           targetLayer = actionInfo->layer + action.layer;
+        }
+
+        if(targetLayer < 0 || targetLayer >= UAD->GetLayerCount())
+        {
+          MLOGE(TAG, "Invalid target layer");
+          return false;
         }
 
         UAD::LayerInfoType targetLayerInfo;
