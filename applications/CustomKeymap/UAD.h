@@ -31,6 +31,8 @@ class UAD
   bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for ExeciteAction
   bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intented for direct use
   // bool GetActionsFromOffset(uint16_t offset, cb0r_t result);
+  void InitlizeLayer();
+  void DeinitlizeLayer();
 
   // Action API
   bool SetRegister(ActionInfo* actionInfo, uint32_t value);
@@ -57,7 +59,7 @@ class UAD
   uint16_t layerPassthough = 0xFFFF;
 
   uint16_t** actionLUT;
-  uint16_t** effectLUT;
+  uint16_t* effectLUT;
 
   std::unordered_map<ActionInfo, uint32_t, ActionInfoHash> registers;
 
@@ -67,7 +69,7 @@ class UAD
   bool LoadEffectList(cb0r_t uadMap);
   bool CreateHashList(cb0r_t cborArray, vector<uint32_t>* list); // Used to generate hash for action names
   bool CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
-  bool CreateEffectLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize);
+  bool CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize);
   bool LoadDevice(cb0r_t uadMap);
 };
 

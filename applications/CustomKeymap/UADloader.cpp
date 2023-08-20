@@ -20,15 +20,12 @@ UAD::~UAD()
         {
             free(actionLUT[x]);
         }
+        free(actionLUT);
     }
 
     if(effectLUT != NULL)
     {
-        for(uint16_t x = 0; x < mapSize.x; x++)
-        {
-            free(effectLUT[x]);
-        }
-            free(effectLUT);
+        free(effectLUT);
     }
 }
 
@@ -146,19 +143,17 @@ bool UAD::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSiz
 
             if(y_index == -1) {continue;}
 
-            MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF), 0);
-
             cb0r_s layer_array;
             if(!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
             {
-                MLOGE(TAG, "Failed to get Layer Array\n");
+                MLOGE(TAG, "Failed to get Action Layer Array\n");
                 return false;
             }
 
             uint32_t offset = layer_array.start - uad;
             if(offset > UINT16_MAX)
             {
-                MLOGE(TAG, "Y Offset is too large\n");
+                MLOGE(TAG, "Action Y Offset is too large\n");
                 return false;
             }
 
@@ -168,74 +163,42 @@ bool UAD::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSiz
     return true;
 }
 
-bool UAD::CreateEffectLUT(cb0r_t effectMatrix, uint16_t*** lut, Dimension lutSize)
+bool UAD::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize)
 {
-    cb0r_s x_bitmap;
-    if(!cb0r_get(effectMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+    cb0r_s layer_bitmap;
+    if(!cb0r_get(effectMatrix, 0, &layer_bitmap) || layer_bitmap.type != CB0R_INT)
     {
-        MLOGE(TAG, "Failed to get Action X Bitmap\n");
+        MLOGE(TAG, "Failed to get Effect Layer Bitmap\n");
         return false;
     }
 
-    *lut = (uint16_t**)pvPortMalloc(lutSize.x * sizeof(uint16_t*));
+    *lut = (uint16_t*)pvPortMalloc(lutSize * sizeof(uint16_t));
 
-    // Layer 1
-    for(uint8_t x = 0; x < lutSize.x; x++)
+    // Layer List
+    for(uint8_t layer = 0; layer < lutSize; layer++)
     {   
-        (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t*));
+        int8_t layer_index = IndexInBitmap(layer_bitmap.value, layer);
 
-        for(uint8_t y = 0; y < lutSize.y; y++)
-        {
-            (*lut)[x][y] = 0;
+        if(layer_index == -1) {
+            (*lut)[layer] = 0;
+            continue;
         }
-        
-        int8_t x_index = IndexInBitmap(x_bitmap.value, x);
-        // MLOGV(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
 
-        if(x_index == -1) {continue;}
-
-        cb0r_s y_array;
-        if(!cb0r_get(effectMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+        cb0r_s x_array;
+        if(!cb0r_get(effectMatrix, layer_index, &x_array) || x_array.type != CB0R_ARRAY)
         {
-            MLOGE(TAG, "Failed to get Action X Array\n");
+            MLOGE(TAG, "Failed to get Effect X Array\n");
             return false;
         }
 
-        cb0r_s y_bitmap;
-        if(!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+        uint32_t offset = x_array.start - uad;
+        if(offset > UINT16_MAX)
         {
-            MLOGE(TAG, "Failed to get Action Y Bitmap\n");
+            MLOGE(TAG, "Effect X Offset is too large\n");
             return false;
         }
 
-        // Layer 2
-        for(uint8_t y = 0; y < lutSize.y; y++)
-        {   
-            int8_t y_index = IndexInBitmap(y_bitmap.value, y);
-            // MLOGV(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
-
-            // MLOGV(TAG, "X: %d, Y: %d", x, y);
-
-            if(y_index == -1) {continue;}
-
-            MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF), 0);
-
-            cb0r_s layer_array;
-            if(!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
-            {
-                MLOGE(TAG, "Failed to get Layer Array\n");
-                return false;
-            }
-
-            uint32_t offset = layer_array.start - uad;
-            if(offset > UINT16_MAX)
-            {
-                MLOGE(TAG, "Y Offset is too large\n");
-                return false;
-            }
-
-            (*lut)[x][y] = (uint16_t)offset;
-        }
+        (*lut)[layer] = (uint16_t)offset;
     }
     return true;
 }
@@ -345,7 +308,7 @@ bool UAD::LoadDevice(cb0r_t uadMap)
             MLOGE(TAG, "Failed to get Device Effects");
             return false;
         }
-        CreateEffectLUT(&device_data, &effectLUT, mapSize);
+        CreateEffectLUT(&device_data, &effectLUT, layerCount);
     return device_found;
 }
 
