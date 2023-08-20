@@ -11,7 +11,7 @@ namespace KeyboardAction
         uint8_t key;
     };
 
-    static bool LoadAction(cb0r_t actionData, KeyboardAction* action)
+    static bool LoadData(cb0r_t actionData, KeyboardAction* action)
     {
         cb0r_s cbor_data;
         if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
@@ -30,7 +30,7 @@ namespace KeyboardAction
 
         struct KeyboardAction action;
 
-        if(!LoadAction(actionData, &action))
+        if(!LoadData(actionData, &action))
         {
             MLOGE(TAG, "Failed to load action");
             return false;
