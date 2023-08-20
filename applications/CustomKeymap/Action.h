@@ -2,8 +2,8 @@
 
 enum ActionType: uint8_t
 {
-  Action,
-  Effect
+  ACTION,
+  EFFECT
 };
 
 enum ActionIndexType: uint8_t
