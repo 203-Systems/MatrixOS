@@ -29,6 +29,7 @@ class UAD
   enum LayerInfoType { ACTIVE, PASSTHROUGH };
   void SetLayerState(uint8_t layer, LayerInfoType type, bool state);
   bool GetLayerState(uint8_t layer, LayerInfoType type);
+  uint8_t GetLayerCount();
 
   // Helpers
   int8_t IndexInBitmap(uint64_t bitmap, uint8_t index);  // Not this one has +1 offset (Because usually used in array index look up)
