@@ -3,6 +3,22 @@
 
 #define TAG "UAD Runtime"
 
+int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index)
+{
+    if(!IsBitSet(bitmap, index))
+    {
+        return -1;
+    }
+
+    // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < index; i++)
+    {
+        count += IsBitSet(bitmap, i);
+    }
+    return count + 1;
+}
+
 void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (!loaded) { return; }
 
@@ -61,7 +77,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
   }
 
   // Execute Actions - Iterate through layers and pass through layers based on configs
-  for (int8_t layer = (int8_t)GetTopLayer(); layer >= 0; layer--)
+  for (int8_t layer = actionInfo->layer; layer >= 0; layer--)
   {
     // If the layer is not enabled, skip it
     if (!IsBitSet(layerEnabled, layer))
@@ -93,7 +109,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
         return false;
     }
 
-    // Assign the actions's layer
+    // Ressign the actions's layer to the one that is actually triggered
     actionInfo->layer = layer;
 
     // Execute the actions
