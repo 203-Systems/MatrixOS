@@ -40,11 +40,13 @@ void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
 
   ActionEvent actionEvent = {.type = ActionEventType::KEYEVENT, .keyInfo = keyInfo};
   ExecuteActions(&actionInfo, &actionEvent);
+  ExecuteEffects(&actionInfo, &actionEvent);
 }
 
 bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
   // Get Offset based on index type
   uint16_t offset;
+  ActionInfo newActionInfo = *actionInfo;
   if (actionInfo->indexType == ActionIndexType::COORD)
   {
     MLOGV(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
@@ -115,19 +117,98 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
     }
 
     // Ressign the actions's layer to the one that is actually triggered
-    actionInfo->layer = layer;
+    newActionInfo.layer = layer;
 
     // Execute the actions
     for (uint8_t action_index = 0; action_index < actions.length; action_index++)
     {
       cb0r_s actionData;
-      actionInfo->index = action_index;
+      newActionInfo.index = action_index;
       if (!cb0r_get(&actions, action_index, &actionData) || actionData.type != CB0R_ARRAY)
       {
         MLOGE(TAG, "Failed to get action %d from action list", action_index);
       }
-      ExecuteAction(actionInfo, &actionData, actionEvent);
+      ExecuteAction(&newActionInfo, &actionData, actionEvent);
     }
+  }
+  return true;
+}
+
+bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
+  // Get Offset based on index type
+  uint16_t offset = effectLUT[effectInfo->layer];
+  ActionInfo newEffectInfo = *effectInfo;
+  if (effectInfo->indexType == ActionIndexType::COORD)
+  {
+    MLOGV(TAG, "Executing effects for key %d,%d", effectInfo->coord.x, effectInfo->coord.y);
+  }
+  else
+  {
+    MLOGV(TAG, "Executing effects for key %d", effectInfo->id);
+    return false;  // Doesn't not support off grid keys yet
+  }
+
+  // If the offset is 0, there are no effectss to execute
+  if (offset == 0)
+  {
+    MLOGV(TAG, "No effectss to execute");
+    return false;
+  }
+
+  // Get X Array
+  cb0r_s x_array;
+  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
+  {
+    MLOGE(TAG, "Failed to get Effect Layer Array");
+    return false;
+  }
+
+  // Get x Layer Bitmap
+  cb0r_s x_bitmap;
+  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  {
+    MLOGE(TAG, "Failed to get Effect XBitmap");
+    return false;
+  }
+
+  uint8_t x_index = IndexInBitmap(x_bitmap.value, effectInfo->coord.x);
+
+  // Get Y Array
+  cb0r_s y_array;
+  if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+  {
+    MLOGE(TAG, "Failed to get Effect Y Array");
+    return false;
+  }
+
+  // Get y Layer Bitmap
+  cb0r_s y_bitmap;
+  if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+  {
+    MLOGE(TAG, "Failed to get Effect Y Bitmap");
+    return false;
+  }
+
+  uint8_t y_index = IndexInBitmap(y_bitmap.value, effectInfo->coord.y);
+
+  // Get the effects array
+  cb0r_s effects;
+  if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
+  {
+    MLOGE(TAG, "Failed to get Effect Array");
+    return false;
+  }
+
+  // Execute the effectss
+  for (uint8_t effect_index = 0; effect_index < effects.length; effect_index++)
+  {
+    cb0r_s effectData;
+    newEffectInfo.index = effect_index;
+    if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
+    {
+      MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
+    }
+    ExecuteAction(&newEffectInfo, &effectData, effectEvent);
   }
   return true;
 }
