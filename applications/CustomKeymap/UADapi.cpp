@@ -27,6 +27,7 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
   {
     if(type == LayerInfoType::ACTIVE)
     {
+        uint8_t oldTopLayer = GetTopLayer();
         if(state)
         {
             layerEnabled |= (1 << layer);
@@ -34,6 +35,16 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
         else
         {
             layerEnabled &= ~(1 << layer);
+        }
+        uint8_t newTopLayer = GetTopLayer();
+
+        if(oldTopLayer != newTopLayer)
+        {
+            MatrixOS::LED::PauseUpdate(true);
+            MatrixOS::LED::Fill(Color(0), 0);
+            DeinitlizeLayer(oldTopLayer);
+            InitlizeLayer(newTopLayer);
+            MatrixOS::LED::PauseUpdate(false);
         }
     }
     else if(type == LayerInfoType::PASSTHROUGH)
