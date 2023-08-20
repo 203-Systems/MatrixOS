@@ -1,13 +1,18 @@
 #include "../UAD.h"
 
+// Actions
 #include "midi/MidiAction.h"
 #include "keyboard/KeyboardAction.h"
 #include "layer/LayerAction.h"
 #include "wrap/WrapAction.h"
 
+// Effects
+#include "color/ColorEffect.h"
+
+
 #define TAG "UAD Actions"
 
-bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent)
 {
     MLOGV(TAG, "Executing action");
     cb0r_s action_index;
@@ -18,17 +23,41 @@ bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyI
         return false;
     }
 
-    uint32_t action_signature = actionList[action_index.value];
-    switch (action_signature)
+    uint32_t action_signature = 0;
+
+    if(actionInfo->actionType == ActionType::ACTION)
     {
-        case MidiAction::signature:
-            return MidiAction::KeyEvent(this, actionInfo, actionData, keyInfo);
-        case KeyboardAction::signature:
-            return KeyboardAction::KeyEvent(this, actionInfo, actionData, keyInfo);
-        case LayerAction::signature:
-            return LayerAction::KeyEvent(this, actionInfo, actionData, keyInfo);
-        case WrapAction::signature:
-            return WrapAction::KeyEvent(this, actionInfo, actionData, keyInfo);
+        action_signature = actionList[action_index.value];
+    }
+    else if(actionInfo->actionType == ActionType::EFFECT)
+    {
+        action_signature = effectList[action_index.value];
+    }
+
+    if(actionEvent->type == ActionEventType::KEYEVENT)
+    {
+        switch (action_signature)
+        {
+            case MidiAction::signature:
+                return MidiAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case KeyboardAction::signature:
+                return KeyboardAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case LayerAction::signature:
+                return LayerAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case WrapAction::signature:
+                return WrapAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case ColorEffect::signature:
+                return ColorEffect::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+        }
+    }
+    else if(actionEvent->type == ActionEventType::INITIALIZATION)
+    {
+        switch (action_signature)
+        {
+            case ColorEffect::signature:
+                ColorEffect::Initialization(this, actionInfo, actionData);
+                return true;
+        }
     }
     return false;
 }

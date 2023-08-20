@@ -18,8 +18,18 @@ class UAD
   void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
 
   // UAD Runtime
-  bool ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo); //WIll pick a layer and index for ExeciteAction
-  bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo); //Not intented for direct use
+  enum ActionEventType { INITIALIZATION, UPDATE, DEINITIALIZATION, KEYEVENT};
+  struct ActionEvent
+  {
+    ActionEventType type;
+    union
+    {
+      void* data; // For GENERIC EVENT TYPES
+      KeyInfo* keyInfo; // For KEYEVENT
+    };
+  };
+  bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for ExeciteAction
+  bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intented for direct use
   // bool GetActionsFromOffset(uint16_t offset, cb0r_t result);
 
   // Action API

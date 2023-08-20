@@ -36,10 +36,11 @@ void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
 
   actionInfo.layer = GetTopLayer();
 
-  ExecuteActions(&actionInfo, keyInfo);
+  ActionEvent actionEvent = {.type = ActionEventType::KEYEVENT, .keyInfo = keyInfo};
+  ExecuteActions(&actionInfo, &actionEvent);
 }
 
-bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
+bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
   // Get Offset based on index type
   uint16_t offset;
   if (actionInfo->indexType == ActionIndexType::COORD)
@@ -115,13 +116,13 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, KeyInfo* keyInfo) {
     // Execute the actions
     for(uint8_t action_index = 0; action_index < actions.length; action_index++)
     {
-        cb0r_s action;
+        cb0r_s actionData;
         actionInfo->index = action_index;
-        if(!cb0r_get(&actions, action_index, &action) || action.type != CB0R_ARRAY)
+        if(!cb0r_get(&actions, action_index, &actionData) || actionData.type != CB0R_ARRAY)
         {
             MLOGE(TAG, "Failed to get action %d from action list", action_index);
         }
-        ExecuteAction(actionInfo, &action, keyInfo);
+        ExecuteAction(actionInfo, &actionData, actionEvent);
     }
   }
   return true;
