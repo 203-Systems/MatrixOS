@@ -18,7 +18,7 @@ struct ActionInfo
   ActionIndexType indexType;
   union
   {
-    uint32_t ID;
+    uint32_t id;
     Point coord = Point::Invalid();
   };
   uint8_t layer;
