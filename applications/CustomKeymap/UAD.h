@@ -31,8 +31,8 @@ class UAD
   bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for ExeciteAction
   bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intented for direct use
   // bool GetActionsFromOffset(uint16_t offset, cb0r_t result);
-  void InitlizeLayer();
-  void DeinitlizeLayer();
+  void InitlizeLayer(uint8_t layer = 255); // 255 means top layer
+  void DeinitlizeLayer(uint8_t layer = 255);
 
   // Action API
   bool SetRegister(ActionInfo* actionInfo, uint32_t value);
