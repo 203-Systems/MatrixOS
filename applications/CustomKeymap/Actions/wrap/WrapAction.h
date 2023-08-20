@@ -2,67 +2,101 @@
 
 namespace WrapAction
 {
-    constexpr string TAG = "WarpAction";
+    const char* TAG = "WarpAction";
 
     constexpr uint32_t signature = StaticHash("wrap");
 
-    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    struct WrapAction
     {
-        bool relativeLayer = false;
-        int8_t layer = 0;
-        bool relativePos = false;
-        int8_t x = 0;
-        int8_t y = 0;
-        
-        // for(uint8_t i = 1; i < actionData->length; i++)
-        // {
-        //     cb0r_s cbor_data;
-        //     if(!cb0r_get(actionData, i, &cbor_data) || cbor_data.type != CB0R_INT)
-        //     {
-        //         MLOGE(TAG, "Failed to get action data %d", i - 1);
-        //         return false;
-        //     }
-        //     data[i - 1] = cbor_data.value;
-        // }
+        bool relativeLayer;
+        int8_t layer;
+        bool relativePos;
+        int8_t x;
+        int8_t y;
+    };
 
+    static bool LoadAction(cb0r_t actionData, WrapAction* action)
+    {
         cb0r_s cbor_data;
-        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_BOOL)
+        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
         {
             MLOGE(TAG, "Failed to get action data %d", 0);
             return false;
         }
-        relativeLayer = cbor_data.value;
+        action->relativeLayer = cbor_data.value & 0x01;
+        action->relativePos = (cbor_data.value >> 1) & 0x01;
 
         if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
         {
             MLOGE(TAG, "Failed to get action data %d", 1);
             return false;
         }
-        layer = cbor_data.value;
+        action->layer = cbor_data.value;
 
-        if(!cb0r_get(actionData, 3, &cbor_data) || cbor_data.type != CB0R_BOOL)
+        if(!cb0r_get(actionData, 3, &cbor_data) || cbor_data.type != CB0R_INT)
         {
             MLOGE(TAG, "Failed to get action data %d", 2);
             return false;
         }
-        relativePos = cbor_data.value;
+        action->x = cbor_data.value;
 
         if(!cb0r_get(actionData, 4, &cbor_data) || cbor_data.type != CB0R_INT)
         {
             MLOGE(TAG, "Failed to get action data %d", 3);
             return false;
         }
-        x = cbor_data.value;
+        action->y = cbor_data.value;
+        return true;
+    }
 
-        if(!cb0r_get(actionData, 5, &cbor_data) || cbor_data.type != CB0R_INT)
+    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    {
+        WrapAction action;
+        if(!LoadAction(actionData, &action))
         {
-            MLOGE(TAG, "Failed to get action data %d", 4);
+            MLOGE(TAG, "Failed to load action");
             return false;
         }
-        y = cbor_data.value;
+        
 
-        // TODO Execute in UAD Runtime
+        // If index type is via ID. Only different layer of same ID is supported! No relative position!
+        if(!(actionInfo->indexType == ActionIndexType::ID && action.relativePos == true && action.x == 0 && action.y == 0))
+        {
+            MLOGE(TAG, "Invalid action");
+            return false;
+        }
 
-        return true;
+        ActionInfo newAction = *actionInfo;
+
+        if(action.relativeLayer == true)
+        {
+            int8_t newLayer = newAction.layer + action.layer;
+            if(newLayer < 0 || newLayer >= UAD->GetLayerCount())
+            {
+                MLOGE(TAG, "Relative Layer out of range");
+                return false;
+            }
+            newAction.layer += action.layer;
+        }
+        else if(action.relativeLayer == false)
+        {
+            newAction.layer = action.layer;
+        }
+
+        
+        if (action.relativePos == true && action.x == 0 && action.y == 0 && actionInfo->indexType == ActionIndexType::ID)
+        {
+           // Nothing
+        }
+        else if(action.relativePos == true)
+        {
+            newAction.coord = newAction.coord + Point(action.x, action.y);
+        }
+        else if(!action.relativePos == false)
+        {
+            newAction.coord = Point(action.x, action.y);
+        }
+
+        return UAD->ExecuteActions(&newAction, keyInfo);
     }
 };
