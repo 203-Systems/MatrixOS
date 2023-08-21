@@ -47,6 +47,8 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
   // Get Offset based on index type
   uint16_t offset;
   ActionInfo newActionInfo = *actionInfo;
+  newActionInfo.actionType = ActionType::ACTION;
+  
   if (actionInfo->indexType == ActionIndexType::COORD)
   {
     MLOGV(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
@@ -138,6 +140,8 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
   // Get Offset based on index type
   uint16_t offset = effectLUT[effectInfo->layer];
   ActionInfo newEffectInfo = *effectInfo;
+  newEffectInfo.actionType = ActionType::EFFECT;
+
   if (effectInfo->indexType == ActionIndexType::COORD)
   {
     MLOGV(TAG, "Executing effects for key %d,%d", effectInfo->coord.x, effectInfo->coord.y);
@@ -159,7 +163,7 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
   cb0r_s x_array;
   if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
   {
-    MLOGE(TAG, "Failed to get Effect Layer Array");
+    MLOGE(TAG, "Failed to get Effect X Array");
     return false;
   }
 
@@ -167,11 +171,11 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
   cb0r_s x_bitmap;
   if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
   {
-    MLOGE(TAG, "Failed to get Effect XBitmap");
+    MLOGE(TAG, "Failed to get Effect X Bitmap");
     return false;
   }
 
-  uint8_t x_index = IndexInBitmap(x_bitmap.value, effectInfo->coord.x);
+  int8_t x_index = IndexInBitmap(x_bitmap.value, effectInfo->coord.x);
 
   if(x_index == -1)
   {
@@ -195,7 +199,7 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
     return false;
   }
 
-  uint8_t y_index = IndexInBitmap(y_bitmap.value, effectInfo->coord.y);
+  int8_t y_index = IndexInBitmap(y_bitmap.value, effectInfo->coord.y);
 
   if(y_index == -1)
   {
@@ -248,6 +252,10 @@ void UAD::InitlizeLayer(uint8_t layer) {
 
   ActionEvent actionEvent = {.type = ActionEventType::INITIALIZATION, .data = NULL};
 
+  ActionInfo effectInfo;
+  effectInfo.actionType = ActionType::EFFECT;
+  effectInfo.indexType = ActionIndexType::COORD;
+
   // Iterating
   cb0r_s x_array;
   if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
@@ -277,7 +285,7 @@ void UAD::InitlizeLayer(uint8_t layer) {
     cb0r_s y_array;
     if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
     {
-      MLOGE(TAG, "Failed to get Effect Y Array\n");
+      MLOGE(TAG, "Failed to get Effect Y Array");
       return;
     }
 
@@ -285,7 +293,7 @@ void UAD::InitlizeLayer(uint8_t layer) {
     cb0r_s y_bitmap;
     if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
     {
-      MLOGE(TAG, "Failed to get Effect X Bitmap");
+      MLOGE(TAG, "Failed to get Effect Y Bitmap");
       return;
     }
 
@@ -311,9 +319,6 @@ void UAD::InitlizeLayer(uint8_t layer) {
       {
         cb0r_s effectData;
 
-        ActionInfo effectInfo;
-        effectInfo.actionType = ActionType::EFFECT;
-        effectInfo.indexType = ActionIndexType::COORD;
         effectInfo.coord = Point(x, y);
         effectInfo.layer = layer;
         effectInfo.index = effect_index;
@@ -349,6 +354,11 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
 
   ActionEvent actionEvent = {.type = ActionEventType::INITIALIZATION, .data = NULL};
 
+  
+  ActionInfo effectInfo;
+  effectInfo.actionType = ActionType::EFFECT;
+  effectInfo.indexType = ActionIndexType::COORD;
+
   // Iterating
   cb0r_s x_array;
   if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
@@ -378,7 +388,7 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
     cb0r_s y_array;
     if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
     {
-      MLOGE(TAG, "Failed to get Effect Y Array\n");
+      MLOGE(TAG, "Failed to get Effect Y Array");
       return;
     }
 
@@ -386,7 +396,7 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
     cb0r_s y_bitmap;
     if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
     {
-      MLOGE(TAG, "Failed to get Effect X Bitmap");
+      MLOGE(TAG, "Failed to get Effect Y Bitmap");
       return;
     }
 
@@ -412,9 +422,6 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
       {
         cb0r_s effectData;
 
-        ActionInfo effectInfo;
-        effectInfo.actionType = ActionType::EFFECT;
-        effectInfo.indexType = ActionIndexType::COORD;
         effectInfo.coord = Point(x, y);
         effectInfo.layer = layer;
         effectInfo.index = effect_index;

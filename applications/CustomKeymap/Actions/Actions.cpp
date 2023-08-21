@@ -14,7 +14,6 @@
 
 bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent)
 {
-    MLOGV(TAG, "Executing action");
     cb0r_s action_index;
 
     if(!cb0r_get(actionData, 0, &action_index) || action_index.type != CB0R_INT)
@@ -28,11 +27,14 @@ bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* 
     if(actionInfo->actionType == ActionType::ACTION)
     {
         action_signature = actionList[action_index.value];
+        MLOGV(TAG, "Executing action - %d", action_signature);
     }
     else if(actionInfo->actionType == ActionType::EFFECT)
     {
         action_signature = effectList[action_index.value];
+        MLOGV(TAG, "Executing effect - %d", action_signature);
     }
+
 
     if(actionEvent->type == ActionEventType::KEYEVENT)
     {

@@ -17,5 +17,6 @@ void CustomKeymap::Loop() {
 void CustomKeymap::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
   // Reserve Function Key 
   if(KeyID == FUNCTION_KEY && keyInfo->state == KeyState::HOLD) { Exit(); }
+  if(keyInfo->state == KeyState::AFTERTOUCH) { return; } // Ignore Aftertouch
   uad.KeyEvent(KeyID, keyInfo);
 }
