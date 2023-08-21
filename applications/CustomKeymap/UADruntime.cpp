@@ -173,6 +173,12 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
 
   uint8_t x_index = IndexInBitmap(x_bitmap.value, effectInfo->coord.x);
 
+  if(x_index == -1)
+  {
+    MLOGV(TAG, "No effects to execute");
+    return false;
+  }
+
   // Get Y Array
   cb0r_s y_array;
   if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
@@ -191,6 +197,12 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
 
   uint8_t y_index = IndexInBitmap(y_bitmap.value, effectInfo->coord.y);
 
+  if(y_index == -1)
+  {
+    MLOGV(TAG, "No effects to execute");
+    return false;
+  }
+
   // Get the effects array
   cb0r_s effects;
   if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
@@ -199,7 +211,7 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
     return false;
   }
 
-  // Execute the effectss
+  // Execute the effects
   for (uint8_t effect_index = 0; effect_index < effects.length; effect_index++)
   {
     cb0r_s effectData;
@@ -223,33 +235,36 @@ void UAD::InitlizeLayer(uint8_t layer) {
     layer = GetTopLayer();
   }
 
+  MLOGI(TAG, "Initializing layer %d", layer);
+
   uint16_t offset = effectLUT[layer];
 
   // Nothing in this layer
   if (offset == 0)
   {
+    MLOGI(TAG, "Nothing in the effect layer");
     return;
   }
 
   ActionEvent actionEvent = {.type = ActionEventType::INITIALIZATION, .data = NULL};
 
   // Iterating
-  cb0r_s layer_array;
-  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
+  cb0r_s x_array;
+  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
   {
-    MLOGE(TAG, "Failed to get Effect Layer Array");
+    MLOGE(TAG, "Failed to get Effect X Array");
     return;
   }
 
   // Get X Bitmap
   cb0r_s x_bitmap;
-  if (!cb0r_get(&layer_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
   {
-    MLOGE(TAG, "Failed to get Effect Layer Bitmap");
+    MLOGE(TAG, "Failed to get Effect X Bitmap");
     return;
   }
 
-  // Get X Array
+  // Get Y Array
   for (uint8_t x = 0; x < mapSize.x; x++)
   {
     int8_t x_index = IndexInBitmap(x_bitmap.value, x);
@@ -259,16 +274,16 @@ void UAD::InitlizeLayer(uint8_t layer) {
       continue;
     }
 
-    cb0r_s x_array;
-    if (!cb0r_get(&layer_array, x_index, &x_array) || x_array.type != CB0R_ARRAY)
+    cb0r_s y_array;
+    if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
     {
-      MLOGE(TAG, "Failed to get Effect X Array\n");
+      MLOGE(TAG, "Failed to get Effect Y Array\n");
       return;
     }
 
     // Get Y Bitmap
     cb0r_s y_bitmap;
-    if (!cb0r_get(&x_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+    if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
     {
       MLOGE(TAG, "Failed to get Effect X Bitmap");
       return;
@@ -284,18 +299,10 @@ void UAD::InitlizeLayer(uint8_t layer) {
         continue;
       }
 
-      cb0r_s y_array;
-      if (!cb0r_get(&x_array, y_index, &y_array) || y_array.type != CB0R_ARRAY)
-      {
-        MLOGE(TAG, "Failed to get Effect Y Array\n");
-        return;
-      }
-
-      // Get the effects array
       cb0r_s effects;
-      if (!cb0r_get(&y_array, y, &effects) || effects.type != CB0R_ARRAY)
+      if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
       {
-        MLOGE(TAG, "Failed to get Effect Array");
+        MLOGE(TAG, "Failed to get Effect Effect Array\n");
         return;
       }
 
@@ -314,11 +321,13 @@ void UAD::InitlizeLayer(uint8_t layer) {
         if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
         {
           MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
+          continue;
         }
         ExecuteAction(&effectInfo, &effectData, &actionEvent);
       }
     }
   }
+  MLOGI(TAG, "Layer %d initialized", layer);
 }
 
 void UAD::DeinitlizeLayer(uint8_t layer) {
@@ -327,33 +336,36 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
     layer = GetTopLayer();
   }
 
+  MLOGI(TAG, "Deinitializing layer %d", layer);
+
   uint16_t offset = effectLUT[layer];
 
   // Nothing in this layer
   if (offset == 0)
   {
+    MLOGI(TAG, "Nothing in the effect layer");
     return;
   }
 
   ActionEvent actionEvent = {.type = ActionEventType::INITIALIZATION, .data = NULL};
 
   // Iterating
-  cb0r_s layer_array;
-  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &layer_array) || layer_array.type != CB0R_ARRAY)
+  cb0r_s x_array;
+  if (!cb0r((uint8_t*)uad + offset, (uint8_t*)uad + uadSize, 0, &x_array) || x_array.type != CB0R_ARRAY)
   {
-    MLOGE(TAG, "Failed to get Effect Layer Array");
+    MLOGE(TAG, "Failed to get Effect X Array");
     return;
   }
 
   // Get X Bitmap
   cb0r_s x_bitmap;
-  if (!cb0r_get(&layer_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
   {
-    MLOGE(TAG, "Failed to get Effect Layer Bitmap");
+    MLOGE(TAG, "Failed to get Effect X Bitmap");
     return;
   }
 
-  // Get X Array
+  // Get Y Array
   for (uint8_t x = 0; x < mapSize.x; x++)
   {
     int8_t x_index = IndexInBitmap(x_bitmap.value, x);
@@ -363,16 +375,16 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
       continue;
     }
 
-    cb0r_s x_array;
-    if (!cb0r_get(&layer_array, x_index, &x_array) || x_array.type != CB0R_ARRAY)
+    cb0r_s y_array;
+    if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
     {
-      MLOGE(TAG, "Failed to get Effect X Array\n");
+      MLOGE(TAG, "Failed to get Effect Y Array\n");
       return;
     }
 
     // Get Y Bitmap
     cb0r_s y_bitmap;
-    if (!cb0r_get(&x_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+    if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
     {
       MLOGE(TAG, "Failed to get Effect X Bitmap");
       return;
@@ -388,18 +400,10 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
         continue;
       }
 
-      cb0r_s y_array;
-      if (!cb0r_get(&x_array, y_index, &y_array) || y_array.type != CB0R_ARRAY)
-      {
-        MLOGE(TAG, "Failed to get Effect Y Array\n");
-        return;
-      }
-
-      // Get the effects array
       cb0r_s effects;
-      if (!cb0r_get(&y_array, y, &effects) || effects.type != CB0R_ARRAY)
+      if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
       {
-        MLOGE(TAG, "Failed to get Effect Array");
+        MLOGE(TAG, "Failed to get Effect Effect Array\n");
         return;
       }
 
@@ -418,9 +422,11 @@ void UAD::DeinitlizeLayer(uint8_t layer) {
         if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
         {
           MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
+          continue;
         }
         ExecuteAction(&effectInfo, &effectData, &actionEvent);
       }
     }
   }
+  MLOGI(TAG, "Layer %d deinitialized", layer);
 }
