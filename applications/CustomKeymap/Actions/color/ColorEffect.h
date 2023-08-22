@@ -48,7 +48,8 @@ namespace ColorEffect
 
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
-        if(keyInfo->state != KeyState::PRESSED || keyInfo->state != KeyState::RELEASED) return false;
+        MLOGV(TAG, "KeyEvent");
+        if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
 
         struct ColorEffectData data;
 
@@ -65,6 +66,7 @@ namespace ColorEffect
 
         if(keyInfo->state == KeyState::PRESSED)
         {
+            MLOGV(TAG, "KeyEvent - PRESSED");
             if(actionInfo->indexType == ActionIndexType::COORD)
             {
                 MatrixOS::LED::SetColor(actionInfo->coord, Color(data.activatedColor), 0);
@@ -77,6 +79,7 @@ namespace ColorEffect
         }
         else if(keyInfo->state == KeyState::RELEASED)
         {   
+            MLOGV(TAG, "KeyEvent - RELEASED");
             if(actionInfo->indexType == ActionIndexType::COORD)
             {
                 MatrixOS::LED::SetColor(actionInfo->coord, Color(data.defaultColor), 0);
