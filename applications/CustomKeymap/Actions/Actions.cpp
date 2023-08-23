@@ -14,6 +14,12 @@
 
 bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent)
 {
+    if(actionInfo->depth > 5)
+    {
+        MLOGE(TAG, "Action depth exceeded");
+        return false;
+    }
+
     cb0r_s action_index;
 
     if(!cb0r_get(actionData, 0, &action_index) || action_index.type != CB0R_INT)

@@ -97,6 +97,8 @@ namespace WrapAction
             newAction.coord = Point(data.x, data.y);
         }
 
+        newAction.depth++;
+
         UAD::ActionEvent actionEvent = {.type = UAD::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
         return UAD->ExecuteActions(&newAction, &actionEvent);
     }
