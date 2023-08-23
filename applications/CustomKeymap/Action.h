@@ -23,6 +23,7 @@ struct ActionInfo
   };
   uint8_t layer;
   uint8_t index;
+  uint8_t depth = 0; // Prevent recursive calls
 
   bool operator==(const ActionInfo& other) const
   {

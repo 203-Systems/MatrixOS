@@ -37,6 +37,7 @@ void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   }
 
   actionInfo.layer = GetTopLayer();
+  actionInfo.depth = 0;
 
   ActionEvent actionEvent = {.type = ActionEventType::KEYEVENT, .keyInfo = keyInfo};
   ExecuteActions(&actionInfo, &actionEvent);
