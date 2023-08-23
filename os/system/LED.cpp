@@ -8,7 +8,7 @@ namespace MatrixOS::LED
 
   SemaphoreHandle_t activeBufferSemaphore;
   vector<Color*> frameBuffers; //0 is the active layer
-  // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficent for real time rendering.
+  // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficient for real time rendering.
   // Otherwise, render to layer 255 (Top layer). Content will be updated on the next Update();
   // If directly write to the active buffer, before NewLayer, CopyLayer(0, currentLayer) need to be called to resync the buffer.
 
@@ -80,7 +80,7 @@ namespace MatrixOS::LED
     }
     vTaskSuspendAll();
     // MLOGV("LED", "Fill Layer %d", layer);
-    for (uint16_t index = 0; index < Device::numsOfLED; index++)
+    for (uint16_t index = 0; index < Device::led_count; index++)
     { frameBuffers[layer][index] = color; }
 
     xTaskResumeAll();
@@ -91,7 +91,7 @@ namespace MatrixOS::LED
 
   void CopyLayer(uint8_t dest, uint8_t src)
   {
-    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::numsOfLED * sizeof(Color));
+    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::led_count * sizeof(Color));
   }
 
   void Update(uint8_t layer) {
@@ -117,7 +117,7 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("Max LED Layer Exceded");
       return -1;
     }
-    Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED * sizeof(Color));
+    Color* frameBuffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
     if (frameBuffer == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("Failed to allocate new led buffer");
@@ -129,12 +129,12 @@ namespace MatrixOS::LED
     return CurrentLayer();
   }
 
-  bool DestoryLayer() {
+  bool DestroyLayer() {
     if (CurrentLayer() > 1)
     {
       vPortFree(frameBuffers.back());
       frameBuffers.pop_back();
-      MLOGD("LED Layer", "Layer Destoried - %d", CurrentLayer());
+      MLOGD("LED Layer", "Layer Destroyed - %d", CurrentLayer());
       Update();
       return true;
     }

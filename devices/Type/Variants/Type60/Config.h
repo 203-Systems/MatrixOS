@@ -29,12 +29,12 @@ namespace Device
   const string name = "Type 60";
   const string model = "TYPE60";
 
-  const string manufaturer_name = "203 Electronics";
+  const string manufacturer_name = "203 Electronics";
   const string product_name = "Type 60";
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x2040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
-  const uint16_t numsOfLED = 79 + 40;
+  const uint16_t led_count = 79 + 40;
   inline uint16_t keypad_scanrate = 480;
   const uint8_t x_size = 15;
   const uint8_t y_size = 5;

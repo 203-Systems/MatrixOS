@@ -35,11 +35,11 @@ enum EMidiPortID : uint16_t {
   MIDI_PORT_RTP = 0x500,
   MIDI_PORT_DEVICE_CUSTOM = 0x600,
   MIDI_PORT_SYNTH = 0x8000,
-  MIDI_PORT_INVAILD = 0xFFFF
+  MIDI_PORT_INVALID = 0xFFFF
 };
 
 struct MidiPacket {
-  uint16_t port = MIDI_PORT_INVAILD;
+  uint16_t port = MIDI_PORT_INVALID;
   EMidiStatus status = None;
   uint8_t data[3] = {0, 0, 0};
 
@@ -111,13 +111,13 @@ struct MidiPacket {
   }
 
   MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out length and
-                                                                  // assign it automaticlly
+                                                                  // assign it automaticaly
   {
     MidiPacket(0, status, data);
   }
 
   MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out
-                                                                                 // length and assign it automaticlly
+                                                                                 // length and assign it automaticaly
   {
     this->port = port;
     this->status = status;
@@ -174,7 +174,7 @@ struct MidiPacket {
     }
   }
 
-  uint16_t value()  // Get value all type, basiclly a generic getter
+  uint16_t value()  // Get value all type, basically a generic getter
   {
     switch (status)
     {

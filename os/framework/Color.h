@@ -22,7 +22,7 @@ class Color {
   Color Scale(uint8_t scale);
   Color ToLowBrightness(bool cancel = false, uint8_t scale = COLOR_LOW_STATE_SCALE);  // Helper for UI, make ui variable
                                                                                       // as parameter so the output
-                                                                                      // dynamiclly change based on the
+                                                                                      // dynamically change based on the
                                                                                       // variable
 
   static uint8_t scale8(uint8_t i, uint8_t scale);

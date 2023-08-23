@@ -59,7 +59,7 @@ endif
 
 # Device within family
 ifeq ($(DEVICE_PATH),)
-  DEVICE_PATH := $(subst ,,$(wildcard devices/*/varients/$(DEVICE)))
+  DEVICE_PATH := $(subst ,,$(wildcard devices/*/variants/$(DEVICE)))
   FAMILY := $(word 2, $(subst /, ,$(DEVICE_PATH)))
   FAMILY_PATH = devices/$(FAMILY)
 endif

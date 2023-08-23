@@ -9,7 +9,7 @@ int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index) {
     return -1;
   }
 
-  // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
+  // Find nums of bits set before index - TODO: This can probably be optimized by a lot
   uint8_t count = 0;
   for (uint8_t i = 0; i < index; i++)
   {
@@ -99,14 +99,14 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
     // If the layer has no action.
     if (layer_index == -1)
     {
-      if (IsBitSet(layerPassthough, layer))
+      if (IsBitSet(layerPassthrough, layer))
       {
-        // If the layer is set to passthough, Load next layer action
+        // If the layer is set to passthrough, Load next layer action
         continue;
       }
       else
       {
-        // If the layer is not set to passthough, stop executing actions
+        // If the layer is not set to passthrough, stop executing actions
         return false;
       }
     }
@@ -153,10 +153,10 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
     return false;  // Doesn't not support off grid keys yet
   }
 
-  // If the offset is 0, there are no effectss to execute
+  // If the offset is 0, there are no effects to execute
   if (offset == 0)
   {
-    MLOGV(TAG, "No effectss to execute");
+    MLOGV(TAG, "No effects to execute");
     return false;
   }
 
@@ -234,7 +234,7 @@ uint8_t UAD::GetTopLayer() {
   return std::log2(layerEnabled);
 }
 
-void UAD::InitlizeLayer(uint8_t layer) {
+void UAD::InitializeLayer(uint8_t layer) {
   if(layer == 255)
   {
     layer = GetTopLayer();
@@ -336,7 +336,7 @@ void UAD::InitlizeLayer(uint8_t layer) {
   MLOGI(TAG, "Layer %d initialized", layer);
 }
 
-void UAD::DeinitlizeLayer(uint8_t layer) {
+void UAD::DeinitializeLayer(uint8_t layer) {
   if(layer == 255)
   {
     layer = GetTopLayer();

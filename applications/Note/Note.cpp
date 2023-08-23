@@ -30,8 +30,8 @@ void Note::Setup() {
   UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1), [&]() -> void {});
   actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UIButtonLarge rotateRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
@@ -44,8 +44,8 @@ void Note::Setup() {
   actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
 
   UIButtonDimmable enforceScaleToggle(
-      "Enforce Scale", Color(0xff5000), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; },
-      [&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
+      "Enforce Scale", Color(0xff5000), [&]() -> bool { return notePadConfigs[activeConfig].enforceScale; },
+      [&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
   UIButton overlapSelectorBtn("Overlap Selector", Color(0xFFFF00), [&]() -> void { OverlapSelector(); });
@@ -93,7 +93,7 @@ void Note::Setup() {
         PlayView();
         MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
       }
-      return true;  // Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });
@@ -158,7 +158,7 @@ void Note::OverlapSelector() {
   overlapSelector.AddUIComponent(overlapInput, Point(0, 7));
 
   UIButtonDimmable alignRootToggle(
-      "Aligh Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
+      "Align Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
       [&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
   overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
 

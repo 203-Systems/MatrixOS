@@ -1,4 +1,4 @@
-// Declear Family specific function
+// DeclareFamily specific function
 #pragma once
 // #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
@@ -23,7 +23,7 @@
 #include "WS2812/WS2812.h"
 #include "framework/Color.h"
 
-#define DEVICE_KEYBOARD // Keyboardtemplate
+#define DEVICE_KEYBOARD // KeyboardTemplate
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
 // #define DEVICE_APPLICATIONS
@@ -37,7 +37,7 @@ namespace Device
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
   void LoadDeviceInfo();
-  void LoadVarientInfo();
+  void LoadVariantInfo();
 
   namespace USB
   {
@@ -57,10 +57,10 @@ namespace Device
     void Start();
     void StartKeyPad();
 
-    // If return true, meaning the scan in intrupted
+    // If return true, meaning the scan in interrupted
     bool ScanKeyPad();
 
-    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthough MatrixOS::KeyPad::NewEvent() result
+    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthrough MatrixOS::KeyPad::NewEvent() result
   }
 
   namespace NVS

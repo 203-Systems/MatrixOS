@@ -70,7 +70,7 @@ namespace Device
 #ifndef FACTORY_CONFIG
     esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
 #endif
-    LoadVarientInfo();
+    LoadVariantInfo();
   }
 
   void Bootloader() {

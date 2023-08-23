@@ -28,12 +28,12 @@ class UAD
       KeyInfo* keyInfo; // For KEYEVENT
     };
   };
-  bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for ExeciteAction
-  bool ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent);
-  bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intented for direct use
+  bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for Action
+  bool ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent); //WIll pick a layer and index for Effect
+  bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intended for direct use
   // bool GetActionsFromOffset(uint16_t offset, cb0r_t result);
-  void InitlizeLayer(uint8_t layer = 255); // 255 means top layer
-  void DeinitlizeLayer(uint8_t layer = 255);
+  void InitializeLayer(uint8_t layer = 255); // 255 means top layer
+  void DeinitializeLayer(uint8_t layer = 255);
 
   // Action API
   bool SetRegister(ActionInfo* actionInfo, uint32_t value);
@@ -57,7 +57,7 @@ class UAD
   vector<uint32_t> actionList;
   vector<uint32_t> effectList;
   uint16_t layerEnabled = 1;
-  uint16_t layerPassthough = 0xFFFF;
+  uint16_t layerPassthrough = 0xFFFF;
 
   uint16_t** actionLUT;
   uint16_t* effectLUT;

@@ -1,4 +1,4 @@
-// Declear Family specific function
+// Declare Family specific function
 #pragma once
 
 #include "stm32f1xx_hal.h"

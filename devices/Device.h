@@ -7,9 +7,9 @@
 namespace Device
 {
   /*
-  Required Varaiables:
+  Required Variables:
   const string name;
-  const uint16_t numsOfLED;
+  const uint16_t led_count;
   const uint8_t x_size;
   const uint8_t y_size;
   string serial_number;
@@ -36,7 +36,7 @@ namespace Device
   namespace KeyPad
   {
     KeyInfo* GetKey(uint16_t keyID);
-    void Clear();  // Since only Device layer awares the keyInfo buffer, the function's job is to run Clear() on all
+    void Clear();  // Since only the Device layer awares the keyInfo buffer, the function's job is to run Clear() on all
                    // keyInfo
     uint16_t XY2ID(Point xy);  // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no
                                // ID is assigned to given XY
@@ -44,14 +44,14 @@ namespace Device
                                   // given ID;
   }
 
-  // namespace BKP  // Back up register, presistant ram after software reset.
+  // namespace BKP  // Back up register, persistent ram after software reset.
   // {
   //   extern uint16_t size;
   //   uint32_t Read(uint32_t address);
   //   int8_t Write(uint32_t address, uint32_t data);
   // }
 
-  namespace NVS //Device should also implentment duplication check. If new value is equal to the old one, then skip the write. 
+  namespace NVS //Device should also implements duplication check. If new value is equal to the old one, then skip the write. 
   {
     size_t Size(uint32_t hash);
     vector<char> Read(uint32_t hash);
@@ -63,7 +63,7 @@ namespace Device
 #ifdef DEVICE_BATTERY
   namespace Battery
   {
-    bool Chagring();
+    bool Charging();
     float Voltage();
   }
 #endif

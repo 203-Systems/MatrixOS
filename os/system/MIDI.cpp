@@ -30,7 +30,7 @@ namespace MatrixOS::MIDI
         { return send; }
         if (port->first >= targetClass)
         {
-          send |= port->second->Recive(midiPacket, timeout_ms);
+          send |= port->second->Receive(midiPacket, timeout_ms);
           targetClass = (port->first / 0x100 + 1) * 0x100;
         }
       }
@@ -39,7 +39,7 @@ namespace MatrixOS::MIDI
     {
       std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.find(midiPacket.port);
       if (port != midiPortMap.end())
-      { return port->second->Recive(midiPacket, timeout_ms); }
+      { return port->second->Receive(midiPacket, timeout_ms); }
     }
     return false;
   }
@@ -108,16 +108,16 @@ namespace MatrixOS::MIDI
     midiPortMap.erase(port_id);
   }
 
-  enum SysExState : uint8_t {IDLE, PENDING, COMPLETE, RELEASE, INVAILD}; 
+  enum SysExState : uint8_t {IDLE, PENDING, COMPLETE, RELEASE, INVALID}; 
   // IDLE     = No sysex in yet
   // PENDING  = Not sure who's Sysex this is or pending for system to parse
   // COMPLETE = It is a system sysex and we have parsed it
-  // RELEASE  = This is an appliction sysex, release to application
-  // INVAILD  = This is our sysex, don' release, just destory it
+  // RELEASE  = This is an application sysex, release to application
+  // INVALID  = This is our sysex, don' release, just Destroy it
 
   SysExState ProcessSysEx(uint16_t port, vector<uint8_t> sysExBuffer, bool complete) {
 
-    if(sysExBuffer[0] != MIDIv1_SYSEX_START) {return SysExState::INVAILD; }
+    if(sysExBuffer[0] != MIDIv1_SYSEX_START) {return SysExState::INVALID; }
 
     if(complete)
     {
@@ -129,7 +129,7 @@ namespace MatrixOS::MIDI
         uint8_t osReleaseVersion = 0;
         #elif (MATRIXOS_BUILD_VER == 4) // Nighty Version
         uint8_t osReleaseVersion = 0x31; // 0b0011111 - Shares the same first two bit as release version but the last 5 bits are set
-        #elif(MATRIXOS_RELEASE_VER < 32) // Speial Release Version
+        #elif(MATRIXOS_RELEASE_VER < 32) // Special Release Version
         uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
         #else
         uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
@@ -159,14 +159,14 @@ namespace MatrixOS::MIDI
   }
 
   vector<uint8_t> sysExBuffer;
-  uint16_t activeSysExPort = MIDI_PORT_INVAILD;
+  uint16_t activeSysExPort = MIDI_PORT_INVALID;
   SysExState currentSysExState = SysExState::IDLE;
-  bool Recive(MidiPacket midiPacket, uint32_t timeout_ms) {
+  bool Receive(MidiPacket midiPacket, uint32_t timeout_ms) {
     // Handle SysEx
     if (midiPacket.SysEx())
     {
       // Concurrent SysEx, drop the later one -- TODO: Handle this better
-      if (activeSysExPort != MIDI_PORT_INVAILD && midiPacket.port != activeSysExPort)
+      if (activeSysExPort != MIDI_PORT_INVALID && midiPacket.port != activeSysExPort)
       {
         return true; //Signal that we have handled this packet
       }
@@ -177,7 +177,7 @@ namespace MatrixOS::MIDI
         sysExBuffer.clear();
         activeSysExPort = midiPacket.port;
       }
-      else if (currentSysExState == SysExState::INVAILD)
+      else if (currentSysExState == SysExState::INVALID)
       {
         return true; //Signal that we have handled this packet
       } 
@@ -189,7 +189,7 @@ namespace MatrixOS::MIDI
 
         if(midiPacket.status == SysExEnd)
         {
-          activeSysExPort = MIDI_PORT_INVAILD;
+          activeSysExPort = MIDI_PORT_INVALID;
           currentSysExState = SysExState::IDLE;
         }
         return true; //Signal that we have handled this packet
@@ -208,7 +208,7 @@ namespace MatrixOS::MIDI
     if(midiPacket.status == SysExEnd)
     {
       currentSysExState = SysExState::IDLE;
-      activeSysExPort = MIDI_PORT_INVAILD;
+      activeSysExPort = MIDI_PORT_INVALID;
     }
     return true;  //Signal that we have handled this packet
   }

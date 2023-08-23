@@ -45,12 +45,12 @@ namespace Device
   inline string name = "Matrix";
   inline string model = "MX1S";
 
-  const string manufaturer_name = "203 Electronics";
+  const string manufacturer_name = "203 Electronics";
   const string product_name = "Matrix";
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
-  const uint16_t numsOfLED = 64 + 32;
+  const uint16_t led_count = 64 + 32;
   inline uint16_t keypad_scanrate = 480;
   inline uint16_t touchbar_scanrate = 60;
   const uint8_t x_size = 8;

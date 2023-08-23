@@ -86,7 +86,7 @@ namespace Device::KeyPad::FSR
   }
 
   bool Scan() {
-    // MatrixOS::Logging::LogDebug("Keypad ULP", "Scaned: %lu", ulp_count);
+    // MatrixOS::Logging::LogDebug("Keypad ULP", "Scanned: %lu", ulp_count);
     uint16_t(*result)[8][3] = (uint16_t(*)[8][3]) & ulp_result;
     for (uint8_t y = 0; y < Device::y_size; y++)
     {

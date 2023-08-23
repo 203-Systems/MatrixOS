@@ -10,7 +10,7 @@ void BurnEFuse();  // This is in device folder, a custom BurnEFuse will be provi
 
 namespace Device
 {
-  void LoadVarientInfo() 
+  void LoadVariantInfo() 
   {
     // Load Factory Config
     #ifdef FACTORY_CONFIG
@@ -38,7 +38,7 @@ namespace Device
     }
 
     ESP_LOGI("Device Init", "Loading config for %s (%.4s %.4s) (MFG: %02d-%02d) (Serial: %s)", Device::name.c_str(), deviceInfo.Model, deviceInfo.Revision,
-             deviceInfo.ProductionYear, deviceInfo.ProductionMonth, GetSerial().c_str());  // It seems excesive but
+             deviceInfo.ProductionYear, deviceInfo.ProductionMonth, GetSerial().c_str());  // It seems excessive but
                                                                                            // deviceInfo.Revision does
                                                                                            // not have null terminator
     if (string(deviceInfo.Revision).compare(0, 4, "V100") == 0)

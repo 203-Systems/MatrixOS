@@ -130,7 +130,7 @@ namespace MatrixOS::UIInterface
 
     colorPicker.ClearUIComponents();
 
-    // Phase 2 - Satuation + Value
+    // Phase 2 - Saturation + Value
     UIShadeSelector shadeSelector(Dimension(8, 8), hue, [&](Color selectedColor) -> void {
       color = selectedColor;
       colorPicker.Exit();

@@ -80,7 +80,7 @@ bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
       MLOGE(TAG, "Failed to create hash list\n");
       return false;
     }
-    list->push_back(Hash(string((const char*)(item.start + item.header), item.length)));  // Beecause array was not null terimated.
+    list->push_back(Hash(string((const char*)(item.start + item.header), item.length)));  // Because array was not null terminated.
   }
   return true;
 }
@@ -346,6 +346,6 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size) {
 
   MLOGI(TAG, "Done parsing UAD");
 
-  InitlizeLayer();
+  InitializeLayer();
   return true;
 }

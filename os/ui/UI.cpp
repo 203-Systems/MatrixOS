@@ -131,7 +131,7 @@ void UI::ClearUIComponents() {
 void UI::UIEnd() {
   MLOGD("UI", "UI Exited");
   if (newLedLayer)
-  { MatrixOS::LED::DestoryLayer(); }
+  { MatrixOS::LED::DestroyLayer(); }
   else
   { MatrixOS::LED::Fill(0); }
 

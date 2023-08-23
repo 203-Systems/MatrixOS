@@ -20,7 +20,7 @@ void Performance::Loop() {
 }
 
 void Performance::MidiEventHandler(MidiPacket midiPacket) {
-  // MLOGD("Performance", "Midi Recived %d %d %d %d", midiPacket.status, midiPacket.data[0],
+  // MLOGD("Performance", "Midi Received %d %d %d %d", midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
@@ -100,7 +100,7 @@ int8_t Performance::XYToNote(Point xy) {
 }
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
-  // MLOGD("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
+  // MLOGD("Performance", "Midi Received %#02X %#02X %#02X", channel, note, velocity);
   Point xy = NoteToXY(note);
 
   if (compatibilityMode)
@@ -275,9 +275,9 @@ void Performance::SysExHandler(MidiPacket midiPacket)
 
 void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
   Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-  if (xy)  // IF XY is vaild, means it's on the main grid
+  if (xy)  // IF XY is valid, means it's on the main grid
   { GridKeyEvent(xy, keyInfo); }
-  else  // XY Not vaild,
+  else  // XY Not valid,
   { IDKeyEvent(KeyID, keyInfo); }
 }
 
@@ -346,9 +346,9 @@ void Performance::ActionMenu() {
                                [&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
   actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
+  UIButtonLarge rotateRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
                               [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
                               [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
@@ -406,7 +406,7 @@ void Performance::ActionMenu() {
       { Exit(); }
       else if(keyEvent->info.state == RELEASED)
       { actionMenu.Exit(); }
-      return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+      return true; //Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
    });

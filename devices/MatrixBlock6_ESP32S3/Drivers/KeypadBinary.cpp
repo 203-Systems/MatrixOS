@@ -49,7 +49,7 @@ namespace Device::KeyPad::Binary
 
   // bool Scan()
   // {
-  //   // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
+  //   // ESP_LOGI("Keypad ULP", "Scanned: %lu", ulp_count);
   //   uint16_t (*result)[8] = (uint16_t(*)[8])&ulp_result;
   //   for(uint8_t y = 0; y < Device::y_size; y ++)
   //   {
