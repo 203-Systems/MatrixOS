@@ -78,11 +78,12 @@ namespace MidiAction
                 MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, signature & 0x0F, note & 0x7F, 0));
                 return true;
             }
+            return false;
         }
         case EMidiStatus::AfterTouch:
         {
             uint8_t note = GetData(actionData, 1);
-            if (keyInfo->state == AfterTouch)
+            if (keyInfo->state == AFTERTOUCH)
             {
                 MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, signature & 0x0F, note & 0x7F, keyInfo->velocity.to7bits()));
                 return true;
@@ -97,6 +98,7 @@ namespace MidiAction
                 MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, signature & 0x0F, note & 0x7F, 0));
                 return true;
             }
+            return false;
         }
         case EMidiStatus::ControlChange:
         {
@@ -107,6 +109,7 @@ namespace MidiAction
                 MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::ControlChange, signature & 0x0F, control, value));
                 return true;
             }
+            return false;
         }
     }
 
