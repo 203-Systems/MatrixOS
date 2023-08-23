@@ -71,7 +71,7 @@ class Performance : public Application {
                                                  {40, 41, 42, 43, 72, 73, 74, 75},
                                                  {36, 37, 38, 39, 68, 69, 70, 71}}};
 
-  const uint8_t touch_keymap[NUMS_OF_KEYMAP][4][8]  // Touchbar map, top mirors left and right (For Matrix rotation)
+  const uint8_t touch_keymap[NUMS_OF_KEYMAP][4][8]  // Touchbar map, top mirrors left and right (For Matrix rotation)
       {{{100, 101, 102, 103, 104, 105, 106, 107},   // Drum Rack
         {100, 101, 102, 103, 104, 105, 106, 107},
         {108, 109, 110, 111, 112, 113, 114, 115},

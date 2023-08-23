@@ -112,7 +112,7 @@ namespace Device::KeyPad
       result = Point(12, 2);
     else if(result.x == 13 && result.y == 1) //Remap Backspace R
       result = Point(13, 0);
-    else if(result.x == 12 && result.y == 2) //Remap Backware slash (Above enter)
+    else if(result.x == 12 && result.y == 2) //Remap Backward slash (Above enter)
       result = Point(13, 1);
 
     return result;
@@ -120,7 +120,7 @@ namespace Device::KeyPad
 
   bool ScanKeyPad()
   {
-    // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
+    // ESP_LOGI("Keypad ULP", "Scanned: %lu", ulp_count);
     uint8_t (*result)[read_size] = (uint8_t(*)[read_size])&ulp_result;
     for(uint8_t hw_y = 0; hw_y < read_size; hw_y ++)
     {
@@ -163,8 +163,8 @@ namespace Device::KeyPad
 
   // Matrix use the following ID Struct
   // CCCC IIIIIIIIIIII
-  // C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 0 (grid),
-  // it's spilted to XXXXXXX YYYYYYY. Class List: Class 0 - System - IIIIIIIIIIII Class 1 - Grid - XXXXXX YYYYYY Class 2
+  // C as class (4 bits), I as index (12 bits). I could be spilt by the class definition, for example, class 0 (grid),
+  // it's spilt to XXXXXXX YYYYYYY. Class List: Class 0 - System - IIIIIIIIIIII Class 1 - Grid - XXXXXX YYYYYY Class 2
   // - TouchBar - IIIIIIIIIIII Class 3 - Underglow - IIIIIIIIIIII
 
   Point ID2XY(uint16_t keyID) {

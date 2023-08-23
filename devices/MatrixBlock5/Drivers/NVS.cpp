@@ -37,7 +37,7 @@ namespace Device::NVS
     }
     else
     {
-      // MatrixOS::USB::CDC::Println("NVS is current uninitalized or corrupted");
+      // MatrixOS::USB::CDC::Println("NVS is current uninitialized or corrupted");
       Clear();
     }
 
@@ -203,7 +203,7 @@ namespace Device::NVS
 
   uint16_t GetFreeSpace(uint8_t page) {
     return page_size - byteUsed[page] - (((page + 1) == nums_of_page) ? 4 : 0);  // Leaves 4 byte at the end page open.
-                                                                                 // This space is resvered for Data
+                                                                                 // This space is resevered for Data
                                                                                  // Direction Indicator.
   }
 
@@ -242,7 +242,7 @@ namespace Device::NVS
       }
 
       // Clean Page
-      EreasePage(page_address);
+      ErasePage(page_address);
 
       byteUsed[page] = 0;
 
@@ -262,15 +262,15 @@ namespace Device::NVS
   }
 
   void Clear() {
-    // MatrixOS::USB::CDC::Println("NVS Formating...");
-    EreasePage(nvs_address, nums_of_page);
+    // MatrixOS::USB::CDC::Println("NVS Formatting...");
+    ErasePage(nvs_address, nums_of_page);
     WriteToFlash(nvs_address, 4, (uint16_t*)&direction_indicator);
 
     reversed = false;
     byteUsed[0] = 4;
     for (uint8_t page = 1; page < nums_of_page; page++)
     { byteUsed[page] = 0; }
-    // MatrixOS::USB::CDC::Println("NVS Formated");
+    // MatrixOS::USB::CDC::Println("NVS Formatted");
   }
 
   void WriteToFlash(uint32_t flash_address, uint16_t length, uint16_t* data) {
@@ -309,7 +309,7 @@ namespace Device::NVS
     // MatrixOS::USB::CDC::Println("Flash Locked");
   }
 
-  void EreasePage(uint32_t address, uint32_t pages) {
+  void ErasePage(uint32_t address, uint32_t pages) {
     uint32_t error;
 
     HAL_FLASH_Unlock();

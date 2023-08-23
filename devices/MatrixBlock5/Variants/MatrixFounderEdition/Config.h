@@ -15,7 +15,7 @@ namespace Device
   const string name = "Matrix Founder Edition";
   const string model = "MXFE1";
 
-  const string manufaturer_name = "203 Electronics";
+  const string manufacturer_name = "203 Electronics";
   const string product_name = "Matrix";
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000

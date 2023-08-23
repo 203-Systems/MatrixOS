@@ -51,7 +51,7 @@ void tud_midi_rx_cb(uint8_t itf) {
           case MIDIv1_SONG_SELECT:
             packet = MidiPacket(port, SongSelect, 1, &raw_packet[2]);
           case MIDIv1_MTC_QUARTER_FRAME:
-            // reference library doesnt handle quarter frame.
+            // reference library does not handle quarter frame.
             break;
         }
         break;
@@ -118,7 +118,7 @@ void tud_midi_rx_cb(uint8_t itf) {
     }  
 
     // Since we know what we are doing here, just gonna skip the wrapper
-    // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implentmentation
-    MatrixOS::MIDI::Recive(packet); //Direct call to MIDI::Recive
+    // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implementation
+    MatrixOS::MIDI::Receive(packet); //Direct call to MIDI::Receive
   }
 }

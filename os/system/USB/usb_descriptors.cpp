@@ -129,7 +129,7 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
 // String Descriptors
 //--------------------------------------------------------------------+
 
-// char manufature_name[Device::manufaturer_name.length()] = Device::manufaturer_name.c_str();
+// char manufacturer_name[Device::manufacturer_name.length()] = Device::manufacturer_name.c_str();
 // char product_name[Device::product_name.length()] = Device::product_name.c_str();
 // char device_serial[Device::GetSerial().length()] = Device::GetSerial().c_str();
 // char usb_cdc_name[Device::product_name.length() + 4] = (Device::product_name + " CDC").c_str();
@@ -155,7 +155,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
       (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
-      Device::manufaturer_name.c_str(),        // 1: Manufacturer
+      Device::manufacturer_name.c_str(),        // 1: Manufacturer
       product_name.c_str(),                    // 2: Product
       serial_number.c_str(),                   // 3: Serials, should use chip ID
       (Device::product_name + " CDC").c_str()  // 4: CDC Interface

@@ -21,7 +21,7 @@ namespace Device
                   size_t continued_sysex_pos) {
       // MLOGD(TAG, "CALLBACK blemidi_port=%d, timestamp=%d, midi_status=0x%02x, len=%d,
       // continued_sysex_pos=%d, remaining_message:", blemidi_port, timestamp, midi_status, len, continued_sysex_pos);
-      // MLOGD(TAG, "Recived 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0],
+      // MLOGD(TAG, "Received 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0],
       // remaining_message[1]);
       if (len == 2)
       {

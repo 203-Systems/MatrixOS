@@ -34,7 +34,7 @@ class Application {
 // Stores all the application info - Optimal for ID lookup
 inline std::unordered_map<uint32_t, Application_Info*> applications;
 
-// Store all the application id in order of registration - Perserves order and is optimal for iteration
+// Store all the application id in order of registration - Preserves order and is optimal for iteration
 inline std::vector<uint32_t> application_ids;
 
 #define REGISTER_APPLICATION(APPLICATION_CLASS)                                                    \

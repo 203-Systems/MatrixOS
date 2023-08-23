@@ -7,7 +7,7 @@
 
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;
-  bool enfourceScale = true; 
+  bool enforceScale = true; 
   bool alignRoot = true; //Only works when overlap is set to 0
   uint16_t scale = NATURAL_MINOR;
   int8_t octave = 0;
@@ -65,7 +65,7 @@ class NotePad : public UIComponent {
           noteMap[id] = 255;
           continue;
         }
-        if(!config->enfourceScale)
+        if(!config->enforceScale)
         {
           noteMap[id] = nextNote;  // Add to map
           nextNote++;

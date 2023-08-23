@@ -19,7 +19,7 @@ class SavedVariable {
   SavedVariableState state = SavedVariableState::NotInited;
   T value;
 
-  SavedVariable(string scope, string name, T default_value)  // Scope is basiclly namespace for the variable. I can't
+  SavedVariable(string scope, string name, T default_value)  // Scope is basically namespace for the variable. I can't
                                                              // use "namespace" or "class" as variable name but you get
                                                              // the point
   {

@@ -24,7 +24,7 @@ class Color {
   Color Dim(uint8_t scale = COLOR_LOW_STATE_SCALE);
   Color DimIfNot(bool not_dim = false, uint8_t scale = COLOR_LOW_STATE_SCALE);  // Helper for UI, make ui variable
                                                                                       // as parameter so the output
-                                                                                      // dynamiclly change based on the
+                                                                                      // dynamically change based on the
                                                                                       // variable
 
   Color Gamma();

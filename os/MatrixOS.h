@@ -14,7 +14,7 @@
 
 #include "./system/HID/HIDSpecs.h"
 
-#define noexpose  // Custum keyword to remove function to be generated as exposed API
+#define noexpose  // Custom keyword to remove function to be generated as exposed API
 
 class Application;
 class Application_Info;
@@ -65,7 +65,7 @@ namespace MatrixOS
     int8_t CurrentLayer();
     int8_t CreateLayer();
     void CopyLayer(uint8_t dest, uint8_t src);
-    bool DestoryLayer();
+    bool DestroyLayer();
 
     void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer = 255);
     void RotateCanvas(EDirection direction, uint8_t layer = 255);
@@ -94,7 +94,7 @@ namespace MatrixOS
   {
     noexpose void Init();
 
-    bool Inited(void);     // If USB Stack is initlized, not sure what it will be needed but I added it anyways
+    bool Inited(void);     // If USB Stack is initialized, not sure what it will be needed but I added it anyways
     bool Connected(void);  // If USB is connected
 
     namespace CDC
@@ -126,7 +126,7 @@ namespace MatrixOS
     // Those APIs are only for MidiPort to use
     noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
     noexpose void UnregisterMidiPort(uint16_t port_id);
-    noexpose bool Recive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
+    noexpose bool Receive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
   namespace HID

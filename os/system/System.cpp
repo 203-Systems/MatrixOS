@@ -161,7 +161,7 @@ namespace MatrixOS::SYS
     active_app_id = app_id;
 
     // Clean up layers that the previous app might have made
-    while (LED::DestoryLayer())
+    while (LED::DestroyLayer())
     {}
 
     if (active_app_task != NULL)

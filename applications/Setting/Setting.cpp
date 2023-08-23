@@ -117,30 +117,30 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
   MLOGD("Konami", "Custom key event");
   Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
 
-  if (xy && keyEvent->info.state == RELEASED)  // IF XY is vaild, means it's on the main grid
+  if (xy && keyEvent->info.state == RELEASED)  // IF XY is valid, means it's on the main grid
   {
     if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
     {
       konami++;
-      MLOGD("Konami", "Up prssed, %d", konami);
+      MLOGD("Konami", "Up pressed, %d", konami);
       return false;
     }
     else if ((konami == 2 || konami == 3) && (xy == origin + Point(0, 2) || xy == origin + Point(1, 2)))
     {
       konami++;
-      MLOGD("Konami", "Down prssed, %d", konami);
+      MLOGD("Konami", "Down pressed, %d", konami);
       return true;
     }
     else if ((konami == 4 || konami == 6) && (xy == origin + Point(-1, 0) || xy == origin + Point(-1, 1)))
     {
       konami++;
-      MLOGD("Konami", "Left prssed, %d", konami);
+      MLOGD("Konami", "Left pressed, %d", konami);
       return true;
     }
     else if ((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(2, 1)))
     {
       konami++;
-      MLOGD("Konami", "Right prssed, %d", konami);
+      MLOGD("Konami", "Right pressed, %d", konami);
       if (konami == 8)
       {
         UI ab("A & B", Color(0xFF0000));

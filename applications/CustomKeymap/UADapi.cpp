@@ -42,8 +42,8 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
         {
             MatrixOS::LED::PauseUpdate(true);
             MatrixOS::LED::Fill(Color(0), 0);
-            DeinitlizeLayer(oldTopLayer);
-            InitlizeLayer(newTopLayer);
+            DeinitializeLayer(oldTopLayer);
+            InitializeLayer(newTopLayer);
             MatrixOS::LED::PauseUpdate(false);
         }
     }
@@ -51,11 +51,11 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
     {
         if(state)
         {
-            layerPassthough |= (1 << layer);
+            layerPassthrough |= (1 << layer);
         }
         else
         {
-            layerPassthough &= ~(1 << layer);
+            layerPassthrough &= ~(1 << layer);
         }
     }
   }
@@ -68,7 +68,7 @@ bool UAD::GetLayerState(uint8_t layer, LayerInfoType type)
     }
     else if(type == LayerInfoType::PASSTHROUGH)
     {
-        return IsBitSet(layerPassthough, layer);
+        return IsBitSet(layerPassthrough, layer);
     }
     return false;
 }
