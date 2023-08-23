@@ -47,7 +47,7 @@ namespace LayerAction
 
     static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
-        if(keyInfo->state != KeyState::PRESSED || keyInfo->state != KeyState::RELEASED) return false;
+        if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
 
         struct LayerAction data;
         if(!LoadData(actionData, &data))
@@ -78,6 +78,11 @@ namespace LayerAction
         {
           targetLayerInfo = UAD::LayerInfoType::PASSTHROUGH;
         }
+        else
+        {
+          MLOGE(TAG, "Invalid type");
+          return false;
+        }
 
         bool targetLayerState;
         if(data.option == LayerActionOption::ENABLE)
@@ -93,6 +98,11 @@ namespace LayerAction
           targetLayerState = !UAD->GetLayerState(targetLayer, targetLayerInfo);
           // Save togged state to register
           UAD->SetRegister(actionInfo, targetLayerState);
+        }
+        else
+        {
+            MLOGE(TAG, "Invalid option");
+            return false;
         }
 
         // Process Key Event
