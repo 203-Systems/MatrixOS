@@ -47,7 +47,7 @@ uint8_t const* tud_descriptor_device_cb(void) {
 
                  .idVendor = Device::usb_vid,
                  .idProduct = Device::usb_pid,
-                 .bcdDevice = (uint16_t)((MATRIXOS_MAJOR_VER << 0x100) + (MATRIXOS_MINOR_VER << 0x10) + (MATRIXOS_PATCH_VER)), 
+                 .bcdDevice = (uint16_t)((MATRIXOS_MAJOR_VER << 4) + (MATRIXOS_MINOR_VER << 4) + (MATRIXOS_PATCH_VER)),  // If this is too limiting, we can then use the first 4 bits
 
                  .iManufacturer = 0x01,
                  .iProduct = 0x02,
