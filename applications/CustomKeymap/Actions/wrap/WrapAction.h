@@ -18,34 +18,49 @@ namespace WrapAction
     static bool LoadData(cb0r_t actionData, WrapAction* action)
     {
         cb0r_s cbor_data;
+        MLOGV(TAG, "Loading data with length %d", actionData->length);
         if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
         {
             MLOGE(TAG, "Failed to get action data %d", 0);
             return false;
         }
+        MLOGV(TAG, "Got data %d", cbor_data.value);
         action->relativeLayer = cbor_data.value & 0x01;
         action->relativePos = (cbor_data.value >> 1) & 0x01;
 
-        if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
+        if(!cb0r_get(actionData, 2, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
         {
             MLOGE(TAG, "Failed to get action data %d", 1);
             return false;
         }
         action->layer = cbor_data.value;
+        if(cbor_data.type == CB0R_NEG)
+        {
+            action->layer -= 1;
+        }
 
-        if(!cb0r_get(actionData, 3, &cbor_data) || cbor_data.type != CB0R_INT)
+        if(!cb0r_get(actionData, 3, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
         {
             MLOGE(TAG, "Failed to get action data %d", 2);
             return false;
         }
-        action->x = cbor_data.value;
+        action->x = cbor_data.value; 
+        if(cbor_data.type == CB0R_NEG)
+        {
+            action->x -= 1;
+        }
 
-        if(!cb0r_get(actionData, 4, &cbor_data) || cbor_data.type != CB0R_INT)
+        if(!cb0r_get(actionData, 4, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
         {
             MLOGE(TAG, "Failed to get action data %d", 3);
             return false;
         }
         action->y = cbor_data.value;
+        if(cbor_data.type == CB0R_NEG)
+        {
+            action->y -= 1;
+        }
+
         return true;
     }
 
@@ -60,11 +75,12 @@ namespace WrapAction
         
 
         // If index type is via ID. Only different layer of same ID is supported! No relative position!
-        if(!(actionInfo->indexType == ActionIndexType::ID && data.relativePos == true && data.x == 0 && data.y == 0))
+        if(actionInfo->indexType == ActionIndexType::ID && data.relativePos == true && data.x == 0 && data.y == 0)
         {
             MLOGE(TAG, "Invalid action");
             return false;
         }
+        
 
         ActionInfo newAction = *actionInfo;
 
@@ -100,6 +116,8 @@ namespace WrapAction
         newAction.depth++;
 
         UAD::ActionEvent actionEvent = {.type = UAD::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
-        return UAD->ExecuteActions(&newAction, &actionEvent);
+        UAD->ExecuteActions(&newAction, &actionEvent);
+        UAD->ExecuteEffects(&newAction, &actionEvent);
+        return true;
     }
 };
