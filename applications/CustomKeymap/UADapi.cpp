@@ -72,8 +72,3 @@ bool UAD::GetLayerState(uint8_t layer, LayerInfoType type)
     }
     return false;
 }
-
-uint8_t UAD::GetLayerCount()
-{
-    return layerCount;
-}
