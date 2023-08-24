@@ -47,17 +47,17 @@ class UAD
   int8_t IndexInBitmap(uint64_t bitmap, uint8_t index);  // Not this one has +1 offset (Because usually used in array index look up)
   uint8_t GetTopLayer();
 
- private:
-  uint8_t* uad;
   bool loaded = false;
-  size_t uadSize;
   Dimension mapSize;
-  uint8_t layerCount;
-  vector<uint32_t> actionList;
-  vector<uint32_t> effectList;
+  uint8_t layerCount = 0;
   uint16_t layerEnabled = 1;
   uint16_t layerPassthrough = 0xFFFF;
 
+  private:
+  size_t uadSize;
+  uint8_t* uad;
+  vector<uint32_t> actionList;
+  vector<uint32_t> effectList;
   uint16_t** actionLUT;
   uint16_t* effectLUT;
 
