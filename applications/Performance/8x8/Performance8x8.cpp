@@ -463,11 +463,11 @@ void Performance::ActionMenu() {
 
   // Note Pad
   UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap],
-                    (uint8_t*)note_pad_map[currentKeymap]);
+                    (uint8_t*)note_pad_map[currentKeymap], velocitySensitive);
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
-  UIButtonDimmable velocityToggle("Velocity Sensitive", Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; }, [&]() -> void { velocitySensitive = !velocitySensitive;});
+  UIButtonDimmable velocityToggle("Velocity Sensitive", Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; }, [&]() -> void { velocitySensitive = !velocitySensitive; notePad.SetVelocitySensitive(velocitySensitive);});
   actionMenu.AddUIComponent(velocityToggle, Point(6, 0));
 
   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
