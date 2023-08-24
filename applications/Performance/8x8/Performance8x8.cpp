@@ -288,20 +288,22 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   if (note == -1)
   { return; }
 
-  if(velocitySensitive)
+  if(!velocitySensitive)
   {
-    if (keyInfo->state == PRESSED)
-    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits())); }
-    else if (keyInfo->state == AFTERTOUCH)
-    { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
-    else if (keyInfo->state == RELEASED)
-    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 0)); }
-  } else {
-    if(keyInfo->state == PRESSED)
-    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 127)); }
-    else if(keyInfo->state == RELEASED)
-    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 0)); }
+    if(keyInfo->state == AFTERTOUCH){
+      return;
+    };
+    if(keyInfo->velocity > 0){
+      keyInfo->velocity = FRACT16_MAX;
+    };
   }
+
+  if (keyInfo->state == PRESSED)
+  { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));}
+  else if (keyInfo->state == AFTERTOUCH)
+  { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
+  else if (keyInfo->state == RELEASED)
+  { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, 0)); }
 }
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
