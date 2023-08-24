@@ -87,7 +87,7 @@ namespace WrapAction
         if(data.relativeLayer == true)
         {
             int8_t newLayer = newAction.layer + data.layer;
-            if(newLayer < 0 || newLayer >= UAD->GetLayerCount())
+            if(newLayer < 0 || newLayer >= UAD->layerCount)
             {
                 MLOGE(TAG, "Relative Layer out of range");
                 return false;
