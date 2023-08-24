@@ -107,7 +107,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
       else
       {
         // If the layer is not set to passthrough, stop executing actions
-        return false;
+        return true;
       }
     }
 
@@ -133,6 +133,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
       }
       ExecuteAction(&newActionInfo, &actionData, actionEvent);
     }
+    break; // Action on top layer executed, stop executing following layers
   }
   return true;
 }
