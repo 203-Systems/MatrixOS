@@ -41,8 +41,8 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
         if(oldTopLayer != newTopLayer)
         {
             MatrixOS::LED::PauseUpdate(true);
-            MatrixOS::LED::Fill(Color(0), 0);
             DeinitializeLayer(oldTopLayer);
+            MatrixOS::LED::Fill(Color(0), 0);
             InitializeLayer(newTopLayer);
             MatrixOS::LED::PauseUpdate(false);
         }
