@@ -9,7 +9,8 @@
 
 // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
-#include "applications/HIDtest/HIDtest.h"
+// #include "applications/HIDtest/HIDtest.h"
+// #include "applications/Example/Example.h"
 
 // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
@@ -18,5 +19,4 @@
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
-
 #define DEFAULT_BOOTANIMATION APPID("203 Electronics", "Matrix Boot")
