@@ -16,7 +16,8 @@ clean:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) clean
 	
 
-# fullclean:
+fullclean:
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) fullclean
 # 	if exist build rmdir build /S /Q
 #     if exist _build rmdir _build /S /Q
 #     if exist sdkconfig del sdkconfig /S /Q
