@@ -63,7 +63,7 @@ namespace LayerAction
           targetLayer = actionInfo->layer + data.layer;
         }
 
-        if(targetLayer < 0 || targetLayer >= UAD->GetLayerCount())
+        if(targetLayer < 0 || targetLayer >= UAD->layerCount)
         {
           MLOGE(TAG, "Invalid target layer");
           return false;
