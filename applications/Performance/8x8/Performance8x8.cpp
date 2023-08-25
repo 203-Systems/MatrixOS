@@ -3,7 +3,7 @@
 void Performance::Setup() {
   // Load variable
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
-  currentKeymap = compatibilityMode;
+  currentKeymap = 0;
 
   MatrixOS::NVS::GetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
   for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
@@ -116,12 +116,6 @@ int8_t Performance::XYToNote(Point xy) {
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   // MLOGD("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
   Point xy = NoteToXY(note);
-
-  if (compatibilityMode)
-  {
-    channel = 1;  // So it will use legacy palette
-  }
-
 
   if (xy && !(velocity == 0 && stfu))
   {
@@ -363,7 +357,8 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   }
 
   if (keyInfo->state == PRESSED)
-  { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));}
+  { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, note, keyInfo->velocity.to7bits()));  }
   else if (keyInfo->state == AFTERTOUCH)
   { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, 0, note, keyInfo->velocity.to7bits())); }
   else if (keyInfo->state == RELEASED)
@@ -470,53 +465,39 @@ void Performance::ActionMenu() {
 
   // Other Controls
   UIButtonDimmable velocityToggle("Velocity Sensitive", Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; }, [&]() -> void { velocitySensitive = !velocitySensitive; notePad.SetVelocitySensitive(velocitySensitive);});
-  actionMenu.AddUIComponent(velocityToggle, Point(6, 0));
+  actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
   UIButtonDimmable menuLockBtn(
       "Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
-  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));  // Current the currentKeymap is directly linked to
-                                                        // compatibilityMode. Do we really need > 2 keymap tho?
+  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5)); 
 
   UIButtonDimmable flickerReductionBtn(
       "Flicker Reduction", Color(0xAAFF00), [&]() -> bool { return stfu; },
       [&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
-  actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));  // Current the currentKeymap is directly linked to
-                                                                // compatibilityMode. Do we really need > 2 keymap tho?
+  actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0)); 
 
-  UIButtonDimmable compatibilityModeBtn(
-      "Compatibility Mode", Color(0xFFFF00), [&]() -> bool { return compatibilityMode; },
-      [&]() -> void {
-        compatibilityMode = !compatibilityMode;
-        currentKeymap = compatibilityMode;
-        notePad.SetColor(keymap_color[currentKeymap]);
-        notePad.SetChannel(keymap_channel[currentKeymap]);
-        notePad.SetMap((uint8_t*)note_pad_map[currentKeymap]);
-      });
-  actionMenu.AddUIComponent(compatibilityModeBtn, Point(7, 0));  // Current the currentKeymap is directly linked to
-                                                                 // compatibilityMode. Do we really need > 2 keymap
-                                                                 // tho?
 
   UIButtonWithColorFunc customPaletteViewer1 = UIButtonWithColorFunc(
       "Custom Palette 1", [&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void { if custom_palette_available[0] { PaletteViewer(0); } });
+      [&]() -> void { if (custom_palette_available[0]) { PaletteViewer(0); } });
   actionMenu.AddUIComponent(customPaletteViewer1, Point(2, 0));
 
   UIButtonWithColorFunc customPaletteViewer2 = UIButtonWithColorFunc(
       "Custom Palette 2", [&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void { if custom_palette_available[1] { PaletteViewer(1); } });
+      [&]() -> void { if (custom_palette_available[1]) { PaletteViewer(1); } });
   actionMenu.AddUIComponent(customPaletteViewer2, Point(3, 0));
 
   UIButtonWithColorFunc customPaletteViewer3 = UIButtonWithColorFunc(
       "Custom Palette 3", [&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void { if custom_palette_available[2] { PaletteViewer(2); } });
+      [&]() -> void { if (custom_palette_available[2]) { PaletteViewer(2); } });
   actionMenu.AddUIComponent(customPaletteViewer3, Point(4, 0));
 
   UIButtonWithColorFunc customPaletteViewer4 = UIButtonWithColorFunc(
       "Custom Palette 4", [&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void { if custom_palette_available[3] { PaletteViewer(3); } });
+      [&]() -> void { if (custom_palette_available[3]) { PaletteViewer(3); } });
   actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
   
   actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
