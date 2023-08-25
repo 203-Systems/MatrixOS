@@ -53,8 +53,7 @@ class UINotePad : public UIComponent {
     { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == RELEASED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note,
-                                      keyInfo->velocity.to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, 0));
     }
     return true;
   }

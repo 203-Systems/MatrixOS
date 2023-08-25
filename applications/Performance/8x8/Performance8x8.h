@@ -8,7 +8,7 @@
 
 #include "applications/BrightnessControl/BrightnessControl.h"
 
-#define NUMS_OF_KEYMAP 2
+#define NUMS_OF_KEYMAP 1
 #define STFU_DEFAULT 2
 
 class Performance : public Application {
@@ -22,7 +22,6 @@ class Performance : public Application {
 
   // Saved Variables
   CreateSavedVar("Performance", velocitySensitive, bool, true);
-  CreateSavedVar("Performance", compatibilityMode, bool, false);
   CreateSavedVar("Performance", menuLock, bool, false);
   CreateSavedVar("Performance", stfu, uint8_t, 0);
 
@@ -45,9 +44,9 @@ class Performance : public Application {
 
   void stfuScan();
 
-  const Color keymap_color[NUMS_OF_KEYMAP] = {Color(0xFF00FF), Color(0xFF5400)};
+  const Color keymap_color[NUMS_OF_KEYMAP] = {Color(0xFF00FF)};
 
-  const uint8_t keymap_channel[NUMS_OF_KEYMAP] = {0, 0};
+  const uint8_t keymap_channel[NUMS_OF_KEYMAP] = {0};
 
   const uint8_t keymap[NUMS_OF_KEYMAP][8][8] = {{{64, 65, 66, 67, 96, 97, 98, 99},  // Drum Rack
                                                  {60, 61, 62, 63, 92, 93, 94, 95},
@@ -56,35 +55,16 @@ class Performance : public Application {
                                                  {48, 49, 50, 51, 80, 81, 82, 83},
                                                  {44, 45, 46, 47, 76, 77, 78, 79},
                                                  {40, 41, 42, 43, 72, 73, 74, 75},
-                                                 {36, 37, 38, 39, 68, 69, 70, 71}},
-                                                {{81, 82, 83, 84, 85, 86, 87, 88},  // Unmapped XY
-                                                 {71, 72, 73, 74, 75, 76, 77, 78},
-                                                 {61, 62, 63, 64, 65, 66, 67, 68},
-                                                 {51, 52, 53, 54, 55, 56, 57, 58},
-                                                 {41, 42, 43, 44, 45, 46, 47, 48},
-                                                 {31, 32, 33, 34, 35, 36, 37, 38},
-                                                 {21, 22, 23, 24, 25, 26, 27, 28},
-                                                 {11, 12, 13, 14, 15, 16, 17, 18}}};
+                                                 {36, 37, 38, 39, 68, 69, 70, 71}}};
 
   const uint8_t touch_keymap[NUMS_OF_KEYMAP][4][8]  // Touchbar map, top mirrors left and right (For Matrix rotation)
       {{{100, 101, 102, 103, 104, 105, 106, 107},   // Drum Rack
         {100, 101, 102, 103, 104, 105, 106, 107},
         {108, 109, 110, 111, 112, 113, 114, 115},
-        {108, 109, 110, 111, 112, 113, 114, 115}},
-       {{89, 79, 69, 59, 49, 39, 29, 19},  // Unmapped XY
-        {89, 79, 69, 59, 49, 39, 29, 19},
-        {81, 71, 61, 51, 41, 31, 21, 11},
-        {81, 71, 61, 51, 41, 31, 21, 11}}};
-
-  // {28, 29, 30, 31, 32, 33, 34, 35}, //Drum Rack (four side unique)
-  // {100,101,102,103,104,105,106,107},
-  // {116,117,118,119,120,121,122,123},
-  // {108,109,110,111,112,113,114,115}
+        {108, 109, 110, 111, 112, 113, 114, 115}}};
 
   const uint8_t note_pad_map[NUMS_OF_KEYMAP][2][8]{{{100, 101, 102, 103, 104, 105, 106, 107},  // Drum Rack
-                                                    {108, 109, 110, 111, 112, 113, 114, 115}},
-                                                   {{89, 79, 69, 59, 49, 39, 29, 19},  // Unmapped XY
-                                                    {81, 71, 61, 51, 41, 31, 21, 11}}};
+                                                    {108, 109, 110, 111, 112, 113, 114, 115}}};
 
   const uint8_t user1_keymap_optimized[64] = {
       0x07, 0x17, 0x27, 0x37, 0x06, 0x16, 0x26, 0x36, 0x05, 0x15, 0x25, 0x35, 0x04, 0x14, 0x24, 0x34,

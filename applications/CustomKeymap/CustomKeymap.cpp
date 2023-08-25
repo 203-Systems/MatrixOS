@@ -63,8 +63,7 @@ void CustomKeymap::ActionMenu() {
 
   UIButtonDimmable menuLockBtn(
       "Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
-  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));  // Current the currentKeymap is directly linked to
-                                                        // compatibilityMode. Do we really need > 2 keymap tho? 
+  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5)); 
 
   UILayerControl layerControl("Activated Layers", Color(0x00FFFF), Dimension(8, 2), &uad, UAD::LayerInfoType::ACTIVE);
   actionMenu.AddUIComponent(layerControl, Point(0, 0));
