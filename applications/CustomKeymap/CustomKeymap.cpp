@@ -33,6 +33,7 @@ void CustomKeymap::Reload()
 }
 
 void CustomKeymap::ActionMenu() {
+  MatrixOS::LED::CopyLayer(0, 1);
   MLOGD("CustomKeymap", "Enter Action Menu");
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
@@ -84,6 +85,9 @@ void CustomKeymap::ActionMenu() {
    });
 
   actionMenu.Start();
+  MatrixOS::LED::CopyLayer(1, 0);
+
+  uad.InitializeLayer(); // Reinitialize layer after exit action menu so layer led update correctly
 
   MLOGD("CustomKeymap", "Exit Action Menu");
 }
