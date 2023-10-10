@@ -15,6 +15,7 @@
 
 // // DEVICE APPLICATION
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
+#include "applications/Matrix/ForceCalibration/ForceCalibration.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
 
