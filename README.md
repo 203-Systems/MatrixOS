@@ -27,7 +27,10 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
    TODO
 ### Compile and Upload
    Compile and Upload for Matrix Pro:
-   Set Matrix Pro into bootloader mode (Hold the FN key while powering up or going though system settings) and the following
+   1. Clone this repo to your local system and run the following while inside the repo directory to clone the library dependencies: `git submodule init; git submodule update --recursive`
+   2. Install toolchain for ESP32-S3: [Windows](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/get-started/windows-setup.html) or [MacOS and Linux](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/get-started/linux-macos-setup.html)
+   3. Ensure that `idf.py --version` returns something like `ESP-IDF v5.1.1` in the shell session you're going to use for the upcoming build and firmware upload step. If it does not, ensure you've followed `Step 4. Set up the environment variables` for [Windows](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/get-started/windows-setup.html#launching-esp-idf-environment) or [MacOS and Linux](https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/get-started/linux-macos-setup.html#step-4-set-up-the-environment-variables)
+   3. Set Matrix Pro into bootloader mode (Hold the center FN key while powering up or going though system settings) and the following
    ```
    make DEVICE=Matrix build uf2-upload
    ```
