@@ -349,3 +349,7 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size) {
   InitializeLayer();
   return true;
 }
+
+void UAD::UnloadUAD() {
+  loaded = false;
+}

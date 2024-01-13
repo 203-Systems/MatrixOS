@@ -15,6 +15,7 @@ class UAD
   ~UAD();
 
   bool LoadUAD(uint8_t* uad, size_t size);
+  void UnloadUAD();
   void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
 
   // UAD Runtime
