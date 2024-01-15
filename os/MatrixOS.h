@@ -124,8 +124,8 @@ namespace MatrixOS
     bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta = true);  // If include meta, it will send the correct header and ending;
 
     // Those APIs are only for MidiPort to use
-    noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
-    noexpose void UnregisterMidiPort(uint16_t port_id);
+    noexpose bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
+    noexpose void CloseMidiPort(uint16_t port_id);
     noexpose bool Receive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
