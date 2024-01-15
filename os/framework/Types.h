@@ -6,10 +6,16 @@
 #include <list>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <vector>
+#include <deque>
 
+using std::list;
+using std::map;
 using std::string;
+using std::unordered_map;
 using std::vector;
+using std::deque;
 
 #ifdef __cplusplus
 extern "C"
