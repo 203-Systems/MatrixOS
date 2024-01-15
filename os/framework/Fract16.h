@@ -9,12 +9,6 @@ class Fract16 {
 
   Fract16(uint16_t value, uint8_t bits) {
     this->value = value << (16 - bits);
-    // TODO: Fill the empty part of the
-    // uint16_t fill = value
-    // for(uint8_t i = 0; i < (16 - bits) / bits)
-    // {
-
-    // }
   }
 
   // uint8_t to14bits(){return value >> 2;}
