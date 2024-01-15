@@ -85,10 +85,14 @@ namespace MatrixOS
 
   namespace USB
   {
-    noexpose void Init();
-
     bool Inited(void);     // If USB Stack is initialized, not sure what it will be needed but I added it anyways
     bool Connected(void);  // If USB is connected
+
+    bool Connect(void);     // Connect USB
+    bool Disconnect(void);  // Disconnect USB
+
+    bool Begin(void);                              // Start USB stack
+    void End(void);                              // End USB stack
 
     namespace CDC
     {

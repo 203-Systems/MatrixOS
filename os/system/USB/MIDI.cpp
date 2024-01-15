@@ -1,34 +1,110 @@
 #include "MatrixOS.h"
+#include "MIDI.h"
 
-namespace MatrixOS::USB::MIDI
+namespace MatrixOS::USB
 {
-  std::vector<MidiPort*> ports;
-  std::vector<TaskHandle_t> portTasks;
-  
-  std::vector<uint8_t> sysex_buffer;
 
-  void portTask(void* param) {
-    uint8_t itf = ports.size();
-    string portname = "USB MIDI " + std::to_string(itf + 1);
-    MidiPort port = MidiPort(portname, MIDI_PORT_USB + itf);
-    ports.push_back(&port);
-    MidiPacket packet;
-    while (true)
+  MIDI::MIDI(string interface_name, uint16_t ep_size)
+  {
+      this->interface_name = interface_name;
+      this->ep_size = ep_size;
+      this->cable_nums = 1;
+
+      // MIDI::midi_interfaces.push_back(this);
+      // this->midi_id = MIDI::midi_interfaces.size() - 1;
+      USB::AddInterface(this);
+      Begin();
+  }
+
+  MIDI::MIDI(uint8_t cable_nums, string interface_name, uint16_t ep_size)
+  { 
+      this->interface_name = interface_name;
+      this->ep_size = ep_size;
+      this->cable_nums = cable_nums;
+
+      // MIDI::midi_interfaces.push_back(this);
+      // this->midi_id = MIDI::midi_interfaces.size() - 1;
+      USB::AddInterface(this);
+      Begin();
+  }
+
+
+  MIDI::~MIDI()
+  {
+    // for (TaskHandle_t port_task : port_tasks)
+    // {
+    //   vTaskDelete(port_task);
+    // }
+    
+    // for (MidiPort midi_port : midi_ports)
+    // {
+    //   midi_port.Close();
+    // }
+
+    // MIDI::midi_interfaces[this->midi_id] = NULL;
+  }
+
+
+  void MIDI::Begin()
+  {
+    uint8_t itf = USB::RequestInterface();
+    uint8_t itf_streaming = USB::RequestInterface();
+    uint8_t ep_out = USB::RequestEndpoint(EndpointType::Out);
+    uint8_t ep_in = USB::RequestEndpoint(EndpointType::In);
+
+    uint8_t itf_str_idx = USB::AddString(interface_name);
+    vector <uint8_t> cable_str_idx;
+
+    ESP_LOGI("USB MIDI", "Adding MIDI Interface: %s", interface_name.c_str());
+    ESP_LOGI("USB MIDI", "ITF: %d", itf);
+    ESP_LOGI("USB MIDI", "ITF Streaming: %d", itf_streaming);
+    ESP_LOGI("USB MIDI", "EP OUT: %d", ep_out);
+    ESP_LOGI("USB MIDI", "EP IN: %d", ep_in);
+    ESP_LOGI("USB MIDI", "ITF String Index: %d", itf_str_idx);
+
+    // Add interface descriptor
+    USB::AddInterfaceDescriptor({TUD_MIDI_DESC_HEAD(itf, itf_str_idx, cable_nums)});
+    for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
     {
-      if (port.Get(&packet, portMAX_DELAY))
-      { tud_midi_stream_write(port.id % 0x100, packet.data, packet.Length()); }
+      vector<uint8_t> desc = {TUD_MIDI_DESC_JACK_DESC(cable_idx + 1, 0)};
+      USB::AddInterfaceDescriptor(desc);
+    }
+    USB::AddInterfaceDescriptor({TUD_MIDI_DESC_EP(ep_out, ep_size, cable_nums)});
+    for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
+    {
+      vector<uint8_t> desc = {TUD_MIDI_JACKID_IN_EMB(cable_idx + 1)};
+      USB::AddInterfaceDescriptor(desc);
+    }
+    USB::AddInterfaceDescriptor({TUD_MIDI_DESC_EP(ep_in, ep_size, cable_nums)});
+    for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
+    {
+      vector<uint8_t> desc = {TUD_MIDI_JACKID_OUT_EMB(cable_idx + 1)};
+      USB::AddInterfaceDescriptor(desc);
+    }
+
+    // Start port tasks
+    for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
+    { 
+      // TODO Generate name
+      this->midi_ports.push_back(MidiPort("Midi Port", MIDI_PORT_USB + (itf << 4) + cable_idx));
+      // xTaskCreate(PortTask, "Midi Port Task", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
+      //     &this->port_tasks[cable_idx]);
     }
   }
 
-  void Init() {
-    ports.reserve(USB_MIDI_COUNT);
-    portTasks.reserve(USB_MIDI_COUNT);
-    for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
-    {
-      string portname = "USB MIDI " + std::to_string(i + 1);
-      xTaskCreate(portTask, portname.c_str(), configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
-                  &portTasks[i]);
-    }
+  // TODO NEED REWORK!
+  // PASS IN itf for tud_midi_stream_write
+  // Generate id based on # of MIDI interfaces + cable number
+
+
+  void MIDI::PortTask(void* param) {
+    // MidiPort* port = (MidiPort*)param;
+    // MidiPacket packet;
+    // while (true)
+    // {
+    //   if (port->Get(&packet, portMAX_DELAY))
+    //   { tud_midi_n_stream_write(port->id % 0x100, packet.data, packet.Length()); }
+    // }
   }
 }
 
