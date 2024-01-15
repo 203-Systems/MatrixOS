@@ -10,6 +10,9 @@
 // // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
+// #include "applications/HIDtest/HIDtest.h"
+#include "applications/USBtest/USBtest.h"
+// #include "applications/Example/Example.h"
 
 // // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
