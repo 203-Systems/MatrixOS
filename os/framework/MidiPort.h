@@ -4,8 +4,8 @@
 class MidiPort;
 namespace MatrixOS::MIDI
 {
-  bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
-  void UnregisterMidiPort(uint16_t port_id);
+  bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
+  void CloseMidiPort(uint16_t port_id);
   bool Receive(MidiPacket midipacket, uint32_t timeout_ms);
 }
 
@@ -15,14 +15,14 @@ class MidiPort {
   uint16_t id = MIDI_PORT_INVALID;
   QueueHandle_t midi_queue;
 
-  uint16_t Register(uint16_t id, uint16_t queue_size = 64, uint16_t id_range = 1) {
+  uint16_t Open(uint16_t id, uint16_t queue_size = 64, uint16_t id_range = 1) {
     if (id == MIDI_PORT_INVALID)  // Check if ID is valid
     { return MIDI_PORT_INVALID; }
     if (this->id != MIDI_PORT_INVALID)  // If already registered, go unregister
-    { Unregister(); }
+    { Close(); }
     for (uint16_t i = 0; i < id_range; i++)  // Request for ID
     {
-      if (MatrixOS::MIDI::RegisterMidiPort(id + i, this))
+      if (MatrixOS::MIDI::OpenMidiPort(id + i, this))
       {
         this->id = id + i;
         break;
@@ -34,8 +34,8 @@ class MidiPort {
     return this->id;
   }
 
-  void Unregister() {
-    MatrixOS::MIDI::UnregisterMidiPort(id);
+  void Close() {
+    MatrixOS::MIDI::CloseMidiPort(id);
     this->id = MIDI_PORT_INVALID;
     vQueueDelete(midi_queue);
   }
@@ -66,13 +66,13 @@ class MidiPort {
   MidiPort() {}
   MidiPort(string name, uint16_t id, uint16_t queue_size = 64) {
     this->name = name;
-    Register(id, queue_size);
+    Open(id, queue_size);
   }
 
   MidiPort(string name, EMidiPortID port_class, uint16_t queue_size = 64) {
     this->name = name;
-    Register(port_class, queue_size, 0x100);
+    Open(port_class, queue_size, 0x100);
   }
 
-  ~MidiPort() { Unregister(); }
+  ~MidiPort() { Close(); }
 };

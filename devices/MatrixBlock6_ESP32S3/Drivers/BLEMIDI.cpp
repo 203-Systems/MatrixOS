@@ -72,7 +72,7 @@ namespace Device
       else
       {
         ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
-        midiPort->Unregister();
+        midiPort->Close();
         vTaskDelete(portTaskHandle);
         started = false;
       }

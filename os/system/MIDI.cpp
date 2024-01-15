@@ -92,7 +92,7 @@ namespace MatrixOS::MIDI
     return true;
   }
 
-  bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort) {
+  bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort) {
     if (port_id < 0x100)
       return false;
 
@@ -104,7 +104,7 @@ namespace MatrixOS::MIDI
     return false;
   }
 
-  void UnregisterMidiPort(uint16_t port_id) {
+  void CloseMidiPort(uint16_t port_id) {
     midiPortMap.erase(port_id);
   }
 
