@@ -4,9 +4,13 @@ void BootAnimation::Loop() {
   switch(stage)
   {
     case 0:
-      if(Idle(MatrixOS::USB::Connected())) {stage++;}
+      // MatrixOS::USB::Begin(); 
+      stage++;
       break;
     case 1:
+      if(Idle(MatrixOS::USB::Connected())) {stage++;}
+      break;
+    case 2:
       Boot();
       break;
     default:

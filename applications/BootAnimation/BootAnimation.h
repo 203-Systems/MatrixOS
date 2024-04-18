@@ -2,13 +2,15 @@
 
 #include "MatrixOS.h"
 #include "../Application.h"
+#include "system/USB/MIDI.h"
 
 class BootAnimation : public Application {
  public:
-  void Loop() override;
-
   uint8_t stage = 0;
   bool idle_hold = false;
+
+  // MatrixOS::USB::MIDI usbMidi = MatrixOS::USB::MIDI();
+  void Loop() override;
 
   virtual bool Idle(bool ready) {
     return true;
