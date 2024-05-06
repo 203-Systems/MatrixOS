@@ -10,7 +10,6 @@
 #include "system/UserVariables.h"
 #include "task.h"
 #include "timers.h"
-#include "tusb.h"
 
 #include "./system/HID/HIDSpecs.h"
 
@@ -88,10 +87,10 @@ namespace MatrixOS
     bool Inited(void);     // If USB Stack is initialized, not sure what it will be needed but I added it anyways
     bool Connected(void);  // If USB is connected
 
-    bool Connect(void);     // Connect USB
-    bool Disconnect(void);  // Disconnect USB
+    void Connect(void);     // Connect USB
+    void Disconnect(void);  // Disconnect USB
 
-    bool Begin(void);                              // Start USB stack
+    void Begin(void);                              // Start USB stack
     void End(void);                              // End USB stack
 
     namespace CDC

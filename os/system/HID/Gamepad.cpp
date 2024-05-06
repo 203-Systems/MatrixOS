@@ -22,7 +22,7 @@ namespace MatrixOS::HID::Gamepad
     void Write(void){ 
         // tud_hid_n_report(0, REPORT_ID_GAMEPAD, &_report, sizeof(_report));
         MLOGD("Gamepad", "%d %d %d %d %d %d %d %d", _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis, _report.ryAxis, _report.dPad, _report.buttons);
-        tud_hid_n_gamepad_report(0, REPORT_ID_GAMEPAD, _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis, _report.ryAxis, _report.dPad, _report.buttons);
+        // tud_hid_n_gamepad_report(0, REPORT_ID_GAMEPAD, _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis, _report.ryAxis, _report.dPad, _report.buttons);
     }
 
     void Press(GamepadKeycode b)

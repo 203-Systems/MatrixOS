@@ -59,7 +59,7 @@ set(LIB_SRC
 
 set(MATRIX_OS_INC
   "${CMAKE_SOURCE_DIR}"
-  "${CMAKE_SOURCE_DIR}/core/esp32s3"
+  "${CMAKE_SOURCE_DIR}/core/esp32sx"
   "${CMAKE_SOURCE_DIR}/Devices"
   "${CMAKE_SOURCE_DIR}/os"
   "${CMAKE_SOURCE_DIR}/os/system/USB"

@@ -2,7 +2,6 @@
 
 #include "MatrixOS.h"
 #include "../Application.h"
-#include "system/USB/MIDI.h"
 
 class BootAnimation : public Application {
  public:

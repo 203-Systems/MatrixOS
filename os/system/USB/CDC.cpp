@@ -5,11 +5,13 @@ namespace MatrixOS::USB::CDC
 {
 
   bool Connected(void) {
-    return tud_cdc_n_connected(0);
+    // return tud_cdc_n_connected(0);
+    return false;
   }
 
   uint32_t Available(void) {
-    return tud_cdc_n_available(0);
+    // return tud_cdc_n_available(0);
+    return 0;
   }
 
   void Poll(void) {
@@ -17,14 +19,14 @@ namespace MatrixOS::USB::CDC
   }
 
   void Print(string str) {
-    for (uint16_t i = 0; i < str.length(); i++)
-    {
-      while (!tud_cdc_n_write_available(0))
-      {}
-      tud_cdc_n_write_char(0, str[i]);
-    }
-    // tud_cdc_n_write_str(0, str);
-    Flush();
+    // for (uint16_t i = 0; i < str.length(); i++)
+    // {
+    //   while (!tud_cdc_n_write_available(0))
+    //   {}
+    //   tud_cdc_n_write_char(0, str[i]);
+    // }
+    // // tud_cdc_n_write_str(0, str);
+    // Flush();
   }
 
   void Println(string str) {
@@ -34,9 +36,9 @@ namespace MatrixOS::USB::CDC
   }
 
   void WriteChar(char c, void* arg) {
-    while (Connected() && !tud_cdc_n_write_available(0))
-    { taskYIELD(); }
-    tud_cdc_n_write_char(0, c);
+    // while (Connected() && !tud_cdc_n_write_available(0))
+    // { taskYIELD(); }
+    // tud_cdc_n_write_char(0, c);
   }
 
   void Printf(string format, ...) {
@@ -57,7 +59,7 @@ namespace MatrixOS::USB::CDC
   }
 
   void Flush(void) {
-    tud_cdc_n_write_flush(0);
+    // tud_cdc_n_write_flush(0);
   }
 
   // void Read() //Prob won't work, implementation need work
@@ -74,11 +76,13 @@ namespace MatrixOS::USB::CDC
   // }
 
   int8_t Read(void) {
-    return tud_cdc_n_read_char(0);
+    // return tud_cdc_n_read_char(0);
+    return -1;
   }
 
   uint32_t ReadBytes(void* buffer, uint32_t length) {
-    return tud_cdc_n_read(0, buffer, length);
+    // return tud_cdc_n_read(0, buffer, length);
+    return 0;
   }
 
   string ReadString(void) {
@@ -105,5 +109,5 @@ namespace MatrixOS::USB::CDC
 }
 
 void putchar_(char character) {
-  tud_cdc_n_write_char(0, character);
+  // tud_cdc_n_write_char(0, character);
 }

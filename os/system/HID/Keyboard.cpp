@@ -99,18 +99,18 @@ namespace MatrixOS::HID::Keyboard
 
     void Send()
     {
-        if(!HID::Ready()) {
-            return;
-        }
+        // if(!HID::Ready()) {
+        //     return;
+        // }
 
-        if (tud_suspended())
-        {
-        // Wake up host if we are in suspend mode
-        // and REMOTE_WAKEUP feature is enabled by host
-        tud_remote_wakeup();
-        }
+        // if (tud_suspended())
+        // {
+        // // Wake up host if we are in suspend mode
+        // // and REMOTE_WAKEUP feature is enabled by host
+        // tud_remote_wakeup();
+        // }
 
-        tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
+        // tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
     }
 
     // User API

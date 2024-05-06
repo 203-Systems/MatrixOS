@@ -36,56 +36,45 @@ set(MATRIX_OS_APPLICATION_SRC "${MATRIX_OS_APPLICATION_C}" "${MATRIX_OS_APPLICAT
 
 idf_component_get_property( FREERTOS_ORIG_INCLUDE_PATH freertos ORIG_INCLUDE_PATH)
 
-set(TINYUSB "${CMAKE_SOURCE_DIR}/lib/tinyusb")
-
-set(LIB_SRC                             
-  "${TINYUSB}/src/tusb.c"
-  "${TINYUSB}/src/common/tusb_fifo.c"
-  "${TINYUSB}/src/device/usbd.c"
-  "${TINYUSB}/src/device/usbd_control.c"
-  "${TINYUSB}/src/class/audio/audio_device.c"
-  "${TINYUSB}/src/class/cdc/cdc_device.c"
-  "${TINYUSB}/src/class/dfu/dfu_device.c"
-  "${TINYUSB}/src/class/dfu/dfu_rt_device.c"
-  "${TINYUSB}/src/class/hid/hid_device.c"
-  "${TINYUSB}/src/class/midi/midi_device.c"
-  "${TINYUSB}/src/class/msc/msc_device.c"
-  "${TINYUSB}/src/class/net/ecm_rndis_device.c"
-  "${TINYUSB}/src/class/net/ncm_device.c"
-  "${TINYUSB}/src/class/usbtmc/usbtmc_device.c"
-  "${TINYUSB}/src/class/video/video_device.c"
-  "${TINYUSB}/src/class/vendor/vendor_device.c"
-  "${TINYUSB}/src/portable/espressif/esp32sx/dcd_esp32sx.c"
-  "${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
-  "${CMAKE_SOURCE_DIR}/lib/cb0r/src/cb0r.c"
-)
+set(CHERRRYUSB "${CMAKE_SOURCE_DIR}/lib/CherryUSB")
 
 set(MATRIX_OS_INC
   "${CMAKE_SOURCE_DIR}"
-  "${CMAKE_SOURCE_DIR}/core/esp32s3"
+  "${CMAKE_SOURCE_DIR}/core/esp32sx"
   "${CMAKE_SOURCE_DIR}/Devices"
   "${CMAKE_SOURCE_DIR}/os"
-  "${CMAKE_SOURCE_DIR}/os/system/USB"
 )
 
 set(LIB_INC 
-  "${CMAKE_SOURCE_DIR}/lib/tinyusb/src"
   "${CMAKE_SOURCE_DIR}/lib/printf/src"
   "${CMAKE_SOURCE_DIR}/lib/cb0r/include"
-  "${TINYUSB}/hw"
-  "${TINYUSB}/src"
+  "${CMAKE_SOURCE_DIR}/core/esp32sx/cherryusb_esp32"
+  "${CHERRRYUSB}/core"
+  "${CHERRRYUSB}/common"
+  "${CHERRRYUSB}/class/cdc"
+  "${CHERRRYUSB}/class/hid"
+  "${CHERRRYUSB}/class/msc"
+  "${CHERRRYUSB}/class/audio"
+  "${CHERRRYUSB}/class/midi"
+  "${CHERRRYUSB}/core"
+)
+
+set(LIB_SRC                             
+  "${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
+  "${CMAKE_SOURCE_DIR}/lib/cb0r/src/cb0r.c"
+  "${CMAKE_SOURCE_DIR}/core/esp32sx/cherryusb_esp32/esp_cherryusb.c"
+  "${CHERRRYUSB}/class/cdc/usbd_cdc.c"
+  "${CHERRRYUSB}/class/hid/usbd_hid.c"
+  "${CHERRRYUSB}/class/msc/usbd_msc.c"
+  "${CHERRRYUSB}/class/audio/usbd_audio.c"
+  "${CHERRRYUSB}/core/usbd_core.c"
+  "${CHERRRYUSB}/port/dwc2/usb_dc_dwc2.c"
 )
 
 idf_component_register(
                     SRCS ${MATRIX_OS_SRC} ${DEVICE_SRC} ${MATRIX_OS_APPLICATION_SRC} ${LIB_SRC}
                     INCLUDE_DIRS "." ${MATRIX_OS_INC} ${FAMILY_PATH} ${DEVICE_PATH} ${FREERTOS_ORIG_INCLUDE_PATH} ${LIB_INC}
-                    PRIV_REQUIRES "driver"
-                    REQUIRES freertos nvs_flash esp_wifi esp_adc esp_wifi esp_netif efuse ulp)
-
-target_compile_options(${COMPONENT_TARGET} PUBLIC
-  "-DCFG_TUSB_MCU=OPT_MCU_ESP32S3"
-  "-DCFG_TUSB_OS=OPT_OS_FREERTOS"
-)
+                    REQUIRES freertos nvs_flash esp_wifi esp_adc esp_wifi esp_netif efuse ulp usb)
 
 # Apply board specific content
 include("${DEVICE}/device.cmake")

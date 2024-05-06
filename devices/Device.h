@@ -1,7 +1,6 @@
 #pragma once
 
 #include "framework/Framework.h"
-#include "tusb.h"
 #include "Config.h"
 
 namespace Device

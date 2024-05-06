@@ -6,6 +6,7 @@ namespace MatrixOS::HID
 {
   bool Ready()
   {
-    return tud_hid_ready();
+    // return tud_hid_ready();
+    return false;
   }
 }
