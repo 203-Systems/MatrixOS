@@ -136,7 +136,7 @@ namespace Device
     // return 0;
   }
 
-  void Log(string format, va_list valst) {
+  void Log(string &format, va_list &valst) {
     // ESP_LOG_LEVEL((esp_log_level_t)level, tag.c_str(), format.c_str(), valst);
     // esp_log_writev(ESP_LOG_INFO, format.c_str(), valst);
 
