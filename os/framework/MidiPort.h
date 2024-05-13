@@ -16,10 +16,10 @@ class MidiPort {
   QueueHandle_t midi_queue;
 
   uint16_t Open(uint16_t id, uint16_t queue_size = 64) {
-    if (id == MIDI_PORT_INVALID)  // Check if ID is valid
+    if (id == MIDI_PORT_INVALID && id < 0x100)  // Check if ID is valid
     { return MIDI_PORT_INVALID; }
     id = MatrixOS::MIDI::OpenMidiPort(id, this);
-    if (this->id == MIDI_PORT_INVALID)  // Check if registered
+    if (id == MIDI_PORT_INVALID)  // Check if successful registrated
     { return MIDI_PORT_INVALID; }
     this->id = id;
     midi_queue = xQueueCreate(queue_size, sizeof(MidiPacket));
@@ -27,6 +27,8 @@ class MidiPort {
   }
 
   void Close() {
+    if (this->id == MIDI_PORT_INVALID)
+    { return; }
     MatrixOS::MIDI::CloseMidiPort(id);
     this->id = MIDI_PORT_INVALID;
     vQueueDelete(midi_queue);
@@ -35,11 +37,15 @@ class MidiPort {
   void SetName(string name) { this->name = name; }
 
   bool Get(MidiPacket* midipacket_dest, uint32_t timeout_ms = 0) {
+    if (this->id == MIDI_PORT_INVALID)
+    { return false; }
     return xQueueReceive(midi_queue, (void*)midipacket_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
   }
 
   // This will modify the midipacket to be the same as the midiport
   bool Send(MidiPacket midipacket, uint32_t timeout_ms = 0) {
+    if (this->id == MIDI_PORT_INVALID)
+    { return false; }
     midipacket.port = this->id;
     return MatrixOS::MIDI::Receive(midipacket, timeout_ms);
   }
