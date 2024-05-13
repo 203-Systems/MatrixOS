@@ -43,7 +43,7 @@ namespace MatrixOS
     void ExecuteAPP(string author, string app_name);
     void ExitAPP();
 
-    void ErrorHandler(string error = NULL);
+    void ErrorHandler(const string &error);
   }
 
   namespace LED

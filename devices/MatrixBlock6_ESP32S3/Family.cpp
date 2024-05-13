@@ -150,11 +150,6 @@ namespace Device
   }
 }
 
-namespace MatrixOS::SYS
-{
-  void ErrorHandler(char const* error);
-}
-
 extern "C" {
 int main();
 void app_main(void) {

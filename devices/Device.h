@@ -82,7 +82,7 @@ namespace MatrixOS
 
   namespace SYS
   {
-    void ErrorHandler(string error);
+    void ErrorHandler(const string &error);
   }
 
   namespace KEYPAD
