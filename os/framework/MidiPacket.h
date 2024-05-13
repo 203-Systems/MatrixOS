@@ -25,17 +25,27 @@ enum EMidiStatus : uint8_t {
   SysExEnd = MIDIv1_SYSEX_END
 };
 
-// Port number can be any of the following class + 0~0xFF
+// Port number can be any of the following class + 0x01~0x7F (0x00 is reserved)
 enum EMidiPortID : uint16_t {
-  MIDI_PORT_ALL_CLASS = 0x0,  // This is the default midi out mode, it will send midi from first of all output type
+  // System Macro
+  // This will send midi to each class's first port
+  MIDI_PORT_FIRST_OF_ALL_EXT_CLASS = 0x0000,
+  // This will send midi to each class's all ports, 0x20 + 0 send to all ext ports, 0x20 + 1 send to all usb ports, etc
+  MIDI_PORT_ALL_EXT_PORTS = 0x0080,  
+  MIDI_PORT_INVALID = 0x00FF,
+
+  // External
+  MIDI_PORT_EXTERNAL = 0x100, // Mark the start of external port section
   MIDI_PORT_USB = 0x100,
   MIDI_PORT_PHYISCAL = 0x200,
   MIDI_PORT_BLUETOOTH = 0x300,
   MIDI_PORT_WIRELESS = 0x400,
   MIDI_PORT_RTP = 0x500,
   MIDI_PORT_DEVICE_CUSTOM = 0x600,
+
+  // Internal / Embedded
+  MIDI_PORT_INTERNAL = 0x8000, // Mark the start of internal port section
   MIDI_PORT_SYNTH = 0x8000,
-  MIDI_PORT_INVALID = 0xFFFF
 };
 
 struct MidiPacket {

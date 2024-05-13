@@ -20,14 +20,19 @@ namespace MatrixOS::MIDI
   }
 
   bool Send(MidiPacket midiPacket, uint16_t timeout_ms) {
-    if (midiPacket.port == MIDI_PORT_ALL_CLASS)
+    if (midiPacket.port ==  MIDI_PORT_FIRST_OF_ALL_EXT_CLASS)
     {
+      // Start with the USB class
       uint16_t targetClass = MIDI_PORT_USB;
+      // Temp variable to check if the packet was sent to the class
       bool send = false;
+      // Iterate through all the ports in the midiPortMap
       for (std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.begin(); port != midiPortMap.end(); ++port)
       {
-        if (port->first >= MIDI_PORT_DEVICE_CUSTOM + 0x100)
+        // If port class exceeds the ext class. That means we have done our job
+        if (port->first >= 0x8000) // 0x8000 means the port is internal ports (between system components or embedded hw)
         { return send; }
+        // If the port is of higher class than the previous targetClass, send the packet to that port
         if (port->first >= targetClass)
         {
           send |= port->second->Receive(midiPacket, timeout_ms);
@@ -37,7 +42,9 @@ namespace MatrixOS::MIDI
     }
     else
     {
+      // Find the port in the midiPortMap
       std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.find(midiPacket.port);
+      // If the port is found, send the packet to that port
       if (port != midiPortMap.end())
       { return port->second->Receive(midiPacket, timeout_ms); }
     }
@@ -92,20 +99,57 @@ namespace MatrixOS::MIDI
     return true;
   }
 
-  bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort) {
-    if (port_id < 0x100)
-      return false;
-
-    if (midiPortMap.find(port_id) == midiPortMap.end())
+  uint16_t OpenMidiPort(uint16_t port_id, MidiPort* midiPort) {
+    // Invalid section (system macro)
+    // MLOGV("MIDI", "Opening port: %d", port_id);
+    if (port_id < 0x100 || port_id == MIDI_PORT_INVALID)
     {
-      midiPortMap[port_id] = midiPort;
-      return true;
+      // MLOGE("MIDI", "Opening invalid port: %d", port_id);
+      return MIDI_PORT_INVALID;
     }
-    return false;
+
+    // Dynamic port allocation
+    else if ((port_id & 0xFF) == 0)
+    {
+      // Find next available port
+      uint16_t port_class = port_id & 0xFF00;
+      port_id = port_class + 1;
+      // MLOGV("MIDI", "Dynamic port allocation under class: 0x%04x", port_class);
+      for(std::map<uint16_t, MidiPort*>::iterator port = midiPortMap.begin(); port != midiPortMap.end(); ++port)
+      {
+        if(port->first == port_id)
+        {
+          port_id++;
+        }
+        else if (port->first > (port_id | 0xFF))
+        {
+          break;
+        }
+      }
+      if (port_id > port_class && port_id < (port_class + 0x80))
+      {
+        midiPortMap[port_id] = midiPort;
+        // MLOGV("MIDI", "Dynamic port allocated: %d", port_id);
+        return port_id;
+      }
+    }
+
+    // Static port allocation - Check if port range is valid and not already taken
+    else if ((port_id & 0xFF) < 0x80)
+    { 
+      if (midiPortMap.find(port_id) == midiPortMap.end())
+      {
+        midiPortMap[port_id] = midiPort;
+        // MLOGV("MIDI", "Static port allocated: %d", port_id);
+        return port_id;
+      }
+    }
+    // MLOGE("MIDI", "Failed to open port: %d", port_id);
+    return MIDI_PORT_INVALID;
   }
 
-  void CloseMidiPort(uint16_t port_id) {
-    midiPortMap.erase(port_id);
+  bool CloseMidiPort(uint16_t port_id) {
+    return midiPortMap.erase(port_id) > 0;
   }
 
   enum SysExState : uint8_t {IDLE, PENDING, COMPLETE, RELEASE, INVALID}; 
