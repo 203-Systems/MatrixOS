@@ -20,7 +20,7 @@ namespace Device
   void Bootloader();
   void ErrorHandler();
 
-  void Log(string format, va_list valst);
+  void Log(string &format, va_list &valst);
 
   string GetSerial();
 
@@ -73,11 +73,11 @@ namespace MatrixOS
 {
   namespace Logging
   {
-    void LogError(string tag, string format, ...);
-    void LogWarning(string tag, string format, ...);
-    void LogInfo(string tag, string format, ...);
-    void LogDebug(string tag, string format, ...);
-    void LogVerbose(string tag, string format, ...);
+    void LogError(const string &tag, const string &format, ...);
+    void LogWarning(const string &tag, const string &format, ...);
+    void LogInfo(const string &tag, const string &format, ...);
+    void LogDebug(const string &tag, const string &format, ...);
+    void LogVerbose(const string &tag, const string &format, ...);
   }
 
   namespace SYS

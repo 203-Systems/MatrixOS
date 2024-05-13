@@ -19,12 +19,13 @@ namespace MatrixOS::SYS
 
 namespace MatrixOS::Logging
 {
-  void LogError(string tag, string format, ...);
-  void LogWarning(string tag, string format, ...);
-  void LogInfo(string tag, string format, ...);
-  void LogDebug(string tag, string format, ...);
-  void LogVerbose(string tag, string format, ...);
+  void LogError(const string &tag, const string &format, ...);
+  void LogWarning(const string &tag, const string &format, ...);
+  void LogInfo(const string &tag, const string &format, ...);
+  void LogDebug(const string &tag, const string &format, ...);
+  void LogVerbose(const string &tag, const string &format, ...);
 }
+
 
 struct KeyConfig {
   bool velocity_sensitive;
