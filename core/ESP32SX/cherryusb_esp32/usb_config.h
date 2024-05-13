@@ -1,18 +1,18 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * Copyright (c) 2022, sakumisu
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#pragma once
+#ifndef CHERRYUSB_CONFIG_H
+#define CHERRYUSB_CONFIG_H
 
 #define CHERRYUSB_VERSION     0x010200
 #define CHERRYUSB_VERSION_STR "v1.2.0"
 
+/* ================ USB common Configuration ================ */
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
-
-/* ================ USB common Configuration ================ */
+#include <freertos/FreeRTOS.h>
 
 #define CONFIG_USB_PRINTF(...) esp_rom_printf(__VA_ARGS__)
 
@@ -35,10 +35,10 @@
 #define USB_NOCACHE_RAM_SECTION
 
 /* ================= USB Device Stack Configuration ================ */
-/* Ep0 max transfer buffer, specially for receiving data from ep0 out */
+
 /* Ep0 in and out transfer buffer */
 #ifndef CONFIG_USBDEV_REQUEST_BUFFER_LEN
-#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 256
+#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 512
 #endif
 
 /* Setup packet log for debug */
@@ -96,14 +96,10 @@
 #define CONFIG_USBDEV_RNDIS_VENDOR_DESC "CherryUSB"
 #endif
 
-/******
 #define CONFIG_USBDEV_RNDIS_USING_LWIP
-******/
 
 /* ================ USB HOST Stack Configuration ================== */
-// NOTE: Below configurations are removed to Kconfig, `idf.py menuconfig` to config them
 
-/******
 #define CONFIG_USBHOST_MAX_RHPORTS          1
 #define CONFIG_USBHOST_MAX_EXTHUBS          1
 #define CONFIG_USBHOST_MAX_EHPORTS          4
@@ -118,7 +114,6 @@
 #define CONFIG_USBHOST_MAX_VIDEO_CLASS   1
 
 #define CONFIG_USBHOST_DEV_NAMELEN 16
-******/
 
 #ifndef CONFIG_USBHOST_PSC_PRIO
 #define CONFIG_USBHOST_PSC_PRIO 0
@@ -127,17 +122,13 @@
 #define CONFIG_USBHOST_PSC_STACKSIZE 2048
 #endif
 
-// #define CONFIG_USBHOST_GET_STRING_DESC
+//#define CONFIG_USBHOST_GET_STRING_DESC
 
 // #define CONFIG_USBHOST_MSOS_ENABLE
-/******
 #define CONFIG_USBHOST_MSOS_VENDOR_CODE 0x00
-******/
 
 /* Ep0 max transfer buffer */
-/******
 #define CONFIG_USBHOST_REQUEST_BUFFER_LEN 512
-******/
 
 #ifndef CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT
 #define CONFIG_USBHOST_CONTROL_TRANSFER_TIMEOUT 500
@@ -147,39 +138,91 @@
 #define CONFIG_USBHOST_MSC_TIMEOUT 5000
 #endif
 
-/* ================ USB Device Port Configuration ================*/
+/* This parameter affects usb performance, and depends on (TCP_WND)tcp eceive windows size,
+ * you can change with 2K,4K,8K,16K,default is 2K to get one TCP_MSS
+ */
+#ifndef CONFIG_USBHOST_RNDIS_ETH_MAX_RX_SIZE
+#define CONFIG_USBHOST_RNDIS_ETH_MAX_RX_SIZE (2048)
+#endif
+#ifndef CONFIG_USBHOST_RNDIS_ETH_MAX_TX_SIZE
+#define CONFIG_USBHOST_RNDIS_ETH_MAX_TX_SIZE (2048)
+#endif
 
-#ifndef CONFIG_USBDEV_MAX_BUS
-#define CONFIG_USBDEV_MAX_BUS 1 // for now, bus num must be 1 except hpm ip
+#define CONFIG_USBHOST_BLUETOOTH_HCI_H4
+// #define CONFIG_USBHOST_BLUETOOTH_HCI_LOG
+
+#ifndef CONFIG_USBHOST_BLUETOOTH_TX_SIZE
+#define CONFIG_USBHOST_BLUETOOTH_TX_SIZE 2048
+#endif
+#ifndef CONFIG_USBHOST_BLUETOOTH_RX_SIZE
+#define CONFIG_USBHOST_BLUETOOTH_RX_SIZE 2048
 #endif
 
 /* ================ USB Device Port Configuration ================*/
 
-#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
+#define CONFIG_USBDEV_MAX_BUS 1    // for now, bus num must be 1 except hpm ip
+
+#define CONFIG_USBDEV_EP_NUM 6
+
+#define CONFIG_USB_DEFAULT_EP_SIZE 64
+
+extern uint8_t fifo_size[CONFIG_USBDEV_EP_NUM - 1];
+
+/* ---------------- FSDEV Configuration ---------------- */
+//#define CONFIG_USBDEV_FSDEV_PMA_ACCESS 2 // maybe 1 or 2, many chips may have a difference
+
+/* ---------------- DWC2 Configuration ---------------- */
+#define CONFIG_USB_DWC2_RXALL_FIFO_SIZE (200 - 16 - (fifo_size[0] + fifo_size[1] + fifo_size[2] + fifo_size[3] + fifo_size[4]) / 4)
+#define CONFIG_USB_DWC2_TX0_FIFO_SIZE (64 / 4)
+#define CONFIG_USB_DWC2_TX1_FIFO_SIZE (fifo_size[0] / 4)
+#define CONFIG_USB_DWC2_TX2_FIFO_SIZE (fifo_size[1] / 4)
+#define CONFIG_USB_DWC2_TX3_FIFO_SIZE (fifo_size[2] / 4)
+#define CONFIG_USB_DWC2_TX4_FIFO_SIZE (fifo_size[3] / 4)
+#define CONFIG_USB_DWC2_TX5_FIFO_SIZE (fifo_size[4] / 4)
 #define USBD_BASE           0x60080000
-// esp32s2/s3 has 7 endpoints in device mode (include ep0)
-#define CONFIG_USBDEV_EP_NUM 7
-#define CONFIG_USB_DWC2_RAM_SIZE 1280
-#define CONFIG_USB_DWC2_TX6_FIFO_SIZE (128)
-#elif CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32P4
-#define CONFIG_USB_HS
-#define USBD_BASE           0x60080000
-// todo: check c5, p4 in later
-#define CONFIG_USBDEV_EP_NUM 7
-#else
-#error "Unsupported SoC"
-#endif
+
+/* ---------------- MUSB Configuration ---------------- */
+// #define CONFIG_USB_MUSB_SUNXI
 
 /* ================ USB Host Port Configuration ==================*/
-#define USBH_IRQHandler         USBH_IRQHandler
-#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-#define USBH_BASE               0x60080000
-// esp32s2/s3 has 8 endpoints in host mode (include ep0)
-#define CONFIG_USBHOST_PIPE_NUM 8
-#elif CONFIG_IDF_TARGET_ESP32C5 || CONFIG_IDF_TARGET_ESP32P4
-// todo: check c5, p4 in later
-#define USBH_BASE               0x60080000
-#define CONFIG_USBHOST_PIPE_NUM 8
-#else
-#error "Unsupported SoC"
+
+#define CONFIG_USBHOST_MAX_BUS  1
+
+#define CONFIG_USBHOST_PIPE_NUM 7
+
+/* ---------------- EHCI Configuration ---------------- */
+
+#define CONFIG_USB_EHCI_HCCR_OFFSET     (0x0)
+#define CONFIG_USB_EHCI_FRAME_LIST_SIZE 1024
+#define CONFIG_USB_EHCI_QH_NUM          CONFIG_USBHOST_PIPE_NUM
+#define CONFIG_USB_EHCI_QTD_NUM         3
+#define CONFIG_USB_EHCI_ITD_NUM         20
+// #define CONFIG_USB_EHCI_HCOR_RESERVED_DISABLE
+// #define CONFIG_USB_EHCI_CONFIGFLAG
+// #define CONFIG_USB_EHCI_ISO
+// #define CONFIG_USB_EHCI_WITH_OHCI
+
+/* ---------------- OHCI Configuration ---------------- */
+#define CONFIG_USB_OHCI_HCOR_OFFSET (0x0)
+
+/* ---------------- XHCI Configuration ---------------- */
+#define CONFIG_USB_XHCI_HCCR_OFFSET (0x0)
+
+/* ---------------- DWC2 Configuration ---------------- */
+/*
+ * (largest USB packet used / 4) + 1 for status information + 1 transfer complete +
+ * 1 location each for Bulk/Control endpoint for handling NAK/NYET scenario
+ */
+#define CONFIG_USB_DWC2_NPTX_FIFO_SIZE (256/16)
+#define CONFIG_USB_DWC2_RX_FIFO_SIZE (256/8 + 2)
+#define CONFIG_USB_DWC2_PTX_FIFO_SIZE (200 - CONFIG_USB_DWC2_RX_FIFO_SIZE - CONFIG_USB_DWC2_NPTX_FIFO_SIZE)
+
+/* ---------------- MUSB Configuration ---------------- */
+// #define CONFIG_USB_MUSB_SUNXI
+
+extern uint32_t _usbh_class_info_start;
+extern uint32_t __usbh_class_info_end;
+#define __usbh_class_info_start__ _usbh_class_info_start
+#define __usbh_class_info_end__ _usbh_class_info_end
+
 #endif
