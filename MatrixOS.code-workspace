@@ -118,7 +118,11 @@
 			"format": "cpp",
 			"charconv": "cpp",
 			"span": "cpp",
-			"tusb_private.h": "c"
+			"tusb_private.h": "c",
+			"complex": "cpp",
+			"netfwd": "cpp",
+			"numbers": "cpp",
+			"semaphore": "cpp"
 		}
 	}
 }

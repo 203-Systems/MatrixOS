@@ -19,8 +19,8 @@ namespace Device
     KeyPad::Init();
     
 
-    HWMidi::Init();
-    BLEMIDI::Init(name);
+    // HWMidi::Init();
+    // BLEMIDI::Init(name);
 
     // WIFI::Init();
     // ESPNOW::Init();
@@ -31,8 +31,8 @@ namespace Device
     Device::KeyPad::Start();
     Device::LED::Start();
 
-    if (bluetooth)
-    { BLEMIDI::Start(); }
+    // if (bluetooth)
+    // { BLEMIDI::Start(); }
 
 #ifdef FACTORY_CONFIG
     if (esp_efuse_block_is_empty(EFUSE_BLK3))

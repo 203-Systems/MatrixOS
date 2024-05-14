@@ -2,30 +2,63 @@
 
 namespace MatrixOS::USB {
 
-  MIDI::MIDI(string interface_name, uint16_t ep_size) {
-    this->interface_name = interface_name;
-    this->ep_size = ep_size;
-    this->cable_nums = 1;
+  MIDI::MIDI() {
+
+  }
+
+  vector<MidiPort>* MIDI::Begin(string interface_name, uint16_t ep_size) {
+    // this->interface_name = interface_name;
+    // this->ep_size = ep_size;
+    // this->cable_nums = 1;
 
     // MIDI::midi_interfaces.push_back(this);
     // this->midi_id = MIDI::midi_interfaces.size() - 1;
     // USB::AddInterface(this);
-    Begin();
+    Init(1, interface_name, ep_size);
+    return &this->midi_ports;
   }
 
-  MIDI::MIDI(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
-    this->interface_name = interface_name;
-    this->ep_size = ep_size;
-    this->cable_nums = cable_nums;
+  vector<MidiPort>* MIDI::Begin(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
+    // this->interface_name = interface_name;
+    // this->ep_size = ep_size;
+    // this->cable_nums = cable_nums;
 
-    Begin();
+    Init(cable_nums, interface_name, ep_size);
+    return &this->midi_ports;
   }
 
   MIDI::~MIDI() {
 
   }
 
-  void MIDI::Begin() {
+  USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[512];
+// USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[512];
+
+  void MIDI::InterfaceTask(void* param) {
+    vector<uint8_t>* out_ep = (vector<uint8_t>*)param;
+    while(1)
+    {
+      if(USB::inited)
+      {
+        for(uint8_t i = 0; i < out_ep->size(); i++) {
+          uint8_t ep = (*out_ep)[i];
+          if (!MIDI::out_ep_busy[ep])
+          {
+            MLOGV("USBMIDI", "Starting read on ep %d to %p\n", ep, &read_buffer[4 * i]);
+            int ret = usbd_ep_start_read(USB_BUS_ID, ep, &read_buffer[4 * i], 4);
+            if (ret == 0)
+            {
+              MIDI::out_ep_busy[ep] = true;
+            }
+          }
+        }
+      }
+      taskYIELD();
+    }
+  }
+
+
+  void MIDI::Init(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
 
     // ESP_LOGI("USB MIDI", "Adding MIDI Interface: %s", interface_name.c_str());
     // ESP_LOGI("USB MIDI", "ITF: %d", itf);
@@ -46,7 +79,7 @@ namespace MatrixOS::USB {
       /* MIDI Streaming (MS) Interface */
       USB::AddInterfaceDescriptor({AUDIO_MS_STANDARD_DESCRIPTOR_INIT(itf_streaming->intf_num, 2)});
       /* MS Header */
-      uint8_t total_length = 9 + 9 + 9 + 7 + cable_nums * 2 * (6 + 9) + cable_nums * 2 * (9 + 4 + 1);
+      uint8_t total_length = 7 + cable_nums * 2 * (6 + 9) + cable_nums * 2 * (9 + 4 + 1);
       USB::AddInterfaceDescriptor({MIDI_CS_HEADER_DESCRIPTOR_INIT(total_length)});
     }
 
@@ -71,54 +104,68 @@ namespace MatrixOS::USB {
 
     // Endpoint descriptors
 
+    midi_ports.clear();
+    midi_ports.reserve(cable_nums);
+
+    in_ep.clear();
+    in_ep.reserve(cable_nums);
+
+    out_ep.clear();
+    out_ep.reserve(cable_nums);
+
     for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
     {
       // if (cable has input)
       {
+        usbd_endpoint* ep = USB::AddEndpoint(EndpointType::Out, MIDI::usbd_midi_bulk_out);
+        MLOGV("USBMIDI", "Adding MIDI Out Endpoint: 0x%02x\n", ep->ep_addr);
+        out_ep.push_back(ep->ep_addr);
+        out_ep_buffer[ep->ep_addr] = pvPortMalloc(4);
+        out_ep_busy[ep->ep_addr] = false;
+        vector<uint8_t> desc = {MIDI_DESCRIPTOR_ENDPOINT(ep->ep_addr, ep_size, 1), MIDI_JACKID_IN(MIDI_JACK_TYPE_EMBEDDED, cable_idx)};
+        USB::AddInterfaceDescriptor(desc);
+      }
+
+      // if (cable has output)
+      {
         usbd_endpoint* ep = USB::AddEndpoint(EndpointType::In, MIDI::usbd_midi_bulk_in);
+        MLOGV("USBMIDI", "Adding MIDI In Endpoint: 0x%02x\n", ep->ep_addr);
+        in_ep.push_back(ep->ep_addr);
+        in_ep_buffer[ep->ep_addr] = pvPortMalloc(4);
+        in_ep_busy[ep->ep_addr] = false;
         vector<uint8_t> desc = {MIDI_DESCRIPTOR_ENDPOINT(ep->ep_addr, ep_size, 1), MIDI_JACKID_OUT(MIDI_JACK_TYPE_EMBEDDED, cable_idx)};
         USB::AddInterfaceDescriptor(desc);
       }
       
-      // if (cable has output)
-      {
-        usbd_endpoint* ep = USB::AddEndpoint(EndpointType::Out, MIDI::usbd_midi_bulk_out);
-        vector<uint8_t> desc = {MIDI_DESCRIPTOR_ENDPOINT(ep->ep_addr, ep_size, 1), MIDI_JACKID_IN(MIDI_JACK_TYPE_EMBEDDED, cable_idx)};
-        USB::AddInterfaceDescriptor(desc);
-      }
+      this->midi_ports.push_back(MidiPort("Midi Port", MIDI_PORT_USB));
     }
 
-      // // Start port tasks
-      // for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
-      // {
-      //   // TODO Generate name
-      //   this->midi_ports.push_back(MidiPort("Midi Port", MIDI_PORT_USB + (itf << 4) + cable_idx));
-      //   // xTaskCreate(PortTask, "Midi Port Task", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
-      //   //     &this->port_tasks[cable_idx]);
-      // }
+    
+    // uint8_t ep_idx = USB_EP_GET_IDX(in_ep[0]);
+    // void* otg_inep = (void*)USB_OTG_INEP(ep_idx);
+
+    // MLOGV("MIDI" "ep: %d ep_idx: %d otg_inep: %p\n", in_ep[0], ep_idx, otg_inep);
+
+
+    xTaskCreate(InterfaceTask, "Midi Port Task", configMINIMAL_STACK_SIZE * 4, &this->out_ep, configMAX_PRIORITIES - 2, &this->interface_task);
   }
 
-  // TODO NEED REWORK!
-  // PASS IN itf for tud_midi_stream_write
-  // Generate id based on # of MIDI interfaces + cable number
-
-
-  void MIDI::PortTask(void* param) {
-      // MidiPort* port = (MidiPort*)param;
-      // MidiPacket packet;
-      // while (true)
-      // {
-      //   if (port->Get(&packet, portMAX_DELAY))
-      //   { tud_midi_n_stream_write(port->id % 0x100, packet.data, packet.Length()); }
-      // }
-  }
 
   void MIDI::usbd_midi_bulk_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
   {
+    // USB_LOG_RAW("Bulk Out - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
+    out_ep_busy[ep] = false;
+    // memcpy(&write_buffer[0], &read_buffer[0], nbytes);
+    // usbd_ep_start_read(USB_BUS_ID, ep, read_buffer, sizeof(read_buffer));
   }
 
   void MIDI::usbd_midi_bulk_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
   {
+    // USB_LOG_RAW("Bulk In - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
+    in_ep_busy[ep] = false;
+    //   if ((nbytes % 64) == 0 && nbytes) {
+    //     usbd_ep_start_write(busid, ep, NULL, nbytes);
+    // } 
   }
 }
 

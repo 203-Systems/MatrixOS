@@ -39,6 +39,7 @@ class MidiPort {
   bool Get(MidiPacket* midipacket_dest, uint32_t timeout_ms = 0) {
     if (this->id == MIDI_PORT_INVALID)
     { return false; }
+    return false;
     return xQueueReceive(midi_queue, (void*)midipacket_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
   }
 

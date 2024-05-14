@@ -38,3 +38,6 @@ uf2-upload: $(BUILD)/$(PROJECT)-$(DEVICE).uf2 upload
 
 menuconfig:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) menuconfig
+
+gdb:
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) gdb

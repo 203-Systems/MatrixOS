@@ -2,6 +2,8 @@
 #include "applications/Setting/Setting.h"
 #include "System.h"
 
+#include "system/USB/MIDI.h"
+
 #include "Applications.h" // This is from device layer
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
@@ -65,6 +67,10 @@ namespace MatrixOS::SYS
     }
   }
 
+  USB::MIDI midi;
+  USB::MIDI midi2;
+
+
   void Init() {
     Device::DeviceInit();
 
@@ -83,6 +89,11 @@ namespace MatrixOS::SYS
     MLOGI("Logging", "This is an info log");
     MLOGD("Logging", "This is a debug log");
     MLOGV("Logging", "This is a verbose log");
+
+    // usb preload
+    // midi.Begin(2, "");
+    midi.Begin();
+    USB::Begin();
 
     ExecuteAPP(DEFAULT_BOOTANIMATION);
 
@@ -220,7 +231,7 @@ namespace MatrixOS::SYS
       LED::SetColor(Point(3, 2), 0xFFFFFF);
       LED::SetColor(Point(3, 3), 0xFFFFFF);
     }
-    
+
     LED::Update();
 
     Device::ErrorHandler();  // Low level indicator in case LED and USB failed

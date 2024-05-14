@@ -1,20 +1,19 @@
 #include "Device.h"
+#include "MatrixOS.h"
 
 namespace Device
 {
     namespace HWMidi
     {
-        MidiPort* midiPort;
+        MidiPort midiPort;
         TaskHandle_t portTaskHandle = NULL;
         uart_port_t uartChannel = UART_NUM_2;
 
         void portTask(void* param) {
-            MidiPort port = MidiPort("Midi Port", MIDI_PORT_PHYISCAL);
-            midiPort = &port;
             MidiPacket packet;
             while (true)
             {
-                if (port.Get(&packet, portMAX_DELAY))
+                if (midiPort.Get(&packet, portMAX_DELAY))
                 { uart_write_bytes(uartChannel, packet.data, 3); }
             }
         }
@@ -40,7 +39,16 @@ namespace Device
             ESP_ERROR_CHECK(uart_driver_install(uartChannel, rx_buffer_size, 0, 0, NULL, 0));
             ESP_ERROR_CHECK(uart_param_config(uartChannel, &uart_config));
             ESP_ERROR_CHECK(uart_set_pin(uartChannel, tx_gpio, rx_gpio, GPIO_NUM_NC, GPIO_NUM_NC));
-            xTaskCreate(portTask, "Hardware Midi Port", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,&portTaskHandle);
+            midiPort = MidiPort("Midi Port", MIDI_PORT_PHYISCAL);
+
+            if (midiPort.id != MIDI_PORT_INVALID)
+            { 
+                xTaskCreate(portTask, "Hardware Midi Port", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,&portTaskHandle);
+            }
+            else
+            {   
+                MLOGE("Hardware Midi", "Failed to open Hardware Midi Port (ID: %d)", midiPort.id);
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ namespace MatrixOS::USB
 
   inline list<usbd_interface> interfaces;
 
-  #ifndef BIDIRECTIONAL_ENDPOINTS
+  #ifdef BIDIRECTIONAL_ENDPOINTS
   inline list<usbd_endpoint> in_endpoints;
   inline list<usbd_endpoint> out_endpoints;
   #else
@@ -41,7 +41,7 @@ namespace MatrixOS::USB
   enum class EndpointType:uint8_t { Out = 0, In = 1 };
 
   usbd_interface* AddInterface();
-  usbd_endpoint* AddEndpoint(EndpointType type, usbd_endpoint_callback cb);
+  usbd_endpoint* AddEndpoint(EndpointType type, usbd_endpoint_callback cb, uint16_t ep_size = CONFIG_USB_DEFAULT_EP_SIZE);
   uint8_t AddString(const string& str);
 
   void AddInterfaceDescriptor(const vector<uint8_t>& desc);
