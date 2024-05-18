@@ -92,7 +92,7 @@ namespace MatrixOS::SYS
 
     // usb preload
     // midi.Begin(2, "");
-    midi.Begin();
+    midi.Init();
     USB::Begin();
 
     ExecuteAPP(DEFAULT_BOOTANIMATION);

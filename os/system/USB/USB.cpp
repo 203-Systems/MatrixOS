@@ -1,17 +1,58 @@
 #include "USB.h"
 #include "MatrixOS.h"
+#include "MIDI.h"
 
 
 // Located in usb_config.h, extern here to make them dynamic
 uint8_t fifo_size[CONFIG_USBDEV_EP_NUM - 1];
+
+//   void usbd_midi_bulk_out2(uint8_t busid, uint8_t ep, uint32_t nbytes)
+//   {
+//       USB_LOG_RAW("Bulk Out - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
+//       midiBufferData* buffer = &MatrixOS::USB::MIDI::out_ep_buffer[ep];
+//       USB_LOG_RAW("USB MIDI IN %02X %02X %02X %02X", buffer->data1, buffer->data2, buffer->data3, buffer->data4);
+//       usbd_ep_start_read(USB_BUS_ID, ep, (uint8_t*)buffer, 4);
+//   }
+
 
 namespace MatrixOS::USB
 {
     vector<uint8_t> usb_descriptor;
 
     void Init()
-    {
+    {   
+        MLOGV("USB", "Initializing USB");
+        if (inited) { End();}
 
+        inited = false;
+        connected = false;
+        suspended = false;
+        mounted = false;
+        remoteWakeup = false;
+
+        for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
+        {
+          fifo_size[i] = 0;
+        }
+
+        string_desc_arr.clear();
+        usb_interface_descs.clear();
+        usb_endpoint_descs.clear();
+
+        interfaces.clear();
+
+        #ifdef BIDIRECTIONAL_ENDPOINTS
+        in_endpoints.clear();
+        out_endpoints.clear();
+        #else
+        endpoints.clear();
+        #endif
+
+        in_endpoints_addr.clear();
+        out_endpoints_addr.clear();
+
+        out_endpoints_transfer_ptr.clear();
+        out_endpoints_transfer_size.clear();
     }
 
     bool Inited() {
@@ -32,30 +73,31 @@ namespace MatrixOS::USB
         // This is used to pervent re initialization of the USB controller
         // when the endpoint is changed.
         // Drop previous FIFO sizes
-        #ifdef BIDIRECTIONAL_ENDPOINTS
-        //TODO
-        #else
-        uint8_t fifo_size_temp[CONFIG_USBDEV_EP_NUM - 1];
 
-        for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
-        {
-          fifo_size_temp[i] = 0;
-        }
+        // #ifdef BIDIRECTIONAL_ENDPOINTS
+        // //TODO
+        // #else
+        // uint8_t fifo_size_temp[CONFIG_USBDEV_EP_NUM - 1];
 
-        for (usbd_endpoint& ep : endpoints)
-        {
-          uint8_t fifo_ptr = (ep.ep_addr % 0x80) - 1;
-          if (fifo_ptr < CONFIG_USBDEV_EP_NUM - 1)
-          {
-            fifo_size_temp[fifo_ptr] = fifo_size[fifo_ptr];
-          }
-        }
+        // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
+        // {
+        //   fifo_size_temp[i] = 0;
+        // }
 
-        for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
-        {
-          fifo_size[i] = fifo_size_temp[i];
-        }
-        #endif
+        // for (usbd_endpoint& ep : endpoints)
+        // {
+        //   uint8_t fifo_ptr = (ep.ep_addr % 0x80) - 1;
+        //   if (fifo_ptr < CONFIG_USBDEV_EP_NUM - 1)
+        //   {
+        //     fifo_size_temp[fifo_ptr] = fifo_size[fifo_ptr];
+        //   }
+        // }
+
+        // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
+        // {
+        //   fifo_size[i] = fifo_size_temp[i];
+        // }
+        // #endif
 
         // MLOGV("USB", "Post cleanup FIFO sizes");
         // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
@@ -83,9 +125,9 @@ namespace MatrixOS::USB
     void Disconnect(void) {
     }
     
+
     usbd_interface* AddInterface() {
-        usbd_interface intf;
-        interfaces.push_back(intf);
+        interfaces.emplace_back();
         usbd_interface* intf_ptr = &interfaces.back();
         usbd_add_interface(USB_BUS_ID, intf_ptr);
         return intf_ptr;
@@ -93,72 +135,54 @@ namespace MatrixOS::USB
 
     usbd_endpoint* AddEndpoint(EndpointType type, usbd_endpoint_callback cb, uint16_t ep_size)
     {
-        usbd_endpoint ep;
-        ep.ep_cb = cb;
-        
-        usbd_endpoint* ep_ptr;
-
-        #ifdef BIDIRECTIONAL_ENDPOINTS
-        if (type == EndpointType::In)
-        {
-            ep.ep_addr = 0x80 + in_endpoints.size() + 1;  // Starts from 0x81
-            if (in_endpoints.size() >= USB_MAX_IN_EP)
-            {
-                MatrixOS::SYS::ErrorHandler("Maximum number of USB IN endpoints reached");
-                return nullptr;
-            }
-            in_endpoints.push_back(ep);
-            ep_ptr = &in_endpoints.back();
-            
-            // TODO fix this for bidirectional endpoints
-            fifo_size[(ep_ptr->ep_addr % 0x80) - 1] = 0; // No FIFO for IN endpoints
-        }
-        else if (type == EndpointType::Out)
-        {
-            ep.ep_addr = out_endpoints.size() + 1;  // Starts from 0x01
-            if (in_endpoints.size() >= USB_MAX_OUT_EP)
-            {
-                MatrixOS::SYS::ErrorHandler("Maximum number of USB OUT endpoints reached");
-                return nullptr;
-            }
-            out_endpoints.push_back(ep);
-            ep_ptr = &out_endpoints.back();
-
-            // TODO fix this for bidirectional endpoints
-            fifo_size[(ep_ptr->ep_addr % 0x80) - 1] = ep_size;
-        }
-        #else
+        usbd_endpoint* ep;
         if (type == EndpointType::In)
         {   
-            ep.ep_addr = 0x80 + endpoints.size() + 1;  // Starts from 0x81
             if (endpoints.size() >= USB_MAX_IN_EP)
             {
                 MatrixOS::SYS::ErrorHandler("Maximum number of USB IN endpoints reached");
                 return nullptr;
             }
-            endpoints.push_back(ep);
-            ep_ptr = &endpoints.back();
 
-            fifo_size[(ep_ptr->ep_addr % 0x80) - 1] = ep_size;
+            endpoints.emplace_back();
+            ep = &endpoints.back();
+            ep->ep_addr = 0x80 + endpoints.size();  // Starts from 0x81
+            in_endpoints_addr.push_back(ep->ep_addr);
+
+            fifo_size[(ep->ep_addr % 0x80) - 1] = ep_size;
+            ep->ep_cb = cb;
         }
         else if (type == EndpointType::Out)
         {
-            ep.ep_addr = endpoints.size() + 1;  // Starts from 0x01
             if (endpoints.size() >= USB_MAX_OUT_EP)
             {
                 MatrixOS::SYS::ErrorHandler("Maximum number of USB OUT endpoints reached");
                 return nullptr;
             }
-            endpoints.push_back(ep);
-            ep_ptr = &endpoints.back();
 
-            fifo_size[(ep_ptr->ep_addr % 0x80) - 1] = ep_size;
+            endpoints.emplace_back();
+            ep = &endpoints.back();
+            ep->ep_addr = endpoints.size();  // Starts from 0x01
+            out_endpoints_addr.push_back(ep->ep_addr);
+
+            fifo_size[(ep->ep_addr % 0x80) - 1] = ep_size;
+            ep->ep_cb = cb;
         }
-        #endif
+        else
+        {
+            return nullptr;
+        }
 
-        usbd_add_endpoint(USB_BUS_ID, ep_ptr);
-        // printf("Added endpoint 0x%02X\n", ep_ptr->ep_addr);
-        return ep_ptr;
+        usbd_add_endpoint(USB_BUS_ID, ep);
+        MLOGV("USB", "Added endpoint 0x%02X\n", ep->ep_addr);
+        return ep;
+    }
+
+    void AddOutEndpointInitTransfer(uint8_t out_endpoint_addr, uint8_t* out_endpoint_transfer_ptr, uint8_t out_endpoint_transfer_size)
+    {   
+        out_endpoints_transfer_addr.push_back(out_endpoint_addr);
+        out_endpoints_transfer_ptr.push_back(out_endpoint_transfer_ptr);
+        out_endpoints_transfer_size.push_back(out_endpoint_transfer_size);
     }
 
     void AddInterfaceDescriptor(const vector<uint8_t>& desc)
@@ -298,40 +322,53 @@ namespace MatrixOS::USB
             case USBD_EVENT_SOF:
                 break;
             case USBD_EVENT_CONNECTED:
-                MLOGV("USB", "USB connected");
+                // MLOGV("USB", "USB connected");
                 connected = true;
                 break;
             case USBD_EVENT_DISCONNECTED:
-                MLOGV("USB", "USB disconnected");
+                // MLOGV("USB", "USB disconnected");
                 connected = false;
                 break;
             case USBD_EVENT_RESUME:
-                MLOGV("USB", "USB resumed");
+                // MLOGV("USB", "USB resumed");
                 suspended = false;
                 break;
             case USBD_EVENT_SUSPEND:
-                MLOGV("USB", "USB suspended");
+                // MLOGV("USB", "USB suspended");
                 suspended = true;
                 break;
             /* USB DEVICE STATUS */
             case USBD_EVENT_CONFIGURED:
+                // MLOGV("USB", "USB Configured");
+                USB_LOG_INFO("USB Configured (%p)\n", out_endpoints_transfer_addr.size());
+                for(uint8_t out_ep_idx = 0; out_ep_idx < out_endpoints_transfer_addr.size(); out_ep_idx++)
+                {
+                    USB_LOG_INFO("Request start read %d %p %d\n", out_endpoints_transfer_addr[out_ep_idx], out_endpoints_transfer_ptr[out_ep_idx], out_endpoints_transfer_size[out_ep_idx]);
+                    int ret = usbd_ep_start_read(USB_BUS_ID, out_endpoints_transfer_addr[out_ep_idx], out_endpoints_transfer_ptr[out_ep_idx], out_endpoints_transfer_size[out_ep_idx]);
+                    if (ret != 0)
+                    {
+                        USB_LOG_INFO("Failed to start initial read (%d)\n", ret);
+                    }
+                }
+                // out_endpoint_transfer_ptr.clear();
+                // out_endpoints_transfer_size.clear();
                 break;
             case USBD_EVENT_SET_INTERFACE:
                 break;
             case USBD_EVENT_SET_REMOTE_WAKEUP:
-                MLOGV("USB", "Remote wakeup set");
+                // MLOGV("USB", "Remote wakeup set");
                 remoteWakeup = true;
                 break;
             case USBD_EVENT_CLR_REMOTE_WAKEUP:
-                MLOGV("USB", "Remote wakeup cleared");
+                // MLOGV("USB", "Remote wakeup cleared");
                 remoteWakeup = false;
                 break;
             case USBD_EVENT_INIT:
-                MLOGV("USB", "USB inited");
+                // MLOGV("USB", "USB inited");
                 inited = true;
                 break;
             case USBD_EVENT_DEINIT:
-                MLOGV("USB", "USB deinited");
+                // MLOGV("USB", "USB deinited");
                 inited = false;
                 break;
             default:

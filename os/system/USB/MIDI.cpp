@@ -6,59 +6,37 @@ namespace MatrixOS::USB {
 
   }
 
-  vector<MidiPort>* MIDI::Begin(string interface_name, uint16_t ep_size) {
-    // this->interface_name = interface_name;
-    // this->ep_size = ep_size;
-    // this->cable_nums = 1;
+  // vector<MidiPort>* MIDI::Begin(string interface_name, uint16_t ep_size) {
+  //   // this->interface_name = interface_name;
+  //   // this->ep_size = ep_size;
+  //   // this->cable_nums = 1;
 
-    // MIDI::midi_interfaces.push_back(this);
-    // this->midi_id = MIDI::midi_interfaces.size() - 1;
-    // USB::AddInterface(this);
-    Init(1, interface_name, ep_size);
-    return &this->midi_ports;
-  }
+  //   // MIDI::midi_interfaces.push_back(this);
+  //   // this->midi_id = MIDI::midi_interfaces.size() - 1;
+  //   // USB::AddInterface(this);
+  //   Init(1, interface_name, ep_size);
+  //   return &this->midi_ports;
+  // }
 
-  vector<MidiPort>* MIDI::Begin(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
-    // this->interface_name = interface_name;
-    // this->ep_size = ep_size;
-    // this->cable_nums = cable_nums;
+  // vector<MidiPort>* MIDI::Begin(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
+  //   // this->interface_name = interface_name;
+  //   // this->ep_size = ep_size;
+  //   // this->cable_nums = cable_nums;
 
-    Init(cable_nums, interface_name, ep_size);
-    return &this->midi_ports;
-  }
+  //   Init(cable_nums, interface_name, ep_size);
+  //   return &this->midi_ports;
+  // }
 
   MIDI::~MIDI() {
 
   }
 
-  USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[512];
-// USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[512];
-
-  void MIDI::InterfaceTask(void* param) {
-    vector<uint8_t>* out_ep = (vector<uint8_t>*)param;
-    while(1)
-    {
-      if(USB::inited)
-      {
-        for(uint8_t i = 0; i < out_ep->size(); i++) {
-          uint8_t ep = (*out_ep)[i];
-          if (!MIDI::out_ep_busy[ep])
-          {
-            MLOGV("USBMIDI", "Starting read on ep %d to %p\n", ep, &read_buffer[4 * i]);
-            int ret = usbd_ep_start_read(USB_BUS_ID, ep, &read_buffer[4 * i], 4);
-            if (ret == 0)
-            {
-              MIDI::out_ep_busy[ep] = true;
-            }
-          }
-        }
-      }
-      taskYIELD();
-    }
+  vector<MidiPort>* MIDI::InitMultiCable(uint8_t cable_nums, string interface_name, uint16_t ep_size)
+  {
+    return Init(interface_name, ep_size, cable_nums);
   }
 
-
-  void MIDI::Init(uint8_t cable_nums, string interface_name, uint16_t ep_size) {
+  vector<MidiPort>* MIDI::Init(string interface_name, uint16_t ep_size, uint8_t cable_nums) {
 
     // ESP_LOGI("USB MIDI", "Adding MIDI Interface: %s", interface_name.c_str());
     // ESP_LOGI("USB MIDI", "ITF: %d", itf);
@@ -115,23 +93,24 @@ namespace MatrixOS::USB {
 
     for (uint8_t cable_idx = 0; cable_idx < cable_nums; cable_idx++)
     {
-      // if (cable has input)
+      // if (cable has input) TODO
       {
         usbd_endpoint* ep = USB::AddEndpoint(EndpointType::Out, MIDI::usbd_midi_bulk_out);
         MLOGV("USBMIDI", "Adding MIDI Out Endpoint: 0x%02x\n", ep->ep_addr);
         out_ep.push_back(ep->ep_addr);
-        out_ep_buffer[ep->ep_addr] = pvPortMalloc(4);
-        out_ep_busy[ep->ep_addr] = false;
+        out_ep_buffer[ep->ep_addr];
+        // out_ep_busy[ep->ep_addr] = false;
+        AddOutEndpointInitTransfer(ep->ep_addr, (uint8_t*)&out_ep_buffer[ep->ep_addr], 4);
         vector<uint8_t> desc = {MIDI_DESCRIPTOR_ENDPOINT(ep->ep_addr, ep_size, 1), MIDI_JACKID_IN(MIDI_JACK_TYPE_EMBEDDED, cable_idx)};
         USB::AddInterfaceDescriptor(desc);
       }
 
-      // if (cable has output)
+      // if (cable has output) TODO
       {
         usbd_endpoint* ep = USB::AddEndpoint(EndpointType::In, MIDI::usbd_midi_bulk_in);
         MLOGV("USBMIDI", "Adding MIDI In Endpoint: 0x%02x\n", ep->ep_addr);
         in_ep.push_back(ep->ep_addr);
-        in_ep_buffer[ep->ep_addr] = pvPortMalloc(4);
+        // in_ep_buffer[ep->ep_addr] = pvPortMalloc(4);
         in_ep_busy[ep->ep_addr] = false;
         vector<uint8_t> desc = {MIDI_DESCRIPTOR_ENDPOINT(ep->ep_addr, ep_size, 1), MIDI_JACKID_OUT(MIDI_JACK_TYPE_EMBEDDED, cable_idx)};
         USB::AddInterfaceDescriptor(desc);
@@ -141,31 +120,22 @@ namespace MatrixOS::USB {
     }
 
     
-    // uint8_t ep_idx = USB_EP_GET_IDX(in_ep[0]);
-    // void* otg_inep = (void*)USB_OTG_INEP(ep_idx);
-
-    // MLOGV("MIDI" "ep: %d ep_idx: %d otg_inep: %p\n", in_ep[0], ep_idx, otg_inep);
-
-
-    xTaskCreate(InterfaceTask, "Midi Port Task", configMINIMAL_STACK_SIZE * 4, &this->out_ep, configMAX_PRIORITIES - 2, &this->interface_task);
+    return &this->midi_ports;
   }
 
-
+  // Out EP, from host. So this is actually midi in
   void MIDI::usbd_midi_bulk_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
   {
-    // USB_LOG_RAW("Bulk Out - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
-    out_ep_busy[ep] = false;
-    // memcpy(&write_buffer[0], &read_buffer[0], nbytes);
-    // usbd_ep_start_read(USB_BUS_ID, ep, read_buffer, sizeof(read_buffer));
+      USB_LOG_RAW("Bulk Out - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
+      midiBufferData* buffer = &MIDI::out_ep_buffer[ep];
+      USB_LOG_RAW("USB MIDI IN %02X %02X %02X %02X", buffer->data1, buffer->data2, buffer->data3, buffer->data4);
+      usbd_ep_start_read(USB_BUS_ID, ep, (uint8_t*)buffer, 4);
   }
 
+  // Actually midi out
   void MIDI::usbd_midi_bulk_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
   {
-    // USB_LOG_RAW("Bulk In - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
-    in_ep_busy[ep] = false;
-    //   if ((nbytes % 64) == 0 && nbytes) {
-    //     usbd_ep_start_write(busid, ep, NULL, nbytes);
-    // } 
+      USB_LOG_RAW("Bulk In - busid: %d, ep: %d, nbytes: %d\n", busid, ep, nbytes);
   }
 }
 
