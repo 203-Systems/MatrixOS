@@ -29,7 +29,9 @@ namespace MatrixOS::SYS
     if (active_app == NULL)  // Default to launch shell
     {
       if (active_app_id != 0)
+      {
         MLOGD("Application Factory", "Can't find target app.");
+      }
       MLOGD("Application Factory", "Launching Shell");
       active_app_id = OS_SHELL;
       auto application = applications.find(active_app_id);
@@ -74,7 +76,6 @@ namespace MatrixOS::SYS
   void Init() {
     Device::DeviceInit();
 
-    // USB::Init();
     KEYPAD::Init();
     LED::Init();
 
@@ -91,6 +92,7 @@ namespace MatrixOS::SYS
     MLOGV("Logging", "This is a verbose log");
 
     // usb preload
+    USB::Init();
     // midi.Begin(2, "");
     midi.Init();
     USB::Begin();

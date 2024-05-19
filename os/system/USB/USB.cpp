@@ -67,45 +67,17 @@ namespace MatrixOS::USB
         
         // Generate USB descriptor
         uint8_t* desc = CompileDescriptor();
+        
         // Initialize USB
-
-        // Set FIFO size， change unused to 0. Maximum RX fifo 
-        // This is used to pervent re initialization of the USB controller
-        // when the endpoint is changed.
-        // Drop previous FIFO sizes
-
-        // #ifdef BIDIRECTIONAL_ENDPOINTS
-        // //TODO
-        // #else
-        // uint8_t fifo_size_temp[CONFIG_USBDEV_EP_NUM - 1];
-
-        // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
-        // {
-        //   fifo_size_temp[i] = 0;
-        // }
-
-        // for (usbd_endpoint& ep : endpoints)
-        // {
-        //   uint8_t fifo_ptr = (ep.ep_addr % 0x80) - 1;
-        //   if (fifo_ptr < CONFIG_USBDEV_EP_NUM - 1)
-        //   {
-        //     fifo_size_temp[fifo_ptr] = fifo_size[fifo_ptr];
-        //   }
-        // }
-
-        // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
-        // {
-        //   fifo_size[i] = fifo_size_temp[i];
-        // }
-        // #endif
-
-        // MLOGV("USB", "Post cleanup FIFO sizes");
-        // for (uint8_t i = 0; i < CONFIG_USBDEV_EP_NUM - 1; i++)
-        // {
-        //   MLOGV("USB", "FIFO-0%d size  %d", i + 1, fifo_size[i]);
-        // }
-
         usbd_desc_register(USB_BUS_ID, desc);
+
+        for (usbd_interface& intf : interfaces) {
+            usbd_add_interface(USB_BUS_ID, &intf);
+        }
+
+        for (usbd_endpoint& ep : endpoints) {
+            usbd_add_endpoint(USB_BUS_ID, &ep);
+        }
 
         MLOGV("USB", "Registering USB descriptor (REG BASE: %p)", USBD_BASE);
 
@@ -129,7 +101,8 @@ namespace MatrixOS::USB
     usbd_interface* AddInterface() {
         interfaces.emplace_back();
         usbd_interface* intf_ptr = &interfaces.back();
-        usbd_add_interface(USB_BUS_ID, intf_ptr);
+        intf_ptr->intf_num = interfaces.size() - 1;
+        MLOGV("USB", "Added interface %d\n", intf_ptr->intf_num);
         return intf_ptr;
     }
 
@@ -173,7 +146,6 @@ namespace MatrixOS::USB
             return nullptr;
         }
 
-        usbd_add_endpoint(USB_BUS_ID, ep);
         MLOGV("USB", "Added endpoint 0x%02X\n", ep->ep_addr);
         return ep;
     }
