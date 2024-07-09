@@ -11,20 +11,20 @@
 // #define LC8812
 
 #include "Family.h"
-
 #include "framework/SavedVariable.h"
 
 // #define FACTORY_CONFIG //Global switch for using factory config
 
-#define FACTORY_DEVICE_VERSION 'S' // Standard
+// #define FACTORY_DEVICE_VERSION 'S' // Standard
 // #define FACTORY_DEVICE_VERSION 'P' // Pro
-
+#ifdef FACTORY_CONFIG
 #if FACTORY_DEVICE_VERSION == 'S'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
 #elif FACTORY_DEVICE_VERSION == 'P'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
 #else 
 #error "FACTORY_DEVICE_VERSION is not correct"
+#endif
 #endif
 
 #define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
