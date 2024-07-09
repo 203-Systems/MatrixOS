@@ -2,14 +2,14 @@
 
 #include "framework/Framework.h"
 #include "tusb.h"
-#include "Config.h"
+#include "Config.h" // Make will load the correct config file based on the target device.
 
 namespace Device
 {
   /*
   Required Varaiables:
   const string name;
-  const uint16_t numsOfLED;
+  const uint16_t led_count;
   const uint8_t x_size;
   const uint8_t y_size;
   string serial_number;

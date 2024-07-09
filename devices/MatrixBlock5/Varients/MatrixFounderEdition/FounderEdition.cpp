@@ -76,7 +76,7 @@ namespace Device
   void LED_Init() {
     MX_DMA_Init();
     MX_TIM8_Init();
-    WS2812::Init(&htim8, TIM_CHANNEL_2, numsOfLED);
+    WS2812::Init(&htim8, TIM_CHANNEL_2, led_count);
   }
 
   void KeyPad_Init() {

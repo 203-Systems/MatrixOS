@@ -80,7 +80,7 @@ namespace MatrixOS::LED
     }
     vTaskSuspendAll();
     // MLOGV("LED", "Fill Layer %d", layer);
-    for (uint16_t index = 0; index < Device::numsOfLED; index++)
+    for (uint16_t index = 0; index < Device::led_count; index++)
     { frameBuffers[layer][index] = color; }
 
     xTaskResumeAll();
@@ -91,7 +91,7 @@ namespace MatrixOS::LED
 
   void CopyLayer(uint8_t dest, uint8_t src)
   {
-    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::numsOfLED * sizeof(Color));
+    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::led_count * sizeof(Color));
   }
 
   void Update(uint8_t layer) {
@@ -117,7 +117,7 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("Max LED Layer Exceded");
       return -1;
     }
-    Color* frameBuffer = (Color*)pvPortMalloc(Device::numsOfLED * sizeof(Color));
+    Color* frameBuffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
     if (frameBuffer == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("Failed to allocate new led buffer");

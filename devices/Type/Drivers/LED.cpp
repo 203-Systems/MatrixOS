@@ -56,7 +56,7 @@ namespace Device
       switch (ledClass)
       {
         case 0:
-          if (ledID < numsOfLED)
+          if (ledID < led_count)
             return ledID;
           break;
         case 3:   // Underglow
