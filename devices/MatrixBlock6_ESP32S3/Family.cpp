@@ -49,7 +49,7 @@ namespace Device
              KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->velocity)
     {
       KeyPad::Clear();
-      MatrixOS::UserVar::brightness.Set(Device::brightness_level[0]);
+      MatrixOS::UserVar::brightness.Set(Device::led_brightness_level[0]);
     }
     else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->velocity &&
              KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->velocity &&

@@ -64,7 +64,7 @@ namespace Device
   inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
   inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 120, 142};
 #define FINE_LED_BRIGHTNESS
-  inline uint8_t led_brightness_fine_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
+  inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
   inline uint8_t led_chunk_count = 2;
   inline ws2812_chunk led_chunk[2] = {{79, Color(0xFFFFFF), 1.0}, {40, Color(0xFFFFFF), 4}};
 

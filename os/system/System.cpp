@@ -154,7 +154,7 @@ namespace MatrixOS::SYS
     MLOGD("System", "Next Brightness");
     // ESP_LOGI("System".c_str(), "Current Brightness %d", current_brightness);
     MLOGD("System", "Current Brightness %d", UserVar::brightness.value);
-    for (uint8_t new_brightness : Device::brightness_level)
+    for (uint8_t new_brightness : Device::led_brightness_level)
     {
       // ESP_LOGI("System".c_str(), "Check Brightness Level  %d", brightness);
       MLOGD("System", "Check Brightness Level  %d", new_brightness);
@@ -168,7 +168,7 @@ namespace MatrixOS::SYS
     }
     // ESP_LOGI("System".c_str(), "Lowest Level Selected");
     MLOGD("System", "Lowest Level Selected");
-    UserVar::brightness = Device::brightness_level[0];
+    UserVar::brightness = Device::led_brightness_level[0];
   }
 
   uint32_t GenerateAPPID(string author, string app_name) {
