@@ -1,15 +1,40 @@
 #pragma once
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
+#include <array>
+#include <deque>
+#include <forward_list>
 #include <list>
-#include <string>
+#include <map>
+#include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
+#include <queue>
+#include <stack>
+#include <utility>
+#include <string>
+#include <tuple>
 
-using std::string;
+using std::array;
+using std::deque;
+using std::forward_list;
+using std::list;
+using std::map;
+using std::multimap;
+using std::multiset;
+using std::priority_queue;
+using std::queue;
+using std::set;
+using std::stack;
+using std::unordered_map;
+using std::unordered_multimap;
+using std::unordered_multiset;
+using std::unordered_set;
 using std::vector;
+using std::pair;
+using std::string;
+using std::tuple;
+
 
 #ifdef __cplusplus
 extern "C"

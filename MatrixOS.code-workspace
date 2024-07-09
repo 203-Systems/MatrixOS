@@ -111,7 +111,8 @@
 			"cstdbool": "cpp",
 			"forward_list": "cpp",
 			"format": "cpp",
-			"charconv": "cpp"
+			"charconv": "cpp",
+			"unordered_set": "cpp"
 		}
 	}
 }
