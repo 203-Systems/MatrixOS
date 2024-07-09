@@ -12,8 +12,8 @@ void BrightnessControl::Start() {
   map = Device::brightness_level;
   map_length = sizeof(Device::brightness_level) / sizeof(Device::brightness_level[0]);
 #else
-  map = Device::fine_brightness_level;
-  map_length = sizeof(Device::fine_brightness_level) / sizeof(Device::fine_brightness_level[0]);
+  map = Device::led_brightness_fine_level;
+  map_length = sizeof(Device::led_brightness_fine_level) / sizeof(Device::led_brightness_fine_level[0]);
 #endif
 
   Dimension dimension = Dimension(8, map_length / 8 + bool(map_length % 8));
