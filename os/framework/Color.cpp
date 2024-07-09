@@ -52,6 +52,10 @@ Color Color::ToLowBrightness(bool cancel, uint8_t scale) {
   return Color(R, G, B, W);
 }
 
+Color Color::Gamma() {
+  return Color(led_gamma[R], led_gamma[G], led_gamma[B]);
+}
+
 uint8_t Color::scale8(uint8_t i, uint8_t scale) {
   return ((uint16_t)i * (uint16_t)scale) >> 8;
 }
