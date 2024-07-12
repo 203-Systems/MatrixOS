@@ -26,7 +26,8 @@ class UI {
 
   std::function<void()>* setup_func = nullptr;
   std::function<void()>* loop_func = nullptr;
-  std::function<void()>* render_func = nullptr;
+  std::function<void()>* pre_render_func = nullptr;
+  std::function<void()>* post_render_func = nullptr;
   std::function<void()>* end_func = nullptr;
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
@@ -43,10 +44,16 @@ class UI {
     if (loop_func)
       (*loop_func)();
   };
-  virtual void Render() {
-    if (render_func)
-      (*render_func)();
+  virtual void PreRender() {
+    if (pre_render_func)
+      (*pre_render_func)();
   };
+
+  virtual void PostRender() {
+    if (post_render_func)
+      (*post_render_func)();
+  };
+
   virtual void End() {
     if (end_func)
       (*end_func)();
@@ -66,6 +73,8 @@ class UI {
   void SetSetupFunc(std::function<void()> setup_func);
   void SetLoopFunc(std::function<void()> loop_func);
   void SetEndFunc(std::function<void()> end_func);
+  void SetPreRenderFunc(std::function<void()> pre_render_func);
+  void SetPostRenderFunc(std::function<void()> post_render_func);
   void SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler);
 
   std::map<Point, UIComponent*> uiComponentMap;
