@@ -4,6 +4,20 @@ void Performance::Setup() {
   // Load variable
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
   currentKeymap = compatibilityMode;
+
+  MatrixOS::NVS::GetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
+  for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
+  {
+    if(custom_palette_available[i])
+    {
+      MatrixOS::NVS::GetVariable(custom_palette_nvs_hash[i], custom_palette[i], sizeof(custom_palette[i]));
+    }
+    else
+    {
+      for (uint8_t j = 0; j < 128; j++)
+      { custom_palette[i][j] = 0; }
+    }
+  }
 }
 
 void Performance::Loop() {
@@ -112,7 +126,22 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   if (xy && !(velocity == 0 && stfu))
   {
     // MLOGD("Performance", "Set LED");
-    MatrixOS::LED::SetColor(xy, palette[channel % 2][velocity], uiOpened ? canvasLedLayer : 0);
+    Color color;
+    if(channel < BUILTIN_PALETTE_COUNT)
+    {
+      color = palette[channel][velocity];
+      MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
+    }
+    else if(channel < BUILTIN_PALETTE_COUNT + CUSTOM_PALETTE_COUNT)
+    {
+      if (custom_palette_available[channel - BUILTIN_PALETTE_COUNT])
+      {
+        color = custom_palette[channel - BUILTIN_PALETTE_COUNT][velocity];
+        MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
+      }
+    }
+
+    
   }
   else if (stfu)
   {
@@ -123,7 +152,6 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   }
 }
 
-vector<uint8_t> sysExBuffer;
 void Performance::SysExHandler(MidiPacket midiPacket)
 {
   // New SysEx, clear buffer
@@ -264,7 +292,43 @@ void Performance::SysExHandler(MidiPacket midiPacket)
       }
       break;
     }
-  
+    case 0x41: //Retina Custom Palette
+    {
+      if (sysExBuffer[1] == 0x7B) // Uploading Start
+      {
+        // I really don't think I have to do anything here. I want to set custom_palette_available to false, but I don't think it's necessary & we don't know which palette is gonna be write to
+      }
+      else if (sysExBuffer[1] == 0x3D) //Uploading Write
+      {
+        uint8_t palette_to_write = sysExBuffer[2];
+        // Read 4 byte at once
+        for (uint16_t i = 3; i < sysExBuffer.size(); i += 4)
+        {
+          uint8_t index = sysExBuffer[i];
+          uint8_t colorR = (sysExBuffer[i + 1] & 0x3F);
+          uint8_t colorG = (sysExBuffer[i + 2] & 0x3F);
+          uint8_t colorB = (sysExBuffer[i + 3] & 0x3F);
+          
+          // Remapped color from 6 bit to 8 bit
+          colorR = (colorR << 2) + (colorR >> 4);
+          colorG = (colorG << 2) + (colorG >> 4);
+          colorB = (colorB << 2) + (colorB >> 4);
+
+          custom_palette[palette_to_write][index] = Color(colorR, colorG, colorB);
+        }
+        custom_palette_available[palette_to_write] = true;
+      }
+      else if (sysExBuffer[1] == 0x7D) //Uploading End
+      {
+        for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
+        {
+          if(custom_palette_available[i])
+          {
+            MatrixOS::NVS::SetVariable(custom_palette_nvs_hash[i], custom_palette[i], sizeof(custom_palette[i]));
+          }
+        }
+      }
+    }
     default:
       break;
   }
@@ -331,6 +395,45 @@ void Performance::stfuScan() {
   }
 }
 
+void Performance::PaletteViewer(uint8_t custom_palette_id)
+{
+  MLOGD("Performance", "Custom Palette Viewer %d", custom_palette_id);
+
+  UI paletteViewer("Custom Palette Viewer", Color(0xFFFFFF), true);
+
+  uint8_t phase = 0;
+
+  paletteViewer.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
+    if(keyEvent->id == FUNCTION_KEY)
+    {
+      if(keyEvent->info.state == HOLD)
+      { paletteViewer.Exit(); }
+      else if(keyEvent->info.state == RELEASED)
+      {
+        phase++;
+
+        if (phase >= 2)
+        { paletteViewer.Exit(); }
+      }
+      return true; //Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+    }
+    return false;
+   });
+
+   paletteViewer.SetPostRenderFunc([&]() -> void {
+       for (uint8_t y = 0; y < 8; y++)
+       {
+         for (uint8_t x = 0; x < 8; x++)
+         {
+           Color color = custom_palette[custom_palette_id][y * 8 + x + 64 * (phase % 2)];
+           MatrixOS::LED::SetColor(Point(x, y), color);
+         }
+       }
+   });
+
+  paletteViewer.Start();
+}
+
 void Performance::ActionMenu() {
   MLOGD("Performance", "Enter Action Menu");
 
@@ -393,6 +496,27 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(compatibilityModeBtn, Point(7, 0));  // Current the currentKeymap is directly linked to
                                                                  // compatibilityMode. Do we really need > 2 keymap
                                                                  // tho?
+
+  UIButtonWithColorFunc customPaletteViewer1 = UIButtonWithColorFunc(
+      "Custom Palette 1", [&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
+      [&]() -> void { if custom_palette_available[0] { PaletteViewer(0); } });
+  actionMenu.AddUIComponent(customPaletteViewer1, Point(2, 0));
+
+  UIButtonWithColorFunc customPaletteViewer2 = UIButtonWithColorFunc(
+      "Custom Palette 2", [&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
+      [&]() -> void { if custom_palette_available[1] { PaletteViewer(1); } });
+  actionMenu.AddUIComponent(customPaletteViewer2, Point(3, 0));
+
+  UIButtonWithColorFunc customPaletteViewer3 = UIButtonWithColorFunc(
+      "Custom Palette 3", [&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
+      [&]() -> void { if custom_palette_available[2] { PaletteViewer(2); } });
+  actionMenu.AddUIComponent(customPaletteViewer3, Point(4, 0));
+
+  UIButtonWithColorFunc customPaletteViewer4 = UIButtonWithColorFunc(
+      "Custom Palette 4", [&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF): Color(0xFFFFFF).ToLowBrightness(); },
+      [&]() -> void { if custom_palette_available[3] { PaletteViewer(3); } });
+  actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
+  
   actionMenu.SetLoopFunc([&]() -> void {  //Keep buffer updated even when action menu is currently open
       struct MidiPacket midiPacket;
       while (MatrixOS::MIDI::Get(&midiPacket))

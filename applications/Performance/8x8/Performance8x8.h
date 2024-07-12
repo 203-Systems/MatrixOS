@@ -11,6 +11,9 @@
 #define NUMS_OF_KEYMAP 2
 #define STFU_DEFAULT 2
 
+#define BUILTIN_PALETTE_COUNT 2
+#define CUSTOM_PALETTE_COUNT 4
+
 class Performance : public Application {
  public:
   static Application_Info info;
@@ -25,6 +28,13 @@ class Performance : public Application {
   CreateSavedVar("Performance", compatibilityMode, bool, false);
   CreateSavedVar("Performance", menuLock, bool, false);
   CreateSavedVar("Performance", stfu, uint8_t, 0);
+
+  const uint32_t custom_palette_available_nvs_hash = StaticHash("203 Electronics-Performance-CustomPaletteAvailable");
+  const uint32_t custom_palette_nvs_hash[CUSTOM_PALETTE_COUNT] = {
+    StaticHash("203 Electronics-Performance-Palette1"), 
+    StaticHash("203 Electronics-Performance-Palette2"),    
+    StaticHash("203 Electronics-Performance-Palette3"), 
+    StaticHash("203 Electronics-Performance-Palette4")};
 
   void Setup() override;
   void Loop() override;
@@ -42,6 +52,7 @@ class Performance : public Application {
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);
 
   void ActionMenu();
+  void PaletteViewer(uint8_t custom_palette_id);
 
   void stfuScan();
 
@@ -92,7 +103,7 @@ class Performance : public Application {
       0x47, 0x57, 0x67, 0x77, 0x46, 0x56, 0x66, 0x76, 0x45, 0x55, 0x65, 0x75, 0x44, 0x54, 0x64, 0x74,
       0x43, 0x53, 0x63, 0x73, 0x42, 0x52, 0x62, 0x72, 0x41, 0x51, 0x61, 0x71, 0x40, 0x50, 0x60, 0x70};
 
-  const Color palette[2][128] =  // color Palette
+  const Color palette[BUILTIN_PALETTE_COUNT][128] =  // color Palette
       {{
            // MatrixcolorPalette (Mat1s' Palette for now)
            0x00000000,  // 0
@@ -356,7 +367,11 @@ class Performance : public Application {
            0x004F0F00   // 127
        }};
 
+        bool custom_palette_available[CUSTOM_PALETTE_COUNT] = {false, false, false, false};
+        Color custom_palette[CUSTOM_PALETTE_COUNT][128];
+
  private:
+  vector<uint8_t> sysExBuffer;
   int8_t stfuMap[128];
   Timer stfuTimer;
 };
