@@ -6,12 +6,14 @@ class UINotePad : public UIComponent {
   uint8_t channel;
   uint8_t* map;
   Dimension dimension;
+  bool velocitySensitive;
 
-  UINotePad(Dimension dimension, Color color, uint8_t channel, uint8_t* map) {
+  UINotePad(Dimension dimension, Color color, uint8_t channel, uint8_t* map, bool velocitySensitive) {
     this->color = color;
     this->channel = channel;
     this->dimension = dimension;
     this->map = map;
+    this->velocitySensitive = velocitySensitive;
   }
 
   virtual Color GetColor() { return color; }
@@ -36,15 +38,25 @@ class UINotePad : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint8_t note = map[xy.y * dimension.x + xy.x];
+    if(!velocitySensitive)
+    {
+      if(keyInfo->state == AFTERTOUCH){
+        return true;
+      };
+      if(keyInfo->velocity > 0){
+        keyInfo->velocity = FRACT16_MAX;
+      };
+    }
     if (keyInfo->state == PRESSED)
     { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == AFTERTOUCH)
     { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == RELEASED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(0, /*compatibilityMode ? NoteOn : */ NoteOff, channel, note,
-                                      keyInfo->velocity.to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, 0));
     }
     return true;
   }
+
+  void SetVelocitySensitive(bool velocitySensitive) { this->velocitySensitive = velocitySensitive; }
 };

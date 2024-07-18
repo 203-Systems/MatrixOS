@@ -37,13 +37,14 @@ void UI::RenderUI() {
   {
     needRender = false;
     // MatrixOS::LED::Fill(0);
+    PreRender();
     for (auto const& uiComponentPair : uiComponentMap)
     {
       Point xy = uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       uiComponent->Render(xy);
     }
-    Render();
+    PostRender();
     MatrixOS::LED::Update();
   }
 }
@@ -118,6 +119,14 @@ void UI::SetLoopFunc(std::function<void()> loop_func) {
 
 void UI::SetEndFunc(std::function<void()> end_func) {
   UI::end_func = &end_func;
+}
+
+void UI::SetPreRenderFunc(std::function<void()> pre_render_func) {
+  UI::pre_render_func = &pre_render_func;
+}
+
+void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
+  UI::post_render_func = &post_render_func;
 }
 
 void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler){
