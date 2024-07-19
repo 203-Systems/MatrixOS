@@ -45,17 +45,12 @@ enum KeyState : uint8_t { /*Status Keys*/ IDLE,
 // When adding new state, remember to update active() as well
 
 struct KeyInfo {
-  KeyConfig* config = nullptr;
   KeyState state = IDLE;
   uint32_t lastEventTime = 0;  // PRESSED and RELEASED event only
   Fract16 velocity = 0;
   bool hold = false;
 
   KeyInfo() {}
-
-  KeyInfo(KeyConfig* config) { this->config = config; }
-
-  void setConfig(KeyConfig* config) { this->config = config; }
 
   uint32_t holdTime(void) {
     if (state == IDLE)
@@ -86,36 +81,33 @@ struct KeyInfo {
     return ((a) > (b) ? a : b);
   }
 
-  Fract16 applyVelocityCurve(Fract16 velocity) {
-    if (velocity < config->low_threshold)
+  Fract16 applyVelocityCurve(KeyConfig& config, Fract16 velocity) {
+    if (velocity < config.low_threshold)
     { velocity = 0; }
-    else if (velocity >= config->high_threshold)
+    else if (velocity >= config.high_threshold)
     {
       velocity = UINT16_MAX;
       // MLOGD("Velocity Curve", "%d - %d", source, velocity);
     }
     else
     {
-      uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config->low_threshold) * UINT16_MAX;
-      velocity = (Fract16)(pre_division_velocity / ((uint16_t)config->high_threshold - (uint16_t)config->low_threshold));
+      uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config.low_threshold) * UINT16_MAX;
+      velocity = (Fract16)(pre_division_velocity / ((uint16_t)config.high_threshold - (uint16_t)config.low_threshold));
       // MLOGD("Velocity Curve", "%d - %d", source, velocity);
     }
     return velocity;
   }
 
-  bool update(Fract16 velocity, bool applyCurve = true) {
-    if (config == nullptr)
-    { return false; }
-
-    if (applyCurve && config->velocity_sensitive)
-    { velocity = applyVelocityCurve(velocity); }
+  bool update(KeyConfig& config, Fract16 velocity, bool applyCurve = true) {
+    if (applyCurve && config.velocity_sensitive)
+    { velocity = applyVelocityCurve(config, velocity); }
 
     // Reset back to normal keys
     if (state == PRESSED)
     { state = ACTIVATED; }
 
     // Check aftertouch before previous velocity get overwritten
-    if (config->velocity_sensitive && state == ACTIVATED && (uint16_t)velocity != 0 &&  // Keypad must support FSR AND Velocity must be above 0 (So no aftertouch will triggered when key released)
+    if (config.velocity_sensitive && state == ACTIVATED && (uint16_t)velocity != 0 &&  // Keypad must support FSR AND Velocity must be above 0 (So no aftertouch will triggered when key released)
     (DIFFERENCE((uint16_t)velocity, (uint16_t)this->velocity) > KEY_INFO_THRESHOLD ||  // AND Change Must larger than info threshold Or ...
                                ((velocity != this->velocity) && (uint16_t)velocity == UINT16_MAX)                // Value changed and max value is reached
                                ))
@@ -153,7 +145,7 @@ struct KeyInfo {
         lastEventTime = MatrixOS::SYS::Millis();
         return false;
       }
-      else if (MatrixOS::SYS::Millis() - lastEventTime > config->debounce)
+      else if (MatrixOS::SYS::Millis() - lastEventTime > config.debounce)
       {
         state = PRESSED;
         lastEventTime = MatrixOS::SYS::Millis();
@@ -174,7 +166,7 @@ struct KeyInfo {
       lastEventTime = MatrixOS::SYS::Millis();
       return false;
     }
-    else if (state == RELEASE_DEBUNCING_CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)  // May result in key released early
+    else if (state == RELEASE_DEBUNCING_CLEARED && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config.debounce)  // May result in key released early
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();
@@ -193,7 +185,7 @@ struct KeyInfo {
       lastEventTime = MatrixOS::SYS::Millis();
       return false;
     }
-    else if (state == RELEASE_DEBUNCING && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config->debounce)
+    else if (state == RELEASE_DEBUNCING && !velocity && MatrixOS::SYS::Millis() - lastEventTime > config.debounce)
     {
       state = RELEASED;
       lastEventTime = MatrixOS::SYS::Millis();
