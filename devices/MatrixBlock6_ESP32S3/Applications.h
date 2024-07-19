@@ -5,7 +5,7 @@
 #include "applications/Performance/Performance.h"
 #include "applications/Note/Note.h"
 #include "applications/REDACTED/REDACTED.h"
-#include "applications/CustomKeymap/CustomKeymap.h"
+// #include "applications/CustomKeymap/CustomKeymap.h"
 
 // // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
@@ -15,7 +15,8 @@
 
 // // DEVICE APPLICATION
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
-#include "applications/Matrix/ForceCalibration/ForceCalibration.h"
+// #include "applications/Matrix/ForceCalibration/ForceCalibration.h"
+#include "applications/Debug/ForceGridVisualizer/ForceGridVisualizer.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
 
