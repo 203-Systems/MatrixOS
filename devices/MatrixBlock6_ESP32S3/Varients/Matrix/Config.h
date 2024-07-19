@@ -47,7 +47,7 @@ namespace Device
 
   const string manufaturer_name = "203 Electronics";
   const string product_name = "Matrix";
-  const uint16_t usb_vid = 0x0203;
+  const uint16_t usb_vid = 0x1235;
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
   const uint16_t numsOfLED = 64 + 32;
@@ -138,7 +138,7 @@ namespace Device
 #define FINE_LED_BRIGHTNESS
   inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
   inline uint8_t led_chunk_count = 2;
-  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 4}};
+  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 255}};
   // const Dimension grid_size(8,8);
   // const Point grid_offset = Point(1,1);
 
