@@ -63,7 +63,7 @@ namespace Device
     inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
-    inline KeyConfig fn_config = {
+    inline KeyConfig binary_config = {
         .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
@@ -72,8 +72,8 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
-        .low_threshold = 512,
-        .high_threshold = 65535,
+        .low_threshold = 768,
+        .high_threshold = 32767,
         .debounce = 5,
     };
 
@@ -105,7 +105,7 @@ namespace Device
 
     inline void LoadCustomSettings() {
       return;
-      if (keypad_custom_setting)
+      if (false)
       {
         if (keypad_low_threshold == 0)  // Can't be lower than 1
         { keypad_low_threshold = 1; }
