@@ -33,12 +33,6 @@ namespace Device::KeyPad::Binary
     // Set all output pins to low
     for (uint8_t x = 0; x < x_size; x++)
     { gpio_set_level(keypad_write_pins[x], 0); }
-
-    for (uint8_t x = 0; x < x_size; x++)
-    {
-      for (uint8_t y = 0; y < y_size; y++)
-      { keypadState[x][y].setConfig(&keypad_config); }
-    }
   }
 
   void Start()
@@ -79,7 +73,7 @@ namespace Device::KeyPad::Binary
       {
         Fract16 reading = gpio_get_level(keypad_read_pins[y]) * FRACT16_MAX;
         // MLOGD("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));
-        bool updated = keypadState[x][y].update(reading, true);
+        bool updated = keypadState[x][y].update(binary_config, reading, false);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;

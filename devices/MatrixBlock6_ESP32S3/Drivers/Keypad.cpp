@@ -32,9 +32,6 @@ namespace Device::KeyPad
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
 #endif
     gpio_config(&io_conf);
-
-    // Set up Matrix OS key config
-    fnState.setConfig(&fn_config);
   }
 
   void InitKeyPad() {
@@ -82,7 +79,7 @@ namespace Device::KeyPad
     // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
     if (fn_active_low)
     { read = UINT16_MAX - (uint16_t)read; }
-    if (fnState.update(read, false))
+    if (fnState.update(binary_config, read, false))
     {
       if (NotifyOS(0, &fnState))
       { return true; }
