@@ -14,9 +14,6 @@ void FactoryMenu::Setup() {
   UIButton touchBarTest("Touch Bar Test", Color(0xFFFFFF), [&]() -> void { TouchBarTester(); });
   factoryMenu.AddUIComponent(touchBarTest, Point(2, 0));
 
-  UIButton keypadSettingBtn("Keypad Settings", Color(0x00FFFF), [&]() -> void { KeyPadSettings(); });
-  factoryMenu.AddUIComponent(keypadSettingBtn, Point(7, 0));
-
   UIButtonWithColorFunc burnEfuseBtn(
       "Burn EFuse", [&]() -> Color { return esp_efuse_block_is_empty(EFUSE_BLK3) ? Color(0xFF0000) : Color(0x00FF00); },
       [&]() -> void { EFuseBurner(); });

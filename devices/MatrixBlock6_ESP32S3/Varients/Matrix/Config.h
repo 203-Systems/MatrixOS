@@ -77,13 +77,6 @@ namespace Device
         .debounce = 5,
     };
 
-    inline KeyConfig touch_config = {
-        .velocity_sensitive = false,
-        .low_threshold = 0,
-        .high_threshold = 65535,
-        .debounce = 0,
-    };
-
     inline gpio_num_t keypad_write_pins[8];
     inline gpio_num_t keypad_read_pins[8];
     inline adc_channel_t keypad_read_adc_channel[8];
@@ -96,32 +89,6 @@ namespace Device
     inline KeyInfo fnState;
     inline KeyInfo keypadState[x_size][y_size];
     inline KeyInfo touchbarState[touchbar_size];
-
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_velocity_sensitive, bool, KeyPad::keypad_config.velocity_sensitive);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
-
-    inline void LoadCustomSettings() {
-      return;
-      if (false)
-      {
-        if (keypad_low_threshold == 0)  // Can't be lower than 1
-        { keypad_low_threshold = 1; }
-        keypad_config.velocity_sensitive = keypad_velocity_sensitive;
-        keypad_config.low_threshold = keypad_low_threshold;
-        keypad_config.high_threshold = keypad_high_threshold;
-        keypad_config.debounce = keypad_debounce;
-      }
-      else
-      {
-        keypad_velocity_sensitive = keypad_config.velocity_sensitive;
-        keypad_low_threshold = keypad_config.low_threshold;
-        keypad_high_threshold = keypad_config.high_threshold;
-        keypad_debounce = keypad_config.debounce;
-      }
-    }
   }
 
   namespace HWMidi
