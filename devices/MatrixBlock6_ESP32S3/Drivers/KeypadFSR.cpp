@@ -12,6 +12,10 @@
 extern const uint8_t ulp_fsr_keypad_bin_start[] asm("_binary_ulp_fsr_keypad_bin_start");
 extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_end");
 
+#define FORCE_CALIBRATION_LOW_HASH StaticHash("MATRIX—FORCE-CALIBRATION-LOW")
+#define FORCE_CALIBRATION_HIGH_HASH StaticHash("MATRIX—FORCE-CALIBRATION-HIGH")
+
+
 namespace MatrixOS::USB
 {
   bool Connected();
@@ -19,9 +23,12 @@ namespace MatrixOS::USB
 
 namespace Device::KeyPad::FSR
 {
-  adc_oneshot_unit_handle_t adc_handle;
+  Fract16 (*low_thresholds)[x_size][y_size] = nullptr;
+  Fract16 (*high_thresholds)[x_size][y_size] = nullptr;
+
   void Init() {
     gpio_config_t io_conf;
+    adc_oneshot_unit_handle_t adc_handle;
 
     // Config Input Pins
     adc_oneshot_unit_init_cfg_t init_config = {
@@ -53,91 +60,34 @@ namespace Device::KeyPad::FSR
 
     // Enables the use of ADC and temperature sensor in monitor (ULP) mode
     esp_sleep_enable_adc_tsens_monitor(true);
-  }
 
-  uint16_t middleOfThree(uint16_t a, uint16_t b, uint16_t c) {
-    // Checking for a
-    if ((b <= a && a <= c) || (c <= a && a <= b))
-      return a;
+    // Set the threshold
+    low_thresholds = (Fract16 (*)[x_size][y_size])pvPortMalloc(sizeof(Fract16) * x_size * y_size); 
+    high_thresholds = (Fract16 (*)[x_size][y_size])pvPortMalloc(sizeof(Fract16) * x_size * y_size);
 
-    // Checking for b
-    if ((a <= b && b <= c) || (c <= b && b <= a))
-      return b;
-
-    return c;
-  }
-
-  uint16_t minOfThree(uint16_t a, uint16_t b, uint16_t c) {
-    // Checking for a
-    if (a < b && a < c)
-      return a;
-
-    // Checking for b
-    if (b < a && b < c)
-      return b;
-
-    return c;
-  }
-
-  // uint16_t filter(uint16_t* raw_samples)
-  // {
-  //   // Remove highest 2 and then average mid
-
-  //   // Copy the array
-  //   uint16_t samples[SAMPLES];
-  //   for (uint8_t i = 0; i < SAMPLES; i++)
-  //   { samples[i] = raw_samples[i]; }
-
-  //   uint8_t maxIndex = 0;
-  //   uint8_t minIndex = 0;
-  //   for (uint8_t i = 1; i < SAMPLES; i++)
-  //   {
-  //     if (samples[i] > samples[maxIndex])
-  //     { maxIndex = i; }
-  //     if (samples[i] < samples[minIndex])
-  //     { minIndex = i; }
-  //   }
-
-  //   uint32_t sum = 0;
-  //   for (uint8_t i = 0; i < SAMPLES; i++)
-  //   {
-  //     if (i != maxIndex && i != minIndex)
-  //     { sum += samples[i]; }
-  //   }
-
-  //   return uint16_t(sum / (SAMPLES - 2));
-  // }
-
-    uint16_t filter(uint16_t* raw_samples)
-  {
-    // Max
-
-    // Find max in the array
-    // uint16_t max = raw_samples[0];
-
-
-
-    // for(uint8_t i = 1; i < SAMPLES; i++)
-    // {
-    //   if(raw_samples[i] > max)
-    //   {
-    //     max = raw_samples[i];
-    //   }
-    // }
-
-    uint16_t sum = 0;
-    
-
-    for(uint8_t i = 0; i < SAMPLES; i++)
+    if(low_thresholds == nullptr || high_thresholds == nullptr)
     {
-      sum += raw_samples[i] / SAMPLES;
+      // Error
     }
 
-    // return max;
-    return sum;
+    for (uint8_t x = 0; x < x_size; x++)
+    {
+      for (uint8_t y = 0; y < y_size; y++)
+      {
+        (*low_thresholds)[x][y] = keypad_config.low_threshold;
+        (*high_thresholds)[x][y] = keypad_config.high_threshold;
+      }
+    }
+
+    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * x_size * y_size);
+    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
   }
 
-
+  void SaveCalibration()
+  {
+    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * x_size * y_size);
+    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
+  }
 
   void Start() {
     ulp_riscv_halt();
@@ -157,18 +107,11 @@ namespace Device::KeyPad::FSR
       for (uint8_t x = 0; x < Device::x_size; x++)
       {
         uint16_t reading = 0;
-        // if (result[x][y][0] != 0 && result[x][y][1] != 0 && result[x][y][2] != 0)
-        // { reading = filter(result[x][y]); }
         reading = result[x][y][0];
         Fract16 read = (reading << 4) + (reading >> 8);  // Raw Voltage mapped. Will add calibration curve later.
-        // keypadState[x][y].raw_velocity = read;
-        // config.low_threshold = 512;
-        // keypadState[x][y].threshold = threshold[x][y];
+        config.low_threshold = (*low_thresholds)[x][y];
+        config.high_threshold = (*high_thresholds)[x][y];
         bool updated = keypadState[x][y].update(config, read, true);
-        // if(MatrixOS::USB::Connected() && x == 5 && y == 5)
-        // {
-        //   MatrixOS::Logging::LogDebug("Keypad", "%d %d Raw Read: %d  16bit: %d Threshold: %d", x, y, reading, read, threshold[x][y]);
-        // }
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
@@ -179,4 +122,6 @@ namespace Device::KeyPad::FSR
     }
     return false;
   }
+
+
 }

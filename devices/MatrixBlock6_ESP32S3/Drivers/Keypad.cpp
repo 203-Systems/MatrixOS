@@ -8,7 +8,6 @@ namespace Device::KeyPad
   TimerHandle_t keypad_timer;
 
   void Init() {
-    LoadCustomSettings();
     InitFN();
     InitKeyPad();
     InitTouchBar();
