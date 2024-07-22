@@ -62,6 +62,9 @@ int main(void)
       {
         uint16_t reading_1 = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
         uint16_t reading_2 = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
+        reading_1 = (reading_1 << 4) + (reading_1 >> 8); 
+        reading_2 = (reading_2 << 4) + (reading_2 >> 8);
+
         result[x][y] = (result[x][y] * (IIF_LENGTH - 2) + reading_1 + reading_2) / IIF_LENGTH;
       }
       ulp_riscv_gpio_output_level(keypad_write_pins[x], 0);

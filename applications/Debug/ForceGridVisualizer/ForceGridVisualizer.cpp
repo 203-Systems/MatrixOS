@@ -26,8 +26,8 @@ void ForceGridVisualizer::Render()
 
       if (keyInfo->velocity.to8bits() > 127) { activeKey = Point(x, y); }
 
-      if (activeKey.x == x && activeKey.y == y)
-      { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->velocity, keyInfo->threshold, keyInfo->active()); }
+      // if (activeKey.x == x && activeKey.y == y)
+      // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->velocity, keyInfo->threshold, keyInfo->active()); }
     } 
   }
   MatrixOS::LED::Update();

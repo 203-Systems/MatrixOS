@@ -83,10 +83,25 @@ namespace Device::KeyPad::FSR
     MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
   }
 
-  void SaveCalibration()
+  void SaveLowCalibration()
   {
     MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * x_size * y_size);
+  }
+
+  void SaveHighCalibration()
+  {
     MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
+  }
+
+  uint32_t GetScanCount()
+  {
+    return ulp_count;
+  }
+
+  uint16_t GetRawReading(uint8_t x, uint8_t y)
+  {
+    uint16_t(*result)[8][1] = (uint16_t(*)[8][1]) & ulp_result;
+    return result[x][y][0];
   }
 
   void Start() {
@@ -106,12 +121,10 @@ namespace Device::KeyPad::FSR
     {
       for (uint8_t x = 0; x < Device::x_size; x++)
       {
-        uint16_t reading = 0;
-        reading = result[x][y][0];
-        Fract16 read = (reading << 4) + (reading >> 8);  // Raw Voltage mapped. Will add calibration curve later.
+        Fract16 reading = (Fract16)result[x][y][0];
         config.low_threshold = (*low_thresholds)[x][y];
         config.high_threshold = (*high_thresholds)[x][y];
-        bool updated = keypadState[x][y].update(config, read, true);
+        bool updated = keypadState[x][y].update(config, reading, true);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
