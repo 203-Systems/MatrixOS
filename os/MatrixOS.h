@@ -37,7 +37,6 @@ namespace MatrixOS
     void OpenSetting(void);
 
     void Rotate(EDirection rotation, bool absolute = false);
-    void NextBrightness();
 
     void ExecuteAPP(string author, string app_name);
     void ExitAPP();
@@ -48,9 +47,14 @@ namespace MatrixOS
   namespace LED
   {
     void Init(void);
+
+    void NextBrightness();
+    void SetBrightness(uint8_t brightness);
+    void SetBrightnessMultiplier(string partiton_name, float multiplier);
+
     void SetColor(Point xy, Color color, uint8_t layer = 255);
     void SetColor(uint16_t ID, Color color, uint8_t layer = 255);
-    void Fill(Color color, uint8_t layer = 255);
+    void Fill(Color color, uint8_t layer = 255, string partition = "");
     void Update(uint8_t layer = 255);
 
     int8_t CurrentLayer();

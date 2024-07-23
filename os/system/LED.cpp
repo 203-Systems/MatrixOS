@@ -12,6 +12,9 @@ namespace MatrixOS::LED
   // Otherwise, render to layer 255 (Top layer). Content will be updated on the next Update();
   // If directly write to the active buffer, before NewLayer, CopyLayer(0, currentLayer) need to be called to resync the buffer.
 
+  vector<float> ledBrightnessMultiplyer;
+  vector<uint8_t> ledPartitionBrightness;
+
   bool needUpdate = false;
 
   void LEDTimerCallback(TimerHandle_t xTimer) {
@@ -20,17 +23,89 @@ namespace MatrixOS::LED
       xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
       // MLOGD("LED", "Update");
       needUpdate = false;
-      Device::LED::Update(frameBuffers[0], UserVar::brightness);
+      // MLOGD("LED", "Update (Brightness size: %d)", ledPartitionBrightness.size());
+      Device::LED::Update(frameBuffers[0], ledPartitionBrightness);
       xSemaphoreGive(activeBufferSemaphore);
     }
   }
 
+  void UpdateBrightness() {
+    for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+    {
+      float brightness_multiplied = MatrixOS::UserVar::brightness * ledBrightnessMultiplyer[i];
+
+      if (brightness_multiplied > 255)
+      { brightness_multiplied = 255; }
+      else if (brightness_multiplied < 0)
+      { brightness_multiplied = 0; }
+
+      ledPartitionBrightness[i] = (uint8_t)brightness_multiplied;
+
+      MLOGD("LED", "Partition %s Brightness %d", Device::led_partitions[i].name.c_str(), ledPartitionBrightness[i]);
+    }
+  }
+
   void Init() {
+    // Generate brightness level map
+    ledBrightnessMultiplyer.resize(Device::led_partitions.size());
+    ledPartitionBrightness.resize(Device::led_partitions.size());
+    for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+    {
+      ledBrightnessMultiplyer[i] = Device::led_partitions[i].default_multiplier;
+      MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplyer_" + Device::led_partitions[i].name), &ledBrightnessMultiplyer[i], sizeof(float));
+    }
+
+    UpdateBrightness();
+
     activeBufferSemaphore = xSemaphoreCreateMutex();
     CreateLayer(); //Create Layer 0 - The active layer
     CreateLayer(); //Create Layer 1 - Swap Layer 1
     led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
     xTimerStart(led_tm, 0);
+  }
+
+
+  void NextBrightness() {
+    MLOGD("LED", "Next Brightness");
+    MLOGD("LED", "Current Brightness %d", UserVar::brightness.value);
+    for (uint8_t new_brightness : Device::led_brightness_level)
+    {
+      MLOGD("LED", "Check Brightness Level  %d", new_brightness);
+      if (new_brightness > UserVar::brightness)
+      {
+        MLOGD("LED", "Brightness Level Selected");
+        SetBrightness(new_brightness);
+        return;
+      }
+    }
+    MLOGD("LED", "Lowest Level Selected");
+    SetBrightness(Device::led_brightness_level[0]);
+  }
+
+  void SetBrightness(uint8_t brightness) {
+    MLOGD("LED", "Set Brightness %d", brightness);
+    MatrixOS::UserVar::brightness.Set(brightness);
+    UpdateBrightness();
+  }
+
+  void SetBrightnessMultiplier(string partiton_name, float multiplier) {
+    for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+    {
+      if (Device::led_partitions[i].name == partiton_name)
+      {
+
+        if (i == 0 && multiplier < 0.1)
+        {
+          MLOGW("LED", "Main Partition Multiplier can not be less than 0.1");
+          return;
+        }
+        ledBrightnessMultiplyer[i] = multiplier;
+        MatrixOS::NVS::SetVariable(Hash("system_led_brightness_multiplyer_" + partiton_name), &multiplier, sizeof(float));
+        UpdateBrightness();
+        return;
+      }
+    }
+    MLOGW("LED", "Partition Not Found");
   }
 
   void SetColor(Point xy, Color color, uint8_t layer) {
@@ -70,7 +145,7 @@ namespace MatrixOS::LED
     { needUpdate = true; }
   }
 
-  void Fill(Color color, uint8_t layer) {
+  void Fill(Color color, uint8_t layer, string partition) {
     if (layer == 255)
     { layer = CurrentLayer(); }
     else if (layer > CurrentLayer())
@@ -80,7 +155,24 @@ namespace MatrixOS::LED
     }
     vTaskSuspendAll();
     // MLOGV("LED", "Fill Layer %d", layer);
-    for (uint16_t index = 0; index < Device::led_count; index++)
+
+    uint16_t start = 0;
+    uint16_t end = Device::led_count;
+
+    if (partition != "")
+    {
+      for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+      {
+        if (Device::led_partitions[i].name == partition)
+        {
+          start = Device::led_partitions[i].start;
+          end = start + Device::led_partitions[i].size;
+          break;
+        }
+      }
+    }
+
+    for (uint16_t index = start; index < end; index++)
     { frameBuffers[layer][index] = color; }
 
     xTaskResumeAll();
