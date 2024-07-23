@@ -13,7 +13,7 @@ void Setting::Start() {
 
   // Brightness Control
   UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); },
+      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::LED::NextBrightness(); },
       [&]() -> void { BrightnessControl().Start(); });
   AddUIComponent(brightnessBtn, Point(3, 3));
 

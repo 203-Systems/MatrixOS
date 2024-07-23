@@ -23,7 +23,7 @@ void Note::Setup() {
   UI actionMenu("Action Menu", Color(0x00FFFF));
 
   UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
+      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::LED::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas

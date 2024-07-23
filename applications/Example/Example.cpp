@@ -122,7 +122,7 @@ void ExampleAPP::UIMenu() {
       "Brightness", //Name
       Color(0xFFFFFF), // Color
       Dimension(2, 2), // Size of the button
-      [&]() -> void { MatrixOS::SYS::NextBrightness(); } // Function to call when the button is pressed
+      [&]() -> void { MatrixOS::LED::NextBrightness(); } // Function to call when the button is pressed
       );
   // Place this button in the center of the device
   menu.AddUIComponent(brightnessBtn, Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2)); 
