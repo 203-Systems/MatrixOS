@@ -102,12 +102,20 @@ Point Performance::NoteToXY(uint8_t note) {
 }
 
 // Returns -1 when no note
-int8_t Performance::XYToNote(Point xy) {
+int8_t Performance::XYToNote(Point xy, bool altmap) {
   switch (currentKeymap)
   {
     case 0:
     {
-      if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+      if(altmap && xy.x == 0 && xy.y >= 0 && xy.y < 8) // Alt map left
+      {
+        return touch_keymap[currentKeymap][3][xy.y];
+      }
+      else if(altmap && xy.x == 7 && xy.y >= 0 && xy.y < 8)// Alt map right
+      {
+        return touch_keymap[currentKeymap][1][xy.y];
+      }
+      else if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
       {
         return keymap[currentKeymap][xy.y][xy.x];
       }
@@ -400,7 +408,68 @@ void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
 
 void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   // MLOGD("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
-  int8_t note = XYToNote(xy);
+
+  bool altmap = false;
+  
+  // Disable Touchbar for alt map mode
+  if(altmap_mode && !(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8))
+  {
+    return;
+  }
+
+  // Check if alt map should be used
+  if(altmap_mode && (xy.x == 0 || xy.x == 7) && xy.y >= 0 && xy.y < 8)
+  {
+    uint16_t alt_map_id = xy.y + (xy.x == 7) * 8;
+
+    altmap = was_alt_map & (1 << alt_map_id);
+
+    if(altmap == false) // if this key was not in altmap state
+    {
+      // Check if touchbar is touched
+      for (uint8_t i = 0; i < 32; i++)
+      {
+        Point point;
+        if(i < 8)
+        {
+          point = Point(i, -1);
+        }
+        else if(i < 16)
+        {
+          point = Point(8, i - 8);
+        }
+        else if(i < 24)
+        {
+          point = Point(i - 16, 8);
+        }
+        else
+        {
+          point = Point(-1, i - 24);
+        }
+
+        KeyInfo* touchKey = MatrixOS::KEYPAD::GetKey(point);
+        if(touchKey != nullptr && touchKey->active())
+        {
+          altmap = true;
+          break;
+        }
+      }
+    }
+
+    // If we are in altmap state and key is pressed, set the altmap state
+    if(altmap && keyInfo->state == PRESSED)
+    {
+        was_alt_map |= 1 << alt_map_id;
+    }
+
+    // If we was in altmap state and key is released, clear the altmap state
+    if(keyInfo->state == RELEASED)
+    {
+      was_alt_map &= ~(1 << alt_map_id);
+    }
+  }
+
+  int8_t note = XYToNote(xy, altmap);
 
   if (note == -1)
   {
@@ -578,8 +647,11 @@ void Performance::ActionMenu() {
   UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
-  UIButtonDimmable menuLockBtn("Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
+  UIButtonDimmable menuLockBtn("Menu Lock", Color(0x48CAE4), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
+
+  UIButtonDimmable altMapBtn("Touch Alt Key", Color(0xFF006E), [&]() -> bool { return altmap_mode; }, [&]() -> void { altmap_mode = !altmap_mode; });
+  actionMenu.AddUIComponent(altMapBtn, Point(0, 4));
 
   UIButtonDimmable flickerReductionBtn("Flicker Reduction", Color(0xAAFF00), [&]() -> bool { return stfu; }, [&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
   actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));

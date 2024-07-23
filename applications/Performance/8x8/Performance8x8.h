@@ -23,10 +23,13 @@ class Performance : public Application {
   uint8_t canvasLedLayer;
   bool uiOpened = false;
 
+  uint16_t was_alt_map;
+
   // Saved Variables
   CreateSavedVar("Performance", velocitySensitive, bool, true);
   CreateSavedVar("Performance", menuLock, bool, false);
   CreateSavedVar("Performance", stfu, uint8_t, 0);
+  CreateSavedVar("Performance", altmap_mode, bool, false);
 
   const uint32_t custom_palette_available_nvs_hash = StaticHash("203 Electronics-Performance-CustomPaletteAvailable");
   const uint32_t custom_palette_nvs_hash[CUSTOM_PALETTE_COUNT] = {
@@ -39,7 +42,7 @@ class Performance : public Application {
   void Loop() override;
 
   Point NoteToXY(uint8_t note);
-  int8_t XYToNote(Point xy);
+  int8_t XYToNote(Point xy, bool altmap = false);
 
   void MidiEventHandler(MidiPacket midiPacket);
   void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
