@@ -5,15 +5,13 @@ namespace Device
   namespace LED
   {
     void Init() {
-      WS2812::Init(RMT_CHANNEL_0, led_pin, led_chunk_count, led_chunk);
+      WS2812::Init(RMT_CHANNEL_0, led_pin, led_partitions);
     }
 
     void Start() {}
 
-    void Update(Color* frameBuffer, uint8_t brightness)  // Render LED
+    void Update(Color* frameBuffer, vector<uint8_t>& brightness)  // Render LED
     {
-      // ESP_LOGI("LED", "LED Update");
-      // ESP_LOGI("LED", "%d", frameBuffer[0].RGB());
       WS2812::Show(frameBuffer, brightness);
     }
 

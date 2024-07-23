@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include "driver/rmt.h"
 #include "framework/Color.h"
+#include "framework/LEDPartition.h"
 #include "esp_log.h"
+#include <vector>
 
 #define BITS_PER_LED_CMD 24
 #define LED_BUFFER_ITEMS ((NUM_LEDS * BITS_PER_LED_CMD))
@@ -27,18 +29,12 @@
 // #define T1H 52  // 1 bit high time
 // #define TL  52  // low time for either bit
 
-struct ws2812_chunk {
-  uint16_t length;
-  Color correction;
-  float brightness_multiplier;
-};
-
 namespace WS2812
 {
-  void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, uint8_t chunk_count, ws2812_chunk* chunk_info);
-  uint8_t Show(Color* array, uint8_t brightness = 255);
+  void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, std::vector<LEDPartition>& led_partitions);
+  uint8_t Show(Color* array, std::vector<uint8_t>& brightness);
 
-  void setup_rmt_data_buffer(Color* array, uint8_t brightness);
+  void setup_rmt_data_buffer(Color* array, std::vector<uint8_t>& brightness);
   // void rmt_callback(rmt_channel_t rmt_channel, void* arg);
 
   // extern rmt_item32_t* rmtBuffer;
