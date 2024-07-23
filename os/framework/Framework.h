@@ -24,3 +24,6 @@
 //OS Component
 #include "MidiPort.h"
 #include "SavedVariable.h"
+
+// Device Component
+#include "LEDPartition.h"
