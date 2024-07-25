@@ -54,7 +54,8 @@ namespace MatrixOS
 
     void SetColor(Point xy, Color color, uint8_t layer = 255);
     void SetColor(uint16_t ID, Color color, uint8_t layer = 255);
-    void Fill(Color color, uint8_t layer = 255, string partition = "");
+    void Fill(Color color, uint8_t layer = 255);
+    void FillPartition(string partition, Color color, uint8_t layer = 255);
     void Update(uint8_t layer = 255);
 
     int8_t CurrentLayer();

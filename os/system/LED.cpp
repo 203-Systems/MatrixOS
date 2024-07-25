@@ -145,7 +145,7 @@ namespace MatrixOS::LED
     { needUpdate = true; }
   }
 
-  void Fill(Color color, uint8_t layer, string partition) {
+  void Fill(Color color, uint8_t layer) {
     if (layer == 255)
     { layer = CurrentLayer(); }
     else if (layer > CurrentLayer())
@@ -159,17 +159,52 @@ namespace MatrixOS::LED
     uint16_t start = 0;
     uint16_t end = Device::led_count;
 
-    if (partition != "")
+    for (uint16_t index = start; index < end; index++)
+    { frameBuffers[layer][index] = color; }
+
+    xTaskResumeAll();
+
+    if(layer == 0)
+    { needUpdate = true; }
+  }
+
+  void FillPartition(string partition, Color color, uint8_t layer)
+  {
+
+    if(partition.empty())
     {
-      for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+      Fill(color, layer);
+      return;
+    }
+
+    if (layer == 255)
+    { layer = CurrentLayer(); }
+    else if (layer > CurrentLayer())
+    {
+      MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
+      return;
+    }
+    vTaskSuspendAll();
+    // MLOGV("LED", "Fill Layer %d", layer);
+
+    uint16_t start = 0;
+    uint16_t end = 0;
+
+    for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
+    {
+      if (Device::led_partitions[i].name == partition)
       {
-        if (Device::led_partitions[i].name == partition)
-        {
-          start = Device::led_partitions[i].start;
-          end = start + Device::led_partitions[i].size;
-          break;
-        }
+        start = Device::led_partitions[i].start;
+        end = start + Device::led_partitions[i].size;
+        break;
       }
+    }
+
+    if (end == 0)
+    {
+      MLOGW("LED", "Partition Not Found");
+      xTaskResumeAll();
+      return;
     }
 
     for (uint16_t index = start; index < end; index++)
