@@ -1,7 +1,8 @@
 #include "MatrixOS.h"
 
+// Difference between NumSelector and Item Selector is that everything lower than Output will be lit instead of single item being lit
 template <class T>
-class UIItemSelector : public UIComponent {
+class UINumSelector : public UIComponent {
  public:
   Color color;
   T* output;
@@ -11,7 +12,7 @@ class UIItemSelector : public UIComponent {
   uint16_t count;
   std::function<void(T)> callback;
 
-  UIItemSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, string* names = nullptr, std::function<void(T)> callback = nullptr) {
+  UINumSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, std::function<void(T)> callback) {
     this->dimension = dimension;
     this->color = color;
     this->output = output;
@@ -34,7 +35,7 @@ class UIItemSelector : public UIComponent {
       if (item > count)
       { MatrixOS::LED::SetColor(xy, Color(0)); }
       else
-      { MatrixOS::LED::SetColor(xy, color.ToLowBrightness(items[item] == *output)); }
+      { MatrixOS::LED::SetColor(xy, color.ToLowBrightness(items[item] <= *output)); }
     }
     return true;
   }
