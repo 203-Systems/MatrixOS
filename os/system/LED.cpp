@@ -32,16 +32,22 @@ namespace MatrixOS::LED
   void UpdateBrightness() {
     for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
     {
-      float brightness_multiplied = MatrixOS::UserVar::brightness * ledBrightnessMultiplyer[i];
+      float brightness_multiplied = ledBrightnessMultiplyer[i] * MatrixOS::UserVar::brightness;
 
-      if (brightness_multiplied > 255)
-      { brightness_multiplied = 255; }
-      else if (brightness_multiplied < 0)
-      { brightness_multiplied = 0; }
+      if (brightness_multiplied >= 255.0)
+      { 
+        ledPartitionBrightness[i] = 255; 
+      }
+      else if (brightness_multiplied <= 0.0)
+      { 
+        ledPartitionBrightness[i] = 0; 
+      }
+      else
+      {
+        ledPartitionBrightness[i] = (uint8_t)brightness_multiplied;
+      }
 
-      ledPartitionBrightness[i] = (uint8_t)brightness_multiplied;
-
-      MLOGD("LED", "Partition %s Brightness %d", Device::led_partitions[i].name.c_str(), ledPartitionBrightness[i]);
+      // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::led_partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplyer[i], brightness_multiplied);
     }
   }
 
