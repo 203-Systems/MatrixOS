@@ -14,14 +14,14 @@ class UILEDPartitionSelector : public UIComponent {
     this->alternative_color = alternative_color;
   }
 
-  virtual Dimension GetSize() { return Dimension(1 + Device::led_partitions.size(), 1); }
+  virtual Dimension GetSize() { return Dimension(Device::led_partitions.size(), 1); }
   virtual Color GetColor() { return color; }
   virtual Color GetAlternativeColor() { return alternative_color; }
 
   virtual bool Render(Point origin) {
     MatrixOS::LED::SetColor(origin, GetColor().ToLowBrightness(*selector == 255));
-    for (uint8_t x = 0; x < Device::led_partitions.size(); x++) {
-      MatrixOS::LED::SetColor(origin + Point(x + 1, 0), GetAlternativeColor().ToLowBrightness(*selector == x));
+    for (uint8_t x = 1; x < Device::led_partitions.size(); x++) {
+      MatrixOS::LED::SetColor(origin + Point(x, 0), GetAlternativeColor().ToLowBrightness(*selector == x));
     }
     return true;
   }
@@ -29,13 +29,9 @@ class UILEDPartitionSelector : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if(keyInfo->state == RELEASED && keyInfo->hold == false)
     {
-      if(xy.x == 0)
+      if(xy.x <= Device::led_partitions.size())
       {
-        *selector = 255;
-      }
-      else if(xy.x <= Device::led_partitions.size())
-      {
-        *selector = xy.x - 1;
+        *selector = xy.x;
       }
 
       if(callback)
@@ -51,7 +47,7 @@ class UILEDPartitionSelector : public UIComponent {
       }
       else if(xy.x <= Device::led_partitions.size())
       {
-        MatrixOS::UIInterface::TextScroll(Device::led_partitions[xy.x - 1].name, GetAlternativeColor());
+        MatrixOS::UIInterface::TextScroll(Device::led_partitions[xy.x].name, GetAlternativeColor());
       }
     }
     

@@ -50,16 +50,16 @@ void BrightnessControl::Start() {
   // LED Partition multiplier
 
   // Selector UI
-  uint8_t ledPartitionSelected = 255;
+  uint8_t ledPartitionSelected = 0;
 
   UI4pxFloat multiplierDisplay(PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected]);
   multiplierDisplay.SetEnabled(false);
   AddUIComponent(multiplierDisplay, origin + Point(-3, -3));
 
   vector<float> ledBrightnessMultiplyer = {0.0, 
-                                            0.1, 0.25, 0.5, 0.75
+                                            0.1, 0.25, 0.5, 0.75,
                                             1.0, 
-                                            1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0
+                                            1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0,
                                             std::numeric_limits<float>::infinity()};
 
   UINumSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected], ledBrightnessMultiplyer.size(), ledBrightnessMultiplyer.data(), [&](float value) -> void {
@@ -89,14 +89,7 @@ void BrightnessControl::Start() {
       multiplierDisplay.SetEnabled(true);
       multiplierSelector.SetEnabled(true);
 
-      if(ledPartitionSelected == 0) {// Main Grid
-        ledBrightnessMultiplyer[0] = ledBrightnessMultiplyer[1]; // Remove the off option, so user can never turn it completely off
-      }
-      else
-      {
-        ledBrightnessMultiplyer[0] = 0.0; // Add the off option
-        MatrixOS::LED::FillPartition(Device::led_partitions[ledPartitionSelected].name, PARTITION_BRIGHTNESS_COLOR);
-      }
+      MatrixOS::LED::FillPartition(Device::led_partitions[ledPartitionSelected].name, PARTITION_BRIGHTNESS_COLOR);
     }
   });
   ledPartitionSelector.SetEnabled(Device::led_partitions.size() > 1);
