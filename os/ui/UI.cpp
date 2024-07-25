@@ -38,7 +38,7 @@ void UI::RenderUI() {
     needRender = false;
     // MatrixOS::LED::Fill(0);
     PreRender();
-    for (auto const& uiComponentPair : uiComponentMap)
+    for (auto const& uiComponentPair : uiComponents)
     {
       if (uiComponentPair.second->enabled == false) { continue; }
       Point xy = uiComponentPair.first;
@@ -78,7 +78,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
   {
     // MLOGD("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
     bool hasAction = false;
-    for (auto const& uiComponentPair : uiComponentMap)
+    for (auto const& uiComponentPair : uiComponents)
     {
       if (uiComponentPair.second->enabled == false) { continue; }
       Point relative_xy = xy - uiComponentPair.first;
@@ -95,16 +95,16 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
 
 void UI::AddUIComponent(UIComponent* uiComponent, Point xy) {
   // ESP_LOGI("Add UI Component", "%d %d %s", xy.x, xy.y, uiComponent->GetName().c_str());
-  // uiComponents.push_back(uiComponent);
-  uiComponentMap[xy] = uiComponent;
+  uiComponents.push_back(pair<Point, UIComponent*>(xy, uiComponent));
 }
 
 void UI::AddUIComponent(UIComponent* uiComponent, uint16_t count, ...) {
-  // uiComponents.push_back(uiComponent);
   va_list valst;
   va_start(valst, count);
   for (uint8_t i = 0; i < count; i++)
-  { uiComponentMap[(Point)va_arg(valst, Point)] = uiComponent; }
+  {
+    uiComponents.push_back(pair<Point, UIComponent*>((Point)va_arg(valst, Point), uiComponent));
+  }
 }
 
 void UI::AllowExit(bool allow) {
@@ -136,7 +136,7 @@ void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler){
 }
 
 void UI::ClearUIComponents() {
-  uiComponentMap.clear();
+  uiComponents.clear();
 }
 
 void UI::UIEnd() {

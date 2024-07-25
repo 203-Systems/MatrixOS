@@ -77,7 +77,7 @@ class UI {
   void SetPostRenderFunc(std::function<void()> post_render_func);
   void SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler);
 
-  std::map<Point, UIComponent*> uiComponentMap;
+  std::vector<pair<Point, UIComponent*>> uiComponents;
 
   void AddUIComponent(UIComponent* uiComponent, Point xy);
   void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
