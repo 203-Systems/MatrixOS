@@ -7,7 +7,6 @@ class UINumSelector : public UIComponent {
   Color color;
   T* output;
   T* items;
-  string* names;
   Dimension dimension;
   uint16_t count;
   std::function<void(T)> callback;
@@ -18,7 +17,6 @@ class UINumSelector : public UIComponent {
     this->output = output;
     this->count = count;
     this->items = items;
-    this->names = names;
     this->callback = callback;
   }
 
@@ -42,31 +40,14 @@ class UINumSelector : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint16_t id = xy.x + xy.y * dimension.x;
-    if (id > count)
-      return false;
-    if (names == nullptr)
-    {
-      if (keyInfo->state == PRESSED)
-      { 
-        *output = items[id]; 
-        if (callback)
-        {
-          callback(*output);
-        }
+    if (id > count){return false;}
+    if (keyInfo->state == PRESSED)
+    { 
+      *output = items[id]; 
+      if (callback)
+      {
+        callback(*output);
       }
-    }
-    else
-    {
-      if (keyInfo->state == RELEASED)
-      { 
-        *output = items[id]; 
-        if (callback)
-        {
-          callback(*output);
-        }
-      }
-      else if (keyInfo->state == HOLD && names != nullptr)
-      { MatrixOS::UIInterface::TextScroll(names[id], GetColor()); }
     }
     return true;
   }
