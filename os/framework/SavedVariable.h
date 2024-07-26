@@ -62,7 +62,9 @@ class SavedVariable {
     return true;
   }
 
-  T Get() {
+  bool Save() { return Set(value); }
+
+  T& Get() {
     if (!Loaded())  // If not yet loaded, it will try to update current cache with NVS data
     { Load(); }
     // Even if it didn't load, the default value will be used.
@@ -93,10 +95,7 @@ class SavedVariable {
   T operator/(T operation_value) { return value / operation_value; }
   T operator%(T operation_value) { return value % operation_value; }
 
-  T& operator+=(T operation_value) {
-    Set(value + operation_value);
-    return *value;
-  }
+ 
   T& operator-=(T operation_value) {
     Set(value - operation_value);
     return *value;
@@ -128,11 +127,15 @@ class SavedVariable {
     Set(value + 1);
     return *value;
   };
+
   T operator--(int) {
     T temp_value = value;
     Set(value - 1);
     return temp_value;
   };
 
+  T* operator&() { return &Get(); }
+
   operator T() { return Get(); }
+  operator T*() { return &Get(); }
 };
