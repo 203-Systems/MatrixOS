@@ -11,11 +11,12 @@ class UINumItemSelector : public UIComponent {
   uint16_t count;
   std::function<void(T)> callback;
 
-  UINumItemSelector(Dimension dimension, Color color, uint16_t* output, uint16_t count, std::function<void(T)> callback = nullptr) {
+  UINumItemSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, std::function<void(T)> callback) {
     this->dimension = dimension;
     this->color = color;
     this->output = output;
     this->count = count;
+    this->items = items;
     this->callback = callback;
   }
 
