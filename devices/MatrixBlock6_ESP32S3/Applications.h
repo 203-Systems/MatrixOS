@@ -9,6 +9,7 @@
 
 // // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
+#include "applications/Dice/Dice.h"
 
 // // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
