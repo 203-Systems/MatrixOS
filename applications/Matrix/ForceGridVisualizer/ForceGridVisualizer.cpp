@@ -41,7 +41,7 @@ void ForceGridVisualizer::Loop() {
     { Exit(); }
   }
 
-  if (renderTimer.Tick(10))
+  if (renderTimer.Tick(1000 / Device::fps))
   {
     Render();
   }

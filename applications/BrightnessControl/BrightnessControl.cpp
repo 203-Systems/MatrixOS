@@ -62,7 +62,7 @@ void BrightnessControl::Start() {
                                             1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0,
                                             std::numeric_limits<float>::infinity()};
 
-  UINumSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected], ledBrightnessMultiplyer.size(), ledBrightnessMultiplyer.data(), [&](float value) -> void {
+  UINumItemSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected], ledBrightnessMultiplyer.size(), ledBrightnessMultiplyer.data(), [&](float value) -> void {
     MatrixOS::LED::SetBrightnessMultiplier(Device::led_partitions[ledPartitionSelected].name, value);
   });
   multiplierSelector.SetEnabled(false);

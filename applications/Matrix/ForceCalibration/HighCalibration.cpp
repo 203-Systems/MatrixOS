@@ -114,7 +114,7 @@ void ForceCalibration::HighCalibration() {
       }
 
       // Render
-      if(renderTimer.Tick(10))
+      if(renderTimer.Tick(1000 / Device::fps))
       {
         x = progress % Device::x_size;
         y = progress / Device::x_size;

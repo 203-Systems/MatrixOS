@@ -24,7 +24,7 @@ void Performance::Setup() {
 }
 
 void Performance::Loop() {
-  if (stfu && stfuTimer.Tick(10))
+  if (stfu && stfuTimer.Tick(1000 / Device::fps))
   {
     stfuScan();
   }
@@ -491,7 +491,6 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   if (keyInfo->state == PRESSED)
   {
     MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, 0, note, keyInfo->velocity.to7bits()));
-    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, note, keyInfo->velocity.to7bits()));
   }
   else if (keyInfo->state == AFTERTOUCH)
   {
