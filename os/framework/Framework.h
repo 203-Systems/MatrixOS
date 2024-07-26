@@ -20,6 +20,7 @@
 #include "Timer.h" 
 #include "Utilts.h"
 #include "Hash.h"
+#include "ColorEffects.h"
 
 //OS Component
 #include "MidiPort.h"
