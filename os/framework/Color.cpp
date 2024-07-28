@@ -70,3 +70,11 @@ Color Color::HsvToRgb(float h, float s, float v) {
   uint8_t b = int(255 * v * mix(1.0, constrain(std::abs(fract(h + 0.3333333) * 6.0 - 3.0) - 1.0, 0.0, 1.0), s));
   return Color(r, g, b);
 }
+
+Color Color::Crossfade(Color color1, Color color2, Fract16 ratio) {
+  uint8_t r = ratio.to8bits();
+  uint8_t newR = (color1.R * (255 - r) + color2.R * r) / 255;
+  uint8_t newG = (color1.G * (255 - r) + color2.G * r) / 255;
+  uint8_t newB = (color1.B * (255 - r) + color2.B * r) / 255;
+  return Color(newR, newG, newB);
+}
