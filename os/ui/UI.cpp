@@ -158,19 +158,15 @@ void UI::ClearUIComponents() {
 void UI::UIEnd() {
   MLOGD("UI", "UI Exited");
   crossfade_start_time = 0;
+
   while(crossfade_start_time != UINT32_MAX)
   {
-    if (uiTimer.Tick(uiUpdateMS))
-    {
-      RenderCrossfade(prev_layer, newLedLayer ? current_layer : 0, crossfade_start_time);
-    }
+    RenderCrossfade(current_layer, newLedLayer ? prev_layer : 0, crossfade_start_time);
     Loop();
   }
-  
+
   if (newLedLayer)
-  { 
-    MatrixOS::LED::DestoryLayer(); 
-  }
+  { MatrixOS::LED::DestoryLayer(); }
   else
   { MatrixOS::LED::Fill(0); }
 
