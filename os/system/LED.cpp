@@ -240,6 +240,41 @@ namespace MatrixOS::LED
     }
   }
 
+
+  // If any layer is 0, it will be show up as black（or lightless)
+  // If layer 2 is 255, it will be using the top layer
+  void Crossfade(uint8_t layer1, uint8_t layer2, Fract16 ratio) {
+    if (layer2 == 255) { layer2 = CurrentLayer(); }
+
+    if (layer1 > CurrentLayer() || layer2 > CurrentLayer())
+    {
+      MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
+      return;
+    }
+
+    if (ratio == 0)
+    {
+      Update(layer1);
+      return;
+    }
+    else if (ratio == FRACT16_MAX)
+    {
+      Update(layer2);
+      return;
+    }
+
+    xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+    for (uint16_t index = 0; index < Device::led_count; index++)
+    {
+      Color sourceColor = layer1 == 0 ? Color(0) : frameBuffers[layer1][index];
+      Color targetColor = layer2 == 0 ? Color(0) : frameBuffers[layer2][index];
+      
+      frameBuffers[0][index] = Color::Crossfade(sourceColor, targetColor, ratio);
+    }
+    needUpdate = true;
+    xSemaphoreGive(activeBufferSemaphore);
+  }
+
   int8_t CurrentLayer() {
     return frameBuffers.size() - 1;
   }
