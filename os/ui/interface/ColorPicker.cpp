@@ -47,14 +47,14 @@ class UIHueSelector : public UIComponent {
 class UIShadeSelector : public UIComponent {
  public:
   Dimension dimension;
-  float hue;
+  float* hue;
   float sBegin;
   float vBegin;
   float sStep;
   float vStep;
   std::function<void(Color)> callback;
 
-  UIShadeSelector(Dimension dimension, float hue, std::function<void(Color)> callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX, Fract16 vBegin = 0,
+  UIShadeSelector(Dimension dimension, float* hue, std::function<void(Color)> callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX, Fract16 vBegin = 0,
                   Fract16 vEnd = FRACT16_MAX) {
     this->dimension = dimension;
     this->hue = hue;
@@ -76,7 +76,7 @@ class UIShadeSelector : public UIComponent {
       for (int8_t x = 0; x < dimension.x; x++)
       {
         float s = sBegin + x * sStep;
-        Color color = Color::HsvToRgb(hue, s, v);
+        Color color = Color::HsvToRgb(*hue, s, v);
         MatrixOS::LED::SetColor(Point(x, ui_y), color);
       }
     }
@@ -89,7 +89,7 @@ class UIShadeSelector : public UIComponent {
         int16_t ui_y = dimension.y - xy.y - 1;
         float v = vBegin + ui_y * vStep;
         float s = sBegin + xy.x * sStep;
-        callback(Color::HsvToRgb(hue, s, v));
+        callback(Color::HsvToRgb(*hue, s, v));
     }
     return true;
   }
@@ -102,7 +102,10 @@ namespace MatrixOS::UIInterface
     bool aborted = false;
 
     // Setup
-    UI colorPicker("Color Picker");
+    // int8_t old_layer = MatrixOS::LED::CurrentLayer();
+
+    // int8_t new_layer = MatrixOS::LED::CreateLayer();
+    UI colorPicker("Color Picker", Color(0x000000), false);
 
     colorPicker.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
       if (keyEvent->id == FUNCTION_KEY)
@@ -117,29 +120,33 @@ namespace MatrixOS::UIInterface
       return false;
     });
 
-    // Phase 1 - Hue selection
-    UIHueSelector hueSelector(Dimension(8, 8), [&](float selected_hue) -> void {
-      hue = selected_hue;
-      colorPicker.Exit();
-    });
-    colorPicker.AddUIComponent(hueSelector, Point(0, 0));
-    colorPicker.Start();
 
-    if(aborted)
-    { return false; }
 
     colorPicker.ClearUIComponents();
 
     // Phase 2 - Satuation + Value
-    UIShadeSelector shadeSelector(Dimension(8, 8), hue, [&](Color selectedColor) -> void {
+    UIShadeSelector shadeSelector(Dimension(8, 8), &hue, [&](Color selectedColor) -> void {
       color = selectedColor;
       colorPicker.Exit();
     });
+    shadeSelector.SetEnabled(false);
     colorPicker.AddUIComponent(shadeSelector, Point(0, 0));
+
+    // Phase 1 - Hue selection
+    UIHueSelector hueSelector(Dimension(8, 8), [&](float selected_hue) -> void {
+      hue = selected_hue;
+      shadeSelector.SetEnabled(true);
+      hueSelector.SetEnabled(false);
+    });
+    colorPicker.AddUIComponent(hueSelector, Point(0, 0));
+
     colorPicker.Start();
 
-    if (aborted)
-    { return false; }
+
+    if(aborted)
+    { 
+      return false; 
+    }
 
     // Return
     return true;
