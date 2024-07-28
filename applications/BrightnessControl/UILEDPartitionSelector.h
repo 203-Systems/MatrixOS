@@ -19,7 +19,7 @@ class UILEDPartitionSelector : public UIComponent {
   virtual Color GetAlternativeColor() { return alternative_color; }
 
   virtual bool Render(Point origin) {
-    MatrixOS::LED::SetColor(origin, GetColor().ToLowBrightness(*selector == 255));
+    MatrixOS::LED::SetColor(origin, GetColor().ToLowBrightness(*selector == 0));
     for (uint8_t x = 1; x < Device::led_partitions.size(); x++) {
       MatrixOS::LED::SetColor(origin + Point(x, 0), GetAlternativeColor().ToLowBrightness(*selector == x));
     }
