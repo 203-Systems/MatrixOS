@@ -58,6 +58,8 @@ namespace MatrixOS
     void FillPartition(string partition, Color color, uint8_t layer = 255);
     void Update(uint8_t layer = 255);
 
+    void Crossfade(uint8_t layer1, uint8_t layer2, Fract16 ratio);
+
     int8_t CurrentLayer();
     int8_t CreateLayer();
     void CopyLayer(uint8_t dest, uint8_t src);
