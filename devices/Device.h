@@ -31,6 +31,9 @@ namespace Device
     uint16_t XY2Index(Point xy);        // Grid XY to global buffer index, return UINT16_MAX if not index for given XY
     uint16_t ID2Index(uint16_t ledID);  // Local led Index to buffer index, return UINT16_MAX if not index for given
                                         // Index
+    Point Index2XY(uint16_t index);     // Buffer index to Grid XY, return Point(INT16_MIN, INT16_MIN) if no XY found for
+                                        // given index
+                                        // Provides a way for application to iterate through all LEDs
   }
 
   namespace KeyPad

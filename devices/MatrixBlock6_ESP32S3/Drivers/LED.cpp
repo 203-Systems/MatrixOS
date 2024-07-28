@@ -29,18 +29,26 @@ namespace Device
       return UINT16_MAX;
     }
 
-    // Point Index2XY(uint16_t index)
-    // {
-    //     if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
-    //     {
-    //         return xy.x + xy.y * 8;
-    //     }
-    //     if(index < 64)
-    //     {
-
-    //     }
-    //     return UINT16_MAX;
-    // }
+    Point Index2XY(uint16_t index)
+    {
+      if (index < 64)
+      {
+        return Point(index % 8, index / 8);
+      }
+      else if (index < 72)
+      {
+        return Point(7 - (index - 64), 8);
+      }
+      else if (index < 80)
+      {
+        return Point(-1, index - 72);
+      }
+      else if (index < 88)
+      {
+        return Point(index - 80, -1);
+      }
+      return Point::Invalid();
+    }
 
     // TODO This text is very wrong (GRID)
     // Matrix use the following ID Struct
