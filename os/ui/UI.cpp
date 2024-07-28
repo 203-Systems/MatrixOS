@@ -17,7 +17,7 @@ void UI::Start() {
   else
   {
     prev_layer = 0;
-    current_layer = MatrixOS::LED::CreateLayer();
+    current_layer = MatrixOS::LED::CurrentLayer();
   }
   
   MatrixOS::KEYPAD::Clear();
@@ -55,7 +55,7 @@ void UI::RenderUI() {
       uiComponent->Render(xy);
     }
     PostRender();
-    if(crossfade_start_time != UINT32_MAX)
+    if(crossfade_start_time != UINT32_MAX && newLedLayer)
     {
       RenderCrossfade(prev_layer, current_layer, crossfade_start_time);
     }
@@ -159,14 +159,16 @@ void UI::UIEnd() {
   MLOGD("UI", "UI Exited");
   crossfade_start_time = 0;
 
-  while(crossfade_start_time != UINT32_MAX)
-  {
-    RenderCrossfade(current_layer, newLedLayer ? prev_layer : 0, crossfade_start_time);
-    Loop();
-  }
+
 
   if (newLedLayer)
-  { MatrixOS::LED::DestoryLayer(); }
+  { 
+    while(crossfade_start_time != UINT32_MAX)
+  {
+    RenderCrossfade(current_layer, prev_layer, crossfade_start_time);
+    Loop();
+  }
+  MatrixOS::LED::DestoryLayer(); }
   else
   { MatrixOS::LED::Fill(0); }
 
