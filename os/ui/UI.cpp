@@ -207,7 +207,20 @@ void UI::RenderCrossfade(int8_t crossfade_source, int8_t crossfade_target, uint3
   MatrixOS::LED::Crossfade(crossfade_source, crossfade_target, (Fract16)crossfade_completion);
 }
 
-void UI::FadeOut(uint16_t duration)
+void UI::Crossfade(int8_t crossfade_source, int8_t crossfade_target, uint16_t crossfade_duration)
+{
+  uint32_t crossfade_start_time = MatrixOS::SYS::Millis();
+  Timer FadeOutTimer;
+  while(crossfade_start_time != UINT32_MAX)
+  {
+    if (FadeOutTimer.Tick(1000 / UI_DEFAULT_FPS))
+    {
+      RenderCrossfade(crossfade_source, crossfade_target, crossfade_start_time, crossfade_duration);
+    }
+  }
+}
+
+void UI::FadeOut(uint16_t crossfade_duration)
 {
   uint8_t current_layer = MatrixOS::LED::CurrentLayer();
   uint32_t crossfade_start_time = MatrixOS::SYS::Millis();
@@ -216,7 +229,7 @@ void UI::FadeOut(uint16_t duration)
   {
     if (FadeOutTimer.Tick(1000 / UI_DEFAULT_FPS))
     {
-      RenderCrossfade(current_layer, 0, crossfade_start_time, duration);
+      RenderCrossfade(current_layer, 0, crossfade_start_time, crossfade_duration);
     }
   }
 }

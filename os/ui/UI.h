@@ -95,6 +95,7 @@ class UI {
   void SetFPS(uint16_t fps);
 
   static void RenderCrossfade(int8_t crossfade_source, int8_t crossfade_target, uint32_t& crossfade_start_time, uint16_t crossfade_duration = CROSSFADE_DURATION);
+  static void Crossfade(int8_t crossfade_source, int8_t crossfade_target, uint16_t crossfade_duration = CROSSFADE_DURATION);
   static void FadeOut(uint16_t crossfade_duration = CROSSFADE_DURATION);
 
  private:
