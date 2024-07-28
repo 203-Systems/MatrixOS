@@ -56,7 +56,8 @@ void Shell::AddCommonBarInUI(UI* ui) {
 #endif
 
   commonBarBtns.push_back(UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR,
-                                   [&]() -> void { MatrixOS::SYS::OpenSetting(); }));
+                                   [&]() -> void { 
+                                    MatrixOS::SYS::OpenSetting(); }));
   ui->AddUIComponent(commonBarBtns.back(), Point(7, 7));
   ui->AllowExit(false);  // So nothing happens
 }
@@ -106,7 +107,10 @@ void Shell::ApplicationLauncher() {
       string app_name = application->name;
       Color app_color = application->color;
 
-      appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
+      appBtns.push_back(UIButton(app_name, app_color, [&, app_id, x, y, app_color]() -> void {
+        LaunchAnimation(Point(x, y), app_color);
+        MatrixOS::SYS::ExecuteAPP(app_id);
+      }));
       applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
       MLOGD("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
@@ -160,4 +164,63 @@ void Shell::HiddenApplicationLauncher() {
     { MLOGD("Shell", "%s visible, skip.", application->name.c_str()); }
   }
   hiddenApplicationLauncher.Start();
+}
+
+void Shell::LaunchAnimation(Point origin, Color color)
+{
+  uint32_t startTime = MatrixOS::SYS::Millis();
+
+  const float speed = 30; // base mills per pixel
+  const float endDistance = 16;
+  const float edgeInnerWidth = -8;
+  const float edgeWidth = 1 / 2;
+  const float edgeOuterWidth = 1;
+  Timer animTimer;
+  uint16_t frameTime = 1000 / Device::fps;
+  while(true)
+  {
+    if(!animTimer.Tick(frameTime)) { continue; }
+    float r = (MatrixOS::SYS::Millis() - startTime) / speed - edgeWidth;
+
+    MLOGD("Shell", "R: %f", r);
+
+    if(r > endDistance) { break; }
+
+    float maxDistance = 0;
+
+    for (uint8_t i = 0; i < Device::led_count; i++)
+    {
+      Point xy = Device::LED::Index2XY(i);
+
+      if(!xy) { continue; }
+
+      float distanceDiff = sqrt(pow(xy.x - origin.x, 2) + pow(xy.y - origin.y, 2)) - r;
+
+      Color pixelColor = Color(0);
+      if(distanceDiff > (edgeWidth + edgeOuterWidth)) // Outside of render range
+      {
+        continue; // Do not change existing color
+      }
+      else if(distanceDiff < (edgeInnerWidth - edgeWidth)) // Inside of render range
+      {
+        pixelColor = Color(0);
+      }
+      else if(abs(distanceDiff) <= edgeWidth) // In the edge width
+      {
+        pixelColor = color;
+      }
+      else if(distanceDiff > edgeWidth) // In the outer edge
+      {
+
+        pixelColor = color.Scale((1 - (distanceDiff - edgeWidth) / edgeOuterWidth) * 255);
+      }
+      else if(distanceDiff < -edgeWidth) // In the inner edge
+      {
+        pixelColor = color.Scale((1 - (distanceDiff + edgeWidth) / edgeInnerWidth) * 255);
+      }
+      MatrixOS::LED::SetColor(xy, pixelColor);
+    }
+    MatrixOS::LED::Update();
+  }
+  MatrixOS::LED::Fill(Color(0));
 }
