@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
+#include "ui/UI.h"
 #include "ui/UIInterfaces.h"
 #include "applications/Application.h"
 

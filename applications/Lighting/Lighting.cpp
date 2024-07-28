@@ -2,6 +2,7 @@
 
 void Lighting::Setup() {
   MatrixOS::LED::Fill(color);
+  UI::Crossfade(0, MatrixOS::LED::CurrentLayer());
   MatrixOS::LED::Update();
 }
 
