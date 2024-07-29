@@ -43,6 +43,13 @@ void Setting::Start() {
   UIButton enterDfuBtn("Enter DFU Mode", Color(0xFF0000), []() -> void { MatrixOS::SYS::Bootloader(); });
   AddUIComponent(enterDfuBtn, Point(0, Device::y_size - 1));
 
+  UIButton resetDevice("Reset Device", Color(0xFF0000), []() -> void {
+    Device::NVS::Clear();
+    Device::Reboot();
+  });
+  resetDevice.SetEnabled(MatrixOS::UserVar::developer_mode);
+  AddUIComponent(resetDevice, Point(0, Device::y_size - 2));
+
   // UIButton clearConfigBtn("Clear Device Config", Color(0xFF00FF), []() -> void {})
   // AddUIComponent(clearConfigBtn, Point(0, Device::y_size - 2));
 
@@ -101,9 +108,14 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
 
         UIButtonLarge aBtn("A", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
           if (konami == 9)
+          {
+            MatrixOS::UserVar::developer_mode = true;
             MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED");
+          }
           else
+          {
             ab.Exit();
+          }
         });
         ab.AddUIComponent(aBtn, origin + Point(-2, 0));
 
