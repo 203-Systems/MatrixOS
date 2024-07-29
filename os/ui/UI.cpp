@@ -49,7 +49,7 @@ void UI::RenderUI() {
     PreRender();
     for (auto const& uiComponentPair : uiComponents)
     {
-      if (uiComponentPair.second->enabled == false) { continue; }
+      if (uiComponentPair.second->IsEnabled() == false) { continue; }
       Point xy = uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       uiComponent->Render(xy);
@@ -96,7 +96,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
     bool hasAction = false;
     for (auto const& uiComponentPair : uiComponents)
     {
-      if (uiComponentPair.second->enabled == false) { continue; }
+      if (uiComponentPair.second->IsEnabled() == false) { continue; }
       Point relative_xy = xy - uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       if (uiComponent->GetSize().Contains(relative_xy))  // Key Found
