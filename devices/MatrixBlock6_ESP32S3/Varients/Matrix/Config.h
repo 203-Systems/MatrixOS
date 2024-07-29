@@ -83,7 +83,7 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
-        .low_threshold = 768,
+        .low_threshold = 1536,
         .high_threshold = 32767,
         .debounce = 5,
     };
