@@ -614,20 +614,40 @@ void Performance::ActionMenu() {
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-  UIButtonLarge brightnessBtn("Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::LED::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness");
+  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetSize(Dimension(2, 2));
+  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
-  // Rotation control and canvas
-  UIButtonLarge clearCanvasBtn("Clear Canvas", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
+  UIButton clearCanvasBtn;
+  clearCanvasBtn.SetName("Clear Canvas");
+  clearCanvasBtn.SetColor(Color(0x00FF00));
+  clearCanvasBtn.SetSize(Dimension(2, 1));
+  clearCanvasBtn.OnPress([&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
   actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  UIButton rotatRightBtn;
+  rotatRightBtn.SetName("Rotate to this side");
+  rotatRightBtn.SetColor(Color(0x00FF00));
+  rotatRightBtn.SetSize(Dimension(1, 2));
+  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
   actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButton rotateDownBtn;
+  rotateDownBtn.SetName("Rotate to this side");
+  rotateDownBtn.SetColor(Color(0x00FF00));
+  rotateDownBtn.SetSize(Dimension(2, 1));
+  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButton rotateLeftBtn;
+  rotateLeftBtn.SetName("Rotate to this side");
+  rotateLeftBtn.SetColor(Color(0x00FF00));
+  rotateLeftBtn.SetSize(Dimension(1, 2));
+  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
   // Note Pad
@@ -635,52 +655,61 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
-  UIButtonDimmable velocityToggle(
-      "Velocity Sensitive", Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; },
-      [&]() -> void {
-        velocitySensitive = !velocitySensitive;
-        notePad.SetVelocitySensitive(velocitySensitive);
-      });
+  UIButton velocityToggle;
+  velocityToggle.SetName("Velocity Sensitive");
+  velocityToggle.SetColorDimFunc(Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; });
+  velocityToggle.OnPress([&]() -> void {
+    velocitySensitive = !velocitySensitive;
+    notePad.SetVelocitySensitive(velocitySensitive);
+  });
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
-  UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
+  UIButton systemSettingBtn;
+  systemSettingBtn.SetName("System Setting");
+  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
-  UIButtonDimmable menuLockBtn("Menu Lock", Color(0x48CAE4), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
+  UIButton menuLockBtn;
+  menuLockBtn.SetName("Menu Lock");
+  menuLockBtn.SetColorDimFunc(Color(0x48CAE4), [&]() -> bool { return menuLock; });
+  menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
 
-  UIButtonDimmable altMapBtn("Touch Alt Key", Color(0xFF006E), [&]() -> bool { return altmap_mode; }, [&]() -> void { altmap_mode = !altmap_mode; });
+  UIButton altMapBtn;
+  altMapBtn.SetName("Touch Alt Key");
+  altMapBtn.SetColorDimFunc(Color(0xFF006E), [&]() -> bool { return altmap_mode; });
+  altMapBtn.OnPress([&]() -> void { altmap_mode = !altmap_mode; });
   actionMenu.AddUIComponent(altMapBtn, Point(0, 4));
 
-  UIButtonDimmable flickerReductionBtn("Flicker Reduction", Color(0xAAFF00), [&]() -> bool { return stfu; }, [&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
+  UIButton flickerReductionBtn;
+  flickerReductionBtn.SetName("Flicker Reduction");
+  flickerReductionBtn.SetColorDimFunc(Color(0xAAFF00), [&]() -> bool { return stfu; });
+  flickerReductionBtn.OnPress([&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
   actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));
 
-  UIButtonWithColorFunc customPaletteViewer1 = UIButtonWithColorFunc(
-      "Custom Palette 1", [&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF) : Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void {
-          PaletteViewer(0);
-      });
+  UIButton customPaletteViewer1;
+  customPaletteViewer1.SetName("Custom Palette 1");
+  customPaletteViewer1.SetColorFunc([&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer1.OnPress([&]() -> void { PaletteViewer(0); });
   actionMenu.AddUIComponent(customPaletteViewer1, Point(2, 0));
 
-  UIButtonWithColorFunc customPaletteViewer2 = UIButtonWithColorFunc(
-      "Custom Palette 2", [&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF) : Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void {
-          PaletteViewer(1);
-      });
+  UIButton customPaletteViewer2;
+  customPaletteViewer2.SetName("Custom Palette 2");
+  customPaletteViewer2.SetColorFunc([&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer2.OnPress([&]() -> void { PaletteViewer(1); });
   actionMenu.AddUIComponent(customPaletteViewer2, Point(3, 0));
 
-  UIButtonWithColorFunc customPaletteViewer3 = UIButtonWithColorFunc(
-      "Custom Palette 3", [&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF) : Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void {
-          PaletteViewer(2);
-      });
+  UIButton customPaletteViewer3;
+  customPaletteViewer3.SetName("Custom Palette 3");
+  customPaletteViewer3.SetColorFunc([&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer3.OnPress([&]() -> void { PaletteViewer(2); });
   actionMenu.AddUIComponent(customPaletteViewer3, Point(4, 0));
 
-  UIButtonWithColorFunc customPaletteViewer4 = UIButtonWithColorFunc(
-      "Custom Palette 4", [&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF) : Color(0xFFFFFF).ToLowBrightness(); },
-      [&]() -> void {
-          PaletteViewer(3);
-      });
+  UIButton customPaletteViewer4;
+  customPaletteViewer4.SetName("Custom Palette 4");
+  customPaletteViewer4.SetColorFunc([&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer4.OnPress([&]() -> void { PaletteViewer(3); });
   actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
 
   actionMenu.SetLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open

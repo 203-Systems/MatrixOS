@@ -12,64 +12,101 @@ void Setting::Start() {
   // Conspiracy exists?) Also assume at least 4x4
 
   // Brightness Control
-  UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::LED::NextBrightness(); },
-      [&]() -> void { BrightnessControl().Start(); });
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness");
+  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetSize(Dimension(2, 2));
+  brightnessBtn.OnPress([]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessBtn.OnHold([]() -> void { BrightnessControl().Start(); });
   AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas
-  UIButtonLarge nothingBtn("This does nothing", Color(0x00FF00), Dimension(2, 1), []() -> void {});
+  UIButton nothingBtn;
+  nothingBtn.SetName("This does nothing");
+  nothingBtn.SetColor(Color(0x00FF00));
+  nothingBtn.SetSize(Dimension(2, 1));
+  nothingBtn.OnPress([]() -> void {});
   AddUIComponent(nothingBtn, origin + Point(0, -1));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  UIButton rotatRightBtn;
+  rotatRightBtn.SetName("Rotate to this side");
+  rotatRightBtn.SetColor(Color(0x00FF00));
+  rotatRightBtn.SetSize(Dimension(1, 2));
+  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
   AddUIComponent(rotatRightBtn, origin + Point(2, 0));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
-                              [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButton rotateDownBtn;
+  rotateDownBtn.SetName("Rotate to this side");
+  rotateDownBtn.SetColor(Color(0x00FF00));
+  rotateDownBtn.SetSize(Dimension(2, 1));
+  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   AddUIComponent(rotateDownBtn, origin + Point(0, 2));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButton rotateLeftBtn;
+  rotateLeftBtn.SetName("Rotate to this side");
+  rotateLeftBtn.SetColor(Color(0x00FF00));
+  rotateLeftBtn.SetSize(Dimension(1, 2));
+  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   AddUIComponent(rotateLeftBtn, origin + Point(-1, 0));
 
   // Device Control
-  UIButton deviceIdBtn("Device ID", Color(0x00FFFF), []() -> void {
+  UIButton deviceIdBtn;
+  deviceIdBtn.SetName("Device ID");
+  deviceIdBtn.SetColor(Color(0x00FFFF));
+  deviceIdBtn.SetSize(Dimension(1, 1));
+  deviceIdBtn.OnPress([]() -> void {
     MatrixOS::UserVar::device_id =
         MatrixOS::UIInterface::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 255);
-  });  // TODO This forces 8x8
+  });
   AddUIComponent(deviceIdBtn, Point(Device::x_size - 1, Device::y_size - 1));
 
-  UIButton enterDfuBtn("Enter DFU Mode", Color(0xFF0000), []() -> void { MatrixOS::SYS::Bootloader(); });
+  UIButton enterDfuBtn;
+  enterDfuBtn.SetName("Enter DFU Mode");
+  enterDfuBtn.SetColor(Color(0xFF0000));
+  enterDfuBtn.OnPress([]() -> void { MatrixOS::SYS::Bootloader(); });
   AddUIComponent(enterDfuBtn, Point(0, Device::y_size - 1));
 
-  UIButton resetDevice("Reset Device", Color(0xFF0000), []() -> void {
+  UIButton resetDevice;
+  resetDevice.SetName("Reset Device");
+  resetDevice.SetColor(Color(0xFF0000));
+  resetDevice.OnPress([]() -> void {
     Device::NVS::Clear();
     Device::Reboot();
   });
   resetDevice.SetEnabled(MatrixOS::UserVar::developer_mode);
   AddUIComponent(resetDevice, Point(0, Device::y_size - 2));
 
-  // UIButton clearConfigBtn("Clear Device Config", Color(0xFF00FF), []() -> void {})
-  // AddUIComponent(clearConfigBtn, Point(0, Device::y_size - 2));
-
   // Infomation
-  UIButton osVersionBtn("Matrix OS Version", Color(0x00FF30), []() -> void {
+  UIButton osVersionBtn;
+  osVersionBtn.SetName("Matrix OS Version");
+  osVersionBtn.SetColor(Color(0x00FF30));
+  osVersionBtn.OnPress([]() -> void {
     MatrixOS::UIInterface::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));
   });
   AddUIComponent(osVersionBtn, Point(1, Device::y_size - 1));
 
-  UIButton deviceNameBtn("Device Name", Color(0x00FF30),
-                         []() -> void { MatrixOS::UIInterface::TextScroll(Device::name, Color(0x00FFFF)); });
+  UIButton deviceNameBtn;
+  deviceNameBtn.SetName("Device Name");
+  deviceNameBtn.SetColor(Color(0x00FF30));
+  deviceNameBtn.OnPress([]() -> void {
+    MatrixOS::UIInterface::TextScroll(Device::name, Color(0x00FFFF));
+  });
   AddUIComponent(deviceNameBtn, Point(2, Device::y_size - 1));
 
-  UIButton deviceSerialBtn("Device Serial", Color(0x00FF30),
-                           []() -> void { MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF)); });
+  UIButton deviceSerialBtn;
+  deviceSerialBtn.SetName("Device Serial");
+  deviceSerialBtn.SetColor(Color(0x00FF30));
+  deviceSerialBtn.OnPress([]() -> void {
+    MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF));
+  });
   AddUIComponent(deviceSerialBtn, Point(3, Device::y_size - 1));
 
-  
-  UIButton deviceSettingsBtn("Device Settings", Color(0xFFFFFF),
-                           []() -> void { Device::DeviceSettings(); });
+  UIButton deviceSettingsBtn;
+  deviceSettingsBtn.SetName("Device Settings");
+  deviceSettingsBtn.SetColor(Color(0xFFFFFF));
+  deviceSettingsBtn.OnPress([]() -> void {
+    Device::DeviceSettings();
+  });
   AddUIComponent(deviceSettingsBtn, Point(0, 0));
 
 
@@ -108,7 +145,11 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
       {
         UI ab("A & B", Color(0xFF0000));
 
-        UIButtonLarge aBtn("A", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
+        UIButton aBtn;
+        aBtn.SetName("A");
+        aBtn.SetColor(Color(0xFF0000));
+        aBtn.SetSize(Dimension(2, 2));
+        aBtn.OnPress([&]() -> void {
           if (konami == 9)
           {
             MatrixOS::UserVar::developer_mode = true;
@@ -121,7 +162,11 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
         });
         ab.AddUIComponent(aBtn, origin + Point(-2, 0));
 
-        UIButtonLarge bBtn("B", Color(0xFF0000), Dimension(2, 2), [&]() -> void {
+        UIButton bBtn;
+        bBtn.SetName("B");
+        bBtn.SetColor(Color(0xFF0000));
+        bBtn.SetSize(Dimension(2, 2));
+        bBtn.OnPress([&]() -> void {
           if (konami == 8)
             konami++;
           else

@@ -17,34 +17,35 @@ void Shell::AddCommonBarInUI(UI* ui) {
   commonBarBtns.clear();
   commonBarBtns.reserve(2);  // Make sure to change this after adding more stuffs, if vector content got relocated, UI
                              // will not be able to find it and will hardfault!
-  commonBarBtns.push_back(UIButtonDimmable(
-      "Application Launcher", Color(0x00FFAA), [&]() -> bool { return current_page == 0; },
-      [&]() -> void {
-        if (current_page != 0)
-        {
-          current_page = 0;
-          ui->Exit();
-        }
-        else 
-        {
-          // Tap on the application launcher button 10 times to show hidden apps
-          if (MatrixOS::SYS::Millis() - last_tap < 1000)
-          {
-            tap_counter++;
-          }
+  commonBarBtns.push_back(UIButton());
+  commonBarBtns.back().SetName("Application Launcher");
+  commonBarBtns.back().SetColorDimFunc(Color(0x00FFAA), [&]() -> bool { return current_page == 0; });
+  commonBarBtns.back().OnPress([&]() -> void {
+    if (current_page != 0)
+    {
+      current_page = 0;
+      ui->Exit();
+    }
+    else
+    {
+      // Tap on the application launcher button 10 times to show hidden apps
+      if (MatrixOS::SYS::Millis() - last_tap < 1000)
+      {
+        tap_counter++;
+      }
 
-          last_tap = MatrixOS::SYS::Millis();
+      last_tap = MatrixOS::SYS::Millis();
 
-          // MLOGI("Hidden Launcher", "Tap %d", tap_counter);
+      // MLOGI("Hidden Launcher", "Tap %d", tap_counter);
 
-          if (tap_counter >= 10)
-          {
-            tap_counter = 0;
-            MLOGI("Hidden Launcher", "Enter");
-            HiddenApplicationLauncher();
-          }
-        }
-      }));
+      if (tap_counter >= 10)
+      {
+        tap_counter = 0;
+        MLOGI("Hidden Launcher", "Enter");
+        HiddenApplicationLauncher();
+      }
+    }
+  });
   ui->AddUIComponent(commonBarBtns.back(), Point(0, 7));
 
 #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG  // Logging Mode Indicator
@@ -55,9 +56,12 @@ void Shell::AddCommonBarInUI(UI* ui) {
 #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
 #endif
 
-  commonBarBtns.push_back(UIButton("System Setting", SHELL_SYSTEM_SETTING_COLOR,
-                                   [&]() -> void { 
-                                    MatrixOS::SYS::OpenSetting(); }));
+  commonBarBtns.push_back(UIButton());
+
+  commonBarBtns.back().SetName("System Setting");
+  commonBarBtns.back().SetColor(SHELL_SYSTEM_SETTING_COLOR);
+  commonBarBtns.back().OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
+
   ui->AddUIComponent(commonBarBtns.back(), Point(7, 7));
   ui->AllowExit(false);  // So nothing happens
 }
@@ -107,10 +111,14 @@ void Shell::ApplicationLauncher() {
       string app_name = application->name;
       Color app_color = application->color;
 
-      appBtns.push_back(UIButton(app_name, app_color, [&, app_id, x, y, app_color]() -> void {
+      appBtns.push_back(UIButton());
+      appBtns.back().SetName(app_name);
+      appBtns.back().SetColor(app_color);
+      appBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
         LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
-      }));
+      });
+
       applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
       MLOGD("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
@@ -155,7 +163,13 @@ void Shell::HiddenApplicationLauncher() {
       string app_name = application->name;
       Color app_color = application->color;
 
-      appBtns.push_back(UIButton(app_name, app_color, [&, app_id]() -> void { MatrixOS::SYS::ExecuteAPP(app_id); }));
+      appBtns.push_back(UIButton());
+      appBtns.back().SetName(app_name);
+      appBtns.back().SetColor(app_color);
+      appBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
+        LaunchAnimation(Point(x, y), app_color);
+        MatrixOS::SYS::ExecuteAPP(app_id);
+      });
       hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
       MLOGD("Shell (invisable)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());

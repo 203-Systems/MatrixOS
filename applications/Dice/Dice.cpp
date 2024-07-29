@@ -72,7 +72,7 @@ void Dice::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
       {
           Settings();                 // Open UI Menu
       }
-      else if(keyInfo->state == RELEASED && keyInfo->hold == false)  // If the function key is released and not hold
+      else if(keyInfo->state == RELEASED)  // If the function key is released and not hold
       {
           rolling_start_time = MatrixOS::SYS::Millis();
           current_phase = Rolling;
@@ -89,63 +89,102 @@ void Dice::Settings() {
 //   // UI Name, Color (as the text scroll color). and new led layer (Set as true, the UI will render on a new led layer. Persevere what was rendered before after UI exits)
   UI settingsUI("Settings", Color(0x00FFFF), true);
 
-  UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::LED::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness");
+  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetSize(Dimension(2, 2));
+  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
   settingsUI.AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas
-  UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1), [&]() -> void {});
+  UIButton rotateUpBtn;
+  rotateUpBtn.SetName("Rotate Up");
+  rotateUpBtn.SetColor(Color(0x00FF00));
+  rotateUpBtn.SetSize(Dimension(2, 1));
+  rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
   settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  UIButton rotatRightBtn;
+  rotatRightBtn.SetName("Rotate Right");
+  rotatRightBtn.SetColor(Color(0x00FF00));
+  rotatRightBtn.SetSize(Dimension(1, 2));
+  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
   settingsUI.AddUIComponent(rotatRightBtn, Point(5, 3));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButton rotateDownBtn;
+  rotateDownBtn.SetName("Rotate Down");
+  rotateDownBtn.SetColor(Color(0x00FF00));
+  rotateDownBtn.SetSize(Dimension(2, 1));
+  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   settingsUI.AddUIComponent(rotateDownBtn, Point(3, 5));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButton rotateLeftBtn;
+  rotateLeftBtn.SetName("Rotate Left");
+  rotateLeftBtn.SetColor(Color(0x00FF00));
+  rotateLeftBtn.SetSize(Dimension(1, 2));
+  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   settingsUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
-  // Color
-  UIButtonLargeWithColorFunc rollingColorSelectorBtn(
-      "Rolling Color", [&]() -> Color { return rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color; }, Dimension(1, 4),
-      [&]() -> void {
-        if (!rolling_rainbow_mode)
-        {
-          MatrixOS::UIInterface::ColorPicker(rolling_color.Get());
-          rolling_color.Save();
-        }
-      });
+  UIButton rollingColorSelectorBtn;
+  rollingColorSelectorBtn.SetName("Rolling Color");
+  rollingColorSelectorBtn.SetColor(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color);
+  rollingColorSelectorBtn.SetSize(Dimension(1, 4));
+  rollingColorSelectorBtn.OnPress([&]() -> void {
+    if(!rolling_rainbow_mode){
+      MatrixOS::UIInterface::ColorPicker(rolling_color.Get());
+      rolling_color.Save();
+    }
+  });
 
   settingsUI.AddUIComponent(rollingColorSelectorBtn, Point(0, 2));
 
-  UIButtonWithColorFunc rollingRainbowModeToggle(
-      "Rolling Rainbow Mode", [&]() -> Color { return ColorEffects::Rainbow().ToLowBrightness(rolling_rainbow_mode); }, [&]() -> void { rolling_rainbow_mode = !rolling_rainbow_mode; });
+  UIButton rollingRainbowModeToggle;
+  rollingRainbowModeToggle.SetName("Rolling Rainbow Mode");
+  rollingRainbowModeToggle.SetColorDimFunc(ColorEffects::Rainbow(), [&]() -> bool { return rolling_rainbow_mode; });
+  rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode = !rolling_rainbow_mode; });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 7));
 
-  UIButtonLargeWithColorFunc comfirmedColorSelectorBtn(
-      "Comfirmed Color", [&]() -> Color { return comfirmed_rainbow_mode ? ColorEffects::Rainbow() : comfirmed_color; }, Dimension(1, 4),
-      [&]() -> void { if(!comfirmed_rainbow_mode){MatrixOS::UIInterface::ColorPicker(comfirmed_color.Get());
+  UIButton comfirmedColorSelectorBtn;
+  comfirmedColorSelectorBtn.SetName("Comfirmed Color");
+  comfirmedColorSelectorBtn.SetColor(comfirmed_rainbow_mode ? ColorEffects::Rainbow() : comfirmed_color);
+  comfirmedColorSelectorBtn.SetSize(Dimension(1, 4));
+  comfirmedColorSelectorBtn.OnPress([&]() -> void {
+    if (!comfirmed_rainbow_mode) {
+      MatrixOS::UIInterface::ColorPicker(comfirmed_color.Get());
       comfirmed_color.Save();
-    } });
+    }
+  });
   settingsUI.AddUIComponent(comfirmedColorSelectorBtn, Point(7, 2));
 
-  UIButtonWithColorFunc comfirmedRainbowModeToggle(
-      "Comfirmed Rainbow Mode", [&]() -> Color { return ColorEffects::Rainbow().ToLowBrightness(comfirmed_rainbow_mode); }, [&]() -> void { comfirmed_rainbow_mode = !comfirmed_rainbow_mode; });
+  UIButton comfirmedRainbowModeToggle;
+  comfirmedRainbowModeToggle.SetName("Comfirmed Rainbow Mode");
+  comfirmedRainbowModeToggle.SetColorDimFunc(ColorEffects::Rainbow(), [&]() -> bool { return comfirmed_rainbow_mode; });
+  comfirmedRainbowModeToggle.OnPress([&]() -> void { comfirmed_rainbow_mode = !comfirmed_rainbow_mode; });
   settingsUI.AddUIComponent(comfirmedRainbowModeToggle, Point(7, 7));
 
-  UIButtonLargeWithColorFunc numberViewToggle(
-      "Number View", [&]() -> Color { return Color(0xFF5000).ToLowBrightness(faces < 10 && number_view); }, Dimension(4, 1),
-      [&]() -> void {
-        if (faces < 10)
-        {
-          number_view = !number_view;
-        }
-      });
+  UIButton numberViewToggle;
+  numberViewToggle.SetName("Number View");
+  numberViewToggle.SetColorDimFunc(Color(0xFF5000), [&]() -> bool { return faces < 10 && number_view; });
+  numberViewToggle.SetSize(Dimension(4, 1));
+  numberViewToggle.OnPress([&]() -> void {
+    if (faces < 10) {
+      number_view = !number_view;
+    }
+  });
   settingsUI.AddUIComponent(numberViewToggle, Point(2, 7));
 
+  // Dice Mode
+
+  
+
+
   int32_t modifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
-  UIButtonLarge facesSelectorBtn("Faces", Color(0x00FFFF), Dimension(4, 1), [&]() -> void {faces = MatrixOS::UIInterface::NumberSelector8x8(faces, Color(0x00FFFF), "Face Selector", 1, 99);});
+  UIButton facesSelectorBtn;
+  facesSelectorBtn.SetName("Faces");
+  facesSelectorBtn.SetColor(Color(0x00FFFF));
+  facesSelectorBtn.SetSize(Dimension(4, 1));
+  facesSelectorBtn.OnPress([&]() -> void {faces = MatrixOS::UIInterface::NumberSelector8x8(faces, Color(0x00FFFF), "Face Selector", 1, 99);});
   settingsUI.AddUIComponent(facesSelectorBtn, Point(2, 0));
 
   // Second, set the key event handler to match the intended behavior

@@ -4,30 +4,54 @@
 class UIButton : public UIComponent {
  public:
   string name;
-  Color color;
-  std::function<void()> callback;
+  Color color = Color(0);
+  std::function<void()> press_callback;
   std::function<void()> hold_callback;
+  // union{
+      std::function<Color()> color_func;
+  // };
+  Dimension dimension = Dimension(1, 1);
 
-  UIButton(string name, Color color, std::function<void()> callback = nullptr,
-           std::function<void()> hold_callback = nullptr) {
-    this->name = name;
+  UIButton() {}
+  
+  virtual string GetName() { return name; }
+  void SetName(string name) { this->name = name; }
+
+  virtual Color GetColor() { 
+    if(dim_func && color != Color(0))
+    {
+      return color.DimIf(dim_func());
+    }
+    else if (color_func)
+    {
+      return color_func();
+    }
+    return color;
+  }
+  void SetColor(Color color) { this->color = color; }
+  void SetColorDimFunc(Color color, std::function<bool()> dim_func) {
     this->color = color;
-    this->callback = callback;
-    this->hold_callback = hold_callback;
+    this->dim_func = dim_func;
+  }
+  void SetColorFunc(std::function<Color()> color_func) {
+    this->color = Color(0);
+    this->color_func = color_func;
   }
 
-  virtual string GetName() { return name; }
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(1, 1); }
+  virtual Dimension GetSize() { return dimension; }
+  void SetSize(Dimension dimension) { this->dimension = dimension; }
 
-  virtual bool Callback() {
-    if (callback != nullptr)
+  virtual bool PressCallback() {
+    if (press_callback != nullptr)
     {
-      callback();
+      press_callback();
       return true;
     }
     return false;
   }
+
+  void OnPress(std::function<void()> press_callback) { this->press_callback = press_callback; }
+
   virtual bool HoldCallback() {
     if (hold_callback)
     {
@@ -36,6 +60,9 @@ class UIButton : public UIComponent {
     }
     return false;
   }
+  void OnHold(std::function<void()> hold_callback) { this->hold_callback = hold_callback; }
+
+
   virtual bool Render(Point origin) {
     MatrixOS::LED::SetColor(origin, GetColor());
     return true;
@@ -44,7 +71,7 @@ class UIButton : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if (keyInfo->state == RELEASED && keyInfo->hold == false)
     {
-      if (Callback())
+      if (PressCallback())
       {
         MLOGD("UI Button", "Key Event Callback");
         MatrixOS::KEYPAD::Clear();
@@ -66,4 +93,6 @@ class UIButton : public UIComponent {
     }
     return false;
   }
+
+  virtual ~UIButton(){};
 };

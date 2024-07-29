@@ -45,9 +45,12 @@ uint32_t Color::GRB(uint8_t brightness) {
 Color Color::Scale(uint8_t brightness) {
   return Color(scale8_video(R, brightness), scale8_video(G, brightness), scale8_video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
 }
+Color Color::Dim(uint8_t scale) {
+  return Scale(scale); 
+}
 
-Color Color::ToLowBrightness(bool cancel, uint8_t scale) {
-  if (!cancel)
+Color Color::DimIf(bool dim, uint8_t scale) {
+  if (!dim)
   { return Scale(scale); }
   return Color(R, G, B, W);
 }

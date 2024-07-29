@@ -16,6 +16,7 @@ Midi signal recived will be echoed back to the host
 
 #include "MatrixOS.h"
 #include "applications/Application.h"
+#include "applications/BrightnessControl/BrightnessControl.h" 
 
 class ExampleAPP : public Application {
  public:

@@ -5,23 +5,34 @@ void FactoryMenu::Setup() {
 
   UI factoryMenu("Factory Menu", Color(0xFFFFFF));
 
-  UIButton ledTestBtn("LED Test", Color(0xFFFFFF), [&]() -> void { LEDTester(); });
+  UIButton ledTestBtn;
+  ledTestBtn.SetName("LED Test");
+  ledTestBtn.SetColor(Color(0xFFFFFF));
+  ledTestBtn.OnPress([&]() -> void { LEDTester(); });
   factoryMenu.AddUIComponent(ledTestBtn, Point(0, 0));
 
-  UIButton keypadTestBtn("Keypad Test", Color(0xFFFFFF), [&]() -> void { KeyPadTester(); });
+  UIButton keypadTestBtn;
+  keypadTestBtn.SetName("Keypad Test");
+  keypadTestBtn.SetColor(Color(0xFFFFFF));
+  keypadTestBtn.OnPress([&]() -> void { KeyPadTester(); });
   factoryMenu.AddUIComponent(keypadTestBtn, Point(1, 0));
 
-  UIButton touchBarTest("Touch Bar Test", Color(0xFFFFFF), [&]() -> void { TouchBarTester(); });
+  UIButton touchBarTest;
+  touchBarTest.SetName("Touch Bar Test");
+  touchBarTest.SetColor(Color(0xFFFFFF));
+  touchBarTest.OnPress([&]() -> void { TouchBarTester(); });
   factoryMenu.AddUIComponent(touchBarTest, Point(2, 0));
 
-  UIButtonWithColorFunc burnEfuseBtn(
-      "Burn EFuse", [&]() -> Color { return esp_efuse_block_is_empty(EFUSE_BLK3) ? Color(0xFF0000) : Color(0x00FF00); },
-      [&]() -> void { EFuseBurner(); });
+  UIButton burnEfuseBtn;
+  burnEfuseBtn.SetName("Burn EFuse");
+  burnEfuseBtn.SetColorFunc([&]() -> Color { return esp_efuse_block_is_empty(EFUSE_BLK3) ? Color(0xFF0000) : Color(0x00FF00); });
+  burnEfuseBtn.OnPress([&]() -> void { EFuseBurner(); });
   factoryMenu.AddUIComponent(burnEfuseBtn, Point(0, 7));
 
-  UIButtonWithColorFunc usbConnection(
-      "USB Connection", [&]() -> Color { return MatrixOS::USB::Connected() ? Color(0x00FF00) : Color(0xFF0000); },
-      [&]() -> void {});
+  UIButton usbConnection;
+  usbConnection.SetName("USB Connection");
+  usbConnection.SetColorFunc([&]() -> Color { return MatrixOS::USB::Connected() ? Color(0x00FF00) : Color(0xFF0000); });
+  usbConnection.OnPress([&]() -> void {});
   factoryMenu.AddUIComponent(usbConnection, Point(7, 7));
 
   Color deviceColor = Color(0xFFFFFF);
@@ -34,7 +45,11 @@ void FactoryMenu::Setup() {
     deviceColor = Color(0xFF00FF);
   }
 
-  UIButtonLarge deviceVersionBtn("Device Version", deviceColor, Dimension(4, 1), [&]() -> void {});
+  UIButton deviceVersionBtn;
+  deviceVersionBtn.SetName("Device Version");
+  deviceVersionBtn.SetColor(deviceColor);
+  deviceVersionBtn.SetSize(Dimension(4, 1));
+  deviceVersionBtn.OnPress([&]() -> void {});
   factoryMenu.AddUIComponent(deviceVersionBtn, Point(2, 7));
 
   factoryMenu.Start();
