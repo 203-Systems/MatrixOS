@@ -49,8 +49,8 @@ Color Color::Dim(uint8_t scale) {
   return Scale(scale); 
 }
 
-Color Color::DimIf(bool dim, uint8_t scale) {
-  if (!dim)
+Color Color::DimIfNot(bool not_dim, uint8_t scale) {
+  if (!not_dim)
   { return Scale(scale); }
   return Color(R, G, B, W);
 }

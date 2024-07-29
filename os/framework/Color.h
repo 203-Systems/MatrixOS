@@ -22,7 +22,7 @@ class Color {
   uint32_t GRB(uint8_t brightness = 255);
   Color Scale(uint8_t scale);
   Color Dim(uint8_t scale = COLOR_LOW_STATE_SCALE);
-  Color DimIf(bool dim = false, uint8_t scale = COLOR_LOW_STATE_SCALE);  // Helper for UI, make ui variable
+  Color DimIfNot(bool dim = false, uint8_t scale = COLOR_LOW_STATE_SCALE);  // Helper for UI, make ui variable
                                                                                       // as parameter so the output
                                                                                       // dynamiclly change based on the
                                                                                       // variable
