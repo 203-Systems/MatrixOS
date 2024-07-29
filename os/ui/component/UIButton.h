@@ -7,9 +7,7 @@ class UIButton : public UIComponent {
   Color color = Color(0);
   std::function<void()> press_callback;
   std::function<void()> hold_callback;
-  // union{
-      std::function<Color()> color_func;
-  // };
+  std::function<Color()> color_func;
   Dimension dimension = Dimension(1, 1);
 
   UIButton() {}
@@ -18,21 +16,13 @@ class UIButton : public UIComponent {
   void SetName(string name) { this->name = name; }
 
   virtual Color GetColor() { 
-    if(dim_func && color != Color(0))
-    {
-      return color.DimIf(dim_func());
-    }
-    else if (color_func)
+    if (color_func)
     {
       return color_func();
     }
     return color;
   }
   void SetColor(Color color) { this->color = color; }
-  void SetColorDimFunc(Color color, std::function<bool()> dim_func) {
-    this->color = color;
-    this->dim_func = dim_func;
-  }
   void SetColorFunc(std::function<Color()> color_func) {
     this->color = Color(0);
     this->color_func = color_func;
@@ -64,7 +54,15 @@ class UIButton : public UIComponent {
 
 
   virtual bool Render(Point origin) {
-    MatrixOS::LED::SetColor(origin, GetColor());
+    Dimension dimension = GetSize();
+    Color color = GetColor();
+    for (uint16_t x = 0; x < dimension.x; x++)
+    {
+      for (uint16_t y = 0; y < dimension.y; y++)
+      {
+        MatrixOS::LED::SetColor(origin + Point(x, y), color);
+      }
+    }
     return true;
   }
 
