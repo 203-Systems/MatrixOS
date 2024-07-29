@@ -28,9 +28,9 @@ inline Application_Info ForceGridVisualizer::info = {
     .color =  Color(0x00FF00),
     .version = 1,
     // #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
-    .visibility = true,
+    // .visibility = true,
     // #else
-    // .visibility = false,
+    .visibility = false,
     // #endif
 };
 

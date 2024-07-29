@@ -16,7 +16,7 @@
 // // DEVICE APPLICATION
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
 #include "applications/Matrix/ForceCalibration/ForceCalibration.h"
-#include "applications/Debug/ForceGridVisualizer/ForceGridVisualizer.h"
+#include "applications/Matrix/ForceGridVisualizer/ForceGridVisualizer.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
 
