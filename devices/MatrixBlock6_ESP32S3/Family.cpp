@@ -90,6 +90,20 @@ namespace Device
         []() -> void { Device::touchbar_enable = !Device::touchbar_enable; });
     deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
 
+    UIButton keypadCalibrationBtn(
+        "Keypad Calibration", Color(0xFFFFFF),
+        []() -> void { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Force Calibration"); });
+    keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
+    deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
+
+    UIButton keypadVisualizerBtn(
+        "Force Keypad Visualizer", Color(0x00FF00),
+        []() -> void { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Force Grid Visualizer"); });
+    keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity && MatrixOS::UserVar::developer_mode);
+    deviceSettings.AddUIComponent(keypadVisualizerBtn, Point(7, 1));
+
+
+
     deviceSettings.Start();
   }
 
