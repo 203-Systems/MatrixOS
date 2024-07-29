@@ -73,6 +73,26 @@ namespace Device
     LoadVarientInfo();
   }
 
+    void DeviceSettings()
+  {
+    UI deviceSettings("Device Settings", Color(0x00FFAA));
+
+    UIButtonDimmable bluetoothToggle(
+    "Bluetooth", Color(0x0082fc), []() -> bool { return Device::BLEMIDI::started; },
+    []() -> void {
+      Device::BLEMIDI::Toggle();
+      Device::bluetooth = Device::BLEMIDI::started;
+    });
+    deviceSettings.AddUIComponent(bluetoothToggle, Point(0, 0));
+
+    UIButtonDimmable touchbarToggle(
+        "Touchbar", Color(0x7957FB), []() -> bool { return Device::touchbar_enable; },
+        []() -> void { Device::touchbar_enable = !Device::touchbar_enable; });
+    deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
+
+    deviceSettings.Start();
+  }
+
   void Bootloader() {
 // Check out esp_reset_reason_t for other Espressif pre-defined values
 #define APP_REQUEST_UF2_RESET_HINT (esp_reset_reason_t)0x11F2

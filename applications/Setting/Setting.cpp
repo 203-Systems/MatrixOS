@@ -67,9 +67,11 @@ void Setting::Start() {
                            []() -> void { MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF)); });
   AddUIComponent(deviceSerialBtn, Point(3, Device::y_size - 1));
 
-#ifdef DEVICE_SETTING
-#include "DeviceSetting.h"
-#endif
+  
+  UIButton deviceSettingsBtn("Device Settings", Color(0xFFFFFF),
+                           []() -> void { Device::DeviceSettings(); });
+  AddUIComponent(deviceSettingsBtn, Point(0, 0));
+
 
   UI::Start();
 }
