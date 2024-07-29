@@ -29,7 +29,7 @@ class ScaleVisualizer : public UIComponent {
       else if (bitRead(c_aligned_scale_map, note))
       { MatrixOS::LED::SetColor(xy, color); }
       else
-      { MatrixOS::LED::SetColor(xy, color.DimIf()); }
+      { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
     }
     return true;
   }

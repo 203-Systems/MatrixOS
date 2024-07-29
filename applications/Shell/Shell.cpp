@@ -19,7 +19,7 @@ void Shell::AddCommonBarInUI(UI* ui) {
                              // will not be able to find it and will hardfault!
   commonBarBtns.push_back(UIButton());
   commonBarBtns.back().SetName("Application Launcher");
-  commonBarBtns.back().SetColorDimFunc(Color(0x00FFAA), [&]() -> bool { return current_page == 0; });
+  commonBarBtns.back().SetColorFunc([&]() -> Color { return Color(0x00FFAA).DimIfNot(current_page == 0); });
   commonBarBtns.back().OnPress([&]() -> void {
     if (current_page != 0)
     {

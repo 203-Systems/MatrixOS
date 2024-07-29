@@ -57,8 +57,8 @@ class UI4pxFloat : public UIComponent {
         MatrixOS::LED::SetColor(origin + Point(1, 0), GetColor());
         MatrixOS::LED::SetColor(origin + Point(2, 0), GetColor());
         MatrixOS::LED::SetColor(origin + Point(0, 1), GetColor());
-        MatrixOS::LED::SetColor(origin + Point(1, 1), GetColor());
         MatrixOS::LED::SetColor(origin + Point(0, 2), GetColor());
+        MatrixOS::LED::SetColor(origin + Point(1, 2), GetColor());
         MatrixOS::LED::SetColor(origin + Point(0, 3), GetColor());
 
         // U

@@ -68,7 +68,7 @@ void Note::Setup() {
 
   UIButton enforceScaleToggle;
   enforceScaleToggle.SetName("Enforce Scale");
-  enforceScaleToggle.SetColorDimFunc(Color(0xff5000), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; });
+  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enfourceScale); });
   enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
@@ -86,7 +86,7 @@ void Note::Setup() {
 
   UIButton velocitySensitiveToggle;
   velocitySensitiveToggle.SetName("Velocity Sensitive");
-  velocitySensitiveToggle.SetColorDimFunc(Color(0x00FFB0), [&]() -> bool { return notePadConfigs[activeConfig].velocitySensitive; });
+  velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
   velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
@@ -96,19 +96,19 @@ void Note::Setup() {
   // Split View
   UIButton splitViewToggle;
   splitViewToggle.SetName("Split View");
-  splitViewToggle.SetColorDimFunc(Color(0xFFFFFF), [&]() -> bool { return splitView; });
+  splitViewToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(splitView); });
   splitViewToggle.OnPress([&]() -> void { splitView = !splitView; });
   actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
 
   UIButton notepad1SelectBtn;
   notepad1SelectBtn.SetName("Note Pad 1");
-  notepad1SelectBtn.SetColorDimFunc(notePadConfigs[0].color, [&]() -> bool { return activeConfig.Get() == 0; });
+  notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig.Get() == 0); });
   notepad1SelectBtn.OnPress([&]() -> void { activeConfig = 0; });
   actionMenu.AddUIComponent(notepad1SelectBtn, Point(3, 0));
 
   UIButton notepad2SelectBtn;
   notepad2SelectBtn.SetName("Note Pad 2");
-  notepad2SelectBtn.SetColorDimFunc(notePadConfigs[1].color, [&]() -> bool { return activeConfig.Get() == 1; });
+  notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig.Get() == 1); });
   notepad2SelectBtn.OnPress([&]() -> void { activeConfig = 1; });
   actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
 
@@ -205,7 +205,7 @@ void Note::OverlapSelector() {
 
   UIButton alignRootToggle;
   alignRootToggle.SetName("Align Root Key");
-  alignRootToggle.SetColorDimFunc(Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; });
+  alignRootToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].alignRoot); });
   alignRootToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
   overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
 

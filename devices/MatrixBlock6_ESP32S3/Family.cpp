@@ -79,7 +79,9 @@ namespace Device
 
     UIButton bluetoothToggle;
     bluetoothToggle.SetName("Bluetooth");
-    bluetoothToggle.SetColorDimFunc(Color(0x0082fc), []() -> bool { return Device::BLEMIDI::started; });
+    bluetoothToggle.SetColorFunc([]() -> Color {
+      return Color(0x0082fc).DimIfNot(Device::BLEMIDI::started);
+    });
     bluetoothToggle.OnPress([]() -> void {
       Device::BLEMIDI::Toggle();
       Device::bluetooth = Device::BLEMIDI::started;
@@ -88,7 +90,9 @@ namespace Device
 
     UIButton touchbarToggle;
     touchbarToggle.SetName("Touchbar");
-    touchbarToggle.SetColorDimFunc(Color(0x7957FB), []() -> bool { return Device::touchbar_enable; });
+    touchbarToggle.SetColorFunc([]() -> Color {
+      return Color(0x7957FB).DimIfNot(Device::touchbar_enable);
+    });
     touchbarToggle.OnPress([]() -> void { Device::touchbar_enable = !Device::touchbar_enable; });
     deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
 

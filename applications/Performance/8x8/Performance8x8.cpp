@@ -657,7 +657,7 @@ void Performance::ActionMenu() {
   // Other Controls
   UIButton velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
-  velocityToggle.SetColorDimFunc(Color(0xFFFFFF), [&]() -> bool { return velocitySensitive; });
+  velocityToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(!velocitySensitive); });
   velocityToggle.OnPress([&]() -> void {
     velocitySensitive = !velocitySensitive;
     notePad.SetVelocitySensitive(velocitySensitive);
@@ -672,19 +672,19 @@ void Performance::ActionMenu() {
 
   UIButton menuLockBtn;
   menuLockBtn.SetName("Menu Lock");
-  menuLockBtn.SetColorDimFunc(Color(0x48CAE4), [&]() -> bool { return menuLock; });
+  menuLockBtn.SetColorFunc([&]() -> Color { return Color(0x48CAE4).DimIfNot(menuLock); });
   menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
 
   UIButton altMapBtn;
   altMapBtn.SetName("Touch Alt Key");
-  altMapBtn.SetColorDimFunc(Color(0xFF006E), [&]() -> bool { return altmap_mode; });
+  altMapBtn.SetColorFunc([&]() -> Color { return Color(0xFF006E).DimIfNot(altmap_mode); });
   altMapBtn.OnPress([&]() -> void { altmap_mode = !altmap_mode; });
   actionMenu.AddUIComponent(altMapBtn, Point(0, 4));
 
   UIButton flickerReductionBtn;
   flickerReductionBtn.SetName("Flicker Reduction");
-  flickerReductionBtn.SetColorDimFunc(Color(0xAAFF00), [&]() -> bool { return stfu; });
+  flickerReductionBtn.SetColorFunc([&]() -> Color { return Color(0xAAFF00).DimIfNot(stfu); });
   flickerReductionBtn.OnPress([&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
   actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));
 

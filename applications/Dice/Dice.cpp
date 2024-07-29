@@ -128,7 +128,7 @@ void Dice::Settings() {
 
   UIButton rollingColorSelectorBtn;
   rollingColorSelectorBtn.SetName("Rolling Color");
-  rollingColorSelectorBtn.SetColor(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color);
+  rollingColorSelectorBtn.SetColorFunc([&]() -> Color { return rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color.Get(); });
   rollingColorSelectorBtn.SetSize(Dimension(1, 4));
   rollingColorSelectorBtn.OnPress([&]() -> void {
     if(!rolling_rainbow_mode){
@@ -141,13 +141,13 @@ void Dice::Settings() {
 
   UIButton rollingRainbowModeToggle;
   rollingRainbowModeToggle.SetName("Rolling Rainbow Mode");
-  rollingRainbowModeToggle.SetColorDimFunc(ColorEffects::Rainbow(), [&]() -> bool { return rolling_rainbow_mode; });
+  rollingRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow().DimIfNot(rolling_rainbow_mode); });
   rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode = !rolling_rainbow_mode; });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 7));
 
   UIButton comfirmedColorSelectorBtn;
   comfirmedColorSelectorBtn.SetName("Comfirmed Color");
-  comfirmedColorSelectorBtn.SetColor(comfirmed_rainbow_mode ? ColorEffects::Rainbow() : comfirmed_color);
+  comfirmedColorSelectorBtn.SetColorFunc([&]() -> Color { return comfirmed_rainbow_mode ? ColorEffects::Rainbow() : comfirmed_color.Get(); });
   comfirmedColorSelectorBtn.SetSize(Dimension(1, 4));
   comfirmedColorSelectorBtn.OnPress([&]() -> void {
     if (!comfirmed_rainbow_mode) {
@@ -159,13 +159,13 @@ void Dice::Settings() {
 
   UIButton comfirmedRainbowModeToggle;
   comfirmedRainbowModeToggle.SetName("Comfirmed Rainbow Mode");
-  comfirmedRainbowModeToggle.SetColorDimFunc(ColorEffects::Rainbow(), [&]() -> bool { return comfirmed_rainbow_mode; });
+  comfirmedRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow().DimIfNot(comfirmed_rainbow_mode); });
   comfirmedRainbowModeToggle.OnPress([&]() -> void { comfirmed_rainbow_mode = !comfirmed_rainbow_mode; });
   settingsUI.AddUIComponent(comfirmedRainbowModeToggle, Point(7, 7));
 
   UIButton numberViewToggle;
   numberViewToggle.SetName("Number View");
-  numberViewToggle.SetColorDimFunc(Color(0xFF5000), [&]() -> bool { return faces < 10 && number_view; });
+  numberViewToggle.SetColorFunc([&]() -> Color { return Color(0xFF5000).DimIfNot(faces < 10 && number_view); });
   numberViewToggle.SetSize(Dimension(4, 1));
   numberViewToggle.OnPress([&]() -> void {
     if (faces < 10) {
