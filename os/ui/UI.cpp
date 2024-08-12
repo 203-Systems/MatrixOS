@@ -82,7 +82,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
   // MLOGD("UI Key Event", "%d - %d", keyID, keyInfo->state);
   if (keyEvent->id == FUNCTION_KEY)
   {
-    if (!disableExit && keyEvent->info.state == PRESSED)
+    if (!disableExit && keyEvent->info.state == RELEASED)
     {
       MLOGD("UI", "Function Key Exit");
       Exit();
@@ -159,6 +159,7 @@ void UI::UIEnd() {
   MLOGD("UI", "UI Exited");
   crossfade_start_time = 0;
 
+  MatrixOS::KEYPAD::Clear();
 
 
   if (newLedLayer)
@@ -172,7 +173,6 @@ void UI::UIEnd() {
   else
   { MatrixOS::LED::Fill(0); }
 
-  MatrixOS::KEYPAD::Clear();
   // MatrixOS::LED::Update();
 }
 
