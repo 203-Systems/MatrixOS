@@ -24,7 +24,7 @@ namespace ColorEffects
 
     inline Color ColorBreath(Color color, uint16_t period = 1000, int32_t offset = 0)
     {
-        return color.Scale(Breath(period, offset));
+        return color.Scale(Breath(period, offset)).Gamma();
     }
 
     inline uint8_t Strobe(uint16_t period = 1000, int32_t offset = 0)
@@ -44,6 +44,6 @@ namespace ColorEffects
 
     inline Color ColorSaw(Color color, uint16_t period = 1000, int32_t offset = 0)
     {
-        return color.Scale(Saw(period, offset));
+        return color.Scale(Saw(period, offset)).Gamma();
     }
 }
