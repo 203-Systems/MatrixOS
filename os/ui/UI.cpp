@@ -45,7 +45,7 @@ void UI::RenderUI() {
   if (uiTimer.Tick(uiUpdateMS) || needRender)
   {
     needRender = false;
-    // MatrixOS::LED::Fill(0);
+    MatrixOS::LED::Fill(0);
     PreRender();
     for (auto const& uiComponentPair : uiComponents)
     {
