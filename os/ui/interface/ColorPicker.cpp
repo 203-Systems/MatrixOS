@@ -26,7 +26,7 @@ class UIHueSelector : public UIComponent {
       for (int8_t x = 0; x < dimension.x; x++)
       {
         float hue = std::fmod(begin + step * (y * dimension.x + x), 1.0);
-        Color color = Color::HsvToRgb(hue, 1.0, 1.0);
+        Color color = Color::HsvToRgb(hue, 1.0, 1.0).Gamma();
         MatrixOS::LED::SetColor(Point(x, ui_y), color);
       }
     }
@@ -76,7 +76,7 @@ class UIShadeSelector : public UIComponent {
       for (int8_t x = 0; x < dimension.x; x++)
       {
         float s = sBegin + x * sStep;
-        Color color = Color::HsvToRgb(*hue, s, v);
+        Color color = Color::HsvToRgb(*hue, s, v).Gamma();
         MatrixOS::LED::SetColor(Point(x, ui_y), color);
       }
     }
@@ -89,7 +89,7 @@ class UIShadeSelector : public UIComponent {
         int16_t ui_y = dimension.y - xy.y - 1;
         float v = vBegin + ui_y * vStep;
         float s = sBegin + xy.x * sStep;
-        callback(Color::HsvToRgb(*hue, s, v));
+        callback(Color::HsvToRgb(*hue, s, v).Gamma());
     }
     return true;
   }
