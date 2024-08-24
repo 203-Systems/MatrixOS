@@ -8,4 +8,11 @@ namespace MatrixOS::HID
   {
     return tud_hid_ready();
   }
+
+  void Init()
+  {
+    RawHID::Init();
+    Gamepad::ReleaseAll();
+    Keyboard::ReleaseAll();
+  }
 }

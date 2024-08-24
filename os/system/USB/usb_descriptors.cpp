@@ -73,15 +73,28 @@ uint8_t const* tud_descriptor_device_cb(void) {
     HID_USAGE        ( 0x01                       ),\
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
       /* Report ID for Inquiry */\
-      0x85, 255,\
-      HID_REPORT_SIZE ( 8                                       ),\
+      0x85, 255, \
+      /* Feature Report (64 bytes) */ \
+      HID_USAGE   ( 0x80                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_COUNT( 64                                      ),\
-      HID_LOGICAL_MIN ( 0x00                                    ),\
-      HID_LOGICAL_MAX ( 0xFF                                    ),\
-      HID_USAGE       ( 0x01                                    ),\
-      HID_OUTPUT     ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+      HID_FEATURE       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE),\
+      /* Input Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 16                                      ),\
+      HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+      /* Output Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 16                                      ),\
+      HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
     HID_COLLECTION_END
-    
   
 
 uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)), 

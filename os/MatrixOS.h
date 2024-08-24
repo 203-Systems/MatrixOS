@@ -193,15 +193,10 @@ namespace MatrixOS
       void ReleaseAll(void);
     }
 
-    namespace Raw
+    namespace RawHID
     {
-      int Available(void);
-      int Read(void);
-      int Peek(void);
-      void Flush(void);
-
-      size_t Write(uint8_t c);
-      size_t Write(uint8_t* buffer, size_t size);
+      void Init();
+      size_t Get(uint8_t** report, uint32_t timeout_ms = 0);
     }
   }
 
