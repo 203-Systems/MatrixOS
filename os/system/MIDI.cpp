@@ -12,6 +12,10 @@ namespace MatrixOS::MIDI
   std::map<uint16_t, MidiPort*> midiPortMap;
 
   void Init(void) {
+    if(midi_queue)
+    {
+      vQueueDelete(midi_queue);
+    }
     midi_queue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
   }
 

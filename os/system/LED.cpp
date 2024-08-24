@@ -52,6 +52,18 @@ namespace MatrixOS::LED
   }
 
   void Init() {
+    if(activeBufferSemaphore)
+    {
+      vSemaphoreDelete(activeBufferSemaphore);
+    }
+
+    if(led_tm)
+    {
+      xTimerDelete(led_tm, 0);
+    }
+
+    frameBuffers.clear();
+    
     // Generate brightness level map
     ledBrightnessMultiplyer.resize(Device::led_partitions.size());
     ledPartitionBrightness.resize(Device::led_partitions.size());

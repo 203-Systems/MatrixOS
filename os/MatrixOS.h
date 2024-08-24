@@ -28,7 +28,8 @@ namespace MatrixOS
   namespace SYS
   {
     inline bool inited = false;
-    void Init(void);
+    void Begin(void);
+    void InitSysModules(void);
 
     uint32_t Millis(void);
     void DelayMs(uint32_t intervalMs);
@@ -131,6 +132,7 @@ namespace MatrixOS
 
   namespace HID
   {
+    void Init();
     bool Ready(void);
     
     namespace Keyboard
