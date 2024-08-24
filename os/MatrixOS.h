@@ -137,11 +137,11 @@ namespace MatrixOS
     
     namespace Keyboard
     {
-      size_t Write(KeyboardKeycode k);
-      size_t Press(KeyboardKeycode k);
-      size_t Release(KeyboardKeycode k);
-      size_t Remove(KeyboardKeycode k);
-      size_t ReleaseAll(void);
+      bool Write(KeyboardKeycode k);
+      bool Press(KeyboardKeycode k);
+      bool Release(KeyboardKeycode k);
+      bool Remove(KeyboardKeycode k);
+      void ReleaseAll(void);
     }
 
     namespace Mouse

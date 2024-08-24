@@ -19,74 +19,75 @@ namespace MatrixOS::HID::Gamepad
 {   
     HID_GamepadReport_Data_t _report;
 
-    void Write(void){ 
+    void Send(void){ 
         // tud_hid_n_report(0, REPORT_ID_GAMEPAD, &_report, sizeof(_report));
         MLOGD("Gamepad", "%d %d %d %d %d %d %d %d", _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis, _report.ryAxis, _report.dPad, _report.buttons);
+        
         tud_hid_n_gamepad_report(0, REPORT_ID_GAMEPAD, _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis, _report.ryAxis, _report.dPad, _report.buttons);
     }
 
     void Press(GamepadKeycode b)
     {
         _report.buttons |= (uint32_t)1 << b; 
-        Write();
+        Send();
     }
 
     void Release(GamepadKeycode b)
     {
         _report.buttons &= ~((uint32_t)1 << b); 
-        Write();
+        Send();
     }
 
     void ReleaseAll(void)
     {
-        memset(&_report, 0x00, sizeof(_report)); 
-        Write();
+        _report.buttons = 0;
+        Send();
     }
 
     void Buttons(uint32_t b)
     {
         _report.buttons = b; 
-        Write();
+        Send();
     }
 
     void XAxis(int8_t a){ 
         _report.xAxis = a; 
-        Write();
+        Send();
     }
 
 
     void YAxis(int8_t a){ 
         _report.yAxis = a; 
-        Write();
+        Send();
     }
 
 
     void ZAxis(int8_t a){ 
         _report.zAxis = a; 
-        Write();
+        Send();
     }
 
 
     void RXAxis(int8_t a){ 
         _report.rxAxis = a; 
-        Write();
+        Send();
     }
 
 
     void RYAxis(int8_t a){ 
         _report.ryAxis = a; 
-        Write();
+        Send();
     }
 
 
     void RZAxis(int8_t a){ 
         _report.rzAxis = a; 
-        Write();
+        Send();
     }
 
 
     void DPad(GamepadDPadDirection d){ 
         _report.dPad = d; 
-        Write();
+        Send();
     }
 }

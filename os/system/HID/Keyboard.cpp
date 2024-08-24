@@ -19,7 +19,7 @@ namespace MatrixOS::HID::Keyboard
     HID_KeyboardReport_Data_t _keyReport;
     
     // Internal API
-    size_t Set(KeyboardKeycode k, bool s)
+    bool Set(KeyboardKeycode k, bool s)
     {
         // It's a modifier key
         if(k >= KEY_LEFT_CTRL && k <= KEY_RIGHT_GUI)
@@ -32,7 +32,7 @@ namespace MatrixOS::HID::Keyboard
             else{
                 _keyReport.modifiers &= ~(1 << k);
             }
-            return 1;
+            return true;
         }
         // Its a normal key
         else{
@@ -48,7 +48,7 @@ namespace MatrixOS::HID::Keyboard
                     // if target key is found
                     if (key == uint8_t(k)) {
                         // do nothing and exit
-                        return 1;
+                        return true;
                     }
                 }
                 // iterate through the keycodes again, this only happens if no existing
@@ -60,7 +60,7 @@ namespace MatrixOS::HID::Keyboard
                     if (key == KEY_RESERVED) {
                         // change empty slot to k and exit
                         _keyReport.keycodes[i] = k;
-                        return 1;
+                        return true;
                     }
                 }
             } else { // we are removing k from keycodes
@@ -72,29 +72,14 @@ namespace MatrixOS::HID::Keyboard
                     if (key == k) {
                         // remove target and exit
                         _keyReport.keycodes[i] = KEY_RESERVED;
-                        return 1;
+                        return true;
                     }
                 }
             }
         }
 
         // No empty/pressed key was found
-        return 0;
-    }
-
-    size_t RemoveAll(void)
-    {
-        // Release all keys
-        size_t ret = 0;
-        for (uint8_t i = 0; i < sizeof(_keyReport.keys); i++)
-        {
-            // Is a key in the list or did we found an empty slot?
-            if(_keyReport.keys[i]){
-                ret++;
-            }
-            _keyReport.keys[i] = 0x00;
-        }
-        return ret;
+        return false;
     }
 
     void Send()
@@ -109,45 +94,41 @@ namespace MatrixOS::HID::Keyboard
         // and REMOTE_WAKEUP feature is enabled by host
         tud_remote_wakeup();
         }
-
+        
         tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
     }
 
     // User API
-    size_t Write(KeyboardKeycode k)
+    bool Write(KeyboardKeycode k)
     {
-    auto ret = Press(k);
+    bool ret = Press(k);
     if(ret){
         Release(k);
     }
     return ret;
     }
 
-    size_t Press(KeyboardKeycode k)
+    bool Press(KeyboardKeycode k)
     {
-    auto ret = Set(k, true);
+    bool ret = Set(k, true);
     if(ret){
         Send();
     }
     return ret;
     }
 
-    size_t Release(KeyboardKeycode k)
+    bool Release(KeyboardKeycode k)
     {
-    auto ret = Set(k, false);
+    bool ret = Set(k, false);
     if(ret){
         Send();
     }
     return ret;
     }
 
-    size_t ReleaseAll(void)
+    void ReleaseAll(void)
     {
-        // Release all keys
-        auto ret = RemoveAll();
-        if(ret){
-            Send();
-        }
-        return ret;
+        memset(&_keyReport, 0, sizeof(_keyReport));
+        Send();
     }
 }

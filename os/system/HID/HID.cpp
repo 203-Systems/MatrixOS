@@ -12,7 +12,11 @@ namespace MatrixOS::HID
   void Init()
   {
     RawHID::Init();
-    // Gamepad::ReleaseAll();
-    // Keyboard::ReleaseAll();
+
+    if(Ready())
+    {
+      Gamepad::ReleaseAll();
+      Keyboard::ReleaseAll();
+    }
   }
 }
