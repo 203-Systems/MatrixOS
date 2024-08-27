@@ -199,6 +199,7 @@ namespace MatrixOS
     {
       void Init();
       size_t Get(uint8_t** report, uint32_t timeout_ms = 0);
+      bool Send(const vector<uint8_t> &report);
     }
   }
 

@@ -36,6 +36,15 @@ namespace MatrixOS::HID::RawHID
 
         return received;
     }
+
+    bool Send(const vector<uint8_t> &report)
+    {
+      uint8_t reportBuffer[16];
+      memcpy(reportBuffer, report.data(), report.size());
+      memset(reportBuffer + report.size(), 0, 16 - report.size());
+
+      return tud_hid_report(255, reportBuffer, 16);
+    }
 }
 
 
