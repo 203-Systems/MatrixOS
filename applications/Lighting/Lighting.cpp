@@ -296,8 +296,8 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
   sawBtn.OnPress([&]() -> void { effectMode = Saw; });
   effectUI.AddUIComponent(sawBtn, Point(5, 0));
 
-  UISelector speedSelector(Dimension(8, 1), "Speed Selector", color, 8, &period);
-  effectUI.AddUIComponent(speedSelector, Point(0, 7));
+  UISelector speedSelector(Dimension(8, 2), "Speed Selector", color, 16, &period);
+  effectUI.AddUIComponent(speedSelector, Point(0, 6));
 
   effectUI.Start();
 
