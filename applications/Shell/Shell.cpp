@@ -200,8 +200,6 @@ void Shell::LaunchAnimation(Point origin, Color color)
 
     if(r > endDistance) { break; }
 
-    float maxDistance = 0;
-
     for (uint8_t i = 0; i < Device::led_count; i++)
     {
       Point xy = Device::LED::Index2XY(i);

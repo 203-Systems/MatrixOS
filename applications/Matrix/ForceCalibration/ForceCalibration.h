@@ -4,12 +4,6 @@
 #include "UI/UI.h"
 #include "applications/Application.h"
 
-// #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
-#define APPLICATION_VISIBLITY true
-// #else
-// #define APPLICATION_VISIBLITY false
-// #endif
-
 namespace Device::KeyPad::FSR
 {
   extern Fract16 (*low_thresholds)[x_size][y_size];

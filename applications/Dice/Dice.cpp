@@ -203,7 +203,6 @@ void Dice::Settings() {
   settingsUI.AddUIComponent(dotFaceSelectorBtn, Point(2, 7));
 
   // Number Mode
-  int32_t modifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
   UIButton numberFacesSelectorBtn;
   numberFacesSelectorBtn.SetName("Faces");
   numberFacesSelectorBtn.SetColor(Color(0x00FFFF));

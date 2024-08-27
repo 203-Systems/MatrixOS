@@ -572,7 +572,6 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
           }
           else if (keyEvent.info.state == HOLD)
           {
-            uint32_t color = custom_palette[custom_palette_id][id].RGB();
             string text = "Color " + std::to_string(id);
             MatrixOS::UIInterface::TextScroll(text, Color(0xFFFFFF));
           }
