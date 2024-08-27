@@ -49,7 +49,7 @@ class UILayerControl : public UIComponent {
           }
           else
           {
-            layerColor = color.ToLowBrightness();
+            layerColor = color.Dim();
           }
         }
         MatrixOS::LED::SetColor(origin + Point(x, y), layerColor);

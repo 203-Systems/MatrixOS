@@ -74,8 +74,6 @@ Color Color::HsvToRgb(float h, float s, float v) {
   return Color(r, g, b);
 }
 
-}
-
 void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
 {
   float r = rgb.R / 255.0;
@@ -105,4 +103,12 @@ void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
   *h *= 1.0/6; // degrees
   if (*h < 0)
     *h += 1.0;
+}
+
+Color Color::Crossfade(Color color1, Color color2, Fract16 ratio) {
+  uint8_t r = ratio.to8bits();
+  uint8_t newR = (color1.R * (255 - r) + color2.R * r) / 255;
+  uint8_t newG = (color1.G * (255 - r) + color2.G * r) / 255;
+  uint8_t newB = (color1.B * (255 - r) + color2.B * r) / 255;
+  return Color(newR, newG, newB);
 }

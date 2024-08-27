@@ -309,7 +309,7 @@ namespace MatrixOS::LED
     return CurrentLayer();
   }
 
-  bool DestoryLayer() {
+  bool DestroyLayer() {
     if (CurrentLayer() > 1)
     {
       vPortFree(frameBuffers.back());

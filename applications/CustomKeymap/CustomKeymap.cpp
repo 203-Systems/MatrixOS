@@ -38,33 +38,53 @@ void CustomKeymap::ActionMenu() {
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-  UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); },
-      [&]() -> void { BrightnessControl().Start(); });
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness");
+  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetSize(Dimension(2, 2));
+  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
-  // Rotation control and canvas
-  UIButtonLarge clearCanvasBtn("Reset", Color(0x00FF00), Dimension(2, 1), [&]() -> void { Reload(); });
-  actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
+  UIButton reloadBtn;
+  reloadBtn.SetName("Reload");
+  reloadBtn.SetColor(Color(0x00FF00));
+  reloadBtn.SetSize(Dimension(2, 1));
+  reloadBtn.OnPress([&]() -> void { Reload(); });
+  actionMenu.AddUIComponent(reloadBtn, Point(3, 2));
 
-  UIButtonLarge rotateRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
+  UIButton rotatRightBtn;
+  rotatRightBtn.SetName("Rotate to this side");
+  rotatRightBtn.SetColor(Color(0x00FF00));
+  rotatRightBtn.SetSize(Dimension(1, 2));
+  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1),
-                              [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButton rotateDownBtn;
+  rotateDownBtn.SetName("Rotate to this side");
+  rotateDownBtn.SetColor(Color(0x00FF00));
+  rotateDownBtn.SetSize(Dimension(2, 1));
+  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2),
-                              [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButton rotateLeftBtn;
+  rotateLeftBtn.SetName("Rotate to this side");
+  rotateLeftBtn.SetColor(Color(0x00FF00));
+  rotateLeftBtn.SetSize(Dimension(1, 2));
+  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
-  UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
-  actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
+UIButton systemSettingBtn;
+  systemSettingBtn.SetName("System Setting");
+  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
+  actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  UIButtonDimmable menuLockBtn(
-      "Menu Lock", Color(0xA0FF00), [&]() -> bool { return menuLock; }, [&]() -> void { menuLock = !menuLock; });
-  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5)); 
+  UIButton menuLockBtn;
+  menuLockBtn.SetName("Touch Alt Key");
+  menuLockBtn.SetColorFunc([&]() -> Color { return Color(0xA0FF00).DimIfNot(menuLock); });
+  menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
+  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
 
   UILayerControl layerControl("Activated Layers", Color(0x00FFFF), Dimension(8, 2), &uad, UAD::LayerInfoType::ACTIVE);
   actionMenu.AddUIComponent(layerControl, Point(0, 0));
