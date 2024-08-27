@@ -102,16 +102,16 @@ Point Performance::NoteToXY(uint8_t note) {
 }
 
 // Returns -1 when no note
-int8_t Performance::XYToNote(Point xy, bool altmap) {
+int8_t Performance::XYToNote(Point xy, bool combo_key) {
   switch (currentKeymap)
   {
     case 0:
     {
-      if(altmap && xy.x == 0 && xy.y >= 0 && xy.y < 8) // Alt map left
+      if(combo_key && xy.x == 0 && xy.y >= 0 && xy.y < 8) // Combo map left
       {
         return touch_keymap[currentKeymap][3][xy.y];
       }
-      else if(altmap && xy.x == 7 && xy.y >= 0 && xy.y < 8)// Alt map right
+      else if(combo_key && xy.x == 7 && xy.y >= 0 && xy.y < 8)// Combo map right
       {
         return touch_keymap[currentKeymap][1][xy.y];
       }
@@ -409,22 +409,22 @@ void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
 void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   // MLOGD("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
 
-  bool altmap = false;
+  bool combo_key = false;
   
-  // Disable Touchbar for alt map mode
-  if(altmap_mode && !(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8))
+  // Disable Touchbar for combo key mode
+  if(touch_combo_key && !(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8))
   {
     return;
   }
 
-  // Check if alt map should be used
-  if(altmap_mode && (xy.x == 0 || xy.x == 7) && xy.y >= 0 && xy.y < 8)
+  // Check if combo key should be used
+  if(touch_combo_key && (xy.x == 0 || xy.x == 7) && xy.y >= 0 && xy.y < 8)
   {
-    uint16_t alt_map_id = xy.y + (xy.x == 7) * 8;
+    uint16_t combo_key_id = xy.y + (xy.x == 7) * 8;
 
-    altmap = was_alt_map & (1 << alt_map_id);
+    combo_key = was_combo_key & (1 << combo_key_id);
 
-    if(altmap == false) // if this key was not in altmap state
+    if(combo_key == false) // if this key was not in combo key state
     {
       // Check if touchbar is touched
       for (uint8_t i = 0; i < 32; i++)
@@ -450,26 +450,26 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
         KeyInfo* touchKey = MatrixOS::KEYPAD::GetKey(point);
         if(touchKey != nullptr && touchKey->active())
         {
-          altmap = true;
+          combo_key = true;
           break;
         }
       }
     }
 
-    // If we are in altmap state and key is pressed, set the altmap state
-    if(altmap && keyInfo->state == PRESSED)
+    // If we are in combo key state and key is pressed, set the combo key state
+    if(combo_key && keyInfo->state == PRESSED)
     {
-        was_alt_map |= 1 << alt_map_id;
+        was_combo_key |= 1 << combo_key_id;
     }
 
-    // If we was in altmap state and key is released, clear the altmap state
+    // If we was in combo key state and key is released, clear the combo key state
     if(keyInfo->state == RELEASED)
     {
-      was_alt_map &= ~(1 << alt_map_id);
+      was_combo_key &= ~(1 << combo_key_id);
     }
   }
 
-  int8_t note = XYToNote(xy, altmap);
+  int8_t note = XYToNote(xy, combo_key);
 
   if (note == -1)
   {
@@ -675,11 +675,11 @@ void Performance::ActionMenu() {
   menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
 
-  UIButton altMapBtn;
-  altMapBtn.SetName("Touch Alt Key");
-  altMapBtn.SetColorFunc([&]() -> Color { return Color(0xFF006E).DimIfNot(altmap_mode); });
-  altMapBtn.OnPress([&]() -> void { altmap_mode = !altmap_mode; });
-  actionMenu.AddUIComponent(altMapBtn, Point(0, 4));
+  UIButton comboKeyBtn;
+  comboKeyBtn.SetName("Touch Combo Key");
+  comboKeyBtn.SetColorFunc([&]() -> Color { return Color(0xFF006E).DimIfNot(touch_combo_key); });
+  comboKeyBtn.OnPress([&]() -> void { touch_combo_key = !touch_combo_key; });
+  actionMenu.AddUIComponent(comboKeyBtn, Point(0, 4));
 
   UIButton flickerReductionBtn;
   flickerReductionBtn.SetName("Flicker Reduction");

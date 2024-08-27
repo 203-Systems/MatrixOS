@@ -23,13 +23,13 @@ class Performance : public Application {
   uint8_t canvasLedLayer;
   bool uiOpened = false;
 
-  uint16_t was_alt_map;
+  uint16_t was_combo_key;
 
   // Saved Variables
   CreateSavedVar("Performance", velocitySensitive, bool, true);
   CreateSavedVar("Performance", menuLock, bool, false);
   CreateSavedVar("Performance", stfu, uint8_t, 0);
-  CreateSavedVar("Performance", altmap_mode, bool, false);
+  CreateSavedVar("Performance", touch_combo_key, bool, false);
 
   const uint32_t custom_palette_available_nvs_hash = StaticHash("203 Electronics-Performance-CustomPaletteAvailable");
   const uint32_t custom_palette_nvs_hash[CUSTOM_PALETTE_COUNT] = {
