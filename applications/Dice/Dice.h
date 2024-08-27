@@ -34,24 +34,35 @@ class Dice : public Application {
 
   enum DicePhase {
     Rolling,
-    Comfirmed,
+    Confirmed,
+  };
+
+  enum DiceMode {
+    Dot,
+    Number
   };
 
   void Setup() override;
   void Loop() override;
 
+
+  CreateSavedVar("Dice", mode, DiceMode, Dot);
+
+  // Dot Mode
   CreateSavedVar("Dice", rolling_color, Color, Color(0xFFFFFF));
-  CreateSavedVar("Dice", comfirmed_color, Color, Color(0xFFFFFF));
-  CreateSavedVar("Dice", faces, uint8_t, 6);
+  CreateSavedVar("Dice", confirmed_color, Color, Color(0xFFFFFF));
+  CreateSavedVar("Dice", dot_faces, uint8_t, 6);
   CreateSavedVar("Dice", rolling_speed, uint8_t, 30);
   CreateSavedVar("Dice", flashing_speed, uint8_t, 10);
-  CreateSavedVar("Dice", number_view, bool, false);
   CreateSavedVar("Dice", rolling_rainbow_mode, bool, true);
-  CreateSavedVar("Dice", comfirmed_rainbow_mode, bool, false);
+  CreateSavedVar("Dice", confirmed_rainbow_mode, bool, false);
   CreateSavedVar("Dice", rolling_underglow_mode, UnderglowEffectMode, Saw);
-  CreateSavedVar("Dice", comfirmed_underglow_mode, UnderglowEffectMode, Breath);
-  CreateSavedVar("Dice", rolling_underglow_color_speed, uint8_t, 3);
-  CreateSavedVar("Dice", comfirmed_underglow_color_speed, uint8_t, 10);
+  CreateSavedVar("Dice", confirmed_underglow_mode, UnderglowEffectMode, Breath);
+  CreateSavedVar("Dice", rolling_underglow_effect_period, uint16_t, 300);
+  CreateSavedVar("Dice", confirmed_underglow_effect_period, uint16_t, 1000);
+
+  // Number Mode
+  CreateSavedVar("Dice", number_faces, uint8_t, 30);
 
 
   void Settings();
@@ -65,6 +76,11 @@ class Dice : public Application {
   void RollDice();
   void RenderUnderglow(UnderglowEffectMode mode, Color color, uint8_t period);
   void FaceSelector();
+
+  void DotFaceSelector();
+  
+  Color ApplyColorEffect(Color color, UnderglowEffectMode effect, uint16_t period, uint16_t start_time);
+  void UnderglowEffectModeAndSpeedMenu(DicePhase phase);
 
   Timer renderTimer;
   uint32_t timestamp = 0;
