@@ -11,8 +11,9 @@
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
 // #include "applications/HIDtest/HIDtest.h"
-#include "applications/USBtest/USBtest.h"
+// #include "applications/USBtest/USBtest.h"
 // #include "applications/Example/Example.h"
+#include "applications/Companion/Companion.h"
 
 // // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
