@@ -7,28 +7,26 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 
 #include "MatrixOS.h"
 #include "applications/Application.h"
+#include "applications/BrightnessControl/BrightnessControl.h"
 
-#define APPLICATION_NAME "HID Test"
-#define APPLICATION_AUTHOR "203 Electronics"
-#define APPLICATION_COLOR Color(0xFFFF00)
-#define APPLICATION_VERSION 1
-#define APPLICATION_CLASS HIDtest
 
-class HIDtest : public Application {
+class Gamepad : public Application {
  public:
   static Application_Info info;
 
   void Setup() override;
   void Loop() override;
   void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
+
+  void ActionMenu();
 };
 
-inline Application_Info HIDtest::info = {
-    .name = "HID Test",
+inline Application_Info Gamepad::info = {
+    .name = "Gamepad",
     .author = "203 Electronics",
-    .color = Color(0xFFFF00),
+    .color = Color(0x00FF00),
     .version = 1,
     .visibility = true,
 };
 
-REGISTER_APPLICATION(HIDtest);
+REGISTER_APPLICATION(Gamepad);
