@@ -5,15 +5,13 @@ namespace Device
   namespace LED
   {
     void Init() {
-      WS2812::Init(RMT_CHANNEL_0, led_pin, led_chunk_count, led_chunk);
+      WS2812::Init(RMT_CHANNEL_0, led_pin, led_partitions);
     }
 
     void Start() {}
 
-    void Update(Color* frameBuffer, uint8_t brightness)  // Render LED
+    void Update(Color* frameBuffer, vector<uint8_t>& brightness)  // Render LED
     {
-      // ESP_LOGI("LED", "LED Update");
-      // ESP_LOGI("LED", "%d", frameBuffer[0].RGB());
       WS2812::Show(frameBuffer, brightness);
     }
 
@@ -31,18 +29,26 @@ namespace Device
       return UINT16_MAX;
     }
 
-    // Point Index2XY(uint16_t index)
-    // {
-    //     if(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) //Main grid
-    //     {
-    //         return xy.x + xy.y * 8;
-    //     }
-    //     if(index < 64)
-    //     {
-
-    //     }
-    //     return UINT16_MAX;
-    // }
+    Point Index2XY(uint16_t index)
+    {
+      if (index < 64)
+      {
+        return Point(index % 8, index / 8);
+      }
+      else if (index < 72)
+      {
+        return Point(7 - (index - 64), 8);
+      }
+      else if (index < 80)
+      {
+        return Point(-1, index - 72);
+      }
+      else if (index < 88)
+      {
+        return Point(index - 80, -1);
+      }
+      return Point::Invalid();
+    }
 
     // TODO This text is very wrong (GRID)
     // Matrix use the following ID Struct
@@ -56,7 +62,7 @@ namespace Device
       switch (ledClass)
       {
         case 0:
-          if (ledID < numsOfLED)
+          if (ledID < led_count)
             return ledID;
           break;
         case 3:   // Underglow

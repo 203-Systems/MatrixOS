@@ -36,7 +36,7 @@ class UITwoToneSelector : public UIComponent {
         if (index < count)
         {
           target_color = map[y * dimension.x + x] > threshold ? color2 : color1;
-          target_color = target_color.ToLowBrightness(*value >= map[y * dimension.x + x]);
+          target_color = target_color.DimIfNot(*value >= map[y * dimension.x + x]);
         }
         MatrixOS::LED::SetColor(target_coord, target_color);
       }

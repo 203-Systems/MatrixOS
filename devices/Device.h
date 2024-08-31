@@ -2,14 +2,14 @@
 
 #include "framework/Framework.h"
 #include "tusb.h"
-#include "Config.h"
+#include "Config.h" // Make will load the correct config file based on the target device.
 
 namespace Device
 {
   /*
   Required Varaiables:
   const string name;
-  const uint16_t numsOfLED;
+  const uint16_t led_count;
   const uint8_t x_size;
   const uint8_t y_size;
   string serial_number;
@@ -21,16 +21,21 @@ namespace Device
   void Bootloader();
   void ErrorHandler();
 
+  void DeviceSettings();
+
   void Log(string format, va_list valst);
 
   string GetSerial();
 
   namespace LED
   {
-    void Update(Color* frameBuffer, uint8_t brightness = 255);  // Render LED
+    void Update(Color* frameBuffer, vector<uint8_t>& brightness);  // Render LED
     uint16_t XY2Index(Point xy);        // Grid XY to global buffer index, return UINT16_MAX if not index for given XY
     uint16_t ID2Index(uint16_t ledID);  // Local led Index to buffer index, return UINT16_MAX if not index for given
                                         // Index
+    Point Index2XY(uint16_t index);     // Buffer index to Grid XY, return Point(INT16_MIN, INT16_MIN) if no XY found for
+                                        // given index
+                                        // Provides a way for application to iterate through all LEDs
   }
 
   namespace KeyPad

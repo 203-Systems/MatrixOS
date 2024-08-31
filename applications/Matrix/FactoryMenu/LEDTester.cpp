@@ -7,8 +7,8 @@ void FactoryMenu::LEDTester() {
   MatrixOS::LED::Fill(0);
   while (!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())
   {
-    uint8_t led_index = led_counter % Device::numsOfLED;
-    uint8_t led_color_index = led_counter / Device::numsOfLED % (sizeof(colors) / sizeof(Color));
+    uint8_t led_index = led_counter % Device::led_count;
+    uint8_t led_color_index = led_counter / Device::led_count % (sizeof(colors) / sizeof(Color));
 
     MatrixOS::LED::SetColor(led_index, colors[led_color_index]);
     MatrixOS::LED::Update();

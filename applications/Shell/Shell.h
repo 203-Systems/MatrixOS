@@ -15,6 +15,7 @@ class Shell : public Application {
   void AddCommonBarInUI(UI* ui);
   void ApplicationLauncher();
   void HiddenApplicationLauncher();
+  void LaunchAnimation(Point origin, Color color);
 };
 
 inline Application_Info Shell::info = {

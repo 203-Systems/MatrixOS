@@ -59,7 +59,7 @@ void MatrixBoot::BootPhase1() {
     boot_phase_1_tick_time = MatrixOS::SYS::Millis();
 
   const uint16_t section_time = 80;
-  if (timer.Tick(10))
+  if (timer.Tick(1000 / Device::fps))
   {
     uint32_t delta_time = MatrixOS::SYS::Millis() - boot_phase_1_tick_time;
     uint8_t local_brightness = min(MATRIX_BOOT_BRIGHTNESS * ((float)delta_time / section_time), MATRIX_BOOT_BRIGHTNESS);
@@ -198,7 +198,7 @@ void MatrixBoot::BootPhase2() {
   #endif
 
   const uint16_t start_offset = 150;
-  if (timer.Tick(10))
+  if (timer.Tick(1000 / Device::fps))
   {
 
     if (boot_phase_2_start_time == 0)

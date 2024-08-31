@@ -5,18 +5,19 @@
 #include "applications/Performance/Performance.h"
 #include "applications/Note/Note.h"
 #include "applications/REDACTED/REDACTED.h"
-#include "applications/CustomKeymap/CustomKeymap.h"
+// #include "applications/CustomKeymap/CustomKeymap.h"
 
 // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
-// #include "applications/HIDtest/HIDtest.h"
-#include "applications/Example/Example.h"
+#include "applications/Dice/Dice.h"
 
 // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
 
 // DEVICE APPLICATION
 #include "applications/Matrix/FactoryMenu/FactoryMenu.h"
+#include "applications/Matrix/ForceCalibration/ForceCalibration.h"
+#include "applications/Matrix/ForceGridVisualizer/ForceGridVisualizer.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
 

@@ -1,5 +1,5 @@
 #include "Example.h"
-#include "UI/UI.h" // Include the UI Framework
+#include "ui/UI.h" // Include the UI Framework
 
 // Run once
 void ExampleAPP::Setup() {
@@ -85,47 +85,48 @@ void ExampleAPP::UIMenu() {
   UI menu("UI Menu", Color(0x00FFFF), true);
 
   // Create an UI element
-  UIButton numberSelector("Number Selector",  // Name of this UI element
-                          Color(0xFF0000),    // Color of the UI element
-                          [&]() -> void {     // Callback function when the button is pressed
-                            number =          // Set number variable as the return value of the NumberSelector8x8 function
-                                MatrixOS::UIInterface::NumberSelector8x8(number, 0xFF0000, "Number", 0, 100);  // Current Number, color, low range, high range
-                            // EXAMPLEAPP_SAVED_VAR does not affect this code
-                            // For most value type. the saved variable wrapper library requires no changes to code!
-                          });
+  UIButton numberSelector;
+  numberSelector.SetName("Number Selector");  // Name of this UI element
+  numberSelector.SetColor(Color(0xFF0000));  // Color of the UI element
+  numberSelector.OnPress([&]() -> void {     // Callback function when the button is pressed
+    number = MatrixOS::UIInterface::NumberSelector8x8(number, 0xFF0000, "Number", 0, 100);  // Current Number, color, low range, high range
+    // EXAMPLEAPP_SAVED_VAR does not affect this code
+    // For most value types, the saved variable wrapper library requires no changes to code!
+  });
   // Add the UI element to the UI object to top left conner
   menu.AddUIComponent(numberSelector, Point(0, 0));
 
-  // Create an dynamic colored button: UIButtonWithColorFunc - Use the a function as the color of the button
-  UIButtonWithColorFunc colorSelector(
-      "Color Selector",                                                     // Name of this UI element
-      [&]() -> Color { return color; },                                     // Use the color variable as the color of this UI element
-      [&]() -> void {           // Callback function when the button is pressed
-        #ifndef EXAMPLEAPP_SAVED_VAR                                            
-        MatrixOS::UIInterface::ColorPicker(color);    // Refences to the color variable. The color variable will be updated by the ColorPicker function. Return true if color is changed, false if not.
-        #else
-        MatrixOS::UIInterface::ColorPicker(color.value);  // Get the actual value from the saved variable wrapper library
-        color.Set(color.value);                           // Save the new variable
-        // The saved variable wrapper doesn't implicitly converts to the refences type. 
-        // This way you know you have to get the refences manually and set the value back to the saved variable manually.
-        #endif
-      },
-      [&]() -> void {                                                       // Optional Callback function for hold down. Reset color to default white.
-        color = 0xFFFFFF;
-      });
+  // Create an dynamic colored button
+  UIButton colorSelector;
+  colorSelector.SetName("Color Selector");  // Name of this UI element
+  colorSelector.SetColorFunc([&]() -> Color { return color; });  // Use the color variable as the color of this UI element
+  colorSelector.OnPress([&]() -> void {  // Callback function when the button is pressed
+    #ifndef EXAMPLEAPP_SAVED_VAR
+    MatrixOS::UIInterface::ColorPicker(color);  // References to the color variable. The color variable will be updated by the ColorPicker function. Return true if color is changed, false if not.
+    #else
+    MatrixOS::UIInterface::ColorPicker(color.value);  // Get the actual value from the saved variable wrapper library
+    color.Set(color.value);  // Save the new variable
+    // The saved variable wrapper doesn't implicitly convert to the references type.
+    // This way you know you have to get the references manually and set the value back to the saved variable manually.
+    #endif
+  });
+  colorSelector.OnHold([&]() -> void {  // Optional Callback function for hold down. Reset color to default white.
+    color = 0xFFFFFF;
+  });
 
   // Add the UI element to the UI object to top right conner
   menu.AddUIComponent(colorSelector, Point(Device::x_size - 1, 0));
 
   // A large button that cycles though the brightness of the device
-  UIButtonLarge brightnessBtn(
-      "Brightness", //Name
-      Color(0xFFFFFF), // Color
-      Dimension(2, 2), // Size of the button
-      [&]() -> void { MatrixOS::SYS::NextBrightness(); } // Function to call when the button is pressed
-      );
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness"); // Name
+  brightnessBtn.SetColor(Color(0xFFFFFF)); // Color
+  brightnessBtn.SetSize(Dimension(2, 2)); // Size of the button
+  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); }); // Function to call when the button is pressed
+  brightnessBtn.OnHold([&]() -> void {BrightnessControl().Start(); }); // Function to call when the button is hold down
+
   // Place this button in the center of the device
-  menu.AddUIComponent(brightnessBtn, Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2)); 
+  menu.AddUIComponent(brightnessBtn, Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2));
 
   // Set a key event handler for the UI object
   // By default, the UI exits after the function key is PRESSED.

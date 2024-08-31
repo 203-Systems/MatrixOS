@@ -45,11 +45,18 @@ uint32_t Color::GRB(uint8_t brightness) {
 Color Color::Scale(uint8_t brightness) {
   return Color(scale8_video(R, brightness), scale8_video(G, brightness), scale8_video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
 }
+Color Color::Dim(uint8_t scale) {
+  return Scale(scale); 
+}
 
-Color Color::ToLowBrightness(bool cancel, uint8_t scale) {
-  if (!cancel)
+Color Color::DimIfNot(bool not_dim, uint8_t scale) {
+  if (!not_dim)
   { return Scale(scale); }
   return Color(R, G, B, W);
+}
+
+Color Color::Gamma() {
+  return Color(led_gamma[R], led_gamma[G], led_gamma[B]);
 }
 
 uint8_t Color::scale8(uint8_t i, uint8_t scale) {
@@ -67,33 +74,10 @@ Color Color::HsvToRgb(float h, float s, float v) {
   return Color(r, g, b);
 }
 
-void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
-{
-  float r = rgb.R / 255.0;
-  float g = rgb.G / 255.0;
-  float b = rgb.B / 255.0;
-
-  float max = std::max(r, std::max(g, b));
-  float min = std::min(r, std::min(g, b));
-
-  *v = max;
-  float delta = max - min;
-  if (max != 0)
-    *s = delta / max;
-  else
-  {
-    // r = g = b = 0
-    *s = 0;
-    *h = -1;
-    return;
-  }
-  if (r == max)
-    *h = (g - b) / delta; // between yellow & magenta
-  else if (g == max)
-    *h = 2 + (b - r) / delta; // between cyan & yellow
-  else
-    *h = 4 + (r - g) / delta; // between magenta & cyan
-  *h *= 1.0/6; // degrees
-  if (*h < 0)
-    *h += 1.0;
+Color Color::Crossfade(Color color1, Color color2, Fract16 ratio) {
+  uint8_t r = ratio.to8bits();
+  uint8_t newR = (color1.R * (255 - r) + color2.R * r) / 255;
+  uint8_t newG = (color1.G * (255 - r) + color2.G * r) / 255;
+  uint8_t newB = (color1.B * (255 - r) + color2.B * r) / 255;
+  return Color(newR, newG, newB);
 }

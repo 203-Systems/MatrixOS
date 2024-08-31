@@ -5,6 +5,8 @@ class Point {
  public:
   int16_t x, y;
 
+  Point() { x = y = INT16_MIN; }
+
   Point(int16_t x, int16_t y) {
     this->x = x;
     this->y = y;

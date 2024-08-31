@@ -30,10 +30,14 @@ namespace Device
     else if(deviceInfo.Model[3] == 'S')
     {
       KeyPad::velocity_sensitivity = false;
+      // Remove "Underglow" from led_partitions
+      led_partitions.pop_back();
     }
     else
     {
       KeyPad::velocity_sensitivity = false;
+      // Remove "Underglow" from led_partitions
+      led_partitions.pop_back();
       ESP_LOGE("Device Init", "Failed to find config for %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
     }
 

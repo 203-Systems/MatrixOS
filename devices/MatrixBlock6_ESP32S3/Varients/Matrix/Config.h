@@ -11,20 +11,20 @@
 // #define LC8812
 
 #include "Family.h"
-
 #include "framework/SavedVariable.h"
 
 // #define FACTORY_CONFIG //Global switch for using factory config
 
-#define FACTORY_DEVICE_VERSION 'S' // Standard
+// #define FACTORY_DEVICE_VERSION 'S' // Standard
 // #define FACTORY_DEVICE_VERSION 'P' // Pro
-
+#ifdef FACTORY_CONFIG
 #if FACTORY_DEVICE_VERSION == 'S'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
 #elif FACTORY_DEVICE_VERSION == 'P'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
 #else 
 #error "FACTORY_DEVICE_VERSION is not correct"
+#endif
 #endif
 
 #define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
@@ -42,6 +42,8 @@ struct DeviceInfo {
 namespace Device
 {
   inline DeviceInfo deviceInfo;
+
+  // Matrix OS required
   inline string name = "Matrix";
   inline string model = "MX1S";
 
@@ -50,7 +52,16 @@ namespace Device
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
-  const uint16_t numsOfLED = 64 + 32;
+  const uint16_t led_count = 64 + 32;
+  inline uint8_t led_brightness_level[8] = {8, 12, 24, 40, 64, 90, 120, 142};
+  #define FINE_LED_BRIGHTNESS
+  inline uint8_t led_brightness_fine_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
+  inline vector<LEDPartition> led_partitions = {
+      {"Grid", 1.0, 0, 64},
+      {"Underglow", 4.0, 64, 32},
+  };
+
+  // Device Specific
   inline uint16_t keypad_scanrate = 480;
   inline uint16_t touchbar_scanrate = 60;
   const uint8_t x_size = 8;
@@ -63,7 +74,7 @@ namespace Device
     inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
-    inline KeyConfig fn_config = {
+    inline KeyConfig binary_config = {
         .velocity_sensitive = false,
         .low_threshold = 0,
         .high_threshold = 65535,
@@ -72,16 +83,9 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
-        .low_threshold = 512,
-        .high_threshold = 65535,
+        .low_threshold = 1536,
+        .high_threshold = 32767,
         .debounce = 5,
-    };
-
-    inline KeyConfig touch_config = {
-        .velocity_sensitive = false,
-        .low_threshold = 0,
-        .high_threshold = 65535,
-        .debounce = 0,
     };
 
     inline gpio_num_t keypad_write_pins[8];
@@ -96,32 +100,6 @@ namespace Device
     inline KeyInfo fnState;
     inline KeyInfo keypadState[x_size][y_size];
     inline KeyInfo touchbarState[touchbar_size];
-
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_custom_setting, bool, false);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_velocity_sensitive, bool, KeyPad::keypad_config.velocity_sensitive);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_low_threshold, Fract16, KeyPad::keypad_config.low_threshold);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_high_threshold, Fract16, KeyPad::keypad_config.high_threshold);
-    inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, keypad_debounce, uint16_t, KeyPad::keypad_config.debounce);
-
-    inline void LoadCustomSettings() {
-      return;
-      if (keypad_custom_setting)
-      {
-        if (keypad_low_threshold == 0)  // Can't be lower than 1
-        { keypad_low_threshold = 1; }
-        keypad_config.velocity_sensitive = keypad_velocity_sensitive;
-        keypad_config.low_threshold = keypad_low_threshold;
-        keypad_config.high_threshold = keypad_high_threshold;
-        keypad_config.debounce = keypad_debounce;
-      }
-      else
-      {
-        keypad_velocity_sensitive = keypad_config.velocity_sensitive;
-        keypad_low_threshold = keypad_config.low_threshold;
-        keypad_high_threshold = keypad_config.high_threshold;
-        keypad_debounce = keypad_config.debounce;
-      }
-    }
   }
 
   namespace HWMidi
@@ -131,14 +109,9 @@ namespace Device
   }
 
 // LED
-#define MAX_LED_LAYERS 5
+#define MAX_LED_LAYERS 8
   inline gpio_num_t led_pin;
   inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
-  inline uint8_t brightness_level[8] = {8, 12, 24, 40, 64, 90, 120, 142};
-#define FINE_LED_BRIGHTNESS
-  inline uint8_t fine_brightness_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
-  inline uint8_t led_chunk_count = 2;
-  inline ws2812_chunk led_chunk[2] = {{64, Color(0xFFFFFF), 1.0}, {32, Color(0xFFFFFF), 4}};
   // const Dimension grid_size(8,8);
   // const Point grid_offset = Point(1,1);
 

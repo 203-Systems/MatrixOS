@@ -5,11 +5,16 @@
 		}
 	],
 	"settings": {
-		"terminal.integrated.shell.windows" : "cmd.exe",
-		"terminal.integrated.shellArgs.windows" : [
-			"/k",
-			"C:/Espressif/frameworks/esp-idf-v5.0/export.bat"
-		],
+		"terminal.integrated.profiles.windows": {
+			"ESP-IDF": {
+			  "path": "cmd.exe",
+			  "args": [
+				"/k",
+				"C:/Espressif/v5.0.6/esp-idf/export.bat"
+			  ]
+			}
+		  },
+		  "terminal.integrated.defaultProfile.windows": "ESP-IDF",
 		"editor.formatOnType": true,
 		"files.associations": {
 			"*.mk": "makefile",
@@ -111,7 +116,8 @@
 			"cstdbool": "cpp",
 			"forward_list": "cpp",
 			"format": "cpp",
-			"charconv": "cpp"
+			"charconv": "cpp",
+			"unordered_set": "cpp"
 		}
 	}
 }

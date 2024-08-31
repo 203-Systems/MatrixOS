@@ -22,65 +22,107 @@ void Note::Setup() {
   // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF));
 
-  UIButtonLarge brightnessBtn(
-      "Brightness", Color(0xFFFFFF), Dimension(2, 2), [&]() -> void { MatrixOS::SYS::NextBrightness(); }, [&]() -> void { BrightnessControl().Start(); });
+  UIButton brightnessBtn;
+  brightnessBtn.SetName("Brightness");
+  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetSize(Dimension(2, 2));
+  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
   actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas
-  UIButtonLarge rotateUpBtn("This does nothing", Color(0x00FF00), Dimension(2, 1), [&]() -> void {});
+  UIButton rotateUpBtn;
+  rotateUpBtn.SetName("This does nothing");
+  rotateUpBtn.SetColor(Color(0x00FF00));
+  rotateUpBtn.SetSize(Dimension(2, 1));
+  rotateUpBtn.OnPress([&]() -> void {});
   actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButtonLarge rotatRightBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  UIButton rotatRightBtn;
+  rotatRightBtn.SetName("Rotate to this side");
+  rotatRightBtn.SetColor(Color(0x00FF00));
+  rotatRightBtn.SetSize(Dimension(1, 2));
+  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
   actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
 
-  UIButtonLarge rotateDownBtn("Rotate to this side", Color(0x00FF00), Dimension(2, 1), [&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  UIButton rotateDownBtn;
+  rotateDownBtn.SetName("Rotate to this side");
+  rotateDownBtn.SetColor(Color(0x00FF00));
+  rotateDownBtn.SetSize(Dimension(2, 1));
+  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
   actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
 
-  UIButtonLarge rotateLeftBtn("Rotate to this side", Color(0x00FF00), Dimension(1, 2), [&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  UIButton rotateLeftBtn;
+  rotateLeftBtn.SetName("Rotate to this side");
+  rotateLeftBtn.SetColor(Color(0x00FF00));
+  rotateLeftBtn.SetSize(Dimension(1, 2));
+  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
   // Note Pad Control
-  UIButton scaleSelectorBtn("Scale Selector", Color(0xFF0090), [&]() -> void { ScaleSelector(); });
+  UIButton scaleSelectorBtn;
+  scaleSelectorBtn.SetName("Scale Selector");
+  scaleSelectorBtn.SetColor(Color(0xFF0090));
+  scaleSelectorBtn.OnPress([&]() -> void { ScaleSelector(); });
   actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
 
-  UIButtonDimmable enforceScaleToggle(
-      "Enforce Scale", Color(0xff5000), [&]() -> bool { return notePadConfigs[activeConfig].enfourceScale; },
-      [&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
+  UIButton enforceScaleToggle;
+  enforceScaleToggle.SetName("Enforce Scale");
+  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enfourceScale); });
+  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
-  UIButton overlapSelectorBtn("Overlap Selector", Color(0xFFFF00), [&]() -> void { OverlapSelector(); });
+  UIButton overlapSelectorBtn;
+  overlapSelectorBtn.SetName("Overlap Selector");
+  overlapSelectorBtn.SetColor(Color(0xFFFF00));
+  overlapSelectorBtn.OnPress([&]() -> void { OverlapSelector(); });
   actionMenu.AddUIComponent(overlapSelectorBtn, Point(7, 4));
 
-  UIButton channelSelectorBtn("Channel Selector", Color(0x60FF00), [&]() -> void { ChannelSelector(); });
+  UIButton channelSelectorBtn;
+  channelSelectorBtn.SetName("Channel Selector");
+  channelSelectorBtn.SetColor(Color(0x60FF00));
+  channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 5));
 
-  UIButtonDimmable velocitySensitiveToggle(
-      "Velocity Sensitive", Color(0x00FFB0), [&]() -> bool { return notePadConfigs[activeConfig].velocitySensitive; },
-      [&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
+  UIButton velocitySensitiveToggle;
+  velocitySensitiveToggle.SetName("Velocity Sensitive");
+  velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
+  velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
   OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
   actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
 
   // Split View
-  UIButtonDimmable splitViewToggle(
-      "Split View", Color(0xFFFFFF), [&]() -> bool { return splitView; }, [&]() -> void { splitView = !splitView; });
+  UIButton splitViewToggle;
+  splitViewToggle.SetName("Split View");
+  splitViewToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(splitView); });
+  splitViewToggle.OnPress([&]() -> void { splitView = !splitView; });
   actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
 
-  UIButtonWithColorFunc notepad1SelectBtn(
-      "Note Pad 1", [&]() -> Color { return notePadConfigs[0].color.ToLowBrightness(activeConfig.Get() == 0); }, [&]() -> void { activeConfig = 0; });
+  UIButton notepad1SelectBtn;
+  notepad1SelectBtn.SetName("Note Pad 1");
+  notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig.Get() == 0); });
+  notepad1SelectBtn.OnPress([&]() -> void { activeConfig = 0; });
   actionMenu.AddUIComponent(notepad1SelectBtn, Point(3, 0));
 
-  UIButtonWithColorFunc notepad2SelectBtn(
-      "Note Pad 2", [&]() -> Color { return notePadConfigs[1].color.ToLowBrightness(activeConfig.Get() == 1); }, [&]() -> void { activeConfig = 1; });
+  UIButton notepad2SelectBtn;
+  notepad2SelectBtn.SetName("Note Pad 2");
+  notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig.Get() == 1); });
+  notepad2SelectBtn.OnPress([&]() -> void { activeConfig = 1; });
   actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
 
-  UIButtonWithColorFunc notepadColorBtn(
-      "Note Pad Color", [&]() -> Color { return notePadConfigs[activeConfig].color; }, [&]() -> void { ColorSelector(); });
+  UIButton notepadColorBtn;
+  notepadColorBtn.SetName("Note Pad Color");
+  notepadColorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].color; });
+  notepadColorBtn.OnPress([&]() -> void { ColorSelector(); });
   actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
   // Other Controls
-  UIButton systemSettingBtn("System Setting", Color(0xFFFFFF), [&]() -> void { MatrixOS::SYS::OpenSetting(); });
+  UIButton systemSettingBtn;
+  systemSettingBtn.SetName("System Setting");
+  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
@@ -135,14 +177,18 @@ void Note::ColorSelector() {
   NotePad notePad(Dimension(8, 4), &notePadConfigs[activeConfig]);
   colorSelector.AddUIComponent(notePad, Point(0, 0));
 
-  UIButtonLargeWithColorFunc rootColorSelectorBtn(
-      "Root Key Color", [&]() -> Color { return notePadConfigs[activeConfig].rootColor; }, Dimension(2, 2),
-      [&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].rootColor); });
+  UIButton rootColorSelectorBtn;
+  rootColorSelectorBtn.SetName("Root Key Color");
+  rootColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].rootColor; });
+  rootColorSelectorBtn.SetSize(Dimension(2, 2));
+  rootColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].rootColor); });
   colorSelector.AddUIComponent(rootColorSelectorBtn, Point(1, 5));
 
-  UIButtonLargeWithColorFunc notePadColorSelectorBtn(
-      "Note Pad Color", [&]() -> Color { return notePadConfigs[activeConfig].color; }, Dimension(2, 2),
-      [&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].color); });
+  UIButton notePadColorSelectorBtn;
+  notePadColorSelectorBtn.SetName("Note Pad Color");
+  notePadColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].color; });
+  notePadColorSelectorBtn.SetSize(Dimension(2, 2));
+  notePadColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].color); });
   colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(5, 5));
 
   colorSelector.Start();
@@ -157,9 +203,10 @@ void Note::OverlapSelector() {
   UISelector overlapInput(Dimension(7, 1), "Overlap", Color(0xFFFF00), 7, (uint16_t*)&notePadConfigs[activeConfig].overlap);
   overlapSelector.AddUIComponent(overlapInput, Point(0, 7));
 
-  UIButtonDimmable alignRootToggle(
-      "Aligh Root Key", Color(0xFFFFFF), [&]() -> bool { return notePadConfigs[activeConfig].alignRoot; },
-      [&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
+  UIButton alignRootToggle;
+  alignRootToggle.SetName("Align Root Key");
+  alignRootToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].alignRoot); });
+  alignRootToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
   overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
 
   overlapSelector.Start();

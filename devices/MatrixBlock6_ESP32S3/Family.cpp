@@ -49,7 +49,7 @@ namespace Device
              KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->velocity)
     {
       KeyPad::Clear();
-      MatrixOS::UserVar::brightness.Set(Device::brightness_level[0]);
+      MatrixOS::UserVar::brightness.Set(Device::led_brightness_level[0]);
     }
     else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->velocity &&
              KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->velocity &&
@@ -71,6 +71,46 @@ namespace Device
     esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
 #endif
     LoadVarientInfo();
+  }
+
+    void DeviceSettings()
+  {
+    UI deviceSettings("Device Settings", Color(0x00FFAA));
+
+    UIButton bluetoothToggle;
+    bluetoothToggle.SetName("Bluetooth");
+    bluetoothToggle.SetColorFunc([]() -> Color {
+      return Color(0x0082fc).DimIfNot(Device::BLEMIDI::started);
+    });
+    bluetoothToggle.OnPress([]() -> void {
+      Device::BLEMIDI::Toggle();
+      Device::bluetooth = Device::BLEMIDI::started;
+    });
+    deviceSettings.AddUIComponent(bluetoothToggle, Point(0, 0));
+
+    UIButton touchbarToggle;
+    touchbarToggle.SetName("Touchbar");
+    touchbarToggle.SetColorFunc([]() -> Color {
+      return Color(0x7957FB).DimIfNot(Device::touchbar_enable);
+    });
+    touchbarToggle.OnPress([]() -> void { Device::touchbar_enable = !Device::touchbar_enable; });
+    deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
+
+    UIButton keypadCalibrationBtn;
+    keypadCalibrationBtn.SetName("Keypad Calibration");
+    keypadCalibrationBtn.SetColor(Color(0xFFFFFF));
+    keypadCalibrationBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Force Calibration"); });
+    keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
+    deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
+
+    UIButton keypadVisualizerBtn;
+    keypadVisualizerBtn.SetName("Force Keypad Visualizer");
+    keypadVisualizerBtn.SetColor(Color(0x00FF00));
+    keypadVisualizerBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Force Grid Visualizer"); });
+    keypadVisualizerBtn.SetEnabled(Device::KeyPad::velocity_sensitivity && MatrixOS::UserVar::developer_mode);
+    deviceSettings.AddUIComponent(keypadVisualizerBtn, Point(7, 1));
+
+    deviceSettings.Start();
   }
 
   void Bootloader() {

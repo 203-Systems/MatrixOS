@@ -31,7 +31,7 @@ class UISelector : public UIComponent {
       if (item > count)
       { MatrixOS::LED::SetColor(xy, Color(0)); }
       else
-      { MatrixOS::LED::SetColor(xy, color.ToLowBrightness(item == *value)); }
+      { MatrixOS::LED::SetColor(xy, color.DimIfNot(item == *value)); }
     }
     return true;
   }

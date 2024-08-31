@@ -9,14 +9,16 @@ class UIItemSelector : public UIComponent {
   string* names;
   Dimension dimension;
   uint16_t count;
+  std::function<void(T)> callback;
 
-  UIItemSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, string* names = nullptr) {
+  UIItemSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, string* names = nullptr, std::function<void(T)> callback = nullptr) {
     this->dimension = dimension;
     this->color = color;
     this->output = output;
     this->count = count;
     this->items = items;
     this->names = names;
+    this->callback = callback;
   }
 
   virtual Color GetColor() { return color; }
@@ -32,7 +34,7 @@ class UIItemSelector : public UIComponent {
       if (item > count)
       { MatrixOS::LED::SetColor(xy, Color(0)); }
       else
-      { MatrixOS::LED::SetColor(xy, color.ToLowBrightness(items[item] == *output)); }
+      { MatrixOS::LED::SetColor(xy, color.DimIfNot(items[item] == *output)); }
     }
     return true;
   }
@@ -44,13 +46,25 @@ class UIItemSelector : public UIComponent {
     if (names == nullptr)
     {
       if (keyInfo->state == PRESSED)
-      { *output = items[id]; }
+      { 
+        *output = items[id]; 
+        if (callback)
+        {
+          callback(*output);
+        }
+      }
     }
     else
     {
       if (keyInfo->state == RELEASED)
-      { *output = items[id]; }
-      else if (keyInfo->state == HOLD)
+      { 
+        *output = items[id]; 
+        if (callback)
+        {
+          callback(*output);
+        }
+      }
+      else if (keyInfo->state == HOLD && names != nullptr)
       { MatrixOS::UIInterface::TextScroll(names[id], GetColor()); }
     }
     return true;
