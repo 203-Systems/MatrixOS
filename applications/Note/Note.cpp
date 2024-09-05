@@ -140,6 +140,7 @@ void Note::Setup() {
     return false;
   });
   actionMenu.AllowExit(false);
+  actionMenu.SetSetupFunc([&]() -> void {PlayView();});
   actionMenu.Start();
 
   Exit();
