@@ -24,7 +24,7 @@ class Color {
   Color Dim(uint8_t scale = COLOR_LOW_STATE_SCALE);
   Color DimIfNot(bool not_dim = false, uint8_t scale = COLOR_LOW_STATE_SCALE);  // Helper for UI, make ui variable
                                                                                       // as parameter so the output
-                                                                                      // dynamiclly change based on the
+                                                                                      // dynamically change based on the
                                                                                       // variable
 
   Color Gamma();
@@ -35,6 +35,7 @@ class Color {
   static uint8_t scale8_video(uint8_t i, uint8_t scale);
 
   static Color HsvToRgb(float h, float s, float v);
+  static void RgbToHsv(Color rgb, float* h, float* s, float* v);
 
   static Color Crossfade(Color color1, Color color2, Fract16 ratio);
 

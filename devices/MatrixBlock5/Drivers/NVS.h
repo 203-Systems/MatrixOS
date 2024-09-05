@@ -45,7 +45,7 @@ namespace Device::NVS
   bool WriteKey(uint32_t hash, void* pointer, uint16_t length);
 
   void WriteToFlash(uint32_t pointer, uint16_t length, uint16_t* address);
-  void EreasePage(uint32_t address, uint32_t pages = 1);
+  void ErasePage(uint32_t address, uint32_t pages = 1);
 
   // std::vector<char> Read(std::string name);
   // bool Write(std::string name, void* pointer, uint16_t length);

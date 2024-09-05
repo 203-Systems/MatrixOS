@@ -12,7 +12,7 @@ namespace MatrixOS::NVS
 
   int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length) {
     vector<char> data = Device::NVS::Read(hash);
-    if (data.size() == 0)  // Havn't been saved
+    if (data.size() == 0)  // Have not been saved
     {
       SetVariable(hash, pointer, length);
       return 1;

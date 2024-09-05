@@ -1,13 +1,13 @@
 #pragma once
-#include "ui/UI.h"
+#include "UI/UI.h"
 
-class UIKeyboardKey : public UIComponent {
+class UIGamepadKey : public UIComponent {
  public:
   Color color;
-  uint8_t keycode;
+  GamepadKeycode keycode;
   bool active = false;
 
-  UIKeyboardKey(Color color, uint8_t keycode) {
+  UIGamepadKey(Color color, GamepadKeycode keycode) {
     this->color = color;
     this->keycode = keycode;
   }
@@ -25,12 +25,12 @@ class UIKeyboardKey : public UIComponent {
     if (keyInfo->state == PRESSED)
     {
       active = true;
-      MatrixOS::HID::KeyboardPress(keycode); 
+      MatrixOS::HID::Gamepad::Press(keycode); 
     }
     else if (keyInfo->state == RELEASED)
     {
       active = false;
-      MatrixOS::HID::KeyboardRelease(keycode);
+      MatrixOS::HID::Gamepad::Release(keycode); 
     }
     return true;
   }

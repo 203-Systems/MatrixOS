@@ -68,8 +68,8 @@ void Note::Setup() {
 
   UIButton enforceScaleToggle;
   enforceScaleToggle.SetName("Enforce Scale");
-  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enfourceScale); });
-  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enfourceScale = !notePadConfigs[activeConfig].enfourceScale; });
+  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
+  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
   UIButton overlapSelectorBtn;

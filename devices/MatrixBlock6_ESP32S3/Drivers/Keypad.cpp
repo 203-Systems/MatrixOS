@@ -149,8 +149,8 @@ namespace Device::KeyPad
 
   // Matrix use the following ID Struct
   // CCCC IIIIIIIIIIII
-  // C as class (4 bits), I as index (12 bits). I could be splited by the class defination, for example, class 0 (grid),
-  // it's splited to XXXXXXX YYYYYYY. Class List: Class 0 - System - IIIIIIIIIIII Class 1 - Grid - XXXXXX YYYYYY Class 2
+  // C as class (4 bits), I as index (12 bits). I could be split by the class definition, for example, class 0 (grid),
+  // it's split to XXXXXXX YYYYYYY. Class List: Class 0 - System - IIIIIIIIIIII Class 1 - Grid - XXXXXX YYYYYY Class 2
   // - TouchBar - IIIIIIIIIIII Class 3 - Underglow - IIIIIIIIIIII
 
   Point ID2XY(uint16_t keyID) {

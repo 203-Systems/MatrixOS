@@ -36,7 +36,7 @@ namespace Device
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
   void LoadDeviceInfo();
-  void LoadVarientInfo();
+  void LoadVariantInfo();
 
   namespace USB
   {
@@ -59,7 +59,7 @@ namespace Device
     void StartKeyPad();
     void StartTouchBar();
 
-    // If return true, meaning the scan in intrupted
+    // If return true, meaning the scan in interrupted
     void Scan();
     bool ScanKeyPad();
     bool ScanFN();
@@ -79,7 +79,7 @@ namespace Device
       bool Scan();
     }
 
-    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthough MatrixOS::KeyPad::NewEvent() result
+    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthrough MatrixOS::KeyPad::NewEvent() result
   }
 
   namespace NVS

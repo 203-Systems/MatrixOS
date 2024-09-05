@@ -52,6 +52,18 @@ namespace MatrixOS::LED
   }
 
   void Init() {
+    if(activeBufferSemaphore)
+    {
+      vSemaphoreDelete(activeBufferSemaphore);
+    }
+
+    if(led_tm)
+    {
+      xTimerDelete(led_tm, 0);
+    }
+
+    frameBuffers.clear();
+    
     // Generate brightness level map
     ledBrightnessMultiplyer.resize(Device::led_partitions.size());
     ledPartitionBrightness.resize(Device::led_partitions.size());
@@ -297,7 +309,7 @@ namespace MatrixOS::LED
     return CurrentLayer();
   }
 
-  bool DestoryLayer() {
+  bool DestroyLayer() {
     if (CurrentLayer() > 1)
     {
       vPortFree(frameBuffers.back());

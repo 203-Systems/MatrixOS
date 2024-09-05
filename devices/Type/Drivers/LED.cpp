@@ -47,8 +47,8 @@ namespace Device
     // TODO This text is very wrong (GRID)
     // Matrix use the following ID Struct
     //  CCCC IIIIIIIIIIII
-    //  C as class (4 bits), I as index (12 bits). I could be spilted by the class defination, for example, class 1
-    //  (grid), it's spilted to XXXXXXX YYYYYYY. Class List: Class 0 - Raw Index - IIIIIIIIIIII Class 1 - Grid - XXXXXX
+    //  C as class (4 bits), I as index (12 bits). I could be spilt by the class definition, for example, class 1
+    //  (grid), it's spilt to XXXXXXX YYYYYYY. Class List: Class 0 - Raw Index - IIIIIIIIIIII Class 1 - Grid - XXXXXX
     //  YYYYYY Class 2 - TouchBar - IIIIIIIIIIII Class 3 - Underglow - IIIIIIIIIIII
 
     uint16_t ID2Index(uint16_t ledID) {

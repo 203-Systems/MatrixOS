@@ -2,11 +2,11 @@
 
 #include "framework/LogLevel.h"
 
-#define MATRIXOS_BUILD_RELEASE
+// #define MATRIXOS_BUILD_RELEASE
 // #define MATRIXOS_BUILD_RELEASE_CANDIDATE
 // #define MATRIXOS_BUILD_BETA
 // #define MATRIXOS_BUILD_NIGHTY
-// #define MATRIXOS_BUILD_INDEV
+#define MATRIXOS_BUILD_INDEV
 
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 5
@@ -22,7 +22,7 @@
 
 #define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 16)
 
-#define MATRIXOS_FLASHVERSION 0  // Each Flash data strcture change will cause this to increase
+#define MATRIXOS_FLASH_VERSION 0  // Each Flash data struture change will cause this to increase
 
 #define KEYEVENT_QUEUE_SIZE 16
 #define MIDI_QUEUE_SIZE 128

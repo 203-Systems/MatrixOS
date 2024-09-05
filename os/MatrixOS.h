@@ -12,7 +12,9 @@
 #include "timers.h"
 #include "tusb.h"
 
-#define noexpose  // Custum keyword to remove function to be generated as exposed API
+#include "./system/HID/HIDSpecs.h"
+
+#define noexpose  // Custom keyword to remove function to be generated as exposed API
 
 class Application;
 class Application_Info;
@@ -26,7 +28,8 @@ namespace MatrixOS
   namespace SYS
   {
     inline bool inited = false;
-    void Init(void);
+    void Begin(void);
+    void InitSysModules(void);
 
     uint32_t Millis(void);
     void DelayMs(uint32_t intervalMs);
@@ -63,7 +66,7 @@ namespace MatrixOS
     int8_t CurrentLayer();
     int8_t CreateLayer();
     void CopyLayer(uint8_t dest, uint8_t src);
-    bool DestoryLayer();
+    bool DestroyLayer();
 
     void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer = 255);
     void RotateCanvas(EDirection direction, uint8_t layer = 255);
@@ -92,7 +95,7 @@ namespace MatrixOS
   {
     noexpose void Init();
 
-    bool Inited(void);     // If USB Stack is initlized, not sure what it will be needed but I added it anyways
+    bool Inited(void);     // If USB Stack is initialized, not sure what it will be needed but I added it anyways
     bool Connected(void);  // If USB is connected
 
     namespace CDC
@@ -122,26 +125,92 @@ namespace MatrixOS
     bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta = true);  // If include meta, it will send the correct header and ending;
 
     // Those APIs are only for MidiPort to use
-    noexpose bool RegisterMidiPort(uint16_t port_id, MidiPort* midiPort);
-    noexpose void UnregisterMidiPort(uint16_t port_id);
-    noexpose bool Recive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
+    noexpose bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
+    noexpose void CloseMidiPort(uint16_t port_id);
+    noexpose bool Receive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
   namespace HID
   {
+    void Init();
     bool Ready(void);
-    bool KeyboardPress(uint8_t keycode);
-    void KeyboardRelease(uint8_t keycode);
+    
+    namespace Keyboard
+    {
+      bool Write(KeyboardKeycode k);
+      bool Press(KeyboardKeycode k);
+      bool Release(KeyboardKeycode k);
+      bool Remove(KeyboardKeycode k);
+      void ReleaseAll(void);
+    }
+
+    namespace Mouse
+    {
+      void Click(MouseKeycode b = MOUSE_LEFT);
+      void press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
+      void release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void ReleaseAll(void);
+      void Move(signed char x, signed char y, signed char wheel = 0);
+    }
+
+    namespace Touch // Absolute Mouse
+    {
+      void Click(MouseKeycode b = MOUSE_LEFT);
+      void Press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
+      void Release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void ReleaseAll(void);
+      void MoveTo(signed char x, signed char y, signed char wheel = 0);
+      void Move(signed char x, signed char y, signed char wheel = 0);
+    }
+
+    namespace Gamepad
+    {
+      void Press(GamepadKeycode b);
+      void Release(GamepadKeycode b);
+      void ReleaseAll(void);
+
+      void Buttons(uint32_t b);
+      void XAxis(int8_t a);
+      void YAxis(int8_t a);
+      void ZAxis(int8_t a);
+      void RXAxis(int8_t a);
+      void RYAxis(int8_t a);
+      void RZAxis(int8_t a);
+      void DPad(GamepadDPadDirection d);
+    }
+
+    namespace Consumer
+    {
+      void Write(ConsumerKeycode c);
+      void Press(ConsumerKeycode c);
+      void Release(ConsumerKeycode c);
+      void ReleaseAll(void);
+    }
+
+    namespace System
+    {
+      void Write(SystemKeycode s);
+      void Press(SystemKeycode s);
+      void Release(void);
+      void ReleaseAll(void);
+    }
+
+    namespace RawHID
+    {
+      void Init();
+      size_t Get(uint8_t** report, uint32_t timeout_ms = 0);
+      bool Send(const vector<uint8_t> &report);
+    }
   }
 
   namespace Logging
   {
     // Regular function version - not recommended
-    void LogError(string tag, string format, ...);
-    void LogWarning(string tag, string format, ...);
-    void LogInfo(string tag, string format, ...);
-    void LogDebug(string tag, string format, ...);
-    void LogVerbose(string tag, string format, ...);
+    void LogError(const string &tag, const string &format, ...);
+    void LogWarning(const string &tag, const string &format, ...);
+    void LogInfo(const string &tag, const string &format, ...);
+    void LogDebug(const string &tag, const string &format, ...);
+    void LogVerbose(const string &tag, const string &format, ...);
 
     // Macro version is perfered because it will not generate any code if the log level is lower than the log level
     #if (MATRIXOS_LOG_LEVEL >= LOG_LEVEL_ERROR)

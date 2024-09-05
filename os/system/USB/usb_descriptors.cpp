@@ -1,3 +1,5 @@
+#include "tusb.h"
+
 /*
  * The MIT License (MIT)
  *
@@ -47,7 +49,7 @@ uint8_t const* tud_descriptor_device_cb(void) {
 
                  .idVendor = Device::usb_vid,
                  .idProduct = Device::usb_pid,
-                 .bcdDevice = (uint16_t)((MATRIXOS_MAJOR_VER << 0x100) + (MATRIXOS_MINOR_VER << 0x10) + (MATRIXOS_PATCH_VER)), 
+                 .bcdDevice = (uint16_t)((MATRIXOS_MAJOR_VER << 8) + (MATRIXOS_MINOR_VER << 4) + (MATRIXOS_PATCH_VER)),  // If this is too limiting, we can then use the first 4 bits
 
                  .iManufacturer = 0x01,
                  .iProduct = 0x02,
@@ -62,13 +64,44 @@ uint8_t const* tud_descriptor_device_cb(void) {
 // HID Report Descriptor
 //--------------------------------------------------------------------+
 
-uint8_t const desc_hid_report[] =
-{
-  TUD_HID_REPORT_DESC_KEYBOARD( HID_REPORT_ID(REPORT_ID_KEYBOARD         )),
-  TUD_HID_REPORT_DESC_MOUSE   ( HID_REPORT_ID(REPORT_ID_MOUSE            )),
-  TUD_HID_REPORT_DESC_CONSUMER( HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL )),
-  TUD_HID_REPORT_DESC_GAMEPAD ( HID_REPORT_ID(REPORT_ID_GAMEPAD          )),
-  TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE, HID_REPORT_ID(REPORT_ID_GENERIC))
+#define EXPAND(x) x
+
+
+
+#define TUD_HID_REPORT_DESC_VENDOR() \
+    HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
+    HID_USAGE        ( 0x01                       ),\
+    HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
+      /* Report ID for Inquiry */\
+      0x85, 255, \
+      /* Feature Report (64 bytes) */ \
+      HID_USAGE   ( 0x80                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_COUNT( 64                                      ),\
+      HID_FEATURE       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE),\
+      /* Input Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 16                                      ),\
+      HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+      /* Output Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 16                                      ),\
+      HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+    HID_COLLECTION_END
+  
+
+uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)), 
+                                   TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_ID_MOUSE)),
+                                   TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL)), 
+                                   TUD_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_ID_GAMEPAD)),
+                                   TUD_HID_REPORT_DESC_VENDOR()
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
@@ -111,9 +144,6 @@ uint8_t const desc_fs_configuration[] = {
 
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
     TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
-    
-    // // Interface number, string index, protocol, report descriptor len, EP In address, size & polling interval
-    // TUD_HID_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, CFG_TUD_HID_EP_BUFSIZE, 5)
 
     // Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval
     TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, CFG_TUD_HID_EP_BUFSIZE, 5)
@@ -132,7 +162,7 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
 // String Descriptors
 //--------------------------------------------------------------------+
 
-// char manufature_name[Device::manufaturer_name.length()] = Device::manufaturer_name.c_str();
+// char manufacturer_name[Device::manufacturer_name.length()] = Device::manufacturer_name.c_str();
 // char product_name[Device::product_name.length()] = Device::product_name.c_str();
 // char device_serial[Device::GetSerial().length()] = Device::GetSerial().c_str();
 // char usb_cdc_name[Device::product_name.length() + 4] = (Device::product_name + " CDC").c_str();
@@ -158,7 +188,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
       (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
-      Device::manufaturer_name.c_str(),        // 1: Manufacturer
+      Device::manufacturer_name.c_str(),        // 1: Manufacturer
       product_name.c_str(),                    // 2: Product
       serial_number.c_str(),                   // 3: Serials, should use chip ID
       (Device::product_name + " CDC").c_str()  // 4: CDC Interface

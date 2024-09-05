@@ -81,17 +81,17 @@ void Shell::ApplicationLauncher() {
   uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
   MLOGD("Shell", "%d apps detected", app_count);
 
-  uint16_t visable_app_count = 0;
+  uint16_t visible_app_count = 0;
 
   // Iterate though map
   for (auto const& [app_id, application] : applications)
   {
     if (application->visibility)
-    { visable_app_count++; }
+    { visible_app_count++; }
   }
 
   std::vector<UIButton> appBtns;
-  appBtns.reserve(visable_app_count);
+  appBtns.reserve(visible_app_count);
 
   // Iterate though deque 
   for (uint32_t app_id: application_ids)
@@ -135,17 +135,17 @@ void Shell::HiddenApplicationLauncher() {
   uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
   MLOGD("Shell", "%d apps detected", app_count);
 
-  uint16_t invisable_app_count = 0;
+  uint16_t invisible_app_count = 0;
 
   // Iterate though map
   for (auto const& [app_id, application] : applications)
   {
     if (application->visibility)
-    { invisable_app_count++; }
+    { invisible_app_count++; }
   }
 
   std::vector<UIButton> appBtns;
-  appBtns.reserve(invisable_app_count);
+  appBtns.reserve(invisible_app_count);
   for (uint32_t app_id: application_ids)
   {
     auto application_it = applications.find(app_id);
@@ -171,7 +171,7 @@ void Shell::HiddenApplicationLauncher() {
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
       hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MLOGD("Shell (invisable)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+      MLOGD("Shell (invisible)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
     }
     else
@@ -199,8 +199,6 @@ void Shell::LaunchAnimation(Point origin, Color color)
     MLOGD("Shell", "R: %f", r);
 
     if(r > endDistance) { break; }
-
-    float maxDistance = 0;
 
     for (uint8_t i = 0; i < Device::led_count; i++)
     {

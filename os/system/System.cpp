@@ -40,6 +40,7 @@ namespace MatrixOS::SYS
     }
 
     active_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
+    InitSysModules();
     active_app->Start();
   }
 
@@ -65,14 +66,12 @@ namespace MatrixOS::SYS
     }
   }
 
-  void Init() {
+  void Begin() {
     Device::DeviceInit();
 
     USB::Init();
-    KEYPAD::Init();
-    LED::Init();
 
-    MIDI::Init();
+    InitSysModules();
 
     inited = true;
 
@@ -91,7 +90,15 @@ namespace MatrixOS::SYS
     (void)xTaskCreateStatic(Supervisor, "supervisor", configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack,
                             &supervisor_taskdef);
 
-    // next_app = GenerateAPPID("203 Electronics", "Performance Mode");  // Launch Performance mode by default for now
+    // next_app_id = GenerateAPPID("203 Electronics", "Performance Mode");  // Launch Performance mode by default for now
+  }
+
+  void InitSysModules()
+  {
+    KEYPAD::Init();
+    LED::Init();
+    MIDI::Init();
+    HID::Init();
   }
 
   uint32_t Millis() {
@@ -161,7 +168,7 @@ namespace MatrixOS::SYS
     active_app_id = app_id;
 
     // Clean up layers that the previous app might have made
-    while (LED::DestoryLayer())
+    while (LED::DestroyLayer())
     {}
 
     if (active_app_task != NULL)
@@ -179,8 +186,8 @@ namespace MatrixOS::SYS
 
   void ExitAPP() {
     active_app->~Application();
-    uint32_t app_id = next_app;
-    next_app = 0;
+    uint32_t app_id = next_app_id;
+    next_app_id = 0;
     ExecuteAPP(app_id);
   }
 
@@ -188,7 +195,7 @@ namespace MatrixOS::SYS
     // Bootloader();
     if (error.empty())
       error = "Undefined Error";
-    MLOGE("System", "Matrix OS Error: %s", error);
+    MLOGE("System", "Matrix OS Error: %s", error.c_str());
 
     // Show Blue Screen
     LED::Fill(0x00adef);

@@ -13,7 +13,7 @@
 #include "KeyEvent.h"
 #include "MidiPacket.h"
 
-//Defination
+//Definition
 #include "MidiSpecs.h"
 
 //Helper Classes 

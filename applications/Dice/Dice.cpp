@@ -203,7 +203,6 @@ void Dice::Settings() {
   settingsUI.AddUIComponent(dotFaceSelectorBtn, Point(2, 7));
 
   // Number Mode
-  int32_t modifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
   UIButton numberFacesSelectorBtn;
   numberFacesSelectorBtn.SetName("Faces");
   numberFacesSelectorBtn.SetColor(Color(0x00FFFF));
@@ -397,18 +396,19 @@ Color Dice::ApplyColorEffect(Color color, UnderglowEffectMode effect, uint16_t p
 }
 
 void Dice::DotFaceSelector() {
-  int32_t faces = dot_faces;
+  int32_t dot_faces_num = dot_faces.Get();
+  int32_t selector_dot_faces = dot_faces_num - 2;
   UI dotFaceSelector("Face Selector", Color(0x00FFFF));
 
-  UI4pxNumber numDisplay(Color(0x00FFFF), 1, (int32_t*)&faces);
+  UI4pxNumber numDisplay(Color(0x00FFFF), 1, (int32_t*)&dot_faces_num);
   dotFaceSelector.AddUIComponent(numDisplay, Point(5, 0));
+  
 
-  UISelector overlapInput(Dimension(8, 1), "Faces", Color(0x00FFFF), 8, (uint16_t*)&faces, [&](uint16_t val) -> void { faces = val + 1; });
+  UISelector overlapInput(Dimension(8, 1), "Faces", Color(0x00FFFF), 8, (uint16_t*)&selector_dot_faces, [&](uint16_t val) -> void { dot_faces_num = val + 2; });
   dotFaceSelector.AddUIComponent(overlapInput, Point(0, 7));
 
   dotFaceSelector.Start();
-
-  dot_faces = faces;
+  dot_faces = dot_faces_num;
 }
 
 void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {

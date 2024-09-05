@@ -169,7 +169,7 @@ void UI::UIEnd() {
     RenderCrossfade(current_layer, prev_layer, crossfade_start_time);
     Loop();
   }
-  MatrixOS::LED::DestoryLayer(); }
+  MatrixOS::LED::DestroyLayer(); }
   else
   { MatrixOS::LED::Fill(0); }
 

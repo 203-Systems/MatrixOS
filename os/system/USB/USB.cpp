@@ -28,6 +28,14 @@ namespace MatrixOS::USB
     return tusb_inited();
   }
 
+  bool Disconnect() {
+    return tud_disconnect();
+  }
+
+  bool Connect() {
+    return tud_connect();
+  }
+
   bool Connected() {
     return tud_ready();
   }

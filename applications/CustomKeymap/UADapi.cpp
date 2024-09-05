@@ -1,13 +1,13 @@
 #include "UAD.h"
 
-bool UAD::SetRegister(ActionInfo actionInfo, uint32_t value)
+bool UAD::SetRegister(ActionInfo* actionInfo, uint32_t value)
 {
-    return registers.insert_or_assign(actionInfo, value).second;
+    return registers.insert_or_assign(*actionInfo, value).second;
 }
 
-bool UAD::GetRegister(ActionInfo actionInfo, uint32_t* value)
+bool UAD::GetRegister(ActionInfo* actionInfo, uint32_t* value)
 {   
-    std::unordered_map<ActionInfo, uint32_t>::iterator it = registers.find(actionInfo);
+    std::unordered_map<ActionInfo, uint32_t>::iterator it = registers.find(*actionInfo);
 
     if(it == registers.end())
     {
@@ -18,43 +18,57 @@ bool UAD::GetRegister(ActionInfo actionInfo, uint32_t* value)
     return true;
 }
 
-bool UAD::ClearRegister(ActionInfo actionInfo)
+bool UAD::ClearRegister(ActionInfo* actionInfo)
 {
-    return registers.erase(actionInfo) > 0;
+    return registers.erase(*actionInfo) > 0;
 }
 
+  void UAD::SetLayerState(uint8_t layer, LayerInfoType type, bool state)
+  {
+    if(type == LayerInfoType::ACTIVE)
+    {
+        uint8_t oldTopLayer = GetTopLayer();
+        if(state)
+        {
+            layerEnabled |= (1 << layer);
+        }
+        else
+        {
+            layerEnabled &= ~(1 << layer);
+        }
+        uint8_t newTopLayer = GetTopLayer();
 
-// void UAD::SetLayer(uint8_t layer, bool state)
-// {
-//     layerOverrided |= (1 << layer);
+        if(oldTopLayer != newTopLayer)
+        {
+            MatrixOS::LED::PauseUpdate(true);
+            DeinitializeLayer(oldTopLayer);
+            MatrixOS::LED::Fill(Color(0), 0);
+            InitializeLayer(newTopLayer);
+            MatrixOS::LED::PauseUpdate(false);
+        }
+    }
+    else if(type == LayerInfoType::PASSTHROUGH)
+    {
+        if(state)
+        {
+            layerPassthrough |= (1 << layer);
+        }
+        else
+        {
+            layerPassthrough &= ~(1 << layer);
+        }
+    }
+  }
 
-//     if(state)
-//     {
-//         layerEnabled |= (1 << layer);
-//     }
-//     else
-//     {
-//         layerEnabled &= ~(1 << layer);
-//     }
-// }
-
-// void UAD::UnsetLayer(uint8_t layer)
-// {
-//     layerOverrided &= ~(1 << layer);
-// }
-
-int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index)
+bool UAD::GetLayerState(uint8_t layer, LayerInfoType type)
 {
-    if(!IsBitSet(bitmap, index))
+    if(type == LayerInfoType::ACTIVE)
     {
-        return -1;
+        return IsBitSet(layerEnabled, layer);
     }
-
-    // Find nums of bits set before index - TODO: This can probably be opttimized by a lot
-    uint8_t count = 0;
-    for (uint8_t i = 0; i < index; i++)
+    else if(type == LayerInfoType::PASSTHROUGH)
     {
-        count += IsBitSet(bitmap, i);
+        return IsBitSet(layerPassthrough, layer);
     }
-    return count + 1;
+    return false;
 }

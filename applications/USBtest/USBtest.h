@@ -8,13 +8,13 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #include "MatrixOS.h"
 #include "applications/Application.h"
 
-#define APPLICATION_NAME "HID Test"
+#define APPLICATION_NAME "USB Test"
 #define APPLICATION_AUTHOR "203 Electronics"
 #define APPLICATION_COLOR Color(0xFFFF00)
 #define APPLICATION_VERSION 1
-#define APPLICATION_CLASS HIDtest
+#define APPLICATION_CLASS USBtest
 
-class HIDtest : public Application {
+class USBtest : public Application {
  public:
   static Application_Info info;
 
@@ -23,12 +23,12 @@ class HIDtest : public Application {
   void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
 };
 
-inline Application_Info HIDtest::info = {
-    .name = "HID Test",
+inline Application_Info USBtest::info = {
+    .name = "USB Test",
     .author = "203 Electronics",
     .color = Color(0xFFFF00),
     .version = 1,
     .visibility = true,
 };
 
-REGISTER_APPLICATION(HIDtest);
+REGISTER_APPLICATION(USBtest);

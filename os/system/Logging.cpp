@@ -5,12 +5,12 @@
 namespace MatrixOS::Logging
 {
 
-  void LogLevelSet(string tag, ELogLevel level) {}
+  // void LogLevelSet(string tag, ELogLevel level) {}
 
 
   string logLevel[5] = {"E", "W", "I", "D", "V"};
   string logLevelColor[5] = {"31", "33", "32", "36", "37"};
-  void Log(ELogLevel level, string tag, string format, va_list valst)  // DO NOT USE THIS DIRECTLY. STRING WILL NOT BE
+  void Log(ELogLevel level, const string &tag, const string &format, va_list &valst)  // DO NOT USE THIS DIRECTLY. STRING WILL NOT BE
                                                                        // REMOVED IF LOG LEVEL ISN'T SET FOR IT TO LOG
   {
 #ifdef MATRIXOS_LOG_COLOR
@@ -30,7 +30,7 @@ namespace MatrixOS::Logging
 #endif
   }
 
-  void LogError(string tag, string format, ...) {
+  void LogError(const string &tag, const string &format, ...) {
 #if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_ERROR
     va_list valst;
     va_start(valst, format);
@@ -39,7 +39,7 @@ namespace MatrixOS::Logging
 #endif
   }
 
-  void LogWarning(string tag, string format, ...) {
+  void LogWarning(const string &tag, const string &format, ...) {
 #if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_WARNING
     va_list valst;
     va_start(valst, format);
@@ -48,7 +48,7 @@ namespace MatrixOS::Logging
 #endif
   }
 
-  void LogInfo(string tag, string format, ...) {
+  void LogInfo(const string &tag, const string &format, ...) {
 #if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_INFO
     va_list valst;
     va_start(valst, format);
@@ -57,7 +57,7 @@ namespace MatrixOS::Logging
 #endif
   }
 
-  void LogDebug(string tag, string format, ...) {
+  void LogDebug(const string &tag, const string &format, ...) {
 #if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_DEBUG
     va_list valst;
     va_start(valst, format);
@@ -66,7 +66,7 @@ namespace MatrixOS::Logging
 #endif
   }
 
-  void LogVerbose(string tag, string format, ...) {
+  void LogVerbose(const string &tag, const string &format, ...) {
 #if MATRIXOS_LOG_LEVEL >= LOG_LEVEL_VERBOSE
     va_list valst;
     va_start(valst, format);

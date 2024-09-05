@@ -10,6 +10,10 @@
 // // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
+#include "applications/Gamepad/Gamepad.h"
+// #include "applications/USBtest/USBtest.h"
+// #include "applications/Example/Example.h"
+#include "applications/Companion/Companion.h"
 
 // // BOOT ANIMATION
 #include "applications/Matrix/MatrixBoot/MatrixBoot.h"
@@ -20,5 +24,4 @@
 #include "applications/Matrix/ForceGridVisualizer/ForceGridVisualizer.h"
 
 #define OS_SHELL APPID("203 Electronics", "Shell")
-
 #define DEFAULT_BOOTANIMATION APPID("203 Electronics", "Matrix Boot")

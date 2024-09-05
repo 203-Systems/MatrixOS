@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-// Avoid recuesive include
+// Avoid recursive include
 namespace MatrixOS::SYS
 {
   uint32_t Millis(void);

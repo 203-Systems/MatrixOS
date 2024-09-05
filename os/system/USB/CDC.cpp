@@ -60,7 +60,7 @@ namespace MatrixOS::USB::CDC
     tud_cdc_n_write_flush(0);
   }
 
-  // void Read() //Prob won't work, implentation need work
+  // void Read() //Prob won't work, implementation need work
   // {
   //     if (tud_cdc_n_available(0))
   //     {

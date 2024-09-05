@@ -17,9 +17,8 @@ namespace MatrixOS::UIInterface
       return;
     }
 
-    // Create two timers - one for scrolling and one for scanning the keyboard
+    // Text Scroll Timer
     Timer textScrollTimer;
-    Timer keyscanTimer;
 
     // Create a new layer on the LED screen
     MatrixOS::LED::CreateLayer();
@@ -70,7 +69,7 @@ namespace MatrixOS::UIInterface
               for (uint8_t x = 1; x < Device::x_size; x++)
               { memcpy(buffer[x - 1], buffer[x], 8); }
 
-              if (current_char_progress < font8[current_char - 32][0])  // Render Text colume
+              if (current_char_progress < font8[current_char - 32][0])  // Render Text column
               {
                 // Iterate through each row in the character
                 for (uint8_t y = 0; y < 8; y++)
@@ -106,7 +105,7 @@ namespace MatrixOS::UIInterface
                 {
                   MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
                   MatrixOS::KEYPAD::ClearList();
-                  MatrixOS::LED::DestoryLayer();
+                  MatrixOS::LED::DestroyLayer();
                   MatrixOS::LED::Update();
                   return;
                 }
@@ -119,7 +118,7 @@ namespace MatrixOS::UIInterface
     } while (loop);
 
     // Exit
-    MatrixOS::LED::DestoryLayer();
+    MatrixOS::LED::DestroyLayer();
     MatrixOS::LED::Update();
     return;
   }

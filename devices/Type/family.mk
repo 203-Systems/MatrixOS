@@ -3,7 +3,7 @@
 MCU = esp32s3
 UF2_FAMILY_ID = 0xc47e5767
 
-include $(FAMILY_PATH)/Varients/$(DEVICE)/Device.mk
+include $(FAMILY_PATH)/Variants/$(DEVICE)/Device.mk
 
 .PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 

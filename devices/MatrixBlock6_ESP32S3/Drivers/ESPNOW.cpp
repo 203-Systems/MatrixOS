@@ -16,14 +16,14 @@
 
 // using std::queue;
 
-// #define ESP_NOW_BUFFER_SIZE 192  // Can not go above 256? Multiple of 3 perfered for Midi
+// #define ESP_NOW_BUFFER_SIZE 192  // Can not go above 256? Multiple of 3 preferred for Midi
 // #define ESP_NOW_RATE WIFI_PHY_RATE_36M
 
 // #define ESP_NOW_MIDI_PORT_ID 3
 
 // static uint8_t broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 // uint8_t target_mac[ESP_NOW_ETH_ALEN] = {0x7C, 0xDF, 0xA1, 0x3E,
-//                                         0xD2, 0xA2};  // Current this is hard coded to my own reciver. A pairing system
+//                                         0xD2, 0xA2};  // Current this is hard coded to my own Receiver. A pairing system
 //                                                       // is required for future
 
 // namespace Device
@@ -67,7 +67,7 @@
 //       esp_err_t status = esp_now_add_peer(&broadcast_info);
 
 //       if (ESP_OK != status)
-//       { ESP_LOGE("espnow_init", "Could not add boradcast peer"); }
+//       { ESP_LOGE("espnow_init", "Could not add broadcast peer"); }
 
 //       esp_now_peer_info_t peer_info;
 //       peer_info.channel = 0;
@@ -118,7 +118,7 @@
 
 //     queue<MidiPacket> midi_buffer;
 //     void ESPNOW_Recv_CB(const uint8_t* mac_addr, const uint8_t* data, int len) {
-//       // ESP_LOGI("ESPNOW", "Message recivied from %#02X:%#02X:%#02X:%#02X:%#02X:%#02X", mac_addr[0], mac_addr[1],
+//       // ESP_LOGI("ESPNOW", "Message received from %#02X:%#02X:%#02X:%#02X:%#02X:%#02X", mac_addr[0], mac_addr[1],
 //       // mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 
 //       // bool broadcast = true;
