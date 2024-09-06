@@ -10,13 +10,13 @@ namespace MatrixOS::UIInterface
 
     UI numberSelector(name, color);
 
-    numberSelector.AddUIComponent(new UI4pxNumber(color, 3, (int32_t*)&value, Color(0xFFFFFF)), origin + Point(-4, -3));
+    UI4pxNumber numberDisplay(color, 3, (int32_t*)&value, Color(0xFFFFFF));
+    numberSelector.AddUIComponent(numberDisplay, origin + Point(-4, -3));
 
     int32_t modifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};
     uint8_t gradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
-    numberSelector.AddUIComponent(new UINumberModifier(color, 8, (int32_t*)&value, custom_modifier != nullptr ? custom_modifier : modifier, gradient, lower_limit,
-                                                       upper_limit),
-                                  origin + Point(-3, 4));
+    UINumberModifier numberModifier(color, 8, (int32_t*)&value, custom_modifier != nullptr ? custom_modifier : modifier, gradient, lower_limit, upper_limit);
+    numberSelector.AddUIComponent(numberModifier, origin + Point(-3, 4));
 
     numberSelector.Start();
     return value;
