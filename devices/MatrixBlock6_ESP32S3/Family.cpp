@@ -176,7 +176,6 @@ namespace Device
       { return BLEMIDI::GetMidi(); }
       if (ESPNOW::started && ESPNOW::MidiAvailable())
       { return ESPNOW::GetMidi(); }
-      // ESP_LOGI("Midi Get", "WTF?");
       return MidiPacket(0, None);
     }
 

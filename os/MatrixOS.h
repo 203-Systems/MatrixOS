@@ -6,7 +6,6 @@
 #include "queue.h"
 #include "semphr.h"
 #include "system/Parameters.h"
-#include "system/SystemVariables.h"
 #include "system/UserVariables.h"
 #include "task.h"
 #include "timers.h"

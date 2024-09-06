@@ -1,3 +1,4 @@
+#define USB_MIDI_COUNT 1
 namespace MatrixOS::USB::MIDI
 {
   void Init();
