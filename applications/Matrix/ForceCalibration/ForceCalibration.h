@@ -11,23 +11,40 @@ namespace Device::KeyPad::FSR
 
   void SaveLowCalibration();
   void SaveHighCalibration();
+  void ClearLowCalibration();
+  void ClearHighCalibration();
+  int16_t GetLowOffset();
+  int16_t GetHighOffset();
+  void SetLowOffset(int16_t offset);
+  void SetHighOffset(int16_t offset);
   uint16_t GetRawReading(uint8_t x, uint8_t y);
   uint32_t GetScanCount();
 }
 
 class ForceCalibration : public Application {
   public:
+  enum CalibrationType: uint8_t {
+    Low,
+    High
+  };
   static Application_Info info;
   void Setup() override;  
 
   void LowCalibration();
   void HighCalibration();
 
+  void ClearLowCalibration();
+  void ClearHighCalibration();
+
+  void SetOffset(CalibrationType type);
+
+  void ForceGridVisualizer();
+
  private:
   Timer renderTimer;
 
-  CreateSavedVar("Low Calibration Saved", lowCalibrationSaved, bool, false);
-  CreateSavedVar("High Calibration Saved", highCalibrationSaved, bool, false);
+  CreateSavedVar("ForceCalibration", lowCalibrationSaved, bool, false);
+  CreateSavedVar("ForceCalibration", highCalibrationSaved, bool, false);
 };
 
 inline Application_Info ForceCalibration::info = {

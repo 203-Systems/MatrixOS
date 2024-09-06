@@ -152,6 +152,7 @@ void ForceCalibration::HighCalibration() {
       {
         memcpy(Device::KeyPad::FSR::high_thresholds, calibration_data, sizeof(calibration_data));
         Device::KeyPad::FSR::SaveHighCalibration();
+        Device::KeyPad::FSR::SetHighOffset(0); // Reset Offset after manual calibration
         highCalibrationSaved = true;
 
         MatrixOS::LED::Fill(Color(0), 0);
