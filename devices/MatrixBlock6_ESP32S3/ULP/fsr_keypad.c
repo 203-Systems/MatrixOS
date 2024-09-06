@@ -21,6 +21,18 @@ volatile gpio_num_t keypad_write_pins[X_SIZE] =
   GPIO_NUM_15
 };
 
+volatile gpio_num_t keypad_read_pins[Y_SIZE] = 
+{
+  GPIO_NUM_2,
+  GPIO_NUM_3,
+  GPIO_NUM_4,
+  GPIO_NUM_5,
+  GPIO_NUM_7,
+  GPIO_NUM_8,
+  GPIO_NUM_9,
+  GPIO_NUM_10
+};
+
 volatile adc_channel_t keypad_read_adc_channel[Y_SIZE] = 
 {
     ADC_CHANNEL_1,
@@ -52,6 +64,12 @@ int main(void)
     {
       result[x][y] = 0;
     }
+  }
+
+  for (uint8_t y = 0; y < Y_SIZE; y++)
+  {
+    ulp_riscv_gpio_init(keypad_read_pins[y]);
+    ulp_riscv_gpio_pullup(keypad_read_pins[y]);
   }
   while(true)
   {
