@@ -17,7 +17,7 @@ bool MystrixBoot::Idle(bool ready) {
   if (timer.Tick(80))
   {
     MatrixOS::LED::Fill(0);
-    const Color local_color = Color(MATRIX_BOOT_IDLE, MATRIX_BOOT_IDLE, MATRIX_BOOT_IDLE);
+    const Color local_color = Color(0xFFFFFF).Scale(MATRIX_BOOT_IDLE * 255);
     if (step <= 3)
     {
       Point line_origin = origin + Point(-1, -1) + Point(0, step);
@@ -62,7 +62,7 @@ void MystrixBoot::BootPhase1() {
   if (timer.Tick(1000 / Device::fps))
   {
     uint32_t delta_time = MatrixOS::SYS::Millis() - boot_phase_1_tick_time;
-    uint8_t local_brightness = min(MATRIX_BOOT_BRIGHTNESS * ((float)delta_time / section_time), MATRIX_BOOT_BRIGHTNESS);
+    uint8_t local_brightness = min(255 * ((float)delta_time / section_time), 255);
     Color local_color = Color(local_brightness, local_brightness, local_brightness);
 
     if (counter <= 3)
@@ -93,84 +93,86 @@ void MystrixBoot::BootPhase1() {
   }
 }
 
-Color MystrixBoot::BootPhase2Color(int16_t time, uint8_t hue) {
-  uint8_t saturation;
-  uint8_t brightness;
+Color MystrixBoot::BootPhase2Color(int16_t time, float hue) {
+  float saturation;
+  float brightness;
 
   // Saturation Function
   if (time < 0)
   { saturation = 0; }
   else if (time < 400)
-  { saturation = (uint8_t)((float)(time - 0) / 400.0 * 255); }
+  { saturation = (float)(time - 0) / 400.0; }
   else
-  { saturation = 255; }
+  { saturation = 1.0; }
 
   // Brightness Function
   if (time < -100)
   { brightness = 0; }
   else if (time < 0)
-  { brightness = (uint8_t)((float)(time + 100) / 100 * MATRIX_BOOT_BRIGHTNESS); }
+  { brightness = ((float)(time + 100) / 100 * MATRIX_BOOT_BRIGHTNESS); }
   else if (time < 300)
   { brightness = MATRIX_BOOT_BRIGHTNESS; }
   else if (time < 500)
-  { brightness = (uint8_t)((1.0 - (float)(time - 300) / 200.0) * MATRIX_BOOT_BRIGHTNESS); }
+  { brightness = ((1.0 - (float)(time - 300) / 200.0) * MATRIX_BOOT_BRIGHTNESS); }
   else
   { brightness = 0; }
 
-  // HSV to RGB
-  Color color;
-  uint8_t region, remainder, p, q, t;
+  return Color::HsvToRgb(hue, saturation, brightness);
 
-  if (saturation == 0)
-  {
-    color.R = brightness;
-    color.G = brightness;
-    color.B = brightness;
-    return color;
-  }
+  // // HSV to RGB
+  // Color color;
+  // uint8_t region, remainder, p, q, t;
 
-  region = hue / 43;
-  remainder = (hue - (region * 43)) * 6;
+  // if (saturation == 0)
+  // {
+  //   color.R = brightness;
+  //   color.G = brightness;
+  //   color.B = brightness;
+  //   return color;
+  // }
 
-  p = (brightness * (255 - saturation)) >> 8;
-  q = (brightness * (255 - ((saturation * remainder) >> 8))) >> 8;
-  t = (brightness * (255 - ((saturation * (255 - remainder)) >> 8))) >> 8;
+  // region = hue / 43;
+  // remainder = (hue - (region * 43)) * 6;
 
-  switch (region)
-  {
-    case 0:
-      color.R = brightness;
-      color.G = t;
-      color.B = p;
-      break;
-    case 1:
-      color.R = q;
-      color.G = brightness;
-      color.B = p;
-      break;
-    case 2:
-      color.R = p;
-      color.G = brightness;
-      color.B = t;
-      break;
-    case 3:
-      color.R = p;
-      color.G = q;
-      color.B = brightness;
-      break;
-    case 4:
-      color.R = t;
-      color.G = p;
-      color.B = brightness;
-      break;
-    default:
-      color.R = brightness;
-      color.G = p;
-      color.B = q;
-      break;
-  }
+  // p = (brightness * (255 - saturation)) >> 8;
+  // q = (brightness * (255 - ((saturation * remainder) >> 8))) >> 8;
+  // t = (brightness * (255 - ((saturation * (255 - remainder)) >> 8))) >> 8;
 
-  return color;
+  // switch (region)
+  // {
+  //   case 0:
+  //     color.R = brightness;
+  //     color.G = t;
+  //     color.B = p;
+  //     break;
+  //   case 1:
+  //     color.R = q;
+  //     color.G = brightness;
+  //     color.B = p;
+  //     break;
+  //   case 2:
+  //     color.R = p;
+  //     color.G = brightness;
+  //     color.B = t;
+  //     break;
+  //   case 3:
+  //     color.R = p;
+  //     color.G = q;
+  //     color.B = brightness;
+  //     break;
+  //   case 4:
+  //     color.R = t;
+  //     color.G = p;
+  //     color.B = brightness;
+  //     break;
+  //   default:
+  //     color.R = brightness;
+  //     color.G = p;
+  //     color.B = q;
+  //     break;
+  // }
+
+  // return color;
 }
 
 void MystrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2) {
@@ -188,14 +190,18 @@ void MystrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Col
 }
 
 void MystrixBoot::BootPhase2() {
-  uint8_t hue[2] = {127, 212};
+  float hue[2];
 
-  #if FAMILY == MATRIX
-    if(Device::deviceInfo.Model[3] == 'S')
-    { hue[1] = 43; }
-    else if(Device::deviceInfo.Model[3] == 'P')
-    { hue[1] = 212; }
-  #endif
+#if FAMILY == MYSTRIX
+    if(Device::deviceInfo.Model[3] == 'P')
+    {
+      memcpy(hue, hueList[0], sizeof(hue));
+    }
+    else if(Device::deviceInfo.Model[3] == 'S')
+    {
+      memcpy(hue, hueList[1], sizeof(hue));
+    }
+#endif
 
   const uint16_t start_offset = 150;
   if (timer.Tick(1000 / Device::fps))
