@@ -5,6 +5,8 @@
 // #pragma message "app index" XSTR(APPLICATION_INDEX)
 // const inline uint16_t app_count = APPLICATION_INDEX;
 
+#define SYSTEM_VAR_NAMESPACE "SYSTEM_VAR"
+
 namespace MatrixOS::SYS
 {
   StaticTimer_t device_task_tmdef;
@@ -20,8 +22,12 @@ namespace MatrixOS::SYS
   inline uint32_t active_app_id = 0;
   inline uint32_t next_app_id = 0;
 
+  SavedVariable<uint32_t> prev_system_version = SavedVariable<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
+
   void ExecuteAPP(uint32_t app_id);
   uint32_t GenerateAPPID(string author, string app_name);
 
   uint16_t GetApplicationCount();
+
+  void UpdateSystemNVS();
 }

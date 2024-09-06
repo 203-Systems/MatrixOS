@@ -73,6 +73,8 @@ namespace MatrixOS::SYS
 
     InitSysModules();
 
+    UpdateSystemNVS();
+
     inited = true;
 
     MLOGI("System", "Matrix OS initialization complete");
@@ -228,5 +230,35 @@ namespace MatrixOS::SYS
   uint16_t GetApplicationCount()  // Used by shell, for some reason shell can not access app_count
   {
     return applications.size();
+  }
+
+  #define SYSTEM_VERSION_ID(major, minor, patch) ((major << 16) | (minor << 8) | patch)
+  void UpdateSystemNVS() {
+    if(!prev_system_version.Load() || (prev_system_version & 0xFFFFFF00) > (MATRIXOS_VERSION_ID & 0xFFFFFF00))// System version is not set or is newer than current
+    {
+      // Wipe NVS
+      Device::NVS::Clear();
+      prev_system_version.Set(MATRIXOS_VERSION_ID);
+      return;
+    }
+    
+    if(prev_system_version == MATRIXOS_VERSION_ID) // System version is up to date
+    {
+      // We are all good here
+      return;
+    }
+
+    // System version is older, update here
+    uint32_t prev_ver = prev_system_version >> 8;
+    prev_system_version.Set(MATRIXOS_VERSION_ID);
+
+    // Code for demo purposes, pre_system_version var is introduced in 2.5.0
+    // if(prev_ver == SYSTEM_VERSION_ID(2, 5, 0)) 
+    // {
+    // Update stuffs here
+    // }
+
+    
+    
   }
 }
