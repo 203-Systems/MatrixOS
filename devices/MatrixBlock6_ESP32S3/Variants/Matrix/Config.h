@@ -78,15 +78,15 @@ namespace Device
         .apply_curve = false,
         .low_threshold = 0,
         .high_threshold = 65535,
-        .activation_threshold = 0,
+        .activation_offset = 0,
         .debounce = 0,
     };
 
     inline KeyConfig keypad_config = {
         .apply_curve = true,
-        .low_threshold = 768,
+        .low_threshold = 1024,
         .high_threshold = 32767,
-        .activation_threshold = 1024,
+        .activation_offset = 256,
         .debounce = 5,
     };
 

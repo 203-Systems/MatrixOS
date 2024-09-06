@@ -31,7 +31,7 @@ struct KeyConfig {
   bool apply_curve;
   Fract16 low_threshold;
   Fract16 high_threshold;
-  Fract16 activation_threshold;
+  Fract16 activation_offset;
   uint16_t debounce;
 };
 
@@ -118,7 +118,7 @@ struct KeyInfo {
         hold = false;
         [[fallthrough]];
       case IDLE:
-        if (new_velocity > config.activation_threshold)
+        if (new_velocity > config.low_threshold + config.activation_offset)
         {
           if(config.debounce > 0)
           {
@@ -138,7 +138,7 @@ struct KeyInfo {
         }
         break;
       case DEBUNCING:
-        if (new_velocity <= config.activation_threshold)
+        if (new_velocity <= config.low_threshold + config.activation_offset)
         {
           // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> IDLE");
           state = IDLE;
