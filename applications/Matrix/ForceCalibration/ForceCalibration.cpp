@@ -134,7 +134,7 @@ void ForceCalibration::SetOffset(CalibrationType type)
   offsetUI.Start();
 
   if (type == Low)
-  { Device::KeyPad::FSR::SetLowOffset(offset * 128); }
+  { Device::KeyPad::FSR::SetLowOffset(offset * 32); }
   else if (type == High)
   { Device::KeyPad::FSR::SetHighOffset(offset * 256); }
 
