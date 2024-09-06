@@ -104,6 +104,8 @@ struct MidiPacket {
       case Stop:
       case ActiveSense:
       case Reset:
+        data[0] = status;
+        break;
       case None:
       default:
         break;
@@ -210,8 +212,16 @@ struct MidiPacket {
         return 3;
       case ProgramChange:
       case ChannelPressure:
-        return 2;
       case SongSelect:
+        return 2;
+      case TuneRequest:
+      case Sync:
+      case Tick:
+      case Start:
+      case Continue:
+      case Stop:
+      case ActiveSense:
+      case Reset:
         return 1;
       case SysExEnd:
       {
@@ -222,13 +232,7 @@ struct MidiPacket {
         else
           return 3;
       }
-      case TuneRequest:
-      case Sync:
-      case Start:
-      case Continue:
-      case Stop:
-      case ActiveSense:
-      case Reset:
+
       case None:
       default:
         return 0;
