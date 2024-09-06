@@ -75,16 +75,18 @@ namespace Device
     inline bool velocity_sensitivity = false;
 
     inline KeyConfig binary_config = {
-        .velocity_sensitive = false,
+        .apply_curve = false,
         .low_threshold = 0,
         .high_threshold = 65535,
+        .activation_threshold = 0,
         .debounce = 0,
     };
 
     inline KeyConfig keypad_config = {
-        .velocity_sensitive = true,
-        .low_threshold = 1536,
+        .apply_curve = true,
+        .low_threshold = 768,
         .high_threshold = 32767,
+        .activation_threshold = 1024,
         .debounce = 5,
     };
 

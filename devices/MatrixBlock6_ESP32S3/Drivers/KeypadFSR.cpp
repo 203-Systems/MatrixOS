@@ -124,7 +124,7 @@ namespace Device::KeyPad::FSR
         Fract16 reading = (Fract16)result[x][y][0];
         config.low_threshold = (*low_thresholds)[x][y];
         config.high_threshold = (*high_thresholds)[x][y];
-        bool updated = keypadState[x][y].update(config, reading, true);
+        bool updated = keypadState[x][y].update(config, reading);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;

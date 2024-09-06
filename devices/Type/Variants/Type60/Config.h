@@ -42,7 +42,7 @@ namespace Device
   namespace KeyPad
   {
     inline KeyConfig keypad_config = {
-        .velocity_sensitive = false,
+        .apply_curve = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .debounce = 0,
