@@ -42,6 +42,11 @@ class Fract16 {
   bool operator!=(int value) { return this->value != value; }
   bool operator!=(Fract16 value) { return this->value != (uint16_t)value; }
 
+  Fract16 operator+(Fract16 value) { 
+    if((uint16_t)value + this->value > FRACT16_MAX) {return FRACT16_MAX;}
+    return this->value + (uint16_t)value;
+  }
+
   Fract16 operator-(Fract16 value) { 
     if(value >= this->value) {return 0;}
     return this->value - (uint16_t)value;
