@@ -24,7 +24,7 @@ class Gamepad : public Application {
 inline Application_Info Gamepad::info = {
     .name = "Gamepad",
     .author = "203 Electronics",
-    .color = Color(0x00FF00),
+    .color = Color(0x52BD00),
     .version = 1,
     .visibility = true,
 };
