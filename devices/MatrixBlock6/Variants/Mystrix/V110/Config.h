@@ -38,14 +38,14 @@ namespace V110
 
   const gpio_num_t PMIC_INT_Pin = GPIO_NUM_11;
 
-  const gpio_num_t Matrix_Mod_GPIO_Pin = GPIO_NUM_37;
+  const gpio_num_t Mystrix_Mod_GPIO_Pin = GPIO_NUM_37;
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
 }
 
 void Device::LoadV110() {
-  ESP_LOGI("Device Init", "Matrix Pro V110 Config Loaded");
+  ESP_LOGI("Device Init", "Mystrix Pro V110 Config Loaded");
   led_pin = V110::LED_Pin;
 
   KeyPad::fn_pin = V110::FN_Pin;

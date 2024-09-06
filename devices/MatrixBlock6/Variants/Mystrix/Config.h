@@ -2,7 +2,7 @@
 #pragma once
 
 #define GRID_8x8
-#define FAMILY MATRIX
+#define FAMILY MYSTRIX
 #define MODEL MX1
 
 #define DEVICE_BATTERY
@@ -44,11 +44,11 @@ namespace Device
   inline DeviceInfo deviceInfo;
 
   // Matrix OS required
-  inline string name = "Matrix";
+  inline string name = "Mystrix";
   inline string model = "MX1S";
 
   const string manufacturer_name = "203 Electronics";
-  const string product_name = "Matrix";
+  const string product_name = "Mystrix";
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
@@ -87,7 +87,7 @@ namespace Device
         .low_threshold = 1024,
         .high_threshold = 32767,
         .activation_offset = 256,
-        .debounce = 5,
+        .debounce = 3,
     };
 
     inline gpio_num_t keypad_write_pins[8];

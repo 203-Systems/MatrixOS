@@ -1,9 +1,9 @@
-#include "MatrixBoot.h"
+#include "MystrixBoot.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-void MatrixBoot::Setup() {
+void MystrixBoot::Setup() {
   for (uint8_t i = 0; i < 100; i++)  // Add small delay for USB to be connected (So no idle animation would be shown)
   {
     MatrixOS::SYS::DelayMs(5);
@@ -12,7 +12,7 @@ void MatrixBoot::Setup() {
   }
 }
 
-bool MatrixBoot::Idle(bool ready) {
+bool MystrixBoot::Idle(bool ready) {
   uint8_t step = counter % 12;
   if (timer.Tick(80))
   {
@@ -36,7 +36,7 @@ bool MatrixBoot::Idle(bool ready) {
   return step > 6 && ready;
 }
 
-void MatrixBoot::Boot() {
+void MystrixBoot::Boot() {
   switch (boot_phase)
   {
 
@@ -54,7 +54,7 @@ void MatrixBoot::Boot() {
   }
 }
 
-void MatrixBoot::BootPhase1() {
+void MystrixBoot::BootPhase1() {
   if (boot_phase_1_tick_time == 0)
     boot_phase_1_tick_time = MatrixOS::SYS::Millis();
 
@@ -93,7 +93,7 @@ void MatrixBoot::BootPhase1() {
   }
 }
 
-Color MatrixBoot::BootPhase2Color(int16_t time, uint8_t hue) {
+Color MystrixBoot::BootPhase2Color(int16_t time, uint8_t hue) {
   uint8_t saturation;
   uint8_t brightness;
 
@@ -173,7 +173,7 @@ Color MatrixBoot::BootPhase2Color(int16_t time, uint8_t hue) {
   return color;
 }
 
-void MatrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2) {
+void MystrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2) {
   Point point_q1 = origin + Point(1, 1) + Point(x_offset, y_offset);
   MatrixOS::LED::SetColor(point_q1, color2);
 
@@ -187,7 +187,7 @@ void MatrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Colo
   MatrixOS::LED::SetColor(point_q4, color1);
 }
 
-void MatrixBoot::BootPhase2() {
+void MystrixBoot::BootPhase2() {
   uint8_t hue[2] = {127, 212};
 
   #if FAMILY == MATRIX
@@ -228,7 +228,7 @@ void MatrixBoot::BootPhase2() {
   }
 }
 
-void MatrixBoot::End() {
+void MystrixBoot::End() {
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::Update();
 }

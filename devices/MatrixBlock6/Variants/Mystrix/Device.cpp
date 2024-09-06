@@ -17,7 +17,7 @@ namespace Device
         #pragma message "FACTORY_CONFIG IS USED"
         DeviceInfo factoryDeviceInfo{FACTORY_DEVICE_MODEL, FACTORY_DEVICE_REVISION, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
         memcpy (&deviceInfo, &factoryDeviceInfo, sizeof(DeviceInfo));
-        ESP_LOGI("Device Init", "Factory config - Matrix %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
+        ESP_LOGI("Device Init", "Factory config - Mystrix %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
 #endif
 
     // Load Velocity Sensitive Config

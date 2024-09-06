@@ -5,11 +5,11 @@
 #define MATRIX_BOOT_BRIGHTNESS 255  // On Top of system brightness
 #define MATRIX_BOOT_IDLE 64         // On Top of system brightness
 
-class MatrixBoot : public BootAnimation {
+class MystrixBoot : public BootAnimation {
  public:
  static Application_Info info; 
 
-  string name = "Matrix Boot";
+  string name = "Mystrix Boot";
   string author = "203 Electronics";
   uint32_t version = 0;
 
@@ -34,7 +34,7 @@ class MatrixBoot : public BootAnimation {
   void End();
 };
 
-inline Application_Info MatrixBoot::info = {
+inline Application_Info MystrixBoot::info = {
     .name = "Matrix Boot",
     .author = "203 Electronics",
     .color =  Color(0xFFFFFFFF),
@@ -42,4 +42,4 @@ inline Application_Info MatrixBoot::info = {
     .visibility = false,
 };
 
-REGISTER_APPLICATION(MatrixBoot);
+REGISTER_APPLICATION(MystrixBoot);

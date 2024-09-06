@@ -17,18 +17,18 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
 ## Supported Devices
 | Device Name            | Type | Chip     | Supported | Note              | Purchase                                       |
 |------------------------|------|----------|-----------|-------------------|------------------------------------------------|
-| Matrix Pro             | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/matrix-pro-pre-order)   |
-| Matrix Founder Edition | Grid | STM32F1  | Partially | Not fully stable | [203.io](https://203.io/products/matrix-founder-edition) |
+| Mystrix & Mystrix Pro  | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/mystrix-pro)   |
+| Mystrix Founder Edition | Grid | STM32F1  | Partially | Not fully stable | [203.io](https://203.io/products/matrix-founder-edition) |
 
 
 ## Getting Started
 ### User Interface
    [Matrix OS User Manual]([https://203.io/products/matrix-founder-edition](https://github.com/203-Systems/Matrix-OS-User-Manual))
 ### Compile and Upload
-   Compile and Upload for Matrix Pro:
-   Set Matrix Pro into bootloader mode (Hold the Center key while powering up or going through system settings) and the following
+   Compile and Upload for Mystrix:
+   Set Mystrix into bootloader mode (Hold the Center key while powering up or going through system settings) and the following
    ```
-   make DEVICE=Matrix build uf2-upload
+   make DEVICE=Mystrix build uf2-upload
    ```
    [Draft Full Setup Guide](https://docs.google.com/document/d/135LQrOv90ddeh9eeDWQ9uNN7ohSIBCHwusqJAIAWjfw/edit?usp=sharing)
    
