@@ -103,13 +103,6 @@ namespace Device
     keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
     deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
 
-    UIButton keypadVisualizerBtn;
-    keypadVisualizerBtn.SetName("Force Keypad Visualizer");
-    keypadVisualizerBtn.SetColor(Color(0x00FF00));
-    keypadVisualizerBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Force Grid Visualizer"); });
-    keypadVisualizerBtn.SetEnabled(Device::KeyPad::velocity_sensitivity && MatrixOS::UserVar::developer_mode);
-    deviceSettings.AddUIComponent(keypadVisualizerBtn, Point(7, 1));
-
     deviceSettings.Start();
   }
 
