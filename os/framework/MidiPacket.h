@@ -11,6 +11,7 @@ enum EMidiStatus : uint8_t {
   ProgramChange = MIDIv1_PROGRAM_CHANGE,
   ChannelPressure = MIDIv1_CHANNEL_PRESSURE,
   PitchChange = MIDIv1_PITCH_WHEEL,
+  MTCQuarterFrame = MIDIv1_MTC_QUARTER_FRAME,
   SongPosition = MIDIv1_SONG_POSITION_PTR,
   SongSelect = MIDIv1_SONG_SELECT,
   TuneRequest = MIDIv1_TUNE_REQUEST,
@@ -83,6 +84,12 @@ struct MidiPacket {
         data[0] = SongSelect;
         data[1] = (uint8_t)va_arg(valst, int);
         break;
+      case MTCQuarterFrame:
+      {
+        data[0] = MTCQuarterFrame;
+        data[1] = (uint8_t)va_arg(valst, int);
+        break;
+      }
       case SongPosition:
       {
         data[0] = SongPosition;

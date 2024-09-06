@@ -52,7 +52,7 @@ void tud_midi_rx_cb(uint8_t itf) {
           case MIDIv1_SONG_SELECT:
             packet = MidiPacket(port, SongSelect, 1, &raw_packet[2]);
           case MIDIv1_MTC_QUARTER_FRAME:
-            // reference library does not handle quarter frame.
+            packet = MidiPacket(port, MTCQuarterFrame, 1, &raw_packet[2]);
             break;
         }
         break;
