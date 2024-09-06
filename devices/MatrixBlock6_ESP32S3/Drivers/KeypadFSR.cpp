@@ -26,6 +26,9 @@ namespace Device::KeyPad::FSR
   Fract16 (*low_thresholds)[x_size][y_size] = nullptr;
   Fract16 (*high_thresholds)[x_size][y_size] = nullptr;
 
+  CreateSavedVar("ForceCalibration", lowOffset, int16_t, 0);
+  CreateSavedVar("ForceCalibration", highOffset, int16_t, 0);
+
   void Init() {
     gpio_config_t io_conf;
     adc_oneshot_unit_handle_t adc_handle;
@@ -93,6 +96,50 @@ namespace Device::KeyPad::FSR
     MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
   }
 
+  void ClearLowCalibration()
+  {
+    MatrixOS::NVS::DeleteVariable(FORCE_CALIBRATION_LOW_HASH);
+    for (uint8_t x = 0; x < x_size; x++)
+    {
+      for (uint8_t y = 0; y < y_size; y++)
+      {
+        (*low_thresholds)[x][y] = keypad_config.low_threshold;
+      }
+    }
+  }
+
+  void ClearHighCalibration()
+  {
+    MatrixOS::NVS::DeleteVariable(FORCE_CALIBRATION_HIGH_HASH);
+    for (uint8_t x = 0; x < x_size; x++)
+    {
+      for (uint8_t y = 0; y < y_size; y++)
+      {
+        (*high_thresholds)[x][y] = keypad_config.high_threshold;
+      }
+    }
+  }
+
+  int16_t GetLowOffset()
+  {
+    return lowOffset;
+  }
+
+  int16_t GetHighOffset()
+  {
+    return highOffset;
+  }
+
+  void SetLowOffset(int16_t offset)
+  {
+    lowOffset.Set(offset);
+  }
+
+  void SetHighOffset(int16_t offset)
+  {
+    highOffset.Set(offset);
+  }
+
   uint32_t GetScanCount()
   {
     return ulp_count;
@@ -110,7 +157,7 @@ namespace Device::KeyPad::FSR
     ulp_riscv_run();
   }
   
-
+  #define CLAMP(x, low, high) (x < low ? low : (x > high ? high : x))
   bool Scan() {
     // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
     uint16_t(*result)[8][SAMPLES] = (uint16_t(*)[8][SAMPLES]) &ulp_result;
@@ -122,8 +169,11 @@ namespace Device::KeyPad::FSR
       for (uint8_t x = 0; x < Device::x_size; x++)
       {
         Fract16 reading = (Fract16)result[x][y][0];
-        config.low_threshold = (*low_thresholds)[x][y];
-        config.high_threshold = (*high_thresholds)[x][y];
+        int32_t new_low_threshold = (uint16_t)(*low_thresholds)[x][y] + lowOffset.Get();
+        int32_t new_high_threshold = (uint16_t)(*high_thresholds)[x][y] + highOffset.Get();
+        
+        config.low_threshold = CLAMP(new_low_threshold, 512, UINT16_MAX);
+        config.high_threshold = CLAMP(new_high_threshold, 25600, UINT16_MAX);
         bool updated = keypadState[x][y].update(config, reading);
         if (updated)
         {
