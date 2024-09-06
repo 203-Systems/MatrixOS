@@ -367,7 +367,12 @@ void Dice::RollDice() {
     faces = number_faces;
   }
   last_roll_time = MatrixOS::SYS::Millis();
-  rolled_number = GetRandomNumber(faces);
+  uint8_t last_rolled_number = rolled_number;
+
+  do
+  {
+    rolled_number = GetRandomNumber(faces);
+  } while (rolled_number == last_rolled_number);
 }
 
 void Dice::RenderUnderglow(UnderglowEffectMode mode, Color color, uint8_t period) {
