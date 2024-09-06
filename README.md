@@ -23,7 +23,7 @@ Applications that run on Matrix OS. All user interactions are Matrix OS applicat
 
 ## Getting Started
 ### User Interface
-   [Matrix OS User Manual]([https://203.io/products/matrix-founder-edition](https://github.com/203-Systems/Matrix-OS-User-Manual))
+   [Matrix OS User Manual](https://github.com/203-Systems/Matrix-OS-User-Manual)
 ### Compile and Upload
    Compile and Upload for Mystrix:
    Set Mystrix into bootloader mode (Hold the Center key while powering up or going through system settings) and the following
