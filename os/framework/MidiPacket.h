@@ -56,25 +56,24 @@ struct MidiPacket {
     this->status = status;
     va_list valst;
     va_start(valst, status);
-    status = (EMidiStatus)(status & 0xF0);
     switch (status)
     {
       case NoteOn:
       case NoteOff:
       case AfterTouch:
       case ControlChange:
-        data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
         data[1] = (uint8_t)va_arg(valst, int);
         data[2] = (uint8_t)va_arg(valst, int);
         break;
       case ProgramChange:
       case ChannelPressure:
-        data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
         data[1] = (uint8_t)va_arg(valst, int);
         break;
       case PitchChange:
       {
-        data[0] = (uint8_t)(status | ((uint8_t)va_arg(valst, int) & 0x0f));
+        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
         uint16_t pitch = (uint16_t)va_arg(valst, int);
         data[1] = (uint8_t)(pitch & 0x07F);
         data[2] = (uint8_t)((pitch >> 7) & 0x7f);
