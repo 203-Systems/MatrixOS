@@ -169,10 +169,6 @@ namespace MatrixOS::SYS
     // MLOG("System", "Launching APP ID\t%u", app_id);
     active_app_id = app_id;
 
-    // Clean up layers that the previous app might have made
-    while (LED::DestroyLayer())
-    {}
-
     if (active_app_task != NULL)
     {
       vTaskDelete(active_app_task);
