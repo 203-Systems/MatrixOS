@@ -154,7 +154,7 @@ class Dice : public Application {
 // Meta data about this application
 inline Application_Info Dice::info = {
     .name = "Dice",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFFA500),
     .version = 1,
     .visibility = true,

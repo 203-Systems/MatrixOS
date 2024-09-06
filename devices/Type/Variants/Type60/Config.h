@@ -29,7 +29,7 @@ namespace Device
   const string name = "Type 60";
   const string model = "TYPE60";
 
-  const string manufacturer_name = "203 Electronics";
+  const string manufacturer_name = "203 Systems";
   const string product_name = "Type 60";
   const uint16_t usb_vid = 0x0203;
   const uint16_t usb_pid = 0x2040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000

@@ -23,7 +23,7 @@ class CustomKeymap : public Application {
 
 inline Application_Info CustomKeymap::info = {
     .name = "Custom Keymap",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFFFF00),
     .version = 1,
     .visibility = true,

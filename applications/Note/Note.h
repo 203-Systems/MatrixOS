@@ -8,7 +8,7 @@
 
 #define NOTE_APP_VERSION 1
 
-#define NOTE_CONFIGS_HASH StaticHash("203 Electronics-Note-NotePadConfigs")
+#define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
 
 class Note : public Application {
  public:
@@ -104,7 +104,7 @@ class Note : public Application {
 
 inline Application_Info Note::info = {
     .name = "Note",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color =  Color(0x00FFFF),
     .version = NOTE_APP_VERSION,
     .visibility = true,

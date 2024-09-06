@@ -200,7 +200,7 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
           if (konami == 9)
           {
             MatrixOS::UserVar::developer_mode = true;
-            MatrixOS::SYS::ExecuteAPP("203 Electronics", "REDACTED");
+            MatrixOS::SYS::ExecuteAPP("203 Systems", "REDACTED");
           }
           else
           {

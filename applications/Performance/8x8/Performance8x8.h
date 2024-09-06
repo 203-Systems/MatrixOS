@@ -31,12 +31,12 @@ class Performance : public Application {
   CreateSavedVar("Performance", stfu, uint8_t, 0);
   CreateSavedVar("Performance", touch_combo_key, bool, false);
 
-  const uint32_t custom_palette_available_nvs_hash = StaticHash("203 Electronics-Performance-CustomPaletteAvailable");
+  const uint32_t custom_palette_available_nvs_hash = StaticHash("203 Systems-Performance-CustomPaletteAvailable");
   const uint32_t custom_palette_nvs_hash[CUSTOM_PALETTE_COUNT] = {
-    StaticHash("203 Electronics-Performance-Palette1"), 
-    StaticHash("203 Electronics-Performance-Palette2"),    
-    StaticHash("203 Electronics-Performance-Palette3"), 
-    StaticHash("203 Electronics-Performance-Palette4")};
+    StaticHash("203 Systems-Performance-Palette1"), 
+    StaticHash("203 Systems-Performance-Palette2"),    
+    StaticHash("203 Systems-Performance-Palette3"), 
+    StaticHash("203 Systems-Performance-Palette4")};
 
   void Setup() override;
   void Loop() override;
@@ -361,7 +361,7 @@ class Performance : public Application {
 
 inline Application_Info Performance::info = {
     .name = "Performance",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color =  Color(0xFF0000),
     .version = 1,
     .visibility = true,

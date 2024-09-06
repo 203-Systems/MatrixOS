@@ -9,7 +9,7 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #include "applications/Application.h"
 
 #define APPLICATION_NAME "USB Test"
-#define APPLICATION_AUTHOR "203 Electronics"
+#define APPLICATION_AUTHOR "203 Systems"
 #define APPLICATION_COLOR Color(0xFFFF00)
 #define APPLICATION_VERSION 1
 #define APPLICATION_CLASS USBtest
@@ -25,7 +25,7 @@ class USBtest : public Application {
 
 inline Application_Info USBtest::info = {
     .name = "USB Test",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFFFF00),
     .version = 1,
     .visibility = true,

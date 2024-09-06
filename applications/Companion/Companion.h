@@ -30,7 +30,7 @@ class Companion : public Application {
 
 inline Application_Info Companion::info = {
     .name = "Companion",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0x0000FF),
     .version = 1,
     .visibility = true,

@@ -1040,7 +1040,7 @@ class REDACTED : public Application  // ᗜˬᗜ
 
 inline Application_Info REDACTED::info = {
     .name = "REDACTED",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFFFFFF),
     .version = 1,
     .visibility = false,

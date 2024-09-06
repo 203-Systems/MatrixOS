@@ -49,7 +49,7 @@ class ForceCalibration : public Application {
 
 inline Application_Info ForceCalibration::info = {
     .name = "Force Calibration",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color =  Color(0xFFFFFF),
     .version = 1,
     // #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 

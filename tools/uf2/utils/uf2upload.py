@@ -11,9 +11,9 @@ except:
     print("psutil not installed, run \"pip install psutil\"")
     sys.exit(1)
 
-print("UF2-Upload V1.0\nCopyright 2022 203 Electronics.\n");
+print("UF2-Upload V1.0\nCopyright 2024 203 Systems.\n");
 
-parser = argparse.ArgumentParser(description='Host utilts for UF2 Bootloader Devices - 203 Electronics, 2022')
+parser = argparse.ArgumentParser(description='Host utilts for UF2 Bootloader Devices - 203 Systems, 2022')
 parser.add_argument('-f',  metavar='<file path>', type=ascii,
                     help='UF2 file to upload to target')
 parser.add_argument('-d', metavar='<device name>', type=ascii,

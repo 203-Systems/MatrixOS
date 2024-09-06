@@ -62,7 +62,7 @@ class Lighting : public Application {
 
 inline Application_Info Lighting::info = {
     .name = "Lighting",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFF00FF),
     .version = 2,
     .visibility = true,

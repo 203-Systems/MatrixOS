@@ -23,7 +23,7 @@ namespace Device
 
   void PostBootTask() {
     if (KeyPad::GetKey(Point(0, 0)) && KeyPad::GetKey(Point(1, 1)))
-    { MatrixOS::SYS::ExecuteAPP("203 Electronics", "Matrix Factory Menu"); }
+    { MatrixOS::SYS::ExecuteAPP("203 Systems", "Matrix Factory Menu"); }
   }
 
   void DeviceTask() {}

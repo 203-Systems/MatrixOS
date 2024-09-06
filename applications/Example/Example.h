@@ -55,7 +55,7 @@ class ExampleAPP : public Application {
 // Meta data about this application
 inline Application_Info ExampleAPP::info = {
     .name = "Example",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0xFFFFFF),
     .version = 1,
     .visibility = true,

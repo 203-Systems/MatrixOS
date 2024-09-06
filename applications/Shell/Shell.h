@@ -20,7 +20,7 @@ class Shell : public Application {
 
 inline Application_Info Shell::info = {
     .name = "Shell",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color = Color(0x00FFAA),
     .version = 1,
     .visibility = false,

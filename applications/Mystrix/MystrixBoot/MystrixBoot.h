@@ -10,7 +10,7 @@ class MystrixBoot : public BootAnimation {
  static Application_Info info; 
 
   string name = "Mystrix Boot";
-  string author = "203 Electronics";
+  string author = "203 Systems";
   uint32_t version = 0;
 
   Timer timer;
@@ -36,7 +36,7 @@ class MystrixBoot : public BootAnimation {
 
 inline Application_Info MystrixBoot::info = {
     .name = "Matrix Boot",
-    .author = "203 Electronics",
+    .author = "203 Systems",
     .color =  Color(0xFFFFFFFF),
     .version = 1,
     .visibility = false,

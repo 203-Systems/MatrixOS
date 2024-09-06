@@ -22,5 +22,5 @@
 #include "applications/Mystrix/FactoryMenu/FactoryMenu.h"
 #include "applications/Mystrix/ForceCalibration/ForceCalibration.h"
 
-#define OS_SHELL APPID("203 Electronics", "Shell")
-#define DEFAULT_BOOTANIMATION APPID("203 Electronics", "Mystrix Boot")
+#define OS_SHELL APPID("203 Systems", "Shell")
+#define DEFAULT_BOOTANIMATION APPID("203 Systems", "Mystrix Boot")
