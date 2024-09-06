@@ -27,15 +27,14 @@ class UIGamepadAxis : public UIComponent {
   virtual Dimension GetSize() { return Dimension(1,1); }
 
   virtual bool Render(Point origin) {
-    // Get HSV of color
-    float h, s, v;
-    Color::RgbToHsv(color, &h, &s, &v);
-
-    v += (1.0 - v) * (float)value / FRACT16_MAX; 
-
-    Color c = Color::HsvToRgb(h, s, v);
-
-    MatrixOS::LED::SetColor(origin, c);
+    if (value)
+    {
+      MatrixOS::LED::SetColor(origin, Color(0xFFFFFF).Scale(value.to8bits()));
+    }
+    else
+    {
+      MatrixOS::LED::SetColor(origin, color);
+    }
     
     return true;
   }
