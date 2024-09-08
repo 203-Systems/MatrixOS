@@ -24,6 +24,7 @@ namespace Device
     if(deviceInfo.Model[3] == 'P')
     {
       name += " Pro";
+      product_name += " Pro";
       model = "MX1P";
       KeyPad::velocity_sensitivity = true;
     }

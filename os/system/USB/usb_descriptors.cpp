@@ -178,16 +178,6 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
 
   string product_name = Device::product_name;
 
-  // Temp fix for this, ideally this is in the device layer
-  #if FAMILY == MYSTRIX
-  #if MODEL == MX1
-  if (Device::deviceInfo.Model[3] == 'P')
-  {
-    product_name += " Pro";
-  }
-  #endif
-  #endif
-
   if (MatrixOS::UserVar::device_id.Get())
   {
     product_name += " ";
