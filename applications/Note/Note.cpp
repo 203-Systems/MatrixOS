@@ -88,6 +88,7 @@ void Note::Setup() {
   velocitySensitiveToggle.SetName("Velocity Sensitive");
   velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
   velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
+  velocitySensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
   OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
