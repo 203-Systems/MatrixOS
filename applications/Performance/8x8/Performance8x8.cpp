@@ -656,11 +656,12 @@ void Performance::ActionMenu() {
   // Other Controls
   UIButton velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
-  velocityToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(!velocitySensitive); });
+  velocityToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(velocitySensitive); });
   velocityToggle.OnPress([&]() -> void {
     velocitySensitive = !velocitySensitive;
     notePad.SetVelocitySensitive(velocitySensitive);
   });
+  velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
   UIButton systemSettingBtn;
