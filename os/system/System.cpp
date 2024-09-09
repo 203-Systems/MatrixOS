@@ -27,7 +27,9 @@ namespace MatrixOS::SYS
     if (active_app == NULL)  // Default to launch shell
     {
       if (active_app_id != 0)
+      {
         MLOGD("Application Factory", "Can't find target app.");
+      }
       MLOGD("Application Factory", "Launching Shell");
       active_app_id = OS_SHELL;
       auto application = applications.find(active_app_id);
@@ -48,10 +50,11 @@ namespace MatrixOS::SYS
 
     MLOGD("Supervisor", "%d Apps registered", applications.size());
 
+    #ifdef MATRIXOS_DEBUG
     for (const auto & [ id, application ] : applications) {
-      MLOGD("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(),
-                                  application->name.c_str(), application->version);
+      MLOGD("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(), application->name.c_str(), application->version);
     }
+    #endif
 
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
@@ -254,7 +257,6 @@ namespace MatrixOS::SYS
     // Update stuffs here
     // }
 
-    
-    
+    (void)prev_ver;
   }
 }

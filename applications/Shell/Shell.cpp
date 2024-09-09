@@ -78,14 +78,14 @@ void Shell::ApplicationLauncher() {
   applicationLauncher.disableExit = true;
   AddCommonBarInUI(&applicationLauncher);
 
-  uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
-  MLOGD("Shell", "%d apps detected", app_count);
+  MLOGD("Shell", "%d apps detected", MatrixOS::SYS::GetApplicationCount());
 
   uint16_t visible_app_count = 0;
 
   // Iterate though map
   for (auto const& [app_id, application] : applications)
   {
+    (void)app_id;
     if (application->visibility)
     { visible_app_count++; }
   }

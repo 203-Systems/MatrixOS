@@ -128,7 +128,7 @@ void Setting::Start() {
   osVersionBtn.SetName("Matrix OS Version");
   osVersionBtn.SetColor(Color(0x00FF30));
   osVersionBtn.OnPress([]() -> void {
-    MatrixOS::UIInterface::TextScroll("Matrix OS " MATRIXOS_VERSION_STRING, Color(0x00FFFF));
+    MatrixOS::UIInterface::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FFFF));
   });
   AddUIComponent(osVersionBtn, Point(1, Device::y_size - 1));
 

@@ -72,9 +72,13 @@ void UI::GetKey() {
   {
     // MLOGD("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
+    {
       UIKeyEvent(&keyEvent);
+    }
     else
+    {
       MLOGD("UI", "KeyEvent Skip: %d", keyEvent.id);
+    }
   }
 }
 

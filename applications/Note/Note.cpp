@@ -12,7 +12,7 @@ void Note::Setup() {
   notePadConfigs[1].rootColor = Color(0x8800FF);
 
   // Load From NVS
-  if (nvsVersion == NOTE_APP_VERSION)
+  if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
   { MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }
   else
   { MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }

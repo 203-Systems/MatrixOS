@@ -25,6 +25,7 @@ namespace WS2812
     // set counter clock to 40MHz
     config.clk_div = 2;
     config.mem_block_num = 3;
+    config.loop_count = 1;
 
     ESP_ERROR_CHECK(rmt_config(&config));
     ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
