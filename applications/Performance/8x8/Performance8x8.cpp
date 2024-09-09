@@ -535,22 +535,27 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
   MLOGD("Performance", "Custom Palette Viewer %d", custom_palette_id);
 
   bool modified = false;
+  Timer timer;
 
   for (uint8_t i = 0; i < 2; i++)
   {
-    for (uint8_t y = 0; y < 8; y++)
-    {
-      for (uint8_t x = 0; x < 8; x++)
-      {
-        uint8_t id = y * 8 + x + i * 64;
-        Color color = custom_palette[custom_palette_id][id];
-        MatrixOS::LED::SetColor(Point(x, y), color);
-      }
-    }
-    MatrixOS::LED::Update();
 
     while (true)
     {
+      if(timer.Tick(1000/Device::fps))
+      {
+        MatrixOS::LED::Fill(0);
+        for (uint8_t y = 0; y < 8; y++)
+        {
+          for (uint8_t x = 0; x < 8; x++)
+          {
+            uint8_t id = y * 8 + x + i * 64;
+            MatrixOS::LED::SetColor(Point(x, y), custom_palette[custom_palette_id][id]);
+          }
+        }
+        MatrixOS::LED::Update();
+      }
+      
       struct KeyEvent keyEvent;
       if (MatrixOS::KEYPAD::Get(&keyEvent))
       {
