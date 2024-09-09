@@ -204,8 +204,6 @@ void UI::RenderCrossfade(int8_t crossfade_source, int8_t crossfade_target, uint3
     crossfade_completion = FRACT16_MAX;
   }
 
-  MLOGD("UI", "Crossfade %d %d %d - (%d => %d => %d)", crossfade_source, crossfade_target, crossfade_completion, crossfade_start_time, MatrixOS::SYS::Millis(), (crossfade_start_time + crossfade_duration));
-
   MatrixOS::LED::Crossfade(crossfade_source, crossfade_target, (Fract16)crossfade_completion);
 }
 

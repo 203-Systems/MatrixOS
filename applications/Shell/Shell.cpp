@@ -132,9 +132,6 @@ void Shell::ApplicationLauncher() {
 void Shell::HiddenApplicationLauncher() {
   UI hiddenApplicationLauncher("Hidden Application Launcher", Color(0xFFFFFF));
 
-  uint16_t app_count = MatrixOS::SYS::GetApplicationCount();
-  MLOGD("Shell", "%d apps detected", app_count);
-
   uint16_t invisible_app_count = 0;
 
   // Iterate though map
@@ -195,8 +192,6 @@ void Shell::LaunchAnimation(Point origin, Color color)
   {
     if(!animTimer.Tick(frameTime)) { continue; }
     float r = (MatrixOS::SYS::Millis() - startTime) / speed - edgeWidth;
-
-    MLOGD("Shell", "R: %f", r);
 
     if(r > endDistance) { break; }
 
