@@ -86,6 +86,7 @@ class Dice : public Application {
   uint32_t timestamp = 0;
   uint8_t rolled_number = 1;
   DicePhase current_phase = Rolling;
+  bool underglow_enabled = true;
 
   const uint8_t number_font[40] = {
       // #48 Number '0'.
