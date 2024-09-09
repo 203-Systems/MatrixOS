@@ -3,12 +3,14 @@
 void Companion::Setup() {
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
 
-  MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x01, 0x01});
-//   bool inited = false;
-//   do
-//   {
-//     inited |= MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x01, 0x01});
-//   } while (!inited);
+  for(uint8_t i = 0; i < 5; i++)
+  {
+    if(MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x01, 0x01}))
+    {
+      break;
+    }
+    MatrixOS::SYS::DelayMs(100);
+  } 
 }
 
 void Companion::Loop() {
