@@ -220,8 +220,8 @@ namespace MatrixOS::LED
 
     if (end == 0)
     {
-      MLOGW("LED", "Partition Not Found");
       xTaskResumeAll();
+      MLOGW("LED", "Partition Not Found");
       return;
     }
 
