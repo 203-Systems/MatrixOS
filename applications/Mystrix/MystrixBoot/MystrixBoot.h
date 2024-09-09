@@ -20,7 +20,7 @@ class MystrixBoot : public BootAnimation {
   uint32_t boot_phase_2_start_time = 0;
   float hueList[8][2] = {
       {0.5f, 0.833f},  // Pro - Pink Cyan
-      {0.167f, 0.833f}    // Standard - Yellow Cyan
+      {0.5f, 0.167f}    // Standard - Yellow Cyan
   };
 
   void Setup() override;
