@@ -9,7 +9,7 @@
 #include "applications/BrightnessControl/BrightnessControl.h"
 
 #define NUMS_OF_KEYMAP 1
-#define STFU_DEFAULT 2
+#define STFU_DEFAULT 1
 
 #define BUILTIN_PALETTE_COUNT 2
 #define CUSTOM_PALETTE_COUNT 4
