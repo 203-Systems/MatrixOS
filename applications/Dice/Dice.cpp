@@ -158,14 +158,12 @@ void Dice::Settings() {
   rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode = !rolling_rainbow_mode; });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 0));
   
-  if(underglow_enabled)
-  {
-    UIButton rollingUnderglowEffectMenuBtn;
-    rollingUnderglowEffectMenuBtn.SetName("Rolling Underglow Effect");
-    rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color.Get(), rolling_underglow_mode, rolling_underglow_effect_period, timestamp); });
-    rollingUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Rolling); });
-    settingsUI.AddUIComponent(rollingUnderglowEffectMenuBtn, Point(0, 7));
-  }
+  UIButton rollingUnderglowEffectMenuBtn;
+  rollingUnderglowEffectMenuBtn.SetName("Rolling Underglow Effect");
+  rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color.Get(), rolling_underglow_mode, rolling_underglow_effect_period, timestamp); });
+  rollingUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Rolling); });
+  rollingUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
+  settingsUI.AddUIComponent(rollingUnderglowEffectMenuBtn, Point(0, 7));
 
   UIButton confirmedColorSelectorBtn;
   confirmedColorSelectorBtn.SetName("Confirmed Color");
@@ -186,14 +184,12 @@ void Dice::Settings() {
   confirmedRainbowModeToggle.OnPress([&]() -> void { confirmed_rainbow_mode = !confirmed_rainbow_mode; });
   settingsUI.AddUIComponent(confirmedRainbowModeToggle, Point(7, 0));
 
-  if(underglow_enabled)
-  {
-    UIButton confirmedUnderglowEffectMenuBtn;
-    confirmedUnderglowEffectMenuBtn.SetName("Confirmed Underglow Effect");
-    confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color.Get(), confirmed_underglow_mode, confirmed_underglow_effect_period, timestamp); });
-    confirmedUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Confirmed); });
-    settingsUI.AddUIComponent(confirmedUnderglowEffectMenuBtn, Point(7, 7));
-  }
+  UIButton confirmedUnderglowEffectMenuBtn;
+  confirmedUnderglowEffectMenuBtn.SetName("Confirmed Underglow Effect");
+  confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color.Get(), confirmed_underglow_mode, confirmed_underglow_effect_period, timestamp); });
+  confirmedUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Confirmed); });
+  confirmedUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
+  settingsUI.AddUIComponent(confirmedUnderglowEffectMenuBtn, Point(7, 7));
 
   UIButton dotModeToggle;
   dotModeToggle.SetName("Dot Mode");
