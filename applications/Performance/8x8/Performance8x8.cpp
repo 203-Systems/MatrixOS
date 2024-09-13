@@ -687,10 +687,11 @@ void Performance::ActionMenu() {
   comboKeyToggle.OnPress([&]() -> void { touch_combo_key.Save(); });
   actionMenu.AddUIComponent(comboKeyToggle, Point(0, 4));
 
-  UIToggle flickerReductionToggle;
+  UIButton flickerReductionToggle;
   flickerReductionToggle.SetName("Flicker Reduction");
-  flickerReductionToggle.SetColor(Color(0xAAFF00));
-  flickerReductionToggle.OnPress([&]() -> void { stfu = stfu * STFU_DEFAULT; }); // The UIToggle already flip the value for us
+  flickerReductionToggle.SetColorFunc([&]() -> Color { return Color(0xAAFF00).DimIfNot(stfu); });
+  flickerReductionToggle.OnPress([&]() -> void { stfu = (!stfu) * STFU_DEFAULT; }); // The UIToggle already flip the value for us
+  flickerReductionToggle.OnHold([&]() -> void { MatrixOS::UIInterface::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor()); });
   actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
   UIButton customPaletteViewer1;
