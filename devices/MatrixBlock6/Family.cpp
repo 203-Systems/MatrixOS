@@ -79,21 +79,22 @@ namespace Device
 
     UIButton bluetoothToggle;
     bluetoothToggle.SetName("Bluetooth");
-    bluetoothToggle.SetColorFunc([]() -> Color {
+    bluetoothToggle.SetColorFunc([&]() -> Color {
       return Color(0x0082fc).DimIfNot(Device::BLEMIDI::started);
     });
-    bluetoothToggle.OnPress([]() -> void {
+    bluetoothToggle.OnPress([&]() -> void {
       Device::BLEMIDI::Toggle();
       Device::bluetooth = Device::BLEMIDI::started;
     });
+    bluetoothToggle.OnHold([&]() -> void {
+      MatrixOS::UIInterface::TextScroll(bluetoothToggle.name + " " + (Device::BLEMIDI::started ? "Enabled" : "Disabled"), bluetoothToggle.GetColor());
+    });
     deviceSettings.AddUIComponent(bluetoothToggle, Point(0, 0));
 
-    UIButton touchbarToggle;
+    UIToggle touchbarToggle;
     touchbarToggle.SetName("Touchbar");
-    touchbarToggle.SetColorFunc([]() -> Color {
-      return Color(0x7957FB).DimIfNot(Device::touchbar_enable);
-    });
-    touchbarToggle.OnPress([]() -> void { Device::touchbar_enable = !Device::touchbar_enable; });
+    touchbarToggle.SetColor(Color(0x7957FB));
+    touchbarToggle.SetValue(&Device::touchbar_enable);
     deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
 
     UIButton keypadCalibrationBtn;

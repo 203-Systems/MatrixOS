@@ -66,10 +66,9 @@ void Note::Setup() {
   scaleSelectorBtn.OnPress([&]() -> void { ScaleSelector(); });
   actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
 
-  UIButton enforceScaleToggle;
+  UIToggle enforceScaleToggle;
   enforceScaleToggle.SetName("Enforce Scale");
-  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
-  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
+  enforceScaleToggle.SetColor(Color(0xff5000));
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
   UIButton overlapSelectorBtn;
@@ -84,10 +83,9 @@ void Note::Setup() {
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 5));
 
-  UIButton velocitySensitiveToggle;
+  UIToggle velocitySensitiveToggle;
   velocitySensitiveToggle.SetName("Velocity Sensitive");
-  velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
-  velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
+  velocitySensitiveToggle.SetColor(Color(0x00FFB0));
   velocitySensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 

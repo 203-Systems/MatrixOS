@@ -152,10 +152,11 @@ void Dice::Settings() {
 
   settingsUI.AddUIComponent(rollingColorSelectorBtn, Point(0, 2));
 
-  UIButton rollingRainbowModeToggle;
+  UIToggle rollingRainbowModeToggle;
   rollingRainbowModeToggle.SetName("Rolling Rainbow Mode");
-  rollingRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow().DimIfNot(rolling_rainbow_mode); });
-  rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode = !rolling_rainbow_mode; });
+  rollingRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow(); });
+  rollingRainbowModeToggle.SetValue(&rolling_rainbow_mode);
+  rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 0));
   
   UIButton rollingUnderglowEffectMenuBtn;
@@ -178,11 +179,13 @@ void Dice::Settings() {
   });
   settingsUI.AddUIComponent(confirmedColorSelectorBtn, Point(7, 2));
 
-  UIButton confirmedRainbowModeToggle;
+  UIToggle confirmedRainbowModeToggle;
   confirmedRainbowModeToggle.SetName("Confirmed Rainbow Mode");
-  confirmedRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow().DimIfNot(confirmed_rainbow_mode); });
-  confirmedRainbowModeToggle.OnPress([&]() -> void { confirmed_rainbow_mode = !confirmed_rainbow_mode; });
+  confirmedRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow(); });
+  confirmedRainbowModeToggle.SetValue(&confirmed_rainbow_mode);
+  confirmedRainbowModeToggle.OnPress([&]() -> void { confirmed_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(confirmedRainbowModeToggle, Point(7, 0));
+  
 
   UIButton confirmedUnderglowEffectMenuBtn;
   confirmedUnderglowEffectMenuBtn.SetName("Confirmed Underglow Effect");

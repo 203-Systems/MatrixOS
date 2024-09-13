@@ -659,13 +659,11 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
-  UIButton velocityToggle;
+  UIToggle velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
-  velocityToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(velocitySensitive); });
-  velocityToggle.OnPress([&]() -> void {
-    velocitySensitive = !velocitySensitive;
-    notePad.SetVelocitySensitive(velocitySensitive);
-  });
+  velocityToggle.SetColor(Color(0xFF00FF));
+  velocityToggle.SetValue(&velocitySensitive);
+  velocityToggle.OnPress([&]() -> void {velocitySensitive.Save();});
   velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
@@ -675,23 +673,25 @@ void Performance::ActionMenu() {
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
-  UIButton menuLockBtn;
-  menuLockBtn.SetName("Menu Lock");
-  menuLockBtn.SetColorFunc([&]() -> Color { return Color(0x48CAE4).DimIfNot(menuLock); });
-  menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
-  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
+  UIToggle menuLockToggle;
+  menuLockToggle.SetName("Menu Lock");
+  menuLockToggle.SetColor(Color(0x60FF00));
+  menuLockToggle.SetValue(&menuLock);
+  menuLockToggle.OnPress([&]() -> void { menuLock.Save(); });
+  actionMenu.AddUIComponent(menuLockToggle, Point(0, 5));
 
-  UIButton comboKeyBtn;
-  comboKeyBtn.SetName("Touch Combo Key");
-  comboKeyBtn.SetColorFunc([&]() -> Color { return Color(0xFF006E).DimIfNot(touch_combo_key); });
-  comboKeyBtn.OnPress([&]() -> void { touch_combo_key = !touch_combo_key; });
-  actionMenu.AddUIComponent(comboKeyBtn, Point(0, 4));
+  UIToggle comboKeyToggle;
+  comboKeyToggle.SetName("Touch Combo Key");
+  comboKeyToggle.SetColor(Color(0xFF006E));
+  comboKeyToggle.SetValue(&touch_combo_key);
+  comboKeyToggle.OnPress([&]() -> void { touch_combo_key.Save(); });
+  actionMenu.AddUIComponent(comboKeyToggle, Point(0, 4));
 
-  UIButton flickerReductionBtn;
-  flickerReductionBtn.SetName("Flicker Reduction");
-  flickerReductionBtn.SetColorFunc([&]() -> Color { return Color(0xAAFF00).DimIfNot(stfu); });
-  flickerReductionBtn.OnPress([&]() -> void { stfu = bool(!stfu) * STFU_DEFAULT; });
-  actionMenu.AddUIComponent(flickerReductionBtn, Point(0, 0));
+  UIToggle flickerReductionToggle;
+  flickerReductionToggle.SetName("Flicker Reduction");
+  flickerReductionToggle.SetColor(Color(0xAAFF00));
+  flickerReductionToggle.OnPress([&]() -> void { stfu = stfu * STFU_DEFAULT; }); // The UIToggle already flip the value for us
+  actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
   UIButton customPaletteViewer1;
   customPaletteViewer1.SetName("Custom Palette 1");
