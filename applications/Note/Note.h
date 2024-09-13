@@ -13,11 +13,12 @@
 class Note : public Application {
  public:
   static Application_Info info;
-
+  
+  enum ESpiltView : uint8_t { SINGLE_VIEW, VERT_SPLIT, HORIZ_SPLIT};
   // Saved Variables
   CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NoteLayoutConfig got changed
   CreateSavedVar("Note", activeConfig, uint8_t, 0);
-  CreateSavedVar("Note", splitView, bool, false);
+  CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
 
   void Setup() override;
 

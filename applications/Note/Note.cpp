@@ -97,8 +97,24 @@ void Note::Setup() {
   // Split View
   UIButton splitViewToggle;
   splitViewToggle.SetName("Split View");
-  splitViewToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(splitView); });
-  splitViewToggle.OnPress([&]() -> void { splitView = !splitView; });
+  splitViewToggle.SetColorFunc([&]() -> Color { 
+    switch(splitView)
+    {
+
+      case VERT_SPLIT: return Color(0x00FFFF);
+      case HORIZ_SPLIT: return Color(0xFF00FF);
+      default: return Color(0xFFFFFF).Dim();
+    }
+  });
+  splitViewToggle.OnPress([&]() -> void { splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3); });
+  splitViewToggle.OnHold([&]() -> void { 
+    switch(splitView)
+    {
+      case SINGLE_VIEW: MatrixOS::UIInterface::TextScroll("Single View", Color(0xFFFFFF)); break;
+      case VERT_SPLIT: MatrixOS::UIInterface::TextScroll("Vertical Split", Color(0x00FFFF)); break;
+      case HORIZ_SPLIT: MatrixOS::UIInterface::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
+    }
+  });
   actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
 
   UIButton notepad1SelectBtn;
@@ -150,12 +166,28 @@ void Note::Setup() {
 void Note::PlayView() {
   UI playView("Note Play View");
 
-  NotePad notePad1(Dimension(splitView ? 4 : 8, 8), &notePadConfigs[!splitView && activeConfig.Get() == 1]);
+  Dimension padSize;
+
+  switch (splitView)
+  {
+    case SINGLE_VIEW:
+      padSize = Dimension(8, 8);
+      break;
+    case VERT_SPLIT:
+      padSize = Dimension(4, 8);
+      break;
+    case HORIZ_SPLIT:
+      padSize = Dimension(8, 4);
+      break;
+  }
+  
+
+  NotePad notePad1(padSize, &notePadConfigs[!splitView && activeConfig.Get() == 1]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
-  NotePad notePad2(Dimension(4, 8), &notePadConfigs[1]);
-  if (splitView)
-  { playView.AddUIComponent(notePad2, Point(4, 0)); }
+  NotePad notePad2(padSize, &notePadConfigs[1]);
+  if (splitView == VERT_SPLIT) { playView.AddUIComponent(notePad2, Point(4, 0)); }
+  else if (splitView == HORIZ_SPLIT) { playView.AddUIComponent(notePad2, Point(0, 4)); }
 
   playView.Start();
 }
