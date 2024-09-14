@@ -60,15 +60,13 @@ namespace MatrixOS
     void FillPartition(string partition, Color color, uint8_t layer = 255);
     void Update(uint8_t layer = 255);
 
-    void Crossfade(uint8_t layer1, uint8_t layer2, Fract16 ratio);
-
     int8_t CurrentLayer();
-    int8_t CreateLayer();
+    int8_t CreateLayer(uint16_t crossfade = crossfade_duration);
     void CopyLayer(uint8_t dest, uint8_t src);
-    bool DestroyLayer();
+    bool DestroyLayer(uint16_t crossfade = crossfade_duration);
 
-    void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer = 255);
-    void RotateCanvas(EDirection direction, uint8_t layer = 255);
+    void Fade(uint16_t crossfade = crossfade_duration, Color* source_buffer = nullptr);
+    void FadeOut(uint16_t crossfade = crossfade_duration);
 
     void PauseUpdate(bool pause);
   }
