@@ -10,6 +10,7 @@ class Shell : public Application {
 
   uint8_t current_page = 0;
 
+  void Setup() override;
   void Loop() override;
 
   void AddCommonBarInUI(UI* ui);

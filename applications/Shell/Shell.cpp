@@ -1,5 +1,26 @@
 #include "Shell.h"
 
+void Shell::Setup()
+{
+  #ifdef configUSE_FREERTOS_PROVIDED_HEAP
+  // HeapStats_t heapStats;
+  // vPortGetHeapStats(&heapStats);
+  MLOGD("Shell", "Matrix OS Free Heap Size: %.2fkb (%d%%)", xPortGetFreeHeapSize() / 1024.0f, xPortGetFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
+  MLOGD("Shell", "Matrix OS Minimum Free Heap Size: %.2fkb (%d%%)", xPortGetMinimumEverFreeHeapSize() / 1024.0f, xPortGetMinimumEverFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
+  #endif
+  #ifdef ESP_PLATFORM
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, MALLOC_CAP_DEFAULT);
+    uint32_t total_heap_size = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);  
+    MLOGD("Shell", "Matrix OS Free Heap Size: %.2fkb (%d%%)", info.total_free_bytes / 1024.0f, info.total_free_bytes * 100 / total_heap_size); 
+    MLOGD("Shell", "Matrix OS Lifetime Minimum Free Heap Size: %.2fkb (%d%%)", info.minimum_free_bytes / 1024.0f, info.minimum_free_bytes * 100 / total_heap_size);
+    MLOGD("Shell", "Matrix OS Total Heap Size: %.2fkb", total_heap_size / 1024.0f);
+    MLOGD("Shell", "Matrix OS Free Blocks: %d", info.free_blocks);
+    MLOGD("Shell", "Matrix OS Largest Free Block: %.2fkb", info.largest_free_block / 1024.0f);
+    MLOGD("Shell", "Matrix OS Total Blocks: %d", info.total_blocks);
+  #endif
+}
+
 void Shell::Loop() {
   switch (current_page)
   {
