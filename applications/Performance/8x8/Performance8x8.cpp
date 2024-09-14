@@ -660,7 +660,7 @@ void Performance::ActionMenu() {
   // Other Controls
   UIToggle velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
-  velocityToggle.SetColor(Color(0xFF00FF));
+  velocityToggle.SetColor(Color(0xFFFFFF));
   velocityToggle.SetValue(&velocitySensitive);
   velocityToggle.OnPress([&]() -> void {velocitySensitive.Save();});
   velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
@@ -674,14 +674,14 @@ void Performance::ActionMenu() {
 
   UIToggle menuLockToggle;
   menuLockToggle.SetName("Menu Lock");
-  menuLockToggle.SetColor(Color(0x60FF00));
+  menuLockToggle.SetColor(Color(0xFF0000));
   menuLockToggle.SetValue(&menuLock);
   menuLockToggle.OnPress([&]() -> void { menuLock.Save(); });
   actionMenu.AddUIComponent(menuLockToggle, Point(0, 5));
 
   UIToggle comboKeyToggle;
   comboKeyToggle.SetName("Touch Combo Key");
-  comboKeyToggle.SetColor(Color(0xFF006E));
+  comboKeyToggle.SetColor(Color(0x60FF00));
   comboKeyToggle.SetValue(&touch_combo_key);
   comboKeyToggle.OnPress([&]() -> void { touch_combo_key.Save(); });
   actionMenu.AddUIComponent(comboKeyToggle, Point(0, 4));
@@ -746,6 +746,8 @@ void Performance::ActionMenu() {
   uiOpened = true;
   actionMenu.Start();
   uiOpened = false;
+
+  MatrixOS::LED::Update();
 
   MLOGD("Performance", "Exit Action Menu");
 }
