@@ -211,7 +211,7 @@ void MystrixBoot::BootPhase2() {
       boot_phase_2_start_time = MatrixOS::SYS::Millis();
 
     uint32_t delta_time = MatrixOS::SYS::Millis() - boot_phase_2_start_time;
-    uint8_t quad_size = max(Device::x_size, Device::y_size) / 2;
+    uint8_t quad_size = max(Device::x_size, Device::y_size) / 2 + 1;
     if (delta_time > (quad_size - 2) * start_offset + 700 + 100)
     { Exit(); }
 
@@ -229,6 +229,16 @@ void MystrixBoot::BootPhase2() {
         BootPhase2QuadSetColor(r - 1, r, half_color1, half_color2);
         BootPhase2QuadSetColor(r, r - 1, half_color1, half_color2);
       }
+      #ifdef FAMILY == MYSTRIX
+      if(r > 3)
+      {
+        uint16_t local_deltatime_half = local_deltatime + start_offset * 3 / 2;
+        Color half_color1 = BootPhase2Color(local_deltatime_half, hue[0]);
+        Color half_color2 = BootPhase2Color(local_deltatime_half, hue[1]);
+        BootPhase2QuadSetColor(r - 2, r, half_color1, half_color2);
+        BootPhase2QuadSetColor(r, r - 2, half_color1, half_color2);
+      }
+      #endif
     }
     MatrixOS::LED::Update();
   }
