@@ -73,7 +73,7 @@ namespace MatrixOS::SYS
 }  // Use non exposed Matrix OS API
 
 void Shell::ApplicationLauncher() {
-  UI applicationLauncher("Application Launcher", Color(0x00FFAA));
+  UI applicationLauncher("Application Launcher", Color(0x00FFAA), false);
 
   applicationLauncher.disableExit = true;
   AddCommonBarInUI(&applicationLauncher);

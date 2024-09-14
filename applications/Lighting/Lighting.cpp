@@ -4,7 +4,6 @@ void Lighting::Setup() {
   start_time = MatrixOS::SYS::Millis();
   base_layer = MatrixOS::LED::CurrentLayer();
   Update();
-  UI::Crossfade(0, MatrixOS::LED::CurrentLayer());
 }
 
 void Lighting::Loop()
@@ -85,10 +84,7 @@ void Lighting::Render(Color color)
   // TODO: Get chunks, check if should render, render
 
   MatrixOS::LED::Fill(color, base_layer);
-  if(MatrixOS::LED::CurrentLayer() == base_layer)
-  {
-    MatrixOS::LED::Update();
-  }
+  MatrixOS::LED::Update();
 }
 
 void Lighting::RenderGradient()

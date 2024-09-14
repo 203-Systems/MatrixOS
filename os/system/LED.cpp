@@ -17,16 +17,31 @@ namespace MatrixOS::LED
 
   bool needUpdate = false;
 
+  bool crossfade_active = false;
+  uint32_t crossfade_start_time = 0;
+  uint16_t crossfade_duration = 0;
+  Color* crossfade_source_buffer = nullptr;
+  bool crossfade_destroy_source_buffer = false;
+  Color* crossfade_buffer = nullptr;
+
+  void RenderCrossfade();
+
   void LEDTimerCallback(TimerHandle_t xTimer) {
+    xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+    if(crossfade_active)
+    {
+      RenderCrossfade();
+    }
+
     if (needUpdate)
     {
-      xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
       // MLOGD("LED", "Update");
       needUpdate = false;
+
       // MLOGD("LED", "Update (Brightness size: %d)", ledPartitionBrightness.size());
-      Device::LED::Update(frameBuffers[0], ledPartitionBrightness);
-      xSemaphoreGive(activeBufferSemaphore);
+      Device::LED::Update(crossfade_active ? crossfade_buffer : frameBuffers[0], ledPartitionBrightness);
     }
+      xSemaphoreGive(activeBufferSemaphore);
   }
 
   void UpdateBrightness() {
@@ -62,6 +77,15 @@ namespace MatrixOS::LED
       xTimerDelete(led_tm, 0);
     }
 
+
+    for (Color* buffer : frameBuffers)
+    {
+      if(buffer)
+      {
+        vPortFree(buffer);
+      }
+    }
+    
     frameBuffers.clear();
     
     // Generate brightness level map
@@ -76,8 +100,7 @@ namespace MatrixOS::LED
     UpdateBrightness();
 
     activeBufferSemaphore = xSemaphoreCreateMutex();
-    CreateLayer(); //Create Layer 0 - The active layer
-    CreateLayer(); //Create Layer 1 - Swap Layer 1
+    CreateLayer(0); //Create Layer 0 - The active layer
     led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
     xTimerStart(led_tm, 0);
   }
@@ -128,12 +151,15 @@ namespace MatrixOS::LED
 
   void SetColor(Point xy, Color color, uint8_t layer) {
     if (layer == 255)
-    { layer = CurrentLayer(); }
-    else if (layer > CurrentLayer())
+    {
+      layer = CurrentLayer();
+    }
+    else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
+
     // MLOGV("LED", "Set Color #%.2X%.2X%.2X to %d %d at Layer %d", color.R, color.G, color.B, xy.x, xy.y, layer);
     xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
     uint16_t index = Device::LED::XY2Index(xy);
@@ -142,13 +168,17 @@ namespace MatrixOS::LED
     frameBuffers[layer][index] = color;
 
     if(layer == 0)
-    { needUpdate = true; }
+    { 
+      needUpdate = true; 
+    }
   }
 
   void SetColor(uint16_t ID, Color color, uint8_t layer) {
     if (layer == 255)
-    { layer = CurrentLayer(); }
-    else if (layer > CurrentLayer())
+    {
+      layer = CurrentLayer();
+    }
+    else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
@@ -166,11 +196,12 @@ namespace MatrixOS::LED
   void Fill(Color color, uint8_t layer) {
     if (layer == 255)
     { layer = CurrentLayer(); }
-    else if (layer > CurrentLayer())
+    else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
+
     vTaskSuspendAll();
     // MLOGV("LED", "Fill Layer %d", layer);
 
@@ -197,11 +228,12 @@ namespace MatrixOS::LED
 
     if (layer == 255)
     { layer = CurrentLayer(); }
-    else if (layer > CurrentLayer())
+    else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
       return;
     }
+
     vTaskSuspendAll();
     // MLOGV("LED", "Fill Layer %d", layer);
 
@@ -225,8 +257,7 @@ namespace MatrixOS::LED
       return;
     }
 
-    for (uint16_t index = start; index < end; index++)
-    { frameBuffers[layer][index] = color; }
+    std::fill(frameBuffers[layer] + start, frameBuffers[layer] + end, color);
 
     xTaskResumeAll();
 
@@ -234,65 +265,14 @@ namespace MatrixOS::LED
     { needUpdate = true; }
   }
 
-  void CopyLayer(uint8_t dest, uint8_t src)
+   int8_t CurrentLayer() {
+     return frameBuffers.size() - 1;
+  }
+
+  int8_t CreateLayer(uint16_t crossfade)
   {
-    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::led_count * sizeof(Color));
-  }
-
-  void Update(uint8_t layer) {
-    if (layer == 255 || layer == CurrentLayer())
-    {
-      xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
-      Color* swapBufferPtr = frameBuffers[0];
-      frameBuffers[0] = frameBuffers.back();
-      frameBuffers.back() = swapBufferPtr;
-      CopyLayer(CurrentLayer(), 0);
-      needUpdate = true;
-      xSemaphoreGive(activeBufferSemaphore);
-    }
-  }
-
-
-  // If any layer is 0, it will be show up as black（or lightless)
-  // If layer 2 is 255, it will be using the top layer
-  void Crossfade(uint8_t layer1, uint8_t layer2, Fract16 ratio) {
-    if (layer2 == 255) { layer2 = CurrentLayer(); }
-
-    if (layer1 > CurrentLayer() || layer2 > CurrentLayer())
-    {
-      MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
-      return;
-    }
-
-    if (ratio == 0)
-    {
-      Update(layer1);
-      return;
-    }
-    else if (ratio == FRACT16_MAX)
-    {
-      Update(layer2);
-      return;
-    }
-
-    xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
-    for (uint16_t index = 0; index < Device::led_count; index++)
-    {
-      Color sourceColor = layer1 == 0 ? Color(0) : frameBuffers[layer1][index];
-      Color targetColor = layer2 == 0 ? Color(0) : frameBuffers[layer2][index];
-      
-      frameBuffers[0][index] = Color::Crossfade(sourceColor, targetColor, ratio);
-    }
-    needUpdate = true;
-    xSemaphoreGive(activeBufferSemaphore);
-  }
-
-  int8_t CurrentLayer() {
-    return frameBuffers.size() - 1;
-  }
-
-  int8_t CreateLayer() {
-    if (CurrentLayer() >= MAX_LED_LAYERS - 1)
+    int8_t oldLayer = CurrentLayer();
+    if (oldLayer >= MAX_LED_LAYERS)
     {
       MatrixOS::SYS::ErrorHandler("Max LED Layer Exceded");
       return -1;
@@ -304,35 +284,182 @@ namespace MatrixOS::LED
       return -1;
     }
     frameBuffers.push_back(frameBuffer);
-    Fill(0, CurrentLayer());
-    MLOGD("LED Layer", "Layer Created - %d", CurrentLayer());
-    return CurrentLayer();
+    int8_t newLayer = CurrentLayer();
+    Fill(0, newLayer);
+    MLOGD("LED Layer", "Layer Created - %d", newLayer);
+
+    if(crossfade)
+    {
+      Fade(crossfade, frameBuffers[oldLayer]);
+    }
+
+
+    return newLayer;
   }
 
-  bool DestroyLayer() {
-    if (CurrentLayer() > 1)
+  bool DestroyLayer(uint16_t crossfade)
+  {
+    if (frameBuffers.size() > 2)
     {
+      if(crossfade)
+      {
+        Fade(crossfade);
+      }
+
       vPortFree(frameBuffers.back());
       frameBuffers.pop_back();
-      MLOGD("LED Layer", "Layer Destoried - %d", CurrentLayer());
       Update();
+
+      MLOGD("LED Layer", "Layer Destoried - %d", frameBuffers.size());
       return true;
+    }
+    else 
+    {
+      if(crossfade)
+      {
+        Fade(crossfade);
+      }
+      Fill(0, CurrentLayer());
+      MLOGW("LED Layer", "Already at layer 1, can not delete layer");
+      return false;
+    }
+    return false;
+  }
+
+  void CopyLayer(uint8_t dest, uint8_t src)
+  {
+    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::led_count * sizeof(Color));
+  }
+
+
+  void Update(uint8_t layer)
+  {
+    if (layer == 255)
+    {
+      layer = CurrentLayer();
+    }
+    else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
+    {
+      MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
+      return;
+    }
+
+    xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+    CopyLayer(0, layer);
+    needUpdate = true;
+    xSemaphoreGive(activeBufferSemaphore);
+  }
+
+
+  void Fade(uint16_t crossfade, Color* source_buffer)
+  {
+    if(!UserVar::ui_animation){return;}
+
+    // MLOGD("LED", "Fade %d", crossfade);
+
+    uint16_t crossfade_delay = 1000 / Device::fps; // Delay by one frame
+    
+    if(crossfade == 0) // Stop crossfade
+    {
+      crossfade_start_time = 0; 
+      return;
+    }
+
+    if(crossfade_active)
+    {
+      crossfade_active = false;
+      xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+    
+      // Crossfade already active
+      MLOGW("LED", "Crossfade already active");
+
+      // If existing crossfade require to delete the source buffer, then delete it right now
+      if(crossfade_destroy_source_buffer) { vPortFree(crossfade_source_buffer); }
+
+      crossfade_source_buffer = crossfade_buffer; // Start crossfade from the crossfade buffer
+      crossfade_buffer = nullptr; // Let the RenderCrossfade() to create a new buffer
+      crossfade_destroy_source_buffer = true;
+      xSemaphoreGive(activeBufferSemaphore);
+
+    }
+    else if(source_buffer == nullptr)
+    {
+      // Create a copy of the current buffer
+      crossfade_source_buffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
+      if(crossfade_source_buffer == nullptr)
+      {
+        MatrixOS::SYS::ErrorHandler("Failed to allocate crossfade buffer");
+        return;
+      }
+      memcpy((void*)crossfade_source_buffer, (void*)frameBuffers[0], Device::led_count * sizeof(Color));
+      crossfade_destroy_source_buffer = true;
+    }
+    else
+    { 
+      // This is used in the case of creating a new layer
+      // No New buffer is created, the source buffer is used directly
+      crossfade_source_buffer = source_buffer;
+      crossfade_destroy_source_buffer = false;
+    }
+
+    crossfade_start_time = MatrixOS::SYS::Millis() + crossfade_delay;
+    crossfade_duration = crossfade;
+    crossfade_active = true;
+  }
+
+  void FadeOut(uint16_t crossfade)
+  {
+    Fade(crossfade);
+    Fill(0, 0);
+  }
+
+  // If any layer is 0, it will be show up as black（or lightless)
+  // If layer 2 is 255, it will be using the top layer
+  void RenderCrossfade() {
+    Fract16 ratio = 0;
+
+    uint32_t currentTime = MatrixOS::SYS::Millis();
+
+    if(crossfade_buffer == nullptr)
+    {
+      crossfade_buffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
+    }
+
+    if(currentTime <= crossfade_start_time)
+    {
+      ratio = 0;
+    }
+    else if(currentTime < crossfade_start_time + crossfade_duration)
+    {
+      ratio = (currentTime - crossfade_start_time) * FRACT16_MAX / crossfade_duration;
     }
     else
     {
-      Fill(0, 1);
-      Update();
-      MLOGD("LED Layer", "Already at layer 1, can not delete layer");
-      return false;
+      ratio = FRACT16_MAX;
     }
-  }
 
-  void ShiftCanvas(EDirection direction, int8_t distance, uint8_t layer) {
-    // Color[] tempBuffer;
-  }
+    // MLOGD("LED", "Crossfade %d %d %d", currentTime - crossfade_start_time, crossfade_duration, ratio);
 
-  void RotateCanvas(EDirection direction, uint8_t layer) {
-    // TODO
+    if(ratio < FRACT16_MAX)
+    {
+      for (uint16_t index = 0; index < Device::led_count; index++)
+      {
+        crossfade_buffer[index] = Color::Crossfade(
+              crossfade_source_buffer == nullptr ? Color(0) : crossfade_source_buffer[index], 
+              frameBuffers[0][index],
+              ratio
+            );
+      }
+    }
+    else if(ratio == FRACT16_MAX)
+    {
+      if(crossfade_destroy_source_buffer) { vPortFree(crossfade_source_buffer); }
+      vPortFree(crossfade_buffer);
+      crossfade_buffer = nullptr;
+      crossfade_active = false;
+    }
+
+    needUpdate = true;
   }
 
   void PauseUpdate(bool pause) {

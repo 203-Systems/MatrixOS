@@ -55,14 +55,7 @@ void UI::RenderUI() {
       uiComponent->Render(xy);
     }
     PostRender();
-    if(crossfade_start_time != UINT32_MAX && newLedLayer)
-    {
-      RenderCrossfade(prev_layer, current_layer, crossfade_start_time);
-    }
-    else
-    {
       MatrixOS::LED::Update();
-    }
   }
 }
 
@@ -168,72 +161,21 @@ void UI::UIEnd() {
 
   if (newLedLayer)
   { 
-    while(crossfade_start_time != UINT32_MAX)
-  {
-    RenderCrossfade(current_layer, prev_layer, crossfade_start_time);
-    Loop();
-  }
-  MatrixOS::LED::DestroyLayer(); }
+    MatrixOS::LED::DestroyLayer(); }
   else
-  { MatrixOS::LED::Fill(0); }
-
-  // MatrixOS::LED::Update();
+  {
+    MatrixOS::LED::Fade();
+  }
 }
 
 void UI::SetFPS(uint16_t fps)
 {
   if (fps == 0)
+  {
     uiUpdateMS = UINT32_MAX;
+  }
   else
+  {
     uiUpdateMS = 1000 / fps;
-}
-
-void UI::RenderCrossfade(int8_t crossfade_source, int8_t crossfade_target, uint32_t& crossfade_start_time, uint16_t crossfade_duration)
-{
-  if(crossfade_start_time == 0)
-  {
-    crossfade_start_time = MatrixOS::SYS::Millis();
-  }
-  
-  if (crossfade_source == -1 || crossfade_target == -1)
-  {
-    crossfade_start_time = UINT32_MAX;
-  }
-
-  uint32_t crossfade_completion = (MatrixOS::SYS::Millis() - crossfade_start_time) * FRACT16_MAX / crossfade_duration;
-
-  if (crossfade_completion >= FRACT16_MAX)
-  {
-    crossfade_start_time = UINT32_MAX;
-    crossfade_completion = FRACT16_MAX;
-  }
-
-  MatrixOS::LED::Crossfade(crossfade_source, crossfade_target, (Fract16)crossfade_completion);
-}
-
-void UI::Crossfade(int8_t crossfade_source, int8_t crossfade_target, uint16_t crossfade_duration)
-{
-  uint32_t crossfade_start_time = MatrixOS::SYS::Millis();
-  Timer FadeOutTimer;
-  while(crossfade_start_time != UINT32_MAX)
-  {
-    if (FadeOutTimer.Tick(1000 / UI_DEFAULT_FPS))
-    {
-      RenderCrossfade(crossfade_source, crossfade_target, crossfade_start_time, crossfade_duration);
-    }
-  }
-}
-
-void UI::FadeOut(uint16_t crossfade_duration)
-{
-  uint8_t current_layer = MatrixOS::LED::CurrentLayer();
-  uint32_t crossfade_start_time = MatrixOS::SYS::Millis();
-  Timer FadeOutTimer;
-  while(crossfade_start_time != UINT32_MAX)
-  {
-    if (FadeOutTimer.Tick(1000 / UI_DEFAULT_FPS))
-    {
-      RenderCrossfade(current_layer, 0, crossfade_start_time, crossfade_duration);
-    }
   }
 }

@@ -20,7 +20,7 @@ void Note::Setup() {
   activeConfig.Get(); //Load it first
 
   // Set up the Action Menu UI ---------------------------------------------------------------------
-  UI actionMenu("Action Menu", Color(0x00FFFF));
+  UI actionMenu("Action Menu", Color(0x00FFFF), false);
 
   UIButton brightnessBtn;
   brightnessBtn.SetName("Brightness");
@@ -166,7 +166,7 @@ void Note::Setup() {
 }
 
 void Note::PlayView() {
-  UI playView("Note Play View");
+  UI playView("Note Play View", notePadConfigs[activeConfig].color, false);
 
   Dimension padSize;
 
@@ -195,7 +195,7 @@ void Note::PlayView() {
 }
 
 void Note::ScaleSelector() {
-  UI scaleSelector("Scale Selector", Color(0xFF0090));
+  UI scaleSelector("Scale Selector", Color(0xFF0090), false);
 
   ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale, notePadConfigs[activeConfig].color,
                                   notePadConfigs[activeConfig].rootColor);
@@ -208,7 +208,7 @@ void Note::ScaleSelector() {
 }
 
 void Note::ColorSelector() {
-  UI colorSelector("Color Selector", notePadConfigs[activeConfig].color);
+  UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
 
   NotePad notePad(Dimension(8, 4), &notePadConfigs[activeConfig]);
   colorSelector.AddUIComponent(notePad, Point(0, 0));
@@ -231,7 +231,7 @@ void Note::ColorSelector() {
 }
 
 void Note::OverlapSelector() {
-  UI overlapSelector("Overlap Selector", Color(0xFFFF00));
+  UI overlapSelector("Overlap Selector", Color(0xFFFF00), false);
 
   UI4pxNumber numDisplay(Color(0xFFFF00), 1, (int32_t*)&notePadConfigs[activeConfig].overlap, notePadConfigs[activeConfig].rootColor);
   overlapSelector.AddUIComponent(numDisplay, Point(5, 0));
@@ -249,7 +249,7 @@ void Note::OverlapSelector() {
 }
 
 void Note::ChannelSelector() {
-  UI channelSelector("Channel Selector", Color(0x60FF00));
+  UI channelSelector("Channel Selector", Color(0x60FF00), false);
 
   int32_t offsettedChannel = notePadConfigs[activeConfig].channel + 1;
   UI4pxNumber numDisplay(Color(0x60FF00), 2, &offsettedChannel, notePadConfigs[activeConfig].rootColor, 1);

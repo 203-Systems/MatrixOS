@@ -25,6 +25,8 @@
 #define KEYEVENT_QUEUE_SIZE 16
 #define MIDI_QUEUE_SIZE 128
 
-inline uint16_t hold_threshold = 400;
+inline const uint16_t hold_threshold = 400;
+
+inline const uint16_t crossfade_duration = 200;
 
 // enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
