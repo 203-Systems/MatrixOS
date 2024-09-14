@@ -179,6 +179,8 @@ void Shell::HiddenApplicationLauncher() {
 
 void Shell::LaunchAnimation(Point origin, Color color)
 {
+  if(!MatrixOS::UserVar::ui_animation) { return; }
+
   uint32_t startTime = MatrixOS::SYS::Millis();
 
   const float speed = 30; // base mills per pixel

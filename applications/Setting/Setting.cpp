@@ -156,12 +156,18 @@ void Setting::Start() {
   });
   AddUIComponent(deviceSettingsBtn, Point(0, 0));
 
+  UIToggle uiAnimationToggle;
+  uiAnimationToggle.SetName("UI Animation");
+  uiAnimationToggle.SetColor(Color(0xFFFF00));
+  uiAnimationToggle.SetValue(&MatrixOS::UserVar::ui_animation);
+  uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::ui_animation.Save(); });
+  AddUIComponent(uiAnimationToggle, Point(7, 0));
+
 
   UI::Start();
 }
 
-bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
-  MLOGD("Konami", "Custom key event");
+bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
   Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
 
   if (xy && keyEvent->info.state == RELEASED)  // IF XY is valid, means it's on the main grid
