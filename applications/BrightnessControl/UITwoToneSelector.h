@@ -46,7 +46,7 @@ class UITwoToneSelector : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint16_t index = xy.y * dimension.x + xy.x;
-    if (index < count)
+    if (index < count && keyInfo->state == PRESSED)
     {
       uint8_t value = map[xy.y * dimension.x + xy.x];
       callback(value);
