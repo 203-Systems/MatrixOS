@@ -6,6 +6,10 @@ UI::UI(string name, Color color, bool newLedLayer) {
   this->newLedLayer = newLedLayer;
 }
 
+UI::~UI() {
+  UIEnd();
+}
+
 // TODO, make new led layer
 void UI::Start() {
   status = 0;
@@ -18,6 +22,7 @@ void UI::Start() {
   {
     prev_layer = 0;
     current_layer = MatrixOS::LED::CurrentLayer();
+    MatrixOS::LED::Fade();
   }
   
   MatrixOS::KEYPAD::Clear();
@@ -27,8 +32,8 @@ void UI::Start() {
     LoopTask();
     Loop();
     RenderUI();
+    taskYIELD();
   }
-  End();
   UIEnd();
 }
 
@@ -153,7 +158,8 @@ void UI::ClearUIComponents() {
 }
 
 void UI::UIEnd() {
-  MLOGD("UI", "UI Exited");
+  End();
+  MLOGD("UI", "UI %s Exited", name);
   crossfade_start_time = 0;
 
   MatrixOS::KEYPAD::Clear();

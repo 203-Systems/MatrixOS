@@ -31,6 +31,8 @@ class UI {
   std::function<void()>* end_func = nullptr;
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
+  std::vector<pair<Point, UIComponent*>> uiComponents;
+
   int8_t prev_layer = -1;
   int8_t current_layer = -1;
 
@@ -39,6 +41,7 @@ class UI {
 
   UI(){};
   UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
+  ~UI();
 
   void Start();
 
@@ -82,8 +85,6 @@ class UI {
   void SetPreRenderFunc(std::function<void()> pre_render_func);
   void SetPostRenderFunc(std::function<void()> post_render_func);
   void SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler);
-
-  std::vector<pair<Point, UIComponent*>> uiComponents;
 
   void AddUIComponent(UIComponent* uiComponent, Point xy);
   void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
