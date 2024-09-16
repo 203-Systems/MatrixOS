@@ -135,6 +135,7 @@ namespace MatrixOS::UIInterface
     // Phase 1 - Hue selection
     UIHueSelector hueSelector(Dimension(8, 8), [&](float selected_hue) -> void {
       hue = selected_hue;
+      MatrixOS::LED::Fade();
       shadeSelector.SetEnabled(true);
       hueSelector.SetEnabled(false);
     });
