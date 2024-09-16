@@ -407,12 +407,6 @@ namespace MatrixOS::LED
     crossfade_active = true;
   }
 
-  void FadeOut(uint16_t crossfade)
-  {
-    Fade(crossfade);
-    Fill(0, 0);
-  }
-
   // If any layer is 0, it will be show up as black（or lightless)
   // If layer 2 is 255, it will be using the top layer
   void RenderCrossfade() {

@@ -65,7 +65,6 @@ namespace MatrixOS
     bool DestroyLayer(uint16_t crossfade = crossfade_duration);
 
     void Fade(uint16_t crossfade = crossfade_duration, Color* source_buffer = nullptr);
-    void FadeOut(uint16_t crossfade = crossfade_duration);
 
     void PauseUpdate(bool pause);
   }
