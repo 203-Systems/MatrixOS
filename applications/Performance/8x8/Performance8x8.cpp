@@ -538,7 +538,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
 
   for (uint8_t i = 0; i < 2; i++)
   {
-
+    MatrixOS::LED::Fade();
     while (true)
     {
       if(timer.Tick(1000/Device::fps))
@@ -608,6 +608,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
     MatrixOS::NVS::SetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
   }
 
+  MatrixOS::LED::Fade();
   MatrixOS::LED::Fill(0);
   return;
 }
