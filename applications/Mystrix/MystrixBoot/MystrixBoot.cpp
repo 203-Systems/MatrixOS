@@ -229,7 +229,7 @@ void MystrixBoot::BootPhase2() {
         BootPhase2QuadSetColor(r - 1, r, half_color1, half_color2);
         BootPhase2QuadSetColor(r, r - 1, half_color1, half_color2);
       }
-      #ifdef FAMILY == MYSTRIX
+      #if FAMILY == MYSTRIX
       if(r > 3)
       {
         uint16_t local_deltatime_half = local_deltatime + start_offset * 3 / 2;
