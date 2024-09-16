@@ -158,12 +158,11 @@ void UI::ClearUIComponents() {
 }
 
 void UI::UIEnd() {
+  // Check if UI is already exited
   End();
-  MLOGD("UI", "UI %s Exited", name);
-  crossfade_start_time = 0;
+  MLOGD("UI", "UI %s Exited", name.c_str());
 
   MatrixOS::KEYPAD::Clear();
-
 
   if (newLedLayer)
   { 
