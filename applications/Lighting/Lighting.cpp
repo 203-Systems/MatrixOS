@@ -2,7 +2,6 @@
 
 void Lighting::Setup() {
   start_time = MatrixOS::SYS::Millis();
-  base_layer = MatrixOS::LED::CurrentLayer();
   Update();
 }
 
@@ -83,7 +82,7 @@ void Lighting::Render(Color color)
 {
   // TODO: Get chunks, check if should render, render
 
-  MatrixOS::LED::Fill(color, base_layer);
+  MatrixOS::LED::Fill(color);
   MatrixOS::LED::Update();
 }
 
