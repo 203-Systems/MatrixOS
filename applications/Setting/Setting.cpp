@@ -175,25 +175,21 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
     if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
     {
       konami++;
-      MLOGD("Konami", "Up pressed, %d", konami);
       return false;
     }
     else if ((konami == 2 || konami == 3) && (xy == origin + Point(0, 2) || xy == origin + Point(1, 2)))
     {
       konami++;
-      MLOGD("Konami", "Down pressed, %d", konami);
       return true;
     }
     else if ((konami == 4 || konami == 6) && (xy == origin + Point(-1, 0) || xy == origin + Point(-1, 1)))
     {
       konami++;
-      MLOGD("Konami", "Left pressed, %d", konami);
       return true;
     }
     else if ((konami == 5 || konami == 7) && (xy == origin + Point(2, 0) || xy == origin + Point(2, 1)))
     {
       konami++;
-      MLOGD("Konami", "Right pressed, %d", konami);
       if (konami == 8)
       {
         UI ab("A & B", Color(0xFF0000));
@@ -233,7 +229,6 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
     }
     else
     {
-      MLOGD("Konami", "Cleared");
       konami = 0;
       return false;
     }
