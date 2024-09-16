@@ -14,9 +14,12 @@ namespace MatrixOS::MIDI
   void Init(void) {
     if(midi_queue)
     {
-      vQueueDelete(midi_queue);
+      xQueueReset(midi_queue);
     }
-    midi_queue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
+    else
+    {
+      midi_queue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
+    }
   }
 
   bool Get(MidiPacket* midiPacketDest, uint16_t timeout_ms) {

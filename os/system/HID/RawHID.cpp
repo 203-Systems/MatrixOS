@@ -9,9 +9,12 @@ namespace MatrixOS::HID::RawHID
     {
         if(rawhid_message_buffer)
         {
-            vMessageBufferDelete(rawhid_message_buffer);
+            xMessageBufferReset(rawhid_message_buffer);
         }
-        rawhid_message_buffer = xMessageBufferCreate(64);
+        else
+        {
+            rawhid_message_buffer = xMessageBufferCreate(64);
+        }
     }
 
     bool NewReport(const uint8_t *report, size_t size)

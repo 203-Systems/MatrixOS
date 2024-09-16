@@ -67,17 +67,6 @@ namespace MatrixOS::LED
   }
 
   void Init() {
-    if(activeBufferSemaphore)
-    {
-      vSemaphoreDelete(activeBufferSemaphore);
-    }
-
-    if(led_tm)
-    {
-      xTimerDelete(led_tm, 0);
-    }
-
-
     for (Color* buffer : frameBuffers)
     {
       if(buffer)
@@ -85,7 +74,7 @@ namespace MatrixOS::LED
         vPortFree(buffer);
       }
     }
-    
+
     frameBuffers.clear();
     
     // Generate brightness level map
@@ -99,10 +88,18 @@ namespace MatrixOS::LED
 
     UpdateBrightness();
 
-    activeBufferSemaphore = xSemaphoreCreateMutex();
+    if(!activeBufferSemaphore)
+    {
+      activeBufferSemaphore = xSemaphoreCreateMutex();
+    }
+
     CreateLayer(0); //Create Layer 0 - The active layer
-    led_tm = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::fps, true, NULL, LEDTimerCallback, &led_tmdef);
-    xTimerStart(led_tm, 0);
+
+    if(!led_tm)
+    {
+      led_tm = xTimerCreateStatic("LED Timer", 1000 / Device::fps, pdTRUE, (void*)0, LEDTimerCallback, &led_tmdef);
+      xTimerStart(led_tm, 0);
+    }
   }
 
 
@@ -371,7 +368,7 @@ namespace MatrixOS::LED
       xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
     
       // Crossfade already active
-      MLOGW("LED", "Crossfade already active");
+      // MLOGW("LED", "Crossfade already active");
 
       // If existing crossfade require to delete the source buffer, then delete it right now
       if(crossfade_destroy_source_buffer) { vPortFree(crossfade_source_buffer); }
@@ -451,6 +448,7 @@ namespace MatrixOS::LED
       vPortFree(crossfade_buffer);
       crossfade_buffer = nullptr;
       crossfade_active = false;
+      // MLOGD("LED", "Crossfade Done");
     }
 
     needUpdate = true;

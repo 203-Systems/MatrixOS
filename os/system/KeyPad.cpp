@@ -6,11 +6,14 @@ namespace MatrixOS::KEYPAD
   QueueHandle_t keyevent_queue;
 
   void Init() {
-    if (keyevent_queue)
+    if (!keyevent_queue)
     {
-      vQueueDelete(keyevent_queue);
+      keyevent_queue = xQueueCreate(KEYEVENT_QUEUE_SIZE, sizeof(KeyEvent));
     }
-    keyevent_queue = xQueueCreate(KEYEVENT_QUEUE_SIZE, sizeof(KeyEvent));
+    else
+    {
+      xQueueReset(keyevent_queue);
+    }
   }
 
   bool NewEvent(KeyEvent* keyevent) {
