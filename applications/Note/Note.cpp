@@ -162,7 +162,7 @@ void Note::Setup() {
   actionMenu.SetSetupFunc([&]() -> void {PlayView();});
   actionMenu.Start();
 
-  Exit();
+  Exit(); // This should never be reached
 }
 
 void Note::PlayView() {

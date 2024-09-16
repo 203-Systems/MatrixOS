@@ -50,12 +50,6 @@ namespace MatrixOS::SYS
 
     MLOGD("Supervisor", "%d Apps registered", applications.size());
 
-    #ifdef MATRIXOS_DEBUG
-    for (const auto & [ id, application ] : applications) {
-      MLOGD("Supervisor", "%X\t%s-%s v%u", id, application->author.c_str(), application->name.c_str(), application->version);
-    }
-    #endif
-
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
     while (true)
@@ -120,27 +114,8 @@ namespace MatrixOS::SYS
 
   void Bootloader() {
     LED::Fill(0);
-    // uint8_t x = 8; //TODO, fix this after GetDeviceInfo();
-    // uint8_t y = 8;
-    // if(x >= 4 && y >= 4)
-    // {
-    //     uint8_t x_center = x / 2;
-    //     uint8_t y_center = y / 2;
-    //     Color color = Color(0xFF0000);
-    //     LED::SetColor(Point(x_center - 1, y_center - 2), color);
-    //     LED::SetColor(Point(x_center, y_center - 2), color);
-    //     LED::SetColor(Point(x_center - 2, y_center - 1), color);
-    //     LED::SetColor(Point(x_center - 1, y_center - 1), color);
-    //     LED::SetColor(Point(x_center, y_center - 1), color);
-    //     LED::SetColor(Point(x_center + 1, y_center - 1), color);
-    //     LED::SetColor(Point(x_center - 1, y_center), color);
-    //     LED::SetColor(Point(x_center, y_center), color);
-    //     LED::SetColor(Point(x_center - 1, y_center + 1), color);
-    //     LED::SetColor(Point(x_center, y_center + 1), color);
-    // }
-    // // DelayMs(10);
     LED::Update();
-    DelayMs(10);  // Wait for led data to be updated first. TODO: Update with LED::updated var from device layer
+    DelayMs(10);  // Wait for led data to be updated first.
     Device::Bootloader();
   }
 
@@ -162,7 +137,6 @@ namespace MatrixOS::SYS
   }
 
   uint32_t GenerateAPPID(string author, string app_name) {
-    // uint32_t app_id = Hash(author + "-" + app_name);
     // MLOG("System", "APP ID: %u", app_id);
     return Hash(author + "-" + app_name);
     ;
@@ -209,17 +183,6 @@ namespace MatrixOS::SYS
       LED::SetColor(Point(3, 2), 0xFFFFFF);
       LED::SetColor(Point(3, 3), 0xFFFFFF);
     }
-
-    // uint32_t CFSR = *(uint32_t *) 0xE000ED28;
-
-    // for(uint8_t y = 0; y < 4; y++)
-    // {
-    //     for(uint8_t x = 0; x < 8; x++)
-    //     {
-    //         uint32_t mask = 1 << (31 - (8 * y + x));
-    //         LED::SetColor(Point(x,y + 4), 0xFFFFFF * ((CFSR & mask) > 0));
-    //     }
-    // }
 
     LED::Update();
 
