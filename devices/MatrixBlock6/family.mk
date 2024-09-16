@@ -5,12 +5,29 @@ UF2_FAMILY_ID = 0xc47e5767
 
 include $(FAMILY_PATH)/Variants/$(DEVICE)/Device.mk
 
-.PHONY: all clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
+.PHONY: clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
-all:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) -DIDF_TARGET=${MCU} build
+build-common:
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
 
-build: all
+# Build commands for different modes
+build-release: MODE = RELEASE
+build-release: build-common
+
+build-rc: MODE = RELEASE CANDIDATE
+build-rc: build-common
+
+build-beta: MODE = BETA
+build-beta: build-common
+
+build-nightly: MODE = NIGHTLY
+build-nightly: build-common
+
+build-dev: MODE = DEVELOPMENT
+build-dev: build-common
+
+build: MODE = UNDEFINED
+build: build-common
 
 clean:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) clean
