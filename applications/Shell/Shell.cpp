@@ -111,7 +111,7 @@ void Shell::ApplicationLauncher() {
     { visible_app_count++; }
   }
 
-  std::vector<UIButton> appBtns;
+  appBtns.clear();
   appBtns.reserve(visible_app_count);
 
   // Iterate though deque 
@@ -129,11 +129,10 @@ void Shell::ApplicationLauncher() {
       uint8_t x = appBtns.size() % 8;
       uint8_t y = appBtns.size() / 8;
 
-      string app_name = application->name;
       Color app_color = application->color;
 
       appBtns.push_back(UIButton());
-      appBtns.back().SetName(app_name);
+      appBtns.back().SetName(application->name);
       appBtns.back().SetColor(app_color);
       appBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
         LaunchAnimation(Point(x, y), app_color);
@@ -162,8 +161,8 @@ void Shell::HiddenApplicationLauncher() {
     { invisible_app_count++; }
   }
 
-  std::vector<UIButton> appBtns;
-  appBtns.reserve(invisible_app_count);
+  hiddenAppBtns.clear();
+  hiddenAppBtns.reserve(invisible_app_count);
   for (uint32_t app_id: application_ids)
   {
     auto application_it = applications.find(app_id);
@@ -175,21 +174,20 @@ void Shell::HiddenApplicationLauncher() {
 
     if (application->visibility == false)
     {
-      uint8_t x = appBtns.size() % 8;
-      uint8_t y = appBtns.size() / 8;
+      uint8_t x = hiddenAppBtns.size() % 8;
+      uint8_t y = hiddenAppBtns.size() / 8;
 
-      string app_name = application->name;
       Color app_color = application->color;
 
-      appBtns.push_back(UIButton());
-      appBtns.back().SetName(app_name);
-      appBtns.back().SetColor(app_color);
-      appBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
+      hiddenAppBtns.push_back(UIButton());
+      hiddenAppBtns.back().SetName(application->name);
+      hiddenAppBtns.back().SetColor(app_color);
+      hiddenAppBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
         LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
-      hiddenApplicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MLOGD("Shell (invisible)", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+      hiddenApplicationLauncher.AddUIComponent(hiddenAppBtns.back(), Point(x, y));
+      MLOGD("Shell (invisible)", "App #%d %s-%s loaded.", hiddenAppBtns.size() - 1, application->author.c_str(),
                                   application->name.c_str());
     }
     else

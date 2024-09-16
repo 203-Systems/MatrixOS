@@ -9,6 +9,8 @@ class Shell : public Application {
   static Application_Info info;
 
   uint8_t current_page = 0;
+  std::vector<UIButton> appBtns;
+  std::vector<UIButton> hiddenAppBtns;
 
   void Setup() override;
   void Loop() override;
