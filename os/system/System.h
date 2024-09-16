@@ -18,8 +18,10 @@ namespace MatrixOS::SYS
   StackType_t supervisor_stack[configMINIMAL_STACK_SIZE * 4];
   StaticTask_t supervisor_taskdef;
 
+  inline Application* active_app = NULL;
   inline TaskHandle_t active_app_task = NULL;
   inline uint32_t active_app_id = 0;
+  inline Application_Info* active_app_info = NULL;
   inline uint32_t next_app_id = 0;
 
   SavedVariable<uint32_t> prev_system_version = SavedVariable<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);

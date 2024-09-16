@@ -11,6 +11,7 @@ struct Application_Info {
   uint32_t version;
   bool visibility = true;
   std::function<Application*()> factory = nullptr;
+  std::function<void(Application*)> destructor = nullptr;
 };
 
 class Application {
@@ -24,6 +25,7 @@ class Application {
   virtual void End(){};
 
   void Exit();
+  virtual ~Application() = default;
 };
 
 #define APPID(author, name) StaticHash(author "-" name)
@@ -42,7 +44,10 @@ inline std::vector<uint32_t> application_ids;
     APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
       return new APPLICATION_CLASS();                                                              \
     };                                                                                             \
-    ESP_LOGI("Application", "Registering application: %s", APPLICATION_CLASS::info.name.c_str());  \
+    APPLICATION_CLASS::info.destructor = [](Application* app) {                                 \
+      delete (APPLICATION_CLASS*)app;                                                                   \
+    };                                                                                             \
+    MLOGI("Application", "Registering application: %s", APPLICATION_CLASS::info.name.c_str());  \
     uint32_t app_id = Hash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name); \
     if (applications.find(app_id) != applications.end()) { \
       return; \

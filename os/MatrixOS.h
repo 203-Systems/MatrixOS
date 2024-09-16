@@ -22,7 +22,6 @@ class Application_Info;
 namespace MatrixOS
 {
   inline uint32_t api_version = 0;
-  inline Application* active_app = NULL;
 
   namespace SYS
   {
