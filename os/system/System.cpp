@@ -9,39 +9,43 @@ extern std::unordered_map<uint32_t, Application_Info*> applications;
 namespace MatrixOS::SYS
 {
   void ApplicationFactory(void* param) {
-    MLOGD("Application Factory", "App ID %X", active_app_id);
+    MLOGD("Application Factory", "App ID %X", next_app_id);
 
-    active_app = NULL;
+    active_app = NULL; 
 
-    if (active_app_id != 0)
+    if (next_app_id != 0)
     {
-      auto application = applications.find(active_app_id);
+      auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
         MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
+        active_app_id = next_app_id;
         active_app = application->second->factory();
+        active_app_info = application->second;
       }
     } 
 
     if (active_app == NULL)  // Default to launch shell
     {
-      if (active_app_id != 0)
+      if (next_app_id != 0)
       {
         MLOGD("Application Factory", "Can't find target app.");
       }
       MLOGD("Application Factory", "Launching Shell");
-      active_app_id = OS_SHELL;
-      auto application = applications.find(active_app_id);
+      next_app_id = OS_SHELL;
+      auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
         MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
         active_app = application->second->factory();
+        active_app_id = next_app_id;
+        active_app_info = application->second;
       }
     }
 
-    active_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
+    next_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
     InitSysModules();
     active_app->Start();
   }
@@ -144,13 +148,11 @@ namespace MatrixOS::SYS
 
   void ExecuteAPP(uint32_t app_id) {
     // MLOG("System", "Launching APP ID\t%u", app_id);
-    active_app_id = app_id;
+    next_app_id = app_id;
 
     if (active_app_task != NULL)
     {
-      vTaskDelete(active_app_task);
-      free(active_app);
-      active_app = NULL;
+      ExitAPP();
     }
   }
 
@@ -161,15 +163,21 @@ namespace MatrixOS::SYS
 
   void ExitAPP() {
     active_app_info->destructor(active_app);
-    uint32_t app_id = next_app_id;
-    next_app_id = 0;
-    ExecuteAPP(app_id);
+    if (active_app_task != NULL)
+    {
+      UI::CleanUpUIs(); // TODO move this to application implementation vis stuffs like UImanager etc. This way UI framework is decoupled from the OS or application frameworks
+      vTaskDelete(active_app_task);
+      free(active_app);
+      active_app = NULL;
+    }
   }
 
   void ErrorHandler(string error) {
-    // Bootloader();
     if (error.empty())
+    {
       error = "Undefined Error";
+    }
+
     MLOGE("System", "Matrix OS Error: %s", error.c_str());
 
     // Show Blue Screen
