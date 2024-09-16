@@ -13,6 +13,8 @@
 
 class UI {
  public:
+  // TODO find better container for this
+
   string name;
   Color nameColor;
   int8_t status = 0;
@@ -31,17 +33,15 @@ class UI {
   std::function<void()>* end_func = nullptr;
   std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
 
-  std::vector<pair<Point, UIComponent*>> uiComponents;
-
+  std::list<pair<Point, UIComponent*>> uiComponents;
   int8_t prev_layer = -1;
   int8_t current_layer = -1;
 
-  #define CROSSFADE_DURATION 200
-  uint32_t crossfade_start_time = 0; // 0 means start crossfade next, UINT32_MAX means crossfade ended
-
-  UI(){};
+  UI() {};
   UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
-  ~UI();
+  virtual ~UI();
+
+  static void CleanUpUIs();
 
   void Start();
 
@@ -100,4 +100,8 @@ class UI {
   void UIEnd();
   void UIKeyEvent(KeyEvent* keyEvent);
   void PostCallbackCleanUp();
+
+  static std::vector<UI*> uiList;
+  static void RegisterUI(UI* ui);
+  static void UnregisterUI(UI* ui);
 };

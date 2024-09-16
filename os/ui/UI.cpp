@@ -1,13 +1,17 @@
 #include "UI.h"
 
+std::vector<UI*> UI::uiList;
+
 UI::UI(string name, Color color, bool newLedLayer) {
   this->name = name;
   this->nameColor = color;
   this->newLedLayer = newLedLayer;
+
+  UI::RegisterUI(this);
 }
 
 UI::~UI() {
-  UIEnd();
+  UI::UnregisterUI(this);
 }
 
 // TODO, make new led layer
@@ -159,6 +163,8 @@ void UI::ClearUIComponents() {
 
 void UI::UIEnd() {
   // Check if UI is already exited
+  if(status == INT8_MIN) { return; }
+
   End();
   MLOGD("UI", "UI %s Exited", name.c_str());
 
@@ -171,6 +177,8 @@ void UI::UIEnd() {
   {
     MatrixOS::LED::Fade();
   }
+
+  status = INT8_MIN;
 }
 
 void UI::SetFPS(uint16_t fps)
@@ -183,4 +191,26 @@ void UI::SetFPS(uint16_t fps)
   {
     uiUpdateMS = 1000 / fps;
   }
+}
+
+void UI::RegisterUI(UI* ui) {
+  MLOGD("UI", "Register UI %s", ui->name.c_str());
+  UI::uiList.push_back(ui);
+}
+
+void UI::UnregisterUI(UI* ui) {
+  MLOGD("UI", "Unregister UI %s", ui->name.c_str());
+  auto it = std::find(UI::uiList.begin(), UI::uiList.end(), ui);
+  if (it != UI::uiList.end()) {
+    (*it)->ClearUIComponents();
+    UI::uiList.erase(it);
+  }
+}
+
+void UI::CleanUpUIs() {
+  for (auto it = UI::uiList.rbegin(); it != UI::uiList.rend(); ++it)
+  {
+      (*it)->ClearUIComponents();
+  }
+  UI::uiList.clear();
 }
