@@ -1,6 +1,7 @@
 #include "Note.h"
 #include "OctaveShifter.h"
 #include "ScaleVisualizer.h"
+#include "UnderglowLight.h"
 
 #include "applications/BrightnessControl/BrightnessControl.h"
 
@@ -169,17 +170,21 @@ void Note::PlayView() {
   UI playView("Note Play View", notePadConfigs[activeConfig].color, false);
 
   Dimension padSize;
+  Dimension underglowSize;
 
   switch (splitView)
   {
     case SINGLE_VIEW:
       padSize = Dimension(8, 8);
+      underglowSize = Dimension(10, 10);
       break;
     case VERT_SPLIT:
       padSize = Dimension(4, 8);
+      underglowSize = Dimension(5, 10);
       break;
     case HORIZ_SPLIT:
       padSize = Dimension(8, 4);
+      underglowSize = Dimension(10, 5);
       break;
   }
   
@@ -187,9 +192,22 @@ void Note::PlayView() {
   NotePad notePad1(padSize, &notePadConfigs[!splitView && activeConfig.Get() == 1]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
+
+  UnderglowLight underglow1(underglowSize, notePadConfigs[!splitView && activeConfig.Get() == 1].color);
+  playView.AddUIComponent(underglow1, Point(-1, -1));
+
   NotePad notePad2(padSize, &notePadConfigs[1]);
-  if (splitView == VERT_SPLIT) { playView.AddUIComponent(notePad2, Point(4, 0)); }
-  else if (splitView == HORIZ_SPLIT) { playView.AddUIComponent(notePad2, Point(0, 4)); }
+  UnderglowLight underglow2(underglowSize, notePadConfigs[1].color);
+  
+  if (splitView == VERT_SPLIT) { 
+    playView.AddUIComponent(notePad2, Point(4, 0)); 
+    playView.AddUIComponent(underglow2, Point(4, -1));
+  }
+  else if (
+    splitView == HORIZ_SPLIT) { 
+    playView.AddUIComponent(notePad2, Point(0, 4)); 
+    playView.AddUIComponent(underglow2, Point(-1, 4));
+  }
 
   playView.Start();
 }
