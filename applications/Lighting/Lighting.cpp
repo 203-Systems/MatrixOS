@@ -234,11 +234,7 @@ void Lighting::Settings() {
     }
     return false;  // Nothing happened. Let the UI handle the key event
   });
-
-  settingsUI.SetLoopFunc([&]() -> void {
-    Update();
-  });
-
+  
   // The UI object is now fully set up. Let the UI runtime to start and take over.
   settingsUI.Start();
 
