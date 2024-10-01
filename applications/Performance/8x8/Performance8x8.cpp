@@ -506,8 +506,9 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   // MLOGD("Performance", "Key Event");
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
-    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, 121, 0));  // For Apollo Clearing
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, 121, 127)); 
     ActionMenu();
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, 0, 121, 0));  // For Apollo Clearing
   }
 }
 
