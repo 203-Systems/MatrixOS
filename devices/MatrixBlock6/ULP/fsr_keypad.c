@@ -21,18 +21,6 @@ volatile gpio_num_t keypad_write_pins[X_SIZE] =
   GPIO_NUM_15
 };
 
-volatile gpio_num_t keypad_read_pins[Y_SIZE] = 
-{
-  GPIO_NUM_2,
-  GPIO_NUM_3,
-  GPIO_NUM_4,
-  GPIO_NUM_5,
-  GPIO_NUM_7,
-  GPIO_NUM_8,
-  GPIO_NUM_9,
-  GPIO_NUM_10
-};
-
 volatile adc_channel_t keypad_read_adc_channel[Y_SIZE] = 
 {
     ADC_CHANNEL_1,
@@ -66,11 +54,6 @@ int main(void)
     }
   }
 
-  for (uint8_t y = 0; y < Y_SIZE; y++)
-  {
-    ulp_riscv_gpio_init(keypad_read_pins[y]);
-    ulp_riscv_gpio_pullup(keypad_read_pins[y]);
-  }
   while(true)
   {
     for (uint8_t x = 0; x < X_SIZE; x++)
@@ -78,12 +61,10 @@ int main(void)
       ulp_riscv_gpio_output_level(keypad_write_pins[x], 1);
       for (uint8_t y = 0; y < Y_SIZE; y++)
       {
-        uint16_t reading_1 = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
-        uint16_t reading_2 = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
-        reading_1 = (reading_1 << 4) + (reading_1 >> 8); 
-        reading_2 = (reading_2 << 4) + (reading_2 >> 8);
+        uint16_t reading = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
+        reading = (reading << 4) + (reading >> 8); 
 
-        result[x][y] = (result[x][y] * (IIF_LENGTH - 2) + reading_1 + reading_2) / IIF_LENGTH;
+        result[x][y] = (result[x][y] * (IIF_LENGTH - 1) + reading) / IIF_LENGTH;
       }
       ulp_riscv_gpio_output_level(keypad_write_pins[x], 0);
     }
