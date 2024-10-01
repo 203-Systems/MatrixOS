@@ -52,11 +52,11 @@ void Gamepad::Setup() {
     UIGamepadAxis R2pad(Color(0x00FFFF), GAMEPAD_AXIS_RIGHT_TRIGGER, 127);
     gamepadUI.AddUIComponent(R2pad, Point(6, 3));
 
-    UIGamepadKey Startkey(Color(0x0000FF), GAMEPAD_START);
-    gamepadUI.AddUIComponent(Startkey, Point(3, 7));
-
     UIGamepadKey Selectkey(Color(0x0000FF), GAMEPAD_SELECT);
-    gamepadUI.AddUIComponent(Selectkey, Point(4, 7));    
+    gamepadUI.AddUIComponent(Selectkey, Point(3, 7));    
+
+    UIGamepadKey Startkey(Color(0x0000FF), GAMEPAD_START);
+    gamepadUI.AddUIComponent(Startkey, Point(4, 7));
     
     gamepadUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
     if (keyEvent->id == FUNCTION_KEY)
