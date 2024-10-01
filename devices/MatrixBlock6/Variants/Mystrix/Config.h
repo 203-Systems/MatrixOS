@@ -84,10 +84,10 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .apply_curve = true,
-        .low_threshold = 1024,
+        .low_threshold = 1536,
         .high_threshold = 32767,
         .activation_offset = 256,
-        .debounce = 3,
+        .debounce = 10,
     };
 
     inline gpio_num_t keypad_write_pins[8];
