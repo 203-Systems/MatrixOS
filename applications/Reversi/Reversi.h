@@ -14,7 +14,7 @@ class Reversi : public Application {
     Moving,
     Intermission,
     WinnerUnveil,
-    Done
+    Ended
   };
 
   struct boardInfo {

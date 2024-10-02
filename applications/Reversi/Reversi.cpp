@@ -22,7 +22,7 @@ void Reversi::Place(Point pos)
   {
     return;
   }
-  
+
   if(gameState != Waiting)
   {
     return;
@@ -245,17 +245,18 @@ void Reversi::Render()
             done = false;
             MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
           }
-          else if(timeSinceEvent - 1000 > startTime)
+          else if(timeSinceEvent >= (startTime + 1000))
           {
             MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(winner));
           }
-          else if(timeSinceEvent - 700 > startTime)
+          else if(timeSinceEvent >= (startTime + 700))
           {
             done = false;
+            
             Fract16 ratio = (timeSinceEvent - 700 - startTime) * FRACT16_MAX / 300;
             MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(Color(0), GetPlayerColor(winner), ratio));
           }
-          else if(timeSinceEvent - 300 > startTime)
+          else if(timeSinceEvent >= (startTime + 300))
           {
             done = false;
             MatrixOS::LED::SetColor(Point(x, y), Color(0));
@@ -267,15 +268,19 @@ void Reversi::Render()
             MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].player), Color(0), ratio));
           }
         }
+        else
+        {
+          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
+        }
       }
     }
 
     if(done)
     {
-      gameState = Done;
+      gameState = Ended;
     }
   }
-  else if(gameState == Done)
+  else if(gameState == Ended)
   {
     MatrixOS::LED::Fill(ColorEffects::ColorBreath(GetPlayerColor(winner), 2000, lastEventTime - 500));
   }
@@ -322,9 +327,38 @@ uint8_t Reversi::CheckGameOver()
 
 bool Reversi::ResetGame(bool confirmed)
 {
-  if(!confirmed)
+  if(!confirmed && winner == 0)
   {
-    // Confirm UI, return false if canceled
+    bool cancel = true;
+
+    UI confirmUI("Reset Game", Color(0xFF0000), false);
+
+    UIButton cancelResetBtn;
+    cancelResetBtn.SetName("Cancel");
+    cancelResetBtn.SetColor(Color(0xFF0000));
+    cancelResetBtn.SetSize(Dimension(2, 2));
+    cancelResetBtn.OnPress([&]() -> void {
+      cancel = true;
+      confirmUI.Exit();
+    });
+    confirmUI.AddUIComponent(cancelResetBtn, Point(1, 3));
+
+    UIButton confirmResetBtn;
+    confirmResetBtn.SetName("Confirm");
+    confirmResetBtn.SetColor(Color(0x00FF00));
+    confirmResetBtn.SetSize(Dimension(2, 2));
+    confirmResetBtn.OnPress([&]() -> void {
+      cancel = false;
+      confirmUI.Exit();
+    });
+    confirmUI.AddUIComponent(confirmResetBtn, Point(5, 3));
+
+    confirmUI.Start();
+
+    if(cancel)
+    {
+      return false;
+    }
   }
   
   for(uint8_t y = 0; y < 8; y++)
@@ -473,6 +507,27 @@ void Reversi::Settings() {
     resetGameBtn.SetSize(Dimension(1, 2));
     settingsUI.AddUIComponent(resetGameBtn, Point(0, 3));
     settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
+
+
+    // UIButton testBtn;
+    // testBtn.SetName("Test");
+    // testBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00); });
+    // testBtn.OnPress([&]() -> void {
+    //   uint64_t seed = MatrixOS::SYS::Millis() * (uint32_t)this;
+    //   seed ^= seed << 13;
+    //   seed ^= seed >> 7;
+    //   seed ^= seed << 17;
+    //     for(uint8_t x = 0; x < 8; x++)
+    //     {
+    //       for (uint8_t y = 0; y < 8; y++)
+    //       {
+    //         uint8_t id = y * 8 + x;
+    //         board[y][x].player = (seed >> id & 1) + 1;
+    //       }
+    //     }
+    //     board[3][3].player = 0;
+    // });
+    // settingsUI.AddUIComponent(testBtn, Point(1, 3));
 
   
   // Second, set the key event handler to match the intended behavior
