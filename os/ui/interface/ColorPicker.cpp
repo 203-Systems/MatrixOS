@@ -54,7 +54,7 @@ class UIShadeSelector : public UIComponent {
   float vStep;
   std::function<void(Color)> callback;
 
-  UIShadeSelector(Dimension dimension, float* hue, std::function<void(Color)> callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX, Fract16 vBegin = 0,
+  UIShadeSelector(Dimension dimension, float* hue, std::function<void(Color)> callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX, Fract16 vBegin = 4096,
                   Fract16 vEnd = FRACT16_MAX) {
     this->dimension = dimension;
     this->hue = hue;
