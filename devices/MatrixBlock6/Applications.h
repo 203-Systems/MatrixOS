@@ -14,6 +14,7 @@
 // #include "applications/USBtest/USBtest.h"
 // #include "applications/Example/Example.h"
 #include "applications/Companion/Companion.h"
+#include "applications/Reversi/Reversi.h"
 
 // // BOOT ANIMATION
 #include "applications/Mystrix/MystrixBoot/MystrixBoot.h"
