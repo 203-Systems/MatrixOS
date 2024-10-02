@@ -94,6 +94,7 @@ namespace MatrixOS::LED
     }
 
     CreateLayer(0); //Create Layer 0 - The active layer
+    CreateLayer(0); //Create Layer 1 - The base layer
 
     if(!led_tm)
     {

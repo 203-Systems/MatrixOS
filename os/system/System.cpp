@@ -47,6 +47,7 @@ namespace MatrixOS::SYS
 
     next_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
     InitSysModules();
+    MatrixOS::LED::Fade();
     active_app->Start();
   }
 
@@ -162,6 +163,15 @@ namespace MatrixOS::SYS
   }
 
   void ExitAPP() {
+    if(MatrixOS::UserVar::ui_animation)
+    {
+      MatrixOS::LED::Fade();
+      MatrixOS::LED::Fill(0, 0);
+      // Add a delay so it fade to black
+      // This give the user a better sense that they just exited an APP
+      MatrixOS::SYS::DelayMs(crossfade_duration);
+    }
+
     active_app_info->destructor(active_app);
     if (active_app_task != NULL)
     {
