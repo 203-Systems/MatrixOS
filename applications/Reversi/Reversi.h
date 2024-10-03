@@ -11,6 +11,7 @@ class Reversi : public Application {
  public:
   enum GameState {
     Waiting,
+    NoValidMoves,
     Moving,
     Intermission,
     WinnerUnveil,
@@ -21,6 +22,7 @@ class Reversi : public Application {
     uint8_t player : 2; // 0 = empty, 1 = player 1, 2 = player 2
     uint8_t wasPlayer : 2; // 0 = empty, 1 = player 1, 2 = player 2
     uint8_t newlyPlaced : 1; // 0 = no, 1 = yes
+    uint8_t validMove : 1; // 0 = no, 1 = yes
   };
 
   Timer renderTimer;
@@ -48,7 +50,7 @@ class Reversi : public Application {
 
   void Settings();
 
-  bool IsValidMove(uint8_t player, Point pos);
+  uint8_t Flip(Point pos, uint8_t currentPlayer, bool update);
   bool ResetGame(bool confirmed);
   uint8_t CheckGameOver(); // 0 = not over, 1 = player 1 win, 2 = player 2 win, 3 = draw
 
@@ -63,8 +65,9 @@ inline Application_Info Reversi::info = {
     .name = "Reversi",
     .author = "203 Systems",
     .color = Color(0x008F00),
-    .version = 2,
+    .version = 1,
     .visibility = true,
 };
+
 
 REGISTER_APPLICATION(Reversi);

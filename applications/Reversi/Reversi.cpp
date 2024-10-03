@@ -16,41 +16,10 @@ void Reversi::Loop()
   }
 }
 
-void Reversi::Place(Point pos)
+uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
 {
-  if(pos.x < 0 || pos.x >= 8 || pos.y < 0 || pos.y >= 8)
-  {
-    return;
-  }
-
-  if(gameState != Waiting)
-  {
-    return;
-  }
-
-  if(board[pos.y][pos.x].player != 0)
-  {
-    return;
-  }
-
-  // Update board
-  for(uint8_t y = 0; y < 8; y++)
-  {
-    for(uint8_t x = 0; x < 8; x++)
-    {
-      // Copy player to wasPlayer
-      board[y][x].wasPlayer = board[y][x].player;
-      board[y][x].newlyPlaced = false;
-
-    }
-  }
-
-  board[pos.y][pos.x].newlyPlaced = true;
-  board[pos.y][pos.x].player = currentPlayer;
-  placedPos = pos;
-
-
   uint8_t opponentPlayer = currentPlayer == 1 ? 2 : 1;
+  uint8_t flipped = 0;
 
     // Check all 8 directions
     for(int8_t dy = -1; dy <= 1; dy++)
@@ -98,7 +67,11 @@ void Reversi::Place(Point pos)
                         int flipX = pos.x + dx;
                         while(flipY != checkY || flipX != checkX)
                         {
-                            board[flipY][flipX].player = currentPlayer;
+                            if(update) 
+                            {
+                              board[flipY][flipX].player = currentPlayer;
+                            }
+                            flipped++;
                             flipY += dy;
                             flipX += dx;
                         }
@@ -114,6 +87,43 @@ void Reversi::Place(Point pos)
             }
         }
     }
+    return flipped;
+}
+
+
+void Reversi::Place(Point pos)
+{
+  if(pos.x < 0 || pos.x >= 8 || pos.y < 0 || pos.y >= 8)
+  {
+    return;
+  }
+
+  if(gameState != Waiting)
+  {
+    return;
+  }
+
+  if(board[pos.y][pos.x].validMove == 0)
+  {
+    return;
+  }
+  
+  // Update board
+  for(uint8_t y = 0; y < 8; y++)
+  {
+    for(uint8_t x = 0; x < 8; x++)
+    {
+      // Copy player to wasPlayer
+      board[y][x].wasPlayer = board[y][x].player;
+      board[y][x].newlyPlaced = false;
+    }
+  }
+
+  board[pos.y][pos.x].newlyPlaced = true;
+  board[pos.y][pos.x].player = currentPlayer;
+  placedPos = pos;
+
+  Flip(pos, currentPlayer, true);
   
   gameState = Moving;
   lastEventTime = MatrixOS::SYS::Millis();
@@ -129,7 +139,24 @@ void Reversi::Render()
     {
       for(uint8_t x = 0; x < 8; x++)
       {
-        MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
+        if(board[y][x].validMove)
+        {
+          uint8_t ratio;
+          if(timeSinceEvent <= 200)
+          {
+            ratio = timeSinceEvent * 255 / 200;
+          }
+          else
+          {
+            ratio = 255;
+          }
+
+          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(currentPlayer).Dim().Dim(ratio));
+        }
+        else
+        {
+          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
+        }
       }
     }
     MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorBreath(GetPlayerColor(currentPlayer), 2000, lastEventTime - 500));
@@ -175,6 +202,20 @@ void Reversi::Render()
 
           MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].wasPlayer), GetPlayerColor(currentPlayer), ratio));
         }
+        else if(board[y][x].validMove)
+        {
+          uint8_t ratio;
+          if(timeSinceEvent <= 200)
+          {
+            ratio = 255 - (timeSinceEvent * 255 / 200);
+          }
+          else
+          {
+            ratio = 0;
+          }
+
+          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(currentPlayer).Dim().Dim(ratio));
+        }
         else
         {
           MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
@@ -186,9 +227,31 @@ void Reversi::Render()
 
     if(done && timeSinceEvent >= 250)
     {
+      winner = 255;
       gameState = Intermission;
       lastEventTime = MatrixOS::SYS::Millis();
+    }
+  }
+  else if(gameState == NoValidMoves)
+  {
+    for(uint8_t y = 0; y < 8; y++)
+    {
+      for(uint8_t x = 0; x < 8; x++)
+      {
+        if(board[y][x].player == 0)
+        {
+          MatrixOS::LED::SetColor(Point(x, y), ColorEffects::ColorStrobe(Color(0xFF0000).Dim(), 500, lastEventTime));
+        }
+      }
+    }
+
+    MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorStrobe(GetPlayerColor(currentPlayer), 500, lastEventTime));
+
+    if(timeSinceEvent >= 2000)
+    {
       winner = 255;
+      gameState = Intermission;
+      lastEventTime = MatrixOS::SYS::Millis();
     }
   }
   else if(gameState == Intermission)
@@ -206,7 +269,7 @@ void Reversi::Render()
     else
     { ratio = FRACT16_MAX; }
 
-    if(winner != 0)
+    if(winner != 0 && winner != 254)
     {
       MatrixOS::LED::FillPartition("Underglow", Color::Crossfade(GetPlayerColor(currentPlayer), GetPlayerColor(winner), ratio));
     }
@@ -220,6 +283,11 @@ void Reversi::Render()
       if(winner == 0)
       {
         gameState = Waiting;
+        currentPlayer = nextPlayer;
+      }
+      else if(winner == 254)
+      {
+        gameState = NoValidMoves;
         currentPlayer = nextPlayer;
       }
       else
@@ -290,6 +358,63 @@ void Reversi::Render()
 
 uint8_t Reversi::CheckGameOver()
 {
+  uint8_t oppoentPlayer = currentPlayer == 1 ? 2 : 1;
+  bool forceWinner = false;
+
+  // Check if there are any valid moves
+  bool validMove = false;
+
+  for(uint8_t y = 0; y < 8; y++)
+  {
+    for(uint8_t x = 0; x < 8; x++)
+    {
+      if(board[y][x].player == 0)
+      {
+        if(Flip(Point(x, y), oppoentPlayer, false))
+        {
+          board[y][x].validMove = 1;
+          validMove = true;
+        }
+        else
+        {
+          board[y][x].validMove = 0;
+        }
+      }
+      else
+      {
+        board[y][x].validMove = 0;
+      }
+    }
+  }
+
+  if(!validMove) // Check the current player has valid move
+  {
+    validMove = false;
+    for(uint8_t y = 0; y < 8; y++)
+    {
+      for(uint8_t x = 0; x < 8; x++)
+      {
+        if(board[y][x].player == 0)
+        {
+          if(Flip(Point(x, y), currentPlayer, false))
+          {
+            validMove = true;
+          }
+        }
+      }
+    }
+
+    if(!validMove)
+    {
+      forceWinner = true;
+    }
+    else
+    {
+      return 254; // No valid moves
+    }
+  }
+
+
   uint8_t player1Count = 0;
   uint8_t player2Count = 0;
   for(uint8_t y = 0; y < 8; y++)
@@ -371,20 +496,28 @@ bool Reversi::ResetGame(bool confirmed)
     }
   }
 
-  board[3][3].player = 1;
-  board[3][3].wasPlayer = 1;
-  board[4][4].player = 1;
-  board[4][4].wasPlayer = 1;
-  board[3][4].player = 2;
-  board[3][4].wasPlayer = 2;
-  board[4][3].player = 2;
-  board[4][3].wasPlayer = 2;
+  uint8_t secondPlayer = firstPlayer == 1 ? 2 : 1;
+
+  board[3][3].player = firstPlayer;
+  board[3][3].wasPlayer = firstPlayer;
+  board[4][4].player = firstPlayer;
+  board[4][4].wasPlayer = firstPlayer;
+
+  board[3][4].player = secondPlayer;
+  board[3][4].wasPlayer = secondPlayer;
+  board[4][3].player = secondPlayer;
+  board[4][3].wasPlayer = secondPlayer;
+
+  board[2][4].validMove = 1;
+  board[3][5].validMove = 1;
+  board[4][2].validMove = 1;
+  board[5][3].validMove = 1;
 
   currentPlayer = firstPlayer;
   gameState = Waiting;
   winner = 0;
 
-  lastEventTime = MatrixOS::SYS::Millis() + 500; // Compensate for underglow
+  lastEventTime = MatrixOS::SYS::Millis();
 
   return true;
 }
