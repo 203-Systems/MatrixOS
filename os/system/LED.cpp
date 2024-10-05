@@ -144,7 +144,7 @@ namespace MatrixOS::LED
         return;
       }
     }
-    MLOGW("LED", "Partition Not Found");
+    MLOGV("LED", "Partition Not Found");
   }
 
   void SetColor(Point xy, Color color, uint8_t layer) {
@@ -251,7 +251,7 @@ namespace MatrixOS::LED
     if (end == 0)
     {
       xTaskResumeAll();
-      MLOGW("LED", "Partition Not Found");
+      MLOGV("LED", "Partition Not Found");
       return;
     }
 
