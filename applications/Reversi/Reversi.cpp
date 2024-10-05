@@ -111,6 +111,8 @@ void Reversi::Place(Point pos)
   }
 
   invalidPlace = Point::Invalid();
+
+  started = true;
   
   // Update board
   for(uint8_t y = 0; y < 8; y++)
@@ -173,7 +175,7 @@ void Reversi::Render()
       }
       else
       {
-        MatrixOS::LED::SetColor(invalidPlace, Color(0xFF0000).Dim(255 - ((timeSinceInvalidPlace - 500) * 255 / 300)));
+        MatrixOS::LED::SetColor(invalidPlace, Color::Crossfade(Color(0xFF0000), GetPlayerColor(board[invalidPlace.y][invalidPlace.x].player), 255 - ((timeSinceInvalidPlace - 500) * 255 / 300)));
       }
     }
     MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorBreath(GetPlayerColor(currentPlayer), 2000, lastEventTime - 500));
@@ -467,40 +469,41 @@ uint8_t Reversi::CheckGameOver()
   }
 }
 
+bool Reversi::ConfirmMenu()
+{
+  bool confirmed = false;
+  UI confirmUI("Reset Game?", Color(0xFF0000), false);
+
+  UIButton cancelResetBtn;
+  cancelResetBtn.SetName("Cancel");
+  cancelResetBtn.SetColor(Color(0xFF0000));
+  cancelResetBtn.SetSize(Dimension(2, 2));
+  cancelResetBtn.OnPress([&]() -> void {
+    confirmed = false;
+    confirmUI.Exit();
+  });
+  confirmUI.AddUIComponent(cancelResetBtn, Point(1, 3));
+
+  UIButton confirmResetBtn;
+  confirmResetBtn.SetName("Confirm");
+  confirmResetBtn.SetColor(Color(0x00FF00));
+  confirmResetBtn.SetSize(Dimension(2, 2));
+  confirmResetBtn.OnPress([&]() -> void {
+    confirmed = true;
+    confirmUI.Exit();
+  });
+  confirmUI.AddUIComponent(confirmResetBtn, Point(5, 3));
+
+  confirmUI.Start();
+
+  return confirmed;
+}
+
 bool Reversi::ResetGame(bool confirmed)
 {
-  if(!confirmed && winner == 0)
+  if(!(gameState == Ended || !started) && (!confirmed && !ConfirmMenu()))
   {
-    bool cancel = true;
-
-    UI confirmUI("Reset Game", Color(0xFF0000), false);
-
-    UIButton cancelResetBtn;
-    cancelResetBtn.SetName("Cancel");
-    cancelResetBtn.SetColor(Color(0xFF0000));
-    cancelResetBtn.SetSize(Dimension(2, 2));
-    cancelResetBtn.OnPress([&]() -> void {
-      cancel = true;
-      confirmUI.Exit();
-    });
-    confirmUI.AddUIComponent(cancelResetBtn, Point(1, 3));
-
-    UIButton confirmResetBtn;
-    confirmResetBtn.SetName("Confirm");
-    confirmResetBtn.SetColor(Color(0x00FF00));
-    confirmResetBtn.SetSize(Dimension(2, 2));
-    confirmResetBtn.OnPress([&]() -> void {
-      cancel = false;
-      confirmUI.Exit();
-    });
-    confirmUI.AddUIComponent(confirmResetBtn, Point(5, 3));
-
-    confirmUI.Start();
-
-    if(cancel)
-    {
       return false;
-    }
   }
   
   for(uint8_t y = 0; y < 8; y++)
@@ -512,6 +515,8 @@ bool Reversi::ResetGame(bool confirmed)
       board[y][x].wasPlayer = 0;
     }
   }
+
+  firstPlayer.Load(); // For some reason, the firstPlayer is not auto loaded correctly
 
   uint8_t secondPlayer = firstPlayer == 1 ? 2 : 1;
 
@@ -533,6 +538,7 @@ bool Reversi::ResetGame(bool confirmed)
   currentPlayer = firstPlayer;
   gameState = Waiting;
   winner = 0;
+  started = false;
 
   lastEventTime = MatrixOS::SYS::Millis();
 
@@ -639,13 +645,13 @@ void Reversi::Settings() {
     UIButton player1FirstHand;
     player1FirstHand.SetName("Player 1 First Hand");
     player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 1); });
-    player1FirstHand.OnPress([&]() -> void { firstPlayer = 1; });
+    player1FirstHand.OnPress([&]() -> void { if(firstPlayer == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
     settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
     UIButton player2FirstHand;
     player2FirstHand.SetName("Player 2 First Hand");
     player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 2); });
-    player2FirstHand.OnPress([&]() -> void { firstPlayer = 2; });
+    player2FirstHand.OnPress([&]() -> void { if(firstPlayer == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
     settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
     UIToggle hintToggle;

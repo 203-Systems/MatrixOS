@@ -38,6 +38,8 @@ class Reversi : public Application {
   Point invalidPlace;
   uint32_t invalidPlaceTime;
 
+  bool started;
+
   Point placedPos;
 
   // Used in Done state
@@ -54,6 +56,7 @@ class Reversi : public Application {
   void Settings();
 
   uint8_t Flip(Point pos, uint8_t currentPlayer, bool update);
+  bool ConfirmMenu();
   bool ResetGame(bool confirmed);
   uint8_t CheckGameOver(); // 0 = not over, 1 = player 1 win, 2 = player 2 win, 3 = draw
 
