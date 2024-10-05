@@ -93,6 +93,8 @@ uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
 
 void Reversi::Place(Point pos)
 {
+  invalidPlace = pos;
+  invalidPlaceTime = MatrixOS::SYS::Millis();
   if(pos.x < 0 || pos.x >= 8 || pos.y < 0 || pos.y >= 8)
   {
     return;
@@ -107,6 +109,8 @@ void Reversi::Place(Point pos)
   {
     return;
   }
+
+  invalidPlace = Point::Invalid();
   
   // Update board
   for(uint8_t y = 0; y < 8; y++)
@@ -139,7 +143,7 @@ void Reversi::Render()
     {
       for(uint8_t x = 0; x < 8; x++)
       {
-        if(board[y][x].validMove)
+        if(board[y][x].validMove && hint)
         {
           uint8_t ratio;
           if(timeSinceEvent <= 200)
@@ -157,6 +161,19 @@ void Reversi::Render()
         {
           MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
         }
+      }
+    }
+
+    uint32_t timeSinceInvalidPlace = MatrixOS::SYS::Millis() - invalidPlaceTime;
+    if(invalidPlace && timeSinceInvalidPlace < 800)
+    {
+      if(timeSinceInvalidPlace <= 500)
+      {
+        MatrixOS::LED::SetColor(invalidPlace, Color(0xFF0000));
+      }
+      else
+      {
+        MatrixOS::LED::SetColor(invalidPlace, Color(0xFF0000).Dim(255 - ((timeSinceInvalidPlace - 500) * 255 / 300)));
       }
     }
     MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorBreath(GetPlayerColor(currentPlayer), 2000, lastEventTime - 500));
@@ -202,7 +219,7 @@ void Reversi::Render()
 
           MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].wasPlayer), GetPlayerColor(currentPlayer), ratio));
         }
-        else if(board[y][x].validMove)
+        else if(board[y][x].validMove  && hint)
         {
           uint8_t ratio;
           if(timeSinceEvent <= 200)
@@ -631,6 +648,14 @@ void Reversi::Settings() {
     player2FirstHand.OnPress([&]() -> void { firstPlayer = 2; });
     settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
+    UIToggle hintToggle;
+    hintToggle.SetName("Placement Hint");
+    hintToggle.SetColor(Color(0x00FF00));
+    hintToggle.SetSize(Dimension(1, 2));
+    hintToggle.SetValue(&hint);
+    hintToggle.OnPress([&]() -> void {hint.Save();});
+    settingsUI.AddUIComponent(hintToggle, Point(0, 3));
+
     UIButton resetGameBtn;
     resetGameBtn.SetName("Reset Game");
     resetGameBtn.SetColorFunc([&]() -> Color { return Color(0xFF0000); });
@@ -638,7 +663,6 @@ void Reversi::Settings() {
       if(ResetGame(false)) { settingsUI.Exit(); }
     });
     resetGameBtn.SetSize(Dimension(1, 2));
-    settingsUI.AddUIComponent(resetGameBtn, Point(0, 3));
     settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
 
 

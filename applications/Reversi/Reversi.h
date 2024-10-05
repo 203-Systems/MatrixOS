@@ -35,6 +35,9 @@ class Reversi : public Application {
   uint32_t lastEventTime;
   uint32_t lastSubEventTime;
 
+  Point invalidPlace;
+  uint32_t invalidPlaceTime;
+
   Point placedPos;
 
   // Used in Done state
@@ -59,6 +62,7 @@ class Reversi : public Application {
   CreateSavedVar("Reversi", player1Color, Color, Color(0xFF00FF));
   CreateSavedVar("Reversi", player2Color, Color, Color(0x00FFFF));
   CreateSavedVar("Reversi", firstPlayer, uint8_t, 1);
+  CreateSavedVar("Reversi", hint, bool, true);
 };
 
 inline Application_Info Reversi::info = {
