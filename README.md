@@ -2,42 +2,15 @@
 
 An operating system for human interface devices that is designed to be cross-platform and modular.
 
+## Documentation & User Guide
 
-## Description
-Matrix OS is composited by 4 different layers:
-#### Core Layer
-Handles the basics of the chip. Located at core/
-#### Device Layer
-Drivers and configurations of the target device. Located at devices/
-#### System Layer
-Handles the system and application runtime. Located at os/
-#### Application Layer
-Applications that run on Matrix OS. All user interactions are Matrix OS applications. Located at applications/ 
+See [Project Matrix Wiki](matrix.203.io)
 
 ## Supported Devices
 | Device Name            | Type | Chip     | Supported | Note              | Purchase                                       |
 |------------------------|------|----------|-----------|-------------------|------------------------------------------------|
 | Mystrix & Mystrix Pro  | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/mystrix-pro)   |
 | Mystrix Founder Edition | Grid | STM32F1  | Partially | Not fully stable | [203.io](https://203.io/products/matrix-founder-edition) |
-
-
-## Getting Started
-### User Interface
-   [Matrix OS User Manual](https://github.com/203-Systems/Matrix-OS-User-Manual)
-### Compile and Upload
-   Compile and Upload for Mystrix:
-   Set Mystrix into bootloader mode (Hold the Center key while powering up or going through system settings) and the following
-   ```
-   make DEVICE=Mystrix build uf2-upload
-   ```
-   [Draft Full Setup Guide](https://docs.google.com/document/d/135LQrOv90ddeh9eeDWQ9uNN7ohSIBCHwusqJAIAWjfw/edit?usp=sharing)
-   
-### Make your own Matrix OS applications
-   TODO
-   
-## Help
-
-Any advice for common problems or issues, please post it in the GitHub issues or reach out via [Discord](https://discord.gg/92gXq6F2JH)
 
 ## License
 
