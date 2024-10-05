@@ -114,8 +114,8 @@ void Shell::ApplicationLauncher() {
   appBtns.clear();
   appBtns.reserve(visible_app_count);
 
-  // Iterate though deque 
-  for (uint32_t app_id: application_ids)
+  // Iterate though vector 
+  for (const auto& [order_id, app_id]: application_ids)
   {
     auto application_it = applications.find(app_id);
     if(application_it == applications.end())
@@ -140,7 +140,7 @@ void Shell::ApplicationLauncher() {
       });
 
       applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MLOGD("Shell", "App #%d %s-%s loaded.", appBtns.size() - 1, application->author.c_str(),
+      MLOGD("Shell", "App #%d [%d] %s-%s loaded.", appBtns.size() - 1, order_id, application->author.c_str(),
                                   application->name.c_str());
     }
     else
@@ -163,7 +163,7 @@ void Shell::HiddenApplicationLauncher() {
 
   hiddenAppBtns.clear();
   hiddenAppBtns.reserve(invisible_app_count);
-  for (uint32_t app_id: application_ids)
+    for (const auto& [order_id, app_id]: application_ids)
   {
     auto application_it = applications.find(app_id);
     if(application_it == applications.end())
@@ -187,7 +187,7 @@ void Shell::HiddenApplicationLauncher() {
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
       hiddenApplicationLauncher.AddUIComponent(hiddenAppBtns.back(), Point(x, y));
-      MLOGD("Shell (invisible)", "App #%d %s-%s loaded.", hiddenAppBtns.size() - 1, application->author.c_str(),
+      MLOGD("Shell (invisible)", "App #%d [%d] %s-%s loaded.", hiddenAppBtns.size() - 1, order_id, application->author.c_str(),
                                   application->name.c_str());
     }
     else

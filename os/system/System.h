@@ -5,6 +5,8 @@
 // #pragma message "app index" XSTR(APPLICATION_INDEX)
 // const inline uint16_t app_count = APPLICATION_INDEX;
 
+#include "Applications.h" // This is from device layer
+
 #define SYSTEM_VAR_NAMESPACE "SYSTEM_VAR"
 
 namespace MatrixOS::SYS

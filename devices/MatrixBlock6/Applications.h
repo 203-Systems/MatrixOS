@@ -5,21 +5,21 @@
 #include "applications/Performance/Performance.h"
 #include "applications/Note/Note.h"
 #include "applications/REDACTED/REDACTED.h"
+#include "applications/Companion/Companion.h"
 // #include "applications/CustomKeymap/CustomKeymap.h"
 
-// // USER APPLICATION
+// USER APPLICATION
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
 #include "applications/Gamepad/Gamepad.h"
 // #include "applications/USBtest/USBtest.h"
 // #include "applications/Example/Example.h"
-#include "applications/Companion/Companion.h"
 #include "applications/Reversi/Reversi.h"
 
-// // BOOT ANIMATION
+// BOOT ANIMATION
 #include "applications/Mystrix/MystrixBoot/MystrixBoot.h"
 
-// // DEVICE APPLICATION
+// DEVICE APPLICATION
 #include "applications/Mystrix/FactoryMenu/FactoryMenu.h"
 #include "applications/Mystrix/ForceCalibration/ForceCalibration.h"
 

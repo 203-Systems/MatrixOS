@@ -37,11 +37,11 @@ class Application {
 inline std::unordered_map<uint32_t, Application_Info*> applications;
 
 // Store all the application id in order of registration - Preserves order and is optimal for iteration
-inline std::vector<uint32_t> application_ids;
+inline std::map<uint32_t, uint32_t> application_ids;
 
-#define REGISTER_APPLICATION(APPLICATION_CLASS)                                                    \
-  __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) { \
-    APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
+template <typename APPLICATION_CLASS>
+static inline void register_application(Application_Info info, uint32_t order) {
+     APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
       return new APPLICATION_CLASS();                                                              \
     };                                                                                             \
     APPLICATION_CLASS::info.destructor = [](Application* app) {                                 \
@@ -53,5 +53,10 @@ inline std::vector<uint32_t> application_ids;
       return; \
     } \
     applications.insert({app_id, &APPLICATION_CLASS::info}); \
-    application_ids.push_back(app_id); \
+    application_ids[order] = app_id; \
+}
+
+#define REGISTER_APPLICATION(APPLICATION_CLASS)                                                    \
+  __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) { \
+    register_application<APPLICATION_CLASS>(APPLICATION_CLASS::info, __COUNTER__);                                    \
   }
