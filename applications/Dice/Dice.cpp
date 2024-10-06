@@ -375,7 +375,7 @@ void Dice::RollDice() {
   {
     faces = dot_faces;
   }
-  else if(mode = Number)
+  else if(mode == Number)
   {
     faces = number_faces;
   }
