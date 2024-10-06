@@ -79,7 +79,7 @@ namespace Device
         .low_threshold = 0,
         .high_threshold = 65535,
         .activation_offset = 0,
-        .debounce = 0,
+        .debounce = 3,
     };
 
     inline KeyConfig keypad_config = {
