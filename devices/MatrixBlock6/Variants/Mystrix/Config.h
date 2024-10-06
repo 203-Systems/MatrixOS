@@ -53,9 +53,10 @@ namespace Device
   inline uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
   inline uint16_t led_count = 64 + 32;
-  inline uint8_t led_brightness_level[8] = {8, 12, 24, 40, 64, 90, 120, 142};
+  inline uint8_t led_brightness_level[8] = {8, 22, 39, 60, 84, 110, 138, 169};
   #define FINE_LED_BRIGHTNESS
-  inline uint8_t led_brightness_fine_level[16] = {4, 8, 14, 20, 28, 38, 50, 64, 80, 98, 120, 142, 168, 198, 232, 255};
+  inline uint8_t led_brightness_fine_level[16] = {8, 16, 26, 38, 50, 64, 80, 96, 112, 130, 149, 169, 189, 209, 232, 255};
+
   inline vector<LEDPartition> led_partitions = {
       {"Grid", 1.0, 0, 64},
       {"Underglow", 4.0, 64, 32},
