@@ -1,135 +1,231 @@
 #include "WS2812.h"
-#include <algorithm>
-// #include "MatrixOS.h"
 
 namespace WS2812
 {
-  // static const char *TAG = "WS2812";
-
-  rmt_item32_t* rmtBuffer;
-  // bool transmit_in_progress = false;
   uint16_t numsOfLED;
 
-  rmt_channel_t rmt_channel;
+  rmt_channel_handle_t rmt_channel = NULL;
+  rmt_encoder_handle_t rmt_encoder = NULL;
 
-  static uint32_t ws2812_t0h_ticks = 0;
-  static uint32_t ws2812_t1h_ticks = 0;
-  static uint32_t ws2812_t0l_ticks = 0;
-  static uint32_t ws2812_t1l_ticks = 0;
-  static uint32_t ws2812_reset_ticks = 0;
+  #define RMT_LED_STRIP_RESOLUTION_HZ 10000000
 
-  std::vector<uint8_t> brightness;
   std::vector<LEDPartition>* led_partitions;
 
-  void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, std::vector<LEDPartition>& led_partitions) {
-    rmt_config_t config = RMT_DEFAULT_CONFIG_TX(gpio_tx, rmt_channel);
-    // set counter clock to 40MHz
-    config.clk_div = 2;
-    config.mem_block_num = 3;
+  uint8_t* dither_error;
+  uint8_t* led_data;
 
-    ESP_ERROR_CHECK(rmt_config(&config));
-    ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, ESP_INTR_FLAG_IRAM));
+  typedef struct {
+    rmt_encoder_t base;
+    rmt_encoder_t* bytes_encoder;
+    rmt_encoder_t* copy_encoder;
+    int state;
+    rmt_symbol_word_t reset_code;
+  } rmt_led_encoder_t;
 
-    WS2812::rmt_channel = rmt_channel;
+  rmt_led_encoder_t led_encoder;
+
+  rmt_transmit_config_t rmt_config = {
+      .loop_count = 0,  // no transfer loop
+      .flags =
+          {
+              .eot_level = 0,
+              .queue_nonblocking = 0,
+          },
+  };
+
+  IRAM_ATTR static size_t rmt_encode_led(rmt_encoder_t *rmt_encoder, rmt_channel_handle_t channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state) {
+    rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
+    rmt_encoder_handle_t bytes_encoder = led_encoder->bytes_encoder;
+    rmt_encoder_handle_t copy_encoder = led_encoder->copy_encoder;
+    rmt_encode_state_t session_state = RMT_ENCODING_RESET;
+    rmt_encode_state_t state = RMT_ENCODING_RESET;
+
+    size_t encoded_symbols = 0;
+
+    switch (led_encoder->state)
+    {
+      case 0:  // send RGB data
+        encoded_symbols += bytes_encoder->encode(bytes_encoder, channel, primary_data, data_size, &session_state);
+
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
+          led_encoder->state = 1;  // switch to next state when current encoding session finished
+        }
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
+          state = (rmt_encode_state_t)(state | (uint32_t)RMT_ENCODING_MEM_FULL);
+          goto out;  // yield if there's no free space for encoding artifacts
+        }
+      // fall-through
+      case 1:  // send reset code
+        encoded_symbols += copy_encoder->encode(copy_encoder, channel, &led_encoder->reset_code, sizeof(led_encoder->reset_code), &session_state);
+
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
+          led_encoder->state = RMT_ENCODING_RESET;  // back to the initial encoding session
+          state = (rmt_encode_state_t)(state | (uint32_t)RMT_ENCODING_COMPLETE);
+        }
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
+          state = (rmt_encode_state_t)(state | (uint32_t)RMT_ENCODING_MEM_FULL);
+          goto out;  // yield if there's no free space for encoding artifacts
+        }
+    }
+  out:
+    *ret_state = state;
+    return encoded_symbols;
+  }
+
+  static esp_err_t rmt_del_led_encoder(rmt_encoder_t *rmt_encoder) {
+    rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
+    rmt_del_encoder(led_encoder->bytes_encoder);
+    rmt_del_encoder(led_encoder->copy_encoder);
+    free(led_encoder);
+    return ESP_OK;
+  }
+
+  static esp_err_t rmt_led_encoder_reset(rmt_encoder_t *rmt_encoder) {
+    rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
+    rmt_encoder_reset(led_encoder->bytes_encoder);
+    rmt_encoder_reset(led_encoder->copy_encoder);
+    led_encoder->state = RMT_ENCODING_RESET;
+    return ESP_OK;
+  }
+
+  esp_err_t rmt_new_led_encoder(rmt_encoder_handle_t *ret_encoder) {
+    led_encoder.base.encode = rmt_encode_led;
+    led_encoder.base.del = rmt_del_led_encoder;
+    led_encoder.base.reset = rmt_led_encoder_reset;
+
+    // different led might have its own timing requirements, following parameter is for WS2812
+    rmt_bytes_encoder_config_t bytes_encoder_config = {
+      .bit0 = { 4, 1, 10, 0 },
+      .bit1 = { 10, 1, 4, 0 },
+      .flags = { .msb_first = 1 }
+    };
+
+    rmt_new_bytes_encoder(&bytes_encoder_config, &led_encoder.bytes_encoder);
+    rmt_copy_encoder_config_t copy_encoder_config = {};
+    rmt_new_copy_encoder(&copy_encoder_config, &led_encoder.copy_encoder);
+    
+    led_encoder.reset_code = (rmt_symbol_word_t) { 2800, 0, 0, 0 };
+
+    *ret_encoder = &led_encoder.base;
+    return ESP_OK;
+  }
+
+  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& led_partitions) {
+
     WS2812::numsOfLED = 0;
     WS2812::led_partitions = &led_partitions;
-
-    brightness.resize(led_partitions.size());
 
     for (uint8_t partition_index = 0; partition_index < led_partitions.size(); partition_index++)
     {
       numsOfLED += led_partitions[partition_index].size;
     }
 
-    // TODO Free rmtBuffer if reinit()
+    led_data = (uint8_t*)malloc(numsOfLED * 3);
 
-    rmtBuffer = (rmt_item32_t*)calloc(numsOfLED * BITS_PER_LED_CMD + 1, sizeof(rmt_item32_t));
-    // rmt_register_tx_end_callback(&rmt_callback, NULL);
-
-    uint32_t counter_clk_hz = 0;
-
-    if (rmt_get_counter_clock(rmt_channel, &counter_clk_hz) != ESP_OK)
+    dither_error = (uint8_t*)malloc(numsOfLED * 3 * sizeof(uint8_t));
+    for (uint16_t i = 0; i < numsOfLED * 3; i++)
     {
-      // ESP_LOGE(TAG, "get rmt counter clock failed");
+      dither_error[i] = esp_random() & 0x7F; // Limit the random error to 8 bits
     }
 
-    // ns -> ticks
-    // ESP_LOGI(TAG, "counter_clk_hz %i", counter_clk_hz);
-    float ratio = (float)counter_clk_hz / 1e9;
-    // ESP_LOGI(TAG, "ratio %f", ratio);
+    rmt_tx_channel_config_t rmt_channel_config = {
+        .gpio_num = gpio_pin,            // GPIO number
+        .clk_src = RMT_CLK_SRC_DEFAULT,  // select source clock
+        .resolution_hz = RMT_LED_STRIP_RESOLUTION_HZ,       // 10 MHz tick resolution, i.e., 1 tick = 0.1 µs
+        .mem_block_symbols = 64,         // memory block size, 64 * 4 = 256 Bytes
+        .trans_queue_depth = 4,          // set the number of transactions that can be pending in the background
+        .intr_priority = 99,
+        .flags = {.invert_out = 0, .with_dma = 0, .io_loop_back = 0, .io_od_mode = 0},
+    };
 
-    ws2812_t0h_ticks = (uint32_t)(ratio * WS2812_T0H_NS);
-    ws2812_t0l_ticks = (uint32_t)(ratio * WS2812_T0L_NS);
-    ws2812_t1h_ticks = (uint32_t)(ratio * WS2812_T1H_NS);
-    ws2812_t1l_ticks = (uint32_t)(ratio * WS2812_T1L_NS);
-    ws2812_reset_ticks = (uint32_t)(ratio * WS2812_RESET_US * 1000);
+    ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_channel_config, &rmt_channel));
 
-    // ESP_LOGI(TAG, "ws2812_t0h_ticks %d", ws2812_t0h_ticks);
-    // ESP_LOGI(TAG, "ws2812_t0l_ticks %d", ws2812_t0l_ticks);
-    // ESP_LOGI(TAG, "ws2812_t1h_ticks %d", ws2812_t1h_ticks);
-    // ESP_LOGI(TAG, "ws2812_t1l_ticks %d", ws2812_t1l_ticks);
-    // ESP_LOGI(TAG, "ws2812_reset_ticks %d", ws2812_reset_ticks);
+    ESP_ERROR_CHECK(rmt_new_led_encoder(&rmt_encoder));
+
+    ESP_ERROR_CHECK(rmt_enable(rmt_channel));
   }
 
-  uint8_t Show(Color* buffer, std::vector<uint8_t>& brightness) {
-    // ESP_LOGI(TAG, "Show");
-    uint32_t status;
-    rmt_get_status(rmt_channel, &status);
-    if (status & 0x003ff000)  // RMT_MEM_RADDR_EX
-    {
-      // ESP_LOGI(TAG, "transmit still in progress, abort");
-      return -1;
-    }
-
+  IRAM_ATTR void Show(Color* buffer, std::vector<uint8_t>& brightness) {
+    // rmt_tx_wait_all_done(rmt_channel, portMAX_DELAY);
+    // TODO: IF rmt is busy, just skip
+    
     for (uint8_t partition_index = 0; partition_index < WS2812::led_partitions->size(); partition_index++)
     {
-      if (partition_index < brightness.size())
-      {
-        WS2812::brightness[partition_index] = brightness[partition_index];
-      }
-      else
-      {
-        WS2812::brightness[partition_index] = 0; // If brightness is not provided, set it to 0 (So Matrix without underglow will not light up)
+      LEDPartition local_partition = WS2812::led_partitions->at(partition_index);
+
+      if (brightness[partition_index] == 0 || partition_index >= brightness.size()) {
+        memset(led_data + local_partition.start * 3, 0, local_partition.size * 3);
+        continue;
       }
 
-  }
-
-    setup_rmt_data_buffer(buffer, WS2812::brightness);
-    ESP_ERROR_CHECK(rmt_write_items(rmt_channel, rmtBuffer, numsOfLED * BITS_PER_LED_CMD + 1, true));  // Block the
-                                                                                                       // thread because
-                                                                                                       // FreeRTOS is
-                                                                                                       // gonna handle
-                                                                                                       // it
-    // ESP_ERROR_CHECK(rmt_wait_tx_done(LED_RMT_TX_CHANNEL, portMAX_DELAY));
-    return 0;
-  }
-
-  void setup_rmt_data_buffer(Color* buffer, std::vector<uint8_t>& brightness) {
-    const rmt_item32_t bit0 = {{{ws2812_t0h_ticks, 1, ws2812_t0l_ticks, 0}}};  // Logical 0
-    const rmt_item32_t bit1 = {{{ws2812_t1h_ticks, 1, ws2812_t1l_ticks, 0}}};  // Logical 1
-    const rmt_item32_t reset = {{{ws2812_reset_ticks, 0, 0, 0}}};              // Reset
-    for (uint8_t partition_index = 0; partition_index < WS2812::led_partitions->size(); partition_index++)
-    {
       uint8_t local_brightness = brightness[partition_index];
-      for (uint16_t led = 0; led < WS2812::led_partitions->at(partition_index).size; led++)
+
+      for (uint16_t i = 0; i < WS2812::led_partitions->at(partition_index).size; i++)
       {
-        uint16_t buffer_index = WS2812::led_partitions->at(partition_index).start + led;
-        uint32_t bits_to_send = buffer[buffer_index].GRB(local_brightness);
-        uint32_t mask = 1 << (BITS_PER_LED_CMD - 1);
-        for (uint32_t bit = 0; bit < BITS_PER_LED_CMD; bit++)
-        {
-          uint32_t bit_is_set = bits_to_send & mask;
-          rmtBuffer[buffer_index * BITS_PER_LED_CMD + bit] = bit_is_set ? bit1 : bit0;
-          mask >>= 1;
+        uint16_t buffer_index = local_partition.start + i;
+        uint16_t data_index_g = buffer_index * 3;
+        uint16_t data_index_r = data_index_g + 1;
+        uint16_t data_index_b = data_index_g + 2;
+
+        led_data[data_index_g] = Color::scale8_video(buffer[buffer_index].G, local_brightness);
+        led_data[data_index_r] = Color::scale8_video(buffer[buffer_index].R, local_brightness);
+        led_data[data_index_b] = Color::scale8_video(buffer[buffer_index].B, local_brightness);
+
+        if(dithering == false) {
+          continue;
         }
+
+        const uint8_t dither_error_threshold = 16;
+
+        if(led_data[data_index_g] >= dithering_threshold)
+        {
+          uint8_t new_dither_error_g = (buffer[buffer_index].G * local_brightness) - (led_data[data_index_g] << 8);
+          if (new_dither_error_g >= dither_error_threshold)
+          {
+            dither_error[data_index_g] += new_dither_error_g >> 1;
+            if (dither_error[data_index_g] >= 128)
+            {
+              led_data[data_index_g] += 1;
+              dither_error[data_index_g] -= 128;
+            }
+          }
+        }
+
+        if(led_data[data_index_r] >= dithering_threshold)
+        {
+          uint8_t new_dither_error_r = (buffer[buffer_index].R * local_brightness) - (led_data[data_index_r] << 8);
+          if (new_dither_error_r >= dither_error_threshold)
+          {
+            dither_error[data_index_r] += new_dither_error_r >> 1;
+            if (dither_error[data_index_r] >= 128)
+            {
+              led_data[data_index_r] += 1;
+              dither_error[data_index_r] -= 128;
+            }
+          }
+        }
+
+        if(led_data[data_index_b] >= dithering_threshold)
+        {
+          uint8_t new_dither_error_b = (buffer[buffer_index].B * local_brightness) - (led_data[data_index_b] << 8);
+          if (new_dither_error_b >= dither_error_threshold)
+          {
+            dither_error[data_index_b] += new_dither_error_b >> 1;
+            if (dither_error[data_index_r] >= 128)
+            {
+              led_data[data_index_r] += 1;
+              dither_error[data_index_r] -= 128;
+            }
+          }
+        }
+
       }
     }
-    rmtBuffer[numsOfLED * BITS_PER_LED_CMD] = reset;
-  }
 
-  // void rmt_callback(rmt_channel_t rmt_channel, void *arg)
-  // {
-  //     // ESP_LOGI(TAG, "Transmit finished");
-  //     transmit_in_progress = false;
-  // }
+    rmt_transmit(rmt_channel, rmt_encoder, led_data, numsOfLED * 3, &rmt_config);
+  }
 }

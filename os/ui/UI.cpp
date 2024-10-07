@@ -64,7 +64,7 @@ void UI::RenderUI() {
       uiComponent->Render(xy);
     }
     PostRender();
-      MatrixOS::LED::Update();
+    MatrixOS::LED::Update();
   }
 }
 

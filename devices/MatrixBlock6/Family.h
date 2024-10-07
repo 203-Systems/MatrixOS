@@ -5,8 +5,6 @@
 #include "hal/usb_hal.h"
 #include "soc/usb_periph.h"
 
-#include "driver/rmt.h"
-
 #include "esp_task_wdt.h"
 #include "esp_rom_gpio.h"
 #include "esp_log.h"

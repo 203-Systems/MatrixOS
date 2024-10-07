@@ -1,11 +1,17 @@
 #pragma once
 
 #include <stdint.h>
-#include "driver/rmt.h"
+#include <vector>
+#include <cstring>
+#include "driver/rmt_tx.h"
+#include "driver/rmt_encoder.h"
 #include "framework/Color.h"
 #include "framework/LEDPartition.h"
+#include "esp_check.h"
+#include "esp_attr.h"
 #include "esp_log.h"
-#include <vector>
+#include "esp_random.h"
+#include "freertos/FreeRTOS.h"
 
 #define BITS_PER_LED_CMD 24
 #define LED_BUFFER_ITEMS ((NUM_LEDS * BITS_PER_LED_CMD))
@@ -31,15 +37,8 @@
 
 namespace WS2812
 {
-  void Init(rmt_channel_t rmt_channel, gpio_num_t gpio_tx, std::vector<LEDPartition>& led_partitions);
-  uint8_t Show(Color* array, std::vector<uint8_t>& brightness);
-
-  void setup_rmt_data_buffer(Color* array, std::vector<uint8_t>& brightness);
-  // void rmt_callback(rmt_channel_t rmt_channel, void* arg);
-
-  // extern rmt_item32_t* rmtBuffer;
-  // extern bool transmit_in_progress;
-  // extern uint16_t numsOfLED;
-  // extern rmt_channel_t rmt_channel;
-  // extern gpio_num_t gpio_tx;
+  inline bool dithering = true;
+  inline uint8_t dithering_threshold = 4; // Channel value lower than this will not dither
+  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& led_partitions);
+  IRAM_ATTR void Show(Color* buffer, std::vector<uint8_t>& brightness);
 }

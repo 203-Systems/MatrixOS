@@ -41,7 +41,7 @@ namespace MatrixOS::LED
       // MLOGD("LED", "Update (Brightness size: %d)", ledPartitionBrightness.size());
       Device::LED::Update(crossfade_active ? crossfade_buffer : frameBuffers[0], ledPartitionBrightness);
     }
-      xSemaphoreGive(activeBufferSemaphore);
+    xSemaphoreGive(activeBufferSemaphore);
   }
 
   void UpdateBrightness() {

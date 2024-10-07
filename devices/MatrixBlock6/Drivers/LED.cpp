@@ -5,7 +5,7 @@ namespace Device
   namespace LED
   {
     void Init() {
-      WS2812::Init(RMT_CHANNEL_0, led_pin, led_partitions);
+      WS2812::Init(led_pin, led_partitions);
     }
 
     void Start() {}
