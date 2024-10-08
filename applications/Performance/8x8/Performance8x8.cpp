@@ -44,7 +44,7 @@ void Performance::Loop() {
 
 void Performance::MidiEventHandler(MidiPacket midiPacket) {
   // MLOGD("Performance", "Midi Recived from %d - %d %d %d %d", midiPacket.port, midiPacket.status, midiPacket.data[0],
-  midiPacket.data[1], midiPacket.data[2]);
+  // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
     case NoteOn:
