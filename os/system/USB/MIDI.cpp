@@ -5,6 +5,7 @@ namespace MatrixOS::USB::MIDI
 {
   std::vector<MidiPort*> ports;
   std::vector<TaskHandle_t> portTasks;
+  std::vector<string> portTaskNames;
   
   std::vector<uint8_t> sysex_buffer;
 
@@ -22,23 +23,33 @@ namespace MatrixOS::USB::MIDI
   }
 
   void Init() {
+    ports.clear();
+    
+    for (TaskHandle_t portTask : portTasks)
+    {
+      vTaskDelete(portTask);
+    }
+
     ports.reserve(USB_MIDI_COUNT);
     portTasks.reserve(USB_MIDI_COUNT);
+    
     for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
     {
-      string portname = "USB MIDI " + std::to_string(i + 1);
-      xTaskCreate(portTask, portname.c_str(), configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
-                  &portTasks[i]);
+      portTasks.push_back(NULL);
+      portTaskNames.push_back("USB MIDI " + std::to_string(i + 1));
+      xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
+                  &portTasks.back());
     }
   }
 }
 
 void tud_midi_rx_cb(uint8_t itf) {
   uint8_t raw_packet[4];
-  uint16_t port = MIDI_PORT_USB + itf;
-  MidiPacket packet = MidiPacket(port, None);
   while (tud_midi_n_packet_read(itf, raw_packet))
   {
+    uint16_t port = MIDI_PORT_USB + (raw_packet[0] >> 4);
+    MidiPacket packet = MidiPacket(port, None);
+    raw_packet[0] &= 0x0F;
     switch (raw_packet[0])
     {
       case CIN_3BYTE_SYS_COMMON:

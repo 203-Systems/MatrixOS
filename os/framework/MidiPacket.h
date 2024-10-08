@@ -28,7 +28,8 @@ enum EMidiStatus : uint8_t {
 
 // Port number can be any of the following class + 0~0xFF
 enum EMidiPortID : uint16_t {
-  MIDI_PORT_ALL_CLASS = 0x0,  // This is the default midi out mode, it will send midi from first of all output type
+  MIDI_PORT_EACH_CLASS = 0x0,  // This is the default midi out mode, it will send midi from first of all output type
+  MIDI_PORT_ALL = 0x01, // Send to all ports
   MIDI_PORT_USB = 0x100,
   MIDI_PORT_PHYISCAL = 0x200,
   MIDI_PORT_BLUETOOTH = 0x300,

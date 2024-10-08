@@ -114,6 +114,22 @@ uint8_t const * tud_hid_descriptor_report_cb(uint8_t instance)
 }
 
 //--------------------------------------------------------------------+
+// MIDI Descriptor
+//--------------------------------------------------------------------+
+#define TUD_DUO_MIDI_DESC_LEN (TUD_MIDI_DESC_HEAD_LEN + TUD_MIDI_DESC_JACK_LEN * 2 + TUD_MIDI_DESC_EP_LEN(2) * 2)
+#define TUD_DUO_MIDI_DESCRIPTOR(_itfnum, _stridx, _epout, _epin, _epsize) \
+  TUD_MIDI_DESC_HEAD(_itfnum, _stridx, 2),\
+  TUD_MIDI_DESC_JACK_DESC(1, 0),\
+  TUD_MIDI_DESC_JACK_DESC(2, 0),\
+  TUD_MIDI_DESC_EP(_epout, _epsize, 2),\
+  TUD_MIDI_JACKID_IN_EMB(1),\
+  TUD_MIDI_JACKID_IN_EMB(2),\
+  TUD_MIDI_DESC_EP(_epin, _epsize, 2),\
+  TUD_MIDI_JACKID_OUT_EMB(1),\
+  TUD_MIDI_JACKID_OUT_EMB(2)
+
+
+//--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
@@ -126,7 +142,7 @@ enum
   ITF_NUM_TOTAL 
 };
 
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_MIDI_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_DUO_MIDI_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
 
 #define EPNUM_MIDI 0x01
 #define EPNUM_CDC_NOTIF 0x82
@@ -140,7 +156,7 @@ uint8_t const desc_fs_configuration[] = {
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64),
+    TUD_DUO_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64),
 
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
     TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
