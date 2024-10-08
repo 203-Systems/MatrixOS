@@ -1,9 +1,8 @@
-# Matrix OS
+<img src="MatrixOS.svg" width="300" alt="Matrix OS" >
 
-An operating system for human interface devices that is designed to be cross-platform and modular.
+An operating system for human interface devices designed to be cross-platform and modular.
 
-## Documentation & User Guide
-
+## User Guide & Documentation
 See [Project Matrix Wiki](matrix.203.io)
 
 ## Supported Devices
