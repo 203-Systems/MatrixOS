@@ -48,12 +48,12 @@ class UINotePad : public UIComponent {
       };
     }
     if (keyInfo->state == PRESSED)
-    { MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, keyInfo->velocity.to7bits())); }
+    { MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, NoteOn, channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == AFTERTOUCH)
-    { MatrixOS::MIDI::Send(MidiPacket(0, AfterTouch, channel, note, keyInfo->velocity.to7bits())); }
+    { MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, AfterTouch, channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == RELEASED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(0, NoteOn, channel, note, 0));
+      MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, NoteOn, channel, note, 0));
     }
     return true;
   }
