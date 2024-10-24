@@ -459,6 +459,7 @@ uint8_t Reversi::CheckGameOver()
   else
   {
     MLOGD("Reversi", "Valid moves for current player");
+    return 0;
   }
 
 
