@@ -1,5 +1,6 @@
 #include "Device.h"
 #include "timers.h"
+#include "driver/gpio.h"
 
 namespace Device::KeyPad
 {

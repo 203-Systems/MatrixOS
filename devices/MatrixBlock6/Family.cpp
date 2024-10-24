@@ -2,6 +2,11 @@
 #include "MatrixOS.h"
 #include "ui/UI.h"
 
+#include "esp_private/system_internal.h"  // For esp_reset_reason_set_hint
+
+#include "esp_efuse.h"
+#include "esp_efuse_table.h"
+
 namespace Device
 {
   namespace KeyPad

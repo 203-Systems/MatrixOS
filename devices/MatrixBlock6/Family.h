@@ -1,26 +1,7 @@
 // Declear Family specific function
 #pragma once
 
-#include "hal/gpio_ll.h"
-#include "hal/usb_hal.h"
-#include "soc/usb_periph.h"
-
-#include "esp_task_wdt.h"
-#include "esp_rom_gpio.h"
 #include "esp_log.h"
-#include "esp_efuse.h"
-#include "esp_efuse_table.h"
-#include "esp_adc/adc_oneshot.h"
-
-#include "driver/uart.h"
-#include "driver/gpio.h"
-
-#include "nvs_flash.h"
-
-#include "esp_private/system_internal.h"
-
-#include "WS2812/WS2812.h"
-#include "framework/Color.h"
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
 #define DEVICE_SETTING

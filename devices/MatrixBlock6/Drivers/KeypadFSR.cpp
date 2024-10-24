@@ -1,4 +1,7 @@
 #include "Device.h"
+
+#include "esp_adc/adc_oneshot.h"
+
 #include "ulp_fsr_keypad.h"
 #include "ulp_riscv.h"
 

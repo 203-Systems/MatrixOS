@@ -1,4 +1,7 @@
 #include "Device.h"
+#include "framework/Color.h"
+
+#include "WS2812/WS2812.h"
 
 namespace Device
 {

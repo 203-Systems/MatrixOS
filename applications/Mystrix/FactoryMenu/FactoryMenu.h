@@ -4,8 +4,10 @@
 #include "ui/UI.h"
 #include "applications/Application.h"
 
-#if defined(FACTORY_CONFIG) && defined(ESP_IDF_VERSION)
 #include "esp_efuse.h"
+#include "esp_efuse_table.h"
+
+#if defined(FACTORY_CONFIG)
 #define EFUSE_BURNER
 #endif
 

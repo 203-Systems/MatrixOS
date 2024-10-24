@@ -78,8 +78,8 @@ set(LIB_INC
 
 idf_component_register(
                     SRCS ${MATRIX_OS_SRC} ${DEVICE_SRC} ${MATRIX_OS_APPLICATION_SRC} ${LIB_SRC}
-                    INCLUDE_DIRS "." ${MATRIX_OS_INC} ${FAMILY_PATH} ${DEVICE_PATH} ${FREERTOS_ORIG_INCLUDE_PATH} ${LIB_INC}
-                    PRIV_REQUIRES "driver"
+                    INCLUDE_DIRS "." ${MATRIX_OS_INC} ${FAMILY_PATH} ${DEVICE_PATH} ${FREERTOS_ORIG_INCLUDE_PATH} ${LIB_INC} 
+                    PRIV_REQUIRES driver usb
                     REQUIRES freertos nvs_flash esp_wifi esp_adc esp_wifi esp_netif efuse ulp)
 
 target_compile_options(${COMPONENT_TARGET} PUBLIC

@@ -10,7 +10,7 @@
 			  "path": "cmd.exe",
 			  "args": [
 				"/k",
-				"C:/Espressif/v5.0.6/esp-idf/export.bat"
+				"C:/Espressif/v5.3.1/export.bat"
 			  ]
 			}
 		  },

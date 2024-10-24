@@ -1,5 +1,6 @@
 // Define Device Specific Function
 #include "Device.h"
+#include "esp_adc/adc_oneshot.h"
 
 // Device Configs
 #include "V100/Config.h"

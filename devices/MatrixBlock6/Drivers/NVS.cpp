@@ -1,6 +1,8 @@
 #include "Device.h"
 #include "framework/Hash.h"
 
+#include "nvs_flash.h"
+
 #define U32_TO_CHAR_ARRAY(value)                                                                                     \
   {                                                                                                                  \
     (char)((value >> 24) & 0xFF), (char)((value >> 16) & 0xFF), (char)((value >> 8) & 0xFF), (char)(value & 0xFF), 0 \

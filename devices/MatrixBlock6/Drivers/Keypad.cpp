@@ -1,6 +1,7 @@
 // Define Device Keypad Function
 #include "Device.h"
 #include "timers.h"
+#include "driver/gpio.h"
 
 namespace Device::KeyPad
 {

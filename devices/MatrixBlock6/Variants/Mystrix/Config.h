@@ -13,6 +13,9 @@
 #include "Family.h"
 #include "framework/SavedVariable.h"
 
+#include "esp_adc/adc_oneshot.h"
+#include "driver/gpio.h"
+
 // #define FACTORY_CONFIG //Global switch for using factory config
 
 // #define FACTORY_DEVICE_VERSION 'S' // Standard

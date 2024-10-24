@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "driver/uart.h"
 
 namespace Device
 {
