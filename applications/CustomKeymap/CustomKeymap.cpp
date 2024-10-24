@@ -58,7 +58,7 @@ void CustomKeymap::ActionMenu() {
   rotateRightBtn.SetColor(Color(0x00FF00));
   rotateRightBtn.SetSize(Dimension(1, 2));
   rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate to this side");
