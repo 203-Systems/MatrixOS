@@ -6,7 +6,7 @@ namespace LayerAction
 
     constexpr uint32_t signature = StaticHash("layer");
 
-    enum LayerActionMode : uint8_t { PERSISTANCE = 0, MOMENTARY = 1 };
+    enum LayerActionMode : uint8_t { PERSISTENCE = 0, MOMENTARY = 1 };
 
     enum LayerActionType : uint8_t { ACTIVE = 0, PASSTHROUGH = 1 };
 

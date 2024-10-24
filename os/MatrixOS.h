@@ -51,7 +51,7 @@ namespace MatrixOS
 
     void NextBrightness();
     void SetBrightness(uint8_t brightness);
-    void SetBrightnessMultiplier(string partiton_name, float multiplier);
+    void SetBrightnessMultiplier(string partition_name, float multiplier);
 
     void SetColor(Point xy, Color color, uint8_t layer = 255);
     void SetColor(uint16_t ID, Color color, uint8_t layer = 255);

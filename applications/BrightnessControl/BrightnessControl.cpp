@@ -10,7 +10,7 @@
 
 namespace MatrixOS::LED
 {
-  extern vector<float> ledBrightnessMultiplyer;
+  extern vector<float> ledBrightnessMultiplier;
 }
 
 void BrightnessControl::Start() {
@@ -52,17 +52,17 @@ void BrightnessControl::Start() {
   // Selector UI
   uint8_t ledPartitionSelected = 0;
 
-  UI4pxFloat multiplierDisplay(PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected]);
+  UI4pxFloat multiplierDisplay(PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
   multiplierDisplay.SetEnabled(false);
   AddUIComponent(multiplierDisplay, origin + Point(-3, -3));
 
-  vector<float> ledBrightnessMultiplyer = {0.0, 
+  vector<float> ledBrightnessMultiplier = {0.0, 
                                             0.1, 0.25, 0.5, 0.75,
                                             1.0, 
                                             1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0,
                                             std::numeric_limits<float>::infinity()};
 
-  UINumItemSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected], ledBrightnessMultiplyer.size(), ledBrightnessMultiplyer.data(), [&](float value) -> void {
+  UINumItemSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected], ledBrightnessMultiplier.size(), ledBrightnessMultiplier.data(), [&](float value) -> void {
     MatrixOS::LED::SetBrightnessMultiplier(Device::led_partitions[ledPartitionSelected].name, value);
   });
   multiplierSelector.SetEnabled(false);
@@ -83,8 +83,8 @@ void BrightnessControl::Start() {
       brightnessSelector.SetEnabled(false);
       brightnessDisplay.SetEnabled(false);
 
-      multiplierDisplay.value = &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected];
-      multiplierSelector.output = &MatrixOS::LED::ledBrightnessMultiplyer[ledPartitionSelected];
+      multiplierDisplay.value = &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected];
+      multiplierSelector.output = &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected];
 
       multiplierDisplay.SetEnabled(true);
       multiplierSelector.SetEnabled(true);

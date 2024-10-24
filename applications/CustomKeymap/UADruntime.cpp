@@ -119,7 +119,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
       return false;
     }
 
-    // Ressign the actions's layer to the one that is actually triggered
+    // Reassign the actions's layer to the one that is actually triggered
     newActionInfo.layer = layer;
 
     // Execute the actions

@@ -6,7 +6,7 @@ void ForceCalibration::HighCalibration() {
   enum calibrationState
   {
     Idle,
-    Stablizing,
+    Stabilizing,
     Recording,
     Done
   };
@@ -25,7 +25,7 @@ void ForceCalibration::HighCalibration() {
 
   uint16_t calibration_data[8][8];
 
-  const uint32_t stablizeTime = 1000; // 1 seconds
+  const uint32_t stabilizeTime = 1000; // 1 seconds
   const uint32_t calibrationSamples = 300;
   const uint32_t calibrationThreshold = FRACT16_MAX * 0.25;
 
@@ -53,17 +53,17 @@ void ForceCalibration::HighCalibration() {
 
       if(calibration_state == Idle && reading >= calibrationThreshold)
       {
-        calibration_state = Stablizing;
+        calibration_state = Stabilizing;
         event_time_stamp = MatrixOS::SYS::Millis();
       }
-      else if(calibration_state == Stablizing)
+      else if(calibration_state == Stabilizing)
       {
         if (reading < calibrationThreshold)
         {
           calibration_state = Idle;
           event_time_stamp = MatrixOS::SYS::Millis();
         }
-        else if (MatrixOS::SYS::Millis() - event_time_stamp > stablizeTime)
+        else if (MatrixOS::SYS::Millis() - event_time_stamp > stabilizeTime)
         {
           calibration_state = Recording;
           event_time_stamp = MatrixOS::SYS::Millis();
@@ -131,7 +131,7 @@ void ForceCalibration::HighCalibration() {
 
           MatrixOS::LED::SetColor(Point(x, y), color, 0);
         }
-        else if(calibration_state == Stablizing)
+        else if(calibration_state == Stabilizing)
         {
           MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFF00), 0);
         }

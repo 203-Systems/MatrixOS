@@ -19,7 +19,7 @@ class ScaleVisualizer : public UIComponent {
 
   virtual bool Render(Point origin) {
     uint16_t c_aligned_scale_map =
-        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;  // Rootkey should always < 12,
+        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;  // Root key should always < 12,
                                                                                       // might add an assert later
     for (uint8_t note = 0; note < 12; note++)
     {

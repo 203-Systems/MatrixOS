@@ -398,7 +398,7 @@ void Reversi::Render()
 
 uint8_t Reversi::CheckGameOver()
 {
-  uint8_t oppoentPlayer = currentPlayer == 1 ? 2 : 1;
+  uint8_t opponentPlayer = currentPlayer == 1 ? 2 : 1;
   bool forceWinner = false;
 
   // Check if there are any valid moves
@@ -410,7 +410,7 @@ uint8_t Reversi::CheckGameOver()
     {
       if(board[y][x].player == 0)
       {
-        if(Flip(Point(x, y), oppoentPlayer, false))
+        if(Flip(Point(x, y), opponentPlayer, false))
         {
           board[y][x].validMove = 1;
           validMove = true;
@@ -631,12 +631,12 @@ void Reversi::Settings() {
   rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
   settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButton rotatRightBtn;
-  rotatRightBtn.SetName("Rotate Right");
-  rotatRightBtn.SetColor(Color(0x00FF00));
-  rotatRightBtn.SetSize(Dimension(1, 2));
-  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  settingsUI.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UIButton rotateRightBtn;
+  rotateRightBtn.SetName("Rotate Right");
+  rotateRightBtn.SetColor(Color(0x00FF00));
+  rotateRightBtn.SetSize(Dimension(1, 2));
+  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  settingsUI.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate Down");

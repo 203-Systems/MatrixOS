@@ -113,7 +113,7 @@ class UITemperatureColorSelector : public UIComponent {
   //   blue  = 255;
   // }
 
-  // Cap Red green and blue betweeen - and 255
+  // Cap Red green and blue between - and 255
   
   // red = std::max(0.0f, std::min(255.0f, red));
   // green = std::max(0.0f, std::min(255.0f, green));

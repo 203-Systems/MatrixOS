@@ -11,7 +11,7 @@
 #define KEY_INFO_THRESHOLD 512
 // 1/127 - Key Velocity has to move beyond this range in order for after touch to be triggered
 
-// Avoid recuesive include
+// Avoid recursive include
 namespace MatrixOS::SYS
 {
   uint32_t Millis(void);
@@ -42,7 +42,7 @@ enum KeyState : uint8_t { /*Status Keys*/ IDLE,
                            HOLD,
                            AFTERTOUCH,
                            /*Special*/ DEBUNCING = 240u, RELEASE_DEBUNCING = 241u,
-                           /*Placeholder Keys*/ INVAILD = 255u };
+                           /*Placeholder Keys*/ INVALID = 255u };
 // When adding new state, remember to update active() as well
 
 struct KeyInfo {
@@ -73,8 +73,8 @@ struct KeyInfo {
   Nothing (All)
   To Long Term State(Pressed, Hold, Release)
   Active (Idle, Release)
-  Release(Pressed, Active, Hold, Hold Actived)
-  Aftertouch (Pressed, Actived, Hold, Hold Actived)
+  Release(Pressed, Active, Hold, Hold Activated)
+  Aftertouch (Pressed, Activated, Hold, Hold Activated)
   */
 
 #define DIFFERENCE(a, b) ((a) > (b) ? (a) - (b) : (b) - (a))
@@ -109,7 +109,7 @@ struct KeyInfo {
 
     switch (state)
     {
-      case INVAILD:
+      case INVALID:
       case RELEASED:
         state = IDLE;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASED -> IDLE");

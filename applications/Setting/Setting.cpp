@@ -28,12 +28,12 @@ void Setting::Start() {
   nothingBtn.OnPress([]() -> void {});
   AddUIComponent(nothingBtn, origin + Point(0, -1));
 
-  UIButton rotatRightBtn;
-  rotatRightBtn.SetName("Rotate to this side");
-  rotatRightBtn.SetColor(Color(0x00FF00));
-  rotatRightBtn.SetSize(Dimension(1, 2));
-  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  AddUIComponent(rotatRightBtn, origin + Point(2, 0));
+  UIButton rotateRightBtn;
+  rotateRightBtn.SetName("Rotate to this side");
+  rotateRightBtn.SetColor(Color(0x00FF00));
+  rotateRightBtn.SetSize(Dimension(1, 2));
+  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  AddUIComponent(rotateRightBtn, origin + Point(2, 0));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate to this side");

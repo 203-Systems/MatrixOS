@@ -12,6 +12,7 @@ enum SavedVariableState { NotInited, Inited, Loaded, Deleted };
 
 #define CreateSavedVar(scope, name, type, default_value) \
   SavedVariable<type> name = SavedVariable(StaticHash(scope "-" #name), (type)default_value)
+  
 template <class T>
 class SavedVariable {
  public:

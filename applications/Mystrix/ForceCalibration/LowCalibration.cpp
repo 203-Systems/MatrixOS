@@ -3,7 +3,7 @@
 void ForceCalibration::LowCalibration() {
   uint32_t start_time = MatrixOS::SYS::Millis();
 
-  const uint32_t stablize_time = 1000; // 1 second
+  const uint32_t stabilize_time = 1000; // 1 second
   const uint32_t calibration_time = 120000; // 2 minutes
   const uint32_t done_time = 3000; // 3 seconds
 
@@ -36,11 +36,11 @@ void ForceCalibration::LowCalibration() {
   while (!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())
   {
     uint32_t elapsed_time = MatrixOS::SYS::Millis() - start_time;
-    if(elapsed_time < stablize_time) // IDLE, wait for stablize
+    if(elapsed_time < stabilize_time) // IDLE, wait for stabilize
     {
 
     }
-    else if(elapsed_time < (stablize_time + calibration_time)) // Calibration
+    else if(elapsed_time < (stabilize_time + calibration_time)) // Calibration
     {
         // Calibrate
         for(uint8_t y = 0; y < 8; y++)
@@ -58,7 +58,7 @@ void ForceCalibration::LowCalibration() {
         }
 
         // Render
-        float progress = (elapsed_time - stablize_time) / (float)calibration_time * Device::x_size * Device::y_size;
+        float progress = (elapsed_time - stabilize_time) / (float)calibration_time * Device::x_size * Device::y_size;
         uint8_t active_x = (uint16_t)progress % Device::x_size;
         uint8_t active_y = (uint16_t)progress / Device::x_size;
 
@@ -95,7 +95,7 @@ void ForceCalibration::LowCalibration() {
 
         // MatrixOS::LED::Update();
       }
-    else if(elapsed_time < (stablize_time + calibration_time + done_time)) // Done
+    else if(elapsed_time < (stabilize_time + calibration_time + done_time)) // Done
     {
       if(!lowCalibrationSaved)
       {

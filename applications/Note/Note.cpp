@@ -39,12 +39,12 @@ void Note::Setup() {
   rotateUpBtn.OnPress([&]() -> void {});
   actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButton rotatRightBtn;
-  rotatRightBtn.SetName("Rotate to this side");
-  rotatRightBtn.SetColor(Color(0x00FF00));
-  rotatRightBtn.SetSize(Dimension(1, 2));
-  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UIButton rotateRightBtn;
+  rotateRightBtn.SetName("Rotate to this side");
+  rotateRightBtn.SetColor(Color(0x00FF00));
+  rotateRightBtn.SetSize(Dimension(1, 2));
+  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate to this side");
@@ -155,7 +155,7 @@ void Note::Setup() {
         PlayView();
         MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
       }
-      return true;  // Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });

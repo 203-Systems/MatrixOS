@@ -9,7 +9,7 @@ Top left button will open a number selector UI that saves teh value into the num
 Top right button will open a color picker UI that saves the value into the color variable. This also changes the color of the button pressed
 Click the function key in the menu will exit the UI
 Hold the function key in the menu will exit the application
-Midi signal recived will be echoed back to the host
+Midi signal received will be echoed back to the host
 */
 
 #pragma once

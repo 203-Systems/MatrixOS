@@ -21,7 +21,7 @@ class Application {
   void Start(void* args = NULL);
 
   virtual void Setup(){};
-  virtual void Loop() { Exit(); }; //If the Loop func didn't get overrided, it will just exit. This prevents infinity loop.
+  virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End(){};
 
   void Exit();

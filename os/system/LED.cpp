@@ -8,11 +8,11 @@ namespace MatrixOS::LED
 
   SemaphoreHandle_t activeBufferSemaphore;
   vector<Color*> frameBuffers; //0 is the active layer
-  // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficent for real time rendering.
+  // Render to layer 0 will render directly to the active buffer without buffer swap operation. Very efficient for real time rendering.
   // Otherwise, render to layer 255 (Top layer). Content will be updated on the next Update();
   // If directly write to the active buffer, before NewLayer, CopyLayer(0, currentLayer) need to be called to resync the buffer.
 
-  vector<float> ledBrightnessMultiplyer;
+  vector<float> ledBrightnessMultiplier;
   vector<uint8_t> ledPartitionBrightness;
 
   bool needUpdate = false;
@@ -47,7 +47,7 @@ namespace MatrixOS::LED
   void UpdateBrightness() {
     for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
     {
-      float brightness_multiplied = ledBrightnessMultiplyer[i] * MatrixOS::UserVar::brightness;
+      float brightness_multiplied = ledBrightnessMultiplier[i] * MatrixOS::UserVar::brightness;
 
       if (brightness_multiplied >= 255.0)
       { 
@@ -62,7 +62,7 @@ namespace MatrixOS::LED
         ledPartitionBrightness[i] = (uint8_t)brightness_multiplied;
       }
 
-      // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::led_partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplyer[i], brightness_multiplied);
+      // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::led_partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplier[i], brightness_multiplied);
     }
   }
 
@@ -78,12 +78,12 @@ namespace MatrixOS::LED
     frameBuffers.clear();
     
     // Generate brightness level map
-    ledBrightnessMultiplyer.resize(Device::led_partitions.size());
+    ledBrightnessMultiplier.resize(Device::led_partitions.size());
     ledPartitionBrightness.resize(Device::led_partitions.size());
     for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
     {
-      ledBrightnessMultiplyer[i] = Device::led_partitions[i].default_multiplier;
-      MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplyer_" + Device::led_partitions[i].name), &ledBrightnessMultiplyer[i], sizeof(float));
+      ledBrightnessMultiplier[i] = Device::led_partitions[i].default_multiplier;
+      MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplier_" + Device::led_partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
     }
 
     UpdateBrightness();
@@ -127,10 +127,10 @@ namespace MatrixOS::LED
     UpdateBrightness();
   }
 
-  void SetBrightnessMultiplier(string partiton_name, float multiplier) {
+  void SetBrightnessMultiplier(string partition_name, float multiplier) {
     for (uint8_t i = 0; i < Device::led_partitions.size(); i++)
     {
-      if (Device::led_partitions[i].name == partiton_name)
+      if (Device::led_partitions[i].name == partition_name)
       {
 
         if (i == 0 && multiplier < 0.1)
@@ -138,8 +138,8 @@ namespace MatrixOS::LED
           MLOGW("LED", "Main Partition Multiplier can not be less than 0.1");
           return;
         }
-        ledBrightnessMultiplyer[i] = multiplier;
-        MatrixOS::NVS::SetVariable(Hash("system_led_brightness_multiplyer_" + partiton_name), &multiplier, sizeof(float));
+        ledBrightnessMultiplier[i] = multiplier;
+        MatrixOS::NVS::SetVariable(Hash("system_led_brightness_multiplier_" + partition_name), &multiplier, sizeof(float));
         UpdateBrightness();
         return;
       }

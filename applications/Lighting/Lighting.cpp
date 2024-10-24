@@ -121,12 +121,12 @@ void Lighting::Settings() {
   rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
   settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
 
-  UIButton rotatRightBtn;
-  rotatRightBtn.SetName("Rotate Right");
-  rotatRightBtn.SetColor(Color(0x00FF00));
-  rotatRightBtn.SetSize(Dimension(1, 2));
-  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  settingsUI.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UIButton rotateRightBtn;
+  rotateRightBtn.SetName("Rotate Right");
+  rotateRightBtn.SetColor(Color(0x00FF00));
+  rotateRightBtn.SetSize(Dimension(1, 2));
+  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  settingsUI.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate Down");

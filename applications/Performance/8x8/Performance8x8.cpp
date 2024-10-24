@@ -43,7 +43,7 @@ void Performance::Loop() {
 }
 
 void Performance::MidiEventHandler(MidiPacket midiPacket) {
-  // MLOGD("Performance", "Midi Recived from %d - %d %d %d %d", midiPacket.port, midiPacket.status, midiPacket.data[0],
+  // MLOGD("Performance", "Midi Received from %d - %d %d %d %d", midiPacket.port, midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
@@ -149,7 +149,7 @@ int8_t Performance::XYToNote(Point xy, bool combo_key) {
 }
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
-  // MLOGD("Performance", "Midi Recivied %#02X %#02X %#02X", channel, note, velocity);
+  // MLOGD("Performance", "Midi Received %#02X %#02X %#02X", channel, note, velocity);
   Point xy = NoteToXY(note);
 
   if (xy && !(velocity == 0 && stfu))
@@ -396,11 +396,11 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
 
 void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
   Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
-  if (xy)  // IF XY is vaild, means it's on the main grid
+  if (xy)  // IF XY is valid, means it's on the main grid
   {
     GridKeyEvent(xy, keyInfo);
   }
-  else  // XY Not vaild,
+  else  // XY Not valid,
   {
     IDKeyEvent(KeyID, keyInfo);
   }
@@ -634,12 +634,12 @@ void Performance::ActionMenu() {
   clearCanvasBtn.OnPress([&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
   actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
 
-  UIButton rotatRightBtn;
-  rotatRightBtn.SetName("Rotate to this side");
-  rotatRightBtn.SetColor(Color(0x00FF00));
-  rotatRightBtn.SetSize(Dimension(1, 2));
-  rotatRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotatRightBtn, Point(5, 3));
+  UIButton rotateRightBtn;
+  rotateRightBtn.SetName("Rotate to this side");
+  rotateRightBtn.SetColor(Color(0x00FF00));
+  rotateRightBtn.SetSize(Dimension(1, 2));
+  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate to this side");
@@ -738,7 +738,7 @@ void Performance::ActionMenu() {
       {
         actionMenu.Exit();
       }
-      return true;  // Block UI from to do anything with FN, basiclly this function control the life cycle of the UI
+      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });

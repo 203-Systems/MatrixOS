@@ -62,8 +62,6 @@ void REDACTED::Task2() {
       {
         uint8_t v = 80 * (data2[offset2 + bufferOffset] >> 7);
         MatrixOS::MIDI::Send(MidiPacket(0, v > 0 ? NoteOn : NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
-        // uint8_t packet[] = {v>0 ? MIDIv1_NOTE_ON : MIDIv1_NOTE_OFF, data2[offset2 + bufferOffset] & 0x7F, v};
-        // tud_midi_stream_write(0, packet, 3);
 
         bufferOffset++;
       }
