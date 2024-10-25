@@ -1,0 +1,68 @@
+name: Build for Mystrix 
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+        
+    - name: Cache Git modules
+      uses: actions/cache@v4.1.0
+      with:
+        path: |
+          .git/modules  # Cache Git module data for submodules
+          lib          # Cache your submodule directories if they are in 'lib'
+          espressif/idf:release-v5.1 # ESP IDF
+        key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
+        restore-keys: |
+          ${{ runner.os }}-submodules-
+          
+    - name: Update git submodules
+      if: steps.cache-submodule.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+
+    - name: esp-idf setup
+      uses: espressif/esp-idf-ci-action@v1
+      with:
+        esp_idf_version: release-v5.3
+        path: '/'
+        target: esp32-s3
+        command: make DEVICE=Mystrix fullclean build-nightly uf2
+        
+    - name: Get the short commit hash
+      id: get_commit_hash
+      run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      
+    - name: Get the current date
+      id: get_date
+      run: echo "CURRENT_DATE=$(date +'%Y-%-m-%-d')" >> $GITHUB_ENV
+      
+    - name: Rename file using date and commit hash
+      run: |
+        OLD_FILENAME="build/Mystrix/MatrixOS-Mystrix.uf2"
+        NEW_FILENAME="build/Mystrix/MatrixOS-Mystrix-nightly-${{ env.CURRENT_DATE }}-${{ env.COMMIT_HASH }}.uf2"
+        sudo mv "$OLD_FILENAME" "$NEW_FILENAME"
+        echo "Renamed $OLD_FILENAME to $NEW_FILENAME"
+          # Upload the artifact to the workflow run
+        echo "NEW_FILENAME=$NEW_FILENAME" >> $GITHUB_ENV  # Make NEW_FILENAME available in the next steps
+          
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: MatrixOS-Mystrix-nightly-${{ env.CURRENT_DATE }}-${{ env.COMMIT_HASH }} # Name of the artifact
+        path: ${{ env.NEW_FILENAME }}
