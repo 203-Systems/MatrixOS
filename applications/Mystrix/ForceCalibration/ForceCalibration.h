@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 #include "applications/Application.h"
 
 namespace Device::KeyPad::FSR

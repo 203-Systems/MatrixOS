@@ -163,9 +163,9 @@ void ExampleAPP::UIMenu() {
   // Once the UI is exited (Not the application exit!), the code will continue here.
   // If Exit() is called in UI. The code will start in the End() of this application and then exit.
 
- // See /os/framework/UI/UI.h for more UI Framework API
- // See /os/framework/UI/UIComponents.h for more UI Components
- // See /os/framework/UI/UIInterface.h for more UI built in UI Interface
+ // See /os/framework/ui/UI.h for more UI Framework API
+ // See /os/framework/ui/UIComponents.h for more UI Components
+ // See /os/framework/ui/UIInterface.h for more UI built in UI Interface
 
  // You can also create your own UI Components and UI Interfaces for your own application.
  // You can see the Note application for an example of how to do that. (Note Pad. Octave Shifter. Scales, ScaleVisualizer...)

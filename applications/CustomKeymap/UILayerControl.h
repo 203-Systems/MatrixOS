@@ -1,6 +1,6 @@
 #include "MatrixOS.h"
 #include "UAD.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 class UILayerControl : public UIComponent {
  public:

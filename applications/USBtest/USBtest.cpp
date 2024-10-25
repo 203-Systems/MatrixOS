@@ -1,5 +1,5 @@
 #include "USBtest.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 
 void USBtest::Setup() {
     UI usbUI("", Color(0xFFFFFF));

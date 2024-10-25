@@ -1,6 +1,6 @@
 #include "CustomKeymap.h"
 #include "sample.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
 void CustomKeymap::Setup() {

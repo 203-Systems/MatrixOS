@@ -7,7 +7,7 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 
 #include "MatrixOS.h"
 #include "applications/Application.h"
-#include "UI/UI.h"
+#include "ui/UI.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
 
