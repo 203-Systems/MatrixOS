@@ -251,10 +251,12 @@ void Note::ColorSelector() {
 void Note::OverlapSelector() {
   UI overlapSelector("Overlap Selector", Color(0xFFFF00), false);
 
-  UI4pxNumber numDisplay(Color(0xFFFF00), 1, (int32_t*)&notePadConfigs[activeConfig].overlap, notePadConfigs[activeConfig].rootColor);
+  int32_t overlap = notePadConfigs[activeConfig].overlap;
+
+  UI4pxNumber numDisplay(Color(0xFFFF00), 1, &overlap, notePadConfigs[activeConfig].rootColor);
   overlapSelector.AddUIComponent(numDisplay, Point(5, 0));
 
-  UISelector overlapInput(Dimension(7, 1), "Overlap", Color(0xFFFF00), 7, (uint16_t*)&notePadConfigs[activeConfig].overlap);
+  UISelector overlapInput(Dimension(7, 1), "Overlap", Color(0xFFFF00), 7, (uint16_t*)&overlap);
   overlapSelector.AddUIComponent(overlapInput, Point(0, 7));
 
   UIButton alignRootToggle;
@@ -264,6 +266,8 @@ void Note::OverlapSelector() {
   overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
 
   overlapSelector.Start();
+
+  notePadConfigs[activeConfig].overlap = overlap;
 }
 
 void Note::ChannelSelector() {
