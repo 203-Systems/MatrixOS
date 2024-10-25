@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Add os and device directories
 set(EXTRA_COMPONENT_DIRS "devices/MatrixBlock6/Variants" "core/ESP32S3")
+set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 set(SUPPORTED_TARGETS esp32s3)
 set(FAMILY_MCUS ESP32S3)
@@ -40,8 +42,6 @@ elseif(MODE STREQUAL "UNDEFINED")
     add_compile_definitions(DEBUG_BUILD)
     set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
 endif()
-
-set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
 
 add_compile_options (-Wno-maybe-uninitialized)
 add_compile_options (-fdiagnostics-color=always)
