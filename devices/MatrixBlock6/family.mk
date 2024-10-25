@@ -14,7 +14,7 @@ build-common:
 build-release: MODE = RELEASE
 build-release: build-common
 
-build-rc: MODE = RELEASE CANDIDATE
+build-rc: MODE = RELEASECANDIDATE
 build-rc: build-common
 
 build-beta: MODE = BETA
