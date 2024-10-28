@@ -5,7 +5,7 @@
 #include "applications/Application.h"
 #include "UILayerControl.h"
 
-class CustomKeymap : public Application {
+class CustomControlMap : public Application {
  public:
   static Application_Info info;
 
@@ -21,12 +21,12 @@ class CustomKeymap : public Application {
   void ActionMenu();
 };
 
-inline Application_Info CustomKeymap::info = {
-    .name = "Custom Keymap",
+inline Application_Info CustomControlMap::info = {
+    .name = "Custom Control Map",
     .author = "203 Systems",
     .color = Color(0xFFFF00),
     .version = 1,
     .visibility = true,
 };
 
-REGISTER_APPLICATION(CustomKeymap);
+REGISTER_APPLICATION(CustomControlMap);

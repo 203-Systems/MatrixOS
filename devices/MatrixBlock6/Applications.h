@@ -6,7 +6,7 @@
 #include "applications/Note/Note.h"
 #include "applications/REDACTED/REDACTED.h"
 #include "applications/Companion/Companion.h"
-// #include "applications/CustomKeymap/CustomKeymap.h"
+// #include "applications/CustomControlMap/CustomControlMap.h"
 
 // USER APPLICATION
 #include "applications/Lighting/Lighting.h"

@@ -1,22 +1,56 @@
-#include "CustomKeymap.h"
+#include "CustomControlMap.h"
 #include "sample.h"
 #include "ui/UI.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
-void CustomKeymap::Setup() {
+void CustomControlMap::Setup() {
   if(!uad.LoadUAD((uint8_t*)sample_uad, sizeof(sample_uad)))
   {
-    MLOGE("CustomKeymap", "Failed to load UAD");
+    MLOGE("CustomControlMap", "Failed to load UAD");
   }
 }
 
-void CustomKeymap::Loop() {
+void CustomControlMap::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
+
+  HIDReportHandler();
 }
 
-void CustomKeymap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
+void CustomControlMap::HIDReportHandler() {
+  uint8_t* report;
+  uint8_t report_size;
+
+  while (1)
+  {
+    report_size = MatrixOS::HID::RawHID::Get(&report);
+    
+    if (report_size == 0)
+    {
+      return;
+    }
+
+    if (report[0] == 0x01)  // Key
+    {
+      MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x01, (uint8_t)(uiOpened ? 0x00 : 0x01)});
+    }
+    if (report[0] == 0x20)  // LED
+    {
+      MatrixOS::LED::SetColor(Point(report[1], report[2]), Color(report[3], report[4], report[5]), uiOpened ? canvasLedLayer : 0);
+    }
+    else if (report[0] == 0x21)  // Clear LED
+    {
+      MatrixOS::LED::Fill(0, uiOpened ? canvasLedLayer : 0);
+    }
+    else if (report[0] == 0x30)  // Update Brightness
+    {
+      // MatrixOS::LED::SetBrightness(report[1] * 2.55);
+    }
+  }
+}
+
+void CustomControlMap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   // Reserve Function Key 
   if (keyID == FUNCTION_KEY && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
@@ -27,14 +61,14 @@ void CustomKeymap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   uad.KeyEvent(keyID, keyInfo);
 }
 
-void CustomKeymap::Reload()
+void CustomControlMap::Reload()
 {
   MatrixOS::SYS::ExecuteAPP(info.author, info.name); // Just relaunch the APP lol
 }
 
-void CustomKeymap::ActionMenu() {
+void CustomControlMap::ActionMenu() {
   MatrixOS::LED::CopyLayer(0, 1);
-  MLOGD("CustomKeymap", "Enter Action Menu");
+  MLOGD("CustomControlMap", "Enter Action Menu");
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
@@ -109,5 +143,5 @@ UIButton systemSettingBtn;
 
   uad.InitializeLayer(); // Reinitialize layer after exit action menu so layer led update correctly
 
-  MLOGD("CustomKeymap", "Exit Action Menu");
+  MLOGD("CustomControlMap", "Exit Action Menu");
 }
