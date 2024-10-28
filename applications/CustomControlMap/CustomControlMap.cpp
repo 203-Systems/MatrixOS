@@ -30,23 +30,6 @@ void CustomControlMap::HIDReportHandler() {
     {
       return;
     }
-
-    if (report[0] == 0x01)  // Key
-    {
-      MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x01, (uint8_t)(uiOpened ? 0x00 : 0x01)});
-    }
-    if (report[0] == 0x20)  // LED
-    {
-      MatrixOS::LED::SetColor(Point(report[1], report[2]), Color(report[3], report[4], report[5]), uiOpened ? canvasLedLayer : 0);
-    }
-    else if (report[0] == 0x21)  // Clear LED
-    {
-      MatrixOS::LED::Fill(0, uiOpened ? canvasLedLayer : 0);
-    }
-    else if (report[0] == 0x30)  // Update Brightness
-    {
-      // MatrixOS::LED::SetBrightness(report[1] * 2.55);
-    }
   }
 }
 

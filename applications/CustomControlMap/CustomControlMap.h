@@ -19,6 +19,7 @@ class CustomControlMap : public Application {
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
   void Reload();
   void ActionMenu();
+  void HIDReportHandler();
 };
 
 inline Application_Info CustomControlMap::info = {
