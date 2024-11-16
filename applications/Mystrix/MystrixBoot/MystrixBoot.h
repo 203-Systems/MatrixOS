@@ -1,11 +1,12 @@
 #pragma once
 
 #include "applications/BootAnimation/BootAnimation.h"
+#include "esp_sleep.h"
 
 #define MATRIX_BOOT_BRIGHTNESS 1.0  // On Top of system brightness
 #define MATRIX_BOOT_IDLE 0.25         // On Top of system brightness
 
-class MystrixBoot : public BootAnimation {
+class MystrixBoot : public Application{
  public:
  static Application_Info info; ;
 
@@ -13,23 +14,47 @@ class MystrixBoot : public BootAnimation {
   Timer timer;
 
   Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
-  uint8_t counter;
 
-  uint8_t boot_phase;
-  uint32_t boot_phase_1_tick_time = 0;
-  uint32_t boot_phase_2_start_time = 0;
+  enum BootPhase
+  {
+    INIT,
+    SHOW_BATTERY,
+    WAITING_FOR_USB,
+    MANUAL_START,
+    USB_CONNECTED,
+    EXPLODE,
+  };
+
+  const float battery_step = 22.5;
+
+  BootPhase boot_phase = INIT;
+
+  bool prevChargingState = false;
+  uint32_t batteryChargingEffectStartTime = 0;
+  float batteryPercentageCache = 0; // Prevent battery level change during boot animation
+
+  uint32_t phase_start_time = 0;
   float hueList[8][2] = {
       {0.5f, 0.833f},  // Pro - Pink Cyan
       {0.5f, 0.167f}    // Standard - Yellow Cyan
   };
 
+  int16_t manual_boot_progress = 0;
+
   void Setup() override;
-  bool Idle(bool ready) override;
-  void Boot() override;
-  void BootPhase1();
-  void BootPhase2();
-  Color BootPhase2Color(int16_t time, float hue);
-  void BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2);
+  void Loop() override;
+  bool Idle(bool ready);
+  void Boot();
+  uint8_t GetBatteryLevel(float percentage);
+  void RenderBattery(float percentage, bool charging, uint8_t brightness);
+  void BootPhaseBattery();
+  void BootPhaseWaitingForUSB();
+  void RenderSquareFill(float percentage);
+  void BootPhaseManualStart();
+  void BootPhaseUSBConnected();
+  void BootPhaseExplode();
+  Color BootPhaseExplodeColor(int16_t time, float hue);
+  void BootPhaseExplodeQuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2);
 
   void End();
 };
