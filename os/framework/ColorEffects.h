@@ -58,4 +58,15 @@ namespace ColorEffects
     {
         return color.Scale(Saw(period, offset)).Gamma();
     }
+
+    inline uint8_t Triangle(uint16_t period = 1000, int32_t offset = 0)
+    {
+        uint16_t timeInPeriod = (MatrixOS::SYS::Millis() - offset) % period;
+        return timeInPeriod < (period / 2) ? (timeInPeriod * 255 / (period / 2)) : ((period - timeInPeriod) * 255 / (period / 2));
+    }
+
+    inline Color ColorTriangle(Color color, uint16_t period = 1000, int32_t offset = 0)
+    {
+        return color.Scale(Triangle(period, offset)).Gamma();
+    }
 }
