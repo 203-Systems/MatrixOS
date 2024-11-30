@@ -7,6 +7,9 @@
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
 
+#include "esp_sleep.h"
+#include "driver/rtc_io.h"
+
 namespace Device
 {
   namespace KeyPad
@@ -108,6 +111,20 @@ namespace Device
     keypadCalibrationBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Systems", "Force Calibration"); });
     keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
     deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
+
+    UIButton sleepBtn;
+    sleepBtn.SetName("Sleep");
+    sleepBtn.SetColor(Color(0xFF0000));
+    sleepBtn.OnPress([]() -> void {
+      MatrixOS::LED::Fill(Color(0));
+      MatrixOS::LED::Update();
+      MatrixOS::SYS::DelayMs(20);
+      esp_sleep_enable_ext0_wakeup(KeyPad::fn_pin, 0);
+      rtc_gpio_pulldown_dis(KeyPad::fn_pin);
+      rtc_gpio_pullup_en(KeyPad::fn_pin);
+      esp_deep_sleep_start();
+    });
+    deviceSettings.AddUIComponent(sleepBtn, Point(7, 7));
 
     deviceSettings.Start();
   }
