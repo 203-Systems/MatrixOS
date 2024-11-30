@@ -10,7 +10,7 @@ namespace Device
         uart_port_t uartChannel = UART_NUM_2;
 
         void portTask(void* param) {
-            MidiPort port = MidiPort("Midi Port", MIDI_PORT_PHYISCAL);
+            MidiPort port = MidiPort("Midi Port", MIDI_PORT_PHYSICAL);
             midiPort = &port;
             MidiPacket packet;
             while (true)
