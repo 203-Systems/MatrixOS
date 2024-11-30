@@ -5,8 +5,23 @@
 
 // Replace with real battery api
 #define HAS_BATTERY true
-#define GET_BATTERY 100.0
+#define GET_BATTERY 50.0
 #define BATTERY_CHARGING true
+
+#include "esp_sleep.h"
+#include "driver/rtc_io.h"
+
+void sleep()
+{
+  MatrixOS::LED::Fade();
+  MatrixOS::LED::Fill(Color(0));
+  MatrixOS::LED::Update();
+  MatrixOS::SYS::DelayMs(crossfade_duration + 100);
+  esp_sleep_enable_ext0_wakeup(Device::KeyPad::fn_pin, 0);
+  rtc_gpio_pulldown_dis(Device::KeyPad::fn_pin);
+  rtc_gpio_pullup_en(Device::KeyPad::fn_pin);
+  esp_deep_sleep_start();
+}
 
 void MystrixBoot::Setup() {
   if (HAS_BATTERY) { // Wakeup from button press
@@ -113,9 +128,14 @@ void MystrixBoot::RenderBattery(float percentage, bool charging, uint8_t brightn
       batteryChargingEffectStartTime = MatrixOS::SYS::Millis();
       prevChargingState = true;
     }
-    chargingColor = ColorEffects::ColorBreath(color, 1500, batteryChargingEffectStartTime + 1500).Scale(brightness);
+    chargingColor = ColorEffects::ColorTriangle(color, 1500, batteryChargingEffectStartTime).Scale(brightness);
 
     MatrixOS::LED::FillPartition("Underglow", chargingColor);
+  }
+  else
+  {
+    batteryChargingEffectStartTime = MatrixOS::SYS::Millis();
+    prevChargingState = false;
   }
 
   color = color.Scale(brightness);
@@ -124,28 +144,28 @@ void MystrixBoot::RenderBattery(float percentage, bool charging, uint8_t brightn
   {
     for (uint8_t y = 0; y < 8; y++)
     {
-        uint8_t local_level = 4;
-        if(x > 2 && x < 5 && y > 2 && y < 5) //  
-        {
-          local_level = 1;
-        }
-        else if(x > 1 && x < 6 && y > 1 && y < 6)
-        {
-          local_level = 2;
-        }
-        else if(x > 0 && x < 7 && y > 0 && y < 7)
-        {
-          local_level = 3;
-        }
-
-        if(battery_level >= local_level)
-        {
-          MatrixOS::LED::SetColor(Point(x, y), color);
-        }
-        else if(charging && battery_level == local_level - 1)
-        {
-          MatrixOS::LED::SetColor(Point(x, y), chargingColor);
+      uint8_t local_level = 4;
+      if(x > 2 && x < 5 && y > 2 && y < 5) //  
+      {
+        local_level = 1;
       }
+      else if(x > 1 && x < 6 && y > 1 && y < 6)
+      {
+        local_level = 2;
+      }
+      else if(x > 0 && x < 7 && y > 0 && y < 7)
+      {
+        local_level = 3;
+      }
+
+      if(battery_level >= local_level)
+      {
+        MatrixOS::LED::SetColor(Point(x, y), color);
+      }
+      else if(charging && battery_level == local_level - 1)
+      {
+        MatrixOS::LED::SetColor(Point(x, y), chargingColor);
+    }
     }
   }
 }
@@ -159,11 +179,12 @@ void MystrixBoot::BootPhaseBattery()
     uint8_t battery_level = GetBatteryLevel(GET_BATTERY);
     if (delta_time >= (battery_level + 1) * section_time)
     {
-      if(MatrixOS::USB::Connected())
-      {
-        boot_phase = USB_CONNECTED;
-        phase_start_time = MatrixOS::SYS::Millis();
-      }
+      // if(MatrixOS::USB::Connected())
+      // {
+      //   boot_phase = USB_CONNECTED;
+      //   phase_start_time = MatrixOS::SYS::Millis();
+      // }
+      // else
       if(MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())
       {
         boot_phase = MANUAL_START;
@@ -211,11 +232,11 @@ void MystrixBoot::BootPhaseBattery()
 
     if(!BATTERY_CHARGING && delta_time > 10000)
     {
-      // Go back to sleep
+      sleep();
     }
-    else if(BATTERY_CHARGING && delta_time > 30000)
+    else if(BATTERY_CHARGING && delta_time > 10000)
     {
-      // Go back to sleep
+      sleep();
     }
   }
 }
