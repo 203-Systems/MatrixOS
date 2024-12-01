@@ -6,13 +6,11 @@
 #include "applications/Note/Note.h"
 #include "applications/REDACTED/REDACTED.h"
 #include "applications/Companion/Companion.h"
-// #include "applications/CustomControlMap/CustomControlMap.h"
+#include "applications/CustomControlMap/CustomControlMap.h"
 
 // USER APPLICATION
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
-#include "applications/Gamepad/Gamepad.h"
-// #include "applications/USBtest/USBtest.h"
 // #include "applications/Example/Example.h"
 #include "applications/Reversi/Reversi.h"
 
