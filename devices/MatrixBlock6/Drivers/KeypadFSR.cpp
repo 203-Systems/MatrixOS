@@ -150,7 +150,7 @@ namespace Device::KeyPad::FSR
 
   uint16_t GetRawReading(uint8_t x, uint8_t y)
   {
-    uint16_t(*result)[8][1] = (uint16_t(*)[8][1]) & ulp_result;
+    uint16_t(*result)[8][1] = (uint16_t(*)[8][1]) ulp_result;
     return result[x][y][0];
   }
 
@@ -163,7 +163,7 @@ namespace Device::KeyPad::FSR
   #define CLAMP(x, low, high) (x < low ? low : (x > high ? high : x))
   bool Scan() {
     // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
-    uint16_t(*result)[8][SAMPLES] = (uint16_t(*)[8][SAMPLES]) &ulp_result;
+    uint16_t(*result)[8][SAMPLES] = (uint16_t(*)[8][SAMPLES]) ulp_result;
     // uint16_t(*threshold)[8] = (uint16_t(*)[8]) &ulp_threshold;
 
     KeyConfig config = keypad_config;
