@@ -100,6 +100,7 @@ namespace Device
     touchbarToggle.SetName("Touchbar");
     touchbarToggle.SetColor(Color(0x7957FB));
     touchbarToggle.SetValue(&Device::touchbar_enable);
+    touchbarToggle.OnPress([&]() -> void { Device::touchbar_enable.Save(); });
     deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
 
     UIButton keypadCalibrationBtn;
