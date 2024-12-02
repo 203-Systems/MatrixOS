@@ -1,5 +1,4 @@
 #include "CustomControlMap.h"
-#include "sample.h"
 #include "ui/UI.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 
