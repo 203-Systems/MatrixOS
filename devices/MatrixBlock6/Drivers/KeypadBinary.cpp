@@ -84,6 +84,11 @@ namespace Device::KeyPad::Binary
         }
       }
       gpio_set_level(keypad_write_pins[x], 0);
+        // Small delay using nop
+        for (volatile int i = 0; i < 30; i++)
+        {
+          asm volatile("nop");
+        }
     }
     return false;
   }
