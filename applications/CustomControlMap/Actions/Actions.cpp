@@ -12,7 +12,7 @@
 
 #define TAG "UAD Actions"
 
-bool UAD::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent)
+bool UADRuntime::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent)
 {
     if(actionInfo->depth > 5)
     {

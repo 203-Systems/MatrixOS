@@ -33,10 +33,14 @@ namespace WrapAction
             MLOGE(TAG, "Failed to get action data %d", 1);
             return false;
         }
-        action->layer = cbor_data.value;
-        if(cbor_data.type == CB0R_NEG)
+
+        if (cbor_data.type == CB0R_INT)
         {
-            action->layer -= 1;
+            action->layer = cbor_data.value;
+        }
+        else if(cbor_data.type == CB0R_NEG)
+        {
+            action->layer = -1 - cbor_data.value;
         }
 
         if(!cb0r_get(actionData, 3, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
@@ -44,10 +48,14 @@ namespace WrapAction
             MLOGE(TAG, "Failed to get action data %d", 2);
             return false;
         }
-        action->x = cbor_data.value; 
-        if(cbor_data.type == CB0R_NEG)
+        
+        if(cbor_data.type == CB0R_INT)
         {
-            action->x -= 1;
+            action->x = cbor_data.value;
+        }
+        else if(cbor_data.type == CB0R_NEG)
+        {
+            action->x = -1 - cbor_data.value;
         }
 
         if(!cb0r_get(actionData, 4, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
@@ -55,16 +63,20 @@ namespace WrapAction
             MLOGE(TAG, "Failed to get action data %d", 3);
             return false;
         }
-        action->y = cbor_data.value;
-        if(cbor_data.type == CB0R_NEG)
+   
+        if(cbor_data.type == CB0R_INT)
         {
-            action->y -= 1;
+            action->y = cbor_data.value;
+        }
+        else if(cbor_data.type == CB0R_NEG)
+        {
+            action->y = -1 - cbor_data.value;
         }
 
         return true;
     }
 
-    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         WrapAction data;
         if(!LoadData(actionData, &data))
@@ -87,7 +99,7 @@ namespace WrapAction
         if(data.relativeLayer == true)
         {
             int8_t newLayer = newAction.layer + data.layer;
-            if(newLayer < 0 || newLayer >= UAD->layerCount)
+            if(newLayer < 0 || newLayer >= uadRT->layerCount)
             {
                 MLOGE(TAG, "Relative Layer out of range");
                 return false;
@@ -115,9 +127,9 @@ namespace WrapAction
 
         newAction.depth++;
 
-        UAD::ActionEvent actionEvent = {.type = UAD::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
-        UAD->ExecuteActions(&newAction, &actionEvent);
-        UAD->ExecuteEffects(&newAction, &actionEvent);
+        UADRuntime::ActionEvent actionEvent = {.type = UADRuntime::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
+        uadRT->ExecuteActions(&newAction, &actionEvent);
+        uadRT->ExecuteEffects(&newAction, &actionEvent);
         return true;
     }
 };

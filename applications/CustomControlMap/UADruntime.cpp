@@ -3,7 +3,7 @@
 
 #define TAG "UAD Runtime"
 
-int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index) {
+int8_t UADRuntime::IndexInBitmap(uint64_t bitmap, uint8_t index) {
   if (!IsBitSet(bitmap, index))
   {
     return -1;
@@ -18,7 +18,7 @@ int8_t UAD::IndexInBitmap(uint64_t bitmap, uint8_t index) {
   return count + 1;
 }
 
-void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
+void UADRuntime::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (!loaded)
   {
     return;
@@ -44,7 +44,7 @@ void UAD::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   ExecuteEffects(&actionInfo, &actionEvent);
 }
 
-bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
+bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
   // Get Offset based on index type
   uint16_t offset;
   ActionInfo newActionInfo = *actionInfo;
@@ -138,7 +138,7 @@ bool UAD::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent) {
   return true;
 }
 
-bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
+bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
   // Get Offset based on index type
   uint16_t offset = effectLUT[effectInfo->layer];
   ActionInfo newEffectInfo = *effectInfo;
@@ -231,11 +231,11 @@ bool UAD::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent) {
   return true;
 }
 
-uint8_t UAD::GetTopLayer() {
+uint8_t UADRuntime::GetTopLayer() {
   return std::log2(layerEnabled);
 }
 
-void UAD::InitializeLayer(uint8_t layer) {
+void UADRuntime::InitializeLayer(uint8_t layer) {
   if(layer == 255)
   {
     layer = GetTopLayer();
@@ -337,7 +337,7 @@ void UAD::InitializeLayer(uint8_t layer) {
   MLOGI(TAG, "Layer %d initialized", layer);
 }
 
-void UAD::DeinitializeLayer(uint8_t layer) {
+void UADRuntime::DeinitializeLayer(uint8_t layer) {
   if(layer == 255)
   {
     layer = GetTopLayer();

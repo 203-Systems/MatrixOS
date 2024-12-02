@@ -18,7 +18,7 @@ namespace LayerAction
       LayerActionType type;
       LayerActionOption option;
       bool relative;
-      uint8_t layer;
+      int8_t layer;
     };
 
     static bool LoadData(cb0r_t actionData, LayerAction* action)
@@ -35,17 +35,26 @@ namespace LayerAction
         action->option = (LayerActionOption)((cbor_data.value >> 8) & 0x0F);
         action->relative = (bool)((cbor_data.value >> 15) & 0x01);
 
-        if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
+        if(!cb0r_get(actionData, 2, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
         {
             MLOGE(TAG, "Failed to get action data 1");
             return false;
         }
-        action->layer = cbor_data.value;
+
+        if(cbor_data.type == CB0R_INT)
+        {
+            action->layer = cbor_data.value;
+        }
+        else if(cbor_data.type == CB0R_NEG)
+        {
+            action->layer = -1 - cbor_data.value;
+        }
+
         return true;
     }
     
 
-    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
 
@@ -61,22 +70,27 @@ namespace LayerAction
         if(data.relative)
         {
           targetLayer = actionInfo->layer + data.layer;
+          MLOGD(TAG, "Current Layer: %d, Offset: %d, Target Layer: %d", actionInfo->layer, data.layer, targetLayer);
+        }
+        else
+        {
+          MLOGD(TAG, "Target Layer: %d", targetLayer);
         }
 
-        if(targetLayer < 0 || targetLayer >= UAD->layerCount)
+        if(targetLayer < 0 || targetLayer >= uadRT->layerCount)
         {
           MLOGE(TAG, "Invalid target layer");
           return false;
         }
 
-        UAD::LayerInfoType targetLayerInfo;
+        UADRuntime::LayerInfoType targetLayerInfo;
         if(data.type == LayerActionType::ACTIVE)
         {
-          targetLayerInfo = UAD::LayerInfoType::ACTIVE;
+          targetLayerInfo = UADRuntime::LayerInfoType::ACTIVE;
         }
         else if(data.type == LayerActionType::PASSTHROUGH)
         {
-          targetLayerInfo = UAD::LayerInfoType::PASSTHROUGH;
+          targetLayerInfo = UADRuntime::LayerInfoType::PASSTHROUGH;
         }
         else
         {
@@ -85,30 +99,31 @@ namespace LayerAction
         }
 
         bool targetLayerState;
-        if(data.option == LayerActionOption::ENABLE)
-        {
-          targetLayerState = true;
-        }
-        else if(data.option == LayerActionOption::DISABLE)
-        {
-          targetLayerState = false;
-        }
-        else if(data.option == LayerActionOption::TOGGLE)
-        {
-          targetLayerState = !UAD->GetLayerState(targetLayer, targetLayerInfo);
-          // Save togged state to register
-          UAD->SetRegister(actionInfo, targetLayerState);
-        }
-        else
-        {
-            MLOGE(TAG, "Invalid option");
-            return false;
-        }
-
+ 
         // Process Key Event
         if(keyInfo->state == KeyState::PRESSED)
         {
-            UAD->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
+          if(data.option == LayerActionOption::ENABLE)
+          {
+            targetLayerState = true;
+          }
+          else if(data.option == LayerActionOption::DISABLE)
+          {
+            targetLayerState = false;
+          }
+          else if(data.option == LayerActionOption::TOGGLE)
+          {
+            targetLayerState = !uadRT->GetLayerState(targetLayer, targetLayerInfo);
+            // Save togged state to register
+            uadRT->SetRegister(actionInfo, targetLayerState);
+          }
+          else
+          {
+              MLOGE(TAG, "Invalid option");
+              return false;
+          }
+
+            uadRT->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
             return true;
         }
         else if(data.mode == LayerActionMode::MOMENTARY && keyInfo->state == KeyState::RELEASED)
@@ -117,21 +132,26 @@ namespace LayerAction
             // Flip Back!
             if(data.option == LayerActionOption::ENABLE)
             {
-                targetLayerState = true;
+                targetLayerState = false;
             }
             else if(data.option == LayerActionOption::DISABLE)
             {
-                targetLayerState = false;
+                targetLayerState = true;
             }
             else if(data.option == LayerActionOption::TOGGLE)
             {   
                 // Load Toggle State from register
                 uint32_t registerValue;
-                UAD->GetRegister(actionInfo, &registerValue);
+                uadRT->GetRegister(actionInfo, &registerValue);
                 targetLayerState = !(bool)registerValue;
             }
-
-            UAD->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
+            else
+            {
+                MLOGE(TAG, "Invalid option");
+                return false;
+            }
+            
+            uadRT->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
             return true;
         }
 

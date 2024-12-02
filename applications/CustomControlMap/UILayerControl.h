@@ -7,14 +7,14 @@ class UILayerControl : public UIComponent {
   string name;
   Color color;
   Dimension dimension;
-  UAD* uad;
-  UAD::LayerInfoType type;
+  UADRuntime* uadRT;
+  UADRuntime::LayerInfoType type;
 
-  UILayerControl (string name, Color color, Dimension dimension, UAD* uad, UAD::LayerInfoType type) {
+  UILayerControl (string name, Color color, Dimension dimension, UADRuntime* uadRT, UADRuntime::LayerInfoType type) {
     this->name = name;
     this->color = color;
     this->dimension = dimension;
-    this->uad = uad;
+    this->uadRT = uadRT;
     this->type = type;
   }
 
@@ -24,15 +24,15 @@ class UILayerControl : public UIComponent {
 
 
   virtual bool Render(Point origin) {
-    uint8_t layerCount = uad->layerCount;
+    uint8_t layerCount = uadRT->layerCount;
     uint16_t bitmap = 0;
-    if(type == UAD::LayerInfoType::ACTIVE)
+    if(type == UADRuntime::LayerInfoType::ACTIVE)
     {
-      bitmap = uad->layerEnabled;
+      bitmap = uadRT->layerEnabled;
     }
-    else if(type == UAD::LayerInfoType::PASSTHROUGH)
+    else if(type == UADRuntime::LayerInfoType::PASSTHROUGH)
     {
-      bitmap = uad->layerPassthrough;
+      bitmap = uadRT->layerPassthrough;
     }
 
     for (uint8_t x = 0; x < dimension.x; x++)
@@ -41,6 +41,10 @@ class UILayerControl : public UIComponent {
       {
         uint8_t id = y * dimension.x + x;
         Color layerColor = Color(0x101010);
+        if(uadRT->loaded == false)
+        {
+          layerColor = Color(0xFF0000).Dim();
+        }
         if(id < layerCount)
         {
           if(bitmap & (1 << id))
@@ -63,8 +67,8 @@ class UILayerControl : public UIComponent {
     { 
       uint8_t layer = xy.y * dimension.x + xy.x;
       if(layer == 0) return true; // Can't change root layer
-      if(layer >= uad->layerCount) return true;
-      uad->SetLayerState(layer, type, !uad->GetLayerState(layer, type));
+      if(layer >= uadRT->layerCount) return true;
+      uadRT->SetLayerState(layer, type, !uadRT->GetLayerState(layer, type));
     }
     else if (keyInfo->state == HOLD)
     {

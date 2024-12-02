@@ -1,11 +1,11 @@
 #include "UAD.h"
 
-bool UAD::SetRegister(ActionInfo* actionInfo, uint32_t value)
+bool UADRuntime::SetRegister(ActionInfo* actionInfo, uint32_t value)
 {
     return registers.insert_or_assign(*actionInfo, value).second;
 }
 
-bool UAD::GetRegister(ActionInfo* actionInfo, uint32_t* value)
+bool UADRuntime::GetRegister(ActionInfo* actionInfo, uint32_t* value)
 {   
     std::unordered_map<ActionInfo, uint32_t>::iterator it = registers.find(*actionInfo);
 
@@ -18,12 +18,12 @@ bool UAD::GetRegister(ActionInfo* actionInfo, uint32_t* value)
     return true;
 }
 
-bool UAD::ClearRegister(ActionInfo* actionInfo)
+bool UADRuntime::ClearRegister(ActionInfo* actionInfo)
 {
     return registers.erase(*actionInfo) > 0;
 }
 
-  void UAD::SetLayerState(uint8_t layer, LayerInfoType type, bool state)
+  void UADRuntime::SetLayerState(uint8_t layer, LayerInfoType type, bool state)
   {
     if(type == LayerInfoType::ACTIVE)
     {
@@ -60,7 +60,7 @@ bool UAD::ClearRegister(ActionInfo* actionInfo)
     }
   }
 
-bool UAD::GetLayerState(uint8_t layer, LayerInfoType type)
+bool UADRuntime::GetLayerState(uint8_t layer, LayerInfoType type)
 {
     if(type == LayerInfoType::ACTIVE)
     {

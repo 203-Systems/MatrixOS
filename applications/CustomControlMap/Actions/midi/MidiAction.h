@@ -50,7 +50,7 @@ namespace MidiAction
     return (uint8_t)cbor_data.value;
   }
 
-  static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
+  static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
     MLOGV(TAG, "KeyEvent - Data Length: %d", actionData->length);
     if (keyInfo->state != PRESSED && keyInfo->state != RELEASED && keyInfo->state != AFTERTOUCH)
     {
@@ -59,6 +59,7 @@ namespace MidiAction
     }
 
     uint8_t signature = GetData(actionData, 0);
+    uint8_t channel = signature & 0x0F;
 
     // MLOGV(TAG, "Data: %d, %d, %d", data.data0, data.data1, data.data2);
     switch ((signature & 0xF0))
@@ -70,12 +71,12 @@ namespace MidiAction
 
             if (keyInfo->state == PRESSED)  // Velocity sensing is disabled && key press action
             {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, signature & 0x0F, note & 0x7F, velocity));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, velocity));
                 return true;
             }
             else if (keyInfo->state == RELEASED)
             {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, signature & 0x0F, note & 0x7F, 0));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, 0));
                 return true;
             }
             return false;
@@ -85,17 +86,17 @@ namespace MidiAction
             uint8_t note = GetData(actionData, 1);
             if (keyInfo->state == AFTERTOUCH)
             {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, signature & 0x0F, note & 0x7F, keyInfo->velocity.to7bits()));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, channel, note & 0x7F, keyInfo->velocity.to7bits()));
                 return true;
             }
             else if (keyInfo->state == PRESSED)
             {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, signature & 0x0F, note & 0x7F, keyInfo->velocity.to7bits()));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, channel, note & 0x7F, keyInfo->velocity.to7bits()));
                 return true;
             }
             else if(keyInfo->state == RELEASED)
             {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, signature & 0x0F, note & 0x7F, 0));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, 0));
                 return true;
             }
             return false;
@@ -106,7 +107,7 @@ namespace MidiAction
             {   
                 uint8_t control = GetData(actionData, 1);
                 uint8_t value = GetData(actionData, 2);
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::ControlChange, signature & 0x0F, control, value));
+                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::ControlChange, channel, control, value));
                 return true;
             }
             return false;

@@ -46,7 +46,7 @@ namespace ColorEffect
     }
     
 
-    static bool KeyEvent(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
+    static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         MLOGV(TAG, "KeyEvent");
         if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
@@ -94,7 +94,7 @@ namespace ColorEffect
     }
     
 
-    static void Initialization(UAD* UAD, ActionInfo* actionInfo, cb0r_t actionData)
+    static void Initialization(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData)
     {
         struct ColorEffectData data;
 

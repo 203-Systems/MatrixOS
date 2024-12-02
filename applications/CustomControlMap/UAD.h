@@ -7,12 +7,15 @@
 #define UAD_VERSION 0
 
 // Universal Action Descriptor
-class UAD
+class UADRuntime
 {
   public:
-  UAD();
-  UAD(uint8_t* uad, size_t size);
-  ~UAD();
+  static const uint8_t UAD_MAJOR_VERSION = 0;
+  static const uint8_t UAD_MINOR_VERSION = 1;
+
+  UADRuntime();
+  UADRuntime(uint8_t* uad, size_t size);
+  ~UADRuntime();
 
   bool LoadUAD(uint8_t* uad, size_t size);
   void UnloadUAD();
@@ -29,6 +32,7 @@ class UAD
       KeyInfo* keyInfo; // For KEYEVENT
     };
   };
+
   bool ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent); //WIll pick a layer and index for Action
   bool ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent); //WIll pick a layer and index for Effect
   bool ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, ActionEvent* actionEvent); //Not intended for direct use
@@ -53,10 +57,10 @@ class UAD
   uint8_t layerCount = 0;
   uint16_t layerEnabled = 1;
   uint16_t layerPassthrough = 0xFFFF;
-
-  private:
   size_t uadSize;
   uint8_t* uad;
+
+  private:
   vector<uint32_t> actionList;
   vector<uint32_t> effectList;
   uint16_t** actionLUT;

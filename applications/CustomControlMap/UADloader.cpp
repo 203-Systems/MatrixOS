@@ -2,13 +2,13 @@
 
 #define TAG "UAD Loader"
 
-UAD::UAD() {}
+UADRuntime::UADRuntime() {}
 
-UAD::UAD(uint8_t* uad, size_t size) {
+UADRuntime::UADRuntime(uint8_t* uad, size_t size) {
   LoadUAD(uad, size);
 }
 
-UAD::~UAD() {
+UADRuntime::~UADRuntime() {
   // Free LUTs
   if (actionLUT != NULL)
   {
@@ -25,7 +25,7 @@ UAD::~UAD() {
   }
 }
 
-bool UAD::CheckVersion(cb0r_t uadMap) {
+bool UADRuntime::CheckVersion(cb0r_t uadMap) {
   cb0r_s uad_section;
 
   // Get UAD version
@@ -44,7 +44,7 @@ bool UAD::CheckVersion(cb0r_t uadMap) {
   return true;
 }
 
-bool UAD::LoadActionList(cb0r_t uadMap) {
+bool UADRuntime::LoadActionList(cb0r_t uadMap) {
   cb0r_s action_list;
 
   if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"action_list", &action_list))  // || action_list.type != CB0R_ARRAY)
@@ -56,7 +56,7 @@ bool UAD::LoadActionList(cb0r_t uadMap) {
   return CreateHashList(&action_list, &actionList);
 }
 
-bool UAD::LoadEffectList(cb0r_t uadMap) {
+bool UADRuntime::LoadEffectList(cb0r_t uadMap) {
   cb0r_s effect_list;
 
   if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"effect_list", &effect_list))  // || effect_list.type != CB0R_ARRAY)
@@ -68,7 +68,7 @@ bool UAD::LoadEffectList(cb0r_t uadMap) {
   return CreateHashList(&effect_list, &effectList);
 }
 
-bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
+bool UADRuntime::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
   list->clear();
   list->reserve(cborArray->length);
 
@@ -85,7 +85,7 @@ bool UAD::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
   return true;
 }
 
-bool UAD::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize) {
+bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize) {
   cb0r_s x_bitmap;
   if (!cb0r_get(actionMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
   {
@@ -160,7 +160,7 @@ bool UAD::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSiz
   return true;
 }
 
-bool UAD::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize) {
+bool UADRuntime::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize) {
   cb0r_s layer_bitmap;
   if (!cb0r_get(effectMatrix, 0, &layer_bitmap) || layer_bitmap.type != CB0R_INT)
   {
@@ -200,7 +200,7 @@ bool UAD::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize) 
   return true;
 }
 
-bool UAD::LoadDevice(cb0r_t uadMap) {
+bool UADRuntime::LoadDevice(cb0r_t uadMap) {
 
   cb0r_s devices;
   if (!cb0r_find(uadMap, CB0R_UTF8, 7, (uint8_t*)"devices", &devices) || devices.type != CB0R_ARRAY)
@@ -308,7 +308,7 @@ bool UAD::LoadDevice(cb0r_t uadMap) {
   return device_found;
 }
 
-bool UAD::LoadUAD(uint8_t* uad, size_t size) {
+bool UADRuntime::LoadUAD(uint8_t* uad, size_t size) {
   this->uad = uad;
   this->uadSize = size;
   MLOGI(TAG, "Loading UAD");
@@ -350,6 +350,6 @@ bool UAD::LoadUAD(uint8_t* uad, size_t size) {
   return true;
 }
 
-void UAD::UnloadUAD() {
+void UADRuntime::UnloadUAD() {
   loaded = false;
 }
