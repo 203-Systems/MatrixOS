@@ -146,4 +146,8 @@ class NotePad : public UIComponent {
     activeNotes.reserve(8);
     GenerateKeymap();
   }
+
+  ~NotePad() {
+    MatrixOS::MIDI::Send(MidiPacket(0, ControlChange, config->channel, 123, 0)); // All notes off
+  }
 };
