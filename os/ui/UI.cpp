@@ -120,15 +120,6 @@ void UI::AddUIComponent(UIComponent* uiComponent, Point xy) {
   uiComponents.push_back(pair<Point, UIComponent*>(xy, uiComponent));
 }
 
-void UI::AddUIComponent(UIComponent* uiComponent, uint16_t count, ...) {
-  va_list valst;
-  va_start(valst, count);
-  for (uint8_t i = 0; i < count; i++)
-  {
-    uiComponents.push_back(pair<Point, UIComponent*>((Point)va_arg(valst, Point), uiComponent));
-  }
-}
-
 void UI::AllowExit(bool allow) {
   disableExit = !allow;
 }

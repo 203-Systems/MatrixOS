@@ -87,7 +87,6 @@ class UI {
   void SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler);
 
   void AddUIComponent(UIComponent* uiComponent, Point xy);
-  void AddUIComponent(UIComponent* uiComponent, uint16_t count, ...);
 
   void AllowExit(bool allow);
 
