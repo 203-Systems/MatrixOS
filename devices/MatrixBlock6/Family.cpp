@@ -42,7 +42,7 @@ namespace Device
 #ifdef FACTORY_CONFIG
     if (esp_efuse_block_is_empty(EFUSE_BLK3))
     {
-      MatrixOS::UIInterface::TextScroll("Factory Test", Color(0xFF00FF));
+      MatrixOS::UIUtility::TextScroll("Factory Test", Color(0xFF00FF));
       MatrixOS::SYS::ExecuteAPP("203 Systems", "Mystrix Factory Menu");
     }
 #endif
@@ -92,7 +92,7 @@ namespace Device
       Device::bluetooth = Device::BLEMIDI::started;
     });
     bluetoothToggle.OnHold([&]() -> void {
-      MatrixOS::UIInterface::TextScroll(bluetoothToggle.name + " " + (Device::BLEMIDI::started ? "Enabled" : "Disabled"), bluetoothToggle.GetColor());
+      MatrixOS::UIUtility::TextScroll(bluetoothToggle.name + " " + (Device::BLEMIDI::started ? "Enabled" : "Disabled"), bluetoothToggle.GetColor());
     });
     deviceSettings.AddUIComponent(bluetoothToggle, Point(0, 0));
 

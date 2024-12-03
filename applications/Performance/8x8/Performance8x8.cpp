@@ -568,7 +568,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
           if (keyEvent.info.state == RELEASED)
           {
             uint32_t old_color = custom_palette[custom_palette_id][id].RGB();
-            MatrixOS::UIInterface::ColorPicker(custom_palette[custom_palette_id][id]);
+            MatrixOS::UIUtility::ColorPicker(custom_palette[custom_palette_id][id]);
             if (old_color != custom_palette[custom_palette_id][id].RGB())
             {
               MatrixOS::LED::SetColor(Point(xy.x, xy.y), custom_palette[custom_palette_id][id]);
@@ -580,7 +580,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
           else if (keyEvent.info.state == HOLD)
           {
             string text = "Color " + std::to_string(id);
-            MatrixOS::UIInterface::TextScroll(text, Color(0xFFFFFF));
+            MatrixOS::UIUtility::TextScroll(text, Color(0xFFFFFF));
           }
           else if (keyEvent.info.state == RELEASED)
           {
@@ -694,7 +694,7 @@ void Performance::ActionMenu() {
   flickerReductionToggle.SetName("Flicker Reduction");
   flickerReductionToggle.SetColorFunc([&]() -> Color { return Color(0xAAFF00).DimIfNot(stfu); });
   flickerReductionToggle.OnPress([&]() -> void { stfu = (!stfu) * STFU_DEFAULT; }); // The UIToggle already flip the value for us
-  flickerReductionToggle.OnHold([&]() -> void { MatrixOS::UIInterface::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor()); });
+  flickerReductionToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor()); });
   actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
   UIButton customPaletteViewer1;

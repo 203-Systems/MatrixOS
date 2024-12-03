@@ -152,13 +152,13 @@ class UITemperatureColorSelector : public UIComponent {
       uint16_t temp = begin + step * index;
       string temp_str = std::to_string(temp) + "K";
       Color color = TemperatureToRGB(temp);
-      MatrixOS::UIInterface::TextScroll(temp_str, color);
+      MatrixOS::UIUtility::TextScroll(temp_str, color);
     }
     return true;
   }
 };
 
-namespace MatrixOS::UIInterface
+namespace MatrixOS::UIUtility
 {
   inline bool TemperatureColorPicker(Color& color) {
     bool aborted = false;

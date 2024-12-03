@@ -65,7 +65,7 @@ class UIItemSelector : public UIComponent {
         }
       }
       else if (keyInfo->state == HOLD && names != nullptr)
-      { MatrixOS::UIInterface::TextScroll(names[id], GetColor()); }
+      { MatrixOS::UIUtility::TextScroll(names[id], GetColor()); }
     }
     return true;
   }

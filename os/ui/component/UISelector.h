@@ -39,7 +39,7 @@ class UISelector : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if (keyInfo->state == HOLD)
     {
-      MatrixOS::UIInterface::TextScroll(name, GetColor());
+      MatrixOS::UIUtility::TextScroll(name, GetColor());
       return true;
     }
     uint16_t id = xy.x + xy.y * dimension.x;

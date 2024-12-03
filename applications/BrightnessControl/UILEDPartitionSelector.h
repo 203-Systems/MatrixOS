@@ -43,11 +43,11 @@ class UILEDPartitionSelector : public UIComponent {
     {
       if(xy.x == 0)
       {
-        MatrixOS::UIInterface::TextScroll("Global Brightness", GetColor());
+        MatrixOS::UIUtility::TextScroll("Global Brightness", GetColor());
       }
       else if(xy.x <= Device::led_partitions.size())
       {
-        MatrixOS::UIInterface::TextScroll(Device::led_partitions[xy.x].name, GetAlternativeColor());
+        MatrixOS::UIUtility::TextScroll(Device::led_partitions[xy.x].name, GetAlternativeColor());
       }
     }
     

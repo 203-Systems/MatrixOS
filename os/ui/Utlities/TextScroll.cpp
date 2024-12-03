@@ -3,7 +3,7 @@
 
 #define TEXT_SCROLL_SPACING 2
 
-namespace MatrixOS::UIInterface
+namespace MatrixOS::UIUtility
 {
   // This function displays a given string on the LED screen in a given color, at a given scroll speed, optionally
   // looping

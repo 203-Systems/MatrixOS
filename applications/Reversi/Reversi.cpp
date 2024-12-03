@@ -658,14 +658,14 @@ void Reversi::Settings() {
     player1ColorSelector.SetName("Player 1 Color");
     player1ColorSelector.SetColorFunc([&]() -> Color { return player1Color; });
     player1ColorSelector.SetSize(Dimension(8,1));
-    player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIInterface::ColorPicker(player1Color.Get())) { player1Color.Save(); } });
+    player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color.Get())) { player1Color.Save(); } });
     settingsUI.AddUIComponent(player1ColorSelector, Point(0, 7));
 
     UIButton player2ColorSelector;
     player2ColorSelector.SetName("Player 2 Color");
     player2ColorSelector.SetColorFunc([&]() -> Color { return player2Color; });
     player2ColorSelector.SetSize(Dimension(8,1));
-    player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIInterface::ColorPicker(player2Color.Get())) { player2Color.Save(); } });
+    player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color.Get())) { player2Color.Save(); } });
     settingsUI.AddUIComponent(player2ColorSelector, Point(0, 0));
 
     UIButton player1FirstHand;

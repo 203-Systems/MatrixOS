@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 #include "ui/UI.h"
 
-namespace MatrixOS::UIInterface
+namespace MatrixOS::UIUtility
 {
   // Three digit max
   int32_t NumberSelector8x8(int32_t value, Color color, string name, int32_t lower_limit,

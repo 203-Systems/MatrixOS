@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "ui/UI.h"
-#include "ui/UIInterfaces.h"
+#include "ui/UIUtilities.h"
 #include "applications/Application.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
 

@@ -89,7 +89,7 @@ void ExampleAPP::UIMenu() {
   numberSelector.SetName("Number Selector");  // Name of this UI element
   numberSelector.SetColor(Color(0xFF0000));  // Color of the UI element
   numberSelector.OnPress([&]() -> void {     // Callback function when the button is pressed
-    number = MatrixOS::UIInterface::NumberSelector8x8(number, 0xFF0000, "Number", 0, 100);  // Current Number, color, low range, high range
+    number = MatrixOS::UIUtility::NumberSelector8x8(number, 0xFF0000, "Number", 0, 100);  // Current Number, color, low range, high range
     // EXAMPLEAPP_SAVED_VAR does not affect this code
     // For most value types, the saved variable wrapper library requires no changes to code!
   });
@@ -102,9 +102,9 @@ void ExampleAPP::UIMenu() {
   colorSelector.SetColorFunc([&]() -> Color { return color; });  // Use the color variable as the color of this UI element
   colorSelector.OnPress([&]() -> void {  // Callback function when the button is pressed
     #ifndef EXAMPLEAPP_SAVED_VAR
-    MatrixOS::UIInterface::ColorPicker(color);  // References to the color variable. The color variable will be updated by the ColorPicker function. Return true if color is changed, false if not.
+    MatrixOS::UIUtility::ColorPicker(color);  // References to the color variable. The color variable will be updated by the ColorPicker function. Return true if color is changed, false if not.
     #else
-    MatrixOS::UIInterface::ColorPicker(color.value);  // Get the actual value from the saved variable wrapper library
+    MatrixOS::UIUtility::ColorPicker(color.value);  // Get the actual value from the saved variable wrapper library
     color.Set(color.value);  // Save the new variable
     // The saved variable wrapper doesn't implicitly convert to the references type.
     // This way you know you have to get the references manually and set the value back to the saved variable manually.
@@ -165,7 +165,7 @@ void ExampleAPP::UIMenu() {
 
  // See /os/framework/ui/UI.h for more UI Framework API
  // See /os/framework/ui/UIComponents.h for more UI Components
- // See /os/framework/ui/UIInterface.h for more UI built in UI Interface
+ // See /os/framework/ui/UIUtilities.h for more UI built in UI Interface
 
  // You can also create your own UI Components and UI Interfaces for your own application.
  // You can see the Note application for an example of how to do that. (Note Pad. Octave Shifter. Scales, ScaleVisualizer...)

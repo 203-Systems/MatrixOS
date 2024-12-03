@@ -286,4 +286,4 @@ namespace MatrixOS
 }
 
 
-// ui/UIInterface.h have more callable UI related function
+// ui/UIUtilities.h have more callable UI related function

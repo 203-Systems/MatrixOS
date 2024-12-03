@@ -71,7 +71,7 @@ void Note::Setup() {
   enforceScaleToggle.SetName("Enforce Scale");
   enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
   enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
-  enforceScaleToggle.OnHold([&]() -> void { MatrixOS::UIInterface::TextScroll(enforceScaleToggle.GetName() + " " + (notePadConfigs[activeConfig].enforceScale ? "On" : "Off"), enforceScaleToggle.GetColor()); });
+  enforceScaleToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(enforceScaleToggle.GetName() + " " + (notePadConfigs[activeConfig].enforceScale ? "On" : "Off"), enforceScaleToggle.GetColor()); });
   actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
 
   UIButton overlapSelectorBtn;
@@ -90,7 +90,7 @@ void Note::Setup() {
   velocitySensitiveToggle.SetName("Velocity Sensitive");
   velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
   velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
-  velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIInterface::TextScroll(velocitySensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
+  velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(velocitySensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
   velocitySensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
 
@@ -113,9 +113,9 @@ void Note::Setup() {
   splitViewToggle.OnHold([&]() -> void { 
     switch(splitView)
     {
-      case SINGLE_VIEW: MatrixOS::UIInterface::TextScroll("Single View", Color(0xFFFFFF)); break;
-      case VERT_SPLIT: MatrixOS::UIInterface::TextScroll("Vertical Split", Color(0x00FFFF)); break;
-      case HORIZ_SPLIT: MatrixOS::UIInterface::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
+      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color(0xFFFFFF)); break;
+      case VERT_SPLIT: MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF)); break;
+      case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
     }
   });
   actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
@@ -235,14 +235,14 @@ void Note::ColorSelector() {
   rootColorSelectorBtn.SetName("Root Key Color");
   rootColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].rootColor; });
   rootColorSelectorBtn.SetSize(Dimension(2, 2));
-  rootColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].rootColor); });
+  rootColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor); });
   colorSelector.AddUIComponent(rootColorSelectorBtn, Point(1, 5));
 
   UIButton notePadColorSelectorBtn;
   notePadColorSelectorBtn.SetName("Note Pad Color");
   notePadColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].color; });
   notePadColorSelectorBtn.SetSize(Dimension(2, 2));
-  notePadColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIInterface::ColorPicker(notePadConfigs[activeConfig].color); });
+  notePadColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color); });
   colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(5, 5));
 
   colorSelector.Start();

@@ -72,7 +72,7 @@ class UILayerControl : public UIComponent {
     }
     else if (keyInfo->state == HOLD)
     {
-        MatrixOS::UIInterface::TextScroll(GetName(), GetColor());
+        MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
     }
     return true;
   }

@@ -56,7 +56,7 @@ void Setting::Start() {
   deviceIdBtn.SetSize(Dimension(1, 1));
   deviceIdBtn.OnPress([]() -> void {
     MatrixOS::UserVar::device_id =
-        MatrixOS::UIInterface::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 255);
+        MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 255);
   });
   AddUIComponent(deviceIdBtn, Point(Device::x_size - 1, Device::y_size - 1));
 
@@ -128,7 +128,7 @@ void Setting::Start() {
   osVersionBtn.SetName("Matrix OS Version");
   osVersionBtn.SetColor(Color(0x00FF30));
   osVersionBtn.OnPress([]() -> void {
-    MatrixOS::UIInterface::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FFFF));
+    MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FFFF));
   });
   AddUIComponent(osVersionBtn, Point(1, Device::y_size - 1));
 
@@ -136,7 +136,7 @@ void Setting::Start() {
   deviceNameBtn.SetName("Device Name");
   deviceNameBtn.SetColor(Color(0x00FF30));
   deviceNameBtn.OnPress([]() -> void {
-    MatrixOS::UIInterface::TextScroll(Device::name, Color(0x00FFFF));
+    MatrixOS::UIUtility::TextScroll(Device::name, Color(0x00FFFF));
   });
   AddUIComponent(deviceNameBtn, Point(2, Device::y_size - 1));
 
@@ -144,7 +144,7 @@ void Setting::Start() {
   deviceSerialBtn.SetName("Device Serial");
   deviceSerialBtn.SetColor(Color(0x00FF30));
   deviceSerialBtn.OnPress([]() -> void {
-    MatrixOS::UIInterface::TextScroll(Device::GetSerial(), Color(0x00FFFF));
+    MatrixOS::UIUtility::TextScroll(Device::GetSerial(), Color(0x00FFFF));
   });
   AddUIComponent(deviceSerialBtn, Point(3, Device::y_size - 1));
 

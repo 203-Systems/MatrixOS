@@ -1,5 +1,5 @@
 #pragma once
-#include "../UIInterfaces.h"
+#include "../UIUtilities.h"
 
 class UIButton : public UIComponent {
  public:
@@ -85,7 +85,7 @@ class UIButton : public UIComponent {
       }
       else
       {
-        MatrixOS::UIInterface::TextScroll(GetName(), GetColor());
+        MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
         return true;
       }
     }

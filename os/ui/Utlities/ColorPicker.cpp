@@ -95,7 +95,7 @@ class UIShadeSelector : public UIComponent {
   }
 };
 
-namespace MatrixOS::UIInterface
+namespace MatrixOS::UIUtility
 {
   bool ColorPicker(Color& color) {
     float hue = 0;

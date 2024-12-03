@@ -177,7 +177,7 @@ void Lighting::Settings() {
     colorBtn.SetName("Color");
     colorBtn.SetColorFunc([&]() -> Color { return color; });
     colorBtn.SetSize(Dimension(8,2));
-    colorBtn.OnPress([&]() -> void { if(MatrixOS::UIInterface::ColorPicker(color.Get())) { color.Save(); } });
+    colorBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(color.Get())) { color.Save(); } });
     colorBtn.ShouldEnable([&]() -> bool { return mode == RGB; });
     settingsUI.AddUIComponent(colorBtn, Point(0, 6));
 
@@ -196,7 +196,7 @@ void Lighting::Settings() {
       temperatureBtn.SetName("Temperature");
       temperatureBtn.SetColorFunc([&]() -> Color { return temperature_color; });
       temperatureBtn.SetSize(Dimension(8,2));
-      temperatureBtn.OnPress([&]() -> void { if(MatrixOS::UIInterface::TemperatureColorPicker(temperature_color.Get())) { temperature_color.Save(); } });
+      temperatureBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::TemperatureColorPicker(temperature_color.Get())) { temperature_color.Save(); } });
       temperatureBtn.ShouldEnable([&]() -> bool { return mode == Temperature; });
       settingsUI.AddUIComponent(temperatureBtn, Point(0, 6));
 

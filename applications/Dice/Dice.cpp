@@ -145,7 +145,7 @@ void Dice::Settings() {
   rollingColorSelectorBtn.OnPress([&]() -> void {
     if (!rolling_rainbow_mode)
     {
-      MatrixOS::UIInterface::ColorPicker(rolling_color.Get());
+      MatrixOS::UIUtility::ColorPicker(rolling_color.Get());
       rolling_color.Save();
     }
   });
@@ -173,7 +173,7 @@ void Dice::Settings() {
   confirmedColorSelectorBtn.OnPress([&]() -> void {
     if (!confirmed_rainbow_mode)
     {
-      MatrixOS::UIInterface::ColorPicker(confirmed_color.Get());
+      MatrixOS::UIUtility::ColorPicker(confirmed_color.Get());
       confirmed_color.Save();
     }
   });
@@ -220,7 +220,7 @@ void Dice::Settings() {
   numberFacesSelectorBtn.SetName("Faces");
   numberFacesSelectorBtn.SetColor(Color(0x00FFFF));
   numberFacesSelectorBtn.SetSize(Dimension(4, 1));
-  numberFacesSelectorBtn.OnPress([&]() -> void { number_faces = MatrixOS::UIInterface::NumberSelector8x8(number_faces, Color(0x00FFFF), "Face Selector", 1, 99); });
+  numberFacesSelectorBtn.OnPress([&]() -> void { number_faces = MatrixOS::UIUtility::NumberSelector8x8(number_faces, Color(0x00FFFF), "Face Selector", 1, 99); });
   numberFacesSelectorBtn.ShouldEnable([&]() -> bool { return mode == Number; });
   settingsUI.AddUIComponent(numberFacesSelectorBtn, Point(2, 7));
 
