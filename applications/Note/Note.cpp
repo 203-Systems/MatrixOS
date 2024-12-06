@@ -14,9 +14,14 @@ void Note::Setup() {
 
   // Load From NVS
   if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
-  { MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }
+  { 
+    MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); 
+  }
   else
-  { MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); }
+  { 
+    MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); \
+    nvsVersion = NOTE_APP_VERSION;
+  }
 
   activeConfig.Get(); //Load it first
 
@@ -152,8 +157,8 @@ void Note::Setup() {
       { Exit(); }
       else if (keyEvent->info.state == RELEASED)
       {
-        PlayView();
         MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+        PlayView();
       }
       return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
