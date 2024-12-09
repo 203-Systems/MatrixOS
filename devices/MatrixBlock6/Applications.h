@@ -13,6 +13,7 @@
 #include "applications/Dice/Dice.h"
 // #include "applications/Example/Example.h"
 #include "applications/Reversi/Reversi.h"
+#include "applications/PolyPlayground/PolyPlayground.h"
 
 // BOOT ANIMATION
 #include "applications/Mystrix/MystrixBoot/MystrixBoot.h"
