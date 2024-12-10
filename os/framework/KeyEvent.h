@@ -90,14 +90,16 @@ struct KeyInfo {
     { velocity = 0; }
     else if (velocity >= config.high_threshold)
     {
-      velocity = UINT16_MAX;
-      // MLOGD("Velocity Curve", "%d - %d", source, velocity);
+      // uint32_t source = velocity;
+      velocity = FRACT16_MAX;
+      // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
     }
     else
     {
+      // uint32_t source = velocity;
       uint32_t pre_division_velocity = ((uint16_t)velocity - (uint16_t)config.low_threshold) * UINT16_MAX;
       velocity = (Fract16)(pre_division_velocity / ((uint16_t)config.high_threshold - (uint16_t)config.low_threshold));
-      // MLOGD("Velocity Curve", "%d - %d", source, velocity);
+      // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, velocity);
     }
     return velocity;
   }
@@ -205,7 +207,7 @@ struct KeyInfo {
           hold = true;
           return true & !cleared;
         }
-        else if(DIFFERENCE((uint16_t)new_velocity, (uint16_t)velocity) > KEY_INFO_THRESHOLD || ((new_velocity != velocity) && (uint16_t)new_velocity == UINT16_MAX))
+        else if((DIFFERENCE((uint16_t)new_velocity, (uint16_t)velocity) > KEY_INFO_THRESHOLD) || ((new_velocity != velocity) && new_velocity == FRACT16_MAX))
         {
           state = AFTERTOUCH;
           // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> AFTERTOUCH");
