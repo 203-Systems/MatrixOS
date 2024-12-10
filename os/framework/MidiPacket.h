@@ -49,7 +49,7 @@ struct MidiPacket {
 
   MidiPacket(EMidiStatus status, ...) {
     va_list valst;
-    MidiPacket(0, status, valst);
+    MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, status, valst);
   }
   
   MidiPacket(uint16_t port, EMidiStatus status, ...) {
@@ -122,7 +122,7 @@ struct MidiPacket {
   MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out length and
                                                                   // assign it automaticaly
   {
-    MidiPacket(0, status, data);
+    MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, status, data);
   }
 
   MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out
