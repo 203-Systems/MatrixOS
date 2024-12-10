@@ -28,34 +28,34 @@ void Gamepad::Setup() {
     UIDPad Dpad(Color(0x00FF00));
     gamepadUI.AddUIComponent(Dpad, Point(0, 4));
 
-    UIGamepadKey Akey(Color(0x00FF00), GAMEPAD_A);
+    UIGamepadKey Akey(Color(0x00FF00), 0);
     gamepadUI.AddUIComponent(Akey, Point(6, 6));
 
-    UIGamepadKey Bkey(Color(0x00FF00), GAMEPAD_B);
+    UIGamepadKey Bkey(Color(0x00FF00), 1);
     gamepadUI.AddUIComponent(Bkey, Point(7, 5));
 
-    UIGamepadKey Xkey(Color(0x00FF00), GAMEPAD_X);
+    UIGamepadKey Xkey(Color(0x00FF00), 2);
     gamepadUI.AddUIComponent(Xkey, Point(5, 5));
 
-    UIGamepadKey Ykey(Color(0x00FF00), GAMEPAD_Y);
+    UIGamepadKey Ykey(Color(0x00FF00), 3);
     gamepadUI.AddUIComponent(Ykey, Point(6, 4));
 
-    UIGamepadKey L1key(Color(0x00FFFF), GAMEPAD_L1);
+    UIGamepadKey L1key(Color(0x00FFFF), 10);
     gamepadUI.AddUIComponent(L1key, Point(0, 3));
 
-    UIGamepadKey R1key(Color(0x00FFFF), GAMEPAD_R1);
+    UIGamepadKey R1key(Color(0x00FFFF), 11);
     gamepadUI.AddUIComponent(R1key, Point(7, 3));
 
-    UIGamepadAxis L2pad(Color(0x00FFFF), GAMEPAD_AXIS_LEFT_TRIGGER, 127);
+    UIGamepadAxis L2pad(Color(0x00FFFF), GAMEPAD_AXIS_LEFT_TRIGGER, 32767);
     gamepadUI.AddUIComponent(L2pad, Point(1, 3));
 
-    UIGamepadAxis R2pad(Color(0x00FFFF), GAMEPAD_AXIS_RIGHT_TRIGGER, 127);
+    UIGamepadAxis R2pad(Color(0x00FFFF), GAMEPAD_AXIS_RIGHT_TRIGGER, 32767);
     gamepadUI.AddUIComponent(R2pad, Point(6, 3));
 
-    UIGamepadKey Selectkey(Color(0x0000FF), GAMEPAD_SELECT);
+    UIGamepadKey Selectkey(Color(0x0000FF), 6);
     gamepadUI.AddUIComponent(Selectkey, Point(3, 7));    
 
-    UIGamepadKey Startkey(Color(0x0000FF), GAMEPAD_START);
+    UIGamepadKey Startkey(Color(0x0000FF), 7);
     gamepadUI.AddUIComponent(Startkey, Point(4, 7));
     
     gamepadUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {

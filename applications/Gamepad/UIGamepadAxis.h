@@ -14,7 +14,7 @@ class UIGamepadAxis : public UIComponent {
  public:
   Color color;
   GamepadAxis axis;
-  int16_t range = 127;
+  int16_t range = 32767;
   Fract16 value = 0;
 
   UIGamepadAxis(Color color, GamepadAxis axis, int16_t range) {
@@ -39,7 +39,7 @@ class UIGamepadAxis : public UIComponent {
     return true;
   }
 
-  void SetAxis(GamepadAxis axis, int8_t value)
+  void SetAxis(GamepadAxis axis, int16_t value)
   {
     switch(axis)
     {

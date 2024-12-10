@@ -4,10 +4,10 @@
 class UIGamepadKey : public UIComponent {
  public:
   Color color;
-  GamepadKeycode keycode;
+  uint8_t keycode;
   bool active = false;
 
-  UIGamepadKey(Color color, GamepadKeycode keycode) {
+  UIGamepadKey(Color color, uint8_t keycode) {
     this->color = color;
     this->keycode = keycode;
   }
