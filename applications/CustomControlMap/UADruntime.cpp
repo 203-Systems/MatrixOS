@@ -89,6 +89,9 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
   }
 
   // Execute Actions - Iterate through layers and pass through layers based on configs
+  // TODO: Because the we are reading layers from back of the array to front of the array, we need to iterate from back to front. That means we can't do serial reading. 
+  // I will get this fixed. 
+  cb0r_s actions = bitmap;
   for (int8_t layer = actionInfo->layer; layer >= 0; layer--)
   {
     // If the layer is not enabled, skip it
@@ -97,11 +100,8 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
       continue;
     }
 
-    // Get the index of the layer in the bitmap
-    int8_t layer_index = IndexInBitmap(bitmap.value, layer);
-
     // If the layer has no action.
-    if (layer_index == -1)
+    if (!IsBitSet(bitmap.value, layer))
     {
       if (IsBitSet(layerPassthrough, layer))
       {
@@ -116,8 +116,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
     }
 
     // Get the actions array
-    cb0r_s actions;
-    if (!cb0r_get(&layer_array, layer_index, &actions) || actions.type != CB0R_ARRAY)
+    if (!cb0r_next_check_type(&layer_array, &actions, &actions, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Action Array");
       return false;
@@ -127,11 +126,11 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
     newActionInfo.layer = layer;
 
     // Execute the actions
+    cb0r_s actionData = actions;
     for (uint8_t action_index = 0; action_index < actions.length; action_index++)
     {
-      cb0r_s actionData;
       newActionInfo.index = action_index;
-      if (!cb0r_get(&actions, action_index, &actionData) || actionData.type != CB0R_ARRAY)
+      if (!cb0r_next_check_type(&actions, &actionData, &actionData, CB0R_ARRAY))
       {
         MLOGE(TAG, "Failed to get action %d from action list", action_index);
       }
@@ -222,11 +221,11 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
   }
 
   // Execute the effects
+  cb0r_s effectData = effects;
   for (uint8_t effect_index = 0; effect_index < effects.length; effect_index++)
   {
-    cb0r_s effectData;
     newEffectInfo.index = effect_index;
-    if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
+    if(!cb0r_next_check_type(&effects, &effectData, &effectData, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
     }
@@ -279,17 +278,15 @@ void UADRuntime::InitializeLayer(uint8_t layer) {
   }
 
   // Get Y Array
+  cb0r_s y_array = x_bitmap;
   for (uint8_t x = 0; x < mapSize.x; x++)
   {
-    int8_t x_index = IndexInBitmap(x_bitmap.value, x);
-
-    if (x_index == -1)
+    if (!IsBitSet(x_bitmap.value, x))
     {
       continue;
     }
 
-    cb0r_s y_array;
-    if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+    if (!cb0r_next_check_type(&x_array, &y_array, &y_array, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Effect Y Array");
       return;
@@ -304,32 +301,29 @@ void UADRuntime::InitializeLayer(uint8_t layer) {
     }
 
     // Get Y Array
+    cb0r_s effects = y_bitmap;
     for (uint8_t y = 0; y < mapSize.y; y++)
     {
-      int8_t y_index = IndexInBitmap(y_bitmap.value, y);
-
-      if (y_index == -1)
+      if (!IsBitSet(y_bitmap.value, y))
       {
         continue;
       }
 
-      cb0r_s effects;
-      if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
+      if (!cb0r_next_check_type(&y_array, &effects, &effects, CB0R_ARRAY))
       {
         MLOGE(TAG, "Failed to get Effect Effect Array\n");
         return;
       }
 
       // Execute the effects
+      cb0r_s effectData = effects;
       for (uint8_t effect_index = 0; effect_index < effects.length; effect_index++)
       {
-        cb0r_s effectData;
-
         effectInfo.coord = Point(x, y);
         effectInfo.layer = layer;
         effectInfo.index = effect_index;
 
-        if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
+        if (!cb0r_next_check_type(&effects, &effectData, &effectData, CB0R_ARRAY))
         {
           MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
           continue;
@@ -358,7 +352,7 @@ void UADRuntime::DeinitializeLayer(uint8_t layer) {
     return;
   }
 
-  ActionEvent actionEvent = {.type = ActionEventType::INITIALIZATION, .data = NULL};
+  ActionEvent actionEvent = {.type = ActionEventType::DEINITIALIZATION, .data = NULL};
 
   
   ActionInfo effectInfo;
@@ -382,17 +376,15 @@ void UADRuntime::DeinitializeLayer(uint8_t layer) {
   }
 
   // Get Y Array
+  cb0r_s y_array = x_bitmap;
   for (uint8_t x = 0; x < mapSize.x; x++)
   {
-    int8_t x_index = IndexInBitmap(x_bitmap.value, x);
-
-    if (x_index == -1)
+    if (!IsBitSet(x_bitmap.value, x))
     {
       continue;
     }
 
-    cb0r_s y_array;
-    if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+    if (!cb0r_next_check_type(&x_array, &y_array, &y_array, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Effect Y Array");
       return;
@@ -407,32 +399,29 @@ void UADRuntime::DeinitializeLayer(uint8_t layer) {
     }
 
     // Get Y Array
+    cb0r_s effects = y_bitmap;
     for (uint8_t y = 0; y < mapSize.y; y++)
     {
-      int8_t y_index = IndexInBitmap(y_bitmap.value, y);
-
-      if (y_index == -1)
+      if (!IsBitSet(y_bitmap.value, y))
       {
         continue;
       }
 
-      cb0r_s effects;
-      if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
+      if (!cb0r_next_check_type(&y_array, &effects, &effects, CB0R_ARRAY))
       {
         MLOGE(TAG, "Failed to get Effect Effect Array\n");
         return;
       }
 
       // Execute the effects
+      cb0r_s effectData = effects;
       for (uint8_t effect_index = 0; effect_index < effects.length; effect_index++)
       {
-        cb0r_s effectData;
-
         effectInfo.coord = Point(x, y);
         effectInfo.layer = layer;
         effectInfo.index = effect_index;
 
-        if (!cb0r_get(&effects, effect_index, &effectData) || effectData.type != CB0R_ARRAY)
+        if (!cb0r_next_check_type(&effects, &effectData, &effectData, CB0R_ARRAY))
         {
           MLOGE(TAG, "Failed to get effect %d from effect list", effect_index);
           continue;

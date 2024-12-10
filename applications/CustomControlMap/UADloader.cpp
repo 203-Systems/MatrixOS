@@ -96,6 +96,7 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
   *lut = (uint16_t**)pvPortMalloc(lutSize.x * sizeof(uint16_t*));
 
   // Layer 1
+  cb0r_s y_array = x_bitmap;
   for (uint8_t x = 0; x < lutSize.x; x++)
   {
     (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t*));
@@ -105,16 +106,12 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
       (*lut)[x][y] = 0;
     }
 
-    int8_t x_index = IndexInBitmap(x_bitmap.value, x);
-    // MLOGV(TAG, "Bitmap: %d, X: %d, Index: %d", x_bitmap.value, x, x_index);
-
-    if (x_index == -1)
+    if(!IsBitSet(x_bitmap.value, x))
     {
       continue;
     }
 
-    cb0r_s y_array;
-    if (!cb0r_get(actionMatrix, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+    if(!cb0r_next_check_type(actionMatrix, &y_array, &y_array, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Action X Array\n");
       return false;
@@ -128,20 +125,16 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
     }
 
     // Layer 2
+    cb0r_s layer_array = y_bitmap;
     for (uint8_t y = 0; y < lutSize.y; y++)
     {
-      int8_t y_index = IndexInBitmap(y_bitmap.value, y);
-      // MLOGV(TAG, "Bitmap: %d, Y: %d, Index: %d", y_bitmap.value, y, y_index);
-
-      // MLOGV(TAG, "X: %d, Y: %d", x, y);
-
-      if (y_index == -1)
+      if(!IsBitSet(y_bitmap.value, y))
       {
         continue;
       }
 
-      cb0r_s layer_array;
-      if (!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
+      // if (!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
+      if (!cb0r_next_check_type(&y_array, &layer_array, &layer_array, CB0R_ARRAY))
       {
         MLOGE(TAG, "Failed to get Action Layer Array\n");
         return false;
@@ -171,18 +164,17 @@ bool UADRuntime::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lu
   *lut = (uint16_t*)pvPortMalloc(lutSize * sizeof(uint16_t));
 
   // Layer List
+  cb0r_s x_array = layer_bitmap;
   for (uint8_t layer = 0; layer < lutSize; layer++)
   {
-    int8_t layer_index = IndexInBitmap(layer_bitmap.value, layer);
-
-    if (layer_index == -1)
+    if (!IsBitSet(layer_bitmap.value, layer))
     {
       (*lut)[layer] = 0;
       continue;
     }
 
-    cb0r_s x_array;
-    if (!cb0r_get(effectMatrix, layer_index, &x_array) || x_array.type != CB0R_ARRAY)
+    // if (!cb0r_get(effectMatrix, layer_index, &x_array) || x_array.type != CB0R_ARRAY)
+    if (!cb0r_next_check_type(effectMatrix, &x_array, &x_array, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Effect X Array\n");
       return false;
@@ -263,10 +255,11 @@ bool UADRuntime::LoadDevice(cb0r_t uadMap) {
     return false;
   }
 
+  cb0r_s device_size = device_data;
   for (size_t i = 0; i < device_data.length; i++)
   {
-    cb0r_s device_size;
-    if (!cb0r_get(&device_data, i, &device_size) || device_size.type != CB0R_INT)
+    // if (!cb0r_get(&device_data, i, &device_size) || device_size.type != CB0R_INT)
+    if (!cb0r_next_check_type(&device_data, &device_size, &device_size, CB0R_INT))
     {
       MLOGE(TAG, "Failed to get Device Size");
       return false;

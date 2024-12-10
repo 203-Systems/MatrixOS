@@ -2,6 +2,7 @@
 
 #include "MatrixOS.h"
 #include "cb0r.h"
+#include "cb0r_utils.h"
 #include "Action.h"
 
 #define UAD_VERSION 0
