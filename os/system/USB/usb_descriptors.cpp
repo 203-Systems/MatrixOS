@@ -66,9 +66,53 @@ uint8_t const* tud_descriptor_device_cb(void) {
 
 #define EXPAND(x) x
 
+// Gamepad Report Descriptor Template
+// with 32 buttons, 2 joysticks and 1 hat/dpad with following layout
+// | X | Y | Z | Rz | Rx | Ry (2 byte each) | hat/DPAD (1 byte) | Button Map (4 bytes) |
+#define CUSTOM_HID_REPORT_DESC_GAMEPAD(...) \
+  HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                 ,\
+  HID_USAGE      ( HID_USAGE_DESKTOP_GAMEPAD  )                 ,\
+  HID_COLLECTION ( HID_COLLECTION_APPLICATION )                 ,\
+    /* Report ID if any */\
+    __VA_ARGS__ \
+    /* 16 bit X, Y, Z, Rz, Rx, Ry (min -32767, max 32767 ) */ \
+    HID_USAGE_PAGE     ( HID_USAGE_PAGE_DESKTOP                 ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_X                    ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_Y                    ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_Z                    ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_RZ                   ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_RX                   ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_RY                   ) ,\
+    HID_LOGICAL_MIN_N  ( -32767, 2                              ) ,\
+    HID_LOGICAL_MAX_N  ( 32767,  2                              ) ,\
+    HID_REPORT_COUNT   ( 6                                      ) ,\
+    HID_REPORT_SIZE    ( 16                                     ) ,\
+    HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* 8 bit DPad/Hat Button Map  */ \
+    HID_USAGE_PAGE     ( HID_USAGE_PAGE_DESKTOP                 ) ,\
+    HID_USAGE          ( HID_USAGE_DESKTOP_HAT_SWITCH           ) ,\
+    HID_LOGICAL_MIN    ( 1                                      ) ,\
+    HID_LOGICAL_MAX    ( 8                                      ) ,\
+    HID_PHYSICAL_MIN   ( 0                                      ) ,\
+    HID_PHYSICAL_MAX_N ( 315, 2                                 ) ,\
+    HID_REPORT_COUNT   ( 1                                      ) ,\
+    HID_REPORT_SIZE    ( 8                                      ) ,\
+    HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+    /* 32 bit Button Map */ \
+    HID_USAGE_PAGE     ( HID_USAGE_PAGE_BUTTON                  ) ,\
+    HID_USAGE_MIN      ( 1                                      ) ,\
+    HID_USAGE_MAX      ( 32                                     ) ,\
+    HID_LOGICAL_MIN    ( 0                                      ) ,\
+    HID_LOGICAL_MAX    ( 1                                      ) ,\
+    HID_REPORT_COUNT   ( 32                                     ) ,\
+    HID_REPORT_SIZE    ( 1                                      ) ,\
+    HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
+  HID_COLLECTION_END \
 
 
-#define TUD_HID_REPORT_DESC_VENDOR() \
+
+
+#define CUSTOM_HID_REPORT_DESC_VENDOR() \
     HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
     HID_USAGE        ( 0x01                       ),\
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
@@ -100,9 +144,9 @@ uint8_t const* tud_descriptor_device_cb(void) {
 uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)), 
                                    TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_ID_MOUSE)),
                                    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL)), 
-                                   TUD_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_ID_GAMEPAD)),
-                                   TUD_HID_REPORT_DESC_VENDOR()
-};
+                                   CUSTOM_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_ID_GAMEPAD)),
+                                   CUSTOM_HID_REPORT_DESC_VENDOR()
+                                  };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
 // Application return pointer to descriptor

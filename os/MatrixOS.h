@@ -132,27 +132,27 @@ namespace MatrixOS
     
     namespace Keyboard
     {
-      bool Write(KeyboardKeycode k);
-      bool Press(KeyboardKeycode k);
-      bool Release(KeyboardKeycode k);
-      bool Remove(KeyboardKeycode k);
+      bool Write(KeyboardKeycode keycode);
+      bool Press(KeyboardKeycode keycode);
+      bool Release(KeyboardKeycode keycode);
+      bool Remove(KeyboardKeycode keycode);
       void ReleaseAll(void);
     }
 
     namespace Mouse
     {
-      void Click(MouseKeycode b = MOUSE_LEFT);
-      void press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
-      void release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void Click(MouseKeycode keycode = MOUSE_LEFT);
+      void press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
+      void release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
       void ReleaseAll(void);
       void Move(signed char x, signed char y, signed char wheel = 0);
     }
 
     namespace Touch // Absolute Mouse
     {
-      void Click(MouseKeycode b = MOUSE_LEFT);
-      void Press(MouseKeycode b = MOUSE_LEFT);   // press LEFT by default
-      void Release(MouseKeycode b = MOUSE_LEFT); // release LEFT by default
+      void Click(MouseKeycode keycode = MOUSE_LEFT);
+      void Press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
+      void Release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
       void ReleaseAll(void);
       void MoveTo(signed char x, signed char y, signed char wheel = 0);
       void Move(signed char x, signed char y, signed char wheel = 0);
@@ -160,32 +160,35 @@ namespace MatrixOS
 
     namespace Gamepad
     {
-      void Press(GamepadKeycode b);
-      void Release(GamepadKeycode b);
+      void Press(uint8_t button_id);
+      void Release(uint8_t button_id);
       void ReleaseAll(void);
 
-      void Buttons(uint32_t b);
-      void XAxis(int8_t a);
-      void YAxis(int8_t a);
-      void ZAxis(int8_t a);
-      void RXAxis(int8_t a);
-      void RYAxis(int8_t a);
-      void RZAxis(int8_t a);
-      void DPad(GamepadDPadDirection d);
+      void Button(uint8_t button_id, bool state);
+      void Buttons(uint32_t button_id);
+
+      // Axis range is -32767 to 32767
+      void XAxis(int16_t value);
+      void YAxis(int16_t value);
+      void ZAxis(int16_t value);
+      void RXAxis(int16_t value);
+      void RYAxis(int16_t value);
+      void RZAxis(int16_t value);
+      void DPad(GamepadDPadDirection direction);
     }
 
     namespace Consumer
     {
-      void Write(ConsumerKeycode c);
-      void Press(ConsumerKeycode c);
-      void Release(ConsumerKeycode c);
+      void Write(ConsumerKeycode keycode);
+      void Press(ConsumerKeycode keycode);
+      void Release(ConsumerKeycode keycode);
       void ReleaseAll(void);
     }
 
     namespace System
     {
-      void Write(SystemKeycode s);
-      void Press(SystemKeycode s);
+      void Write(SystemKeycode keycode);
+      void Press(SystemKeycode keycode);
       void Release(void);
       void ReleaseAll(void);
     }
