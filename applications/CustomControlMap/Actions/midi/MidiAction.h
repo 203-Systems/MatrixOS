@@ -301,7 +301,7 @@ namespace MidiAction
         }
         else
         {
-          uint16_t range = data.end - data.begin;
+          int32_t range = data.end - data.begin;
           output_value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
         }
         break;
@@ -332,7 +332,8 @@ namespace MidiAction
       }
       case MidiType::PitchBend:
       {
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::PitchChange, data.channel, output_value & 0x7F, (output_value >> 7) & 0x7F));
+          MLOGD(TAG, "Pitch Bend: %d", output_value);
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::PitchChange, data.channel, output_value));
           return true;
       }
       case MidiType::SysEx:

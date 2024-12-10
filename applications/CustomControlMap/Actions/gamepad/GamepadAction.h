@@ -183,8 +183,8 @@ namespace GamepadAction
         }
         else
         {
-          uint16_t range = data.end - data.begin;
-          value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
+          int32_t range = data.end - data.begin;
+          value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); 
         }
       }
 
@@ -220,14 +220,14 @@ namespace GamepadAction
     {
       uint8_t keycode = (uint8_t)data.key & 0x1F; // We have keys that are not in the range of 0-31 because when we send back to the host we need to be able to tell if it's was as A or as 1
       MLOGD(TAG, "Regular key %d", keycode);
-      if (keyInfo->state == KeyState::PRESSED)
-      {
-        MatrixOS::HID::Gamepad::Press(keycode);
-      }
-      else if (keyInfo->state == KeyState::RELEASED)
-      {
-        MatrixOS::HID::Gamepad::Release(keycode);
-      }
+      // if (keyInfo->state == KeyState::PRESSED)
+      // {
+      //   MatrixOS::HID::Gamepad::Press(keycode);
+      // }
+      // else if (keyInfo->state == KeyState::RELEASED)
+      // {
+      //   MatrixOS::HID::Gamepad::Release(keycode);
+      // }
       return true;
     }
     return false;
