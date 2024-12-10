@@ -72,10 +72,10 @@ bool UADRuntime::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
   list->clear();
   list->reserve(cborArray->length);
 
+  cb0r_s item = *cborArray;
   for (size_t i = 0; i < cborArray->length; i++)
   {
-    cb0r_s item;
-    if (!cb0r_get(cborArray, i, &item) || item.type != CB0R_UTF8)
+    if (!cb0r_next_check_type(cborArray, &item, &item, CB0R_UTF8))
     {
       MLOGE(TAG, "Failed to create hash list\n");
       return false;
@@ -87,7 +87,7 @@ bool UADRuntime::CreateHashList(cb0r_t cborArray, vector<uint32_t>* list) {
 
 bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension lutSize) {
   cb0r_s x_bitmap;
-  if (!cb0r_get(actionMatrix, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if(!cb0r_get_check_type(actionMatrix, 0, &x_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Action X Bitmap\n");
     return false;
@@ -118,7 +118,7 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
     }
 
     cb0r_s y_bitmap;
-    if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+    if (!cb0r_get_check_type(&y_array, 0, &y_bitmap, CB0R_INT))
     {
       MLOGE(TAG, "Failed to get Action Y Bitmap\n");
       return false;
@@ -133,7 +133,6 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
         continue;
       }
 
-      // if (!cb0r_get(&y_array, y_index, &layer_array) || layer_array.type != CB0R_ARRAY)
       if (!cb0r_next_check_type(&y_array, &layer_array, &layer_array, CB0R_ARRAY))
       {
         MLOGE(TAG, "Failed to get Action Layer Array\n");
@@ -155,7 +154,7 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
 
 bool UADRuntime::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lutSize) {
   cb0r_s layer_bitmap;
-  if (!cb0r_get(effectMatrix, 0, &layer_bitmap) || layer_bitmap.type != CB0R_INT)
+  if (!cb0r_get_check_type(effectMatrix, 0, &layer_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Effect Layer Bitmap\n");
     return false;
@@ -173,7 +172,6 @@ bool UADRuntime::CreateEffectLUT(cb0r_t effectMatrix, uint16_t** lut, uint8_t lu
       continue;
     }
 
-    // if (!cb0r_get(effectMatrix, layer_index, &x_array) || x_array.type != CB0R_ARRAY)
     if (!cb0r_next_check_type(effectMatrix, &x_array, &x_array, CB0R_ARRAY))
     {
       MLOGE(TAG, "Failed to get Effect X Array\n");
@@ -209,7 +207,7 @@ bool UADRuntime::LoadDevice(cb0r_t uadMap) {
   size_t i = 0;  // Device 1
   {
 
-    if (!cb0r_get(&devices, i, &device) || device.type != CB0R_MAP)
+    if (!cb0r_get_check_type(&devices, i, &device, CB0R_MAP))
     {
       MLOGE(TAG, "Failed to get Device");
       return false;
@@ -258,7 +256,6 @@ bool UADRuntime::LoadDevice(cb0r_t uadMap) {
   cb0r_s device_size = device_data;
   for (size_t i = 0; i < device_data.length; i++)
   {
-    // if (!cb0r_get(&device_data, i, &device_size) || device_size.type != CB0R_INT)
     if (!cb0r_next_check_type(&device_data, &device_size, &device_size, CB0R_INT))
     {
       MLOGE(TAG, "Failed to get Device Size");

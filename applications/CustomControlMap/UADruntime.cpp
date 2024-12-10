@@ -82,7 +82,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
 
   // Get Action Layer Bitmap
   cb0r_s bitmap;
-  if (!cb0r_get(&layer_array, 0, &bitmap) || bitmap.type != CB0R_INT)
+  if (!cb0r_next_check_type(&layer_array, &bitmap, &bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Action Layer Bitmap");
     return false;
@@ -174,7 +174,7 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
 
   // Get x Layer Bitmap
   cb0r_s x_bitmap;
-  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if (!cb0r_get_check_type(&x_array, 0, &x_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Effect X Bitmap");
     return false;
@@ -190,7 +190,7 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
 
   // Get Y Array
   cb0r_s y_array;
-  if (!cb0r_get(&x_array, x_index, &y_array) || y_array.type != CB0R_ARRAY)
+  if (!cb0r_get_check_type(&x_array, x_index, &y_array, CB0R_ARRAY))
   {
     MLOGE(TAG, "Failed to get Effect Y Array");
     return false;
@@ -198,7 +198,7 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
 
   // Get y Layer Bitmap
   cb0r_s y_bitmap;
-  if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+  if (!cb0r_get_check_type(&y_array, 0, &y_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Effect Y Bitmap");
     return false;
@@ -214,7 +214,7 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
 
   // Get the effects array
   cb0r_s effects;
-  if (!cb0r_get(&y_array, y_index, &effects) || effects.type != CB0R_ARRAY)
+  if (!cb0r_get_check_type(&y_array, y_index, &effects, CB0R_ARRAY))
   {
     MLOGE(TAG, "Failed to get Effect Array");
     return false;
@@ -271,7 +271,7 @@ void UADRuntime::InitializeLayer(uint8_t layer) {
 
   // Get X Bitmap
   cb0r_s x_bitmap;
-  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if (!cb0r_get_check_type(&x_array, 0, &x_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Effect X Bitmap");
     return;
@@ -294,7 +294,7 @@ void UADRuntime::InitializeLayer(uint8_t layer) {
 
     // Get Y Bitmap
     cb0r_s y_bitmap;
-    if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+    if (!cb0r_get_check_type(&y_array, 0, &y_bitmap, CB0R_INT))
     {
       MLOGE(TAG, "Failed to get Effect Y Bitmap");
       return;
@@ -369,7 +369,7 @@ void UADRuntime::DeinitializeLayer(uint8_t layer) {
 
   // Get X Bitmap
   cb0r_s x_bitmap;
-  if (!cb0r_get(&x_array, 0, &x_bitmap) || x_bitmap.type != CB0R_INT)
+  if (!cb0r_get_check_type(&x_array, 0, &x_bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Effect X Bitmap");
     return;
@@ -392,7 +392,7 @@ void UADRuntime::DeinitializeLayer(uint8_t layer) {
 
     // Get Y Bitmap
     cb0r_s y_bitmap;
-    if (!cb0r_get(&y_array, 0, &y_bitmap) || y_bitmap.type != CB0R_INT)
+    if (!cb0r_get_check_type(&y_array, 0, &y_bitmap, CB0R_INT))
     {
       MLOGE(TAG, "Failed to get Effect Y Bitmap");
       return;
