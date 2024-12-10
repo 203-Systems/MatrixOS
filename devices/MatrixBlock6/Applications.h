@@ -12,6 +12,7 @@
 #include "applications/Lighting/Lighting.h"
 #include "applications/Dice/Dice.h"
 // #include "applications/Example/Example.h"
+// #include "applications/Gamepad/Gamepad.h"
 #include "applications/Reversi/Reversi.h"
 #include "applications/PolyPlayground/PolyPlayground.h"
 
