@@ -28,6 +28,10 @@ void UADRuntime::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
   if (xy)
   {
+    if(xy.x >= mapSize.x || xy.y >= mapSize.y || xy.x < 0 || xy.y < 0)
+    {
+      return;
+    }
     actionInfo.indexType = ActionIndexType::COORD;
     actionInfo.coord = xy;
   }
