@@ -370,7 +370,6 @@ void CustomControlMap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
     ActionMenu(); 
   }
 
-  if(keyInfo->state == KeyState::AFTERTOUCH) { return; } // Ignore Aftertouch for now for easy of debug. Remove later
   uadRT.KeyEvent(keyID, keyInfo);
 }
 
@@ -421,17 +420,18 @@ void CustomControlMap::ActionMenu() {
   rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
-UIButton systemSettingBtn;
+  UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
   systemSettingBtn.SetColor(Color(0xFFFFFF));
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
-  actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
+  actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
   UIButton menuLockBtn;
   menuLockBtn.SetName("Touch Alt Key");
   menuLockBtn.SetColorFunc([&]() -> Color { return Color(0xA0FF00).DimIfNot(menuLock); });
   menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
   actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
+  
 
   UILayerControl layerControl("Activated Layers", Color(0x00FFFF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::ACTIVE);
   actionMenu.AddUIComponent(layerControl, Point(0, 0));

@@ -6,114 +6,377 @@ namespace MidiAction
 
   constexpr uint32_t signature = StaticHash("midi");
 
-  // struct MidiAction
-  // {
-  //   uint8_t data0;
-  //   uint8_t data1;
-  //   uint8_t data2;
-  // };
+  enum class AnalogSource : uint8_t {
+    Momentary = 0,
+    Persistent = 1,
+    Toggle = 2,
+    KeyForce = 3,
+    Invalid = 0xFF
+  };
 
-  // static bool LoadData(cb0r_t actionData, MidiAction* action)
-  // {
-  //     cb0r_s cbor_data;
-  //     if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
-  //     {
-  //         MLOGE(TAG, "Failed to get action data 0");
-  //         return false;
-  //     }
-  //     action->data0 = cbor_data.value;
+  enum class MidiType {
+    Note = 0x90,
+    ControlChange = 0xB0,
+    ProgramChange = 0xC0,
+    ChannelPressure = 0xD0,
+    PitchBend = 0xE0,
+    SysEx = 0xF0,
+    RPN = 0xF4,
+    NRPN = 0xF5,
+    Start = 0xFA,
+    Continue = 0xFB,
+    Stop = 0xFC,
+    Reset = 0xFF,
+  };
 
-  //     if(!cb0r_get(actionData, 2, &cbor_data) || cbor_data.type != CB0R_INT)
-  //     {
-  //         MLOGE(TAG, "Failed to get action data 1");
-  //         return false;
-  //     }
-  //     action->data1 = cbor_data.value;
 
-  //     if(!cb0r_get(actionData, 3, &cbor_data) || cbor_data.type != CB0R_INT)
-  //     {
-  //         MLOGE(TAG, "Failed to get action data 2");
-  //         return false;
-  //     }
-  //     action->data2 = cbor_data.value;
-  //     return true;
-  // }
-
-  static uint8_t GetData(cb0r_t actionData, uint16_t index) {
-    cb0r_s cbor_data;
-    if (!cb0r_get(actionData, 1 + index, &cbor_data) || cbor_data.type != CB0R_INT)
+  struct MidiAction
+  {
+    MidiType type;
+    uint8_t channel;
+    
+    union 
     {
-      MLOGE(TAG, "Failed to get action data 0");
-      return 0;
-    }
+      uint16_t note;
+      uint16_t control;
+      uint16_t sysex_length;
+    };
 
-    return (uint8_t)cbor_data.value;
+    AnalogSource source;
+    union
+    {
+      struct{
+        uint16_t begin;
+        uint16_t end;
+      };
+      uint8_t* sysex_data;
+    };
+  };
+
+// type MidiNoteData = {
+//     channel: number
+//     note: number,
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+// type MidiCCData = {
+//     channel: number
+//     control: number,
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+// type MidiPCData = {
+//     channel: number
+//     control: number,
+// }
+
+// type MidiCPData = {
+//     channel: number
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+// type MidiPitchbendData = {
+//     channel: number
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+
+// type MidiRPNData = {
+//     channel: number
+//     control: number
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+
+// type MidiNRPNData = {
+//     channel: number
+//     control: number
+//     source: AnalogSource
+//     begin: number
+//     end: number
+// }
+
+// type MidiSysExData = {
+//     sysex: string
+// }
+
+  static bool LoadData(cb0r_t actionData, MidiAction* action)
+  {
+      cb0r_s cbor_data;
+      if(!cb0r_get_check_type(actionData, 1, &cbor_data, CB0R_INT))
+      {
+          MLOGE(TAG, "Failed to get midi type");
+          return false;
+      }
+
+      action->type = (MidiType)cbor_data.value;
+
+      if(action->type == MidiType::SysEx)
+      {
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_BYTE))
+          {
+              MLOGE(TAG, "Failed to get midi sysex");
+              return false;
+          }
+          action->sysex_length = cbor_data.length;
+          action->sysex_data = cbor_data.start + cbor_data.header;
+          action->source = AnalogSource::Persistent;
+
+          return true;
+      }
+
+      if(action->type == MidiType::Start || action->type == MidiType::Continue || action->type == MidiType::Stop || action->type == MidiType::Reset)
+      {
+          action->source = AnalogSource::Persistent;
+          return true;
+      }
+
+      if(action->type == MidiType::ProgramChange)
+      {
+        action->source = AnalogSource::Persistent;
+      }
+
+      // Get Channel
+      if(action->type == MidiType::Note || action->type == MidiType::ControlChange || action->type == MidiType::ProgramChange || action->type == MidiType::ChannelPressure || action->type == MidiType::PitchBend || action->type == MidiType::RPN || action->type == MidiType::NRPN)
+      {
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_INT))
+          {
+              MLOGE(TAG, "Failed to get midi channel");
+              return false;
+          }
+          action->channel = cbor_data.value;
+      }
+
+      // Get Note or Control
+      if(action->type == MidiType::Note || action->type == MidiType::ControlChange || action->type == MidiType::ProgramChange || action->type == MidiType::RPN || action->type == MidiType::NRPN)
+      {
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_INT))
+          {
+            MLOGE(TAG, "Failed to get midi note or control");
+            return false;
+          }
+          action->note = cbor_data.value;
+      }
+
+      // Get Analog Source, Begin and End
+      if(action->type == MidiType::Note || action->type == MidiType::ControlChange || action->type == MidiType::ChannelPressure || action->type == MidiType::PitchBend || action->type == MidiType::RPN || action->type == MidiType::NRPN)
+      {
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_INT))
+          {
+              MLOGE(TAG, "Failed to get analog source");
+              return false;
+          }
+          action->source = (AnalogSource)cbor_data.value;
+
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_INT))
+          {
+              MLOGE(TAG, "Failed to get analog begin");
+              return false;
+          }
+          action->begin = cbor_data.value;
+
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_INT))
+          {
+              MLOGE(TAG, "Failed to get analog end");
+              return false;
+          }
+          action->end = cbor_data.value;
+      }
+      return true;
   }
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-    MLOGV(TAG, "KeyEvent - Data Length: %d", actionData->length);
     if (keyInfo->state != PRESSED && keyInfo->state != RELEASED && keyInfo->state != AFTERTOUCH)
     {
-      MLOGV(TAG, "Not useful");
       return false;
     }
 
-    uint8_t signature = GetData(actionData, 0);
-    uint8_t channel = signature & 0x0F;
-
-    // MLOGV(TAG, "Data: %d, %d, %d", data.data0, data.data1, data.data2);
-    switch ((signature & 0xF0))
+    MidiAction data;
+    if (!LoadData(actionData, &data))
     {
-        case EMidiStatus::NoteOn:
-        {        
-            uint8_t note = GetData(actionData, 1);
-            uint8_t velocity = GetData(actionData, 2); 
-
-            if (keyInfo->state == PRESSED)  // Velocity sensing is disabled && key press action
-            {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, velocity));
-                return true;
-            }
-            else if (keyInfo->state == RELEASED)
-            {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, 0));
-                return true;
-            }
-            return false;
-        }
-        case EMidiStatus::AfterTouch:
-        {
-            uint8_t note = GetData(actionData, 1);
-            if (keyInfo->state == AFTERTOUCH)
-            {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, channel, note & 0x7F, keyInfo->velocity.to7bits()));
-                return true;
-            }
-            else if (keyInfo->state == PRESSED)
-            {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::AfterTouch, channel, note & 0x7F, keyInfo->velocity.to7bits()));
-                return true;
-            }
-            else if(keyInfo->state == RELEASED)
-            {
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::NoteOn, channel, note & 0x7F, 0));
-                return true;
-            }
-            return false;
-        }
-        case EMidiStatus::ControlChange:
-        {
-            if (keyInfo->state == PRESSED)  // Velocity sensing is disabled && key press action
-            {   
-                uint8_t control = GetData(actionData, 1);
-                uint8_t value = GetData(actionData, 2);
-                MatrixOS::MIDI::Send(MidiPacket(0, EMidiStatus::ControlChange, channel, control, value));
-                return true;
-            }
-            return false;
-        }
+      MLOGE(TAG, "Failed to load action");
+      return false;
     }
 
+    uint16_t output_value = 0;
+    switch (data.source)
+    {
+      case AnalogSource::Invalid:
+      {
+          break;
+      }
+      case AnalogSource::Momentary:
+      {
+        if (keyInfo->state == PRESSED)
+        {
+          output_value = data.end;
+        }
+        else if (keyInfo->state == RELEASED)
+        {
+          output_value = data.begin;
+        }
+        else
+        {
+          return false;
+        }
+        break;
+      }
+      case AnalogSource::Persistent:
+      {
+        if (keyInfo->state == PRESSED)
+        {
+          output_value = data.end;
+        }
+        else
+        {
+          return false;
+        }
+        break;
+      }
+      case AnalogSource::Toggle:
+      {
+        ActionInfo groupActionInfo = *actionInfo;
+        groupActionInfo.index = 255;
+        groupActionInfo.actionType = ActionType::EFFECT;
+        if (keyInfo->state == PRESSED)
+        {
+          uint32_t registerValue;
+          if(!uadRT->GetRegister(actionInfo, &registerValue))
+          {
+            MLOGD(TAG, "Failed to get register. Creating new register");
+          }
+          MLOGD(TAG, "Register Value: %d", registerValue);
+          registerValue ^= 1;
+          if(registerValue & 1)
+          {
+            MLOGD(TAG, "Toggled On");
+            output_value = data.end;
+          }
+          else
+          {
+            MLOGD(TAG, "Toggled Off");
+            output_value = data.begin;
+          }
+          if(!uadRT->SetRegister(actionInfo, registerValue))
+          {
+            MLOGE(TAG, "Failed to set register");
+          }
+
+          uint32_t groupRegister;
+          if(!uadRT->GetRegister(&groupActionInfo, &groupRegister))
+          {
+            MLOGD(TAG, "Failed to get group register. Creating new group register");
+          }
+          groupRegister = (groupRegister & 0xFFFFFFF0) + (registerValue & 1); // We use the lower 4 bits for the group register as the LED index for the action driven LED
+          if(!uadRT->SetRegister(&groupActionInfo, groupRegister))
+          {
+            MLOGE(TAG, "Failed to set group register");
+          }
+        } 
+        else 
+        {
+            return false;
+        }
+        break;
+      }
+      case AnalogSource::KeyForce:
+      {
+        if (keyInfo->state == RELEASED)
+        {
+          output_value = data.begin;
+        }
+        else if(keyInfo->velocity == FRACT16_MAX)
+        {
+          output_value = data.end;
+        }
+        else
+        {
+          uint16_t range = data.end - data.begin;
+          output_value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
+        }
+        break;
+      }
+    }
+
+    switch (data.type)
+    {
+      case MidiType::Note:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::NoteOn, data.channel, data.note, output_value));
+        return true;
+      }
+      case MidiType::ControlChange:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, data.control, output_value));
+        return true;
+      }
+      case MidiType::ProgramChange:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ProgramChange, data.channel, data.control, 0));
+        return true;
+      }
+      case MidiType::ChannelPressure:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ChannelPressure, data.channel, output_value, 0));
+        return true;
+      }
+      case MidiType::PitchBend:
+      {
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::PitchChange, data.channel, output_value & 0x7F, (output_value >> 7) & 0x7F));
+          return true;
+      }
+      case MidiType::SysEx:
+      {
+        MatrixOS::MIDI::SendSysEx(EMidiPortID::MIDI_PORT_EACH_CLASS, data.sysex_length, data.sysex_data);
+        return true;
+      }
+      case MidiType::RPN:
+      {
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 101, (data.control >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 100, data.control & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 6, (output_value >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 38, output_value & 0x7F));
+          return true;
+      }
+      case MidiType::NRPN:
+      {
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 99, (data.control >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 98, data.control & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 6, (output_value >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 38, output_value & 0x7F));
+          return true;
+      }
+      case MidiType::Start:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Start, 0, 0, 0));
+        return true;
+      }
+      case MidiType::Continue:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Continue, 0, 0, 0));
+        return true;
+      }
+      case MidiType::Stop:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Stop, 0, 0, 0));
+        return true;
+      }
+      case MidiType::Reset:
+      {
+        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Reset, 0, 0, 0));
+        return true;
+      }
+    }
     return false;
   }
 };

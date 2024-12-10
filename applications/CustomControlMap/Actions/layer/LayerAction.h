@@ -24,7 +24,7 @@ namespace LayerAction
     static bool LoadData(cb0r_t actionData, LayerAction* action)
     {
         cb0r_s cbor_data;
-        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        if (!cb0r_get_check_type(actionData, 1, &cbor_data, CB0R_INT))
         {
             MLOGE(TAG, "Failed to get action data 0");
             return false;
@@ -35,7 +35,7 @@ namespace LayerAction
         action->option = (LayerActionOption)((cbor_data.value >> 8) & 0x0F);
         action->relative = (bool)((cbor_data.value >> 15) & 0x01);
 
-        if(!cb0r_get(actionData, 2, &cbor_data) || (cbor_data.type != CB0R_INT && cbor_data.type != CB0R_NEG))
+        if (!cb0r_get_check_type(actionData, 2, &cbor_data, CB0R_INT))
         {
             MLOGE(TAG, "Failed to get action data 1");
             return false;

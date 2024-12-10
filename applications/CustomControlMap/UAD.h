@@ -50,7 +50,7 @@ class UADRuntime
   bool GetLayerState(uint8_t layer, LayerInfoType type);
 
   // Helpers
-  int8_t IndexInBitmap(uint64_t bitmap, uint8_t index);  // Not this one has +1 offset (Because usually used in array index look up)
+  static int8_t IndexInBitmap(uint64_t bitmap, uint8_t index);  // Note this one has +1 offset (Because usually used in array index look up)
   uint8_t GetTopLayer();
 
   bool loaded = false;
@@ -67,7 +67,7 @@ class UADRuntime
   uint16_t** actionLUT;
   uint16_t* effectLUT;
 
-  std::unordered_map<ActionInfo, uint32_t, ActionInfoHash> registers;
+  std::map<uint32_t, uint32_t> registers;
 
   // UAD Loader
   bool CheckVersion(cb0r_t uadMap);

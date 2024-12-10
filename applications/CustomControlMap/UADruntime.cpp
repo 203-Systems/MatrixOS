@@ -82,7 +82,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
 
   // Get Action Layer Bitmap
   cb0r_s bitmap;
-  if (!cb0r_next_check_type(&layer_array, &bitmap, &bitmap, CB0R_INT))
+  if (!cb0r_get_check_type(&layer_array, 0, &bitmap, CB0R_INT))
   {
     MLOGE(TAG, "Failed to get Action Layer Bitmap");
     return false;

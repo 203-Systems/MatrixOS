@@ -64,8 +64,8 @@ enum HIDCommand { // MSB is 1 for Write/Response, 0 for Read/Request
   UAD_SAVE = 0x04, // Save the UAD to NVS
   UAD_LOAD = 0x05, // Load the UAD from NVS
   UAD_BEGIN = 0x06, // Start the UAD Runtime
-  ERR = 0xFE, // Error the command, followed by the command (with read or write bit set) and the error code
-  ACK = 0xFF, // Acknowledge the command, followed by the command (with read or write bit set)
+  ERR = 0xFE, // Error the command, followed by the command (with read or write bit set) and the error code - Always response
+  ACK = 0xFF, // Acknowledge the command, followed by the command (with read or write bit set) - Always response
 };
 
 const uint8_t HID_RESPONSE = 0x80;

@@ -19,7 +19,7 @@ namespace WrapAction
     {
         cb0r_s cbor_data;
         MLOGV(TAG, "Loading data with length %d", actionData->length);
-        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        if (!cb0r_get_check_type(actionData, 1, &cbor_data, CB0R_INT))
         {
             MLOGE(TAG, "Failed to get action data %d", 0);
             return false;

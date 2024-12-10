@@ -2,15 +2,17 @@
 
 bool UADRuntime::SetRegister(ActionInfo* actionInfo, uint32_t value)
 {
-    return registers.insert_or_assign(*actionInfo, value).second;
+    return registers.insert_or_assign(actionInfo->Hash(), value).second;
 }
 
 bool UADRuntime::GetRegister(ActionInfo* actionInfo, uint32_t* value)
 {   
-    std::unordered_map<ActionInfo, uint32_t>::iterator it = registers.find(*actionInfo);
+    std::map<uint32_t, uint32_t>::iterator it = registers.find(actionInfo->Hash());
 
     if(it == registers.end())
     {
+        SetRegister(actionInfo, 0);
+        *value = 0;
         return false;
     }
 
@@ -20,7 +22,7 @@ bool UADRuntime::GetRegister(ActionInfo* actionInfo, uint32_t* value)
 
 bool UADRuntime::ClearRegister(ActionInfo* actionInfo)
 {
-    return registers.erase(*actionInfo) > 0;
+    return registers.erase(actionInfo->Hash()) > 0;
 }
 
   void UADRuntime::SetLayerState(uint8_t layer, LayerInfoType type, bool state)

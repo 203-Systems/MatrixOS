@@ -19,7 +19,6 @@ namespace ColorEffect
     {
       return false;
     }
-    MLOGD(TAG, "Value1: %d", cbor_data.value);
     data->hasDefault = cbor_data.value & 0x01;
     data->hasActivated = (cbor_data.value >> 1) & 0x01;
 
@@ -33,8 +32,6 @@ namespace ColorEffect
       {
         return false;
       }
-
-      MLOGD(TAG, "Base Color: %d", cbor_data.value);
 
       data->defaultColor = cbor_data.value;
     }
@@ -51,15 +48,12 @@ namespace ColorEffect
         return false;
       }
 
-      MLOGD(TAG, "Activated Color: %d", cbor_data.value);
-
       data->activatedColor = cbor_data.value;
     }
     return true;
   }
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-    MLOGV(TAG, "KeyEvent");
     if (keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED)
       return false;
 
@@ -78,7 +72,6 @@ namespace ColorEffect
 
     if (keyInfo->state == KeyState::PRESSED)
     {
-      MLOGV(TAG, "KeyEvent - PRESSED");
       if (actionInfo->indexType == ActionIndexType::COORD)
       {
         MatrixOS::LED::SetColor(actionInfo->coord, Color(data.activatedColor), 0);
@@ -91,7 +84,6 @@ namespace ColorEffect
     }
     else if (keyInfo->state == KeyState::RELEASED)
     {
-      MLOGV(TAG, "KeyEvent - RELEASED");
       if (actionInfo->indexType == ActionIndexType::COORD)
       {
         MatrixOS::LED::SetColor(actionInfo->coord, Color(data.defaultColor), 0);
@@ -105,13 +97,13 @@ namespace ColorEffect
     return false;
   }
 
-  static void Initialization(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData) {
+  static bool Initialization(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData) {
     struct ColorEffectData data;
 
     if (!LoadData(actionData, &data))
     {
       MLOGE(TAG, "Failed to load data");
-      return;
+      return false;
     }
 
     // if(data.hasDefault)
@@ -125,5 +117,7 @@ namespace ColorEffect
       MatrixOS::LED::SetColor(actionInfo->id, Color(data.defaultColor), 0);
     }
     // }
+
+    return true;
   }
 };

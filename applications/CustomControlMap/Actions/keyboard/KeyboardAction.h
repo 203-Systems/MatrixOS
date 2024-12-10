@@ -9,17 +9,27 @@ namespace KeyboardAction
     struct KeyboardAction
     {
         uint8_t key;
+        uint8_t user_keycode;
     };
 
     static bool LoadData(cb0r_t actionData, KeyboardAction* action)
     {
         cb0r_s cbor_data;
-        if(!cb0r_get(actionData, 1, &cbor_data) || cbor_data.type != CB0R_INT)
+        if (!cb0r_get_check_type(actionData, 1, &cbor_data, CB0R_INT))
         {
             MLOGE(TAG, "Failed to get action data");
             return false;
         }
         action->key = cbor_data.value;
+        if(action->key == 0) // User defined key
+        {
+            if (!cb0r_get_check_type(actionData, 2, &cbor_data, CB0R_INT))
+            {
+                MLOGE(TAG, "Failed to get user keycode");
+                return false;
+            }
+            action->user_keycode = cbor_data.value;
+        }
         return true;
     }
     
@@ -37,20 +47,25 @@ namespace KeyboardAction
             return false;
         }
 
+        uint8_t keycode = action.key;
+
+        if(action.key == 0)
+        {
+            keycode = action.user_keycode;
+        }
+
         if(keyInfo->state == KeyState::PRESSED)
         {
-            MLOGV(TAG, "Sending key char %d", action.key);
-            MatrixOS::HID::Keyboard::Press((KeyboardKeycode)action.key);
-            return true;
+          MLOGV(TAG, "Sending key char %d", keycode);
+          MatrixOS::HID::Keyboard::Press((KeyboardKeycode)keycode);
+          return true;
         }
         else if(keyInfo->state == KeyState::RELEASED)
         {
-            MLOGV(TAG, "Releasing key char %d", action.key);
-            MatrixOS::HID::Keyboard::Release((KeyboardKeycode)action.key);
+            MLOGV(TAG, "Releasing key char %d", keycode);
+            MatrixOS::HID::Keyboard::Release((KeyboardKeycode)keycode);
             return true;
         }
-
-        
         return false;
     }
 };

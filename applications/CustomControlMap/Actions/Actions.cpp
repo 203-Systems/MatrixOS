@@ -5,9 +5,11 @@
 #include "keyboard/KeyboardAction.h"
 #include "layer/LayerAction.h"
 #include "wrap/WrapAction.h"
+#include "gamepad/GamepadAction.h"
 
 // Effects
 #include "color/ColorEffect.h"
+#include "actioncolor/ActionColorEffect.h"
 
 
 #define TAG "UAD Actions"
@@ -22,7 +24,7 @@ bool UADRuntime::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, Action
 
     cb0r_s action_index;
 
-    if(!cb0r_get(actionData, 0, &action_index) || action_index.type != CB0R_INT)
+    if (!cb0r_get_check_type(actionData, 0, &action_index, CB0R_INT))
     {
         MLOGE(TAG, "Failed to get action index");
         return false;
@@ -50,12 +52,16 @@ bool UADRuntime::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, Action
                 return MidiAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
             case KeyboardAction::signature:
                 return KeyboardAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case GamepadAction::signature:
+                return GamepadAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
             case LayerAction::signature:
                 return LayerAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
             case WrapAction::signature:
                 return WrapAction::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
             case ColorEffect::signature:
                 return ColorEffect::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
+            case ActionColorEffect::signature:
+                return ActionColorEffect::KeyEvent(this, actionInfo, actionData, actionEvent->keyInfo);
         }
     }
     else if(actionEvent->type == ActionEventType::INITIALIZATION)
@@ -63,8 +69,9 @@ bool UADRuntime::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, Action
         switch (action_signature)
         {
             case ColorEffect::signature:
-                ColorEffect::Initialization(this, actionInfo, actionData);
-                return true;
+                return ColorEffect::Initialization(this, actionInfo, actionData);
+            case ActionColorEffect::signature:
+                return ActionColorEffect::Initialization(this, actionInfo, actionData);
         }
     }
     return false;
