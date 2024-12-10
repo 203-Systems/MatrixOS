@@ -69,7 +69,7 @@ uint8_t const* tud_descriptor_device_cb(void) {
 // Gamepad Report Descriptor Template
 // with 32 buttons, 2 joysticks and 1 hat/dpad with following layout
 // | X | Y | Z | Rz | Rx | Ry (2 byte each) | hat/DPAD (1 byte) | Button Map (4 bytes) |
-#define CUSTOM_HID_REPORT_DESC_GAMEPAD(...) \
+#define HID_REPORT_DESC_GAMEPAD(...) \
   HID_USAGE_PAGE ( HID_USAGE_PAGE_DESKTOP     )                 ,\
   HID_USAGE      ( HID_USAGE_DESKTOP_GAMEPAD  )                 ,\
   HID_COLLECTION ( HID_COLLECTION_APPLICATION )                 ,\
@@ -83,8 +83,8 @@ uint8_t const* tud_descriptor_device_cb(void) {
     HID_USAGE          ( HID_USAGE_DESKTOP_RZ                   ) ,\
     HID_USAGE          ( HID_USAGE_DESKTOP_RX                   ) ,\
     HID_USAGE          ( HID_USAGE_DESKTOP_RY                   ) ,\
-    HID_LOGICAL_MIN_N  ( -32767, 2                              ) ,\
-    HID_LOGICAL_MAX_N  ( 32767,  2                              ) ,\
+    HID_LOGICAL_MIN_N  ( 0x8001, 2                              ) ,\
+    HID_LOGICAL_MAX_N  ( 0x7FFF, 2                              ) ,\
     HID_REPORT_COUNT   ( 6                                      ) ,\
     HID_REPORT_SIZE    ( 16                                     ) ,\
     HID_INPUT          ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ) ,\
@@ -112,7 +112,7 @@ uint8_t const* tud_descriptor_device_cb(void) {
 
 
 
-#define CUSTOM_HID_REPORT_DESC_VENDOR() \
+#define HID_REPORT_DESC_VENDOR() \
     HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
     HID_USAGE        ( 0x01                       ),\
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
@@ -144,8 +144,8 @@ uint8_t const* tud_descriptor_device_cb(void) {
 uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)), 
                                    TUD_HID_REPORT_DESC_MOUSE(HID_REPORT_ID(REPORT_ID_MOUSE)),
                                    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(REPORT_ID_CONSUMER_CONTROL)), 
-                                   CUSTOM_HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_ID_GAMEPAD)),
-                                   CUSTOM_HID_REPORT_DESC_VENDOR()
+                                   HID_REPORT_DESC_GAMEPAD(HID_REPORT_ID(REPORT_ID_GAMEPAD)),
+                                   HID_REPORT_DESC_VENDOR()
                                   };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
