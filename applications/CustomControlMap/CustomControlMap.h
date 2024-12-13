@@ -15,8 +15,7 @@ class CustomControlMap : public Application {
   const uint8_t MAX_UAD_LAYER = 16;
   const size_t MAX_UAD_SIZE = 8196; // 8KB
   const uint32_t UAD_NVS_HASH = StaticHash("CustomControlMap-UAD");
-  const uint16_t MAX_HID_TRANSFER_SIZE = 8; // 8 bytes
-
+  const uint16_t MAX_HID_TRANSFER_SIZE = 28; // 28 bytes
  private:
   UADRuntime uadRT;
   uint8_t* uadData = nullptr;

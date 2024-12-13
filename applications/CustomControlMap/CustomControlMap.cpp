@@ -160,7 +160,7 @@ void CustomControlMap::LoadNewUADPayload(const uint8_t* report) {
   }
 
   uint16_t section = ((report[1] << 8) | report[2]);
-  uint32_t offset = section * 8;
+  uint32_t offset = section * MAX_HID_TRANSFER_SIZE;
   uint8_t size = report[3];
 
   if(size > MAX_HID_TRANSFER_SIZE)
@@ -240,11 +240,12 @@ void CustomControlMap::SendDeviceDescriptor() {
     0x11,                    // Model ID 0x11
     Device::x_size,          // Device X 8
     Device::y_size,          // Device Y 8
-    MAX_UAD_LAYER,               // Max Layers
+    MAX_UAD_LAYER,           // Max Layers
     (uint8_t)((MAX_UAD_SIZE >> 24) & 0xFF), // UAD Size MSB1
     (uint8_t)((MAX_UAD_SIZE >> 16) & 0xFF), // UAD Size MSB2
     (uint8_t)((MAX_UAD_SIZE >> 8) & 0xFF),  // UAD Size MSB3
     (uint8_t)((MAX_UAD_SIZE) & 0xFF),       // UAD Size MSB4
+    (uint8_t)MAX_HID_TRANSFER_SIZE,   // Max HID Transfer Size
   };
 
   MLOGD("CustomControlMap", "Device Descriptor Created");
@@ -279,8 +280,8 @@ void CustomControlMap::SendUADStatus() {
 
 void CustomControlMap::SendUADPayload(const uint8_t* report) {
   uint16_t section = ((report[1] << 8) | report[2]);
-  uint32_t offset = section * 8;
-  uint8_t size = 8;
+  uint32_t offset = section * MAX_HID_TRANSFER_SIZE;
+  uint8_t size = MAX_HID_TRANSFER_SIZE;
 
   MLOGD("CustomControlMap", "Send UAD Payload #%d - Offset: %d - Size: %d", section + 1, offset, size);
 
