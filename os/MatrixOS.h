@@ -26,6 +26,8 @@ namespace MatrixOS
   namespace SYS
   {
     inline bool inited = false;
+    extern Application* active_app;
+    extern uint32_t active_app_id;
     void Begin(void);
     void InitSysModules(void);
 
@@ -40,6 +42,7 @@ namespace MatrixOS
     void Rotate(EDirection rotation, bool absolute = false);
 
     void ExecuteAPP(string author, string app_name);
+    void ExecuteAPP(uint32_t app_id);
     void ExitAPP();
 
     void ErrorHandler(string error = string());

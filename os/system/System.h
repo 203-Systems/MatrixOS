@@ -28,7 +28,6 @@ namespace MatrixOS::SYS
 
   SavedVariable<uint32_t> prev_system_version = SavedVariable<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
 
-  void ExecuteAPP(uint32_t app_id);
   uint32_t GenerateAPPID(string author, string app_name);
 
   uint16_t GetApplicationCount();
