@@ -116,29 +116,43 @@ uint8_t const* tud_descriptor_device_cb(void) {
     HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
     HID_USAGE        ( 0x01                       ),\
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
-      /* Report ID for Inquiry */\
+      /* Report ID for APP command */\
       0x85, 255, \
-      /* Feature Report (64 bytes) */ \
-      HID_USAGE   ( 0x80                                    ),\
-      HID_LOGICAL_MIN ( 0                                       ),\
-      HID_LOGICAL_MAX ( 255                                     ),\
-      HID_REPORT_COUNT( 64                                      ),\
-      HID_FEATURE       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE),\
       /* Input Report (64 bytes) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 16                                      ),\
+      HID_REPORT_COUNT( 32                                      ),\
       HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
       /* Output Report (64 bytes) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 16                                      ),\
+      HID_REPORT_COUNT( 32                                      ),\
       HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
-    HID_COLLECTION_END
+    HID_COLLECTION_END,\
+    HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
+    HID_USAGE        ( 0x01                       ),\
+    HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
+      /* Report ID for System command */\
+      0x85, 0xCB, \
+      /* Input Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 32                                      ),\
+      HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+      /* Output Report (64 bytes) */ \
+      HID_USAGE   ( 0x10                                    ),\
+      HID_LOGICAL_MIN ( 0                                       ),\
+      HID_LOGICAL_MAX ( 255                                     ),\
+      HID_REPORT_SIZE ( 8                                       ),\
+      HID_REPORT_COUNT( 32                                      ),\
+      HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
+    HID_COLLECTION_END,\
   
 
 uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(REPORT_ID_KEYBOARD)), 
@@ -200,13 +214,13 @@ uint8_t const desc_fs_configuration[] = {
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
-    TUD_DUO_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, 64),
+    TUD_DUO_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, CFG_TUD_MIDI_RX_BUFSIZE),
 
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
+    TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, CFG_TUD_CDC_RX_BUFSIZE),
 
     // Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval
-    TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, CFG_TUD_HID_EP_BUFSIZE, 5)
+    TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID_OUT, EPNUM_HID_IN, 64, 5)
   };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
