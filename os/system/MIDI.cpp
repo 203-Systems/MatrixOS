@@ -1,5 +1,6 @@
 #include "MatrixOS.h"
 #include <map>
+#include "framework/CommandSpecs.h"
 
 // TODO Put this in device layer
 const uint8_t SYSEX_MFG_ID[3] = {0x00, 0x02, 0x03};
@@ -130,8 +131,72 @@ namespace MatrixOS::MIDI
   // RELEASE  = This is an application sysex, release to application
   // INVALID  = This is our sysex, don' release, just Destroy it
 
-  SysExState ProcessSysEx(uint16_t port, vector<uint8_t> sysExBuffer, bool complete) {
+  void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer)
+  {
+    switch(sysExBuffer[2])
+    {
+      case MATRIXOS_COMMAND_GET_OS_VERSION:
+      {
+        #if MATRIXOS_BUILD_VER == 0 // Release Version
+        uint8_t osReleaseVersion = 0;
+        #elif (MATRIXOS_BUILD_VER == 4) // Nighty Version
+        uint8_t osReleaseVersion = 0x31; // 0b0011111 - Shares the same first two bit as release version but the last 5 bits are set
+        #elif(MATRIXOS_RELEASE_VER < 32) // Special Release Version
+        uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
+        #else
+        uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
+        #endif
+        uint8_t reply[] = {
+          MIDIv1_SYSEX_START, MATRIXOS_SYSEX_RESPONSE, MATRIXOS_COMMAND_GET_OS_VERSION, MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER, MATRIXOS_PATCH_VER, osReleaseVersion, MIDIv1_SYSEX_END};
+        SendSysEx(port, sizeof(reply), reply, false);
+      }
+      break;
+      case MATRIXOS_COMMAND_GET_APP_ID:
+      {
+        uint8_t reply[] = {
+          MIDIv1_SYSEX_START, MATRIXOS_SYSEX_RESPONSE, MATRIXOS_COMMAND_GET_APP_ID, (uint8_t)((SYS::active_app_id >> 25) & 0x7F), (uint8_t)((SYS::active_app_id >> 18) & 0x7F), (uint8_t)((SYS::active_app_id >> 11) & 0x7F), (uint8_t)((SYS::active_app_id >> 4) & 0x7F), (uint8_t)((SYS::active_app_id << 3) & 0x7F), MIDIv1_SYSEX_END};
+        SendSysEx(port, sizeof(reply), reply, false);
+      }
+      break;
+      case MATRIXOS_COMMAND_ENTER_APP_VIA_ID:
+      {
+        if(sysExBuffer.size() != 9)
+        {
+          break;
+        }
+        uint32_t app_id = ((uint32_t)sysExBuffer[4] << 25) + ((uint32_t)sysExBuffer[5] << 18) + ((uint32_t)sysExBuffer[6] << 11) + ((uint32_t)sysExBuffer[7] << 4) + ((uint32_t)sysExBuffer[8] >> 3);
+        SYS::ExecuteAPP(app_id);
+        break;
+      }
+      case MATRIXOS_COMMAND_QUIT_APP:
+      {
+        SYS::ExitAPP();
+        break;
+      }
+      case MATRIXOS_COMMAND_BOOTLOADER:
+      {
+        SYS::Bootloader();
+        break;
+      }
+      case MATRIXOS_COMMAND_REBOOT:
+      {
+        SYS::Reboot();
+        break;
+      }
+      // case MATRIXOS_COMMAND_SLEEP:
+      // {
+      //   SYS::Sleep();
+      //   break;
+      // }
+      default:
+      {
+        MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[1]);
+      }
+    }
+  }
 
+  SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool complete) {
+    
     if(sysExBuffer[0] != MIDIv1_SYSEX_START) {return SysExState::INVALID; }
 
     if(complete)
@@ -160,6 +225,10 @@ namespace MatrixOS::MIDI
 
           SendSysEx(port, sizeof(reply), reply, false);
        }
+      }
+      else if(sysExBuffer[1] == MATRIXOS_SYSEX_REQUEST) //Matrix OS specific sysex
+      {
+        HandleMatrixOSSysEx(port, sysExBuffer);
       }
       return SysExState::COMPLETE;
     }

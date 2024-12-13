@@ -144,4 +144,11 @@ typedef struct  // may need to be adjusted for other compilers and bitfield orde
 #define USYSEX_GI_ID_REQUEST 0x01
 #define USYSEX_GI_ID_RESPONSE 0x02
 
+/*
+Matrix OS specific sysex
+*/
+
+#define MATRIXOS_SYSEX_REQUEST 0x23
+#define MATRIXOS_SYSEX_RESPONSE 0x24
+
 #endif
