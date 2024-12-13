@@ -9,6 +9,7 @@ struct PolyPadConfig {
   uint8_t xSpacing = 3;
   uint8_t octave = 2;
   uint8_t channel = 0;
+  uint8_t rootKey = 0;
   bool velocitySensitive = false;
 };
 
@@ -41,7 +42,7 @@ class PolyPad : public UIComponent {
   void GenerateKeymap() {
     noteMap.reserve(dimension.Area());
 
-    uint8_t root = 12 * config->octave;
+    uint8_t root = 12 * config->octave + config->rootKey;
 
     for (int8_t y = 0; y < dimension.y; y++)
     {

@@ -28,6 +28,7 @@ class PolyPlayground : public Application {
 
   void SpacingSelector();
   void ChannelSelector();
+  void RootSelector();
 
   PolyPadConfig polyPadConfig;
 };

@@ -1,6 +1,7 @@
 #include "PolyPlayground.h"
 #include "PolyOctaveShifter.h"
 #include "applications/BrightnessControl/BrightnessControl.h"
+#include "..\Note\ScaleVisualizer.h"
 
 void PolyPlayground::Setup() {
   // Set up / Load configs --------------------------------------------------------------------------
@@ -53,6 +54,13 @@ void PolyPlayground::Setup() {
   rotateLeftBtn.SetSize(Dimension(1, 2));
   rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
   actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
+
+  UIButton rootSelectorBtn;
+  rootSelectorBtn.SetName("Root Selector");
+  rootSelectorBtn.SetColor(Color(0xFF0090));
+  rootSelectorBtn.OnPress([&]() -> void { RootSelector(); });
+  actionMenu.AddUIComponent(rootSelectorBtn, Point(7, 2));
+
 
   UIButton channelSelectorBtn;
   channelSelectorBtn.SetName("Channel Selector");
@@ -122,4 +130,13 @@ void PolyPlayground::ChannelSelector() {
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
 
   channelSelector.Start();
+}
+
+void PolyPlayground::RootSelector() {
+  UI scaleSelector("Root Selector", Color(0xFF0090), false);
+  uint16_t scale = 0;
+  ScaleVisualizer scaleVisualizer(&polyPadConfig.rootKey, &scale, Color(0x8000FF), Color(0xFF00FF));
+  scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
+
+  scaleSelector.Start();
 }
