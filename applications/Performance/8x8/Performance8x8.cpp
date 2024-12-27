@@ -490,15 +490,15 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
 
   if (keyInfo->state == PRESSED)
   {
-    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, NoteOn, 0, note, keyInfo->velocity.to7bits()));
+    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT-EACH_CLASS, NoteOn, 0, note, keyInfo->velocity.to7bits()));
   }
   else if (keyInfo->state == AFTERTOUCH)
   {
-    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, AfterTouch, 0, note, keyInfo->velocity.to7bits()));
+    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT-EACH_CLASS, AfterTouch, 0, note, keyInfo->velocity.to7bits()));
   }
   else if (keyInfo->state == RELEASED)
   {
-    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, NoteOn, 0, note, 0));
+    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT-EACH_CLASS, NoteOn, 0, note, 0));
   }
 }
 
@@ -506,10 +506,10 @@ void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   // MLOGD("Performance", "Key Event");
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
-    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, ControlChange, 0, 121, 127)); 
+    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT-EACH_CLASS, ControlChange, 0, 121, 127)); 
     MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, ControlChange, 0, 123, 0)); // All notes off
     ActionMenu();
-    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, ControlChange, 0, 121, 0));  // For Apollo Clearing
+    MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT-EACH_CLASS, ControlChange, 0, 121, 0));  // For Apollo Clearing
     MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, ControlChange, 0, 123, 0)); // All notes off
   }
 }
