@@ -154,7 +154,7 @@ namespace MidiAction
               MLOGE(TAG, "Failed to get midi channel");
               return false;
           }
-          action->channel = cbor_data.value;
+          action->channel = cbor_data.value - 1;
       }
 
       // Get Note or Control
