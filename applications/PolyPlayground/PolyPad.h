@@ -19,6 +19,7 @@ class PolyPad : public UIComponent {
   PolyPadConfig* config;
   std::vector<uint8_t> noteMap;
   std::unordered_map<uint8_t, uint8_t> activeNotes;
+  int8_t lastNote = -1;
 
   const Color noteColor[12] = {
       Color(0x00FFD9),
@@ -90,6 +91,11 @@ class PolyPad : public UIComponent {
         index++;
       }
     }
+
+    if (lastNote != -1)
+    {
+      MatrixOS::LED::FillPartition("Underglow",  noteColor[lastNote % 12]);
+    }
     return true;
   }
 
@@ -102,6 +108,7 @@ class PolyPad : public UIComponent {
     if (keyInfo->state == PRESSED)
     {
       MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOn, config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
+      lastNote = note;
       activeNotes[note]++;  // If this key doesn't exist, unordered_map will auto assign it to 0.
     }
     else if (config->velocitySensitive && keyInfo->state == AFTERTOUCH)
