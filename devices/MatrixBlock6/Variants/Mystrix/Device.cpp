@@ -19,7 +19,7 @@ namespace Device
         DeviceInfo factoryDeviceInfo{FACTORY_DEVICE_MODEL, FACTORY_DEVICE_REVISION, FACTORY_MFG_YEAR, FACTORY_MFG_MONTH};
         memcpy (&deviceInfo, &factoryDeviceInfo, sizeof(DeviceInfo));
         ESP_LOGI("Device Init", "Factory config - Mystrix %.4s %.4s", deviceInfo.Model, deviceInfo.Revision);
-#endif
+    #endif
 
     // Load Velocity Sensitive Config
     if(deviceInfo.Model[3] == 'P')
