@@ -15,6 +15,7 @@
 // #include "applications/Gamepad/Gamepad.h"
 #include "applications/Reversi/Reversi.h"
 #include "applications/PolyPlayground/PolyPlayground.h"
+#include "applications/Strum/Strum.h"   
 
 // BOOT ANIMATION
 #include "applications/Mystrix/MystrixBoot/MystrixBoot.h"
