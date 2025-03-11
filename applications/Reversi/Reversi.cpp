@@ -142,23 +142,29 @@ void Reversi::Render()
   uint32_t timeSinceEvent = MatrixOS::SYS::Millis() - lastEventTime;
   if(gameState == Waiting)
   {
+
+    Color hint_move_color;
+    if(hint)
+    {
+      uint8_t hint_move_ratio;
+      if(timeSinceEvent <= 750)
+      {
+        hint_move_ratio = ColorEffects::Breath(1500, lastEventTime);
+      }
+      else
+      {
+        hint_move_ratio = ColorEffects::BreathLowBound(64, 1500, lastEventTime);
+      }
+      hint_move_color = GetPlayerColor(currentPlayer).Dim().Dim(hint_move_ratio);
+    }
+
     for(uint8_t y = 0; y < 8; y++)
     {
       for(uint8_t x = 0; x < 8; x++)
       {
         if(board[y][x].validMove && hint)
         {
-          uint8_t ratio;
-          if(timeSinceEvent <= 200)
-          {
-            ratio = timeSinceEvent * 255 / 200;
-          }
-          else
-          {
-            ratio = 255;
-          }
-
-          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(currentPlayer).Dim().Dim(ratio));
+          MatrixOS::LED::SetColor(Point(x, y), hint_move_color);
         }
         else
         {
@@ -201,7 +207,7 @@ void Reversi::Render()
 
           if(board[y][x].newlyPlaced)
           {
-            MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));
+            MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));//.Dim(new_piece_ratio));
             continue;
           }
 
@@ -222,19 +228,19 @@ void Reversi::Render()
 
           MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].wasPlayer), GetPlayerColor(currentPlayer), ratio));
         }
-        else if(board[y][x].validMove  && hint)
+        else if(board[y][x].validMove && hint)
         {
           uint8_t ratio;
           if(timeSinceEvent <= 200)
           {
-            ratio = 255 - (timeSinceEvent * 255 / 200);
+            ratio = last_breating_brightness - (timeSinceEvent * last_breating_brightness / 200);
           }
           else
           {
             ratio = 0;
           }
 
-          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(currentPlayer).Dim().Dim(ratio));
+          MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(currentPlayer).Dim(ratio));
         }
         else
         {
