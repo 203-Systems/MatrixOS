@@ -156,6 +156,11 @@ void Reversi::Render()
         hint_move_ratio = ColorEffects::BreathLowBound(64, 1500, lastEventTime);
       }
       hint_move_color = GetPlayerColor(currentPlayer).Dim().Dim(hint_move_ratio);
+      last_breating_brightness = hint_move_color.B; // Hack: Get the channel brightness val
+    }
+    else
+    {
+      last_breating_brightness = 0;
     }
 
     for(uint8_t y = 0; y < 8; y++)

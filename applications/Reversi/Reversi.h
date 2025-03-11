@@ -38,6 +38,8 @@ class Reversi : public Application {
   Point invalidPlace;
   uint32_t invalidPlaceTime;
 
+  uint8_t last_breating_brightness;
+
   bool started;
 
   Point placedPos;
