@@ -363,7 +363,7 @@ namespace MidiAction
 
         // TODO: Fix this for other ports!
         MatrixOS::MIDI::SendSysEx(EMidiPortID::MIDI_PORT_USB, data.sysex_length, processed_sysex.data(), false);
-        }
+        
         return true;
       }
       case MidiType::RPN:
