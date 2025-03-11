@@ -123,6 +123,13 @@ namespace MidiAction
 
       if(action->type == MidiType::SysEx)
       {
+          if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_ARRAY))
+          {
+            // Reserved for input mapping array
+              MLOGE(TAG, "Failed to get midi sysex");
+              return false;
+          }
+
           if(!cb0r_next_check_type(actionData, &cbor_data, &cbor_data, CB0R_BYTE))
           {
               MLOGE(TAG, "Failed to get midi sysex");
@@ -338,7 +345,25 @@ namespace MidiAction
       }
       case MidiType::SysEx:
       {
-        MatrixOS::MIDI::SendSysEx(EMidiPortID::MIDI_PORT_EACH_CLASS, data.sysex_length, data.sysex_data);
+        vector<uint8_t> processed_sysex;
+        processed_sysex.reserve(data.sysex_length);
+        MLOGD(TAG, "Sysex Length: %d", data.sysex_length);
+
+        for (size_t i = 0; i < data.sysex_length; i++)
+        {
+          if(data.sysex_data[i] >= 0x80 && data.sysex_data[i] <= 0x8F)
+          {
+            processed_sysex[i] = 0x00; // Input mapping, not implemented
+          }
+          else
+          {
+            processed_sysex[i] = data.sysex_data[i];
+          }
+        }
+
+        // TODO: Fix this for other ports!
+        MatrixOS::MIDI::SendSysEx(EMidiPortID::MIDI_PORT_USB, data.sysex_length, processed_sysex.data(), false);
+        }
         return true;
       }
       case MidiType::RPN:

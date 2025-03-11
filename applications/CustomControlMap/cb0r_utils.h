@@ -73,7 +73,12 @@ inline bool cb0r_next(cb0r_t array, cb0r_t prev, cb0r_s* cbor_data)
   {
     cb0r(prev->end, array->end, 0, cbor_data);
   }
-  if(cbor_data->type >= CB0R_ERR)
+
+  if(cbor_data->type == CB0R_TAG)
+  {
+    cb0r(cbor_data->start + cbor_data->header, cbor_data->end, 0, cbor_data);
+  }
+  else if(cbor_data->type >= CB0R_ERR)
   {
     MLOGE("cb0r_next", "Error action data type - Got: %s", cb0r_type_to_string(cbor_data->type).c_str());
     return false;
