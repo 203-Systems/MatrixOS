@@ -92,24 +92,21 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
   // TODO: Because the we are reading layers from back of the array to front of the array, we need to iterate from back to front. That means we can't do serial reading. 
   // I will get this fixed. 
   cb0r_s actions = bitmap;
-  for (int8_t layer = actionInfo->layer; layer >= 0; layer--)
+  MLOGD(TAG, "Layer Enabled: %d", layerEnabled);
+  for (int8_t layer = layerCount; layer >= 0; layer--)
   {
-    // If the layer is not enabled, skip it
-    if (!IsBitSet(layerEnabled, layer))
-    {
-      continue;
-    }
-
     // If the layer has no action.
     if (!IsBitSet(bitmap.value, layer))
     {
       if (IsBitSet(layerPassthrough, layer))
       {
+        MLOGV(TAG, "Layer %d is set to passthrough", layer);
         // If the layer is set to passthrough, Load next layer action
         continue;
       }
       else
       {
+        MLOGV(TAG, "Layer %d is not set to passthrough", layer);
         // If the layer is not set to passthrough, stop executing actions
         return true;
       }
@@ -122,11 +119,20 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
       return false;
     }
 
+    // If the layer is not enabled, skip it
+    MLOGD(TAG, "Checking Layer: %d", layer);
+    if (!IsBitSet(layerEnabled, layer))
+    {
+      MLOGV(TAG, "Layer %d is not enabled", layer);
+      continue;
+    }
+
     // Reassign the actions's layer to the one that is actually triggered
     newActionInfo.layer = layer;
 
     // Execute the actions
     cb0r_s actionData = actions;
+    MLOGD(TAG, "Action Length: %d", actions.length);
     for (uint8_t action_index = 0; action_index < actions.length; action_index++)
     {
       newActionInfo.index = action_index;
