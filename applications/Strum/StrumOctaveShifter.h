@@ -14,6 +14,7 @@ class StrumOctaveShifter : public UIComponent {
     this->octave = octave;
   }
 
+  virtual string GetName() { return "Octave Shifter"; }
   virtual Color GetColor() { return Color(0xFF00FF); }
   virtual Dimension GetSize() { return Dimension(count, 1); }
 
@@ -28,14 +29,14 @@ class StrumOctaveShifter : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    // if (keyInfo->state == HOLD)
-    // {
-    //   MatrixOS::UIUtility::TextScroll(name, GetColor());
-    //   return true;
-    // }
-    int8_t octave = xy.x;
+    if (keyInfo->state == HOLD)
+    {
+      MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
+      return true;
+    }
+
     if (keyInfo->state == PRESSED)
-    { *this->octave = octave; }
+    { *this->octave = xy.x; }
     return true;
   }
 };

@@ -1,13 +1,13 @@
 #include "MatrixOS.h"
 
-class StrumScaleVisualizer : public UIComponent {
+class StrumChordVisualizer : public UIComponent {
  public:
   uint8_t* rootKey;
   uint16_t* scale;
   Color color;
   Color rootColor;
 
-  StrumScaleVisualizer(uint8_t* rootKey, uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
+  StrumChordVisualizer(uint8_t* rootKey, uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
     this->rootKey = rootKey;
     this->scale = scale;
     this->color = color;
