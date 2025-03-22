@@ -398,7 +398,7 @@ void Reversi::Render()
         {
          localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
         }
-        MatrixOS::LED::SetColor(Point(x,y), ColorEffects::ColorBreathLowBound(GetPlayerColor(localWinner), 64, 2000, lastEventTime - 500));
+        MatrixOS::LED::SetColor(Point(x,y), ColorEffects::ColorBreathLowBound(GetPlayerColor(localWinner), 64, 2000, lastEventTime + 1000));
       }
     }
 
