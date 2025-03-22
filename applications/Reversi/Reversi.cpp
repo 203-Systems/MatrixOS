@@ -549,6 +549,7 @@ bool Reversi::ResetGame(bool confirmed)
       board[y][x].newlyPlaced = 0;
       board[y][x].player = 0;
       board[y][x].wasPlayer = 0;
+      board[y][x].validMove = 0;
     }
   }
 
