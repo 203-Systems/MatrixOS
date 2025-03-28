@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "chord.h"
+#include "Chord.h"
 #include "ui/UI.h"
 
 struct StrumBarConfig
