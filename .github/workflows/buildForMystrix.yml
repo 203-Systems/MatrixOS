@@ -20,7 +20,7 @@ jobs:
         path: |
           .git/modules  # Cache Git module data for submodules
           lib          # Cache your submodule directories if they are in 'lib'
-          espressif/idf:release-v5.1 # ESP IDF
+          espressif/idf:release-v5.3 # ESP IDF
         key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
         restore-keys: |
           ${{ runner.os }}-submodules-
