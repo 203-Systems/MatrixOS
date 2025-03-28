@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
         
     - name: Cache Git modules
-      uses: actions/cache@v4.1.0
+      uses: actions/cache@v4
       with:
         path: |
           .git/modules  # Cache Git module data for submodules
