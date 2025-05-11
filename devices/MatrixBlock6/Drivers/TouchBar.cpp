@@ -36,7 +36,7 @@ namespace Device::KeyPad
 
   void StartTouchBar() {
     touchbar_timer =
-        xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::touchbar_scanrate, true, NULL,
+        xTimerCreateStatic(NULL, configTICK_RATE_HZ / touchbar_scanrate, true, NULL,
                            reinterpret_cast<TimerCallbackFunction_t>(TouchBarTimerHandler), &touchbar_timer_def);
     xTimerStart(touchbar_timer, 0);
   }

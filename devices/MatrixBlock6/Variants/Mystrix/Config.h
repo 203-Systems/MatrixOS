@@ -66,14 +66,14 @@ namespace Device
   };
 
   // Device Specific
-  inline uint16_t keypad_scanrate = 480;
-  inline uint16_t touchbar_scanrate = 60;
   const uint8_t x_size = 8;
   const uint8_t y_size = 8;
-  const uint8_t touchbar_size = 16;  // Not required by the API, private use.
-
   namespace KeyPad
   {
+    inline uint16_t keypad_scanrate = 480;
+    inline uint16_t touchbar_scanrate = 60;
+    const uint8_t touchbar_size = 16;
+
     inline gpio_num_t fn_pin;
     inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;

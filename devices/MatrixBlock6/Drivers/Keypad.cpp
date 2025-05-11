@@ -51,7 +51,7 @@ namespace Device::KeyPad
       FSR::Start();
     }
 
-    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / Device::keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
+    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
     
 
     xTimerStart(keypad_timer, 0);
@@ -169,7 +169,7 @@ namespace Device::KeyPad
       case 2:  // TouchBar
       {
         uint16_t index = keyID & (0b0000111111111111);
-        if (index < Device::touchbar_size)
+        if (index < touchbar_size)
         {
           if (index / 8)  // Right
           { return Point(Device::x_size, index % 8); }
