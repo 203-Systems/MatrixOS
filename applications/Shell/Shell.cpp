@@ -208,7 +208,7 @@ void Shell::LaunchAnimation(Point origin, Color color)
   const float edgeOuterWidth = 1;
   const float endDistance = 20;
   Timer animTimer;
-  uint16_t frameTime = 1000 / Device::fps;
+  uint16_t frameTime = 1000 / Device::LED::fps;
   while(true)
   {
     if(!animTimer.Tick(frameTime)) { continue; }

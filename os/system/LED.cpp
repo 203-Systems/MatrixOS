@@ -98,7 +98,7 @@ namespace MatrixOS::LED
 
     if(!led_tm)
     {
-      led_tm = xTimerCreateStatic("LED Timer", 1000 / Device::fps, pdTRUE, (void*)0, LEDTimerCallback, &led_tmdef);
+      led_tm = xTimerCreateStatic("LED Timer", 1000 / Device::LED::fps, pdTRUE, (void*)0, LEDTimerCallback, &led_tmdef);
       xTimerStart(led_tm, 0);
     }
   }
@@ -355,7 +355,7 @@ namespace MatrixOS::LED
 
     // MLOGD("LED", "Fade %d", crossfade);
 
-    uint16_t crossfade_delay = 1000 / Device::fps; // Delay by one frame
+    uint16_t crossfade_delay = 1000 / Device::LED::fps; // Delay by one frame
     
     if(crossfade == 0) // Stop crossfade
     {

@@ -46,7 +46,7 @@ namespace REVC
 
 void Device::LoadRevC() {
   ESP_LOGI("Device Init", "Mystrix Rev C Config Loaded");
-  led_pin = REVC::LED_Pin;
+  LED::led_pin = REVC::LED_Pin;
 
   KeyPad::fn_pin = REVC::FN_Pin;
 

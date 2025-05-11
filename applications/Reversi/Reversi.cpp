@@ -10,7 +10,7 @@ void Reversi::Loop()
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
 
-  if(renderTimer.Tick(1000/Device::fps))
+  if(renderTimer.Tick(1000/Device::LED::fps))
   {
     Render();
   }

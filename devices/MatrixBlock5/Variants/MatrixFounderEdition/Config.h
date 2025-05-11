@@ -3,7 +3,7 @@
 
 #include "Family.h"
 
-#define GRID_8x8
+#define GRID_TYPE_8x8
 #define MODEL MXFE1
 #define MULTIPRESS 10  // Key Press will be process at once
 

@@ -59,7 +59,7 @@ void MystrixBoot::BootPhase1() {
     boot_phase_1_tick_time = MatrixOS::SYS::Millis();
 
   const uint16_t section_time = 80;
-  if (timer.Tick(1000 / Device::fps))
+  if (timer.Tick(1000 / Device::LED::fps))
   {
     uint32_t delta_time = MatrixOS::SYS::Millis() - boot_phase_1_tick_time;
     uint8_t local_brightness = min(255 * ((float)delta_time / section_time), 255);
@@ -192,7 +192,7 @@ void MystrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Col
 void MystrixBoot::BootPhase2() {
   float hue[2];
 
-#if FAMILY == MYSTRIX
+#ifdef FAMILY_MYSTRIX
     if(Device::deviceInfo.Model[3] == 'P')
     {
       memcpy(hue, hueList[0], sizeof(hue));
@@ -204,7 +204,7 @@ void MystrixBoot::BootPhase2() {
 #endif
 
   const uint16_t start_offset = 150;
-  if (timer.Tick(1000 / Device::fps))
+  if (timer.Tick(1000 / Device::LED::fps))
   {
 
     if (boot_phase_2_start_time == 0)
@@ -229,7 +229,7 @@ void MystrixBoot::BootPhase2() {
         BootPhase2QuadSetColor(r - 1, r, half_color1, half_color2);
         BootPhase2QuadSetColor(r, r - 1, half_color1, half_color2);
       }
-      #if FAMILY == MYSTRIX
+      #ifdef FAMILY_MYSTRIX
       if(r > 3)
       {
         uint16_t local_deltatime_half = local_deltatime + start_offset * 3 / 2;

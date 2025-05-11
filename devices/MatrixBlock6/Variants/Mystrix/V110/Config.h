@@ -46,7 +46,7 @@ namespace V110
 
 void Device::LoadV110() {
   ESP_LOGI("Device Init", "Mystrix Pro V110 Config Loaded");
-  led_pin = V110::LED_Pin;
+  LED::led_pin = V110::LED_Pin;
 
   KeyPad::fn_pin = V110::FN_Pin;
 

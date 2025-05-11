@@ -22,11 +22,6 @@ class FactoryMenu : public Application {
   static Application_Info info;
   void Setup() override;
 
-  // void LEDTest();
-  // void TouchBarTest();
-  // void KeyPadTest();
-
-  // void BurnEFuse();
   void LEDTester();
   void KeyPadTester();
   void TouchBarTester();

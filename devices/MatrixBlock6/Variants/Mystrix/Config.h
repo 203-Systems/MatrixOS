@@ -1,9 +1,9 @@
 // Define Device Specific Macro, Value and private function
 #pragma once
 
-#define GRID_8x8
-#define FAMILY MYSTRIX
-#define MODEL MX1
+#define GRID_TYPE_8x8
+#define FAMILY_MYSTRIX
+
 
 #define DEVICE_BATTERY
 
@@ -114,12 +114,12 @@ namespace Device
     inline gpio_num_t rx_gpio = GPIO_NUM_NC;
   }
 
-// LED
-#define MAX_LED_LAYERS 8
-  inline gpio_num_t led_pin;
-  const inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
-  // const Dimension grid_size(8,8);
-  // const Point grid_offset = Point(1,1);
+  namespace LED
+  {
+    #define MAX_LED_LAYERS 8
+    inline gpio_num_t led_pin;
+    const inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
+  }
 
   // Load Device config
   void LoadV100();

@@ -24,7 +24,7 @@ void Performance::Setup() {
 }
 
 void Performance::Loop() {
-  if (stfu && stfuTimer.Tick(1000 / Device::fps))
+  if (stfu && stfuTimer.Tick(1000 / Device::LED::fps))
   {
     stfuScan();
   }
@@ -544,7 +544,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
     MatrixOS::LED::Fade();
     while (true)
     {
-      if(timer.Tick(1000/Device::fps))
+      if(timer.Tick(1000/Device::LED::fps))
       {
         MatrixOS::LED::Fill(0);
         for (uint8_t y = 0; y < 8; y++)

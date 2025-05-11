@@ -1,6 +1,7 @@
 #include "FactoryMenu.h"
 
 void FactoryMenu::TouchBarTester() {
+  #ifdef FAMILY_MYSTRIX
   bool touchbar_tested[32];
   memset(touchbar_tested, false, 32);
 
@@ -76,4 +77,5 @@ void FactoryMenu::TouchBarTester() {
   Device::touchbar_enable.Load();
   MatrixOS::KEYPAD::Clear();
   MatrixOS::LED::Fill(0);
+  #endif
 }

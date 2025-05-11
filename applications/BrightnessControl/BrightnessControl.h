@@ -1,5 +1,4 @@
 #pragma once
-// #ifdef GRID_8x8
 
 #include "MatrixOS.h"
 #include "ui/UI.h"

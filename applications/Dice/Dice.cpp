@@ -4,7 +4,7 @@
 
 // Run once
 void Dice::Setup() {
-  #if FAMILY == MYSTRIX
+  #ifdef FAMILY_MYSTRIX
   if(Device::deviceInfo.Model[3] == 'P'){
     underglow_enabled = true;
   }
@@ -28,7 +28,7 @@ void Dice::Loop() {
     KeyEventHandler(keyEvent.id, &keyEvent.info);
   }  // Handle them
 
-  if (!renderTimer.Tick(1000 / Device::fps))
+  if (!renderTimer.Tick(1000 / Device::LED::fps))
   {
     return;
   }  // Render at 100fps

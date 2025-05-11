@@ -1,5 +1,4 @@
 #pragma once
-// #ifdef GRID_8x8
 
 // This technically not an APP but a UI so it coexists with an active APP.
 
