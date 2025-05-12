@@ -10,15 +10,17 @@ namespace Device
     void Init() {
       for (uint8_t i = 0; i < 4; i++)
       {
-
+        bool success = true;
       // Set LED Speed
       {
         uint8_t cmd[] = { SEESAW_NEOPIXEL_BASE, SEESAW_NEOPIXEL_SPEED, 1 };  // 1 = 800kHz
         if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED speed (no ACK)");
-          // Throw error
-          return;
+          ESP_LOGE("NT-LED", "Failed to set LED speed for %d", i);
+          success = false;
         }
+        else {
+          ESP_LOGI("NT-LED", "NeoTrellis %d LED speed set to 800kHz", i);
+        } 
       }
 
       // Set up LED length
@@ -29,9 +31,12 @@ namespace Device
         };
 
         if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-          // Throw error
-          return;
+          ESP_LOGE("NT-LED", "Failed to set LED buffer length for %d", i);
+          success = false;
+        }
+        else
+        {
+          ESP_LOGI("NT-LED", "NeoTrellis %d LED buffer length set to %d", i, NEO_TRELLIS_NUM_KEYS * 3);
         }
       }
 
@@ -39,10 +44,22 @@ namespace Device
       {
         uint8_t cmd[] = { SEESAW_NEOPIXEL_BASE, SEESAW_NEOPIXEL_PIN, NEO_TRELLIS_NEOPIX_PIN };
         if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED pin (no ACK)");
-          // Throw error
-          return;
+          ESP_LOGE("NT-LED", "Failed to set LED pin for %d", i);
+          success = false;
         }
+        // else
+        // {
+        //   ESP_LOGI("NT-LED", "NeoTrellis %d LED pin set to %d", i, NEO_TRELLIS_NEOPIX_PIN);
+        // }
+      }
+
+      if (success)
+      {
+        ESP_LOGI("NT-LED", "NeoTrellis %d LED initialized", i);
+      }
+      else
+      {
+        ESP_LOGE("NT-LED", "NeoTrellis %d LED initialization failed", i);
       }
     }
   }
@@ -51,69 +68,52 @@ namespace Device
 
     void Update(Color* frameBuffer, vector<uint8_t>& brightness)  // Render LED
     {
-      // for (uint8_t i = 0; i < 4; i++)
-      // {
-      //   uint16_t offset = i * NEO_TRELLIS_NUM_KEYS * 3;
-      //   uint8_t cmd[4 + (NEO_TRELLIS_NUM_KEYS * 3)];
-      //   cmd[0] = SEESAW_NEOPIXEL_BASE;
-      //   cmd[1] = SEESAW_NEOPIXEL_BUF;
-      //   cmd[2] = offset >> 8;
-      //   cmd[3] = offset & 0xFF;
-
-      //   for (uint16_t j = 0; j < NEO_TRELLIS_NUM_KEYS; j++)
-      //   {
-      //     Color c = frameBuffer[j + i * NEO_TRELLIS_NUM_KEYS];
-      //     c = c.Scale(brightness[0]);
-
-      //     cmd[4 + j * 3] = c.g;
-      //     cmd[4 + j * 3 + 1] = c.r;
-      //     cmd[4 + j * 3 + 2] = c.b;
-      //   }
-
-      //   if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-      //     // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-      //     // Throw error
-      //     return;
-      //   }
-      // }
-
-      for (uint8_t i = 0; i < 4; i++)
+      if (xSemaphoreTake(NeoTrellis::neotrellis_i2c_semaphore, portMAX_DELAY) == pdTRUE) 
       {
-        for (uint8_t s = 0; s < 2; s++)
+        for (uint8_t i = 0; i < 4; i++)
         {
-          uint16_t offset = i * NEO_TRELLIS_NUM_KEYS * 3 + (s * NEO_TRELLIS_NUM_KEYS * 3 / 2);
-          uint8_t cmd[4 + (NEO_TRELLIS_NUM_KEYS * 3 / 2)];
-          cmd[0] = SEESAW_NEOPIXEL_BASE;
-          cmd[1] = SEESAW_NEOPIXEL_BUF;
-          cmd[2] = offset >> 8;
-          cmd[3] = offset & 0xFF;
-
-          for (uint16_t j = 0; j < NEO_TRELLIS_NUM_KEYS / 2; j++)
+          for (uint8_t s = 0; s < 2; s++)
           {
-            Color c = frameBuffer[j + i * NEO_TRELLIS_NUM_KEYS + (s * NEO_TRELLIS_NUM_KEYS / 2)];
-            c = c.Scale(brightness[0]);
+            uint16_t offset = s * NEO_TRELLIS_NUM_KEYS * 3 / 2;
+            uint8_t cmd[4 + (NEO_TRELLIS_NUM_KEYS * 3 / 2)];
+            cmd[0] = SEESAW_NEOPIXEL_BASE;
+            cmd[1] = SEESAW_NEOPIXEL_BUF;
+            cmd[2] = offset >> 8;
+            cmd[3] = offset & 0xFF;
 
-            cmd[4 + j * 3] = c.G;
-            cmd[4 + j * 3 + 1] = c.R;
-            cmd[4 + j * 3 + 2] = c.B;
+            for (uint16_t j = 0; j < NEO_TRELLIS_NUM_KEYS / 2; j++)
+            {
+              Color c = frameBuffer[j + i * NEO_TRELLIS_NUM_KEYS + (s * NEO_TRELLIS_NUM_KEYS / 2)];
+              c = c.Scale(brightness[0]);
+
+              cmd[4 + j * 3] = c.G;
+              cmd[4 + j * 3 + 1] = c.R;
+              cmd[4 + j * 3 + 2] = c.B;
+            }
+
+            if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
+              ESP_LOGE("NT-LED", "Failed to set LED buffer for (%d-%d)", i, s);
+
+              // return;
+            }
           }
+        }
 
+        for (uint8_t i = 0; i < 4; i++)
+        {
+          uint8_t cmd[] = { SEESAW_NEOPIXEL_BASE, SEESAW_NEOPIXEL_SHOW };
           if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-            // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-            // Throw error
-            return;
+            ESP_LOGE("NT-LED", "Failed to set LED Show for (%d)", i);
+            // return;
           }
+          // else
+          // {
+          //   ESP_LOGI("NT-LED", "NeoTrellis %d LED Show set", i);
+          // }
         }
-      }
-
-      for (uint8_t i = 0; i < 4; i++)
-      {
-        uint8_t cmd[] = { SEESAW_NEOPIXEL_BASE, SEESAW_NEOPIXEL_SHOW };
-        if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-          // Throw error
-          return;
-        }
+        xSemaphoreGive(NeoTrellis::neotrellis_i2c_semaphore);
+      } else {
+        ESP_LOGE("NT-LED", "Failed to take I2C semaphore");
       }
     }
 
@@ -137,15 +137,15 @@ namespace Device
       }
       else if (index < 32)  // Main grid top right
       {
-        return Point(4 + (index % 4), index / 4);
+        return Point(4 + (index % 4), index / 4 - 4);
       }
       else if (index < 48)  // Main grid bottom left
       {
-        return Point(index % 4, 4 + (index / 4));
+        return Point(index % 4, 4 + (index / 4 - 8));
       }
       else if (index < 64)  // Main grid bottom right
       {
-        return Point(4 + (index % 4), 4 + (index / 4));
+        return Point(4 + (index % 4), 4 + (index / 4 - 12));
       }
       return Point::Invalid();
     }

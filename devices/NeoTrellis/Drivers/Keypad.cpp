@@ -4,6 +4,7 @@
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "include/NeoTrellis.h"
+#include "rom/ets_sys.h"
 
 namespace Device::KeyPad
 {
@@ -18,10 +19,11 @@ namespace Device::KeyPad
   void InitKeyPad() {
     for (uint8_t i = 0; i < 4; i++)
     {
+      bool success = true;
       // Activate Keypad
-      for (int i = 0; i < NEO_TRELLIS_NUM_KEYS; i++) {
+      for (int k = 0; k < NEO_TRELLIS_NUM_KEYS; k++) {
         
-        uint8_t key = NEO_TRELLIS_KEY(i);
+        uint8_t key = NEO_TRELLIS_KEY(k);
 
         neoTrellisKeyState ks;
         ks.bit.STATE = 1;
@@ -29,18 +31,33 @@ namespace Device::KeyPad
 
         uint8_t cmd[] = { SEESAW_KEYPAD_BASE, SEESAW_KEYPAD_EVENT, key, ks.reg };
         if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-          // Throw error
-          return;
+          ESP_LOGE("NT-KeyPad", "Failed to register key %d for falling edge for %d", key, i);
+          success = false;
         }
+        // else
+        // {
+        //   ESP_LOGI("NT-KeyPad", "Key %d registered for falling edge for %d", key, i);
+        // }
 
         ks.bit.ACTIVE = (1 << SEESAW_KEYPAD_EDGE_RISING);
         cmd[3] = ks.reg;
         if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to set LED buffer length (no ACK)");
-          // Throw error
-          return;
+          ESP_LOGE("NT-KeyPad", "Failed to set key %d for rising edge for %d", key, i);
+          success = false;
         }
+        // else
+        // {
+        //   ESP_LOGI("NT-KeyPad", "Key %d registered for rising edge for %d", key, i);
+        // }
+      }
+
+      if (success)
+      {
+        ESP_LOGI("NT-LED", "NeoTrellis %d LED initialized", i);
+      }
+      else
+      {
+        ESP_LOGE("NT-LED", "NeoTrellis %d LED initialization failed", i);
       }
     }
   }
@@ -65,8 +82,8 @@ namespace Device::KeyPad
   }
 
   void Init() {
-    InitFN();
     InitKeyPad();
+    InitFN();
   }
 
   void Start() {
@@ -75,54 +92,114 @@ namespace Device::KeyPad
     xTimerStart(keypad_timer, 0);
   }
 
-  bool ScanKeyPad() {
+  void Scan() {
+
+    // Scan Keypad
     for (uint8_t i = 0; i < 4; i++)
     {
-      uint8_t keypad_events = 0;
+      if (xSemaphoreTake(NeoTrellis::neotrellis_i2c_semaphore, portMAX_DELAY) == pdTRUE) 
       {
-        uint8_t cmd[] = { SEESAW_KEYPAD_BASE, SEESAW_KEYPAD_COUNT };
-        if (i2c_master_transmit_receive(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), &keypad_events, 1, NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to read keypad events (no ACK)");
+        uint8_t keypad_events = 0;
+        {
+          uint8_t cmd[] = { SEESAW_KEYPAD_BASE, SEESAW_KEYPAD_COUNT };
+          if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
+            ESP_LOGE("NT-KeyPad", "Failed to request to keypad event counts for %d", i);
+          }
         }
-      }
-    
-    
-      // Read Keypad events
-      if(keypad_events > 0) {
-        keypad_events += 2;  // IDK why +2 is needed for polling
-        // Serial.printf("Keypad events: %d\n", keypad_events);
-        neoTrellisKeyEventRaw event[16];
-        uint8_t cmd[] = { SEESAW_KEYPAD_BASE, SEESAW_KEYPAD_FIFO };
-        if (i2c_master_transmit_receive(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), (uint8_t*)event, keypad_events, NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
-          // MLOGE("NeoTrellis", "Failed to read keypad events (no ACK)");
-        } else {
-          for (uint8_t i = 0; i < keypad_events; i++) {
-            // MLOGD("Keypad", "Event %d: %d %d\n", i, event[i].bit.EDGE, event[i].bit.NUM);
-            // MLOGD("Keypad", "Event %d raw: 0x%02X\n", i, event[i].reg);
 
-            uint8_t x = event[i].bit.NUM / 8;
-            uint8_t y = event[i].bit.NUM % 8;
+        ets_delay_us(200);
+
+        if (i2c_master_receive(NeoTrellis::neotrellis_i2c_dev[i], &keypad_events, sizeof(keypad_events), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
+          ESP_LOGE("NT-KeyPad", "Failed to read keypad event counts for %d", i);
+        }
+
+        if(keypad_events == 255)
+        {
+          ESP_LOGE("NT-KeyPad", "Failed to read keypad event counts for %d (not ready)", i);
+        }
+      
+        // Read Keypad events
+        if(keypad_events > 0) {
+          ESP_LOGI("Keypad", "Keypad %d events: %d\n", i, keypad_events);
+          // keypad_events += 2;  // IDK why +2 is needed for polling
+          if (keypad_events > 16)
+          { keypad_events = 16; }
+          neoTrellisKeyEventRaw event[16];
+
+          uint8_t cmd[] = { SEESAW_KEYPAD_BASE, SEESAW_KEYPAD_FIFO };
+          if (i2c_master_transmit(NeoTrellis::neotrellis_i2c_dev[i], cmd, sizeof(cmd), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
+            ESP_LOGE("NT-KeyPad", "Failed to read keypad events for %d", i);
+          } 
+
+          ets_delay_us(200);
+
+          if (i2c_master_receive(NeoTrellis::neotrellis_i2c_dev[i], (uint8_t*)event, sizeof(event), NEO_TRELLIS_I2C_TIMEOUT_VALUE_MS) != ESP_OK) {
+            ESP_LOGE("NT-KeyPad", "Failed to read keypad events for %d", i);
+          }
+          
+          for (uint8_t e = 0; e < keypad_events; e++) {
+
+            uint8_t x = event[e].bit.NUM % 8;
+            uint8_t y = event[e].bit.NUM / 8;
 
             if (i == 1 || i == 3)
             {
               x += 4;
             }
 
-            else if (i == 2 || i == 3)
+            if (i == 2 || i == 3)
             {
               y += 4;
             }
 
-            if(event[i].bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING)
+            if(event[e].bit.EDGE == SEESAW_KEYPAD_EDGE_FALLING)
             {
               keypad_reading_cache[x] &= ~(1 << y);
             }
-            else if(event[i].bit.EDGE == SEESAW_KEYPAD_EDGE_RISING)
+            else if(event[e].bit.EDGE == SEESAW_KEYPAD_EDGE_RISING)
             {
               keypad_reading_cache[x] |= (1 << y);
             }
+
+            ESP_LOGI("Keypad", "Event %d: %d %d (%d %d)\n", i, event[e].bit.EDGE, event[e].bit.NUM, x, y);
           }
         }
+      
+        xSemaphoreGive(NeoTrellis::neotrellis_i2c_semaphore);
+      }
+      else
+      {
+        ESP_LOGE("NT-KeyPad", "Failed to take I2C semaphore");
+      }
+    }
+
+    // Scan FN
+    {
+      bool fn_pressed = gpio_get_level(fn_pin) == (fn_active_low ? 0 : 1);
+      if(!fn_pressed && virtual_fn)
+      {
+        fn_pressed |= ((keypad_reading_cache[3] & (1 << 3)) != 0) && 
+                      ((keypad_reading_cache[3] & (1 << 4)) != 0) && 
+                      ((keypad_reading_cache[4] & (1 << 3)) != 0) && 
+                      ((keypad_reading_cache[4] & (1 << 4)) != 0); // center 4 keys pressed
+
+        // Clear the center 4 keys so OS don't handle them
+        if (fn_pressed)
+        {
+          fn_pressed = true;
+          keypad_reading_cache[3] &= ~(1 << 3);
+          keypad_reading_cache[3] &= ~(1 << 4);
+          keypad_reading_cache[4] &= ~(1 << 3);
+          keypad_reading_cache[4] &= ~(1 << 4);
+        }
+      }              
+
+      bool updated = fnState.update(binary_config, fn_pressed * UINT16_MAX);
+        
+
+      if (updated)
+      {
+        (void)NotifyOS(FUNCTION_KEY, &fnState);
       }
     }
 
@@ -131,36 +208,16 @@ namespace Device::KeyPad
       for (uint8_t y = 0; y < y_size; y++)
       {
         Fract16 reading = ((keypad_reading_cache[x] & (1 << y)) != 0) * UINT16_MAX;
-        // MLOGD("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));
         bool updated = keypadState[x][y].update(binary_config, reading);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
-          if (NotifyOS(keyID, &keypadState[x][y]))
-          { return true; }
+          (void)NotifyOS(keyID, &keypadState[x][y]);
         }
       }
     }
 
-    return false;
-  }
-
-  bool ScanFN() {
-    Fract16 read = gpio_get_level(fn_pin) * UINT16_MAX;
-    // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
-    if (fn_active_low)
-    { read = UINT16_MAX - (uint16_t)read; }
-    if (fnState.update(binary_config, read))
-    {
-      if (NotifyOS(0, &fnState))
-      { return true; }
-    }
-    return false;
-  }
-
-  void Scan() {
-    ScanKeyPad();
-    ScanFN();
+    return;
   }
 
   void Clear() {

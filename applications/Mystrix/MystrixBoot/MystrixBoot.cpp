@@ -201,6 +201,8 @@ void MystrixBoot::BootPhase2() {
     {
       memcpy(hue, hueList[1], sizeof(hue));
     }
+#else
+    memcpy(hue, hueList[1], sizeof(hue));
 #endif
 
   const uint16_t start_offset = 150;

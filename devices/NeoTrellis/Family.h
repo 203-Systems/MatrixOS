@@ -26,6 +26,7 @@ namespace Device
   {
     inline i2c_master_bus_handle_t neotrellis_i2c_bus = NULL;
     inline i2c_master_dev_handle_t neotrellis_i2c_dev[4] = {NULL, NULL, NULL, NULL};
+    inline SemaphoreHandle_t neotrellis_i2c_semaphore = xSemaphoreCreateMutex();
 
     void Init();
   }

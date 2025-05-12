@@ -41,14 +41,13 @@ namespace Device
   {
     const gpio_num_t neotrellis_i2c_sda = GPIO_NUM_3;
     const gpio_num_t neotrellis_i2c_scl = GPIO_NUM_4;
+    const gpio_num_t neotrellis_i2c_pwr = GPIO_NUM_7;
 
     const uint8_t neotrellis_i2c_addr[4] =
     {
       0x2E, 0x2F, 
       0x30, 0x31 
     };
-
-    const bool neotrellis_i2c_use_internal_pullup = false;
   }
 
   namespace KeyPad
@@ -57,7 +56,7 @@ namespace Device
     inline gpio_num_t fn_pin = GPIO_NUM_0;
     inline bool fn_active_low = true;
     inline bool virtual_fn = true; // Press all 4 key in the center to trigger FN
-    inline uint16_t keypad_scanrate = 240;
+    inline uint16_t keypad_scanrate = 100;
 
     inline KeyConfig binary_config = {
         .apply_curve = false,
