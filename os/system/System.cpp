@@ -118,7 +118,7 @@ namespace MatrixOS::SYS
   void Bootloader() {
     LED::Fill(0);
     LED::Update();
-    DelayMs(10);  // Wait for led data to be updated first.
+    DelayMs(20);  // Wait for led data to be updated first.
     Device::Bootloader();
   }
 
