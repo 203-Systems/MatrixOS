@@ -1,6 +1,7 @@
 #include "Device.h"
 // #include "ulp_keypad.h"
 #include "ulp_riscv.h"
+#include "rom/ets_sys.h"
 
 // extern const uint8_t ulp_keypad_bin_start[] asm("_binary_ulp_keypad_bin_start");
 // extern const uint8_t ulp_keypad_bin_end[] asm("_binary_ulp_keypad_bin_end");
@@ -84,11 +85,7 @@ namespace Device::KeyPad::Binary
         }
       }
       gpio_set_level(keypad_write_pins[x], 0);
-        // Small delay using nop
-        for (volatile int i = 0; i < 30; i++)
-        {
-          asm volatile("nop");
-        }
+      ets_delay_us(10);
     }
     return false;
   }

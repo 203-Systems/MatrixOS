@@ -34,13 +34,10 @@ uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
             int distance = 1;
             int checkY = pos.y + dy * distance;
             int checkX = pos.x + dx * distance;
-            bool hasOpponentBetween = false;
 
             // Immediate neighbor check
             if(checkY >= 0 && checkY < 8 && checkX >= 0 && checkX < 8 && board[checkY][checkX].player == opponentPlayer)
             {
-                hasOpponentBetween = true;
-
                 while(true)
                 {
                     distance++;
@@ -50,7 +47,6 @@ uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
                     // Check for board boundaries
                     if(checkY < 0 || checkY >= 8 || checkX < 0 || checkX >= 8)
                     {
-                        hasOpponentBetween = false;
                         break;
                     }
 
@@ -80,7 +76,6 @@ uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
                     else
                     {
                         // Empty cell, cannot flip in this direction
-                        hasOpponentBetween = false;
                         break;
                     }
                 }
@@ -410,7 +405,6 @@ void Reversi::Render()
 uint8_t Reversi::CheckGameOver()
 {
   uint8_t opponentPlayer = currentPlayer == 1 ? 2 : 1;
-  bool forceWinner = false;
 
   // Check if there are any valid moves
   bool validMove = false;
@@ -459,7 +453,6 @@ uint8_t Reversi::CheckGameOver()
     if(!validMove)
     {
       MLOGD("Reversi", "No valid moves for both players, forcing a winner");
-      forceWinner = true;
     }
     else
     {
@@ -555,7 +548,7 @@ bool Reversi::ResetGame(bool confirmed)
 
   firstPlayer.Load(); // For some reason, the firstPlayer is not auto loaded correctly
 
-  uint8_t secondPlayer = firstPlayer == 1 ? 2 : 1;
+  uint8_t secondPlayer = (firstPlayer.Get() == 1) ? 2 : 1;
 
   board[3][3].player = firstPlayer;
   board[3][3].wasPlayer = firstPlayer;
@@ -682,14 +675,14 @@ void Reversi::Settings() {
 
     UIButton player1FirstHand;
     player1FirstHand.SetName("Player 1 First Hand");
-    player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 1); });
-    player1FirstHand.OnPress([&]() -> void { if(firstPlayer == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
+    player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 1); });
+    player1FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
     settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
     UIButton player2FirstHand;
     player2FirstHand.SetName("Player 2 First Hand");
-    player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 2); });
-    player2FirstHand.OnPress([&]() -> void { if(firstPlayer == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
+    player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 2); });
+    player2FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
     settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
     UIToggle hintToggle;
