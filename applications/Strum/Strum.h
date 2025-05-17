@@ -24,8 +24,8 @@ class Strum : public Application {
   void ActionMenu();
   
   StrumBarConfig strumBarConfigs[2] = {
-    StrumBarConfig(Color(0x00FFFF), EChord::MAJOR_TRIAD, 0, 3, 0, 200),
-    StrumBarConfig(Color(0xFF00FF), EChord::MAJOR_TRIAD, 0, 3, 0, 200)
+    {Color(0x00FFFF), EChord::MAJOR_TRIAD, 0, 3, 0, 200},
+    {Color(0xFF00FF), EChord::MAJOR_TRIAD, 0, 3, 0, 200}
   };
 
 //   EChord major_chords[7] = {
