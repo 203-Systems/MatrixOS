@@ -194,15 +194,14 @@ void Note::PlayView() {
   }
   
 
-  NotePad notePad1(padSize, &notePadConfigs[!splitView && activeConfig.Get() == 1]);
+  NotePad notePad1(padSize, &notePadConfigs[activeConfig.Get() == 1]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
-
-  UnderglowLight underglow1(underglowSize, notePadConfigs[!splitView && activeConfig.Get() == 1].color);
+  UnderglowLight underglow1(underglowSize, notePadConfigs[activeConfig.Get() == 1].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
-  NotePad notePad2(padSize, &notePadConfigs[1]);
-  UnderglowLight underglow2(underglowSize, notePadConfigs[1].color);
+  NotePad notePad2(padSize, &notePadConfigs[activeConfig.Get() == 0]);
+  UnderglowLight underglow2(underglowSize, notePadConfigs[activeConfig.Get() == 0].color);
   
   if (splitView == VERT_SPLIT) { 
     playView.AddUIComponent(notePad2, Point(4, 0)); 
