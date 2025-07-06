@@ -124,7 +124,7 @@ class NotePad : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint8_t note = noteMap[xy.y * dimension.x + xy.x];
     if (note == 255)
-    { return false; }
+    { return true; }
     if (keyInfo->state == PRESSED)
     {
       MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOn, config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
