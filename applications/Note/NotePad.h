@@ -94,6 +94,7 @@ class NotePad : public UIComponent {
 
   virtual bool Render(Point origin) {
     uint8_t index = 0;
+    Color color_dim = config->color.Dim(32);
     for (int8_t y = 0; y < dimension.y; y++)
     {
       for (int8_t x = 0; x < dimension.x; x++)
@@ -108,7 +109,7 @@ class NotePad : public UIComponent {
         {
           uint8_t inScale = InScale(note);  // Check if the note is in scale.
           if (inScale == 0)
-          { MatrixOS::LED::SetColor(globalPos, Color(0)); }
+          { MatrixOS::LED::SetColor(globalPos, color_dim); }
           else if (inScale == 1)
           { MatrixOS::LED::SetColor(globalPos, config->color); }
           else if (inScale == 2)
