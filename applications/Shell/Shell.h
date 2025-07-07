@@ -8,14 +8,9 @@ class Shell : public Application {
   public:
   static Application_Info info;
 
-  uint8_t current_page = 0;
-  std::vector<UIButton> appBtns;
-  std::vector<UIButton> hiddenAppBtns;
-
   void Setup() override;
   void Loop() override;
 
-  void AddCommonBarInUI(UI* ui);
   void ApplicationLauncher();
   void HiddenApplicationLauncher();
   void LaunchAnimation(Point origin, Color color);

@@ -1,12 +1,17 @@
 #include "Shell.h"
 
+
+namespace MatrixOS::SYS
+{
+  void ExecuteAPP(uint32_t app_id);
+  uint16_t GetApplicationCount();
+}  // Use non exposed Matrix OS API
+
 void Shell::Setup()
 {
   #ifdef configUSE_FREERTOS_PROVIDED_HEAP
-  // HeapStats_t heapStats;
-  // vPortGetHeapStats(&heapStats);
-  MLOGD("Shell", "Matrix OS Free Heap Size: %.2fkb (%d%%)", xPortGetFreeHeapSize() / 1024.0f, xPortGetFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
-  MLOGD("Shell", "Matrix OS Minimum Free Heap Size: %.2fkb (%d%%)", xPortGetMinimumEverFreeHeapSize() / 1024.0f, xPortGetMinimumEverFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
+    MLOGD("Shell", "Matrix OS Free Heap Size: %.2fkb (%d%%)", xPortGetFreeHeapSize() / 1024.0f, xPortGetFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
+    MLOGD("Shell", "Matrix OS Minimum Free Heap Size: %.2fkb (%d%%)", xPortGetMinimumEverFreeHeapSize() / 1024.0f, xPortGetMinimumEverFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);
   #endif
   #ifdef ESP_PLATFORM
     multi_heap_info_t info;
@@ -22,82 +27,16 @@ void Shell::Setup()
 }
 
 void Shell::Loop() {
-  switch (current_page)
-  {
-    case 0:
-      ApplicationLauncher();
-      break;
-  }
+    ApplicationLauncher();
 }
-
-std::vector<UIButton> commonBarBtns;  // Because the UI in the common bar need to exist after the function ends
-uint8_t tap_counter = 0;
-uint32_t last_tap = 0;
-
-void Shell::AddCommonBarInUI(UI* ui) {
-  commonBarBtns.clear();
-  commonBarBtns.reserve(2);  // Make sure to change this after adding more stuffs, if vector content got relocated, UI
-                             // will not be able to find it and will hardfault!
-  commonBarBtns.push_back(UIButton());
-  commonBarBtns.back().SetName("Application Launcher");
-  commonBarBtns.back().SetColorFunc([&]() -> Color { return Color(0x00FFAA).DimIfNot(current_page == 0); });
-  commonBarBtns.back().OnPress([&]() -> void {
-    if (current_page != 0)
-    {
-      current_page = 0;
-      ui->Exit();
-    }
-    else
-    {
-      // Tap on the application launcher button 10 times to show hidden apps
-      if (MatrixOS::SYS::Millis() - last_tap < 1000)
-      {
-        tap_counter++;
-      }
-
-      last_tap = MatrixOS::SYS::Millis();
-
-      // MLOGI("Hidden Launcher", "Tap %d", tap_counter);
-
-      if (tap_counter >= 10)
-      {
-        tap_counter = 0;
-        MLOGI("Hidden Launcher", "Enter");
-        HiddenApplicationLauncher();
-      }
-    }
-  });
-  ui->AddUIComponent(commonBarBtns.back(), Point(0, 7));
-
-#if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG  // Logging Mode Indicator
-#define SHELL_SYSTEM_SETTING_COLOR Color(0xFFBF00)
-#elif MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE
-#define SHELL_SYSTEM_SETTING_COLOR Color(0xFF007F)
-#else
-#define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
-#endif
-
-  commonBarBtns.push_back(UIButton());
-
-  commonBarBtns.back().SetName("System Setting");
-  commonBarBtns.back().SetColor(SHELL_SYSTEM_SETTING_COLOR);
-  commonBarBtns.back().OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
-
-  ui->AddUIComponent(commonBarBtns.back(), Point(7, 7));
-  ui->AllowExit(false);  // So nothing happens
-}
-
-namespace MatrixOS::SYS
-{
-  void ExecuteAPP(uint32_t app_id);
-  uint16_t GetApplicationCount();
-}  // Use non exposed Matrix OS API
 
 void Shell::ApplicationLauncher() {
+  uint8_t tap_counter = 0;
+  uint32_t last_tap = 0;
+
   UI applicationLauncher("Application Launcher", Color(0x00FFAA), false);
 
   applicationLauncher.disableExit = true;
-  AddCommonBarInUI(&applicationLauncher);
 
   MLOGD("Shell", "%d apps detected", MatrixOS::SYS::GetApplicationCount());
 
@@ -110,11 +49,11 @@ void Shell::ApplicationLauncher() {
     if (application->visibility)
     { visible_app_count++; }
   }
-
-  appBtns.clear();
-  appBtns.reserve(visible_app_count);
+  
+  UIButton appBtns[visible_app_count];
 
   // Iterate though vector 
+  uint8_t btnIndex = 0;
   for (const auto& [order_id, app_id]: application_ids)
   {
     auto application_it = applications.find(app_id);
@@ -126,26 +65,67 @@ void Shell::ApplicationLauncher() {
 
     if (application->visibility)
     {
-      uint8_t x = appBtns.size() % 8;
-      uint8_t y = appBtns.size() / 8;
+      uint8_t x = btnIndex % 8;
+      uint8_t y = btnIndex / 8;
 
       Color app_color = application->color;
 
-      appBtns.push_back(UIButton());
-      appBtns.back().SetName(application->name);
-      appBtns.back().SetColor(app_color);
-      appBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
+      appBtns[btnIndex].SetName(application->name);
+      appBtns[btnIndex].SetColor(app_color);
+      appBtns[btnIndex].OnPress([&, app_id, x, y, app_color]() -> void {
         LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
 
-      applicationLauncher.AddUIComponent(appBtns.back(), Point(x, y));
-      MLOGD("Shell", "App #%d [%d] %s-%s loaded.", appBtns.size() - 1, order_id, application->author.c_str(),
+      applicationLauncher.AddUIComponent(appBtns[btnIndex], Point(x, y));
+      MLOGD("Shell", "App #%d [%d] %s-%s loaded.", btnIndex, order_id, application->author.c_str(),
                                   application->name.c_str());
+      btnIndex++;
     }
     else
     { MLOGD("Shell", "%s not visible, skip.", application->name.c_str()); }
   }
+
+  #if MATRIXOS_LOG_LEVEL == LOG_LEVEL_DEBUG  // Logging Mode Indicator
+  #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFBF00)
+  #elif MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE
+  #define SHELL_SYSTEM_SETTING_COLOR Color(0xFF007F)
+  #else
+  #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
+  #endif
+
+  UIButton applicationLauncherBtn;
+  applicationLauncherBtn.SetName("Application Launcher");
+  applicationLauncherBtn.SetColor(Color(0x00FFAA));
+  applicationLauncherBtn.OnPress([&]() -> void {
+    // Tap on the application launcher button 10 times to show hidden apps
+    if (MatrixOS::SYS::Millis() - last_tap < 1000)
+    {
+      tap_counter++;
+    }
+
+    last_tap = MatrixOS::SYS::Millis();
+
+    // MLOGI("Hidden Launcher", "Tap %d", tap_counter);
+
+    if (tap_counter >= 10)
+    {
+      tap_counter = 0;
+      MLOGI("Hidden Launcher", "Enter");
+      HiddenApplicationLauncher();
+    }
+  });
+  applicationLauncher.AddUIComponent(applicationLauncherBtn, Point(0, 7));
+
+  UIButton systemSettingBtn;
+  systemSettingBtn.SetName("System Setting");
+  systemSettingBtn.SetColor(SHELL_SYSTEM_SETTING_COLOR);
+  systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
+
+  applicationLauncher.AddUIComponent(systemSettingBtn, Point(7, 7));
+  
+
+  applicationLauncher.AllowExit(false);  // So nothing happens
   applicationLauncher.Start();
 }
 
@@ -157,13 +137,14 @@ void Shell::HiddenApplicationLauncher() {
   // Iterate though map
   for (auto const& [app_id, application] : applications)
   {
-    if (application->visibility)
+    if (application->visibility == false)
     { invisible_app_count++; }
   }
 
-  hiddenAppBtns.clear();
-  hiddenAppBtns.reserve(invisible_app_count);
-    for (const auto& [order_id, app_id]: application_ids)
+  UIButton hiddenAppBtns[invisible_app_count];
+  uint8_t btnIndex = 0;
+  
+  for (const auto& [order_id, app_id]: application_ids)
   {
     auto application_it = applications.find(app_id);
     if(application_it == applications.end())
@@ -174,21 +155,21 @@ void Shell::HiddenApplicationLauncher() {
 
     if (application->visibility == false)
     {
-      uint8_t x = hiddenAppBtns.size() % 8;
-      uint8_t y = hiddenAppBtns.size() / 8;
+      uint8_t x = btnIndex % 8;
+      uint8_t y = btnIndex / 8;
 
       Color app_color = application->color;
 
-      hiddenAppBtns.push_back(UIButton());
-      hiddenAppBtns.back().SetName(application->name);
-      hiddenAppBtns.back().SetColor(app_color);
-      hiddenAppBtns.back().OnPress([&, app_id, x, y, app_color]() -> void {
+      hiddenAppBtns[btnIndex].SetName(application->name);
+      hiddenAppBtns[btnIndex].SetColor(app_color);
+      hiddenAppBtns[btnIndex].OnPress([&, app_id, x, y, app_color]() -> void {
         LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
-      hiddenApplicationLauncher.AddUIComponent(hiddenAppBtns.back(), Point(x, y));
-      MLOGD("Shell (invisible)", "App #%d [%d] %s-%s loaded.", hiddenAppBtns.size() - 1, order_id, application->author.c_str(),
+      hiddenApplicationLauncher.AddUIComponent(hiddenAppBtns[btnIndex], Point(x, y));
+      MLOGD("Shell (invisible)", "App #%d [%d] %s-%s loaded.", btnIndex, order_id, application->author.c_str(),
                                   application->name.c_str());
+      btnIndex++;
     }
     else
     { MLOGD("Shell", "%s visible, skip.", application->name.c_str()); }
