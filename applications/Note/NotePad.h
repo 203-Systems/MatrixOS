@@ -5,14 +5,40 @@
 #include "Scales.h"
 #include "ui/UI.h"
 
+enum NoteLayoutMode : uint8_t {
+  OCTAVE_LAYOUT,
+  OFFSET_LAYOUT,
+  PIANO_LAYOUT,
+};
+
+enum NoteType : uint8_t {
+  ROOT_NOTE,
+  SCALE_NOTE,
+  OFF_SCALE_NOTE,
+};
+
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;
-  bool enforceScale = true; 
-  bool alignRoot = true; //Only works when overlap is set to 0
   uint16_t scale = NATURAL_MINOR;
   int8_t octave = 0;
   uint8_t channel = 0;
-  uint8_t overlap = 0;
+  NoteLayoutMode mode = OCTAVE_LAYOUT;
+  bool includeOutScaleNotes = false;
+  union {
+    struct // Octave Mode
+    {
+      uint8_t unknown = 0;
+    };
+    struct // Offset Mode
+    {
+      uint8_t x_offset : 4;     // X offset for the note pad
+      uint8_t y_offset : 4;     // Y offset for the note pad
+    };
+    struct // Piano Mode
+    {
+      uint8_t unknown2;
+    };
+  };
   bool velocitySensitive = true;
   Color color = Color(0x00FFFF);
   Color rootColor = Color(0x0040FF);
@@ -24,74 +50,219 @@ class NotePad : public UIComponent {
   NoteLayoutConfig* config;
   std::vector<uint8_t> noteMap;
   std::unordered_map<uint8_t, uint8_t> activeNotes;
+  uint16_t c_aligned_scale_map;
 
   virtual Color GetColor() { return config->rootColor; }
   virtual Dimension GetSize() { return dimension; }
 
-  uint8_t InScale(uint8_t note) {
+  NoteType InScale(uint8_t note) {
     note %= 12;
 
     if (note == config->rootKey)
-      return 2;  // It is a root key
-
-    uint16_t c_aligned_scale_map = ((config->scale << config->rootKey) + ((config->scale & 0xFFF) >> (12 - config->rootKey % 12))) & 0xFFF;  // Rootkey should  always < 12
-    return bitRead(c_aligned_scale_map, note);
+      return ROOT_NOTE;  // It is a root key
+    return bitRead(c_aligned_scale_map, note) ? SCALE_NOTE : OFF_SCALE_NOTE;
   }
 
-  void GenerateKeymap() {
-    noteMap.reserve(dimension.Area());
-
-    uint8_t root = 12 * config->octave + config->rootKey;
-    uint8_t nextNote = root;
-    uint8_t rootCount = 0;
-    for (int8_t y = 0; y < dimension.y; y++)
+  uint8_t GetNextInScaleNote(uint8_t note) {
+    for (int8_t i = 0; i < 12; i++)
     {
-      int8_t ui_y = dimension.y - y - 1;
-      if(config->overlap && config->overlap < dimension.x)
-      { 
-        if(y != 0) nextNote = noteMap[(ui_y + 1) * dimension.x + config->overlap]; 
-      }
-      else if (config->alignRoot && rootCount >= 2)
+      note++;
+      if (InScale(note) == SCALE_NOTE || InScale(note) == ROOT_NOTE)
       {
-        root += 12;
-        rootCount = 0;
-        nextNote = root;
+        return note;
       }
-      for (int8_t x = 0; x < dimension.x; x++)
+    }
+    return UINT8_MAX;
+  }
+
+  // void GenerateOffsetKeymap() {
+  //   noteMap.reserve(dimension.Area());
+  //   uint8_t root = 12 * config->octave + config->rootKey;
+  //   uint8_t nextNote = root;
+  //   for (int8_t y = 0; y < dimension.y; y++)
+  //   {
+  //     int8_t ui_y = dimension.y - y - 1;
+
+  //     if(config->overlap && config->overlap < dimension.x)
+  //     { 
+  //       if(y != 0) nextNote = noteMap[(ui_y + 1) * dimension.x + config->overlap]; 
+  //     }
+
+  //     for (int8_t x = 0; x < dimension.x; x++)
+  //     {
+  //       uint8_t id = ui_y * dimension.x + x;
+  //       if (nextNote > 127) // If next note is out of range, fill with 255
+  //       {
+  //         noteMap[id] = 255;
+  //       }
+  //       else if(!config->enforceScale) // If enforce scale is false, just add the next note
+  //       {
+  //         noteMap[id] = nextNote;  // Add to map
+  //         nextNote++;
+  //       }
+  //       else // If enforce scale is true, find the next note that is in scale
+  //       {
+  //         while (true)  // Find next key that we should put in
+  //         {
+  //           uint8_t inScale = InScale(nextNote);
+  //           if (inScale == SCALE_NOTE || inScale == ROOT_NOTE)
+  //           {
+  //             noteMap[id] = nextNote;  // Add to map
+  //             nextNote++;
+  //             break;  // Break from inf loop
+  //           }
+  //           else if (inScale == OFF_SCALE_NOTE)
+  //           {
+  //             nextNote++;
+  //             continue;  // Check next note
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+  void GenerateOctaveKeymap() {
+    noteMap.reserve(dimension.Area());
+      uint8_t root = 12 * config->octave + config->rootKey;
+      uint8_t nextNote = root;
+      uint8_t rootCount = 0;
+      for (int8_t y = 0; y < dimension.y; y++)
       {
-        uint8_t id = ui_y * dimension.x + x;
-        if (nextNote > 127)
+        int8_t ui_y = dimension.y - y - 1;
+        
+        if (rootCount >= 2)
         {
-          noteMap[id] = 255;
-          continue;
+          root += 12;
+          rootCount = 0;
+          nextNote = root;
         }
-        if(!config->enforceScale)
+
+        for (int8_t x = 0; x < dimension.x; x++)
         {
-          noteMap[id] = nextNote;  // Add to map
-          nextNote++;
-          continue;
-        }
-        while (true)  // Find next key that we should put in
-        {
-          uint8_t inScale = InScale(nextNote);
-          if (inScale == 2)
-          { rootCount++; }  // If root detected, inc rootCount
-          if (inScale)      // If is in scale
+          uint8_t id = ui_y * dimension.x + x;
+          if (nextNote > 127) // If next note is out of range, fill with 255
+          {
+            noteMap[id] = 255;
+          }
+          else if(!config->includeOutScaleNotes) // If enforce scale is false, just add the next note
           {
             noteMap[id] = nextNote;  // Add to map
             nextNote++;
-            break;  // Break from inf loop
           }
-          else
+          else // If enforce scale is true, find the next note that is in scale
           {
-            nextNote++;
-            continue;  // Check next note
+            while (true)  // Find next key that we should put in
+            {
+              uint8_t inScale = InScale(nextNote);
+              if (inScale == ROOT_NOTE)  { rootCount++; }
+              if (inScale == SCALE_NOTE || inScale == ROOT_NOTE)
+              {
+                noteMap[id] = nextNote;  // Add to map
+                nextNote++;
+                break;  // Break from inf loop
+              }
+              else if (inScale == OFF_SCALE_NOTE)
+              {
+                nextNote++;
+                continue;  // Check next note
+              }
+            }
           }
+        }
+      }
+
+  }
+
+  void GenerateOffsetKeymap() {
+    noteMap.reserve(dimension.Area());
+    uint8_t root = 12 * config->octave + config->rootKey;
+    if (config->includeOutScaleNotes)
+    {
+      for (int8_t y = 0; y < dimension.y; y++)
+      {
+        int8_t ui_y = dimension.y - y - 1;
+        for (int8_t x = 0; x < dimension.x; x++)
+        {
+          uint8_t note = root + config->x_offset * x + config->y_offset * y;
+          noteMap[ui_y * dimension.x + x] = note;
+        }
+      }
+    }
+    else
+    {
+      for (uint8_t y = 0; y < dimension.y; y++)
+      {
+        int8_t ui_y = dimension.y - y - 1;
+        uint8_t note = root;
+
+        for (uint8_t x = 0; x < dimension.x; x++)
+        {
+          noteMap[ui_y * dimension.x + x] = note;
+          for (uint8_t i = 0; i < config->x_offset; i++)
+          {
+            note = GetNextInScaleNote(note);
+          }
+        }
+
+        for (uint8_t i = 0; i < config->y_offset; i++)
+        {
+          root = GetNextInScaleNote(root);
+        }
+      }
+    }
+  }    
+
+  void GeneratePianoKeymap() {
+    noteMap.reserve(dimension.Area());
+    const int8_t blackKeys[7] = {-1, 1,  3, -1, 6, 8, 10};
+    const int8_t whiteKeys[7] = {0,  2,  4,  5, 7, 9, 11};
+
+    for (int8_t y = 0; y < dimension.y; y++)
+    {
+      int8_t ui_y = dimension.y - y - 1;
+      uint8_t octave = config->octave + (y / 2);
+
+      if(y % 2 == 0)  // Bottom row
+      {
+        for (int8_t x = 0; x < dimension.x; x++)
+        {
+          uint8_t id = ui_y * dimension.x + x;
+          noteMap[id] = (octave + (x / 7)) * 12 + whiteKeys[x % 7];
+        }
+      }
+      else // Top row
+      {
+        for (int8_t x = 0; x < dimension.x; x++)
+        {
+          uint8_t id = ui_y * dimension.x + x;
+          int8_t offset = blackKeys[x % 7];
+          if(offset == -1) 
+          { noteMap[id] = 255; }
+          else 
+          { noteMap[id] = (octave + (x / 7)) * 12 + offset; }
         }
       }
     }
   }
 
+
+  
+  void GenerateKeymap() {
+    c_aligned_scale_map = ((config->scale << config->rootKey) + ((config->scale & 0xFFF) >> (12 - config->rootKey % 12))) & 0xFFF;
+    switch (config->mode)
+    {
+      case OCTAVE_LAYOUT:
+        GenerateOctaveKeymap();
+        break;
+      case OFFSET_LAYOUT:
+        GenerateOffsetKeymap();
+        break;
+      case PIANO_LAYOUT:
+        GeneratePianoKeymap();
+        break;
+    }
+  }
   virtual bool Render(Point origin) {
     uint8_t index = 0;
     Color color_dim = config->color.Dim(32);
@@ -108,11 +279,11 @@ class NotePad : public UIComponent {
         else
         {
           uint8_t inScale = InScale(note);  // Check if the note is in scale.
-          if (inScale == 0)
+          if (inScale == OFF_SCALE_NOTE)
           { MatrixOS::LED::SetColor(globalPos, color_dim); }
-          else if (inScale == 1)
+          else if (inScale == SCALE_NOTE)
           { MatrixOS::LED::SetColor(globalPos, config->color); }
-          else if (inScale == 2)
+          else if (inScale == ROOT_NOTE)
           { MatrixOS::LED::SetColor(globalPos, config->rootColor); }
         }
         index++;

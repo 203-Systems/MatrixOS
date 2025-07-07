@@ -6,7 +6,7 @@
 #include "ui/UI.h"
 #include "applications/Application.h"
 
-#define NOTE_APP_VERSION 1
+#define NOTE_APP_VERSION 2
 
 #define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
 
@@ -30,7 +30,7 @@ class Note : public Application {
   void PlayView();
 
   void ScaleSelector();
-  void OverlapSelector();
+  void LayoutSelector();
   void ChannelSelector();
   void ColorSelector();
 

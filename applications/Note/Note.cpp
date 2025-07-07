@@ -72,18 +72,11 @@ void Note::Setup() {
   scaleSelectorBtn.OnPress([&]() -> void { ScaleSelector(); });
   actionMenu.AddUIComponent(scaleSelectorBtn, Point(7, 2));
 
-  UIButton enforceScaleToggle;
-  enforceScaleToggle.SetName("Enforce Scale");
-  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xff5000).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
-  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
-  enforceScaleToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(enforceScaleToggle.GetName() + " " + (notePadConfigs[activeConfig].enforceScale ? "On" : "Off"), enforceScaleToggle.GetColor()); });
-  actionMenu.AddUIComponent(enforceScaleToggle, Point(7, 3));
-
-  UIButton overlapSelectorBtn;
-  overlapSelectorBtn.SetName("Overlap Selector");
-  overlapSelectorBtn.SetColor(Color(0xFFFF00));
-  overlapSelectorBtn.OnPress([&]() -> void { OverlapSelector(); });
-  actionMenu.AddUIComponent(overlapSelectorBtn, Point(7, 4));
+  UIButton layoutSelectorBtn;
+  layoutSelectorBtn.SetName("Layout Selector");
+  layoutSelectorBtn.SetColor(Color(0xFFFF00));
+  layoutSelectorBtn.OnPress([&]() -> void { LayoutSelector(); });
+  actionMenu.AddUIComponent(layoutSelectorBtn, Point(7, 4));
 
   UIButton channelSelectorBtn;
   channelSelectorBtn.SetName("Channel Selector");
@@ -258,26 +251,104 @@ void Note::ColorSelector() {
   colorSelector.Start();
 }
 
-void Note::OverlapSelector() {
-  UI overlapSelector("Overlap Selector", Color(0xFFFF00), false);
+void Note::LayoutSelector() {
+  UI layoutSelector("Layout Selector", Color(0xFFFF00), false);
 
-  int32_t overlap = notePadConfigs[activeConfig].overlap;
+  Color modeColor[3] = {
+    Color(0xFFFF00),  // OCTAVE_LAYOUT - Lime Green
+    Color(0x80FF00),  // OFFSET_LAYOUT - Blue
+    Color(0x0080FF)   // PIANO_LAYOUT - Magenta
+  };
 
-  UI4pxNumber numDisplay(Color(0xFFFF00), 1, &overlap, notePadConfigs[activeConfig].rootColor);
-  overlapSelector.AddUIComponent(numDisplay, Point(5, 0));
+  int32_t x_offset = notePadConfigs[activeConfig].x_offset;
+  int32_t y_offset = notePadConfigs[activeConfig].y_offset;
 
-  UISelector overlapInput(Dimension(7, 1), "Overlap", Color(0xFFFF00), 7, (uint16_t*)&overlap);
-  overlapSelector.AddUIComponent(overlapInput, Point(0, 7));
+  UIButton octaveModeBtn;
+  octaveModeBtn.SetName("Octave Mode");
+  octaveModeBtn.SetColorFunc([&]() -> Color { return modeColor[0].DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
+  octaveModeBtn.OnPress([&]() -> void { 
+    if(notePadConfigs[activeConfig].mode != OCTAVE_LAYOUT)
+    {
+      notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT; 
+    }
+  });
+  layoutSelector.AddUIComponent(octaveModeBtn, Point(2, 0));
 
-  UIButton alignRootToggle;
-  alignRootToggle.SetName("Align Root Key");
-  alignRootToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].alignRoot); });
-  alignRootToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].alignRoot = !notePadConfigs[activeConfig].alignRoot; });
-  overlapSelector.AddUIComponent(alignRootToggle, Point(7, 7));
+  UIButton offsetModeBtn;
+  offsetModeBtn.SetName("Offset Mode");
+  offsetModeBtn.SetColorFunc([&]() -> Color { return modeColor[1].DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
+  offsetModeBtn.OnPress([&]() -> void { 
+    if(notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
+    {
+      notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
+      x_offset = 1;
+      y_offset = 3;
+    }
+  });
+  layoutSelector.AddUIComponent(offsetModeBtn, Point(3, 0));
 
-  overlapSelector.Start();
+  UIButton pianoModeBtn;
+  pianoModeBtn.SetName("Piano Mode");
+  pianoModeBtn.SetColorFunc([&]() -> Color { return modeColor[2].DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
+  pianoModeBtn.OnPress([&]() -> void { 
+    if(notePadConfigs[activeConfig].mode != PIANO_LAYOUT)
+    {
+      notePadConfigs[activeConfig].mode = PIANO_LAYOUT;
+    }
+  });
+  layoutSelector.AddUIComponent(pianoModeBtn, Point(4, 0));
 
-  notePadConfigs[activeConfig].overlap = overlap;
+  // Offset Mode
+  UISelector yOffsetInput;
+  yOffsetInput.SetDimension(Dimension(1, 8));
+  yOffsetInput.SetName("Y Offset");
+  yOffsetInput.SetColor(Color(0x00FF00));
+  yOffsetInput.SetValuePointer((uint16_t*)&y_offset);
+  yOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
+  yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
+  yOffsetInput.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(yOffsetInput, Point(0, 0));
+
+  UI4pxNumber yOffsetDisplay;
+  yOffsetDisplay.SetColor(Color(0x00FF00));
+  yOffsetDisplay.SetDigits(1);
+  yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
+  yOffsetDisplay.SetAlternativeColor(Color(0x00FF00));
+  yOffsetDisplay.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
+
+  UISelector xOffsetInput;
+  xOffsetInput.SetDimension(Dimension(8, 1));
+  xOffsetInput.SetName("X Offset");
+  xOffsetInput.SetColor(Color(0xFF0000));
+  xOffsetInput.SetValuePointer((uint16_t*)&x_offset);
+  xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
+  xOffsetInput.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));
+
+  UI4pxNumber xOffsetDisplay;
+  xOffsetDisplay.SetColor(Color(0xFF0000));
+  xOffsetDisplay.SetDigits(1);
+  xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
+  xOffsetDisplay.SetAlternativeColor(Color(0xFF0000));
+  xOffsetDisplay.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
+
+  // Show Off Scale Notes Toggle (only for Octave and Offset modes)
+  UIButton includeOutScaleNotesToggle;
+  includeOutScaleNotesToggle.SetName("Include Out of Scale Notes");
+  includeOutScaleNotesToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].includeOutScaleNotes); });
+  includeOutScaleNotesToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].includeOutScaleNotes = !notePadConfigs[activeConfig].includeOutScaleNotes; });
+  includeOutScaleNotesToggle.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(includeOutScaleNotesToggle, Point(0, 7));
+
+  layoutSelector.Start();
+
+  if(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT)
+  {
+    notePadConfigs[activeConfig].x_offset = x_offset;
+    notePadConfigs[activeConfig].y_offset = y_offset;
+  }
 }
 
 void Note::ChannelSelector() {
