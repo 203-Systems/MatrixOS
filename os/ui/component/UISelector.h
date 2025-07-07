@@ -1,4 +1,5 @@
-#include "MatrixOS.h"
+#pragma once
+#include "UIComponent.h"
 
 class UISelector : public UIComponent {
  public:
@@ -7,7 +8,7 @@ class UISelector : public UIComponent {
   Dimension dimension;
   uint16_t* value;
   uint16_t count;
-  std::optional<std::function<void(uint16_t)>> change_callback;
+  std::unique_ptr<std::function<void(uint16_t)>> change_callback;
 
   UISelector(Dimension dimension, string name, Color color, uint16_t count, uint16_t* value) {
     this->dimension = dimension;
@@ -21,12 +22,11 @@ class UISelector : public UIComponent {
   virtual Dimension GetSize() { return dimension; }
 
   void SetColor(Color color) { this->color = color; }
-  void OnChange(std::function<void(uint16_t)> change_callback) { this->change_callback = change_callback; }
+  void OnChange(std::function<void(uint16_t)> change_callback) { this->change_callback = std::make_unique<std::function<void(uint16_t)>>(change_callback); }
 
 
   virtual bool OnChangeCallback(uint16_t value) {
-    if (change_callback.has_value())
-    {
+    if (change_callback) {
       (*change_callback)(value);
       return true;
     }
