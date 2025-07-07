@@ -503,7 +503,6 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
 }
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-  // MLOGD("Performance", "Key Event");
   if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
   {
     MatrixOS::MIDI::Send(MidiPacket(MIDI_PORT_ALL, ControlChange, 0, 121, 127)); 
@@ -755,5 +754,3 @@ void Performance::ActionMenu() {
 
   MLOGD("Performance", "Exit Action Menu");
 }
-
-// #endif

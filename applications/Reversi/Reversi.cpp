@@ -702,27 +702,6 @@ void Reversi::Settings() {
     resetGameBtn.SetSize(Dimension(1, 2));
     settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
 
-
-    // UIButton testBtn;
-    // testBtn.SetName("Test");
-    // testBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00); });
-    // testBtn.OnPress([&]() -> void {
-    //   uint64_t seed = MatrixOS::SYS::Millis() * (uint32_t)this;
-    //   seed ^= seed << 13;
-    //   seed ^= seed >> 7;
-    //   seed ^= seed << 17;
-    //     for(uint8_t x = 0; x < 8; x++)
-    //     {
-    //       for (uint8_t y = 0; y < 8; y++)
-    //       {
-    //         uint8_t id = y * 8 + x;
-    //         board[y][x].player = (seed >> id & 1) + 1;
-    //       }
-    //     }
-    //     board[3][3].player = 0;
-    // });
-    // settingsUI.AddUIComponent(testBtn, Point(1, 3));
-
   
   // Second, set the key event handler to match the intended behavior
   settingsUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
