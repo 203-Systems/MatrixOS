@@ -283,6 +283,7 @@ void Note::ChannelSelector() {
 
   UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&notePadConfigs[activeConfig].channel,
                           [&](uint16_t val) -> void { offsettedChannel = val + 1; });
+  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&notePadConfigs[activeConfig].channel);
 
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
 

@@ -124,8 +124,8 @@ void PolyPlayground::ChannelSelector() {
   UI4pxNumber numDisplay(Color(0x60FF00), 2, &offsettedChannel, Color(0xFFFFFF), 1);
   channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 
-  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&polyPadConfig.channel,
-                          [&](uint16_t val) -> void { offsettedChannel = val + 1; });
+  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&polyPadConfig.channel);
+  channelInput.OnChange([&](uint16_t val) -> void { offsettedChannel = val + 1; });
 
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
 

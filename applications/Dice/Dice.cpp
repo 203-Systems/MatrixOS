@@ -423,7 +423,8 @@ void Dice::DotFaceSelector() {
   dotFaceSelector.AddUIComponent(numDisplay, Point(5, 0));
   
 
-  UISelector overlapInput(Dimension(8, 1), "Faces", Color(0x00FFFF), 8, (uint16_t*)&selector_dot_faces, [&](uint16_t val) -> void { dot_faces_num = val + 2; });
+  UISelector overlapInput(Dimension(8, 1), "Faces", Color(0x00FFFF), 8, (uint16_t*)&selector_dot_faces);
+  overlapInput.OnChange([&](uint16_t val) -> void { dot_faces_num = val + 2; });
   dotFaceSelector.AddUIComponent(overlapInput, Point(0, 7));
 
   dotFaceSelector.Start();

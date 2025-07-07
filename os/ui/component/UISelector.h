@@ -7,21 +7,31 @@ class UISelector : public UIComponent {
   Dimension dimension;
   uint16_t* value;
   uint16_t count;
-  std::function<void(uint16_t)> callback;
+  std::optional<std::function<void(uint16_t)>> change_callback;
 
-  UISelector(Dimension dimension, string name, Color color, uint16_t count, uint16_t* value, std::function<void(uint16_t)> callback = nullptr) {
+  UISelector(Dimension dimension, string name, Color color, uint16_t count, uint16_t* value) {
     this->dimension = dimension;
     this->name = name;
     this->color = color;
     this->value = value;
     this->count = count;
-    this->callback = callback;
   }
 
   virtual Color GetColor() { return color; }
   virtual Dimension GetSize() { return dimension; }
 
   void SetColor(Color color) { this->color = color; }
+  void OnChange(std::function<void(uint16_t)> change_callback) { this->change_callback = change_callback; }
+
+
+  virtual bool OnChangeCallback(uint16_t value) {
+    if (change_callback.has_value())
+    {
+      (*change_callback)(value);
+      return true;
+    }
+    return false;
+  }
 
   virtual bool Render(Point origin) {
     for (uint16_t item = 0; item < dimension.Area(); item++)
@@ -48,8 +58,7 @@ class UISelector : public UIComponent {
     if (keyInfo->state == RELEASED)
     {
       *value = id;
-      if (callback)
-        callback(id);
+      OnChangeCallback(id);
     }
     return true;
   }
