@@ -6,12 +6,19 @@ class UIButton : public UIComponent {
  public:
   string name;
   Color color = Color(0);
-  std::function<void()> press_callback;
-  std::function<void()> hold_callback;
-  std::function<Color()> color_func;
+  std::unique_ptr<std::function<void()>> press_callback;
+  std::unique_ptr<std::function<void()>> hold_callback;
+  std::unique_ptr<std::function<Color()>> color_func;
   Dimension dimension = Dimension(1, 1);
 
-  UIButton() {}
+  UIButton() {
+    this->name = "";
+    this->color = Color(0xFFFFFF);
+    this->dimension = Dimension(1, 1);
+    this->press_callback = nullptr;
+    this->hold_callback = nullptr;
+    this->color_func = nullptr;
+  }
   
   virtual string GetName() { return name; }
   void SetName(string name) { this->name = name; }
@@ -19,39 +26,38 @@ class UIButton : public UIComponent {
   virtual Color GetColor() { 
     if (color_func)
     {
-      return color_func();
+      return (*color_func)();
     }
     return color;
   }
   void SetColor(Color color) { this->color = color; }
   void SetColorFunc(std::function<Color()> color_func) {
-    this->color = Color(0);
-    this->color_func = color_func;
+    this->color_func = std::make_unique<std::function<Color()>>(color_func);
   }
 
   virtual Dimension GetSize() { return dimension; }
   void SetSize(Dimension dimension) { this->dimension = dimension; }
 
   virtual bool PressCallback() {
-    if (press_callback != nullptr)
+    if (press_callback)
     {
-      press_callback();
+      (*press_callback)();
       return true;
     }
     return false;
   }
 
-  void OnPress(std::function<void()> press_callback) { this->press_callback = press_callback; }
+  void OnPress(std::function<void()> press_callback) { this->press_callback = std::make_unique<std::function<void()>>(press_callback); }
 
   virtual bool HoldCallback() {
     if (hold_callback)
     {
-      hold_callback();
+      (*hold_callback)();
       return true;
     }
     return false;
   }
-  void OnHold(std::function<void()> hold_callback) { this->hold_callback = hold_callback; }
+  void OnHold(std::function<void()> hold_callback) { this->hold_callback = std::make_unique<std::function<void()>>(hold_callback); }
 
 
   virtual bool Render(Point origin) {

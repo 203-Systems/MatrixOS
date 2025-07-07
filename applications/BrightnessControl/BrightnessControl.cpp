@@ -1,9 +1,5 @@
 #include "BrightnessControl.h"
-#include "UITwoToneSelector.h"
-#include "UI4pxNumberWithColorFunc.h"
 #include "UI4pxFloat.h"
-#include "UILEDPartitionSelector.h"
-
 
 #define GLOBAL_BRIGHTNESS_COLOR Color(0x00FF00)
 #define PARTITION_BRIGHTNESS_COLOR Color(0x9800FF)
@@ -16,6 +12,7 @@ namespace MatrixOS::LED
 void BrightnessControl::Start() {
   name = "Brightness Control";
   nameColor = Color(0xFFFFFF);
+
   
   // Brightness Control
   threshold = Device::led_brightness_level[sizeof(Device::led_brightness_level) / sizeof(Device::led_brightness_level[0]) - 1]; //Get the last element
@@ -33,26 +30,37 @@ void BrightnessControl::Start() {
 
   float multiplier = (float)threshold / 100;
   int32_t displayValue = ((float)MatrixOS::UserVar::brightness / multiplier);
-
-  UITwoToneSelector brightnessSelector(brightnessSelectorDimension, map_length, Color(0xFFFFFF), Color(0xFF0000), (uint8_t*)&MatrixOS::UserVar::brightness.value, threshold, map,
-                                       [&](uint8_t value) -> void {
-                                         MatrixOS::LED::SetBrightness(value);
-                                         displayValue = value / multiplier;
-                                       });
-  AddUIComponent(brightnessSelector,
-                 origin + Point(-3, 4) - Point(0, brightnessSelectorDimension.y - 1));
+  
+  UISelector brightnessSelector;
+  brightnessSelector.SetName("Brightness Selector");
+  brightnessSelector.SetDimension(brightnessSelectorDimension);
+  brightnessSelector.SetCount(map_length);
+  brightnessSelector.SetLitMode(UISelectorLitMode::LIT_ALWAYS);
+  brightnessSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return (map[index] > threshold ? Color(0xFF0000) : Color(0xFFFFFF)).DimIfNot(map[index] <= MatrixOS::UserVar::brightness.value); });
+  brightnessSelector.OnChange([&](uint8_t value) -> void {
+    uint8_t brightness = map[value];
+    MatrixOS::LED::SetBrightness(brightness);
+    displayValue = brightness / multiplier;
+  });
+  AddUIComponent(brightnessSelector,  origin + Point(-3, 4) - Point(0, brightnessSelectorDimension.y - 1));
 
   // Number Display
-  UI4pxNumberWithColorFunc brightnessDisplay([&]() -> Color { return (MatrixOS::UserVar::brightness.value > threshold) ? Color(0xFF0000) : GLOBAL_BRIGHTNESS_COLOR; }, 3,
-                                      (int32_t*)&displayValue, Color(0xFFFFFF));
+  UI4pxNumber brightnessDisplay;
+  brightnessDisplay.SetColorFunc([&]() -> Color { return (MatrixOS::UserVar::brightness.value > threshold) ? Color(0xFF0000) : GLOBAL_BRIGHTNESS_COLOR; });
+  brightnessDisplay.SetDigits(3);
+  brightnessDisplay.SetValuePointer((int32_t*)&displayValue);
+  brightnessDisplay.SetAlternativeColor(Color(0xFFFFFF));
   AddUIComponent(brightnessDisplay, origin + Point(-4, -3));
 
   // LED Partition multiplier
 
   // Selector UI
-  uint8_t ledPartitionSelected = 0;
+  uint16_t ledPartitionSelected = 0;
 
-  UI4pxFloat multiplierDisplay(PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
+  UI4pxFloat multiplierDisplay;
+  multiplierDisplay.SetName("Brightness Multiplier");
+  multiplierDisplay.SetColor(PARTITION_BRIGHTNESS_COLOR);
+  multiplierDisplay.SetValuePointer(&MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
   multiplierDisplay.SetEnabled(false);
   AddUIComponent(multiplierDisplay, origin + Point(-3, -3));
 
@@ -62,13 +70,26 @@ void BrightnessControl::Start() {
                                             1.2, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0,
                                             std::numeric_limits<float>::infinity()};
 
-  UINumItemSelector<float> multiplierSelector(Dimension(8, 2), PARTITION_BRIGHTNESS_COLOR, &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected], ledBrightnessMultiplier.size(), ledBrightnessMultiplier.data(), [&](float value) -> void {
+  UIItemSelector<float> multiplierSelector;
+  multiplierSelector.SetDimension(Dimension(8, 2));
+  multiplierSelector.SetColor(PARTITION_BRIGHTNESS_COLOR);
+  multiplierSelector.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
+  multiplierSelector.SetItemPointer(&MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
+  multiplierSelector.SetCount(ledBrightnessMultiplier.size());
+  multiplierSelector.SetItems(ledBrightnessMultiplier.data());
+  multiplierSelector.OnChange([&](float value) -> void {
     MatrixOS::LED::SetBrightnessMultiplier(Device::led_partitions[ledPartitionSelected].name, value);
   });
+  
   multiplierSelector.SetEnabled(false);
   AddUIComponent(multiplierSelector, origin + Point(-3, 3));
 
-  UILEDPartitionSelector ledPartitionSelector(GLOBAL_BRIGHTNESS_COLOR, &ledPartitionSelected, PARTITION_BRIGHTNESS_COLOR, [&](uint8_t ledPartitionSelected) -> void {
+  UISelector ledPartitionSelector;
+  ledPartitionSelector.SetValuePointer(&ledPartitionSelected);
+  ledPartitionSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return index == 0 ? GLOBAL_BRIGHTNESS_COLOR : PARTITION_BRIGHTNESS_COLOR; });
+  ledPartitionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return index == 0 ? "Global" : Device::led_partitions[index].name; });
+  ledPartitionSelector.SetDimension(Dimension(Device::led_partitions.size(), 1));
+  ledPartitionSelector.OnChange([&](uint16_t ledPartitionSelected) -> void {
     MatrixOS::LED::Fill(0);
     if(ledPartitionSelected == 0)
     {
@@ -83,8 +104,8 @@ void BrightnessControl::Start() {
       brightnessSelector.SetEnabled(false);
       brightnessDisplay.SetEnabled(false);
 
-      multiplierDisplay.value = &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected];
-      multiplierSelector.output = &MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected];
+      multiplierDisplay.SetValuePointer(&MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
+      multiplierSelector.SetItemPointer(&MatrixOS::LED::ledBrightnessMultiplier[ledPartitionSelected]);
 
       multiplierDisplay.SetEnabled(true);
       multiplierSelector.SetEnabled(true);

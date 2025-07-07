@@ -3,25 +3,25 @@
 
 class UIToggle : public UIButton {
  public:
-  bool* value;
+  bool* valuePtr;
 
   UIToggle() {}
 
-  void SetValue(bool* value) { this->value = value; }
+  void SetValuePointer(bool* valuePtr) { this->valuePtr = valuePtr; }
 
-  string GetName() override { return name + " " + (*value ? "On" : "Off"); }
+  string GetName() override { return name + " " + (*valuePtr ? "On" : "Off"); }
 
   Color GetColor() override {
     if (color_func) {
-      return color_func();
+      return (*color_func)();
     }
-    return color.DimIfNot(*value);
+    return color.DimIfNot(*valuePtr);
   }
 
   bool PressCallback() override {
-    *value = !*value;
-    if (press_callback != nullptr) {
-      press_callback();
+    *valuePtr = !*valuePtr;
+    if (press_callback) {
+      (*press_callback)();
       return true;
     }
     return true;

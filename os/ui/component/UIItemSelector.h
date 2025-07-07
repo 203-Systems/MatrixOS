@@ -1,72 +1,69 @@
-#include "MatrixOS.h"
+#pragma once
+#include "UISelectorBase.h"
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 template <class T>
-class UIItemSelector : public UIComponent {
+class UIItemSelector : public UISelectorBase {
  public:
-  Color color;
-  T* output;
+  T* itemPtr;
   T* items;
-  string* names;
-  Dimension dimension;
-  uint16_t count;
-  std::function<void(T)> callback;
+  UISelectorLitMode litMode;
+  std::unique_ptr<std::function<void(const T&)>> changeCallback;
 
-  UIItemSelector(Dimension dimension, Color color, T* output, uint16_t count, T* items, string* names = nullptr, std::function<void(T)> callback = nullptr) {
-    this->dimension = dimension;
-    this->color = color;
-    this->output = output;
-    this->count = count;
-    this->items = items;
-    this->names = names;
-    this->callback = callback;
+  UIItemSelector() : UISelectorBase() {
+    this->litMode = UISelectorLitMode::LIT_EQUAL;
+    this->changeCallback = nullptr;
   }
 
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return dimension; }
+  void SetLitMode(UISelectorLitMode litMode) { this->litMode = litMode; }
+  void SetItemPointer(T* itemPtr) { this->itemPtr = itemPtr; }
+  void SetItems(T* items) { this->items = items; }
+  void OnChange(std::function<void(const T&)> changeCallback) { this->changeCallback = std::make_unique<std::function<void(const T&)>>(changeCallback); }
 
-  void SetColor(Color color) { this->color = color; }
-
-  virtual bool Render(Point origin) {
-    for (uint16_t item = 0; item < dimension.Area(); item++)
-    {
-      // Maybe allow different direction
-      Point xy = origin + Point(item % dimension.x, item / dimension.x);
-      if (item > count)
-      { MatrixOS::LED::SetColor(xy, Color(0)); }
-      else
-      { MatrixOS::LED::SetColor(xy, color.DimIfNot(items[item] == *output)); }
+  protected:
+  virtual void OnChangeCallback(const T& item) {
+    if (changeCallback != nullptr) {
+      (*changeCallback)(item);
     }
-    return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    uint16_t id = xy.x + xy.y * dimension.x;
-    if (id > count)
-      return false;
-    if (names == nullptr)
-    {
-      if (keyInfo->state == PRESSED)
-      { 
-        *output = items[id]; 
-        if (callback)
-        {
-          callback(*output);
+  T& GetItem() { return *itemPtr; }
+  void SetItem(const T& item) { if(itemPtr != nullptr) { *itemPtr = item; } }
+
+  virtual void Selected(uint16_t index) override {
+    SetItem(items[index]);
+    OnChangeCallback(items[index]);
+  }
+
+  uint16_t currentItemIndex;
+  virtual bool ShouldLit(uint16_t index) override{
+    switch (litMode) {
+      case UISelectorLitMode::LIT_EQUAL:
+        return index == currentItemIndex;
+      case UISelectorLitMode::LIT_LESS_EQUAL_THAN:
+        return index <= currentItemIndex;
+      case UISelectorLitMode::LIT_GREATER_EQUAL_THAN:
+        return index >= currentItemIndex;
+      case UISelectorLitMode::LIT_ALWAYS:
+        return true;
+    }
+    return false;
+  }
+
+  public:
+  virtual bool Render(Point origin) override {
+    // Find the index of the item pointed to by itemPtr in items array
+    currentItemIndex = UINT16_MAX;
+    if (itemPtr != nullptr && items != nullptr) {
+      for (uint16_t i = 0; i < MAX(dimension.Area(), count); i++) {
+        if (items[currentItemIndex] == *itemPtr) {
+          break;
         }
+        currentItemIndex++;
       }
     }
-    else
-    {
-      if (keyInfo->state == RELEASED)
-      { 
-        *output = items[id]; 
-        if (callback)
-        {
-          callback(*output);
-        }
-      }
-      else if (keyInfo->state == HOLD && names != nullptr)
-      { MatrixOS::UIUtility::TextScroll(names[id], GetColor()); }
-    }
-    return true;
+
+    return UISelectorBase::Render(origin);
   }
 };

@@ -155,7 +155,7 @@ void Dice::Settings() {
   UIToggle rollingRainbowModeToggle;
   rollingRainbowModeToggle.SetName("Rolling Rainbow Mode");
   rollingRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow(); });
-  rollingRainbowModeToggle.SetValue(&rolling_rainbow_mode);
+  rollingRainbowModeToggle.SetValuePointer(&rolling_rainbow_mode);
   rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 0));
   
@@ -182,7 +182,7 @@ void Dice::Settings() {
   UIToggle confirmedRainbowModeToggle;
   confirmedRainbowModeToggle.SetName("Confirmed Rainbow Mode");
   confirmedRainbowModeToggle.SetColorFunc([&]() -> Color { return ColorEffects::Rainbow(); });
-  confirmedRainbowModeToggle.SetValue(&confirmed_rainbow_mode);
+  confirmedRainbowModeToggle.SetValuePointer(&confirmed_rainbow_mode);
   confirmedRainbowModeToggle.OnPress([&]() -> void { confirmed_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(confirmedRainbowModeToggle, Point(7, 0));
   
@@ -419,11 +419,19 @@ void Dice::DotFaceSelector() {
   int32_t selector_dot_faces = dot_faces_num - 2;
   UI dotFaceSelector("Face Selector", Color(0x00FFFF));
 
-  UI4pxNumber numDisplay(Color(0x00FFFF), 1, (int32_t*)&dot_faces_num);
+  UI4pxNumber numDisplay;
+  numDisplay.SetColor(Color(0x00FFFF));
+  numDisplay.SetDigits(1);
+  numDisplay.SetValuePointer((int32_t*)&dot_faces_num);
   dotFaceSelector.AddUIComponent(numDisplay, Point(5, 0));
   
 
-  UISelector overlapInput(Dimension(8, 1), "Faces", Color(0x00FFFF), 8, (uint16_t*)&selector_dot_faces);
+  UISelector overlapInput;
+  overlapInput.SetDimension(Dimension(8, 1));
+  overlapInput.SetName("Faces");
+  overlapInput.SetColor(Color(0x00FFFF));
+  overlapInput.SetCount(8);
+  overlapInput.SetValuePointer((uint16_t*)&selector_dot_faces);
   overlapInput.OnChange([&](uint16_t val) -> void { dot_faces_num = val + 2; });
   dotFaceSelector.AddUIComponent(overlapInput, Point(0, 7));
 
@@ -503,7 +511,12 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
   sawBtn.OnPress([&]() -> void { effectMode = Saw; });
   effectUI.AddUIComponent(sawBtn, Point(5, 0));
 
-  UISelector speedSelector(Dimension(8, 2), "Speed Selector", color, 16, &period);
+  UISelector speedSelector;
+  speedSelector.SetDimension(Dimension(8, 2));
+  speedSelector.SetName("Speed Selector");
+  speedSelector.SetColor(color);
+  speedSelector.SetCount(16);
+  speedSelector.SetValuePointer(&period);
   effectUI.AddUIComponent(speedSelector, Point(0, 6));
 
   effectUI.Start();

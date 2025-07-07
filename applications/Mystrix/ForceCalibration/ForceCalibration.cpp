@@ -1,5 +1,4 @@
 #include "ForceCalibration.h"
-#include "UI4pxNumberWithColorFunc.h"
 
 void ForceCalibration::Setup() {
   MatrixOS::SYS::Rotate(EDirection::UP, true);
@@ -127,8 +126,11 @@ void ForceCalibration::SetOffset(CalibrationType type)
   offsetUI.AddUIComponent(minusSign, Point(0, 2));
 
 
-  UI4pxNumberWithColorFunc offsetDisplay([&]() -> Color { return (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); }, 2,
-                                      (int32_t*)&display_value, Color(0xFFFFFF));
+  UI4pxNumber offsetDisplay;
+  offsetDisplay.SetColorFunc([&]() -> Color { return (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
+  offsetDisplay.SetDigits(2);
+  offsetDisplay.SetValuePointer((int32_t*)&display_value);
+  offsetDisplay.SetAlternativeColor(Color(0xFFFFFF));
   offsetUI.AddUIComponent(offsetDisplay, Point(2, 0));
 
   offsetUI.Start();

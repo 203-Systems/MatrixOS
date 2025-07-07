@@ -689,7 +689,7 @@ void Reversi::Settings() {
     hintToggle.SetName("Placement Hint");
     hintToggle.SetColor(Color(0x00FF00));
     hintToggle.SetSize(Dimension(1, 2));
-    hintToggle.SetValue(&hint);
+    hintToggle.SetValuePointer(&hint);
     hintToggle.OnPress([&]() -> void {hint.Save();});
     settingsUI.AddUIComponent(hintToggle, Point(0, 3));
 

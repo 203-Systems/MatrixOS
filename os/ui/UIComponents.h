@@ -11,4 +11,3 @@
 
 #include "component/UISelector.h"
 #include "component/UIItemSelector.h"
-#include "component/UINumItemSelector.h"

@@ -14,7 +14,6 @@ UI::~UI() {
   UI::UnregisterUI(this);
 }
 
-// TODO, make new led layer
 void UI::Start() {
   status = 0;
   if (newLedLayer)
@@ -72,7 +71,6 @@ void UI::GetKey() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KEYPAD::Get(&keyEvent))
   {
-    // MLOGD("UI", "Key Event %d %d", keyEvent.id, keyEvent.info.state);
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
     {
       UIKeyEvent(&keyEvent);
@@ -98,7 +96,6 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
   Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
   if (xy)
   {
-    // MLOGD("UI", "UI Key Event X:%d Y:%d", xy.x, xy.y);
     bool hasAction = false;
     for (auto const& uiComponentPair : uiComponents)
     {
@@ -107,16 +104,14 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       UIComponent* uiComponent = uiComponentPair.second;
       if (uiComponent->GetSize().Contains(relative_xy))  // Key Found
       { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
+      if (hasAction) { break; }
     }
-    // if(hasAction)
-    // { needRender = true; }
     if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Contains(xy))
     { MatrixOS::UIUtility::TextScroll(this->name, this->nameColor); }
   }
 }
 
 void UI::AddUIComponent(UIComponent* uiComponent, Point xy) {
-  // ESP_LOGI("Add UI Component", "%d %d %s", xy.x, xy.y, uiComponent->GetName().c_str());
   uiComponents.push_back(pair<Point, UIComponent*>(xy, uiComponent));
 }
 

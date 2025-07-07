@@ -159,7 +159,7 @@ void Setting::Start() {
   UIToggle uiAnimationToggle;
   uiAnimationToggle.SetName("UI Animation");
   uiAnimationToggle.SetColor(Color(0xFFFF00));
-  uiAnimationToggle.SetValue(&MatrixOS::UserVar::ui_animation);
+  uiAnimationToggle.SetValuePointer(&MatrixOS::UserVar::ui_animation);
   uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::ui_animation.Save(); });
   AddUIComponent(uiAnimationToggle, Point(7, 0));
 

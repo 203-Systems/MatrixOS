@@ -6,24 +6,38 @@
 // TODO add negative support?
 class UI4pxNumber : public UIComponent {
  public:
+  uint8_t digits;
+  int32_t* valuePtr;
+  uint8_t spacing;
   Color color;
   Color alternative_color;
-  uint8_t digits;
-  int32_t* value;
-  uint8_t spacing;
+  std::unique_ptr<std::function<Color()>> color_func;
 
-  UI4pxNumber(Color color, uint8_t digits, int32_t* value, Color alternative_color = Color(0xFFFFFF), uint8_t spacing = 0) {
-    this->color = color;
-    this->digits = digits;
-    this->value = value;
-    this->spacing = spacing;
-    this->alternative_color = alternative_color;
+  UI4pxNumber() {
+    this->color = Color(0);
+    this->alternative_color = Color(0xFFFFFF);
+    this->digits = 0;
+    this->valuePtr = nullptr;
+    this->spacing = 0;
+    this->color_func = nullptr;
   }
 
   virtual Dimension GetSize() { return Dimension(digits * 3 + (digits - 1) * (digits > 0) * spacing, 4); }
-  virtual Color GetColor() { return color; };
-  virtual Color GetAlternativeColor() { return alternative_color ? alternative_color : color; };
+  virtual Color GetColor() { 
+    if (color_func)
+    {
+      return (*color_func)();
+    }
+    return color;
+  };
+  virtual Color GetAlternativeColor() { return alternative_color ? alternative_color : GetColor(); };
 
+  void SetColor(Color color) { this->color = color; }
+  void SetAlternativeColor(Color alternative_color) { this->alternative_color = alternative_color; }
+  void SetDigits(uint8_t digits) { this->digits = digits; }
+  void SetValuePointer(int32_t* valuePtr) { this->valuePtr = valuePtr; }
+  void SetSpacing(uint8_t spacing) { this->spacing = spacing; }
+  void SetColorFunc(std::function<Color()> color_func) { this->color_func = std::make_unique<std::function<Color()>>(color_func); } 
   void Render4pxNumber(Point origin, Color color, uint8_t value) {
     // MLOGD("4PX", "Num: %d, render at %d-%d", value, origin.x, origin.y);
     if (value < 11 /*&& value >= 0*/)
@@ -37,13 +51,13 @@ class UI4pxNumber : public UIComponent {
   }
 
   virtual bool Render(Point origin) {
-    uint8_t sig_figure = int(log10(*value) + 1);
+    uint8_t sig_figure = int(log10(*valuePtr) + 1);
     Point render_origin = origin;
-    // MLOGD("4PX", "Render %d, sigfig %d", *value, sig_figure);
+    // MLOGD("4PX", "Render %d, sigfig %d", *valuePtr, sig_figure);
     for (int8_t digit = digits - 1; digit >= 0; digit--)
     {
       if (digit < sig_figure || digit == 0)
-      { Render4pxNumber(render_origin, digit % 2 ? GetAlternativeColor() : GetColor(), (int)(*value / std::pow(10, digit)) % 10); }
+      { Render4pxNumber(render_origin, digit % 2 ? GetAlternativeColor() : GetColor(), (int)(*valuePtr / std::pow(10, digit)) % 10); }
       else
       {
         Render4pxNumber(render_origin, Color(0), 10);

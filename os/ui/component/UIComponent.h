@@ -4,37 +4,13 @@
 
 class UIComponent {
  public:
-  bool enabled = true;
+  bool enabled;
   std::unique_ptr<std::function<bool()>> enable_func;
 
-  // Default constructor
-  UIComponent() = default;
-  
-  // Copy constructor
-  UIComponent(const UIComponent& other) : enabled(other.enabled) {
-    if (other.enable_func) {
-      enable_func = std::make_unique<std::function<bool()>>(*other.enable_func);
-    }
+  UIComponent() {
+    this->enabled = true;
+    this->enable_func = nullptr;
   }
-  
-  // Copy assignment operator
-  UIComponent& operator=(const UIComponent& other) {
-    if (this != &other) {
-      enabled = other.enabled;
-      if (other.enable_func) {
-        enable_func = std::make_unique<std::function<bool()>>(*other.enable_func);
-      } else {
-        enable_func.reset();
-      }
-    }
-    return *this;
-  }
-  
-  // Move constructor
-  UIComponent(UIComponent&& other) noexcept = default;
-  
-  // Move assignment operator
-  UIComponent& operator=(UIComponent&& other) noexcept = default;
 
   virtual Dimension GetSize() { return Dimension(0, 0); }
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) { return false; }  //

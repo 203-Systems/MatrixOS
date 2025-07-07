@@ -7,18 +7,22 @@
 class UI4pxFloat : public UIComponent {
  public:
   Color color;
-  Color alternative_color;
+  Color alternativeColor;
   float* value;
 
-  UI4pxFloat(Color color, float* value, Color alternative_color = Color(0xFFFFFF)) {
-    this->color = color;
-    this->value = value;  
-    this->alternative_color = alternative_color;
+  UI4pxFloat() {
+    this->color = Color(0);
+    this->value = nullptr;
+    this->alternativeColor = Color(0xFFFFFF);
   }
 
   virtual Dimension GetSize() { return Dimension(8, 4); }
   virtual Color GetColor() { return color; };
-  virtual Color GetAlternativeColor() { return alternative_color ? alternative_color : color; };
+  virtual Color GetAlternativeColor() { return alternativeColor ? alternativeColor : color; };
+
+  void SetColor(Color color) { this->color = color; }
+  void SetValuePointer(float* value) { this->value = value; }
+  void SetAlternativeColor(Color alternativeColor) { this->alternativeColor = alternativeColor; }
 
   void Render4pxNumber(Point origin, Color color, uint8_t value) {
     // MLOGD("4PX", "Num: %d, render at %d-%d", value, origin.x, origin.y);

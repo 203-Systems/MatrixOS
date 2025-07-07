@@ -1,65 +1,47 @@
 #pragma once
-#include "UIComponent.h"
+#include "UISelectorBase.h"
 
-class UISelector : public UIComponent {
+class UISelector : public UISelectorBase {
  public:
-  Color color;
-  string name;
-  Dimension dimension;
-  uint16_t* value;
-  uint16_t count;
-  std::unique_ptr<std::function<void(uint16_t)>> change_callback;
+  uint16_t* valuePtr;
+  UISelectorLitMode litMode;
+  std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
 
-  UISelector(Dimension dimension, string name, Color color, uint16_t count, uint16_t* value) {
-    this->dimension = dimension;
-    this->name = name;
-    this->color = color;
-    this->value = value;
-    this->count = count;
+  UISelector() : UISelectorBase() {
+    this->valuePtr = nullptr;
+    this->litMode = UISelectorLitMode::LIT_EQUAL;
+    this->changeCallback = nullptr;
   }
 
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return dimension; }
+  void SetLitMode(UISelectorLitMode litMode) { this->litMode = litMode; }
+  void SetValuePointer(uint16_t* valuePtr) { this->valuePtr = valuePtr; }
+  void OnChange(std::function<void(uint16_t)> changeCallback) { this->changeCallback = std::make_unique<std::function<void(uint16_t)>>(changeCallback); }
 
-  void SetColor(Color color) { this->color = color; }
-  void OnChange(std::function<void(uint16_t)> change_callback) { this->change_callback = std::make_unique<std::function<void(uint16_t)>>(change_callback); }
+  virtual void OnChangeCallback(uint16_t value) {
+    if (changeCallback != nullptr) {
+      (*changeCallback)(value);
+    }
+  }
 
+  uint16_t GetValue() { return (valuePtr != nullptr) ? *valuePtr : 0; }
+  void SetValue(uint16_t value) { if(valuePtr != nullptr) { *valuePtr = value; } }
 
-  virtual bool OnChangeCallback(uint16_t value) {
-    if (change_callback) {
-      (*change_callback)(value);
-      return true;
+  virtual void Selected(uint16_t value) override {
+    SetValue(value);
+    OnChangeCallback(value);
+  }
+
+  virtual bool ShouldLit(uint16_t index) override{
+    switch (litMode) {
+      case UISelectorLitMode::LIT_EQUAL:
+        return index == *valuePtr;
+      case UISelectorLitMode::LIT_LESS_EQUAL_THAN:
+        return index <= *valuePtr;
+      case UISelectorLitMode::LIT_GREATER_EQUAL_THAN:
+        return index >= *valuePtr;
+      case UISelectorLitMode::LIT_ALWAYS:
+        return true;
     }
     return false;
-  }
-
-  virtual bool Render(Point origin) {
-    for (uint16_t item = 0; item < dimension.Area(); item++)
-    {
-      // Maybe allow different direction
-      Point xy = origin + Point(item % dimension.x, item / dimension.x);
-      if (item > count)
-      { MatrixOS::LED::SetColor(xy, Color(0)); }
-      else
-      { MatrixOS::LED::SetColor(xy, color.DimIfNot(item == *value)); }
-    }
-    return true;
-  }
-
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == HOLD)
-    {
-      MatrixOS::UIUtility::TextScroll(name, GetColor());
-      return true;
-    }
-    uint16_t id = xy.x + xy.y * dimension.x;
-    if (id > count)
-    { return false; }
-    if (keyInfo->state == RELEASED)
-    {
-      *value = id;
-      OnChangeCallback(id);
-    }
-    return true;
   }
 };

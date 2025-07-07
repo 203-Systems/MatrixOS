@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "shared/UISelectorUtils.h"
 
 // Difference between NumSelector and Item Selector is that everything lower than Output will be lit instead of single item being lit
 template <class T>
@@ -9,26 +10,42 @@ class UINumItemSelector : public UIComponent {
   T* items;
   Dimension dimension;
   uint16_t count;
-  std::function<void(T)> callback;
+  UISelectorDirection direction;
+  std::unique_ptr<std::function<void(T)>> changeCallback;
 
-  UINumItemSelector(Dimension dimension, Color color, uint16_t* output, uint16_t count, std::function<void(T)> callback = nullptr) {
-    this->dimension = dimension;
-    this->color = color;
-    this->output = output;
-    this->count = count;
-    this->callback = callback;
+  UINumItemSelector() {
+    this->dimension = Dimension(1, 1);
+    this->color = Color(0);
+    this->output = nullptr;
+    this->count = 0;
+    this->items = nullptr;
+    this->direction = UISelectorDirection::RIGHT_THEN_DOWN;
+    this->changeCallback = nullptr;
   }
 
   virtual Color GetColor() { return color; }
   virtual Dimension GetSize() { return dimension; }
 
+  void SetDimension(Dimension dimension) { this->dimension = dimension; }
   void SetColor(Color color) { this->color = color; }
+  void SetOutput(T* output) { this->output = output; }
+  void SetCount(uint16_t count) { this->count = count; }
+  void SetItems(T* items) { this->items = items; }
+  void SetDirection(UISelectorDirection direction) { this->direction = direction; }
+  void OnChange(std::function<void(T)> changeCallback) { this->changeCallback = std::make_unique<std::function<void(T)>>(changeCallback); }
+
+  virtual bool OnChangeCallback(T value) {
+    if (changeCallback) {
+      (*changeCallback)(value);
+      return true;
+    }
+    return false;
+  }
 
   virtual bool Render(Point origin) {
     for (uint16_t item = 0; item < dimension.Area(); item++)
     {
-      // Maybe allow different direction
-      Point xy = origin + Point(item % dimension.x, item / dimension.x);
+      Point xy = origin + IndexToPoint(item, dimension, direction);
       if (item > count)
       { MatrixOS::LED::SetColor(xy, Color(0)); }
       else
@@ -38,16 +55,13 @@ class UINumItemSelector : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    uint16_t id = xy.x + xy.y * dimension.x;
+    uint16_t id = PointToIndex(xy, dimension, direction);
     if (id > count){return false;}
     if (keyInfo->state == PRESSED)
     { 
       *output = items[id]; 
-      if (callback)
-      {
-        callback(*output);
-      }
+      OnChangeCallback(*output);
     }
     return true;
   }
-};
+}; 

@@ -223,7 +223,13 @@ void Note::ScaleSelector() {
                                   notePadConfigs[activeConfig].rootColor);
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
-  UIItemSelector scaleSelectorBar(Dimension(8, 4), Color(0xFF0090), &notePadConfigs[activeConfig].scale, 32, scales, scale_names);
+  UIItemSelector<uint16_t> scaleSelectorBar;
+  scaleSelectorBar.SetDimension(Dimension(8, 4));
+  scaleSelectorBar.SetColor(Color(0xFF0090));
+  scaleSelectorBar.SetItemPointer(&notePadConfigs[activeConfig].scale);
+  scaleSelectorBar.SetCount(32);
+  scaleSelectorBar.SetItems(scales);
+  scaleSelectorBar.SetIndividualNameFunc([&](uint16_t index) -> string { return scale_names[index]; });
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
   scaleSelector.Start();
@@ -278,12 +284,21 @@ void Note::ChannelSelector() {
   UI channelSelector("Channel Selector", Color(0x60FF00), false);
 
   int32_t offsettedChannel = notePadConfigs[activeConfig].channel + 1;
-  UI4pxNumber numDisplay(Color(0x60FF00), 2, &offsettedChannel, notePadConfigs[activeConfig].rootColor, 1);
+  UI4pxNumber numDisplay;
+  numDisplay.SetColor(Color(0x60FF00));
+  numDisplay.SetDigits(2);
+  numDisplay.SetValuePointer(&offsettedChannel);
+  numDisplay.SetAlternativeColor(notePadConfigs[activeConfig].rootColor);
+  numDisplay.SetSpacing(1);
   channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 
-  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&notePadConfigs[activeConfig].channel,
-                          [&](uint16_t val) -> void { offsettedChannel = val + 1; });
-  UISelector channelInput(Dimension(8, 2), "Channel", Color(0x60FF00), 16, (uint16_t*)&notePadConfigs[activeConfig].channel);
+  UISelector channelInput;
+  channelInput.SetDimension(Dimension(8, 2));
+  channelInput.SetName("Channel");
+  channelInput.SetColor(Color(0x60FF00));
+  channelInput.SetCount(16);
+  channelInput.SetValuePointer((uint16_t*)&notePadConfigs[activeConfig].channel);
+  channelInput.OnChange([&](uint16_t val) -> void { offsettedChannel = val + 1; });
 
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
 
