@@ -97,11 +97,11 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
   if (xy)
   {
     bool hasAction = false;
-    for (auto const& uiComponentPair : uiComponents)
+    for (auto it = uiComponents.rbegin(); it != uiComponents.rend(); ++it)
     {
-      if (uiComponentPair.second->IsEnabled() == false) { continue; }
-      Point relative_xy = xy - uiComponentPair.first;
-      UIComponent* uiComponent = uiComponentPair.second;
+      if (it->second->IsEnabled() == false) { continue; }
+      Point relative_xy = xy - it->first;
+      UIComponent* uiComponent = it->second;
       if (uiComponent->GetSize().Contains(relative_xy))  // Key Found
       { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
       if (hasAction) { break; }
