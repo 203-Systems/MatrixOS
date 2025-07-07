@@ -6,11 +6,13 @@
 // Only 4x8 support right now
 class UI4pxFloat : public UIComponent {
  public:
+  string name;
   Color color;
   Color alternativeColor;
   float* value;
 
   UI4pxFloat() {
+    this->name = "";
     this->color = Color(0);
     this->value = nullptr;
     this->alternativeColor = Color(0xFFFFFF);
@@ -20,6 +22,7 @@ class UI4pxFloat : public UIComponent {
   virtual Color GetColor() { return color; };
   virtual Color GetAlternativeColor() { return alternativeColor ? alternativeColor : color; };
 
+  void SetName(string name) { this->name = name; }
   void SetColor(Color color) { this->color = color; }
   void SetValuePointer(float* value) { this->value = value; }
   void SetAlternativeColor(Color alternativeColor) { this->alternativeColor = alternativeColor; }
@@ -144,5 +147,13 @@ class UI4pxFloat : public UIComponent {
     }
 
       return true;
+  }
+
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+    if (keyInfo->state == HOLD)
+    {
+      MatrixOS::UIUtility::TextScroll(name, GetColor());
+    }
+    return true;
   }
 };

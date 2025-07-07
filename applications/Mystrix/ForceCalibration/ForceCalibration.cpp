@@ -127,10 +127,9 @@ void ForceCalibration::SetOffset(CalibrationType type)
 
 
   UI4pxNumber offsetDisplay;
-  offsetDisplay.SetColorFunc([&]() -> Color { return (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
+  offsetDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color(0xFFFFFF) : (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
   offsetDisplay.SetDigits(2);
   offsetDisplay.SetValuePointer((int32_t*)&display_value);
-  offsetDisplay.SetAlternativeColor(Color(0xFFFFFF));
   offsetUI.AddUIComponent(offsetDisplay, Point(2, 0));
 
   offsetUI.Start();
