@@ -4,7 +4,7 @@ int main()
 {
     MatrixOS::SYS::Begin();
 
-    #ifndef ESP_IDF_VERSION //ESP32s Doesn't need to start scheduler
+    #ifndef ESP_IDF_VERSION //ESP-IDF targets doesn't need to start scheduler
     vTaskStartScheduler();
     #else
     vTaskDelete(NULL);
