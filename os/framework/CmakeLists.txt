@@ -1,0 +1,19 @@
+add_library(system_framework
+    Types.h 
+    Fract16.h
+    Point.h
+    Direction.h
+    Dimension.h
+    Color.h Color.cpp
+    LogLevel.h
+    KeyEvent.h
+    MidiPacket.h
+    MidiSpecs.h 
+    Timer.h Timer.cpp
+    Utilts.h
+    Hash.h
+    ColorEffects.h
+    MidiPort.h
+    SavedVariable.h
+    LEDPartition.h
+)
