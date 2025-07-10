@@ -1,19 +1,34 @@
-# OS layer - builds against device interface and framework
-add_library(MatrixOSKernal INTERFACE)
+# Add all subdirectories
+add_subdirectory(HID)
+add_subdirectory(KeyPad)
+add_subdirectory(LED)
+add_subdirectory(Logging)
+add_subdirectory(MIDI)
+add_subdirectory(System)
+add_subdirectory(NVS)
+add_subdirectory(UI)
+add_subdirectory(Framework)
+add_subdirectory(USB)
 
-target_include_directories(MatrixOSKernal INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+add_library(MatrixOSInterface INTERFACE)
+target_include_directories(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${FREERTOS_INC})
+target_sources(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/MatrixOS.h)
+target_link_libraries(MatrixOSInterface INTERFACE MatrixOSCore MatrixOSFramework DeviceInterface )
+
+# MatrixOS umbrella target with main.cpp
+add_library(MatrixOS
+    ${CMAKE_CURRENT_LIST_DIR}/main.cpp
 )
-
-# Add OS subdirectories
-add_subdirectory(framework)
-add_subdirectory(system)
-add_subdirectory(ui)
-
-# Link to framework, system, and UI libraries
-target_link_libraries(MatrixOSKernal INTERFACE 
+target_link_libraries(MatrixOS PUBLIC 
+    MatrixOSInterface
     MatrixOSFramework
     MatrixOSSystem
+    MatrixOSLogging
+    MatrixOSKeyPad
+    MatrixOSLED
+    MatrixOSNVS
+    MatrixOSUSB
     MatrixOSUI
+    MatrixOSHID
+    MatrixOSMIDI
 )
-

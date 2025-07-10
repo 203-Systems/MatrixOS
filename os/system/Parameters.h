@@ -1,6 +1,6 @@
 #pragma once
 
-#include "framework/LogLevel.h"
+#include "LogLevel.h"
 
 #ifdef RELEASE_BUILD
     #define MATRIXOS_BUILD_RELEASE

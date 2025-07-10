@@ -1,7 +1,6 @@
 #pragma once
 
 //Custom Data Type
-#include "Types.h"
 #include "Fract16.h"
 #include "Point.h"
 #include "Direction.h"
@@ -27,4 +26,5 @@
 #include "SavedVariable.h"
 
 // Device Component
+#include "Types.h"
 #include "LEDPartition.h"

@@ -20,19 +20,19 @@ all: build
 build:
 	@$(MKDIR)
 	@$(CD) $(CHAIN) cmake -DDEVICE=$(DEVICE) -DMODE=$(MODE) ..$(SEP)..
-	@$(CD) $(CHAIN) cmake --build .
+	@$(CD) $(CHAIN) cmake --build . --verbose
 
 build-dev:
-	MODE=DEVELOPMENT $(MAKE) build
+	$(MAKE) MODE=DEVELOPMENT  build
 
 build-release:
-	MODE=RELEASE $(MAKE) build
+	 $(MAKE) MODE=RELEASE build
 
 build-beta:
-	MODE=BETA $(MAKE) build
+	$(MAKE) MODE=BETA build
 
 build-rc:
-	MODE=RELEASECANDIDATE $(MAKE) build
+	$(MAKE) MODE=RELEASECANDIDATE build
 
 build-nightly:
-	MODE=NIGHTLY $(MAKE) build
+	$(MAKE) MODE=NIGHTLY build

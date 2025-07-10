@@ -1,1 +1,0 @@
-UF2_MODEL = 203 | Type 60

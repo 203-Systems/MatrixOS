@@ -1,11 +1,26 @@
-set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
+if(NOT DEFINED ENV{IDF_PATH})
+  message(FATAL_ERROR " Please set up ESP-IDF environment before building.")
+endif()
 
+message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-idf_component_get_property( FREERTOS_ORIG_INCLUDE_PATH freertos ORIG_INCLUDE_PATH)
+set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
 
-string(TOUPPER "${IDF_TARGET}" IDF_TARGET_UPPER)
+string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
 
-target_compile_options(MatrixOS PUBLIC
-  "-DCFG_TUSB_MCU=OPT_MCU_${IDF_TARGET_UPPER}"
-)
+if(MODE STREQUAL "RELEASE")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
+elseif(MODE STREQUAL "RELEASECANDIDATE")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
+elseif(MODE STREQUAL "BETA")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
+elseif(MODE STREQUAL "NIGHTLY")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
+elseif(MODE STREQUAL "DEVELOPMENT")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
+elseif(MODE STREQUAL "UNDEFINED")
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
+else()
+    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
+endif()

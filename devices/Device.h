@@ -1,6 +1,6 @@
 #pragma once
 
-#include "framework/Framework.h"
+#include "Framework.h"
 #include "tusb.h"
 #include "Config.h" // Make will load the correct config file based on the target device.
 
@@ -48,13 +48,6 @@ namespace Device
     Point ID2XY(uint16_t keyID);  // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
                                   // given ID;
   }
-
-  // namespace BKP  // Back up register, persistent ram after software reset.
-  // {
-  //   extern uint16_t size;
-  //   uint32_t Read(uint32_t address);
-  //   int8_t Write(uint32_t address, uint32_t data);
-  // }
 
   namespace NVS //Device should also implements duplication check. If new value is equal to the old one, then skip the write. 
   {

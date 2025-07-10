@@ -1,9 +1,3 @@
-[submodule "core/STM32F4/cmsis_device_f4"]
-	path = core/STM32F4/cmsis_device_f4
-	url = https://github.com/STMicroelectronics/cmsis_device_f4.git
-[submodule "core/STM32F4/stm32f4xx_hal_driver"]
-	path = core/STM32F4/stm32f4xx_hal_driver
-	url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
 [submodule "core/STM32F1/stm32f1xx_hal_driver"]
 	path = core/STM32F1/stm32f1xx_hal_driver
 	url = https://github.com/STMicroelectronics/stm32f1xx_hal_driver.git
@@ -11,18 +5,18 @@
 	path = core/STM32F1/cmsis_device_f1
 	url = https://github.com/STMicroelectronics/cmsis_device_f1.git
 [submodule "lib/CMSIS_5"]
-	path = lib/CMSIS_5
+	path = Library/CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5.git
-[submodule "lib/tinyusb"]
-	path = lib/tinyusb
+[submodule "Library/tinyusb"]
+	path = Library/tinyusb
 	url = https://github.com/hathach/tinyusb.git
-[submodule "lib/printf"]
-	path = lib/printf
+[submodule "Library/printf"]
+	path = Library/printf
 	url = https://github.com/eyalroz/printf.git
 	branch = develop
-[submodule "lib/FreeRTOS-Kernel"]
-	path = lib/FreeRTOS-Kernel
+[submodule "Library/FreeRTOS-Kernel"]
+	path = Library/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-[submodule "lib/cb0r"]
-	path = lib/cb0r
+[submodule "Library/cb0r"]
+	path = Library/cb0r
 	url = https://github.com/203Electronics/cb0r.git

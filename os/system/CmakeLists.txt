@@ -6,6 +6,4 @@ add_library(MatrixOSSystem
     ${SYSTEM_SOURCES}
 )
 
-# target_include_directories(MatrixOSSystem PUBLIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}
-# )
+target_link_libraries(MatrixOSSystem PUBLIC MatrixOSInterface)

@@ -1,11 +1,11 @@
 file(GLOB_RECURSE DEVICE_FAMILY_HEADERS "*.h")
 file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
 
-add_library(DeviceFamily
+add_library(MystrixBlock6Family
     ${DEVICE_FAMILY_HEADERS}
     ${DEVICE_FAMILY_SOURCES}
 )
 
-# target_include_directories(SystemFramework PUBLIC
-#     ${CMAKE_CURRENT_SOURCE_DIR}
-# )
+target_link_libraries(MystrixBlock6Family PUBLIC DeviceInterface MatrixOSInterface)
+
+# ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")

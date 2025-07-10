@@ -1,1 +1,0 @@
-System core for each soc
