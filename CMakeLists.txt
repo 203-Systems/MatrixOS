@@ -50,32 +50,13 @@ if(NOT DEFINED DEVICE)
   message(FATAL_ERROR "You must specify -DDEVICE=<device>")
 endif()
 
-if(NOT DEFINED MODE)
-  set(MODE UNDEFINED)
-endif()
-message(STATUS "Build mode: ${MODE}")
-add_compile_definitions(BUILD_MODE=${MODE})
-
-file(GLOB VARIANT_PATHS devices/*/Variants/${DEVICE})
-list(LENGTH VARIANT_PATHS VARIANT_COUNT)
-if(VARIANT_COUNT EQUAL 0)
-  message(FATAL_ERROR "Device variant ${DEVICE} not found in any device.")
-elseif(VARIANT_COUNT GREATER 1)
-  set(ERROR_MESSAGE "Device variant ${DEVICE} found in multiple devices:\n")
-  foreach(PATH ${VARIANT_PATHS})
-    set(ERROR_MESSAGE "${ERROR_MESSAGE}  - ${PATH}\n")
-  endforeach()
-  set(ERROR_MESSAGE "${ERROR_MESSAGE}Please resolve ambiguity.")
-  message(FATAL_ERROR "${ERROR_MESSAGE}")
+if(NOT DEFINED FAMILY)
+  set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${DEVICE})
 else()
-  # Extract the family name from the variant path
-  list(GET VARIANT_PATHS 0 VARIANT_PATH)
-  get_filename_component(VARIANTS_DIR "${VARIANT_PATH}" DIRECTORY) # .../MatrixBlock6/Variants
-  get_filename_component(FAMILY_DIR "${VARIANTS_DIR}" DIRECTORY)   # .../MatrixBlock6
-  get_filename_component(FAMILY "${FAMILY_DIR}" NAME)
+  set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
 endif()
 
-message(STATUS "DEVICE: ${DEVICE} (${FAMILY})")
+message(STATUS "DEVICE: ${DEVICE} ${FAMILY} (${FAMILY_PATH})")
 
 if(MODE STREQUAL "RELEASE")
     message("COMPILE AS RELEASE BUILD")
@@ -99,11 +80,9 @@ else()
     message( FATAL_ERROR "MODE is not defined" )
 endif()
 
-set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
+include(${FAMILY_PATH}/family.cmake)
 
-include(${FAMILY_PATH}/Family.cmake)
-
-project(MatrixOS)
+project(MatrixOS-${DEVICE})
 
 if(ESP_PLATFORM)
   idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)

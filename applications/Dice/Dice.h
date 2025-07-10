@@ -1,17 +1,3 @@
-/*
-This is the example application for Matrix OS
-Remember to include this header file in the Applications.h in your device family folder (devices/<Device Family>/Applications.h)
-
-What this application does:
-Any pressed will lit up the key (in a user defined color)
-Click the function key will open an menu UI
-Top left button will open a number selector UI that saves teh value into the number variable
-Top right button will open a color picker UI that saves the value into the color variable. This also changes the color of the button pressed
-Click the function key in the menu will exit the UI
-Hold the function key in the menu will exit the application
-Midi signal recived will be echoed back to the host
-*/
-
 #pragma once
 
 #include "MatrixOS.h"

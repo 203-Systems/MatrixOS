@@ -1,6 +1,6 @@
 /*
 This is the example application for Matrix OS
-Remember to include this header file in the Applications.h in your device family folder (devices/<Device Family>/Applications.h)
+Remember to include this header file in the Applications.h in your device family folder (Devices/<Device Family>/Applications.h)
 
 What this application does:
 Any pressed will lit up the key (in a user defined color)

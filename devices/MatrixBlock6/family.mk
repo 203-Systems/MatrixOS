@@ -1,46 +1,21 @@
-#DEPS_SUBMODULES +=
-
 MCU = esp32s3
 UF2_FAMILY_ID = 0xc47e5767
 
-include $(FAMILY_PATH)/Variants/$(DEVICE)/Device.mk
+-include $(FAMILY_PATH)/Variants/$(DEVICE)/Device.mk
 
 .PHONY: clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
-build-common:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
-
-# Build commands for different modes
-build-release: MODE = RELEASE
-build-release: build-common
-
-build-rc: MODE = RELEASECANDIDATE
-build-rc: build-common
-
-build-beta: MODE = BETA
-build-beta: build-common
-
-build-nightly: MODE = NIGHTLY
-build-nightly: build-common
-
-build-dev: MODE = DEVELOPMENT
-build-dev: build-common
-
-build: MODE = UNDEFINED
-build: build-common
+build:
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
 
 clean:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) clean
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) clean
 	
-
 fullclean:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) fullclean
-# 	if exist build rmdir build /S /Q
-#     if exist _build rmdir _build /S /Q
-#     if exist sdkconfig del sdkconfig /S /Q
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) fullclean
 
 flash bootloader-flash app-flash erase monitor dfu-flash dfu:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $(CMAKE_DEFSYM) $@
+	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $@
 
 uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
 
