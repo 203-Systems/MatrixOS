@@ -1,19 +1,11 @@
-add_library(system_framework
-    Types.h 
-    Fract16.h
-    Point.h
-    Direction.h
-    Dimension.h
-    Color.h Color.cpp
-    LogLevel.h
-    KeyEvent.h
-    MidiPacket.h
-    MidiSpecs.h 
-    Timer.h Timer.cpp
-    Utilts.h
-    Hash.h
-    ColorEffects.h
-    MidiPort.h
-    SavedVariable.h
-    LEDPartition.h
+file(GLOB_RECURSE FRAMEWORK_HEADERS "*.h")
+file(GLOB_RECURSE FRAMEWORK_SOURCES "*.cpp" "*.c")
+
+add_library(MatrixOSFramework
+    ${FRAMEWORK_HEADERS}
+    ${FRAMEWORK_SOURCES}
 )
+
+# target_include_directories(SystemFramework PUBLIC
+#     ${CMAKE_CURRENT_SOURCE_DIR}
+# )

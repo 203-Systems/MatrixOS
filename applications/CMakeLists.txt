@@ -1,2 +1,4 @@
-file(GLOB APP_SOURCES *.cpp */*.cpp)
-target_sources(MatrixOS PRIVATE ${APP_SOURCES}) 
+# Applications - build against OS and UI
+file(GLOB_RECURSE APP_SOURCES "*.cpp" "*.c")
+file(GLOB_RECURSE APP_HEADERS "*.h")
+

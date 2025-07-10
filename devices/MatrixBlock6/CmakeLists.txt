@@ -1,0 +1,11 @@
+file(GLOB_RECURSE DEVICE_FAMILY_HEADERS "*.h")
+file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
+
+add_library(DeviceFamily
+    ${DEVICE_FAMILY_HEADERS}
+    ${DEVICE_FAMILY_SOURCES}
+)
+
+# target_include_directories(SystemFramework PUBLIC
+#     ${CMAKE_CURRENT_SOURCE_DIR}
+# )

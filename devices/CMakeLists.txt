@@ -1,12 +1,12 @@
-add_library(Device
-    Device.h
+# Device interface library - what OS builds against
+add_library(MatrixOSDeviceInterface INTERFACE)
+
+target_include_directories(MatrixOSDeviceInterface INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(Device
-                                            PUBLIC MatrixOSFramework
-                                            PUBLIC MatrixOSSystem
-                                            PUBLIC MatrixOSLoggging
-                                            PUBLIC DeviceFamily
-)
+# Add device interface header
+target_sources(MatrixOSDeviceInterface INTERFACE Device.h)
 
-target_include_directories(application_utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# Link to framework
+target_link_libraries(MatrixOSDeviceInterface INTERFACE MatrixOSFramework)
