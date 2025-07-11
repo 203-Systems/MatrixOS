@@ -1,4 +1,4 @@
-<img src="MatrixOS.svg" width="300" alt="Matrix OS" >
+<img src="Resources/MatrixOS.svg" width="300" alt="Matrix OS" >
 
 An operating system for human interface devices designed to be cross-platform and modular.
 

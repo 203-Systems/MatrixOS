@@ -9,12 +9,13 @@ endif()
 message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
 
 # set(PROJECT_NAME "MatrixOS-${DEVICE}")
-set(BUILD_DIR ${CMAKE_BINARY_DIR}/Build/${DEVICE})
+# set(BUILD_DIR ${CMAKE_BINARY_DIR}/Build/${DEVICE})
 
+set(SDKCONFIG_PATH ${CMAKE_BINARY_DIR}/sdkconfig)
 if(MODE STREQUAL "DEVELOPMENT")
-    set(DEFAULT_SDKCONFIG "${FAMILY_PATH}/sdkconfig.development")
+    set(SDKCONFIG_DEFAULTS_PATH "${FAMILY_PATH}/sdkconfig.development")
 else()
-    set(DEFAULT_SDKCONFIG "${FAMILY_PATH}/sdkconfig.release")
+    set(SDKCONFIG_DEFAULTS_PATH "${FAMILY_PATH}/sdkconfig.release")
 endif()
 
 include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
@@ -23,9 +24,12 @@ set(EXTRA_COMPONENT_DIRS ${FAMILY_PATH})
 
 idf_build_process("${IDF_TARGET}"
     COMPONENTS freertos  esptool_py
-    SDKCONFIG_DEFAULTS ${DEFAULT_SDKCONFIG}
-    BUILD_DIR ${BUILD_DIR}
+    SDKCONFIG ${SDKCONFIG_PATH}
+    SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
+    # BUILD_DIR ${BUILD_DIR}
 )
+
+set(DCMAKE_TOOLCHAIN_FILE ${DCMAKE_TOOLCHAIN_FILE}) # Suppress variable not used warning
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -33,8 +37,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # idf_build_set_property(COMPILE_OPTIONS "-fdiagnostics-color=always" APPEND)
 
 idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)
-
-message(STATUS "FREERTOS_INC: ${FREERTOS_INC}")
 
 add_library(FreeRTOS INTERFACE)
 target_link_libraries(FreeRTOS INTERFACE idf::freertos)
