@@ -68,7 +68,8 @@ namespace MatrixOS
 
     void Fade(uint16_t crossfade = crossfade_duration, Color* source_buffer = nullptr);
 
-    void PauseUpdate(bool pause);
+    
+    uint32_t GetLedCount(void);
   }
 
   namespace KEYPAD

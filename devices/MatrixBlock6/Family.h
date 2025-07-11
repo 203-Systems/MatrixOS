@@ -8,6 +8,28 @@
 
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
+#ifdef FACTORY_CONFIG
+#if FACTORY_DEVICE_VERSION == 'S'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
+#elif FACTORY_DEVICE_VERSION == 'P'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
+#else 
+#error "FACTORY_DEVICE_VERSION is not correct"
+#endif
+#endif
+
+#define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
+
+#define FACTORY_MFG_YEAR 23
+#define FACTORY_MFG_MONTH 03
+
+struct DeviceInfo {
+  char Model[4];
+  char Revision[4];
+  uint8_t ProductionYear;
+  uint8_t ProductionMonth;
+};
+
 namespace Device
 {
   // Device Variable

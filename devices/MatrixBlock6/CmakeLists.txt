@@ -45,6 +45,13 @@ target_include_directories(FreeRTOS INTERFACE
     ${FREERTOS_INC}/config/include/freertos
 )
 
+add_library(MatrixOSDevice PUBLIC)
+target_link_libraries(MatrixOSDevice PUBLIC DeviceInterface)
+target_include_directories(MatrixOSDevice PUBLIC
+    
+)
+
+
 
 # string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
 
@@ -66,5 +73,5 @@ target_include_directories(FreeRTOS INTERFACE
 
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
 add_library(${elf_file} family.cpp)
-target_link_libraries(${elf_file} idf::freertos MatrixOSInterface)
+target_link_libraries(${elf_file} idf::freertos MatrixOS)
 idf_build_executable(${elf_file})

@@ -13,6 +13,12 @@ namespace Device
   string serial_number;
   */
 
+  extern const string name;
+  extern const uint16_t led_count;
+  extern const uint8_t x_size;
+  extern const uint8_t y_size;
+  extern string serial_number;
+
   void DeviceInit();
   void DeviceStart();
   void Reboot();
@@ -27,6 +33,8 @@ namespace Device
 
   namespace LED
   {
+    extern vector<LEDPartition> led_partitions;
+
     void Update(Color* frameBuffer, vector<uint8_t>& brightness);  // Render LED
     uint16_t XY2Index(Point xy);        // Grid XY to global buffer index, return UINT16_MAX if not index for given XY
     uint16_t ID2Index(uint16_t ledID);  // Local led Index to buffer index, return UINT16_MAX if not index for given

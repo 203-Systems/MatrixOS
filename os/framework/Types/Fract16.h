@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define FRACT16_MAX UINT16_MAX
 class Fract16 {
  public:

@@ -120,10 +120,4 @@ namespace Device
     inline gpio_num_t led_pin;
     const inline uint16_t fps = 120;  // Depends on the FreeRTOS tick speed
   }
-
-  // Load Device config
-  void LoadV100();
-  void LoadV110();
-  void LoadRevC();
-  void LoadKeypadSetting();
 }

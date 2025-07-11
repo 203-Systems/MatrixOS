@@ -2,6 +2,8 @@
 
 namespace MatrixOS::LED
 {
+  uint32_t led_count;
+
   // static timer
   StaticTimer_t led_tmdef;
   TimerHandle_t led_tm;
@@ -84,6 +86,7 @@ namespace MatrixOS::LED
     {
       ledBrightnessMultiplier[i] = Device::led_partitions[i].default_multiplier;
       MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplier_" + Device::led_partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
+      led_count += Device::led_partitions[i].size;
     }
 
     UpdateBrightness();
@@ -204,7 +207,7 @@ namespace MatrixOS::LED
     // MLOGV("LED", "Fill Layer %d", layer);
 
     uint16_t start = 0;
-    uint16_t end = Device::led_count;
+    uint16_t end = led_count;
 
     for (uint16_t index = start; index < end; index++)
     { frameBuffers[layer][index] = color; }
@@ -275,7 +278,7 @@ namespace MatrixOS::LED
       MatrixOS::SYS::ErrorHandler("Max LED Layer Exceded");
       return -1;
     }
-    Color* frameBuffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
+    Color* frameBuffer = (Color*)pvPortMalloc(led_count * sizeof(Color));
     if (frameBuffer == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("Failed to allocate new led buffer");
@@ -326,7 +329,7 @@ namespace MatrixOS::LED
 
   void CopyLayer(uint8_t dest, uint8_t src)
   {
-    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], Device::led_count * sizeof(Color));
+    memcpy((void*)frameBuffers[dest], (void*)frameBuffers[src], led_count * sizeof(Color));
   }
 
 
@@ -383,13 +386,13 @@ namespace MatrixOS::LED
     else if(source_buffer == nullptr)
     {
       // Create a copy of the current buffer
-      crossfade_source_buffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
+      crossfade_source_buffer = (Color*)pvPortMalloc(led_count * sizeof(Color));
       if(crossfade_source_buffer == nullptr)
       {
         MatrixOS::SYS::ErrorHandler("Failed to allocate crossfade buffer");
         return;
       }
-      memcpy((void*)crossfade_source_buffer, (void*)frameBuffers[0], Device::led_count * sizeof(Color));
+      memcpy((void*)crossfade_source_buffer, (void*)frameBuffers[0], led_count * sizeof(Color));
       crossfade_destroy_source_buffer = true;
     }
     else
@@ -414,7 +417,7 @@ namespace MatrixOS::LED
 
     if(crossfade_buffer == nullptr)
     {
-      crossfade_buffer = (Color*)pvPortMalloc(Device::led_count * sizeof(Color));
+      crossfade_buffer = (Color*)pvPortMalloc(led_count * sizeof(Color));
     }
 
     if(currentTime <= crossfade_start_time)
@@ -434,7 +437,7 @@ namespace MatrixOS::LED
 
     if(ratio < FRACT16_MAX)
     {
-      for (uint16_t index = 0; index < Device::led_count; index++)
+      for (uint16_t index = 0; index < led_count; index++)
       {
         crossfade_buffer[index] = Color::Crossfade(
               crossfade_source_buffer == nullptr ? Color(0) : crossfade_source_buffer[index], 
@@ -460,5 +463,9 @@ namespace MatrixOS::LED
     { xTimerStop(led_tm, 0); }
     else
     { xTimerStart(led_tm, 0); }
+  }
+
+  uint32_t GetLedCount(void) {
+    return led_count;
   }
 }
