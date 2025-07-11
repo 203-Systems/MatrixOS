@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Framework.h"
-#include "tusb.h"
-#include "Config.h" // Make will load the correct config file based on the target device.
 
 namespace Device
 {
@@ -58,13 +56,13 @@ namespace Device
     void Clear();
   }
 
-#ifdef DEVICE_BATTERY
-  namespace Battery
-  {
-    bool Charging();
-    float Voltage();
-  }
-#endif
+// #ifdef DEVICE_BATTERY
+//   namespace Battery
+//   {
+//     bool Charging();
+//     float Voltage();
+//   }
+// #endif
 }
 
 // Matrix OS APIs available for Device Layer

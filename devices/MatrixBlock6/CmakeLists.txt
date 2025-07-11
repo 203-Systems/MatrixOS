@@ -1,11 +1,68 @@
-file(GLOB_RECURSE DEVICE_FAMILY_HEADERS "*.h")
-file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
+cmake_minimum_required(VERSION 3.16)
 
-add_library(MystrixBlock6Family
-    ${DEVICE_FAMILY_HEADERS}
-    ${DEVICE_FAMILY_SOURCES}
+set(IDF_TARGET "esp32s3")
+
+if(NOT DEFINED ENV{IDF_PATH})
+  message(FATAL_ERROR " Please set up ESP-IDF environment before building.")
+endif()
+
+message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
+
+# set(PROJECT_NAME "MatrixOS-${DEVICE}")
+set(BUILD_DIR ${CMAKE_BINARY_DIR}/Build/${DEVICE})
+
+if(MODE STREQUAL "DEVELOPMENT")
+    set(DEFAULT_SDKCONFIG "${FAMILY_PATH}/sdkconfig.development")
+else()
+    set(DEFAULT_SDKCONFIG "${FAMILY_PATH}/sdkconfig.release")
+endif()
+
+include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
+
+set(EXTRA_COMPONENT_DIRS ${FAMILY_PATH})
+
+idf_build_process("${IDF_TARGET}"
+    COMPONENTS freertos  esptool_py
+    SDKCONFIG_DEFAULTS ${DEFAULT_SDKCONFIG}
+    BUILD_DIR ${BUILD_DIR}
 )
 
-target_link_libraries(MystrixBlock6Family PUBLIC DeviceInterface MatrixOSInterface)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
+# idf_build_set_property(COMPILE_OPTIONS "-Wno-maybe-uninitialized" APPEND)
+# idf_build_set_property(COMPILE_OPTIONS "-fdiagnostics-color=always" APPEND)
+
+idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)
+
+message(STATUS "FREERTOS_INC: ${FREERTOS_INC}")
+
+add_library(FreeRTOS INTERFACE)
+target_link_libraries(FreeRTOS INTERFACE idf::freertos)
+target_include_directories(FreeRTOS INTERFACE
+    ${FREERTOS_INC}
+    ${FREERTOS_INC}/config/include/freertos
+)
+
+
+# string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
+
+
+
+# add_library(MystrixBlock6Family
+#     ${DEVICE_FAMILY_HEADERS}
+#     ${DEVICE_FAMILY_SOURCES}
+# )
+
+# target_link_libraries(MystrixBlock6Family PUBLIC DeviceInterface MatrixOSInterface)
+
+# add_executable(${CMAKE_PROJECT_NAME} main.cpp)
+# 
+# idf_build_executable(${CMAKE_PROJECT_NAME})
+
+# file(GLOB_RECURSE DEVICE_FAMILY_HEADERS "*.h")
+# file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
+
+set(elf_file ${CMAKE_PROJECT_NAME}.elf)
+add_library(${elf_file} family.cpp)
+target_link_libraries(${elf_file} idf::freertos MatrixOSInterface)
+idf_build_executable(${elf_file})

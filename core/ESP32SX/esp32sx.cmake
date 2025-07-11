@@ -3,24 +3,30 @@ if(NOT DEFINED ENV{IDF_PATH})
 endif()
 
 message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
+set(PROJECT_NAME "MatrixOS-${DEVICE}")
 set(SDKCONFIG ${CMAKE_BINARY_DIR}/sdkconfig)
 
-string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
-
-if(MODE STREQUAL "RELEASE")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
-elseif(MODE STREQUAL "RELEASECANDIDATE")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
-elseif(MODE STREQUAL "BETA")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
-elseif(MODE STREQUAL "NIGHTLY")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.release)
-elseif(MODE STREQUAL "DEVELOPMENT")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
-elseif(MODE STREQUAL "UNDEFINED")
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
+if(MODE STREQUAL "DEVELOPMENT")
+    set(SDKCONFIG_PATH "${FAMILY_PATH}/sdkconfig.development")
 else()
-    set(SDKCONFIG_DEFAULTS ${FAMILY_PATH}/sdkconfig.development)
+    set(SDKCONFIG_PATH "${FAMILY_PATH}/sdkconfig.release")
 endif()
+
+include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
+
+idf_build_process("${IDF_TARGET}"
+    COMPONENTS freertos  esptool_py
+    SDKCONFIG ${SDKCONFIG_PATH}
+    BUILD_DIR ${CMAKE_BINARY_DIR}
+)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(elf_file ${CMAKE_PROJECT_NAME}.elf)
+
+idf_build_set_property(COMPILE_OPTIONS "-Wno-maybe-uninitialized" APPEND)
+idf_build_set_property(COMPILE_OPTIONS "-fdiagnostics-color=always" APPEND)
+
+idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)
+string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)

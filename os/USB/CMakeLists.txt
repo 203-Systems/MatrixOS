@@ -38,7 +38,6 @@ target_include_directories(MatrixOSUSB PUBLIC
 
 target_compile_options(MatrixOSUSB PUBLIC
   "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"
-  "-DCFG_TUSB_OS=OPT_OS_FREERTOS"
 )
 
 target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface) 

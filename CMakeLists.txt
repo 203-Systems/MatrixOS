@@ -1,50 +1,52 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Global C flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-  -ggdb \
-  -fdata-sections \
-  -ffunction-sections \
-  -fsingle-precision-constant \
-  -fno-strict-aliasing \
-  -Wdouble-promotion \
-  -Wstrict-overflow \
-  -Wextra \
-  -Wfloat-equal \
-  -Wundef \
-  -Wwrite-strings \
-  -Wsign-compare \
-  -Wmissing-format-attribute \
-  -Wunreachable-code \
-  -Wcast-align \
-  -Wcast-function-type \
-")
+project(MatrixOS-${DEVICE})
 
-# Global C++ flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-  -ggdb \
-  -fdata-sections \
-  -ffunction-sections \
-  -fsingle-precision-constant \
-  -fno-strict-aliasing \
-  -Wdouble-promotion \
-  -Wstrict-overflow \
-  -Wextra \
-  -Wfloat-equal \
-  -Wundef \
-  -Wwrite-strings \
-  -Wsign-compare \
-  -Wmissing-format-attribute \
-  -Wunreachable-code \
-  -Wcast-align \
-  -Wcast-function-type \
-  -std=gnu++17 \
-")
+# # Global C flags
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+#   -ggdb \
+#   -fdata-sections \
+#   -ffunction-sections \
+#   -fsingle-precision-constant \
+#   -fno-strict-aliasing \
+#   -Wdouble-promotion \
+#   -Wstrict-overflow \
+#   -Wextra \
+#   -Wfloat-equal \
+#   -Wundef \
+#   -Wwrite-strings \
+#   -Wsign-compare \
+#   -Wmissing-format-attribute \
+#   -Wunreachable-code \
+#   -Wcast-align \
+#   -Wcast-function-type \
+# ")
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# # Global C++ flags
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+#   -ggdb \
+#   -fdata-sections \
+#   -ffunction-sections \
+#   -fsingle-precision-constant \
+#   -fno-strict-aliasing \
+#   -Wdouble-promotion \
+#   -Wstrict-overflow \
+#   -Wextra \
+#   -Wfloat-equal \
+#   -Wundef \
+#   -Wwrite-strings \
+#   -Wsign-compare \
+#   -Wmissing-format-attribute \
+#   -Wunreachable-code \
+#   -Wcast-align \
+#   -Wcast-function-type \
+#   -std=gnu++17 \
+# ")
+
+# set(CMAKE_C_STANDARD 11)
+# set(CMAKE_C_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT DEFINED DEVICE)
   message(FATAL_ERROR "You must specify -DDEVICE=<device>")
@@ -80,17 +82,8 @@ else()
     message( FATAL_ERROR "MODE is not defined" )
 endif()
 
-include(${FAMILY_PATH}/family.cmake)
-
-project(MatrixOS-${DEVICE})
-
-if(ESP_PLATFORM)
-  idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)
-endif()
-
+# include(${FAMILY_PATH}/family.cmake)
 add_subdirectory(Devices)
 add_subdirectory(os)
 add_subdirectory(${FAMILY_PATH})
-add_subdirectory(Applications)
-
-
+# add_subdirectory(Applications)

@@ -6,7 +6,9 @@ UF2_FAMILY_ID = 0xc47e5767
 .PHONY: clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
 build:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
+	cmake -B $(BUILD) . -DCMAKE_TOOLCHAIN_FILE=$(IDF_PATH)/tools/cmake/toolchain-${MCU}.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
+	cmake --build .
+	#idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
 
 clean:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) clean

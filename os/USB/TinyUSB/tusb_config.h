@@ -66,11 +66,6 @@ extern "C" {
 
 #define CFG_TUSB_OS OPT_OS_FREERTOS
 
-// // Espressif IDF requires "freertos/" prefix in include path
-#if TU_CHECK_MCU(ESP32S2) || TU_CHECK_MCU(ESP32S3)
-  #define CFG_TUSB_OS_INC_PATH    freertos/
-#endif
-
 // CFG_TUSB_DEBUG is defined by compiler in DEBUG build
 // #define CFG_TUSB_DEBUG           0
 

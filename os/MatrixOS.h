@@ -2,16 +2,15 @@
 
 #include "Device.h"
 #include "FreeRTOS.h"
-#include "framework/Framework.h"
+#include "Framework.h"
 #include "queue.h"
 #include "semphr.h"
 #include "system/Parameters.h"
 #include "system/UserVariables.h"
 #include "task.h"
 #include "timers.h"
-#include "tusb.h"
 
-#include "./system/HID/HIDSpecs.h"
+#include "HID/HIDSpecs.h"
 
 #define noexpose  // Custom keyword to remove function to be generated as exposed API
 
