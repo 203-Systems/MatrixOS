@@ -6,14 +6,20 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
+#include "Application.h"
 #include "ui/UI.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 
 
 class Companion : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Companion",
+      .author = "203 Systems",
+      .color = Color(0x0000FF),
+      .version = 1,
+      .visibility = true,
+  };
 
   uint8_t canvasLedLayer;
   bool uiOpened = false;
@@ -28,12 +34,4 @@ class Companion : public Application {
   void ActionMenu();
 };
 
-inline Application_Info Companion::info = {
-    .name = "Companion",
-    .author = "203 Systems",
-    .color = Color(0x0000FF),
-    .version = 1,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Companion);

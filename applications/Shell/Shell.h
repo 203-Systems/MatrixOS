@@ -2,11 +2,17 @@
 
 #include "MatrixOS.h"
 #include "ui/UI.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 class Shell : public Application {
   public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Shell",
+      .author = "203 Systems",
+      .color = Color(0x00FFAA),
+      .version = 1,
+      .visibility = false,
+  };
 
   void Setup() override;
   void Loop() override;
@@ -16,12 +22,4 @@ class Shell : public Application {
   void LaunchAnimation(Point origin, Color color);
 };
 
-inline Application_Info Shell::info = {
-    .name = "Shell",
-    .author = "203 Systems",
-    .color = Color(0x00FFAA),
-    .version = 1,
-    .visibility = false,
-};
 
-REGISTER_APPLICATION(Shell);

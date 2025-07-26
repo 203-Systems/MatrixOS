@@ -1,5 +1,5 @@
 #include "Setting.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 
 Setting::Setting()
 {

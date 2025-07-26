@@ -3,7 +3,7 @@
 #include "MatrixOS.h"
 #include "PolyPad.h"
 #include "ui/UI.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 #define POLY_PLAYGROUND_APP_VERSION 1
 
@@ -13,7 +13,13 @@
 
 class PolyPlayground : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Poly Playground",
+      .author = "203 Systems",
+      .color =  Color(0xAEFF00),
+      .version = POLY_PLAYGROUND_APP_VERSION,
+      .visibility = true,
+  };
 
   CreateSavedVar(TAG, nvsVersion, uint32_t, POLY_PLAYGROUND_APP_VERSION);  // In case NoteLayoutConfig got changed
 
@@ -33,12 +39,4 @@ class PolyPlayground : public Application {
   PolyPadConfig polyPadConfig;
 };
 
-inline Application_Info PolyPlayground::info = {
-    .name = "Poly Playground",
-    .author = "203 Systems",
-    .color =  Color(0xAEFF00),
-    .version = POLY_PLAYGROUND_APP_VERSION,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(PolyPlayground);

@@ -4,7 +4,7 @@
 #include "NotePad.h"
 #include "Scales.h"
 #include "ui/UI.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 #define NOTE_APP_VERSION 2
 
@@ -12,7 +12,13 @@
 
 class Note : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Note",
+      .author = "203 Systems",
+      .color =  Color(0x00FFFF),
+      .version = NOTE_APP_VERSION,
+      .visibility = true,
+  };
   
   enum ESpiltView : uint8_t { SINGLE_VIEW, VERT_SPLIT, HORIZ_SPLIT};
   // Saved Variables
@@ -103,12 +109,4 @@ class Note : public Application {
                             "BeBop Major"};
 };
 
-inline Application_Info Note::info = {
-    .name = "Note",
-    .author = "203 Systems",
-    .color =  Color(0x00FFFF),
-    .version = NOTE_APP_VERSION,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Note);

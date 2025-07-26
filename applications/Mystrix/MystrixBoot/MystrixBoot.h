@@ -1,13 +1,19 @@
 #pragma once
 
-#include "applications/BootAnimation/BootAnimation.h"
+#include "BootAnimation/BootAnimation.h" // TODO Need to be fixed
 
 #define MATRIX_BOOT_BRIGHTNESS 1.0  // On Top of system brightness
 #define MATRIX_BOOT_IDLE 0.25         // On Top of system brightness
 
 class MystrixBoot : public BootAnimation {
  public:
- static Application_Info info; ;
+ inline static Application_Info info = {
+     .name = "Mystrix Boot",
+     .author = "203 Systems",
+     .color =  Color(0xFFFFFFFF),
+     .version = 1,
+     .visibility = false,
+ };
 
   // CreateSavedVar(bool, notFirstBoot, false);
   Timer timer;
@@ -34,12 +40,4 @@ class MystrixBoot : public BootAnimation {
   void End();
 };
 
-inline Application_Info MystrixBoot::info = {
-    .name = "Mystrix Boot",
-    .author = "203 Systems",
-    .color =  Color(0xFFFFFFFF),
-    .version = 1,
-    .visibility = false,
-};
 
-REGISTER_APPLICATION(MystrixBoot);

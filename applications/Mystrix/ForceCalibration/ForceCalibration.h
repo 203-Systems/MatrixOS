@@ -2,12 +2,12 @@
 
 #include "MatrixOS.h"
 #include "ui/UI.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 namespace Device::KeyPad::FSR
 {
-  extern Fract16 (*low_thresholds)[x_size][y_size];
-  extern Fract16 (*high_thresholds)[x_size][y_size];
+  extern Fract16 (*low_thresholds)[8][8];
+  extern Fract16 (*high_thresholds)[8][8];
 
   void SaveLowCalibration();
   void SaveHighCalibration();
@@ -27,7 +27,17 @@ class ForceCalibration : public Application {
     Low,
     High
   };
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Force Calibration",
+      .author = "203 Systems",
+      .color =  Color(0xFFFFFF),
+      .version = 1,
+      // #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+      // .visibility = true,
+      // #else
+      .visibility = false,
+      // #endif
+  };
   void Setup() override;  
 
   void LowCalibration();
@@ -47,16 +57,4 @@ class ForceCalibration : public Application {
   CreateSavedVar("ForceCalibration", highCalibrationSaved, bool, false);
 };
 
-inline Application_Info ForceCalibration::info = {
-    .name = "Force Calibration",
-    .author = "203 Systems",
-    .color =  Color(0xFFFFFF),
-    .version = 1,
-    // #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
-    // .visibility = true,
-    // #else
-    .visibility = false,
-    // #endif
-};
 
-REGISTER_APPLICATION(ForceCalibration);

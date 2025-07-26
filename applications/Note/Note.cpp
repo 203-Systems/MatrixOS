@@ -3,7 +3,7 @@
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
 
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 
 void Note::Setup() {
   // Set up / Load configs --------------------------------------------------------------------------

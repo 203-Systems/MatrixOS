@@ -1,6 +1,6 @@
 #include "CustomControlMap.h"
 #include "ui/UI.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 
 void CustomControlMap::Setup() {
   LoadUADfromNVS();

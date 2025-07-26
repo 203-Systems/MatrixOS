@@ -65,7 +65,7 @@ add_library(MatrixOSDevice
 target_include_directories(MatrixOSDevice PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix
-    ${CMAKE_SOURCE_DIR}/core/ESP32SX
+    ${CMAKE_SOURCE_DIR}/Platform/ESP32SX
 )
 
 string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
@@ -73,6 +73,7 @@ target_compile_options(MatrixOSDevice PUBLIC
     "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"
     "-DESP_PLATFORM=1"
 )
+
 
 target_link_libraries(MatrixOSDevice PUBLIC 
     DeviceInterface
@@ -91,12 +92,15 @@ target_link_libraries(MatrixOSDevice PUBLIC
     idf::ulp
 )
 
+
 # ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
 
-
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
-add_library(${elf_file} Family.cpp)
-target_link_libraries(${elf_file} 
-    MatrixOS
+
+add_executable(${elf_file} main.c)
+
+target_link_libraries(${elf_file}
+    PRIVATE MatrixOS
 )
+
 idf_build_executable(${elf_file})

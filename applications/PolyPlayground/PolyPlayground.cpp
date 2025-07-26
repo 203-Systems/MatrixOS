@@ -1,6 +1,6 @@
 #include "PolyPlayground.h"
 #include "PolyOctaveShifter.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 #include "../Note/ScaleVisualizer.h"
 
 void PolyPlayground::Setup() {

@@ -3,8 +3,8 @@
 #include "MatrixOS.h"
 #include "ui/UI.h"
 #include "ui/UIUtilities.h"
-#include "applications/Application.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "Application.h"
+#include "BrightnessControl.h"
 #include "TemperatureColorPicker.h"
 
 
@@ -29,7 +29,13 @@ class Lighting : public Application {
     Breathing,
   };
 
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Lighting",
+      .author = "203 Systems",
+      .color = Color(0xFF00FF),
+      .version = 2,
+      .visibility = true,
+  };
   void Setup() override;
   void Loop() override;
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
@@ -60,12 +66,4 @@ class Lighting : public Application {
   uint32_t start_time;
 };
 
-inline Application_Info Lighting::info = {
-    .name = "Lighting",
-    .author = "203 Systems",
-    .color = Color(0xFF00FF),
-    .version = 2,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Lighting);

@@ -1,11 +1,17 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 class Dice : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Dice",
+      .author = "203 Systems",
+      .color = Color(0xFFA500),
+      .version = 1,
+      .visibility = true,
+  };
 
   enum UnderglowEffectMode {
     Static,
@@ -138,13 +144,4 @@ class Dice : public Application {
   };
 };
 
-// Meta data about this application
-inline Application_Info Dice::info = {
-    .name = "Dice",
-    .author = "203 Systems",
-    .color = Color(0xFFA500),
-    .version = 1,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Dice);

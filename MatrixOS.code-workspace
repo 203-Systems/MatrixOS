@@ -17,6 +17,12 @@
 		  "terminal.integrated.defaultProfile.windows": "ESP-IDF",
 		"editor.formatOnType": true,
 		"files.associations": {
+			"*.json.liquid": "json",
+			"*.yaml.liquid": "yaml",
+			"*.md.liquid": "markdown",
+			"*.js.liquid": "liquid-javascript",
+			"*.css.liquid": "liquid-css",
+			"*.scss.liquid": "liquid-scss",
 			"*.mk": "makefile",
 			"stm32f1xx_hal.h": "c",
 			"stm32f1xx_hal_conf.h": "c",
@@ -122,7 +128,9 @@
 			"netfwd": "cpp",
 			"numbers": "cpp",
 			"semaphore": "cpp",
-			"ulp_riscv_adc_ulp_core.h": "c"
+			"ulp_riscv_adc_ulp_core.h": "c",
+			"shell.h": "c",
+			"performance.h": "c"
 		}
 	}
 }

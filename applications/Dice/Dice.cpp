@@ -1,5 +1,5 @@
 #include "Dice.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 #include "ui/UI.h"  // Include the UI Framework
 
 // Run once

@@ -15,12 +15,18 @@ Midi signal received will be echoed back to the host
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
-#include "applications/BrightnessControl/BrightnessControl.h" 
+#include "Application.h"
+#include "BrightnessControl.h" 
 
 class ExampleAPP : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Example",
+      .author = "203 Systems",
+      .color = Color(0xFFFFFF),
+      .version = 1,
+      .visibility = true,
+  };
 
   void Setup() override;
   void Loop() override;
@@ -52,14 +58,5 @@ class ExampleAPP : public Application {
   void MidiEventHandler(MidiPacket midiPacket);
 };
 
-// Meta data about this application
-inline Application_Info ExampleAPP::info = {
-    .name = "Example",
-    .author = "203 Systems",
-    .color = Color(0xFFFFFF),
-    .version = 1,
-    .visibility = true,
-};
 
 // Register this Application to the OS (Use the class name of your application as the variable)
-REGISTER_APPLICATION(ExampleAPP);

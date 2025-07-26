@@ -2,12 +2,18 @@
 
 #include "MatrixOS.h"
 #include "UAD.h"
-#include "applications/Application.h"
+#include "Application.h"
 #include "UILayerControl.h"
 
 class CustomControlMap : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Custom Control Map",
+      .author = "203 Systems",
+      .color = Color(0xFFFF00),
+      .version = 1,
+      .visibility = true,
+  };
 
   void Setup() override;
   void Loop() override;
@@ -47,13 +53,6 @@ class CustomControlMap : public Application {
   bool SendHID(const vector<uint8_t> &report, uint8_t retry = 5);
 };
 
-inline Application_Info CustomControlMap::info = {
-    .name = "Custom Control Map",
-    .author = "203 Systems",
-    .color = Color(0xFFFF00),
-    .version = 1,
-    .visibility = true,
-};
 
 
 enum HIDCommand { // MSB is 1 for Write/Response, 0 for Read/Request
@@ -69,4 +68,3 @@ enum HIDCommand { // MSB is 1 for Write/Response, 0 for Read/Request
 
 const uint8_t HID_RESPONSE = 0x80;
 
-REGISTER_APPLICATION(CustomControlMap);

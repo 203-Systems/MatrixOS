@@ -1,12 +1,12 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
+#include "Application.h"
 #include "ui/UI.h"
 
 #include "UINotePad.h"
 
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "BrightnessControl.h"
 
 #define NUMS_OF_KEYMAP 1
 #define STFU_DEFAULT 1
@@ -16,7 +16,13 @@
 
 class Performance : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Performance",
+      .author = "203 Systems",
+      .color =  Color(0xFF0000),
+      .version = 1,
+      .visibility = true,
+  };
 
   uint8_t currentKeymap = 0;
 
@@ -359,12 +365,4 @@ class Performance : public Application {
   Timer stfuTimer;
 };
 
-inline Application_Info Performance::info = {
-    .name = "Performance",
-    .author = "203 Systems",
-    .color =  Color(0xFF0000),
-    .version = 1,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Performance);

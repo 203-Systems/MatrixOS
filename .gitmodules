@@ -5,18 +5,18 @@
 	path = core/STM32F1/cmsis_device_f1
 	url = https://github.com/STMicroelectronics/cmsis_device_f1.git
 [submodule "lib/CMSIS_5"]
-	path = Library/CMSIS_5
+	path = lib/CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5.git
-[submodule "Library/tinyusb"]
-	path = Library/tinyusb
+[submodule "lib/tinyusb"]
+	path = lib/tinyusb
 	url = https://github.com/hathach/tinyusb.git
-[submodule "Library/printf"]
-	path = Library/printf
+[submodule "lib/printf"]
+	path = lib/printf
 	url = https://github.com/eyalroz/printf.git
 	branch = develop
-[submodule "Library/FreeRTOS-Kernel"]
-	path = Library/FreeRTOS-Kernel
+[submodule "lib/FreeRTOS-Kernel"]
+	path = lib/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-[submodule "Library/cb0r"]
-	path = Library/cb0r
+[submodule "lib/cb0r"]
+	path = lib/cb0r
 	url = https://github.com/203Electronics/cb0r.git

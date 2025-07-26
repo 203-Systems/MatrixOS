@@ -6,13 +6,19 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "Application.h"
+#include "BrightnessControl.h"
 
 
 class Gamepad : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Gamepad",
+      .author = "203 Systems",
+      .color = Color(0x52BD00),
+      .version = 1,
+      .visibility = true,
+  };
 
   void Setup() override;
   void Loop() override;
@@ -21,12 +27,4 @@ class Gamepad : public Application {
   void ActionMenu();
 };
 
-inline Application_Info Gamepad::info = {
-    .name = "Gamepad",
-    .author = "203 Systems",
-    .color = Color(0x52BD00),
-    .version = 1,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Gamepad);

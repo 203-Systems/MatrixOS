@@ -1,8 +1,8 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
-#include "applications/BrightnessControl/BrightnessControl.h"
+#include "Application.h"
+#include "BrightnessControl.h"
 #include "Chord.h"
 #include "StrumBar.h"
 
@@ -12,7 +12,13 @@
 
 class Strum : public Application {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "Strum",
+      .author = "203 Systems",
+      .color = Color(0xFF80FF),
+      .version = 1,
+      .visibility = true,
+  };
 
   void Setup() override;
   void Loop() override;
@@ -54,12 +60,4 @@ class Strum : public Application {
 //   string augmented_chord_names[2] = {"Augmented", "Augmented 7th"};
 };
 
-inline Application_Info Strum::info = {
-    .name = "Strum",
-    .author = "203 Systems",
-    .color = Color(0xFF80FF),
-    .version = 1,
-    .visibility = true,
-};
 
-REGISTER_APPLICATION(Strum);

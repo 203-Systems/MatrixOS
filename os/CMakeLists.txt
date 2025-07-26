@@ -13,7 +13,7 @@ add_subdirectory(USB)
 add_library(MatrixOSInterface INTERFACE)
 target_include_directories(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${FREERTOS_INC})
 target_sources(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/MatrixOS.h)
-target_link_libraries(MatrixOSInterface INTERFACE FreeRTOS MatrixOSCore MatrixOSFramework DeviceInterface MatrixOSDevice)
+target_link_libraries(MatrixOSInterface INTERFACE FreeRTOS MatrixOSFramework DeviceInterface MatrixOSDevice)
 
 # MatrixOS umbrella target with main.cpp
 add_library(MatrixOS main.cpp

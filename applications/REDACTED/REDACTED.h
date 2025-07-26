@@ -1,12 +1,18 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "applications/Application.h"
+#include "Application.h"
 
 class REDACTED : public Application  // ᗜˬᗜ
 {
  public:
-  static Application_Info info;
+  inline static Application_Info info = {
+      .name = "REDACTED",
+      .author = "203 Systems",
+      .color = Color(0xFFFFFF),
+      .version = 1,
+      .visibility = false,
+  };
   void Setup() override;
   void Loop() override;
   void End() override;
@@ -1038,12 +1044,4 @@ class REDACTED : public Application  // ᗜˬᗜ
       187, 62,  185, 187, 34,  40,  52,  31,  57,  59};
 };
 
-inline Application_Info REDACTED::info = {
-    .name = "REDACTED",
-    .author = "203 Systems",
-    .color = Color(0xFFFFFF),
-    .version = 1,
-    .visibility = false,
-};
 
-REGISTER_APPLICATION(REDACTED);

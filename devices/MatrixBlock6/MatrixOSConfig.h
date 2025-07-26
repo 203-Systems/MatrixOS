@@ -2,9 +2,11 @@
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
 
+#define OS_SHELL APPID("203 Systems", "Shell")
+#define DEFAULT_BOOTANIMATION APPID("203 Systems", "Mystrix Boot")
+
 namespace Device
 {
-
   // Matrix OS required
   inline string name = "Mystrix";
   inline string model = "MX1S";
@@ -25,8 +27,8 @@ namespace Device
   };
 
   // MatrixOS required dimensions
-  uint8_t x_size = 8;
-  uint8_t y_size = 8;
+  inline uint8_t x_size = 8;
+  inline uint8_t y_size = 8;
 
   namespace LED
   {

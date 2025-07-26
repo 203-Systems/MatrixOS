@@ -1,0 +1,31 @@
+# MatrixBlock6 Applications List
+# Format: 
+#   FolderName:HeaderFileName  - includes subdirectory AND generates in Applications.h
+#   FolderName                 - includes subdirectory only (no Applications.h entry)
+# If an application is not listed here, it will be disabled
+# Use # for comments and empty lines are allowed
+
+# Device UI (subdirectory only, no header generation)
+BrightnessControl
+
+# System App
+Shell:Shell
+Performance:Performance
+Note:Note
+REDACTED:REDACTED
+Companion:Companion
+CustomControlMap:CustomControlMap
+
+# User Apps
+Lighting:Lighting
+Dice:Dice
+Reversi:Reversi
+PolyPlayground:PolyPlayground
+Strum:Strum
+
+# Boot animation
+Mystrix/MystrixBoot:MystrixBoot
+
+# Device-specific applications
+Mystrix/FactoryMenu:FactoryMenu
+Mystrix/ForceCalibration:ForceCalibration
