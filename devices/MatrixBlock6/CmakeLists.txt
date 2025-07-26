@@ -20,20 +20,18 @@ endif()
 
 include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 
-set(EXTRA_COMPONENT_DIRS ${FAMILY_PATH})
-
 idf_build_process("${IDF_TARGET}"
-    COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp
     SDKCONFIG ${SDKCONFIG_PATH}
     SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
+    COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp bt console
 )
 
 set(DCMAKE_TOOLCHAIN_FILE ${DCMAKE_TOOLCHAIN_FILE}) # Suppress variable not used warning
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# idf_build_set_property(COMPILE_OPTIONS "-Wno-maybe-uninitialized" APPEND)
-# idf_build_set_property(COMPILE_OPTIONS "-fdiagnostics-color=always" APPEND)
+idf_build_set_property(COMPILE_OPTIONS "-Wno-maybe-uninitialized" APPEND)
+idf_build_set_property(COMPILE_OPTIONS "-fdiagnostics-color=always" APPEND)
 
 idf_component_get_property(FREERTOS_INC freertos ORIG_INCLUDE_PATH)
 
@@ -74,10 +72,15 @@ target_compile_options(MatrixOSDevice PUBLIC
     "-DESP_PLATFORM=1"
 )
 
+# Add Platform ESP32SX libraries
+add_subdirectory(${CMAKE_SOURCE_DIR}/Platform/ESP32SX/WS2812 ${CMAKE_BINARY_DIR}/Platform/ESP32SX/WS2812)
+add_subdirectory(${CMAKE_SOURCE_DIR}/Platform/ESP32SX/blemidi ${CMAKE_BINARY_DIR}/Platform/ESP32SX/blemidi)
 
 target_link_libraries(MatrixOSDevice PUBLIC 
     DeviceInterface
     MatrixOSFramework
+    WS2812
+    BLEMidi
     idf::freertos 
     idf::esp_common
     idf::esp_system
@@ -91,7 +94,6 @@ target_link_libraries(MatrixOSDevice PUBLIC
     idf::esp_adc
     idf::ulp
 )
-
 
 # ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
 

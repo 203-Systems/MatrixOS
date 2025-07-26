@@ -15,13 +15,13 @@ void BrightnessControl::Start() {
 
   
   // Brightness Control
-  threshold = Device::led_brightness_level[sizeof(Device::led_brightness_level) / sizeof(Device::led_brightness_level[0]) - 1]; //Get the last element
+  threshold = Device::LED::brightness_level[sizeof(Device::LED::brightness_level) / sizeof(Device::LED::brightness_level[0]) - 1]; //Get the last element
 #ifndef FINE_LED_BRIGHTNESS
-  map = Device::led_brightness_level;
-  map_length = sizeof(Device::led_brightness_level) / sizeof(Device::led_brightness_level[0]);
+  map = Device::LED::brightness_level;
+  map_length = sizeof(Device::LED::brightness_level) / sizeof(Device::LED::brightness_level[0]);
 #else
-  map = Device::led_brightness_fine_level;
-  map_length = sizeof(Device::led_brightness_fine_level) / sizeof(Device::led_brightness_fine_level[0]);
+  map = Device::LED::brightness_fine_level;
+  map_length = sizeof(Device::LED::brightness_fine_level) / sizeof(Device::LED::brightness_fine_level[0]);
 #endif
 
   
@@ -79,7 +79,7 @@ void BrightnessControl::Start() {
   multiplierSelector.SetCount(ledBrightnessMultiplier.size());
   multiplierSelector.SetItems(ledBrightnessMultiplier.data());
   multiplierSelector.OnChange([&](float value) -> void {
-    MatrixOS::LED::SetBrightnessMultiplier(Device::led_partitions[ledPartitionSelected].name, value);
+    MatrixOS::LED::SetBrightnessMultiplier(Device::LED::partitions[ledPartitionSelected].name, value);
   });
   
   multiplierSelector.SetEnabled(false);
@@ -89,8 +89,8 @@ void BrightnessControl::Start() {
   ledPartitionSelector.SetName("LED Partition Selector");
   ledPartitionSelector.SetValuePointer(&ledPartitionSelected);
   ledPartitionSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return index == 0 ? GLOBAL_BRIGHTNESS_COLOR : PARTITION_BRIGHTNESS_COLOR; });
-  ledPartitionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return index == 0 ? "Global" : Device::led_partitions[index].name; });
-  ledPartitionSelector.SetDimension(Dimension(Device::led_partitions.size(), 1));
+  ledPartitionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return index == 0 ? "Global" : Device::LED::partitions[index].name; });
+  ledPartitionSelector.SetDimension(Dimension(Device::LED::partitions.size(), 1));
   ledPartitionSelector.OnChange([&](uint16_t ledPartitionSelected) -> void {
     MatrixOS::LED::Fill(0);
     if(ledPartitionSelected == 0)
@@ -112,10 +112,10 @@ void BrightnessControl::Start() {
       multiplierDisplay.SetEnabled(true);
       multiplierSelector.SetEnabled(true);
 
-      MatrixOS::LED::FillPartition(Device::led_partitions[ledPartitionSelected].name, PARTITION_BRIGHTNESS_COLOR);
+      MatrixOS::LED::FillPartition(Device::LED::partitions[ledPartitionSelected].name, PARTITION_BRIGHTNESS_COLOR);
     }
   });
-  ledPartitionSelector.SetEnabled(Device::led_partitions.size() > 1);
+  ledPartitionSelector.SetEnabled(Device::LED::partitions.size() > 1);
   AddUIComponent(ledPartitionSelector, origin + Point(-3, 4 - brightnessSelectorDimension.y));
 
 

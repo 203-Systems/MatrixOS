@@ -38,6 +38,6 @@ namespace WS2812
 {
   inline bool dithering = true;
   inline uint8_t dithering_threshold = 4; // Channel value lower than this will not dither
-  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& led_partitions);
-  IRAM_ATTR void Show(Color* buffer, std::vector<uint8_t>& brightness);
+  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& partitions);
+  void Show(Color* buffer, std::vector<uint8_t>& brightness);
 }

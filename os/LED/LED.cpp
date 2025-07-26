@@ -47,7 +47,7 @@ namespace MatrixOS::LED
   }
 
   void UpdateBrightness() {
-    for (uint8_t i = 0; i < Device::LED::led_partitions.size(); i++)
+    for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
       float brightness_multiplied = ledBrightnessMultiplier[i] * MatrixOS::UserVar::brightness;
 
@@ -64,7 +64,7 @@ namespace MatrixOS::LED
         ledPartitionBrightness[i] = (uint8_t)brightness_multiplied;
       }
 
-      // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::LED::led_partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplier[i], brightness_multiplied);
+      // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::LED::partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplier[i], brightness_multiplied);
     }
   }
 
@@ -80,13 +80,13 @@ namespace MatrixOS::LED
     frameBuffers.clear();
     
     // Generate brightness level map
-    ledBrightnessMultiplier.resize(Device::LED::led_partitions.size());
-    ledPartitionBrightness.resize(Device::LED::led_partitions.size());
-    for (uint8_t i = 0; i < Device::LED::led_partitions.size(); i++)
+    ledBrightnessMultiplier.resize(Device::LED::partitions.size());
+    ledPartitionBrightness.resize(Device::LED::partitions.size());
+    for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
-      ledBrightnessMultiplier[i] = Device::LED::led_partitions[i].default_multiplier;
-      MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplier_" + Device::LED::led_partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
-      led_count += Device::LED::led_partitions[i].size;
+      ledBrightnessMultiplier[i] = Device::LED::partitions[i].default_multiplier;
+      MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplier_" + Device::LED::partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
+      led_count += Device::LED::partitions[i].size;
     }
 
     UpdateBrightness();
@@ -110,7 +110,7 @@ namespace MatrixOS::LED
   void NextBrightness() {
     MLOGD("LED", "Next Brightness");
     MLOGD("LED", "Current Brightness %d", UserVar::brightness.value);
-    for (uint8_t new_brightness : Device::led_brightness_level)
+    for (uint8_t new_brightness : Device::LED::brightness_level)
     {
       MLOGD("LED", "Check Brightness Level  %d", new_brightness);
       if (new_brightness > UserVar::brightness)
@@ -121,7 +121,7 @@ namespace MatrixOS::LED
       }
     }
     MLOGD("LED", "Lowest Level Selected");
-    SetBrightness(Device::led_brightness_level[0]);
+    SetBrightness(Device::LED::brightness_level[0]);
   }
 
   void SetBrightness(uint8_t brightness) {
@@ -131,9 +131,9 @@ namespace MatrixOS::LED
   }
 
   void SetBrightnessMultiplier(string partition_name, float multiplier) {
-    for (uint8_t i = 0; i < Device::LED::led_partitions.size(); i++)
+    for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
-      if (Device::LED::led_partitions[i].name == partition_name)
+      if (Device::LED::partitions[i].name == partition_name)
       {
 
         if (i == 0 && multiplier < 0.1)
@@ -241,12 +241,12 @@ namespace MatrixOS::LED
     uint16_t start = 0;
     uint16_t end = 0;
 
-    for (uint8_t i = 0; i < Device::LED::led_partitions.size(); i++)
+    for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
-      if (Device::LED::led_partitions[i].name == partition)
+      if (Device::LED::partitions[i].name == partition)
       {
-        start = Device::LED::led_partitions[i].start;
-        end = start + Device::LED::led_partitions[i].size;
+        start = Device::LED::partitions[i].start;
+        end = start + Device::LED::partitions[i].size;
         break;
       }
     }

@@ -42,7 +42,7 @@
 #include "nvs_flash.h"
 #include "esp_bt.h"
 
-#include "blemidi.h"
+#include "BLEMidi.h"
 
 #if BLEMIDI_ENABLE_CONSOLE
 #include "esp_console.h"

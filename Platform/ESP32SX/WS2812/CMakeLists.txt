@@ -1,8 +1,15 @@
-set(component_srcs "WS2812.cpp")
+file(GLOB_RECURSE WS2812_SOURCES "*.cpp" "*.c")
+file(GLOB_RECURSE WS2812_HEADERS "*.h")
 
-idf_component_register(SRCS "${component_srcs}"
-                       INCLUDE_DIRS "." "${CMAKE_SOURCE_DIR}/os" #Uses Matrix OS Framework
-                       PRIV_INCLUDE_DIRS ""
-                       PRIV_REQUIRES "driver"
-                       REQUIRES)
+add_library(WS2812 ${WS2812_SOURCES} ${WS2812_HEADERS})
+
+target_include_directories(WS2812 PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/os
+)
+
+target_link_libraries(WS2812 PUBLIC
+    idf::driver
+    MatrixOSFramework
+)
 

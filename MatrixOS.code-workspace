@@ -130,7 +130,8 @@
 			"semaphore": "cpp",
 			"ulp_riscv_adc_ulp_core.h": "c",
 			"shell.h": "c",
-			"performance.h": "c"
+			"performance.h": "c",
+			"blemidi.h": "c"
 		}
 	}
 }

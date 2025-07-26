@@ -7,7 +7,7 @@ namespace Device
   namespace LED
   {
     void Init() {
-      WS2812::Init(led_pin, led_partitions);
+      WS2812::Init(led_pin, partitions);
     }
 
     void Start() {}
@@ -64,7 +64,7 @@ namespace Device
       switch (ledClass)
       {
         case 0:
-          if (ledID < led_count)
+          if (ledID < LED::count)
             return ledID;
           break;
         case 3:   // Underglow

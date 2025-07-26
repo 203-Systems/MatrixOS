@@ -14,12 +14,10 @@ namespace Device
   */
 
   extern string name;
-  extern uint16_t led_count;
   extern uint8_t x_size;
   extern uint8_t y_size;
   extern string serial_number;
-  extern uint8_t led_brightness_level[];
-  extern uint8_t led_brightness_fine_level[];
+
 
   void DeviceInit();
   void DeviceStart();
@@ -35,8 +33,12 @@ namespace Device
 
   namespace LED
   {
-    extern vector<LEDPartition> led_partitions;
     extern const uint16_t fps;
+    extern uint16_t count;
+    extern uint8_t brightness_level[];
+    extern uint8_t brightness_fine_level[];
+
+    extern vector<LEDPartition> partitions;
 
     void Update(Color* frameBuffer, vector<uint8_t>& brightness);  // Render LED
     uint16_t XY2Index(Point xy);        // Grid XY to global buffer index, return UINT16_MAX if not index for given XY

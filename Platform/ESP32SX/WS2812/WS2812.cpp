@@ -9,7 +9,7 @@ namespace WS2812
 
   #define RMT_LED_STRIP_RESOLUTION_HZ 10000000
 
-  std::vector<LEDPartition>* led_partitions;
+  std::vector<LEDPartition>* partitions;
 
   uint8_t* dither_error;
   uint8_t* led_data;
@@ -33,7 +33,7 @@ namespace WS2812
           },
   };
 
-  IRAM_ATTR static size_t rmt_encode_led(rmt_encoder_t *rmt_encoder, rmt_channel_handle_t channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state) {
+  static size_t rmt_encode_led(rmt_encoder_t *rmt_encoder, rmt_channel_handle_t channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state) {
     rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
     rmt_encoder_handle_t bytes_encoder = led_encoder->bytes_encoder;
     rmt_encoder_handle_t copy_encoder = led_encoder->copy_encoder;
@@ -114,14 +114,14 @@ namespace WS2812
     return ESP_OK;
   }
 
-  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& led_partitions) {
+  void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& partitions) {
 
     WS2812::numsOfLED = 0;
-    WS2812::led_partitions = &led_partitions;
+    WS2812::partitions = &partitions;
 
-    for (uint8_t partition_index = 0; partition_index < led_partitions.size(); partition_index++)
+    for (uint8_t partition_index = 0; partition_index < partitions.size(); partition_index++)
     {
-      numsOfLED += led_partitions[partition_index].size;
+      numsOfLED += partitions[partition_index].size;
     }
 
     led_data = (uint8_t*)malloc(numsOfLED * 3);
@@ -153,9 +153,9 @@ namespace WS2812
     // rmt_tx_wait_all_done(rmt_channel, portMAX_DELAY);
     // TODO: IF rmt is busy, just skip
     
-    for (uint8_t partition_index = 0; partition_index < WS2812::led_partitions->size(); partition_index++)
+    for (uint8_t partition_index = 0; partition_index < WS2812::partitions->size(); partition_index++)
     {
-      LEDPartition local_partition = WS2812::led_partitions->at(partition_index);
+      LEDPartition local_partition = WS2812::partitions->at(partition_index);
 
       if (brightness[partition_index] == 0 || partition_index >= brightness.size()) {
         memset(led_data + local_partition.start * 3, 0, local_partition.size * 3);
@@ -164,7 +164,7 @@ namespace WS2812
 
       uint8_t local_brightness = brightness[partition_index];
 
-      for (uint16_t i = 0; i < WS2812::led_partitions->at(partition_index).size; i++)
+      for (uint16_t i = 0; i < WS2812::partitions->at(partition_index).size; i++)
       {
         uint16_t buffer_index = local_partition.start + i;
         uint16_t data_index_g = buffer_index * 3;

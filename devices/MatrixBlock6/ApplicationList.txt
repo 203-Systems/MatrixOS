@@ -6,6 +6,7 @@
 # Use # for comments and empty lines are allowed
 
 # Device UI (subdirectory only, no header generation)
+Setting
 BrightnessControl
 
 # System App

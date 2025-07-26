@@ -34,8 +34,8 @@ namespace Device
     else if(deviceInfo.Model[3] == 'S')
     {
       KeyPad::velocity_sensitivity = false;
-      // Remove "Underglow" from led_partitions
-      led_partitions.pop_back();
+      // Remove "Underglow" from partitions
+      LED::partitions.pop_back();
     }
     else
     { 
