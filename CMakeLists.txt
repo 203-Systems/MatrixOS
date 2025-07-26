@@ -82,7 +82,6 @@ else()
     message( FATAL_ERROR "MODE is not defined" )
 endif()
 
-# include(${FAMILY_PATH}/family.cmake)
 add_subdirectory(Devices)
 add_subdirectory(os)
 add_subdirectory(${FAMILY_PATH})

@@ -30,6 +30,11 @@
 extern "C" {
 #endif
 
+// Remove later
+#ifndef ESP_PLATFORM
+#define ESP_PLATFORM 1
+#endif
+
 //--------------------------------------------------------------------
 // COMMON CONFIGURATION
 //--------------------------------------------------------------------

@@ -10,6 +10,8 @@
 #include "esp_adc/adc_oneshot.h"
 #include "driver/gpio.h"
 
+#define ESP_PLATFORM 1
+
 // Family-specific defines
 #define GRID_TYPE_8x8
 #define FAMILY_MYSTRIX

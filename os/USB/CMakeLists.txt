@@ -37,8 +37,4 @@ target_include_directories(MatrixOSUSB PUBLIC
     ${CMAKE_SOURCE_DIR}/Library/printf/src
 )
 
-target_compile_options(MatrixOSUSB PUBLIC
-  "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"
-)
-
 target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface) 

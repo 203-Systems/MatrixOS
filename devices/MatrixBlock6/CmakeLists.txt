@@ -23,7 +23,7 @@ include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 set(EXTRA_COMPONENT_DIRS ${FAMILY_PATH})
 
 idf_build_process("${IDF_TARGET}"
-    COMPONENTS esptool_py freertos efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp
+    COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp
     SDKCONFIG ${SDKCONFIG_PATH}
     SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
 )
@@ -49,7 +49,6 @@ file(GLOB_RECURSE DEVICE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Family.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix/Device.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ULP/*.c"
 )
 
 file(GLOB_RECURSE DEVICE_HEADERS
@@ -69,12 +68,19 @@ target_include_directories(MatrixOSDevice PUBLIC
     ${CMAKE_SOURCE_DIR}/core/ESP32SX
 )
 
+string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
+target_compile_options(MatrixOSDevice PUBLIC
+    "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"
+    "-DESP_PLATFORM=1"
+)
+
 target_link_libraries(MatrixOSDevice PUBLIC 
     DeviceInterface
     MatrixOSFramework
     idf::freertos 
     idf::esp_common
     idf::esp_system
+    idf::usb
     idf::efuse
     idf::esp_driver_gpio
     idf::esp_driver_uart
@@ -85,25 +91,8 @@ target_link_libraries(MatrixOSDevice PUBLIC
     idf::ulp
 )
 
+# ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
 
-
-# string(TOUPPER "${IDF_TARGET}" TINYUSB_MCU_OPT)
-
-
-
-# add_library(MystrixBlock6Family
-#     ${DEVICE_FAMILY_HEADERS}
-#     ${DEVICE_FAMILY_SOURCES}
-# )
-
-# target_link_libraries(MystrixBlock6Family PUBLIC DeviceInterface MatrixOSInterface)
-
-# add_executable(${CMAKE_PROJECT_NAME} main.cpp)
-# 
-# idf_build_executable(${CMAKE_PROJECT_NAME})
-
-# file(GLOB_RECURSE DEVICE_FAMILY_HEADERS "*.h")
-# file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
 
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
 add_library(${elf_file} Family.cpp)

@@ -1,10 +1,5 @@
 #pragma once
 
-// Define missing FreeRTOS trace macros to avoid compilation errors
-#ifndef traceISR_EXIT_TO_SCHEDULER
-#define traceISR_EXIT_TO_SCHEDULER()
-#endif
-
 #include "tusb.h"
 
 #define USB_MIDI_COUNT 2
