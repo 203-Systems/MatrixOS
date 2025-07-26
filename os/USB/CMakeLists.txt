@@ -23,18 +23,35 @@ set(TINYUSB_SOURCES
     ${TINYUSB_DIR}/src/class/vendor/vendor_device.c
 )
 
+# if(TINYUSB_MCU_OPT STREQUAL "ESP32S3" OR TINYUSB_MCU_OPT STREQUAL "ESP32S2")
+    list(APPEND TINYUSB_SOURCES "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c" )
+# endif()
+
+set(PRINTF_DIR ${CMAKE_SOURCE_DIR}/Library/printf/)
+
+set(PRINTF_SOURCES
+    ${PRINTF_DIR}/src/printf/printf.c
+)
 
 add_library(MatrixOSUSB
     ${USB_HEADERS}
     ${USB_SOURCES}
     ${TINYUSB_SOURCES}
+    ${PRINTF_SOURCES}
 )
 
 target_include_directories(MatrixOSUSB PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/TinyUSB
     ${TINYUSB_DIR}/src
-    ${CMAKE_SOURCE_DIR}/Library/printf/src
+    ${PRINTF_DIR}/src
+    ${PRINTF_DIR}/src/printf
 )
+
+# target_compile_options(MatrixOSUSB PUBLIC
+#     "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"  
+# )
+
+message(STATUS "TINYUSB_MCU_OPT: ${TINYUSB_MCU_OPT}")
 
 target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface) 

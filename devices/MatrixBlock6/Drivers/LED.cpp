@@ -1,5 +1,5 @@
 #include "Family.h"
-
+#include "MatrixOSConfig.h"
 #include "WS2812/WS2812.h"
 
 namespace Device

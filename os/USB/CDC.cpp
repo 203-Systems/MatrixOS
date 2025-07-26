@@ -1,6 +1,6 @@
 #include "MatrixOS.h"
 #include "USB.h"
-#include "printf/printf.h"
+#include "printf.h"
 
 namespace MatrixOS::USB::CDC
 {
