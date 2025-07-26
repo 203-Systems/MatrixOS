@@ -21,8 +21,6 @@ idf_build_process("${IDF_TARGET}"
     COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp bt console
 )
 
-set(DCMAKE_TOOLCHAIN_FILE ${DCMAKE_TOOLCHAIN_FILE}) # Suppress variable not used warning
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 idf_build_set_property(COMPILE_OPTIONS "-Wno-maybe-uninitialized" APPEND)
