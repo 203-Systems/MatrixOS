@@ -1,4 +1,4 @@
-# MatrixBlock6 Applications List
+# MatrixESP32 Applications List
 # Format: 
 #   FolderName:HeaderFileName  - includes subdirectory AND generates in Applications.h
 #   FolderName                 - includes subdirectory only (no Applications.h entry)

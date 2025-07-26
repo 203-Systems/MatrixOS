@@ -37,3 +37,4 @@ build/
 *.out
 *.app
 log.txt
+.last_config
