@@ -1,19 +1,11 @@
 MCU = esp32s3
 UF2_FAMILY_ID = 0xc47e5767
 
--include $(FAMILY_PATH)/Variants/$(DEVICE)/Device.mk
-
-.PHONY: clean flash bootloader-flash app-flash erase monitor dfu-flash dfu
+.PHONY: flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
 build:
 	cmake -B $(BUILD) . -DCMAKE_TOOLCHAIN_FILE=$(IDF_PATH)/tools/cmake/toolchain-${MCU}.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
 	cmake --build $(BUILD)
-
-clean:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) clean
-	
-fullclean:
-	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) fullclean
 
 flash bootloader-flash app-flash erase monitor dfu-flash dfu:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $@

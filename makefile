@@ -5,16 +5,9 @@ PROJECT := MatrixOS
 # Remember last used DEVICE and MODE
 LAST_CONFIG_FILE := .last_config
 
-$(info Checking for config file: $(LAST_CONFIG_FILE))
-$(info Wildcard result: $(wildcard $(LAST_CONFIG_FILE)))
-
 # Load last config if it exists
 ifneq ($(wildcard $(LAST_CONFIG_FILE)),)
-  $(info Config file exists, including it...)
   include $(LAST_CONFIG_FILE)
-  $(info After include: LAST_DEVICE=$(LAST_DEVICE) LAST_MODE=$(LAST_MODE))
-else
-  $(info Config file does not exist)
 endif
 
 # Use provided DEVICE or fall back to last used
@@ -56,25 +49,40 @@ BUILD := build/$(DEVICE)
 
 include $(FAMILY_PATH)/family.mk
 
-# Save current values for next time
-$(shell echo LAST_DEVICE := $(DEVICE) > $(LAST_CONFIG_FILE))
-$(shell echo LAST_MODE := $(MODE) >> $(LAST_CONFIG_FILE))
+.PHONY: all build build-dev build-release build-beta build-rc build-nightly clean fullclean
 
-.PHONY: all build build-dev build-release build-beta build-rc build-nightly
+all: save-config build
 
-all: build
+# Save config before building
+save-config:
+	@echo LAST_DEVICE := $(DEVICE) > $(LAST_CONFIG_FILE)
+	@echo LAST_MODE := $(MODE) >> $(LAST_CONFIG_FILE)
 
 build-dev:
-	$(MAKE) MODE=DEVELOPMENT build
+	$(MAKE) MODE=DEVELOPMENT save-config build
 
 build-release:
-	$(MAKE) MODE=RELEASE build
+	$(MAKE) MODE=RELEASE save-config build
 
 build-beta:
-	$(MAKE) MODE=BETA build
+	$(MAKE) MODE=BETA save-config build
 
 build-rc:
-	$(MAKE) MODE=RELEASECANDIDATE build
+	$(MAKE) MODE=RELEASECANDIDATE save-config build
 
 build-nightly:
-	$(MAKE) MODE=NIGHTLY build
+	$(MAKE) MODE=NIGHTLY save-config build
+
+clean:
+ifeq ($(OS),Windows_NT)
+	if exist "$(BUILD)" rmdir /s /q "$(BUILD)"
+else
+	rm -rf $(BUILD)
+endif
+
+fullclean:
+ifeq ($(OS),Windows_NT)
+	if exist "build" rmdir /s /q "build"
+else
+	rm -rf build
+endif
