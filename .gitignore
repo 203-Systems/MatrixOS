@@ -1,6 +1,4 @@
-.vs/
-.vscode/
-.VSCodeCounter/
+.*/
 build/
 
 # Prerequisites

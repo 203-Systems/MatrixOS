@@ -34,6 +34,7 @@ target_include_directories(MatrixOSUSB PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/TinyUSB
     ${TINYUSB_DIR}/src
+    ${CMAKE_SOURCE_DIR}/Library/printf/src
 )
 
 target_compile_options(MatrixOSUSB PUBLIC

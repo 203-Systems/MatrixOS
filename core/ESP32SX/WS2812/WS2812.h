@@ -3,10 +3,9 @@
 #include <stdint.h>
 #include <vector>
 #include <cstring>
+#include "Framework.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_encoder.h"
-#include "framework/Color.h"
-#include "framework/LEDPartition.h"
 #include "esp_check.h"
 #include "esp_attr.h"
 #include "esp_log.h"

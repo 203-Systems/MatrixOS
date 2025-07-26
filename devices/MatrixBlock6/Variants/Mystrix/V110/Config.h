@@ -44,7 +44,9 @@ namespace V110
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
 }
 
-void Device::LoadV110() {
+namespace Device
+{
+inline void LoadV110() {
   ESP_LOGI("Device Init", "Mystrix Pro V110 Config Loaded");
   LED::led_pin = V110::LED_Pin;
 
@@ -72,4 +74,5 @@ void Device::LoadV110() {
   KeyPad::touchClock_Pin = V110::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
-};
+}
+}

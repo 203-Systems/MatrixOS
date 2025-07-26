@@ -1,6 +1,8 @@
 // Define Device Specific Function
-#include "Device.h"
+#include "Family.h"
+#include "MatrixOSConfig.h"
 #include "esp_adc/adc_oneshot.h"
+#include "esp_log.h"
 
 // Device Configs
 #include "V100/Config.h"

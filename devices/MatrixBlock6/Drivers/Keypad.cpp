@@ -1,7 +1,8 @@
 // Define Device Keypad Function
-#include "Device.h"
+#include "Family.h"
 #include "timers.h"
 #include "driver/gpio.h"
+#include "MatrixOSConfig.h"
 
 namespace Device::KeyPad
 {

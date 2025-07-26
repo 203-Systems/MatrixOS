@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "USB.h"
 
 // Invoked when sent REPORT successfully to host
 // Application can use this to send the next report

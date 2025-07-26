@@ -1,4 +1,4 @@
-#include "Device.h"
+#include "Family.h"
 #include "MatrixOS.h"
 #include "ui/UI.h"
 
@@ -15,21 +15,15 @@ namespace Device
   }
 
   void DeviceInit() {
-    // esp_timer_early_init();
     LoadDeviceInfo();
     gpio_install_isr_service(0);
     USB::Init();
     NVS::Init();
     LED::Init();
     KeyPad::Init();
-    
 
     HWMidi::Init();
     BLEMIDI::Init(name);
-
-    // WIFI::Init();
-    // ESPNOW::Init();
-    // ESPNOW::BroadcastMac();
   }
 
   void DeviceStart() {
@@ -165,25 +159,18 @@ namespace Device
       uint32_t packets = 0;
       if (BLEMIDI::started)
       { packets += BLEMIDI::MidiAvailable(); }
-      if (ESPNOW::started)
-      { packets += ESPNOW::MidiAvailable(); }
-      packets += ESPNOW::MidiAvailable();
       return packets;
     }
 
     MidiPacket Get() {
       if (BLEMIDI::started && BLEMIDI::MidiAvailable())
       { return BLEMIDI::GetMidi(); }
-      if (ESPNOW::started && ESPNOW::MidiAvailable())
-      { return ESPNOW::GetMidi(); }
       return MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, None);
     }
 
     bool Send(MidiPacket packet) {
       if (BLEMIDI::started)
       { BLEMIDI::SendMidi(packet.data); }
-      if (ESPNOW::started)
-      { ESPNOW::SendMidi(packet.data); }
       return true;  // idk what bool should mean in a multi port situation. Leave it be for now
     }
   }

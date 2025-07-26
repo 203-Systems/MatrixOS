@@ -1,4 +1,6 @@
 #include "MatrixOS.h"
+#include "USB.h"
+
 #define NKRO_KEY_COUNT (8*13)
 
 typedef union __attribute__((packed, aligned(1))) {

@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "USB.h"
 
 typedef struct {
 	// 32 Buttons, 6 Axis, 2 D-Pads

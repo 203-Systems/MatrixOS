@@ -1,5 +1,6 @@
 #include "MatrixOS.h"
-#include "framework/CommandSpecs.h"
+#include "USB.h"
+#include "Commands/CommandSpecs.h"
 #include "message_buffer.h"
 
 namespace MatrixOS::HID::RawHID

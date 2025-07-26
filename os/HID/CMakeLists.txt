@@ -6,4 +6,4 @@ add_library(MatrixOSHID
     ${HID_SOURCES}
 )
 
-target_link_libraries(MatrixOSHID PUBLIC MatrixOSInterface)
+target_link_libraries(MatrixOSHID PUBLIC MatrixOSInterface MatrixOSUSB)

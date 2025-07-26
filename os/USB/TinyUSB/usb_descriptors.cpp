@@ -1,4 +1,4 @@
-#include "tusb.h"
+#include "../USB.h"
 
 /*
  * The MIT License (MIT)
@@ -25,7 +25,7 @@
  *
  */
 
-#include "tusb.h"
+#include "../USB.h"
 #include "MatrixOS.h"
 
 //--------------------------------------------------------------------+

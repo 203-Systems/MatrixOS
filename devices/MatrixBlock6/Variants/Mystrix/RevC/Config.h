@@ -44,7 +44,9 @@ namespace REVC
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
 }
 
-void Device::LoadRevC() {
+namespace Device
+{
+inline void LoadRevC() {
   ESP_LOGI("Device Init", "Mystrix Rev C Config Loaded");
   LED::led_pin = REVC::LED_Pin;
 
@@ -72,4 +74,5 @@ void Device::LoadRevC() {
   KeyPad::touchClock_Pin = REVC::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
-};
+}
+}

@@ -23,10 +23,9 @@ include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 set(EXTRA_COMPONENT_DIRS ${FAMILY_PATH})
 
 idf_build_process("${IDF_TARGET}"
-    COMPONENTS freertos  esptool_py
+    COMPONENTS esptool_py freertos efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp
     SDKCONFIG ${SDKCONFIG_PATH}
     SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
-    # BUILD_DIR ${BUILD_DIR}
 )
 
 set(DCMAKE_TOOLCHAIN_FILE ${DCMAKE_TOOLCHAIN_FILE}) # Suppress variable not used warning
@@ -45,10 +44,45 @@ target_include_directories(FreeRTOS INTERFACE
     ${FREERTOS_INC}/config/include/freertos
 )
 
-add_library(MatrixOSDevice PUBLIC)
-target_link_libraries(MatrixOSDevice PUBLIC DeviceInterface)
-target_include_directories(MatrixOSDevice PUBLIC
-    
+# Collect all device source files
+file(GLOB_RECURSE DEVICE_SOURCES 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Family.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix/Device.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ULP/*.c"
+)
+
+file(GLOB_RECURSE DEVICE_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix/*.h"
+)
+
+add_library(MatrixOSDevice
+    ${DEVICE_SOURCES}
+    ${DEVICE_HEADERS}
+)
+
+target_include_directories(MatrixOSDevice PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix
+    ${CMAKE_SOURCE_DIR}/core/ESP32SX
+)
+
+target_link_libraries(MatrixOSDevice PUBLIC 
+    DeviceInterface
+    MatrixOSFramework
+    idf::freertos 
+    idf::esp_common
+    idf::esp_system
+    idf::efuse
+    idf::esp_driver_gpio
+    idf::esp_driver_uart
+    idf::nvs_flash
+    idf::esp_wifi
+    idf::esp_netif
+    idf::esp_adc
+    idf::ulp
 )
 
 
@@ -72,6 +106,8 @@ target_include_directories(MatrixOSDevice PUBLIC
 # file(GLOB_RECURSE DEVICE_FAMILY_SOURCES "*.cpp" "*.c")
 
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
-add_library(${elf_file} family.cpp)
-target_link_libraries(${elf_file} idf::freertos MatrixOS)
+add_library(${elf_file} Family.cpp)
+target_link_libraries(${elf_file} 
+    MatrixOS
+)
 idf_build_executable(${elf_file})

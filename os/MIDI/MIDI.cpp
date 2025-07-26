@@ -1,6 +1,6 @@
 #include "MatrixOS.h"
 #include <map>
-#include "framework/CommandSpecs.h"
+#include "Commands/CommandSpecs.h"
 
 // TODO Put this in device layer
 const uint8_t SYSEX_MFG_ID[3] = {0x00, 0x02, 0x03};
