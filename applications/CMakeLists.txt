@@ -20,7 +20,7 @@ set(APPLICATION_LIST_FILE "${FAMILY_PATH}/ApplicationList.txt")
 # Function to add enabled application subdirectories
 function(add_enabled_applications CONFIG_FILE)
     if(NOT EXISTS ${CONFIG_FILE})
-        message(WARNING "Application list file not found: ${CONFIG_FILE}")
+        message(WARNING "Application list file not found at ${CONFIG_FILE}")
         return()
     endif()
     
@@ -134,14 +134,30 @@ function(generate_applications_header OUTPUT_FILE)
     
     # Write the header file
     file(WRITE ${OUTPUT_FILE} ${HEADER_CONTENT})
-    message(STATUS "Generated Applications.h at: ${OUTPUT_FILE}")
 endfunction()
 
-# Generate the Applications.h file in build directory
+# Generate the Applications.h file in build directory (only if ApplicationList.txt is newer)
 set(GENERATED_DIR "${CMAKE_BINARY_DIR}/generated/applications")
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 set(APPLICATIONS_HEADER_FILE "${GENERATED_DIR}/Applications.h")
-generate_applications_header(${APPLICATIONS_HEADER_FILE})
+
+# Check if Applications.h needs to be regenerated
+set(NEED_REGENERATE FALSE)
+if(NOT EXISTS ${APPLICATIONS_HEADER_FILE})
+    set(NEED_REGENERATE TRUE)
+    message(STATUS "Applications.h does not exist, generating...")
+else()
+    if(${APPLICATION_LIST_FILE} IS_NEWER_THAN ${APPLICATIONS_HEADER_FILE})
+        set(NEED_REGENERATE TRUE)
+        message(STATUS "ApplicationList.txt modified. Updating Applications.h...")
+    else()
+        message(STATUS "Applications.h is up to date, skipping generation")
+    endif()
+endif()
+
+if(NEED_REGENERATE)
+    generate_applications_header(${APPLICATIONS_HEADER_FILE})
+endif()
 
 add_library(MatrixOSApps INTERFACE)
 target_include_directories(MatrixOSApps INTERFACE 
