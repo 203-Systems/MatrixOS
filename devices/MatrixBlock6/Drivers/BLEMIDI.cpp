@@ -30,13 +30,6 @@ namespace Device
       }
     }
 
-    void Toggle() {
-      if (started == false)
-      { Start(); }
-      else
-      { Stop(); }
-    }
-
     void Init(string name) {
       BLEMIDI::name = name;
     }

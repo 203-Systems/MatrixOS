@@ -82,8 +82,17 @@ namespace Device
       return Color(0x0082fc).DimIfNot(Device::BLEMIDI::started);
     });
     bluetoothToggle.OnPress([&]() -> void {
-      Device::BLEMIDI::Toggle();
-      Device::bluetooth = Device::BLEMIDI::started;
+
+      if (Device::BLEMIDI::started)
+      {
+        Device::BLEMIDI::Stop();
+        Device::bluetooth = false;
+      }
+      else
+      {
+        Device::BLEMIDI::Start();
+        Device::bluetooth = true;
+      }
     });
     bluetoothToggle.OnHold([&]() -> void {
       MatrixOS::UIUtility::TextScroll(bluetoothToggle.name + " " + (Device::BLEMIDI::started ? "Enabled" : "Disabled"), bluetoothToggle.GetColor());
@@ -152,28 +161,6 @@ namespace Device
   }
 
   void ErrorHandler() {}
-
-  namespace MIDI
-  {
-    uint32_t Available() {
-      uint32_t packets = 0;
-      if (BLEMIDI::started)
-      { packets += BLEMIDI::MidiAvailable(); }
-      return packets;
-    }
-
-    MidiPacket Get() {
-      if (BLEMIDI::started && BLEMIDI::MidiAvailable())
-      { return BLEMIDI::GetMidi(); }
-      return MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, None);
-    }
-
-    bool Send(MidiPacket packet) {
-      if (BLEMIDI::started)
-      { BLEMIDI::SendMidi(packet.data); }
-      return true;  // idk what bool should mean in a multi port situation. Leave it be for now
-    }
-  }
 }
 
 namespace MatrixOS::SYS

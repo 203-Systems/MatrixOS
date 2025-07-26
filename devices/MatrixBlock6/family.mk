@@ -8,7 +8,6 @@ UF2_FAMILY_ID = 0xc47e5767
 build:
 	cmake -B $(BUILD) . -DCMAKE_TOOLCHAIN_FILE=$(IDF_PATH)/tools/cmake/toolchain-${MCU}.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
 	cmake --build $(BUILD)
-	#idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DIDF_TARGET=${MCU} build
 
 clean:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) clean
@@ -20,6 +19,8 @@ flash bootloader-flash app-flash erase monitor dfu-flash dfu:
 	idf.py -B$(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) $@
 
 uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
+
+$(BUILD)/$(PROJECT)-$(DEVICE).bin: build
 
 $(BUILD)/$(PROJECT)-$(DEVICE).uf2: $(BUILD)/$(PROJECT)-$(DEVICE).bin
 	@echo CREATE $@

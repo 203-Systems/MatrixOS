@@ -167,9 +167,6 @@ namespace Device
     void Toggle();
     void Start();
     void Stop();
-    bool SendMidi(uint8_t* packet);
-    uint32_t MidiAvailable();
-    MidiPacket GetMidi();
   }
 
   namespace HWMidi

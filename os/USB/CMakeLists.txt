@@ -52,6 +52,4 @@ target_include_directories(MatrixOSUSB PUBLIC
 #     "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"  
 # )
 
-message(STATUS "TINYUSB_MCU_OPT: ${TINYUSB_MCU_OPT}")
-
 target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface) 

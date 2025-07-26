@@ -1,5 +1,7 @@
 MODE ?= UNDEFINED
 
+PROJECT := MatrixOS
+
 ifeq ($(DEVICE),)
   $(error You must provide a DEVICE parameter with 'DEVICE=')
 endif

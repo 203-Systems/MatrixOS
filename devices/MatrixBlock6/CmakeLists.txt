@@ -6,11 +6,6 @@ if(NOT DEFINED ENV{IDF_PATH})
   message(FATAL_ERROR " Please set up ESP-IDF environment before building.")
 endif()
 
-message(STATUS "IDF_PATH: $ENV{IDF_PATH}")
-
-# set(PROJECT_NAME "MatrixOS-${DEVICE}")
-# set(BUILD_DIR ${CMAKE_BINARY_DIR}/Build/${DEVICE})
-
 set(SDKCONFIG_PATH ${CMAKE_BINARY_DIR}/sdkconfig)
 if(MODE STREQUAL "DEVELOPMENT")
     set(SDKCONFIG_DEFAULTS_PATH "${FAMILY_PATH}/sdkconfig.development")
