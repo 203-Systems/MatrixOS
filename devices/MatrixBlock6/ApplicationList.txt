@@ -25,8 +25,8 @@ PolyPlayground:PolyPlayground
 Strum:Strum
 
 # Boot animation
-Mystrix/MystrixBoot:MystrixBoot
+{FAMILY_PATH}/Applications/MystrixBoot:MystrixBoot
 
 # Device-specific applications
-Mystrix/FactoryMenu:FactoryMenu
-Mystrix/ForceCalibration:ForceCalibration
+{FAMILY_PATH}/Applications/FactoryMenu:FactoryMenu
+{FAMILY_PATH}/Applications/ForceCalibration:ForceCalibration

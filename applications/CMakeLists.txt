@@ -29,51 +29,69 @@ function(add_enabled_applications CONFIG_FILE)
     set(ENABLED_APP_LIBS "" PARENT_SCOPE)
     
     foreach(LINE ${CONFIG_LINES})
-        # Skip comments (lines starting with #) and empty lines
+        # Skip comments and empty lines
         string(STRIP "${LINE}" LINE_TRIMMED)
-        if(NOT LINE_TRIMMED MATCHES "^#" AND NOT LINE_TRIMMED STREQUAL "")
-            # Parse FolderName or FolderName:HeaderFileName format
-            if(LINE_TRIMMED MATCHES ":")
-                # Format: FolderName:HeaderFileName
-                string(REPLACE ":" ";" LINE_PARTS ${LINE_TRIMMED})
-                list(GET LINE_PARTS 0 APP_PATH)
-                list(GET LINE_PARTS 1 HEADER_NAME)
-                string(ASCII 27 Esc)
-                message(STATUS "${Esc}[93mLoaded application: '${HEADER_NAME} at ${APP_PATH}'${Esc}[0m")
+        if(LINE_TRIMMED MATCHES "^#" OR LINE_TRIMMED STREQUAL "")
+            continue()
+        endif()
+        
+        # Parse path and header name
+        if(LINE_TRIMMED MATCHES ":")
+            string(REPLACE ":" ";" LINE_PARTS ${LINE_TRIMMED})
+            list(GET LINE_PARTS 0 APP_PATH)
+            list(GET LINE_PARTS 1 HEADER_NAME)
+        else()
+            set(APP_PATH "${LINE_TRIMMED}")
+            set(HEADER_NAME "")
+        endif()
+        
+        # Resolve paths and create display path
+        if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
+            string(REPLACE "{FAMILY_PATH}" "${FAMILY_PATH}" APP_DIR "${APP_PATH}")
+            file(RELATIVE_PATH DISPLAY_PATH ${CMAKE_SOURCE_DIR} ${APP_DIR})
+        else()
+            set(APP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${APP_PATH}")
+            set(DISPLAY_PATH "Applications/${APP_PATH}")
+        endif()
+        set(APP_CMAKE "${APP_DIR}/CMakeLists.txt")
+        
+        # Display loading message
+        string(ASCII 27 Esc)
+        if(HEADER_NAME)
+            set(APP_NAME "${HEADER_NAME}")
+        else()
+            get_filename_component(APP_NAME ${APP_PATH} NAME)
+        endif()
+        message(STATUS "${Esc}[93mLoaded application: '${APP_NAME} at ${DISPLAY_PATH}'${Esc}[0m")
+
+        if(EXISTS ${APP_DIR} AND EXISTS ${APP_CMAKE})
+            # Add the subdirectory for this application
+            if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
+                # For family path substitutions, provide binary directory
+                string(REPLACE "/" "_" BINARY_DIR_NAME "${APP_PATH}")
+                string(REPLACE "{FAMILY_PATH}" "FAMILY" BINARY_DIR_NAME "${BINARY_DIR_NAME}")
+                string(REPLACE ":" "_" BINARY_DIR_NAME "${BINARY_DIR_NAME}")
+                add_subdirectory(${APP_DIR} ${CMAKE_BINARY_DIR}/external_apps/${BINARY_DIR_NAME})
             else()
-                # Format: FolderName (subdirectory only, no header generation)
-                set(APP_PATH "${LINE_TRIMMED}")
-                set(HEADER_NAME "")
-                string(ASCII 27 Esc)
-                message(STATUS "${Esc}[93mLoaded application: '${APP_PATH}'${Esc}[0m")
+                # Regular relative path
+                add_subdirectory(${APP_PATH})
             endif()
             
-            # Check if application directory and CMakeLists.txt exist
-            set(APP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${APP_PATH}")
-            set(APP_CMAKE "${APP_DIR}/CMakeLists.txt")
-
-            if(EXISTS ${APP_DIR} AND EXISTS ${APP_CMAKE})
-                # Add the subdirectory for this application
-                add_subdirectory(${APP_PATH})
-                # message(STATUS "Added application: ${APP_PATH}")
-                
-                # Extract library name from CMakeLists.txt
-                file(READ ${APP_CMAKE} CMAKE_CONTENT)
-                if(CMAKE_CONTENT MATCHES "add_library\\(([A-Za-z0-9_]+)")
-                    set(LIB_NAME "${CMAKE_MATCH_1}")
-                    list(APPEND ENABLED_APP_LIBS ${LIB_NAME})
-                    # message(STATUS "Found library: ${LIB_NAME}")
-                else()
-                    message(WARNING "Could not find add_library() in ${APP_CMAKE}")
-                endif()
-                
-                # Add to enabled apps list for header generation (only if header name is specified)
-                if(NOT HEADER_NAME STREQUAL "")
-                    list(APPEND ENABLED_APPS "${APP_PATH}:${HEADER_NAME}")
-                endif()
+            # Extract library name from CMakeLists.txt
+            file(READ ${APP_CMAKE} CMAKE_CONTENT)
+            if(CMAKE_CONTENT MATCHES "add_library\\(([A-Za-z0-9_]+)")
+                set(LIB_NAME "${CMAKE_MATCH_1}")
+                list(APPEND ENABLED_APP_LIBS ${LIB_NAME})
             else()
-                message(WARNING "Application '${APP_PATH}' directory or CMakeLists.txt not found")
+                message(WARNING "Could not find add_library() in ${APP_CMAKE}")
             endif()
+            
+            # Add to enabled apps list for header generation (only if header name is specified)
+            if(NOT HEADER_NAME STREQUAL "")
+                list(APPEND ENABLED_APPS "${APP_PATH}:${HEADER_NAME}")
+            endif()
+        else()
+            message(WARNING "Application '${APP_PATH}' directory or CMakeLists.txt not found")
         endif()
     endforeach()
     
@@ -97,7 +115,18 @@ function(generate_applications_header OUTPUT_FILE)
             string(REPLACE ":" ";" ENTRY_PARTS ${APP_ENTRY})
             list(GET ENTRY_PARTS 0 APP_PATH)
             list(GET ENTRY_PARTS 1 HEADER_NAME)
-            string(APPEND HEADER_CONTENT "#include \"${APP_PATH}/${HEADER_NAME}.h\"\n")
+            
+            # Handle {FAMILY_PATH} substitution in include path
+            if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
+                # For family path, make it relative from applications directory to the family directory
+                file(RELATIVE_PATH REL_FAMILY_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${FAMILY_PATH})
+                string(REPLACE "{FAMILY_PATH}" "${REL_FAMILY_PATH}" APP_INCLUDE_PATH "${APP_PATH}")
+            else()
+                # Regular relative path
+                set(APP_INCLUDE_PATH "${APP_PATH}")
+            endif()
+            
+            string(APPEND HEADER_CONTENT "#include \"${APP_INCLUDE_PATH}/${HEADER_NAME}.h\"\n")
             string(APPEND HEADER_CONTENT "REGISTER_APPLICATION(${HEADER_NAME})\n\n")
         endforeach()
         string(APPEND HEADER_CONTENT "\n")
