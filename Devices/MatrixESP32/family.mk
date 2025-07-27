@@ -4,11 +4,11 @@ UF2_FAMILY_ID = 0xc47e5767
 .PHONY: build flash bootloader-flash app-flash erase monitor dfu-flash dfu
 
 build:
-	cmake -B $(BUILD) . -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
+	cmake -B $(BUILD) . -DCMAKE_TOOLCHAIN_FILE=$(IDF_PATH)/tools/cmake/toolchain-${MCU}.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
 	cmake --build $(BUILD)
 
 $(BUILD)/$(PROJECT)-$(DEVICE).bin:
-	cmake -B $(BUILD) . -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
+	cmake -B $(BUILD) . -DCMAKE_TOOLCHAIN_FILE=$(IDF_PATH)/tools/cmake/toolchain-${MCU}.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -GNinja 
 	cmake --build $(BUILD)
 
 flash bootloader-flash app-flash erase monitor dfu-flash dfu:

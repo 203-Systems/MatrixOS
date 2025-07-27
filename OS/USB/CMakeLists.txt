@@ -24,7 +24,10 @@ set(TINYUSB_SOURCES
 )
 
 # if(TINYUSB_MCU_OPT STREQUAL "ESP32S3" OR TINYUSB_MCU_OPT STREQUAL "ESP32S2")
-    list(APPEND TINYUSB_SOURCES "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c" )
+    list(APPEND TINYUSB_SOURCES 
+        "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c"
+        "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dwc2_common.c"
+    )
 # endif()
 
 set(PRINTF_DIR ${CMAKE_SOURCE_DIR}/Library/printf/)
