@@ -16,7 +16,6 @@ namespace Device
 
   void DeviceInit() {
     LoadDeviceInfo();
-    gpio_install_isr_service(0);
     USB::Init();
     NVS::Init();
     LED::Init();

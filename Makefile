@@ -13,7 +13,7 @@ endif
 # Use provided DEVICE or fall back to last used
 ifeq ($(DEVICE),)
   ifdef LAST_DEVICE
-    DEVICE := $(LAST_DEVICE)
+    DEVICE := $(strip $(LAST_DEVICE))
     $(info Using last DEVICE: $(DEVICE))
   else
     $(error You must provide a DEVICE parameter with 'DEVICE=' on first run)
@@ -23,7 +23,7 @@ endif
 # Use provided MODE or fall back to last used  
 ifeq ($(MODE),UNDEFINED)
   ifdef LAST_MODE
-    MODE := $(LAST_MODE)
+    MODE := $(strip $(LAST_MODE))
     $(info Using last MODE: $(MODE))
   endif
 endif
