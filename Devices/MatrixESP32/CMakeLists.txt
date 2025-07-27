@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Required ESP-IDF version
+set(REQUIRED_IDF_VERSION_MAJOR 5)
+set(REQUIRED_IDF_VERSION_MINOR 3)
+
 set(IDF_TARGET "esp32s3")
 
 if(NOT DEFINED ENV{IDF_PATH})
@@ -20,6 +24,15 @@ idf_build_process("${IDF_TARGET}"
     SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
     COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp bt console
 )
+
+# Check ESP-IDF version
+if(NOT (IDF_VERSION_MAJOR EQUAL ${REQUIRED_IDF_VERSION_MAJOR} AND IDF_VERSION_MINOR EQUAL ${REQUIRED_IDF_VERSION_MINOR}))
+  string(ASCII 27 ESC)
+  message(FATAL_ERROR "${ESC}[31mESP-IDF version ${REQUIRED_IDF_VERSION_MAJOR}.${REQUIRED_IDF_VERSION_MINOR}.x is required. Current version: ${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}${ESC}[0m")
+else()
+  string(ASCII 27 ESC)
+  message(STATUS "${ESC}[32mUsing ESP-IDF version ${IDF_VERSION_MAJOR}.${IDF_VERSION_MINOR}.${IDF_VERSION_PATCH}${ESC}[0m")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
