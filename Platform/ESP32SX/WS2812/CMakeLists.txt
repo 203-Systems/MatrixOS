@@ -5,7 +5,7 @@ add_library(WS2812 ${WS2812_SOURCES} ${WS2812_HEADERS})
 
 target_include_directories(WS2812 PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/os
+    ${CMAKE_SOURCE_DIR}/OS
 )
 
 target_link_libraries(WS2812 PUBLIC

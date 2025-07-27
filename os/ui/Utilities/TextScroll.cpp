@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "../data/font.h"
+#include "../Data/font.h"
 
 #define TEXT_SCROLL_SPACING 2
 

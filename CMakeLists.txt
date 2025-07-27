@@ -84,6 +84,6 @@ else()
 endif()
 
 add_subdirectory(Devices)
-add_subdirectory(os)
+add_subdirectory(OS)
 add_subdirectory(${FAMILY_PATH})
 add_subdirectory(Applications)

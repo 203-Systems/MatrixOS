@@ -1,5 +1,5 @@
 file(GLOB_RECURSE UI_HEADERS "*.h" "Data/*.h" "Component/*.h")
-file(GLOB_RECURSE UI_SOURCES "*.cpp" "Utlities/*.cpp")
+file(GLOB_RECURSE UI_SOURCES "*.cpp" "Utilities/*.cpp")
 
 add_library(MatrixOSUI
     ${UI_HEADERS}

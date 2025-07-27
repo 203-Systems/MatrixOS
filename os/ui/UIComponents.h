@@ -1,13 +1,13 @@
 #pragma once
 
-#include "component/UIComponent.h"
+#include "Component/UIComponent.h"
 
-#include "component/UIButton.h"
-#include "component/UIToggle.h"
+#include "Component/UIButton.h"
+#include "Component/UIToggle.h"
 
-#include "component/UINumModifier.h"
+#include "Component/UINumModifier.h"
 
-#include "component/UI4pxNumber.h"
+#include "Component/UI4pxNumber.h"
 
-#include "component/UISelector.h"
-#include "component/UIItemSelector.h"
+#include "Component/UISelector.h"
+#include "Component/UIItemSelector.h"

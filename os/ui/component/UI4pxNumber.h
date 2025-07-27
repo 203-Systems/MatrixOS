@@ -1,6 +1,6 @@
 #pragma once
 #include <cmath>
-#include "../data/4pxNumber.h"
+#include "../Data/4pxNumber.h"
 #include "UIComponent.h"
 
 // TODO add negative support?

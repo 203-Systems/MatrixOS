@@ -49,10 +49,10 @@ void ExampleAPP::MidiEventHandler(MidiPacket midiPacket) {
   //Midi Packet has port, status, and data
   // Port shows where this midi signal is from (USB, Bluetooth, RTPMIDI, HWPort, etc)
   // When sending midi packets. This is also where the midi signal will be sent to
-  // See EMidiStatus enum in /os/framework/midiPacket.h for all the midi status
+  // See EMidiStatus enum in /OS/Framework/Midi/MidiPacket.h for all the midi status
   // 0x0 sends to all first of available ports
   // Status is the midi status (NoteOn, NoteOff, ControlChange, etc)
-  // See EMidiStatus enum in /os/framework/midiPacket.h for all the midi status
+  // See EMidiStatus enum in /OS/Framework/Midi/MidiPacket.h for all the midi status
 
   // Wanna do more with the packet? Here's a example parser
 
@@ -163,9 +163,9 @@ void ExampleAPP::UIMenu() {
   // Once the UI is exited (Not the application exit!), the code will continue here.
   // If Exit() is called in UI. The code will start in the End() of this application and then exit.
 
- // See /os/framework/ui/UI.h for more UI Framework API
- // See /os/framework/ui/UIComponents.h for more UI Components
- // See /os/framework/ui/UIUtilities.h for more UI built in UI Interface
+ // See /OS/UI/UI.h for more UI Framework API
+ // See /OS/UI/UIComponents.h for more UI Components
+ // See /OS/UI/UIUtilities.h for more UI built in UI Interface
 
  // You can also create your own UI Components and UI Interfaces for your own application.
  // You can see the Note application for an example of how to do that. (Note Pad. Octave Shifter. Scales, ScaleVisualizer...)
