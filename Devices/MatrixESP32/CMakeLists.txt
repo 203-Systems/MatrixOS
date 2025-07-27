@@ -99,3 +99,21 @@ target_link_libraries(${elf_file}
 )
 
 idf_build_executable(${elf_file})
+
+# Workaround to enable idf.py commands
+set(PROJECT_EXECUTABLE ${elf_file})
+set(PROJECT_PATH ${CMAKE_SOURCE_DIR})
+set(PROJECT_BUILD_TYPE "flash_app")
+set(common_component_reqs_json "[]")
+set(build_components_json "[]")
+set(build_component_paths_json "[]")
+set(build_component_info_json "{}")
+set(all_component_info_json "{}")
+set(debug_prefix_map_gdbinit "")
+
+configure_file("${idf_path}/tools/cmake/project_description.json.in"
+"${build_dir}/project_description.json.templ")
+file(READ "${build_dir}/project_description.json.templ" project_description_json_templ)
+file(REMOVE "${build_dir}/project_description.json.templ")
+file(GENERATE OUTPUT "${build_dir}/project_description.json"
+ CONTENT "${project_description_json_templ}")
