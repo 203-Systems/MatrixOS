@@ -1,10 +1,10 @@
 [submodule "lib/tinyusb"]
-	path = lib/tinyusb
+	path = Library/tinyusb
 	url = https://github.com/hathach/tinyusb.git
-[submodule "lib/printf"]
-	path = lib/printf
+[submodule "Library/printf"]
+	path = Library/printf
 	url = https://github.com/eyalroz/printf.git
 	branch = develop
-[submodule "lib/cb0r"]
-	path = lib/cb0r
+[submodule "Library/cb0r"]
+	path = Library/cb0r
 	url = https://github.com/203Electronics/cb0r.git
