@@ -101,7 +101,12 @@ target_link_libraries(MatrixOSDevice PUBLIC
     idf::ulp
 )
 
-# ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
+enable_language(ASM)
+set(python $ENV{IDF_PYTHON_ENV_PATH})
+set(COMPONENT_LIB MatrixOSDevice)
+set(COMPONENT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(COMPONENT_TARGET MatrixOSDevice)
+ulp_embed_binary(ulp_fsr_keypad "${FAMILY_PATH}/ULP/fsr_keypad.c" "${FAMILY_PATH}/Drivers/KeypadFSR.cpp")
 
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
 
