@@ -48,7 +48,7 @@ static inline void register_application(Application_Info info, uint32_t order) {
       delete (APPLICATION_CLASS*)app;                                                                   \
     };                                                                                             \
     MLOGI("Application", "Registering application: %s", APPLICATION_CLASS::info.name.c_str());  \
-    uint32_t app_id = Hash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name); \
+    uint32_t app_id = HashString(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name); \
     if (applications.find(app_id) != applications.end()) { \
       return; \
     } \

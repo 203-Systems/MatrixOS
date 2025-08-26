@@ -24,7 +24,7 @@ class SavedVariable {
                                                              // use "namespace" or "class" as variable name but you get
                                                              // the point
   {
-    this->hash = Hash(scope + "-" + name);
+    this->hash = HashString(scope + "-" + name);
     this->value = default_value;
     this->state = SavedVariableState::Inited;
   }

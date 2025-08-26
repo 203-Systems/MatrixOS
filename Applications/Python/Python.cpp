@@ -1,0 +1,40 @@
+#include "Python.h"
+
+#include "pika_config.h"
+#include "pikaScript.h"
+
+namespace MatrixOS::USB::CDC
+{
+  void WriteChar(char c, void* arg);
+}
+
+// Platform abstraction functions for PikaPython
+extern "C" {
+  char pika_platform_getchar() {
+    while (!MatrixOS::USB::CDC::Available()) {
+      volatile int wait = 100;
+      while (wait--);
+    }
+    return MatrixOS::USB::CDC::Read();
+  }
+
+  int pika_platform_putchar(char ch) {
+    MatrixOS::USB::CDC::WriteChar(ch, nullptr);
+    return 0;
+  }
+
+  int64_t pika_platform_get_tick(void) {
+    return MatrixOS::SYS::Millis();
+  }
+
+  void pika_platform_reboot(void) {
+    // Reboot the system
+    MatrixOS::SYS::Reboot();
+  }
+}
+
+void Python::Setup() {
+  PikaObj* pikaMain = pikaPythonInit();
+  pikaPythonShell(pikaMain);
+  Exit();
+}

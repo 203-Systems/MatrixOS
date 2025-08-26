@@ -23,6 +23,7 @@ Dice:Dice
 Reversi:Reversi
 PolyPlayground:PolyPlayground
 Strum:Strum
+Python:Python
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot:MystrixBoot

@@ -7,3 +7,6 @@
 [submodule "Library/cb0r"]
 	path = Library/cb0r
 	url = https://github.com/203-Systems/cb0r.git
+[submodule "Applications/Python/PikaPython"]
+	path = Applications/Python/PikaPython
+	url = https://github.com/pikasTech/PikaPython
