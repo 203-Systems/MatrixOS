@@ -33,7 +33,7 @@ namespace MatrixOS
     void InitSysModules(void);
 
     uint32_t Millis(void);
-    void DelayMs(uint32_t intervalMs);
+    void DelayMs(uint32_t ms);
 
     void Reboot(void);
     void Bootloader(void);
@@ -146,18 +146,18 @@ namespace MatrixOS
 
     namespace Mouse
     {
-      void Click(MouseKeycode keycode = MOUSE_LEFT);
-      void press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
-      void release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
+      void Click(MouseKeycode keycode);
+      void press(MouseKeycode keycode);   // press LEFT by default
+      void release(MouseKeycode keycode); // release LEFT by default
       void ReleaseAll(void);
       void Move(signed char x, signed char y, signed char wheel = 0);
     }
 
     namespace Touch // Absolute Mouse
     {
-      void Click(MouseKeycode keycode = MOUSE_LEFT);
-      void Press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
-      void Release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
+      void Click(MouseKeycode keycode);
+      void Press(MouseKeycode keycode);   // press LEFT by default
+      void Release(MouseKeycode keycode); // release LEFT by default
       void ReleaseAll(void);
       void MoveTo(signed char x, signed char y, signed char wheel = 0);
       void Move(signed char x, signed char y, signed char wheel = 0);

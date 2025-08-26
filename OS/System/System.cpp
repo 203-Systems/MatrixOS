@@ -107,8 +107,8 @@ namespace MatrixOS::SYS
     return ((((uint64_t)xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ);
   }
 
-  void DelayMs(uint32_t intervalMs) {
-    vTaskDelay(pdMS_TO_TICKS(intervalMs));
+  void DelayMs(uint32_t ms) {
+    vTaskDelay(pdMS_TO_TICKS(ms));
   }
 
   void Reboot() {
