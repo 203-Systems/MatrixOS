@@ -20,11 +20,10 @@
     #define MATRIXOS_BUILD_INDEV
 #endif
 
-#define MATRIXOS_MAJOR_VER 2
-#define MATRIXOS_MINOR_VER 6
+#define MATRIXOS_MAJOR_VER 3
+#define MATRIXOS_MINOR_VER 0
 #define MATRIXOS_PATCH_VER 0
 #define MATRIXOS_RELEASE_VER 0 //This is for beta etc, doesn't take effect in Stable Release. It should also never be 0
-
 
 #include "ReleaseConfig.h"
 
@@ -40,5 +39,3 @@
 inline const uint16_t hold_threshold = 400;
 
 inline const uint16_t crossfade_duration = 200;
-
-// enum class EVarClass {DeviceVar, SystemVar, UserVar, AppVar};
