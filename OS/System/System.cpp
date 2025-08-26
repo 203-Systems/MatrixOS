@@ -111,8 +111,12 @@ namespace MatrixOS::SYS
     return Device::Micros();
   }
 
-  void DelayMs(uint32_t intervalMs) {
-    vTaskDelay(pdMS_TO_TICKS(intervalMs));
+  uint64_t Micros() {
+    return Device::Micros();
+  }
+
+  void DelayMs(uint32_t ms) {
+    vTaskDelay(pdMS_TO_TICKS(ms));
   }
 
   void Reboot() {
