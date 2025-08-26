@@ -5,15 +5,13 @@
 
 namespace MatrixOS::UIUtility
 {
-  // This function displays a given string on the LED screen in a given color, at a given scroll speed, optionally
-  // looping
-  void TextScroll(string text, Color color, uint16_t speed, bool loop) {
+  void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
     // Log the text we're about to scroll
-    MLOGD("Text Scroll", "Printing %s", text.c_str());
+    MLOGD("Text Scroll Slow", "Printing %s", text.c_str());
 
     if(Device::y_size < 8)
     {
-      MLOGE("Text Scroll", "Not enough vertical space, abort");
+      MLOGE("Text Scroll Slow", "Not enough vertical space, abort");
       return;
     }
 
@@ -121,5 +119,162 @@ namespace MatrixOS::UIUtility
     MatrixOS::LED::DestroyLayer();
     MatrixOS::LED::Update();
     return;
+  }
+
+  // This function displays a given string on the LED screen in a given color, at a given scroll speed, optionally
+  // looping
+  void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
+    // Log the text we're about to scroll
+    MLOGD("Text Scroll Fast", "Printing %s", text.c_str());
+
+    if(Device::y_size < 8)
+    {
+      MLOGE("Text Scroll Fast", "Not enough vertical space, abort");
+      return;
+    }
+
+    // Text Scroll Timer
+    Timer textScrollTimer;
+
+    // Create a new layer on the LED screen
+    MatrixOS::LED::CreateLayer();
+
+    // Create a buffer to store the state of each LED
+    bool buffer[Device::x_size][Device::y_size];  // TODO Check Device Rotation
+
+    // Clear the buffer
+    for (uint8_t x = 0; x < Device::x_size; x++)
+    {
+      for (uint8_t y = 0; y < Device::y_size; y++)
+      { buffer[x][y] = 0; }
+    }
+
+    // Convert the scroll speed from frames per second to milliseconds per frame
+    speed = 500 / speed;
+
+    // Main loop (if loop == true)
+    do
+    {
+      // Iterate through each character in the string
+      for (uint8_t i = 0; i < text.length() + 1; i++)
+      {
+        // Save the current character into a variable
+        char current_char;
+        if (i < text.length())
+        { current_char = text[i]; }
+        else
+        {
+          current_char = ' ';  // TODO add proper ending spacing so x width is not limited to 8x8
+        }
+
+        // MLOGD("Text Scroll", "Printing %c", current_char);
+        if (current_char < 127)  // Check ASCII is within bound
+        {
+          if (current_char < 32)  // Speed change control characters
+          {
+            speed = current_char * 10 + 10;
+            break;
+          }
+          else  // Regular text
+          {
+            // Left shift buffer by font8[current_char - 32][0] + TEXT_SCROLL_SPACING
+            // for (uint8_t x = 0; x < Device::x_size; x++)
+            // {
+            //   for (uint8_t y = 0; y < 8; y++)
+            //   {
+            //     if ((x + font8[current_char - 32][0] + TEXT_SCROLL_SPACING) < Device::x_size)
+            //     {
+            //       buffer[x][y] = buffer[x + font8[current_char - 32][0] + TEXT_SCROLL_SPACING][y];
+            //     }
+            //     else
+            //     {
+            //       buffer[x][y] = 0;
+            //     }
+            //   }
+            // }
+            
+            // Clear the buffer
+            for (uint8_t x = 0; x < Device::x_size; x++)
+            {
+              for (uint8_t y = 0; y < Device::y_size; y++)
+              { buffer[x][y] = 0; }
+            }
+
+            // Render the buffer to the LED screen
+            for (uint8_t x = 0; x < Device::x_size; x++)
+            {
+              for (uint8_t y = 0; y < 8; y++)
+              { MatrixOS::LED::SetColor(Point(x, y), buffer[x][y] ? color : Color(0)); }
+            }
+            MatrixOS::LED::Update();
+
+            // Wait for the next frame
+            while (!textScrollTimer.Tick(speed))
+            {
+             // MatrixOS::KEYPAD::Scan(true);
+              MatrixOS::KEYPAD::ClearList();  // Keypad will scan itself after list is cleared
+              // MLOGD("Text Scroll", "FN Velocity %d",
+              // (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
+              // Let's assume we don't use FN to trigger a text scroll
+              if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)
+              {
+                MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
+                MatrixOS::KEYPAD::ClearList();
+                MatrixOS::LED::DestroyLayer();
+                MatrixOS::LED::Update();
+                return;
+              }
+            }
+
+            
+            // Draw new character
+            for (uint8_t x = 0; x < font8[current_char - 32][0]; x++)
+            {
+              uint8_t canvas_x = Device::x_size - font8[current_char - 32][0] + x - 1; 
+              for (uint8_t y = 0; y < 8; y++)
+              {
+                buffer[canvas_x][y] = bitRead(font8[current_char - 32][x + 1], 7 - y);
+              }
+            }
+            
+            // Render the buffer to the LED screen
+            for (uint8_t x = 0; x < Device::x_size; x++)
+            {
+              for (uint8_t y = 0; y < 8; y++)
+              { MatrixOS::LED::SetColor(Point(x, y), buffer[x][y] ? color : Color(0)); }
+            }
+            MatrixOS::LED::Update();
+
+            // Wait for 4 ticks
+            while (!textScrollTimer.Tick(speed * 4))
+            {
+              // MatrixOS::KEYPAD::Scan(true);
+              MatrixOS::KEYPAD::ClearList();  // Keypad will scan itself after list is cleared
+              // MLOGD("Text Scroll", "FN Velocity %d",
+              // (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
+              // Let's assume we don't use FN to trigger a text scroll
+              if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)
+              {
+                MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
+                MatrixOS::KEYPAD::ClearList();
+                MatrixOS::LED::DestroyLayer();
+                MatrixOS::LED::Update();
+                return;
+              }
+            }
+          }
+        }
+        current_char++;
+      }
+    } while (loop);
+
+    // Exit
+    MatrixOS::LED::DestroyLayer();
+    MatrixOS::LED::Update();
+    return;
+  }
+
+  void TextScroll(string text, Color color, uint16_t speed, bool loop) {
+    TextScrollFast(text, color, speed, loop);
   }
 }
