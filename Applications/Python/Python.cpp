@@ -12,14 +12,14 @@ namespace MatrixOS::USB::CDC
 extern "C" {
   char pika_platform_getchar() {
     while (!MatrixOS::USB::CDC::Available()) {
-      volatile int wait = 100;
-      while (wait--);
+      MatrixOS::SYS::DelayMs(1); // Yield to other tasks
     }
     return MatrixOS::USB::CDC::Read();
   }
 
   int pika_platform_putchar(char ch) {
     MatrixOS::USB::CDC::WriteChar(ch, nullptr);
+    MatrixOS::USB::CDC::Flush(); // Ensure immediate output
     return 0;
   }
 
