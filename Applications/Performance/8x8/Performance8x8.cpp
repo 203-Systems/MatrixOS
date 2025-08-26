@@ -620,41 +620,11 @@ void Performance::ActionMenu() {
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
-
   UIButton clearCanvasBtn;
   clearCanvasBtn.SetName("Clear Canvas");
-  clearCanvasBtn.SetColor(Color(0x00FF00));
-  clearCanvasBtn.SetSize(Dimension(2, 1));
+  clearCanvasBtn.SetColor(Color(0xFF0000));
   clearCanvasBtn.OnPress([&]() -> void { MatrixOS::LED::Fill(0, canvasLedLayer); });
-  actionMenu.AddUIComponent(clearCanvasBtn, Point(3, 2));
-
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate to this side");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
-
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate to this side");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
-
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate to this side");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
+  actionMenu.AddUIComponent(clearCanvasBtn, Point(0, 5));
 
   // Note Pad
   UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap], velocitySensitive);
@@ -663,7 +633,7 @@ void Performance::ActionMenu() {
   // Other Controls
   UIToggle velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
-  velocityToggle.SetColor(Color(0xFFFFFF));
+  velocityToggle.SetColor(Color(0x00FFFF));
   velocityToggle.SetValuePointer(&velocitySensitive);
   velocityToggle.OnPress([&]() -> void {velocitySensitive.Save();});
   velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
@@ -677,17 +647,17 @@ void Performance::ActionMenu() {
 
   UIToggle menuLockToggle;
   menuLockToggle.SetName("Menu Lock");
-  menuLockToggle.SetColor(Color(0xFF0000));
+  menuLockToggle.SetColor(Color(0x00FF00));
   menuLockToggle.SetValuePointer(&menuLock);
   menuLockToggle.OnPress([&]() -> void { menuLock.Save(); });
-  actionMenu.AddUIComponent(menuLockToggle, Point(0, 5));
+  actionMenu.AddUIComponent(menuLockToggle, Point(0, 3));
 
   UIToggle comboKeyToggle;
   comboKeyToggle.SetName("Touch Combo Key");
-  comboKeyToggle.SetColor(Color(0x60FF00));
+  comboKeyToggle.SetColor(Color(0xFF00FF));
   comboKeyToggle.SetValuePointer(&touch_combo_key);
   comboKeyToggle.OnPress([&]() -> void { touch_combo_key.Save(); });
-  actionMenu.AddUIComponent(comboKeyToggle, Point(0, 4));
+  actionMenu.AddUIComponent(comboKeyToggle, Point(0, 2));
 
   UIButton flickerReductionToggle;
   flickerReductionToggle.SetName("Flicker Reduction");

@@ -1,6 +1,5 @@
 #include "CustomControlMap.h"
 #include "ui/UI.h"
-#include "BrightnessControl.h"
 
 void CustomControlMap::Setup() {
   LoadUADfromNVS();
@@ -385,41 +384,11 @@ void CustomControlMap::ActionMenu() {
 
   UI actionMenu("Action Menu", Color(0x00FFAA), true);
 
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
-
   UIButton reloadBtn;
   reloadBtn.SetName("Reload");
-  reloadBtn.SetColor(Color(0x00FF00));
-  reloadBtn.SetSize(Dimension(2, 1));
+  reloadBtn.SetColor(Color(0xFF0000));
   reloadBtn.OnPress([&]() -> void { Reload(); });
-  actionMenu.AddUIComponent(reloadBtn, Point(3, 2));
-
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate to this side");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
-
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate to this side");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
-
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate to this side");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
+  actionMenu.AddUIComponent(reloadBtn, Point(0, 5));
 
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
@@ -427,11 +396,12 @@ void CustomControlMap::ActionMenu() {
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
-  UIButton menuLockBtn;
-  menuLockBtn.SetName("Touch Alt Key");
-  menuLockBtn.SetColorFunc([&]() -> Color { return Color(0xA0FF00).DimIfNot(menuLock); });
-  menuLockBtn.OnPress([&]() -> void { menuLock = !menuLock; });
-  actionMenu.AddUIComponent(menuLockBtn, Point(0, 5));
+  UIToggle menuLockToggle;
+  menuLockToggle.SetName("Menu Lock");
+  menuLockToggle.SetColor(Color(0x00FF00));
+  menuLockToggle.SetValuePointer(&menuLock);
+  menuLockToggle.OnPress([&]() -> void { menuLock.Save(); });
+  actionMenu.AddUIComponent(menuLockToggle, Point(0, 2));
   
 
   UILayerControl layerControl("Activated Layers", Color(0x00FFFF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::ACTIVE);

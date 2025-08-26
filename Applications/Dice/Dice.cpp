@@ -1,5 +1,4 @@
 #include "Dice.h"
-#include "BrightnessControl.h"
 #include "ui/UI.h"  // Include the UI Framework
 
 // Run once
@@ -100,43 +99,6 @@ void Dice::Settings() {
   //   // Create a UI Object
   //   // UI Name, Color (as the text scroll color). and new led layer (Set as true, the UI will render on a new led layer. Persevere what was rendered before after UI exits)
   UI settingsUI("Settings", Color(0x00FFFF), true);
-
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  settingsUI.AddUIComponent(brightnessBtn, Point(3, 3));
-
-  // Rotation control and canvas
-  UIButton rotateUpBtn;
-  rotateUpBtn.SetName("Rotate Up");
-  rotateUpBtn.SetColor(Color(0x00FF00));
-  rotateUpBtn.SetSize(Dimension(2, 1));
-  rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
-  settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
-
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate Right");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  settingsUI.AddUIComponent(rotateRightBtn, Point(5, 3));
-
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate Down");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  settingsUI.AddUIComponent(rotateDownBtn, Point(3, 5));
-
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate Left");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  settingsUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
   UIButton rollingColorSelectorBtn;
   rollingColorSelectorBtn.SetName("Rolling Color");

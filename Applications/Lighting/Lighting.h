@@ -4,7 +4,6 @@
 #include "ui/UI.h"
 #include "ui/UIUtilities.h"
 #include "Application.h"
-#include "BrightnessControl.h"
 #include "TemperatureColorPicker.h"
 
 

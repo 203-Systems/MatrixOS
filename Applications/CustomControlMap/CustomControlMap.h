@@ -26,7 +26,7 @@ class CustomControlMap : public Application {
   UADRuntime uadRT;
   uint8_t* uadData = nullptr;
   size_t uadSize = 0;
-  bool menuLock = false;
+  CreateSavedVar("CustomControlMap", menuLock, bool, false);
 
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
   void Reload();
