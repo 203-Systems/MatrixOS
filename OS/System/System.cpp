@@ -141,8 +141,7 @@ namespace MatrixOS::SYS
 
   uint32_t GenerateAPPID(string author, string app_name) {
     // MLOG("System", "APP ID: %u", app_id);
-    return Hash(author + "-" + app_name);
-    ;
+    return HashString(author + "-" + app_name);
   }
 
   void ExecuteAPP(uint32_t app_id) {

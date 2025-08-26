@@ -22,7 +22,7 @@ inline uint32_t FNV1aHash(const char* str)
 }
 
 
-inline uint32_t Hash(string str) {
+inline uint32_t HashString(string str) {
   return FNV1aHash(str.c_str());
 }
 
