@@ -6,8 +6,6 @@
 
 #include "UINotePad.h"
 
-#include "BrightnessControl.h"
-
 #define NUMS_OF_KEYMAP 1
 #define STFU_DEFAULT 1
 

@@ -105,110 +105,74 @@ void Lighting::Settings() {
 
   start_time = MatrixOS::SYS::Millis();
 
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  settingsUI.AddUIComponent(brightnessBtn, Point(3, 3));
+  
+// Lighting Mode Selector & chunk selector
+  // Selector
+  UIButton rgbModeBtn;
+  rgbModeBtn.SetName("RGB Mode");
+  rgbModeBtn.SetColorFunc([&]() -> Color { return Color(0xFF00FF).DimIfNot(mode == RGB); });
+  rgbModeBtn.OnPress([&]() -> void { mode = RGB; });
+  settingsUI.AddUIComponent(rgbModeBtn, Point(3, 0));
 
-  // Rotation control and canvas
-  UIButton rotateUpBtn;
-  rotateUpBtn.SetName("Rotate Up");
-  rotateUpBtn.SetColor(Color(0x00FF00));
-  rotateUpBtn.SetSize(Dimension(2, 1));
-  rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
-  settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
+  UIButton temperatureModeBtn;
+  temperatureModeBtn.SetName("Temperature Mode");
+  temperatureModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(mode == Temperature); });
+  temperatureModeBtn.OnPress([&]() -> void { mode = Temperature; });
+  settingsUI.AddUIComponent(temperatureModeBtn, Point(4, 0));
 
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate Right");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  settingsUI.AddUIComponent(rotateRightBtn, Point(5, 3));
+  // UIButton animationModeBtn;
+  // animationModeBtn.SetName("Animation Mode");
+  // animationModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(mode == Animation); });
+  // animationModeBtn.OnPress([&]() -> void { mode = Animation; });
+  // settingsUI.AddUIComponent(animationModeBtn, Point(4, 0));
 
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate Down");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  settingsUI.AddUIComponent(rotateDownBtn, Point(3, 5));
+  // UIButton gradientModeBtn;
+  // gradientModeBtn.SetName("Gradient Mode");
+  // gradientModeBtn.SetColorFunc([&]() -> Color { return Color(0x00FFFF).DimIfNot(mode == Gradient); });
+  // gradientModeBtn.OnPress([&]() -> void { mode = Gradient; });
+  // settingsUI.AddUIComponent(gradientModeBtn, Point(5, 0));
 
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate Left");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  settingsUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
+  // Chunk Selector
+  // TODO
 
-  // Lighting Mode Selector & chunk selector
-    // Selector
-    UIButton rgbModeBtn;
-    rgbModeBtn.SetName("RGB Mode");
-    rgbModeBtn.SetColorFunc([&]() -> Color { return Color(0xFF00FF).DimIfNot(mode == RGB); });
-    rgbModeBtn.OnPress([&]() -> void { mode = RGB; });
-    settingsUI.AddUIComponent(rgbModeBtn, Point(3, 0));
+  // RGB Mode
+  // Color
+  UIButton colorBtn;
+  colorBtn.SetName("Color");
+  colorBtn.SetColorFunc([&]() -> Color { return color; });
+  colorBtn.SetSize(Dimension(8,2));
+  colorBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(color.Get())) { color.Save(); } });
+  colorBtn.ShouldEnable([&]() -> bool { return mode == RGB; });
+  settingsUI.AddUIComponent(colorBtn, Point(0, 6));
 
-    UIButton temperatureModeBtn;
-    temperatureModeBtn.SetName("Temperature Mode");
-    temperatureModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(mode == Temperature); });
-    temperatureModeBtn.OnPress([&]() -> void { mode = Temperature; });
-    settingsUI.AddUIComponent(temperatureModeBtn, Point(4, 0));
+  // Mode & Speed
+  UIButton rgbEffectBtn;
+  rgbEffectBtn.SetName("Effect & Speed");
+  rgbEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, rgb_effect, rgb_effect_period.Get(), start_time); });
+  rgbEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(RGB); });
+  rgbEffectBtn.ShouldEnable([&]() -> bool { return mode == RGB; });
+  rgbEffectBtn.SetSize(Dimension(1, 2));
+  settingsUI.AddUIComponent(rgbEffectBtn, Point(0, 3));
 
-    // UIButton animationModeBtn;
-    // animationModeBtn.SetName("Animation Mode");
-    // animationModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(mode == Animation); });
-    // animationModeBtn.OnPress([&]() -> void { mode = Animation; });
-    // settingsUI.AddUIComponent(animationModeBtn, Point(4, 0));
-
-    // UIButton gradientModeBtn;
-    // gradientModeBtn.SetName("Gradient Mode");
-    // gradientModeBtn.SetColorFunc([&]() -> Color { return Color(0x00FFFF).DimIfNot(mode == Gradient); });
-    // gradientModeBtn.OnPress([&]() -> void { mode = Gradient; });
-    // settingsUI.AddUIComponent(gradientModeBtn, Point(5, 0));
-
-    // Chunk Selector
-    // TODO
-
-  // RGB
-    // Color
-    UIButton colorBtn;
-    colorBtn.SetName("Color");
-    colorBtn.SetColorFunc([&]() -> Color { return color; });
-    colorBtn.SetSize(Dimension(8,2));
-    colorBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(color.Get())) { color.Save(); } });
-    colorBtn.ShouldEnable([&]() -> bool { return mode == RGB; });
-    settingsUI.AddUIComponent(colorBtn, Point(0, 6));
+  // Temperature Mode
+  // Temperature
+    UIButton temperatureBtn;
+    temperatureBtn.SetName("Temperature");
+    temperatureBtn.SetColorFunc([&]() -> Color { return temperature_color; });
+    temperatureBtn.SetSize(Dimension(8,2));
+    temperatureBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::TemperatureColorPicker(temperature_color.Get())) { temperature_color.Save(); } });
+    temperatureBtn.ShouldEnable([&]() -> bool { return mode == Temperature; });
+    settingsUI.AddUIComponent(temperatureBtn, Point(0, 6));
 
     // Mode & Speed
-    UIButton rgbEffectBtn;
-    rgbEffectBtn.SetName("Effect & Speed");
-    rgbEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, rgb_effect, rgb_effect_period.Get(), start_time); });
-    rgbEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(RGB); });
-    rgbEffectBtn.ShouldEnable([&]() -> bool { return mode == RGB; });
-    rgbEffectBtn.SetSize(Dimension(1, 2));
-    settingsUI.AddUIComponent(rgbEffectBtn, Point(0, 3));
+    UIButton temperatureEffectBtn;
+    temperatureEffectBtn.SetName("Effect & Speed");
+    temperatureEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, temperature_effect_period.Get(), start_time); });
+    temperatureEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(Temperature); });
+    temperatureEffectBtn.ShouldEnable([&]() -> bool { return mode == Temperature; });
+    temperatureEffectBtn.SetSize(Dimension(1, 2));
+    settingsUI.AddUIComponent(temperatureEffectBtn, Point(0, 3));
 
-  // Temperature
-    // Temperature
-      UIButton temperatureBtn;
-      temperatureBtn.SetName("Temperature");
-      temperatureBtn.SetColorFunc([&]() -> Color { return temperature_color; });
-      temperatureBtn.SetSize(Dimension(8,2));
-      temperatureBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::TemperatureColorPicker(temperature_color.Get())) { temperature_color.Save(); } });
-      temperatureBtn.ShouldEnable([&]() -> bool { return mode == Temperature; });
-      settingsUI.AddUIComponent(temperatureBtn, Point(0, 6));
-
-      // Mode & Speed
-      UIButton temperatureEffectBtn;
-      temperatureEffectBtn.SetName("Effect & Speed");
-      temperatureEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, temperature_effect_period.Get(), start_time); });
-      temperatureEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(Temperature); });
-      temperatureEffectBtn.ShouldEnable([&]() -> bool { return mode == Temperature; });
-      temperatureEffectBtn.SetSize(Dimension(1, 2));
-      settingsUI.AddUIComponent(temperatureEffectBtn, Point(0, 3));
-  
   // Animation
     // Animation
     // Speed

@@ -7,7 +7,6 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 
 #include "MatrixOS.h"
 #include "Application.h"
-#include "BrightnessControl.h"
 
 
 class Gamepad : public Application {

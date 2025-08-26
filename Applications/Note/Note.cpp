@@ -3,8 +3,6 @@
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
 
-#include "BrightnessControl.h"
-
 void Note::Setup() {
   // Set up / Load configs --------------------------------------------------------------------------
 
@@ -27,43 +25,6 @@ void Note::Setup() {
 
   // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF), false);
-
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  actionMenu.AddUIComponent(brightnessBtn, Point(3, 3));
-
-  // Rotation control and canvas
-  UIButton rotateUpBtn;
-  rotateUpBtn.SetName("This does nothing");
-  rotateUpBtn.SetColor(Color(0x00FF00));
-  rotateUpBtn.SetSize(Dimension(2, 1));
-  rotateUpBtn.OnPress([&]() -> void {});
-  actionMenu.AddUIComponent(rotateUpBtn, Point(3, 2));
-
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate to this side");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  actionMenu.AddUIComponent(rotateRightBtn, Point(5, 3));
-
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate to this side");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  actionMenu.AddUIComponent(rotateDownBtn, Point(3, 5));
-
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate to this side");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  actionMenu.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
   // Note Pad Control
   UIButton scaleSelectorBtn;

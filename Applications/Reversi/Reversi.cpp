@@ -621,86 +621,48 @@ void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
 void Reversi::Settings() {
   UI settingsUI("Settings", Color(0x00FFFF), true);
 
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });
-  settingsUI.AddUIComponent(brightnessBtn, Point(3, 3));
+  UIButton player1ColorSelector;
+  player1ColorSelector.SetName("Player 1 Color");
+  player1ColorSelector.SetColorFunc([&]() -> Color { return player1Color; });
+  player1ColorSelector.SetSize(Dimension(8,1));
+  player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color.Get())) { player1Color.Save(); } });
+  settingsUI.AddUIComponent(player1ColorSelector, Point(0, 7));
 
-  // Rotation control and canvas
-  UIButton rotateUpBtn;
-  rotateUpBtn.SetName("Rotate Up");
-  rotateUpBtn.SetColor(Color(0x00FF00));
-  rotateUpBtn.SetSize(Dimension(2, 1));
-  rotateUpBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(UP); });
-  settingsUI.AddUIComponent(rotateUpBtn, Point(3, 2));
+  UIButton player2ColorSelector;
+  player2ColorSelector.SetName("Player 2 Color");
+  player2ColorSelector.SetColorFunc([&]() -> Color { return player2Color; });
+  player2ColorSelector.SetSize(Dimension(8,1));
+  player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color.Get())) { player2Color.Save(); } });
+  settingsUI.AddUIComponent(player2ColorSelector, Point(0, 0));
 
-  UIButton rotateRightBtn;
-  rotateRightBtn.SetName("Rotate Right");
-  rotateRightBtn.SetColor(Color(0x00FF00));
-  rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
-  settingsUI.AddUIComponent(rotateRightBtn, Point(5, 3));
+  UIButton player1FirstHand;
+  player1FirstHand.SetName("Player 1 First Hand");
+  player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 1); });
+  player1FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
+  settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
-  UIButton rotateDownBtn;
-  rotateDownBtn.SetName("Rotate Down");
-  rotateDownBtn.SetColor(Color(0x00FF00));
-  rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
-  settingsUI.AddUIComponent(rotateDownBtn, Point(3, 5));
+  UIButton player2FirstHand;
+  player2FirstHand.SetName("Player 2 First Hand");
+  player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 2); });
+  player2FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
+  settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
-  UIButton rotateLeftBtn;
-  rotateLeftBtn.SetName("Rotate Left");
-  rotateLeftBtn.SetColor(Color(0x00FF00));
-  rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
-  settingsUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
+  UIToggle hintToggle;
+  hintToggle.SetName("Placement Hint");
+  hintToggle.SetColor(Color(0x00FF00));
+  hintToggle.SetSize(Dimension(1, 2));
+  hintToggle.SetValuePointer(&hint);
+  hintToggle.OnPress([&]() -> void {hint.Save();});
+  settingsUI.AddUIComponent(hintToggle, Point(0, 3));
 
-
-    UIButton player1ColorSelector;
-    player1ColorSelector.SetName("Player 1 Color");
-    player1ColorSelector.SetColorFunc([&]() -> Color { return player1Color; });
-    player1ColorSelector.SetSize(Dimension(8,1));
-    player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color.Get())) { player1Color.Save(); } });
-    settingsUI.AddUIComponent(player1ColorSelector, Point(0, 7));
-
-    UIButton player2ColorSelector;
-    player2ColorSelector.SetName("Player 2 Color");
-    player2ColorSelector.SetColorFunc([&]() -> Color { return player2Color; });
-    player2ColorSelector.SetSize(Dimension(8,1));
-    player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color.Get())) { player2Color.Save(); } });
-    settingsUI.AddUIComponent(player2ColorSelector, Point(0, 0));
-
-    UIButton player1FirstHand;
-    player1FirstHand.SetName("Player 1 First Hand");
-    player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 1); });
-    player1FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
-    settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
-
-    UIButton player2FirstHand;
-    player2FirstHand.SetName("Player 2 First Hand");
-    player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 2); });
-    player2FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
-    settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
-
-    UIToggle hintToggle;
-    hintToggle.SetName("Placement Hint");
-    hintToggle.SetColor(Color(0x00FF00));
-    hintToggle.SetSize(Dimension(1, 2));
-    hintToggle.SetValuePointer(&hint);
-    hintToggle.OnPress([&]() -> void {hint.Save();});
-    settingsUI.AddUIComponent(hintToggle, Point(0, 3));
-
-    UIButton resetGameBtn;
-    resetGameBtn.SetName("Reset Game");
-    resetGameBtn.SetColorFunc([&]() -> Color { return Color(0xFF0000); });
-    resetGameBtn.OnPress([&]() -> void {
-      if(ResetGame(false)) { settingsUI.Exit(); }
-    });
-    resetGameBtn.SetSize(Dimension(1, 2));
-    settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
+  UIButton resetGameBtn;
+  resetGameBtn.SetName("Reset Game");
+  resetGameBtn.SetColorFunc([&]() -> Color { return Color(0xFF0000); });
+  resetGameBtn.OnPress([&]() -> void {
+    if(ResetGame(false)) { settingsUI.Exit(); }
+  });
+  resetGameBtn.SetSize(Dimension(1, 2));
+  settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
 
   
   // Second, set the key event handler to match the intended behavior

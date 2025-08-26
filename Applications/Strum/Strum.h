@@ -2,7 +2,6 @@
 
 #include "MatrixOS.h"
 #include "Application.h"
-#include "BrightnessControl.h"
 #include "Chord.h"
 #include "StrumBar.h"
 
