@@ -82,8 +82,11 @@ namespace MatrixOS::LED
     // Generate brightness level map
     ledBrightnessMultiplier.resize(Device::LED::partitions.size());
     ledPartitionBrightness.resize(Device::LED::partitions.size());
+
+    led_count = 0;
     for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
+      MLOGD("LED", "Partition#%d %s Size %d", i, Device::LED::partitions[i].name.c_str(), Device::LED::partitions[i].size);
       ledBrightnessMultiplier[i] = Device::LED::partitions[i].default_multiplier;
       MatrixOS::NVS::GetVariable(Hash("system_led_brightness_multiplier_" + Device::LED::partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
       led_count += Device::LED::partitions[i].size;

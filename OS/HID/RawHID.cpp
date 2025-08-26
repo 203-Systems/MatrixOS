@@ -21,7 +21,7 @@ namespace MatrixOS::HID::RawHID
 
     bool HandleMatrixOSHID(const uint8_t* report, size_t size)
     {
-      MLOGD("RAW HID", "Received MatrixOS HID Command: %d", report[0]);
+      // MLOGD("RAW HID", "Received MatrixOS HID Command: %d", report[0]);
 
       switch(report[0])
       {
@@ -132,7 +132,7 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
     return;
   }
 
-    MLOGD("RAW HID", "SET_REPORT - itf %d report id %u, type %u, len %u, data: %02X %02X %02X %02X %02X %02X %02X %02X",itf, report_id, report_type, bufsize, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
+    // MLOGD("RAW HID", "SET_REPORT - itf %d report id %u, type %u, len %u, data: %02X %02X %02X %02X %02X %02X %02X %02X",itf, report_id, report_type, bufsize, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7]);
     
     if(buffer[0] == 0xCB)
     {

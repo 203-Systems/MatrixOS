@@ -74,7 +74,7 @@ void Shell::ApplicationLauncher() {
       appBtns[btnIndex].SetColor(app_color);
       appBtns[btnIndex].OnPress([&, app_id, x, y, app_color]() -> void {
         MLOGD("Shell", "Launching App ID: %d", app_id);
-        // LaunchAnimation(Point(x, y), app_color);
+        LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
 
@@ -191,6 +191,7 @@ void Shell::LaunchAnimation(Point origin, Color color)
   const float endDistance = 20;
   Timer animTimer;
   uint16_t frameTime = 1000 / Device::LED::fps;
+
   while(true)
   {
     if(!animTimer.Tick(frameTime)) { continue; }
@@ -198,7 +199,7 @@ void Shell::LaunchAnimation(Point origin, Color color)
 
     if(r > endDistance) { break; }
 
-    for (uint8_t i = 0; i < MatrixOS::LED::GetLedCount(); i++)
+    for (uint16_t i = 0; i < MatrixOS::LED::GetLedCount(); i++)
     {
       Point xy = Device::LED::Index2XY(i);
 
