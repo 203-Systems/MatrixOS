@@ -17,6 +17,8 @@
 #define FAMILY_MYSTRIX
 #define DEVICE_BATTERY
 #define MULTIPRESS 10  // Key Press will be process at once
+#define X_SIZE 8
+#define Y_SIZE 8
 #define DEVICE_SETTING
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
@@ -115,9 +117,9 @@ namespace Device
         .debounce = 10,
     };
 
-    inline gpio_num_t keypad_write_pins[8];
-    inline gpio_num_t keypad_read_pins[8];
-    inline adc_channel_t keypad_read_adc_channel[8];
+    inline gpio_num_t keypad_write_pins[X_SIZE];
+    inline gpio_num_t keypad_read_pins[Y_SIZE];
+    inline adc_channel_t keypad_read_adc_channel[Y_SIZE];
 
     inline uint16_t keypad_scanrate = 240;
 
@@ -130,7 +132,7 @@ namespace Device
                                                  // and then right touch down)
                                                  
     inline KeyInfo fnState;
-    inline KeyInfo keypadState[8][8];
+    inline KeyInfo keypadState[X_SIZE][Y_SIZE];
     inline KeyInfo touchbarState[touchbar_size];
 
     namespace Binary

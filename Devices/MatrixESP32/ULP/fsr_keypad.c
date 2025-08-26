@@ -5,9 +5,8 @@
 
 #define X_SIZE 8
 #define Y_SIZE 8
-#define SAMPLES 4
 
-#define IIF_LENGTH 8
+#define IIF_LENGTH 4
 
 volatile gpio_num_t keypad_write_pins[X_SIZE] = 
 {

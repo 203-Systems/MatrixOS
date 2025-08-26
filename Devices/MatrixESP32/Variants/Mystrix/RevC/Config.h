@@ -52,19 +52,19 @@ inline void LoadRevC() {
 
   KeyPad::fn_pin = REVC::FN_Pin;
 
-  gpio_num_t _keypad_write_pins[8] = {
+  gpio_num_t _keypad_write_pins[X_SIZE] = {
       REVC::Key1_Pin, REVC::Key2_Pin, REVC::Key3_Pin, REVC::Key4_Pin,
       REVC::Key5_Pin, REVC::Key6_Pin, REVC::Key7_Pin, REVC::Key8_Pin,
   };
   memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
 
-  gpio_num_t _keypad_read_pins[8] = {
+  gpio_num_t _keypad_read_pins[Y_SIZE] = {
       REVC::KeyRead1_Pin, REVC::KeyRead2_Pin, REVC::KeyRead3_Pin, REVC::KeyRead4_Pin,
       REVC::KeyRead5_Pin, REVC::KeyRead6_Pin, REVC::KeyRead7_Pin, REVC::KeyRead8_Pin,
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
-  adc_channel_t _keypad_read_adc_channel[8] = {
+  adc_channel_t _keypad_read_adc_channel[Y_SIZE] = {
       REVC::KeyRead1_ADC_CHANNEL, REVC::KeyRead2_ADC_CHANNEL, REVC::KeyRead3_ADC_CHANNEL, REVC::KeyRead4_ADC_CHANNEL,
       REVC::KeyRead5_ADC_CHANNEL, REVC::KeyRead6_ADC_CHANNEL, REVC::KeyRead7_ADC_CHANNEL, REVC::KeyRead8_ADC_CHANNEL,
   };

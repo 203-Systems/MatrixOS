@@ -6,8 +6,8 @@
 
 namespace Device::KeyPad::FSR
 {
-  extern Fract16 (*low_thresholds)[8][8];
-  extern Fract16 (*high_thresholds)[8][8];
+  extern Fract16 (*low_thresholds)[X_SIZE][Y_SIZE];
+  extern Fract16 (*high_thresholds)[X_SIZE][Y_SIZE];
 
   void SaveLowCalibration();
   void SaveHighCalibration();

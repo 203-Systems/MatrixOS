@@ -10,7 +10,6 @@
 
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_12
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
-#define SAMPLES 1
 
 extern const uint8_t ulp_fsr_keypad_bin_start[] asm("_binary_ulp_fsr_keypad_bin_start");
 extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_end");
@@ -26,8 +25,8 @@ namespace MatrixOS::USB
 
 namespace Device::KeyPad::FSR
 {
-  Fract16 (*low_thresholds)[x_size][y_size] = nullptr;
-  Fract16 (*high_thresholds)[x_size][y_size] = nullptr;
+  Fract16 (*low_thresholds)[X_SIZE][Y_SIZE] = nullptr;
+  Fract16 (*high_thresholds)[X_SIZE][Y_SIZE] = nullptr;
 
   CreateSavedVar("ForceCalibration", lowOffset, int16_t, 0);
   CreateSavedVar("ForceCalibration", highOffset, int16_t, 0);
@@ -48,7 +47,7 @@ namespace Device::KeyPad::FSR
         .bitwidth = VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH,
     };
 
-    for (uint8_t y = 0; y < y_size; y++)
+    for (uint8_t y = 0; y < Y_SIZE; y++)
     { adc_oneshot_config_channel(adc_handle, keypad_read_adc_channel[y], &adc_config); }
 
     // Config Output Pins
@@ -57,7 +56,7 @@ namespace Device::KeyPad::FSR
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     io_conf.pin_bit_mask = 0;
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     { io_conf.pin_bit_mask |= (1ULL << keypad_write_pins[x]); }
     gpio_config(&io_conf);
 
@@ -68,43 +67,43 @@ namespace Device::KeyPad::FSR
     esp_sleep_enable_adc_tsens_monitor(true);
 
     // Set the threshold
-    low_thresholds = (Fract16 (*)[x_size][y_size])pvPortMalloc(sizeof(Fract16) * x_size * y_size); 
-    high_thresholds = (Fract16 (*)[x_size][y_size])pvPortMalloc(sizeof(Fract16) * x_size * y_size);
+    low_thresholds = (Fract16 (*)[X_SIZE][Y_SIZE])pvPortMalloc(sizeof(Fract16) * X_SIZE * Y_SIZE); 
+    high_thresholds = (Fract16 (*)[X_SIZE][Y_SIZE])pvPortMalloc(sizeof(Fract16) * X_SIZE * Y_SIZE);
 
     if(low_thresholds == nullptr || high_thresholds == nullptr)
     {
       // Error
     }
 
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     {
-      for (uint8_t y = 0; y < y_size; y++)
+      for (uint8_t y = 0; y < Y_SIZE; y++)
       {
         (*low_thresholds)[x][y] = keypad_config.low_threshold;
         (*high_thresholds)[x][y] = keypad_config.high_threshold;
       }
     }
 
-    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * x_size * y_size);
-    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
+    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * X_SIZE * Y_SIZE);
+    MatrixOS::NVS::GetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * X_SIZE * Y_SIZE);
   }
 
   void SaveLowCalibration()
   {
-    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * x_size * y_size);
+    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_LOW_HASH, low_thresholds, sizeof(Fract16) * X_SIZE * Y_SIZE);
   }
 
   void SaveHighCalibration()
   {
-    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * x_size * y_size);
+    MatrixOS::NVS::SetVariable(FORCE_CALIBRATION_HIGH_HASH, high_thresholds, sizeof(Fract16) * X_SIZE * Y_SIZE);
   }
 
   void ClearLowCalibration()
   {
     MatrixOS::NVS::DeleteVariable(FORCE_CALIBRATION_LOW_HASH);
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     {
-      for (uint8_t y = 0; y < y_size; y++)
+      for (uint8_t y = 0; y < Y_SIZE; y++)
       {
         (*low_thresholds)[x][y] = keypad_config.low_threshold;
       }
@@ -114,9 +113,9 @@ namespace Device::KeyPad::FSR
   void ClearHighCalibration()
   {
     MatrixOS::NVS::DeleteVariable(FORCE_CALIBRATION_HIGH_HASH);
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     {
-      for (uint8_t y = 0; y < y_size; y++)
+      for (uint8_t y = 0; y < Y_SIZE; y++)
       {
         (*high_thresholds)[x][y] = keypad_config.high_threshold;
       }
@@ -150,8 +149,8 @@ namespace Device::KeyPad::FSR
 
   uint16_t GetRawReading(uint8_t x, uint8_t y)
   {
-    uint16_t (*result)[8][SAMPLES] = (uint16_t (*)[8][SAMPLES])&ulp_result;
-    return result[x][y][0];
+    uint16_t (*result)[Y_SIZE] = (uint16_t (*)[Y_SIZE])&ulp_result;
+    return result[x][y];
   }
 
   void Start() {
@@ -163,16 +162,15 @@ namespace Device::KeyPad::FSR
   #define CLAMP(x, low, high) (x < low ? low : (x > high ? high : x))
   bool Scan() {
     // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
-    uint16_t (*result)[8][SAMPLES] = (uint16_t (*)[8][SAMPLES])&ulp_result;
-    // uint16_t(*threshold)[8] = (uint16_t(*)[8]) &ulp_threshold;
-    
+    uint16_t (*result)[Y_SIZE] = (uint16_t (*)[Y_SIZE])&ulp_result;
+    // uint16_t(*threshold)[Y_SIZE] = (uint16_t(*)[Y_SIZE]) &ulp_threshold;
 
     KeyConfig config = keypad_config;
-    for (uint8_t y = 0; y < Device::y_size; y++)
+    for (uint8_t y = 0; y < Y_SIZE; y++)
     {
-      for (uint8_t x = 0; x < Device::x_size; x++)
+      for (uint8_t x = 0; x < X_SIZE; x++)
       {
-        Fract16 reading = (Fract16)result[x][y][0];
+        Fract16 reading = (Fract16)result[x][y];
         int32_t new_low_threshold = (uint16_t)(*low_thresholds)[x][y] + lowOffset.Get();
         int32_t new_high_threshold = (uint16_t)(*high_thresholds)[x][y] + highOffset.Get();
         
@@ -184,11 +182,10 @@ namespace Device::KeyPad::FSR
           uint16_t keyID = (1 << 12) + (x << 6) + y;
           if (NotifyOS(keyID, &keypadState[x][y]))
           { return true; }
+          // ESP_LOGI("Keypad ULP", "Key %d,%d (%d) updated: %d (R:%d, L:%d, H:%d)", x, y, keyID, (uint16_t)keypadState[x][y].velocity, (uint16_t)reading, (uint16_t)config.low_threshold, (uint16_t)config.high_threshold);
         }
       }
     }
     return false;
   }
-
-
 }

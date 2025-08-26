@@ -52,19 +52,19 @@ inline void LoadV100() {
 
   KeyPad::fn_pin = V100::FN_Pin;
 
-  gpio_num_t _keypad_write_pins[8] = {
+  gpio_num_t _keypad_write_pins[X_SIZE] = {
       V100::Key1_Pin, V100::Key2_Pin, V100::Key3_Pin, V100::Key4_Pin,
       V100::Key5_Pin, V100::Key6_Pin, V100::Key7_Pin, V100::Key8_Pin,
   };
   memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
 
-  gpio_num_t _keypad_read_pins[8] = {
+  gpio_num_t _keypad_read_pins[Y_SIZE] = {
       V100::KeyRead1_Pin, V100::KeyRead2_Pin, V100::KeyRead3_Pin, V100::KeyRead4_Pin,
       V100::KeyRead5_Pin, V100::KeyRead6_Pin, V100::KeyRead7_Pin, V100::KeyRead8_Pin,
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
-  adc_channel_t _keypad_read_adc_channel[8] = {
+  adc_channel_t _keypad_read_adc_channel[Y_SIZE] = {
       V100::KeyRead1_ADC_CHANNEL, V100::KeyRead2_ADC_CHANNEL, V100::KeyRead3_ADC_CHANNEL, V100::KeyRead4_ADC_CHANNEL,
       V100::KeyRead5_ADC_CHANNEL, V100::KeyRead6_ADC_CHANNEL, V100::KeyRead7_ADC_CHANNEL, V100::KeyRead8_ADC_CHANNEL,
   };

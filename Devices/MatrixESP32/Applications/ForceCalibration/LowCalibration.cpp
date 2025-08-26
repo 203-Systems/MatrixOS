@@ -9,16 +9,16 @@ void ForceCalibration::LowCalibration() {
 
   const float offset = 1.25;
 
-  uint16_t calibration_data[8][8];
+  uint16_t calibration_data[X_SIZE][Y_SIZE] = {0};
 
   MatrixOS::LED::Fill(Color(0x000000));
   MatrixOS::LED::Update();
 
   float last_progress = 0;
 
-  for(uint8_t y = 0; y < 8; y++)
+  for(uint8_t y = 0; y < Y_SIZE; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for(uint8_t x = 0; x < X_SIZE; x++)
     {
       calibration_data[x][y] = 0;
     }
@@ -58,14 +58,14 @@ void ForceCalibration::LowCalibration() {
         }
 
         // Render
-        float progress = (elapsed_time - stabilize_time) / (float)calibration_time * Device::x_size * Device::y_size;
-        uint8_t active_x = (uint16_t)progress % Device::x_size;
-        uint8_t active_y = (uint16_t)progress / Device::x_size;
+        float progress = (elapsed_time - stabilize_time) / (float)calibration_time * X_SIZE * Y_SIZE;
+        uint8_t active_x = (uint16_t)progress % X_SIZE;
+        uint8_t active_y = (uint16_t)progress / X_SIZE;
 
         if((uint8_t)last_progress != (uint8_t)progress)
         {
-          uint8_t last_x = (uint16_t)(last_progress - 1) % Device::x_size;
-          uint8_t last_y = (uint16_t)(last_progress - 1) / Device::x_size;
+          uint8_t last_x = (uint16_t)(last_progress - 1) % X_SIZE;
+          uint8_t last_y = (uint16_t)(last_progress - 1) / X_SIZE;
 
           MatrixOS::LED::SetColor(Point(last_x, last_y), Color(0xFFFFFF), 0);
         }

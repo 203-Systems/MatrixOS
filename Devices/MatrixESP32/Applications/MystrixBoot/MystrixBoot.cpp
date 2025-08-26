@@ -213,7 +213,7 @@ void MystrixBoot::BootPhase2() {
       boot_phase_2_start_time = MatrixOS::SYS::Millis();
 
     uint32_t delta_time = MatrixOS::SYS::Millis() - boot_phase_2_start_time;
-    uint8_t quad_size = max(Device::x_size, Device::y_size) / 2 + 1;
+    uint8_t quad_size = max(X_SIZE, Y_SIZE) / 2 + 1;
     if (delta_time > (quad_size - 2) * start_offset + 700 + 100)
     { Exit(); }
 

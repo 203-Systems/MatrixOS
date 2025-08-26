@@ -17,7 +17,7 @@ namespace Device::KeyPad::Binary
     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     io_conf.pin_bit_mask = 0;
-    for (uint8_t y = 0; y < y_size; y++)
+    for (uint8_t y = 0; y < Y_SIZE; y++)
     { io_conf.pin_bit_mask |= (1ULL << keypad_read_pins[y]); }
     gpio_config(&io_conf);
     
@@ -27,12 +27,12 @@ namespace Device::KeyPad::Binary
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     io_conf.pin_bit_mask = 0;
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     { io_conf.pin_bit_mask |= (1ULL << keypad_write_pins[x]); }
     gpio_config(&io_conf);
 
     // Set all output pins to low
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     { gpio_set_level(keypad_write_pins[x], 0); }
   }
 
@@ -44,10 +44,10 @@ namespace Device::KeyPad::Binary
 
    bool Scan()
   {
-    for(uint8_t x = 0; x < Device::x_size; x++)
+    for(uint8_t x = 0; x < X_SIZE; x++)
     {
       gpio_set_level(keypad_write_pins[x], 1);
-      for(uint8_t y = 0; y < Device::y_size; y++)
+      for(uint8_t y = 0; y < Y_SIZE; y++)
       {
         Fract16 reading = gpio_get_level(keypad_read_pins[y]) * FRACT16_MAX;
         // MLOGD("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));

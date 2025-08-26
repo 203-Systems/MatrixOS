@@ -73,7 +73,8 @@ void Shell::ApplicationLauncher() {
       appBtns[btnIndex].SetName(application->name);
       appBtns[btnIndex].SetColor(app_color);
       appBtns[btnIndex].OnPress([&, app_id, x, y, app_color]() -> void {
-        LaunchAnimation(Point(x, y), app_color);
+        MLOGD("Shell", "Launching App ID: %d", app_id);
+        // LaunchAnimation(Point(x, y), app_color);
         MatrixOS::SYS::ExecuteAPP(app_id);
       });
 

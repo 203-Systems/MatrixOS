@@ -1,5 +1,6 @@
 #pragma once
 #include "Framework.h"
+#include "Family.h"
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
 
@@ -18,8 +19,8 @@ namespace Device
   inline uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
   // MatrixOS required dimensions
-  inline uint8_t x_size = 8;
-  inline uint8_t y_size = 8;
+  inline uint8_t x_size = X_SIZE;
+  inline uint8_t y_size = Y_SIZE;
 
   namespace LED
   {

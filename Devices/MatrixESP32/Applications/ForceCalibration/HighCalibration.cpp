@@ -23,7 +23,7 @@ void ForceCalibration::HighCalibration() {
 
   uint32_t scan_count_cache = 0;
 
-  uint16_t calibration_data[8][8];
+  uint16_t calibration_data[X_SIZE][Y_SIZE] = {0};
 
   const uint32_t stabilizeTime = 1000; // 1 seconds
   const uint32_t calibrationSamples = 300;
@@ -34,9 +34,9 @@ void ForceCalibration::HighCalibration() {
   MatrixOS::LED::Fill(Color(0x000000));
   MatrixOS::LED::Update();
 
-  for(uint8_t y = 0; y < 8; y++)
+  for(uint8_t y = 0; y < Y_SIZE; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for(uint8_t x = 0; x < X_SIZE; x++)
     {
       MLOGD("High Calibration", "Existing %d %d: %d", x, y, (*Device::KeyPad::FSR::high_thresholds)[x][y]);
     }
@@ -44,10 +44,10 @@ void ForceCalibration::HighCalibration() {
 
   while (!MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->active())
   {
-    if(progress < Device::x_size * Device::y_size)
+    if(progress < X_SIZE * Y_SIZE)
     {
-      uint8_t x = progress % Device::x_size;
-      uint8_t y = progress / Device::x_size;
+      uint8_t x = progress % X_SIZE;
+      uint8_t y = progress / X_SIZE;
 
       uint16_t reading = Device::KeyPad::FSR::GetRawReading(x, y);
 
@@ -116,8 +116,8 @@ void ForceCalibration::HighCalibration() {
       // Render
       if(renderTimer.Tick(1000 / Device::LED::fps))
       {
-        x = progress % Device::x_size;
-        y = progress / Device::x_size;
+        x = progress % X_SIZE;
+        y = progress / X_SIZE;
         if (calibration_state == Idle)
         {
           // Breath Effect
@@ -145,7 +145,7 @@ void ForceCalibration::HighCalibration() {
       }
       
     }
-    else if(progress == Device::x_size * Device::y_size)
+    else if(progress == X_SIZE * Y_SIZE)
     {
 
       if(!highCalibrationSaved)

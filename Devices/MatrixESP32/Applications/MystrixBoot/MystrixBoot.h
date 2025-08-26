@@ -18,7 +18,7 @@ class MystrixBoot : public BootAnimation {
   // CreateSavedVar(bool, notFirstBoot, false);
   Timer timer;
 
-  Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
+  Point origin = Point((X_SIZE - 1) / 2, (Y_SIZE - 1) / 2);
   uint8_t counter;
 
   uint8_t boot_phase;

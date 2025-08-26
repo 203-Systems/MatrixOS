@@ -91,9 +91,9 @@ namespace Device::KeyPad
   void Clear() {
     fnState.Clear();
 
-    for (uint8_t x = 0; x < x_size; x++)
+    for (uint8_t x = 0; x < X_SIZE; x++)
     {
-      for (uint8_t y = 0; y < y_size; y++)
+      for (uint8_t y = 0; y < Y_SIZE; y++)
       { keypadState[x][y].Clear(); }
     }
 
@@ -119,7 +119,7 @@ namespace Device::KeyPad
       {
         int16_t x = (keyID & (0b0000111111000000)) >> 6;
         int16_t y = keyID & (0b0000000000111111);
-        if (x < x_size && y < y_size)
+        if (x < X_SIZE && y < Y_SIZE)
           return &keypadState[x][y];
         break;
       }
@@ -163,7 +163,7 @@ namespace Device::KeyPad
       {
         int16_t x = (keyID & 0b0000111111000000) >> 6;
         int16_t y = keyID & (0b0000000000111111);
-        if (x < Device::x_size && y < Device::y_size)
+        if (x < X_SIZE && y < Y_SIZE)
           return Point(x, y);
         break;
       }
@@ -173,7 +173,7 @@ namespace Device::KeyPad
         if (index < touchbar_size)
         {
           if (index / 8)  // Right
-          { return Point(Device::x_size, index % 8); }
+          { return Point(X_SIZE, index % 8); }
           else  // Left
           { return Point(-1, index % 8); }
         }
