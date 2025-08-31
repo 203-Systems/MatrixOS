@@ -9,7 +9,7 @@ See [Project Matrix Wiki](matrix.203.io)
 | Device Name            | Type | Chip     | Supported | Note              | Purchase                                       |
 |------------------------|------|----------|-----------|-------------------|------------------------------------------------|
 | Mystrix & Mystrix Pro  | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/mystrix-pro)   |
-| Mystrix Founder Edition | Grid | STM32F1  | Partially | Not fully stable | [203.io](https://203.io/products/matrix-founder-edition) |
+| Mystrix Founder Edition | Grid | STM32F1  | No | Removed in OS 3.0. Might reintroduce later | [203.io](https://203.io/products/matrix-founder-edition) |
 
 ## License
 
