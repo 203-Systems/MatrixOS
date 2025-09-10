@@ -4,7 +4,14 @@
 #include "StrumDurationModifier.h"
 #include "StrumBar.h"
 
+#include "RotationRequiredUI.h"
+
 void Strum::Setup() {
+
+    if(RotationRequiredUI(true, true, false, false) == false)
+    {
+      Exit();
+    }
 
     // Load From NVS
     if (nvsVersion == (uint32_t)STRUM_APP_VERSION)
@@ -119,7 +126,13 @@ void Strum::ActionMenu() {
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
   systemSettingBtn.SetColor(Color(0xFFFFFF));
-  systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
+  systemSettingBtn.OnPress([&]() -> void { 
+    MatrixOS::SYS::OpenSetting(); 
+    if(RotationRequiredUI(true, true, false, false) == false)
+    {
+      Exit();
+    }
+  });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
