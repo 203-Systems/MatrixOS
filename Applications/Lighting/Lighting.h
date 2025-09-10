@@ -53,10 +53,10 @@ class Lighting : public Application {
   CreateSavedVar("Lighting", mode, LightingMode, RGB);
   CreateSavedVar("Lighting", color, Color, Color(0xFFFFFF));
   CreateSavedVar("Lighting", rgb_effect, ColorEffectMode, Static);
-  CreateSavedVar("Lighting", rgb_effect_period, uint16_t, 1000);
+  CreateSavedVar("Lighting", rgb_effect_bpm, uint16_t, 60);
   CreateSavedVar("Lighting", temperature_color, Color, Color(0xFFFFFF));
   CreateSavedVar("Lighting", temperature_effect, ColorEffectMode, Static);
-  CreateSavedVar("Lighting", temperature_effect_period, uint16_t, 1000);
+  CreateSavedVar("Lighting", temperature_effect_bpm, uint16_t, 60);
   CreateSavedVar("Lighting", animation, Animations, PoliceCar);
   CreateSavedVar("Lighting", animation_period, uint16_t, 1000);
 
