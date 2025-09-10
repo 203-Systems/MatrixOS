@@ -35,15 +35,14 @@ class UIBPMTapper : public UIComponent {
       return;
     }
     
-    // Calculate average interval from last 3 taps (2 intervals)
-    size_t size = tap_times.size();
-    uint64_t newest = tap_times[size - 1];
-    uint64_t middle = tap_times[size - 2];
-    uint64_t oldest = tap_times[size - 3];
+    // Use last 5 taps or all available taps if fewer
+    size_t taps_to_use = std::min(tap_times.size(), (size_t)5);
+    size_t start_index = tap_times.size() - taps_to_use;
     
-    uint64_t interval1 = newest - middle;
-    uint64_t interval2 = middle - oldest;
-    uint64_t avg_interval = (interval1 + interval2) / 2;
+    // Calculate average interval
+    uint64_t total_interval = tap_times[tap_times.size() - 1] - tap_times[start_index];
+    uint64_t num_intervals = taps_to_use - 1;
+    uint64_t avg_interval = total_interval / num_intervals;
     
     // BPM = 60 seconds * 1,000,000 microseconds / average interval
     uint16_t bpm = 60000000 / avg_interval;
