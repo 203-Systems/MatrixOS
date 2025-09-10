@@ -37,21 +37,28 @@ void Note::Setup() {
   layoutSelectorBtn.SetName("Layout Selector");
   layoutSelectorBtn.SetColor(Color(0xFFFF00));
   layoutSelectorBtn.OnPress([&]() -> void { LayoutSelector(); });
-  actionMenu.AddUIComponent(layoutSelectorBtn, Point(7, 4));
+  actionMenu.AddUIComponent(layoutSelectorBtn, Point(7, 3));
 
   UIButton channelSelectorBtn;
   channelSelectorBtn.SetName("Channel Selector");
   channelSelectorBtn.SetColor(Color(0x60FF00));
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
-  actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 5));
+  actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
   UIButton velocitySensitiveToggle;
   velocitySensitiveToggle.SetName("Velocity Sensitive");
-  velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
-  velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
-  velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(velocitySensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
-  velocitySensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
-  actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
+  if(Device::KeyPad::velocity_sensitivity)
+  {
+    velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
+    velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
+    velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(velocitySensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
+  }
+  else
+  {
+    velocitySensitiveToggle.SetColor(Color(0x00FFB0).Dim());
+    velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
+  }
+  actionMenu.AddUIComponent(velocitySensitiveToggle, Point(7, 5));
 
   OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
   actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
