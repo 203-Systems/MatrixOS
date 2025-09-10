@@ -14,7 +14,7 @@
 // Avoid recursive include
 namespace MatrixOS::SYS
 {
-  uint32_t Millis(void);
+  uint64_t Millis(void);
 }
 
 namespace MatrixOS::Logging

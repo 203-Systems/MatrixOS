@@ -25,6 +25,8 @@ namespace Device
   void Bootloader();
   void ErrorHandler();
 
+  uint64_t Micros();
+
   void DeviceSettings();
 
   void Log(string &format, va_list &valst);

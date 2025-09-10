@@ -103,8 +103,12 @@ namespace MatrixOS::SYS
     HID::Init();
   }
 
-  uint32_t Millis() {
+  uint64_t Millis() {
     return ((((uint64_t)xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ);
+  }
+
+  uint64_t Micros() {
+    return Device::Micros();
   }
 
   void DelayMs(uint32_t intervalMs) {

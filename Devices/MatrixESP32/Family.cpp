@@ -160,6 +160,12 @@ namespace Device
   }
 
   void ErrorHandler() {}
+
+  uint64_t Micros() {
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+    return (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+  }
 }
 
 namespace MatrixOS::SYS

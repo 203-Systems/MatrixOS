@@ -5,7 +5,7 @@
 
 namespace MatrixOS::SYS
 {
-    uint32_t Millis();
+    uint64_t Millis();
 }
 
 namespace ColorEffects

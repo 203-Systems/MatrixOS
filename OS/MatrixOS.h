@@ -32,7 +32,8 @@ namespace MatrixOS
     void Begin(void);
     void InitSysModules(void);
 
-    uint32_t Millis(void);
+    uint64_t Millis(void);
+    uint64_t Micros(void);
     void DelayMs(uint32_t intervalMs);
 
     void Reboot(void);
