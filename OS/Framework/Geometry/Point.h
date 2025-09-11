@@ -41,6 +41,7 @@ class Point {
 
   operator uint32_t() { return (uint32_t)(x << 16 & y); }
 
+  static Point Origin() { return Point(0, 0); }
   static Point Invalid() { return Point(INT16_MIN, INT16_MIN); }
 
   Point Rotate(Direction rotation, Point dimension, bool reverse = false) {
