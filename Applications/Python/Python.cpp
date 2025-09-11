@@ -2,6 +2,7 @@
 
 #include "pika_config.h"
 #include "pikaScript.h"
+#include "PikaObj.h"
 
 namespace MatrixOS::USB::CDC
 {
@@ -34,7 +35,16 @@ extern "C" {
 }
 
 void Python::Setup() {
+  // Initialize PikaPython
   PikaObj* pikaMain = pikaPythonInit();
   pikaPythonShell(pikaMain);
+
+  // Deinitialize PikaPython after shell exits
+  extern volatile PikaObj *__pikaMain;
+  if (pikaMain != nullptr) {
+    obj_deinit(pikaMain);
+    __pikaMain = nullptr;
+  }
+  
   Exit();
 }
