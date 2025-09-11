@@ -11,6 +11,23 @@ class AppLauncherPickerEditMode : public UIComponent {
     AppLauncherPickerEditMode(Shell* shell) {
         this->shell = shell;
     }
+    
+    void SwapAppPositions(uint32_t app_id1, uint32_t app_id2) {
+        std::vector<uint32_t>& app_ids = shell->folders[shell->current_folder].app_ids;
+        
+        // Find positions of both apps
+        int pos1 = -1, pos2 = -1;
+        for (int i = 0; i < app_ids.size(); i++) {
+            if (app_ids[i] == app_id1) pos1 = i;
+            if (app_ids[i] == app_id2) pos2 = i;
+        }
+        
+        // Swap if both apps are found
+        if (pos1 != -1 && pos2 != -1) {
+            std::swap(app_ids[pos1], app_ids[pos2]);
+            shell->SaveFolderVector(shell->current_folder);
+        }
+    }
 
     virtual Dimension GetSize() { return Dimension(8, 7); }
 
@@ -33,7 +50,7 @@ class AppLauncherPickerEditMode : public UIComponent {
 
             Color app_color = application_info->color;
             
-            // If this app is selected, show it as white
+            // If this app is selected, show it brighter
             if (app_id == shell->selected_app_id) {
                 MatrixOS::LED::SetColor(origin + Point(x, y), app_color);
             }
@@ -77,15 +94,17 @@ class AppLauncherPickerEditMode : public UIComponent {
                 }
                 Application_Info* application = application_it->second;
                 
-                // Toggle selection
-                if (shell->selected_app_id == app_id) {
-                    // Deselect
+                // Check if an app is already selected
+                if (shell->selected_app_id != 0 && shell->selected_app_id != app_id) {
+                    // Swap positions of selected app and clicked app
+                    SwapAppPositions(shell->selected_app_id, app_id);
+                    shell->selected_app_id = 0; // Clear selection after swap
+                } else if (shell->selected_app_id == app_id) {
+                    // Deselect if clicking the same app
                     shell->selected_app_id = 0;
-                    MLOGD("AppLauncherPickerEditMode", "Deselected app %s", application->name.c_str());
                 } else {
                     // Select this app
                     shell->selected_app_id = app_id;
-                    MLOGD("AppLauncherPickerEditMode", "Selected app %s", application->name.c_str());
                 }
                 return true;
             }
