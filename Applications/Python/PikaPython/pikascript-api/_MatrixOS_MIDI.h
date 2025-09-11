@@ -9,13 +9,16 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS__H
-#define ___MatrixOS__H
+#ifndef ___MatrixOS_MIDI__H
+#define ___MatrixOS_MIDI__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS(Args *args);
+PikaObj *New__MatrixOS_MIDI(Args *args);
 
+PikaObj* _MatrixOS_MIDI_Get(PikaObj *self, int timeout_ms);
+pika_bool _MatrixOS_MIDI_Send(PikaObj *self, PikaObj* packet, int timeout_ms);
+pika_bool _MatrixOS_MIDI_SendSysEx(PikaObj *self, int port, int length, uint8_t* data, pika_bool include_meta);
 
 #endif

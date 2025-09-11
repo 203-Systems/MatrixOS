@@ -42,11 +42,14 @@ extern "C" {
             return nullptr;
         }
         
-        // Create a new buffer for the return value
-        char* result = (char*)malloc(data.size() + 1);
-        memcpy(result, data.data(), data.size());
-        result[data.size()] = '\0';
-        return result;
+        // // Create a new buffer for the return value
+        // char* result = (char*)malloc(data.size() + 1);
+        // memcpy(result, data.data(), data.size());
+        // result[data.size()] = '\0';
+        // return result;
+
+        // TODO Fix Malloc
+        return NULL;
     }
 
     pika_bool _MatrixOS_NVS_SetVariable(PikaObj *self, int hash, char* data, int length) {

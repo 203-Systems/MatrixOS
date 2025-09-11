@@ -78,6 +78,31 @@ extern "C" {
         MatrixOS::HID::Gamepad::DPad((GamepadDPadDirection)direction);
     }
 
+    // HID RawHID functions
+    char* _MatrixOS_HID_RawHID_Get(PikaObj *self, int timeout_ms) {
+        uint8_t* report;
+        size_t size = MatrixOS::HID::RawHID::Get(&report, (uint32_t)timeout_ms);
+        
+        if (size == 0 || report == nullptr) {
+            return nullptr;
+        }
+        
+        // Create a new buffer for the return value
+        // char* result = (char*)malloc(size);
+        // memcpy(result, report, size);
+        // return result; 
+
+        // TODO Fix malloc
+        return NULL;
+    }
+
+    pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, char* data, int length) {
+        std::vector<uint8_t> report;
+        report.resize(length);
+        memcpy(report.data(), data, length);
+        return MatrixOS::HID::RawHID::Send(report) ? pika_true : pika_false;
+    }
+
     // HID Consumer functions
    
     // HID System functions

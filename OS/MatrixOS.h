@@ -22,8 +22,6 @@ class Application_Info;
 // Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
-  inline uint32_t api_version = 0;
-
   namespace SYS
   {
     inline bool inited = false;
