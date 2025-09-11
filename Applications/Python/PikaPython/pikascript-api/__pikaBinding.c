@@ -25,6 +25,7 @@
 #include "_MatrixOS_Direction.h"
 #include "_MatrixOS_HIDEnums.h"
 #include "_MatrixOS_KeyEvent.h"
+#include "_MatrixOS_MidiPacket.h"
 #include "_MatrixOS_Point.h"
 #include "builtins.h"
 #include "ctypes.h"
@@ -59,7 +60,9 @@
 #include "_MatrixOS_KeyPad.h"
 #include "_MatrixOS_LED.h"
 #include "_MatrixOS_MIDI.h"
-#include "_MatrixOS_MIDI_MidiPacket.h"
+#include "_MatrixOS_MidiPacket_MidiPacket.h"
+#include "_MatrixOS_MidiPacket_MidiPortID.h"
+#include "_MatrixOS_MidiPacket_MidiStatus.h"
 #include "_MatrixOS_NVS.h"
 #include "_MatrixOS_Point_Point.h"
 #include "_MatrixOS_SYS.h"
@@ -276,6 +279,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
     obj_newObj(self, "_MatrixOS_KeyEvent", "_MatrixOS_KeyEvent", New__MatrixOS_KeyEvent);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
+    obj_newObj(self, "_MatrixOS_MidiPacket", "_MatrixOS_MidiPacket", New__MatrixOS_MidiPacket);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_POINT_DISABLE
     obj_newObj(self, "_MatrixOS_Point", "_MatrixOS_Point", New__MatrixOS_Point);
@@ -1693,13 +1699,39 @@ method_typedef(
     "DimIfNot", "not_dim,factor"
 );
 
-void _MatrixOS_Color_Color_RGBMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_Color_Color_RGB(self);
-    method_returnInt(_args_, res);
+void _MatrixOS_Color_Color_FromHexMethod(PikaObj *self, Args *_args_){
+    int hex = args_getInt(_args_, "hex");
+    PikaObj* res = _MatrixOS_Color_Color_FromHex(self, hex);
+    method_returnObj(_args_, res);
 }
 method_typedef(
-    _MatrixOS_Color_Color_RGB,
-    "RGB", ""
+    _MatrixOS_Color_Color_FromHex,
+    "FromHex", "hex"
+);
+
+void _MatrixOS_Color_Color_FromRGBMethod(PikaObj *self, Args *_args_){
+    int r = args_getInt(_args_, "r");
+    int g = args_getInt(_args_, "g");
+    int b = args_getInt(_args_, "b");
+    PikaObj* res = _MatrixOS_Color_Color_FromRGB(self, r, g, b);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Color_Color_FromRGB,
+    "FromRGB", "r,g,b"
+);
+
+void _MatrixOS_Color_Color_FromRGBWMethod(PikaObj *self, Args *_args_){
+    int r = args_getInt(_args_, "r");
+    int g = args_getInt(_args_, "g");
+    int b = args_getInt(_args_, "b");
+    int w = args_getInt(_args_, "w");
+    PikaObj* res = _MatrixOS_Color_Color_FromRGBW(self, r, g, b, w);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Color_Color_FromRGBW,
+    "FromRGBW", "r,g,b,w"
 );
 
 void _MatrixOS_Color_Color_ScaleMethod(PikaObj *self, Args *_args_){
@@ -1747,10 +1779,12 @@ method_typedef(
 class_def(_MatrixOS_Color_Color){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_Color_Color_Dim, 193454623),
-    method_def(_MatrixOS_Color_Color_RGB, 193468704),
     method_def(_MatrixOS_Color_Color_Scale, 236250733),
+    method_def(_MatrixOS_Color_Color_FromHex, 573437662),
+    method_def(_MatrixOS_Color_Color_FromRGB, 573447508),
     method_def(_MatrixOS_Color_Color___init__, 904762485),
     method_def(_MatrixOS_Color_Color_DimIfNot, 1400329087),
+    method_def(_MatrixOS_Color_Color_FromRGBW, 1743898667),
     method_def(_MatrixOS_Color_Color___eq__, 1818853367),
     method_def(_MatrixOS_Color_Color___ne__, 1819163732),
 };
@@ -2284,20 +2318,280 @@ Arg *_MatrixOS_KeyEvent_KeyState(PikaObj *self){
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_MIDI_DISABLE
-class_def(_MatrixOS_MIDI_MidiPacket){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_MIDI_MidiPacket, TinyObj);
+#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
+void _MatrixOS_MidiPacket_MidiPacketMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_MidiPacket_MidiPacket(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket,
+    "MidiPacket", ""
+);
 
-PikaObj *New__MatrixOS_MIDI_MidiPacket(Args *args){
+void _MatrixOS_MidiPacket_MidiPortIDMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_MidiPacket_MidiPortID(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPortID,
+    "MidiPortID", ""
+);
+
+void _MatrixOS_MidiPacket_MidiStatusMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_MidiPacket_MidiStatus(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiStatus,
+    "MidiStatus", ""
+);
+
+class_def(_MatrixOS_MidiPacket){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_MidiPacket_MidiPacket, 1374686208),
+    constructor_def(_MatrixOS_MidiPacket_MidiPortID, 1391836986),
+    constructor_def(_MatrixOS_MidiPacket_MidiStatus, 1514563340),
+};
+class_inhert(_MatrixOS_MidiPacket, TinyObj);
+
+PikaObj *New__MatrixOS_MidiPacket(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_MIDI_MidiPacket);
+    obj_setClass(self, _MatrixOS_MidiPacket);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
+void _MatrixOS_MidiPacket_MidiPacket_ChannelMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Channel(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Channel,
+    "Channel", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_ControllerMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Controller(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Controller,
+    "Controller", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_LengthMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Length(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Length,
+    "Length", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_NoteMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Note(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Note,
+    "Note", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_PortMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_MidiPacket_MidiPacket_Port(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Port,
+    "Port", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetChannelMethod(PikaObj *self, Args *_args_){
+    int channel = args_getInt(_args_, "channel");
+    _MatrixOS_MidiPacket_MidiPacket_SetChannel(self, channel);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetChannel,
+    "SetChannel", "channel"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetControllerMethod(PikaObj *self, Args *_args_){
+    int controller = args_getInt(_args_, "controller");
+    _MatrixOS_MidiPacket_MidiPacket_SetController(self, controller);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetController,
+    "SetController", "controller"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetNoteMethod(PikaObj *self, Args *_args_){
+    int note = args_getInt(_args_, "note");
+    _MatrixOS_MidiPacket_MidiPacket_SetNote(self, note);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetNote,
+    "SetNote", "note"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetPortMethod(PikaObj *self, Args *_args_){
+    PikaObj* port = args_getPtr(_args_, "port");
+    _MatrixOS_MidiPacket_MidiPacket_SetPort(self, port);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetPort,
+    "SetPort", "port"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetStatusMethod(PikaObj *self, Args *_args_){
+    PikaObj* status = args_getPtr(_args_, "status");
+    _MatrixOS_MidiPacket_MidiPacket_SetStatus(self, status);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetStatus,
+    "SetStatus", "status"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetValueMethod(PikaObj *self, Args *_args_){
+    int value = args_getInt(_args_, "value");
+    _MatrixOS_MidiPacket_MidiPacket_SetValue(self, value);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetValue,
+    "SetValue", "value"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SetVelocityMethod(PikaObj *self, Args *_args_){
+    int velocity = args_getInt(_args_, "velocity");
+    _MatrixOS_MidiPacket_MidiPacket_SetVelocity(self, velocity);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SetVelocity,
+    "SetVelocity", "velocity"
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_StatusMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_MidiPacket_MidiPacket_Status(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Status,
+    "Status", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SysExMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SysEx(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SysEx,
+    "SysEx", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_SysExStartMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SysExStart(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_SysExStart,
+    "SysExStart", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_ValueMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Value(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Value,
+    "Value", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket_VelocityMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_MidiPacket_MidiPacket_Velocity(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket_Velocity,
+    "Velocity", ""
+);
+
+void _MatrixOS_MidiPacket_MidiPacket___init__Method(PikaObj *self, Args *_args_){
+    int status = args_getInt(_args_, "status");
+    int channel = args_getInt(_args_, "channel");
+    int data1 = args_getInt(_args_, "data1");
+    int data2 = args_getInt(_args_, "data2");
+    _MatrixOS_MidiPacket_MidiPacket___init__(self, status, channel, data1, data2);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket___init__,
+    "__init__", "status,channel,data1,data2"
+);
+
+class_def(_MatrixOS_MidiPacket_MidiPacket){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetValue, 145159950),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SysEx, 237059681),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Value, 239748898),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SysExStart, 318479503),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetStatus, 400041621),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Channel, 586121534),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetChannel, 657972266),
+    method_def(_MatrixOS_MidiPacket_MidiPacket___init__, 904762485),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Velocity, 1015587124),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Controller, 1041605609),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Length, 1082709671),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetVelocity, 1239177632),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Status, 1373993257),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetNote, 1826234119),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetPort, 1826305942),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_SetController, 1866016597),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Note, 2089401499),
+    method_def(_MatrixOS_MidiPacket_MidiPacket_Port, 2089473322),
+};
+class_inhert(_MatrixOS_MidiPacket_MidiPacket, TinyObj);
+
+PikaObj *New__MatrixOS_MidiPacket_MidiPacket(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_MidiPacket_MidiPacket);
     return self;
 }
 
-Arg *_MatrixOS_MIDI_MidiPacket(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_MIDI_MidiPacket);
+Arg *_MatrixOS_MidiPacket_MidiPacket(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_MidiPacket_MidiPacket);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
+class_def(_MatrixOS_MidiPacket_MidiPortID){
+    __BEFORE_MOETHOD_DEF
+};
+class_inhert(_MatrixOS_MidiPacket_MidiPortID, TinyObj);
+
+PikaObj *New__MatrixOS_MidiPacket_MidiPortID(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_MidiPacket_MidiPortID);
+    return self;
+}
+
+Arg *_MatrixOS_MidiPacket_MidiPortID(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_MidiPacket_MidiPortID);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
+class_def(_MatrixOS_MidiPacket_MidiStatus){
+    __BEFORE_MOETHOD_DEF
+};
+class_inhert(_MatrixOS_MidiPacket_MidiStatus, TinyObj);
+
+PikaObj *New__MatrixOS_MidiPacket_MidiStatus(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_MidiPacket_MidiStatus);
+    return self;
+}
+
+Arg *_MatrixOS_MidiPacket_MidiStatus(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_MidiPacket_MidiStatus);
 }
 #endif
 

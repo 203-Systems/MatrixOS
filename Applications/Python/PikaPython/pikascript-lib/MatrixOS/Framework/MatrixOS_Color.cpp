@@ -11,12 +11,29 @@ extern "C" {
         obj_setInt(self, (char*)"w", w);
     }
 
-    // Color property getter
-    int _MatrixOS_Color_Color_RGB(PikaObj *self) {
-        return  (uint32_t)obj_getInt(self, (char*)"w") << 24 |
-                (uint32_t)obj_getInt(self, (char*)"r") << 16 |
-                (uint32_t)obj_getInt(self, (char*)"g") << 8  |
-                (uint32_t)obj_getInt(self, (char*)"b");
+    PikaObj* _MatrixOS_Color_Color_FromRGBW(PikaObj *self, int r, int g, int b, int w) {
+        PikaObj* new_color = newNormalObj(New_PikaObj);
+
+        obj_setInt(new_color, (char*)"r", r);
+        obj_setInt(new_color, (char*)"g", g);
+        obj_setInt(new_color, (char*)"b", b);
+        obj_setInt(new_color, (char*)"w", w);
+
+        return new_color;
+    }
+    
+    PikaObj* _MatrixOS_Color_Color_FromRGB(PikaObj *self, int r, int g, int b) {
+        return _MatrixOS_Color_Color_FromRGBW(self, r, g, b, 0);
+    }
+    
+    PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int hex) {
+        // Extract WRGB components from 32-bit hex value
+        int w = (hex >> 24) & 0xFF;
+        int r = (hex >> 16) & 0xFF;
+        int g = (hex >> 8) & 0xFF;
+        int b = hex & 0xFF;
+
+        return _MatrixOS_Color_Color_FromRGBW(self, r, g, b, w);
     }
 
     // Color manipulation methods

@@ -9,13 +9,13 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS_MIDI_MidiPacket__H
-#define ___MatrixOS_MIDI_MidiPacket__H
+#ifndef ___MatrixOS_MidiPacket_MidiPortID__H
+#define ___MatrixOS_MidiPacket_MidiPortID__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS_MIDI_MidiPacket(Args *args);
+PikaObj *New__MatrixOS_MidiPacket_MidiPortID(Args *args);
 
 
 #endif

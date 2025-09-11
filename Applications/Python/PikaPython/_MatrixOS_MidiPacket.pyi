@@ -1,0 +1,74 @@
+# MidiPacket definitions for MatrixOS
+# Binding of OS/Framework/Midi/MidiPacket.h
+
+# MIDI Status enumeration
+class MidiStatus:
+    None: int = 0
+    NoteOff: int = 128
+    NoteOn: int = 144
+    AfterTouch: int = 160
+    ControlChange: int = 176
+    ProgramChange: int = 192
+    ChannelPressure: int = 208
+    PitchChange: int = 224
+    MTCQuarterFrame: int = 241
+    SongPosition: int = 242
+    SongSelect: int = 243
+    TuneRequest: int = 246
+    Sync: int = 248
+    Tick: int = 249
+    Start: int = 250
+    Continue: int = 251
+    Stop: int = 252
+    ActiveSense: int = 254
+    Reset: int = 255
+    SysExData: int = 240
+    SysExEnd: int = 247
+
+# MIDI Port ID enumeration  
+class MidiPortID:
+    MIDI_PORT_EACH_CLASS: int = 0x0
+    MIDI_PORT_ALL: int = 0x01
+    MIDI_PORT_USB: int = 0x100
+    MIDI_PORT_PHYSICAL: int = 0x200
+    MIDI_PORT_BLUETOOTH: int = 0x300
+    MIDI_PORT_WIRELESS: int = 0x400
+    MIDI_PORT_RTP: int = 0x500
+    MIDI_PORT_DEVICE_CUSTOM: int = 0x600
+    MIDI_PORT_SYNTH: int = 0x8000
+    MIDI_PORT_INVALID: int = 0xFFFF
+
+class MidiPacket:
+    def __init__(self, status: int, channel: int, data1: int, data2: int) -> None: ...
+
+    # # Static factory methods for different constructor
+    # def NoteOn(self, channel: int, note: int, value: int) -> MidiPacket: ...
+    # def NoteOff(self, channel: int, note: int, value: int) -> MidiPacket: ...
+    
+    # Properties
+    port: MidiPortID
+    status: MidiStatus
+    data: int[3]
+
+    # Setters
+    def SetPort(self, port: MidiPortID) -> None: ...
+    def SetStatus(self, status: MidiStatus) -> None: ...
+    def SetChannel(self, channel: int) -> None: ...
+    def SetNote(self, note: int) -> None: ...
+    def SetController(self, controller: int) -> None: ...
+    def SetVelocity(self, velocity: int) -> None: ...
+    def SetValue(self, value: int) -> None: ...
+    
+    # Getters
+    def Port(self) -> MidiPortID: ...
+    def Status(self) -> MidiStatus: ...
+    def Channel(self) -> int: ...
+    def Note(self) -> int: ...
+    def Controller(self) -> int: ...
+    def Velocity(self) -> int: ...
+    def Value(self) -> int: ...
+
+    # Helper
+    def Length(self) -> int: ...
+    def SysEx(self) -> bool: ...
+    def SysExStart(self) -> bool: ...
