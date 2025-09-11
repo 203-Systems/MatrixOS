@@ -43,13 +43,13 @@ class Point {
 
   static Point Invalid() { return Point(INT16_MIN, INT16_MIN); }
 
-  Point Rotate(EDirection rotation, Point dimension, bool reverse = false) {
+  Point Rotate(Direction rotation, Point dimension, bool reverse = false) {
     int16_t new_x;
     int16_t new_y;
     // if(bool() == false)
     // 	return *this;
     if (reverse)
-      rotation = (EDirection)(360 - rotation);
+      rotation = (Direction)(360 - rotation);
     switch (rotation)
     {
       case RIGHT:

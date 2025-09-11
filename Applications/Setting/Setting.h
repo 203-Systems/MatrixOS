@@ -16,7 +16,7 @@ class Setting : public UI {
 
    void Start();
 
-   static void RotateClockwise(EDirection rotation);
+   static void RotateClockwise(Direction rotation);
    static void NextBrightness();
 
    bool CustomKeyEvent(KeyEvent* keyEvent);

@@ -41,7 +41,7 @@ namespace MatrixOS
 
     void OpenSetting(void);
 
-    void Rotate(EDirection rotation, bool absolute = false);
+    void Rotate(Direction rotation, bool absolute = false);
 
     void ExecuteAPP(string author, string app_name);
     void ExecuteAPP(uint32_t app_id);

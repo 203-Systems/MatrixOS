@@ -1,6 +1,6 @@
 #pragma once
 
-enum EDirection {
+enum Direction {
   UP = 0,
   TOP = 0,
   NORTH = 0,

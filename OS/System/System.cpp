@@ -131,7 +131,7 @@ namespace MatrixOS::SYS
     setting.Start();
   }
 
-  void Rotate(EDirection new_rotation, bool absolute) {
+  void Rotate(Direction new_rotation, bool absolute) {
     if (new_rotation == 0 || new_rotation == 90 || new_rotation == 180 || new_rotation == 270)
     {
       if (new_rotation == 0 && !absolute)
@@ -139,7 +139,7 @@ namespace MatrixOS::SYS
       // LED::RotateCanvas(new_rotation); //TODO Does not work if absolute is true
       for (uint8_t ledLayer = 0; ledLayer <= LED::CurrentLayer(); ledLayer++)
       { LED::Fill(0, ledLayer); }
-      UserVar::rotation = (EDirection)((UserVar::rotation * !absolute + new_rotation) % 360);
+      UserVar::rotation = (Direction)((UserVar::rotation * !absolute + new_rotation) % 360);
     }
   }
 

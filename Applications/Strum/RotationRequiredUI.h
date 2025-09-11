@@ -3,7 +3,7 @@
 bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   bool rotated = false;
 
-  EDirection current_orientation = MatrixOS::UserVar::rotation;
+  Direction current_orientation = MatrixOS::UserVar::rotation;
 
   if(!up && !down && !left && !right)
   {
@@ -32,7 +32,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   UIButton rotateUpBtn;
   rotateUpBtn.SetName("Rotate Up");
   rotateUpBtn.SetSize(Dimension(2, 1)); 
-  EDirection actual_direction = current_orientation;
+  Direction actual_direction = current_orientation;
   if((actual_direction == UP && up) || (actual_direction == DOWN && down) || (actual_direction == LEFT && left) || (actual_direction == RIGHT && right))
   {
     rotateUpBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, start_time); });
@@ -51,7 +51,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   UIButton rotateRightBtn;
   rotateRightBtn.SetName("Rotate Right");
   rotateRightBtn.SetSize(Dimension(1, 2));
-  actual_direction = (EDirection)((current_orientation + 90) % 360);
+  actual_direction = (Direction)((current_orientation + 90) % 360);
   if((actual_direction == UP && up) || (actual_direction == DOWN && down) || (actual_direction == LEFT && left) || (actual_direction == RIGHT && right))
   {
     rotateRightBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, start_time); });
@@ -70,7 +70,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate Down");
   rotateDownBtn.SetSize(Dimension(2, 1));
-  actual_direction = (EDirection)((current_orientation + 180) % 360);
+  actual_direction = (Direction)((current_orientation + 180) % 360);
   if((actual_direction == UP && up) || (actual_direction == DOWN && down) || (actual_direction == LEFT && left) || (actual_direction == RIGHT && right))
   {
     rotateDownBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, start_time); });
@@ -89,7 +89,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   UIButton rotateLeftBtn;
   rotateLeftBtn.SetName("Rotate Left");
   rotateLeftBtn.SetSize(Dimension(1, 2));
-  actual_direction = (EDirection)((current_orientation + 270) % 360);
+  actual_direction = (Direction)((current_orientation + 270) % 360);
   if((actual_direction == UP && up) || (actual_direction == DOWN && down) || (actual_direction == LEFT && left) || (actual_direction == RIGHT && right))
   {
     rotateLeftBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, start_time); });
