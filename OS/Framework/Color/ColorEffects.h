@@ -27,7 +27,7 @@ namespace ColorEffects
         return color.Scale(Breath(period, offset)).Gamma();
     }
 
-    inline uint8_t BreathLowBound(uint8_t lowBound = 32, uint16_t period = 1000, int32_t offset = 0)
+    inline uint8_t BreathLowBound(uint8_t lowBound = 64, uint16_t period = 1000, int32_t offset = 0)
     {
        float brightness = ((cos(2 * M_PI * (MatrixOS::SYS::Millis() - offset + period / 2) / (period)) + 1) / 2) * (255 - lowBound) + lowBound;
        return (uint8_t)brightness;

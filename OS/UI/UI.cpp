@@ -75,10 +75,6 @@ void UI::GetKey() {
     {
       UIKeyEvent(&keyEvent);
     }
-    else
-    {
-      MLOGD("UI", "KeyEvent Skip: %d", keyEvent.id);
-    }
   }
 }
 

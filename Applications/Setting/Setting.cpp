@@ -103,14 +103,14 @@ void Setting::Start() {
 
     UIButton cancelResetBtn;
     cancelResetBtn.SetName("Cancel");
-    cancelResetBtn.SetColor(Color(0xFF0000));
+    cancelResetBtn.SetColor(Color(0xFFFFFFF));
     cancelResetBtn.SetSize(Dimension(2, 2));
     cancelResetBtn.OnPress([&]() -> void { confirmResetUI.Exit(); });
     confirmResetUI.AddUIComponent(cancelResetBtn, Point(1, 5));
 
     UIButton confirmResetBtn;
     confirmResetBtn.SetName("Confirm");
-    confirmResetBtn.SetColor(Color(0x00FF00));
+    confirmResetBtn.SetColor(Color(0xFF0000));
     confirmResetBtn.SetSize(Dimension(2, 2));
     confirmResetBtn.OnPress([]() -> void {
       Device::NVS::Clear();
