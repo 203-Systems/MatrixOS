@@ -1,6 +1,6 @@
-import _MatrixOSColor
+import _MatrixOS_Color
 
-class Color(_MatrixOSColor.Color):
+class Color(_MatrixOS_Color.Color):
     # def __init__(self, wrgb: int):
     #     r = (wrgb >> 16) & 0xFF
     #     g = (wrgb >> 8) & 0xFF

@@ -4,13 +4,13 @@
 
 extern "C" {
     // Point constructor
-    void _MatrixOSPoint_Point___init__(PikaObj *self, int x, int y) {
+    void _MatrixOS_Point_Point___init__(PikaObj *self, int x, int y) {
         obj_setInt(self, (char*)"x", x);
         obj_setInt(self, (char*)"y", y);
     }
 
     // Point operators
-    PikaObj* _MatrixOSPoint_Point___add__(PikaObj *self, PikaObj* other) {
+    PikaObj* _MatrixOS_Point_Point___add__(PikaObj *self, PikaObj* other) {
         int x1 = obj_getInt(self, (char*)"x");
         int y1 = obj_getInt(self, (char*)"y");
         int x2 = obj_getInt(other, (char*)"x");
@@ -26,7 +26,7 @@ extern "C" {
         return new_point;
     }
 
-    PikaObj* _MatrixOSPoint_Point___sub__(PikaObj *self, PikaObj* other) {
+    PikaObj* _MatrixOS_Point_Point___sub__(PikaObj *self, PikaObj* other) {
         int x1 = obj_getInt(self, (char*)"x");
         int y1 = obj_getInt(self, (char*)"y");
         int x2 = obj_getInt(other, (char*)"x");
@@ -42,7 +42,7 @@ extern "C" {
         return new_point;
     }
 
-    PikaObj* _MatrixOSPoint_Point___mul__(PikaObj *self, int val) {
+    PikaObj* _MatrixOS_Point_Point___mul__(PikaObj *self, int val) {
         int x = obj_getInt(self, (char*)"x");
         int y = obj_getInt(self, (char*)"y");
         
@@ -55,7 +55,7 @@ extern "C" {
         return new_point;
     }
 
-    PikaObj* _MatrixOSPoint_Point___div__(PikaObj *self, int val) {
+    PikaObj* _MatrixOS_Point_Point___div__(PikaObj *self, int val) {
         int x = obj_getInt(self, (char*)"x");
         int y = obj_getInt(self, (char*)"y");
         
@@ -68,36 +68,34 @@ extern "C" {
         return new_point;
     }
 
-    pika_bool _MatrixOSPoint_Point___eq__(PikaObj *self, PikaObj* other) {
+    pika_bool _MatrixOS_Point_Point___eq__(PikaObj *self, PikaObj* other) {
         int x1 = obj_getInt(self, (char*)"x");
         int y1 = obj_getInt(self, (char*)"y");
         int x2 = obj_getInt(other, (char*)"x");
         int y2 = obj_getInt(other, (char*)"y");
         
-        return (x1 == x2 && y1 == y2) ? pika_true : pika_false;
+        return (x1 == x2 && y1 == y2);
     }
 
-    pika_bool _MatrixOSPoint_Point___ne__(PikaObj *self, PikaObj* other) {
+    pika_bool _MatrixOS_Point_Point___ne__(PikaObj *self, PikaObj* other) {
         int x1 = obj_getInt(self, (char*)"x");
         int y1 = obj_getInt(self, (char*)"y");
         int x2 = obj_getInt(other, (char*)"x");
         int y2 = obj_getInt(other, (char*)"y");
         
-        return (x1 != x2 || y1 != y2) ? pika_true : pika_false;
+        return (x1 != x2 || y1 != y2);
     }
 
     // Point methods
-    PikaObj* _MatrixOSPoint_Point_Rotate(PikaObj *self, PikaObj* rotation, PikaObj* dimension, PikaObj* reverse) {
+    PikaObj* _MatrixOS_Point_Point_Rotate(PikaObj *self, int rotation, PikaObj* dimension, pika_bool reverse) {
         int x = obj_getInt(self, (char*)"x");
         int y = obj_getInt(self, (char*)"y");
-        int rotation_val = obj_getInt(rotation, (char*)"value");
         int dim_x = obj_getInt(dimension, (char*)"x");
         int dim_y = obj_getInt(dimension, (char*)"y");
-        pika_bool reverse_val = obj_getBool(reverse, (char*)"value");
         
         Point p(x, y);
         Point dim(dim_x, dim_y);
-        Point result = p.Rotate((Direction)rotation_val, dim, reverse_val != 0);
+        Point result = p.Rotate((Direction)rotation, dim, reverse != 0);
         
         PikaObj* new_point = newNormalObj(New_PikaObj);
         obj_setInt(new_point, (char*)"x", result.x);
@@ -106,7 +104,7 @@ extern "C" {
     }
 
     // Static methods
-    PikaObj* _MatrixOSPoint_Point_Invalid(PikaObj *self) {
+    PikaObj* _MatrixOS_Point_Point_Invalid(PikaObj *self) {
         Point invalid = Point::Invalid();
         PikaObj* new_point = newNormalObj(New_PikaObj);
         obj_setInt(new_point, (char*)"x", invalid.x);
@@ -114,7 +112,7 @@ extern "C" {
         return new_point;
     }
 
-    PikaObj* _MatrixOSPoint_Point_Origin(PikaObj *self) {
+    PikaObj* _MatrixOS_Point_Point_Origin(PikaObj *self) {
         PikaObj* new_point = newNormalObj(New_PikaObj);
         obj_setInt(new_point, (char*)"x", 0);
         obj_setInt(new_point, (char*)"y", 0);

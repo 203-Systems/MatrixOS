@@ -9,13 +9,13 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOSDirection_Direction__H
-#define ___MatrixOSDirection_Direction__H
+#ifndef ___MatrixOS_HIDEnums_ConsumerKeycode__H
+#define ___MatrixOS_HIDEnums_ConsumerKeycode__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOSDirection_Direction(Args *args);
+PikaObj *New__MatrixOS_HIDEnums_ConsumerKeycode(Args *args);
 
 
 #endif

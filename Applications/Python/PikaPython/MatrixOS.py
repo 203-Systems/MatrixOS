@@ -2,33 +2,34 @@ import PikaStdLib
 
 import _MatrixOS
 
-from MatrixOSFramework import *
+from MatrixOS_Framework import *
 
 # Constants / Macro
 CROSSFADE_DURATION = 200
 CURRENT_LAYER = 255 # As the API will write to the current layer by default
 
 # expose symbols
-def Reboot() -> None:
-    _MatrixOS.Reboot()
+class SYS:
+    def Reboot() -> None:
+        _MatrixOS.SYS.Reboot()
 
-def Bootloader() -> None:
-    _MatrixOS.Bootloader()
+    def Bootloader() -> None:
+        _MatrixOS.SYS.Bootloader()
 
-def DelayMs(ms: int) -> None:
-    _MatrixOS.DelayMs(ms)
+    def DelayMs(ms: int) -> None:
+        _MatrixOS.SYS.DelayMs(ms)
 
-def Millis() -> int:
-    return _MatrixOS.Millis()
+    def Millis() -> int:
+        return _MatrixOS.SYS.Millis()
 
-def OpenSetting() -> None:
-    _MatrixOS.OpenSetting()
+    def OpenSetting() -> None:
+        _MatrixOS.SYS.OpenSetting()
 
-def ExecuteAPP(author: str, app_name: str) -> None:
-    _MatrixOS.ExecuteAPP(author, app_name)
+    def ExecuteAPP(author: str, app_name: str) -> None:
+        _MatrixOS.SYS.ExecuteAPP(author, app_name)
 
-def ExecuteAPP(app_id: int) -> None:
-    _MatrixOS.ExecuteAPPByID(app_id)
+    def ExecuteAPP(app_id: int) -> None:
+        _MatrixOS.SYS.ExecuteAPPByID(app_id)
 
 class LED:
     def NextBrightness(self) -> None:

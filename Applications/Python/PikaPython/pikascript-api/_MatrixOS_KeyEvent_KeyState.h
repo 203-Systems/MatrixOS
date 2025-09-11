@@ -9,14 +9,13 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOSPoint__H
-#define ___MatrixOSPoint__H
+#ifndef ___MatrixOS_KeyEvent_KeyState__H
+#define ___MatrixOS_KeyEvent_KeyState__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOSPoint(Args *args);
+PikaObj *New__MatrixOS_KeyEvent_KeyState(Args *args);
 
-Arg* _MatrixOSPoint_Point(PikaObj *self);
 
 #endif

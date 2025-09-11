@@ -9,17 +9,18 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS__H
-#define ___MatrixOS__H
+#ifndef ___MatrixOS_HIDEnums__H
+#define ___MatrixOS_HIDEnums__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS(Args *args);
+PikaObj *New__MatrixOS_HIDEnums(Args *args);
 
-Arg* _MatrixOS_KeyPad(PikaObj *self);
-Arg* _MatrixOS_LED(PikaObj *self);
-Arg* _MatrixOS_NVS(PikaObj *self);
-Arg* _MatrixOS_SYS(PikaObj *self);
+Arg* _MatrixOS_HIDEnums_ConsumerKeycode(PikaObj *self);
+Arg* _MatrixOS_HIDEnums_GamepadDPadDirection(PikaObj *self);
+Arg* _MatrixOS_HIDEnums_KeyboardKeycode(PikaObj *self);
+Arg* _MatrixOS_HIDEnums_MouseKeycode(PikaObj *self);
+Arg* _MatrixOS_HIDEnums_SystemKeycode(PikaObj *self);
 
 #endif

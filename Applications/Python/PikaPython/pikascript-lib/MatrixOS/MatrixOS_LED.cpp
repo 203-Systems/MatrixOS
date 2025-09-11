@@ -81,7 +81,7 @@ extern "C" {
     }
 
     pika_bool _MatrixOS_LED_DestroyLayer(PikaObj *self) {
-        return MatrixOS::LED::DestroyLayer() ? pika_true : pika_false;
+        return MatrixOS::LED::DestroyLayer();
     }
 
     void _MatrixOS_LED_Fade(PikaObj *self) {

@@ -9,14 +9,16 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOSDirection__H
-#define ___MatrixOSDirection__H
+#ifndef ___MatrixOS_KeyEvent__H
+#define ___MatrixOS_KeyEvent__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOSDirection(Args *args);
+PikaObj *New__MatrixOS_KeyEvent(Args *args);
 
-Arg* _MatrixOSDirection_Direction(PikaObj *self);
+Arg* _MatrixOS_KeyEvent_KeyEvent(PikaObj *self);
+Arg* _MatrixOS_KeyEvent_KeyInfo(PikaObj *self);
+Arg* _MatrixOS_KeyEvent_KeyState(PikaObj *self);
 
 #endif

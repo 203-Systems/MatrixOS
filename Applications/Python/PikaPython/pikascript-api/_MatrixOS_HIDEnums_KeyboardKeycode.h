@@ -9,13 +9,13 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOSKeyEvent_KeyState__H
-#define ___MatrixOSKeyEvent_KeyState__H
+#ifndef ___MatrixOS_HIDEnums_KeyboardKeycode__H
+#define ___MatrixOS_HIDEnums_KeyboardKeycode__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOSKeyEvent_KeyState(Args *args);
+PikaObj *New__MatrixOS_HIDEnums_KeyboardKeycode(Args *args);
 
 
 #endif

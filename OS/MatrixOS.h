@@ -141,28 +141,27 @@ namespace MatrixOS
       bool Write(KeyboardKeycode keycode);
       bool Press(KeyboardKeycode keycode);
       bool Release(KeyboardKeycode keycode);
-      bool Remove(KeyboardKeycode keycode);
       void ReleaseAll(void);
     }
 
-    namespace Mouse
-    {
-      void Click(MouseKeycode keycode);
-      void press(MouseKeycode keycode);   // press LEFT by default
-      void release(MouseKeycode keycode); // release LEFT by default
-      void ReleaseAll(void);
-      void Move(signed char x, signed char y, signed char wheel = 0);
-    }
+    // namespace Mouse
+    // {
+    //   void Click(MouseKeycode keycode = MOUSE_LEFT);
+    //   void Press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
+    //   void Release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
+    //   void ReleaseAll(void);
+    //   void Move(signed char x, signed char y, signed char wheel = 0);
+    // }
 
-    namespace Touch // Absolute Mouse
-    {
-      void Click(MouseKeycode keycode);
-      void Press(MouseKeycode keycode);   // press LEFT by default
-      void Release(MouseKeycode keycode); // release LEFT by default
-      void ReleaseAll(void);
-      void MoveTo(signed char x, signed char y, signed char wheel = 0);
-      void Move(signed char x, signed char y, signed char wheel = 0);
-    }
+    // namespace Touch // Absolute Mouse
+    // {
+    //   void Click(MouseKeycode keycode = MOUSE_LEFT);
+    //   void Press(MouseKeycode keycode = MOUSE_LEFT);   // press LEFT by default
+    //   void Release(MouseKeycode keycode = MOUSE_LEFT); // release LEFT by default
+    //   void ReleaseAll(void);
+    //   void MoveTo(signed char x, signed char y, signed char wheel = 0);
+    //   void Move(signed char x, signed char y, signed char wheel = 0);
+    // }
 
     namespace Gamepad
     {
@@ -183,21 +182,21 @@ namespace MatrixOS
       void DPad(GamepadDPadDirection direction);
     }
 
-    namespace Consumer
-    {
-      void Write(ConsumerKeycode keycode);
-      void Press(ConsumerKeycode keycode);
-      void Release(ConsumerKeycode keycode);
-      void ReleaseAll(void);
-    }
+    // namespace Consumer
+    // {
+    //   void Write(ConsumerKeycode keycode);
+    //   void Press(ConsumerKeycode keycode);
+    //   void Release(ConsumerKeycode keycode);
+    //   void ReleaseAll(void);
+    // }
 
-    namespace System
-    {
-      void Write(SystemKeycode keycode);
-      void Press(SystemKeycode keycode);
-      void Release(void);
-      void ReleaseAll(void);
-    }
+    // namespace System
+    // {
+    //   void Write(SystemKeycode keycode);
+    //   void Press(SystemKeycode keycode);
+    //   void Release(void);
+    //   void ReleaseAll(void);
+    // }
 
     namespace RawHID
     {

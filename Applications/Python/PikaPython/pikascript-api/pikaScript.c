@@ -28,7 +28,7 @@ PikaObj *pikaPythonInit(void){
     obj_run(pikaMain,
             "import PikaStdLib\n"
             "import MatrixOS\n"
-            "from MatrixOSFramework import *\n"
+            "from MatrixOS_Framework import *\n"
             "\n");
 #else 
     obj_runModule((PikaObj*)pikaMain, "main");

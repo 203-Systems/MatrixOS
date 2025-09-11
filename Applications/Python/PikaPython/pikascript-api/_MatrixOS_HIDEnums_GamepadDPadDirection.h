@@ -9,16 +9,13 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOSKeyEvent__H
-#define ___MatrixOSKeyEvent__H
+#ifndef ___MatrixOS_HIDEnums_GamepadDPadDirection__H
+#define ___MatrixOS_HIDEnums_GamepadDPadDirection__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOSKeyEvent(Args *args);
+PikaObj *New__MatrixOS_HIDEnums_GamepadDPadDirection(Args *args);
 
-Arg* _MatrixOSKeyEvent_KeyEvent(PikaObj *self);
-Arg* _MatrixOSKeyEvent_KeyInfo(PikaObj *self);
-Arg* _MatrixOSKeyEvent_KeyState(PikaObj *self);
 
 #endif
