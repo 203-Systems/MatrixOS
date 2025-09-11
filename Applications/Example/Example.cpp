@@ -10,7 +10,7 @@ void ExampleAPP::Setup() {
 void ExampleAPP::Loop() {
   // Set up key event handler
   struct KeyEvent keyEvent; // Variable for the latest key event to be stored at
-  while (MatrixOS::KEYPAD::Get(&keyEvent)) // While there is still keyEvent in the queue
+  while (MatrixOS::KeyPad::Get(&keyEvent)) // While there is still keyEvent in the queue
   { KeyEventHandler(keyEvent.id, &keyEvent.info); } // Handle them
 
 struct MidiPacket midiPacket; // Variable for the latest midi packet to be stored at
@@ -20,7 +20,7 @@ struct MidiPacket midiPacket; // Variable for the latest midi packet to be store
 
 // Handle the key event from the OS
 void ExampleAPP::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyID);  // Trying to get the XY coordination of the KeyID
+  Point xy = MatrixOS::KeyPad::ID2XY(keyID);  // Trying to get the XY coordination of the KeyID
   if (xy)                                     // IF XY is valid, means it is a key on the grid
   {
     MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyInfo->state); // Print the key event to the debug log

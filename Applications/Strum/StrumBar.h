@@ -71,7 +71,7 @@ class StrumBar : public UIComponent {
     for (uint8_t i = 0; i < 8; i++)
     {
       Point xy = origin + Point(0, i);
-      bool key_state = MatrixOS::KEYPAD::GetKey(xy)->active();
+      bool key_state = MatrixOS::KeyPad::GetKey(xy)->active();
       if (key_state)
       {
         new_key_bitmap |= 1 << i;

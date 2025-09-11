@@ -96,15 +96,15 @@ namespace MatrixOS::UIUtility
               // Wait for the next frame
               while (!textScrollTimer.Tick(speed))
               {
-                // MatrixOS::KEYPAD::Scan(true);
-                MatrixOS::KEYPAD::ClearList();  // Keypad will scan itself after list is cleared
+                // MatrixOS::KeyPad::Scan(true);
+                MatrixOS::KeyPad::ClearList();  // Keypad will scan itself after list is cleared
                 // MLOGD("Text Scroll", "FN Velocity %d",
-                // (uint16_t)MatrixOS::KEYPAD::GetKey(FUNCTION_KEY).state);
+                // (uint16_t)MatrixOS::KeyPad::GetKey(FUNCTION_KEY).state);
                 // Let's assume we don't use FN to trigger a text scroll
-                if (MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->state == PRESSED)
+                if (MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->state == PRESSED)
                 {
-                  MatrixOS::KEYPAD::GetKey(FUNCTION_KEY)->Clear();
-                  MatrixOS::KEYPAD::ClearList();
+                  MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Clear();
+                  MatrixOS::KeyPad::ClearList();
                   MatrixOS::LED::DestroyLayer();
                   MatrixOS::LED::Update();
                   return;

@@ -22,7 +22,7 @@ void Dice::Setup() {
 void Dice::Loop() {
   // Set up key event handler
   struct KeyEvent keyEvent;                 // Variable for the latest key event to be stored at
-  while (MatrixOS::KEYPAD::Get(&keyEvent))  // While there is still keyEvent in the queue
+  while (MatrixOS::KeyPad::Get(&keyEvent))  // While there is still keyEvent in the queue
   {
     KeyEventHandler(keyEvent.id, &keyEvent.info);
   }  // Handle them

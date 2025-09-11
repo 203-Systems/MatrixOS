@@ -30,7 +30,7 @@ void Performance::Loop() {
   }
 
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   {
     KeyEventHandler(keyEvent.id, &keyEvent.info);
   }
@@ -395,7 +395,7 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
 }
 
 void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
-  Point xy = MatrixOS::KEYPAD::ID2XY(KeyID);
+  Point xy = MatrixOS::KeyPad::ID2XY(KeyID);
   if (xy)  // IF XY is valid, means it's on the main grid
   {
     GridKeyEvent(xy, keyInfo);
@@ -447,7 +447,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
           point = Point(-1, i - 24);
         }
 
-        KeyInfo* touchKey = MatrixOS::KEYPAD::GetKey(point);
+        KeyInfo* touchKey = MatrixOS::KeyPad::GetKey(point);
         if(touchKey != nullptr && touchKey->active())
         {
           combo_key = true;
@@ -558,9 +558,9 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
       }
       
       struct KeyEvent keyEvent;
-      if (MatrixOS::KEYPAD::Get(&keyEvent))
+      if (MatrixOS::KeyPad::Get(&keyEvent))
       {
-        Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent.id);
+        Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.id);
         if(xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
           uint8_t id = xy.y * 8 + xy.x + i * 64;

@@ -97,7 +97,7 @@ namespace MatrixOS
     void ErrorHandler(string error);
   }
 
-  namespace KEYPAD
+  namespace KeyPad
   {
     bool NewEvent(KeyEvent* keyevent);
   }

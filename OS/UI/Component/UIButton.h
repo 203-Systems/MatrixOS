@@ -79,7 +79,7 @@ class UIButton : public UIComponent {
       if (PressCallback())
       {
         MLOGD("UI Button", "Key Event Callback");
-        MatrixOS::KEYPAD::Clear();
+        MatrixOS::KeyPad::Clear();
         return true;
       }
     }
@@ -87,7 +87,7 @@ class UIButton : public UIComponent {
     {
       if (HoldCallback())
       {
-        MatrixOS::KEYPAD::Clear();
+        MatrixOS::KeyPad::Clear();
         return true;
       }
       else

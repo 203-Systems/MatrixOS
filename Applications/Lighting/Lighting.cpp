@@ -9,7 +9,7 @@ void Lighting::Setup() {
 void Lighting::Loop()
 {
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
 
   if(renderTimer.Tick(1000/Device::LED::fps))

@@ -97,7 +97,7 @@ namespace MatrixOS::SYS
 
   void InitSysModules(void)
   {
-    KEYPAD::Init();
+    KeyPad::Init();
     LED::Init();
     MIDI::Init();
     HID::Init();

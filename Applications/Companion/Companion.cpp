@@ -15,7 +15,7 @@ void Companion::Setup() {
 
 void Companion::Loop() {
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   {
     KeyEventHandler(keyEvent.id, &keyEvent.info);
   }
@@ -32,7 +32,7 @@ void Companion::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
     }
   }
 
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+  Point xy = MatrixOS::KeyPad::ID2XY(keyID);
 
   if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
   {

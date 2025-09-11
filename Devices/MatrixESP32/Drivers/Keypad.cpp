@@ -138,7 +138,7 @@ namespace Device::KeyPad
     KeyEvent keyEvent;
     keyEvent.id = keyID;
     keyEvent.info = *keyInfo;
-    return MatrixOS::KEYPAD::NewEvent(&keyEvent);
+    return MatrixOS::KeyPad::NewEvent(&keyEvent);
   }
 
   uint16_t XY2ID(Point xy) {

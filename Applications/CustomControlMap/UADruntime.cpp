@@ -25,7 +25,7 @@ void UADRuntime::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   }
 
   ActionInfo actionInfo;
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+  Point xy = MatrixOS::KeyPad::ID2XY(keyID);
   if (xy)
   {
     if(xy.x >= mapSize.x || xy.y >= mapSize.y || xy.x < 0 || xy.y < 0)

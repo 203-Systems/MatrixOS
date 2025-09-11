@@ -28,7 +28,7 @@ void UI::Start() {
     MatrixOS::LED::Fade();
   }
   
-  MatrixOS::KEYPAD::Clear();
+  MatrixOS::KeyPad::Clear();
   Setup();
   while (status != -1)
   {
@@ -69,7 +69,7 @@ void UI::RenderUI() {
 
 void UI::GetKey() {
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   {
     if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
     {
@@ -89,7 +89,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       return;
     }
   }
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
+  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
   if (xy)
   {
     bool hasAction = false;
@@ -150,7 +150,7 @@ void UI::UIEnd() {
   End();
   MLOGD("UI", "UI %s Exited", name.c_str());
 
-  MatrixOS::KEYPAD::Clear();
+  MatrixOS::KeyPad::Clear();
 
   if (newLedLayer)
   { 

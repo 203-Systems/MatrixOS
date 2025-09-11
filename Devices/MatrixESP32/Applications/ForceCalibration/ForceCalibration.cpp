@@ -151,7 +151,7 @@ void ForceCalibration::ForceGridVisualizer()
     { 
       for (uint8_t y = 0; y < 8; y++)
       {
-        KeyInfo* keyInfo = MatrixOS::KEYPAD::GetKey(Point(x, y));
+        KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(Point(x, y));
         Color color = Color(0xFFFFFF);
         // uint16_t value = (uint16_t)(keyInfo->raw_velocity) >> 8;
         // uint8_t value8 = value > 0xFF ? 0xFF : value & 0xFF;

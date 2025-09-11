@@ -75,7 +75,7 @@ namespace MatrixOS
     uint32_t GetLedCount(void);
   }
 
-  namespace KEYPAD
+  namespace KeyPad
   {
     noexpose void Init(void);
     uint16_t Scan();                    // Return # of changed key

@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 #include <string>
 
-namespace MatrixOS::KEYPAD
+namespace MatrixOS::KeyPad
 {
   QueueHandle_t keyevent_queue;
 

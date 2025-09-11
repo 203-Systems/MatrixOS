@@ -7,7 +7,7 @@ void CustomControlMap::Setup() {
 
 void CustomControlMap::Loop() {
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
 
   HIDReportHandler();

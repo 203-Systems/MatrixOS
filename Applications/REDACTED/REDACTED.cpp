@@ -81,7 +81,7 @@ void REDACTED::Loop() {
     Exit();
 
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   { KeyEventHandler(&keyEvent); }
 }
 

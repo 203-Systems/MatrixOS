@@ -168,7 +168,7 @@ void Setting::Start() {
 }
 
 bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
-  Point xy = MatrixOS::KEYPAD::ID2XY(keyEvent->id);
+  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
 
   if (xy && keyEvent->info.state == RELEASED)  // IF XY is valid, means it's on the main grid
   {

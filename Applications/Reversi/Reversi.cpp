@@ -7,7 +7,7 @@ void Reversi::Setup() {
 void Reversi::Loop()
 {
   struct KeyEvent keyEvent;
-  while (MatrixOS::KEYPAD::Get(&keyEvent))
+  while (MatrixOS::KeyPad::Get(&keyEvent))
   { KeyEventHandler(keyEvent.id, &keyEvent.info); }
 
   if(renderTimer.Tick(1000/Device::LED::fps))
@@ -608,7 +608,7 @@ void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
 
   if(gameState == Waiting)
   {
-    Point xy = MatrixOS::KEYPAD::ID2XY(keyID);
+    Point xy = MatrixOS::KeyPad::ID2XY(keyID);
     
     if (xy && keyInfo->state == RELEASED)  // IF XY is valid, means it's on the main grid
     {
