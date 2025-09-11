@@ -9,7 +9,7 @@
 #include "AppLauncherBarEditMode.h"
 #include "AppLauncherPickerEditMode.h"
 
-#define APP_FOLDER_COLOR_HASH_KEY  Hash("203 Systems-Shell-Folder-Colors")
+#define APP_FOLDER_COLOR_HASH_KEY  StringHash("203 Systems-Shell-Folder-Colors")
 
 namespace MatrixOS::SYS
 {
@@ -209,7 +209,7 @@ void Shell::SaveFolderVector(uint8_t folder_id) {
   }
   
   std::string nvs_key_str = "203 Systems-Shell-Folder-" + std::to_string(folder_id) + "-Apps";
-  uint32_t nvs_key = Hash(nvs_key_str);
+  uint32_t nvs_key = StringHash(nvs_key_str);
   std::vector<uint32_t>& app_vector = folders[folder_id].app_ids;
   
   if (!app_vector.empty()) {
@@ -225,7 +225,7 @@ void Shell::LoadFolderVector(uint8_t folder_id) {
   }
   
   std::string nvs_key_str = "203 Systems-Shell-Folder-" + std::to_string(folder_id) + "-Apps";
-  uint32_t nvs_key = Hash(nvs_key_str);
+  uint32_t nvs_key = StringHash(nvs_key_str);
   
   int stored_size_int = MatrixOS::NVS::GetSize(nvs_key);
   

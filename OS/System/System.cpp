@@ -66,7 +66,7 @@ namespace MatrixOS::SYS
     }
   }
 
-  void Begin() {
+  void Begin(void) {
     Device::DeviceInit();
 
     USB::Init();
@@ -95,7 +95,7 @@ namespace MatrixOS::SYS
     // next_app_id = GenerateAPPID("203 Systems", "Performance Mode");  // Launch Performance mode by default for now
   }
 
-  void InitSysModules()
+  void InitSysModules(void)
   {
     KEYPAD::Init();
     LED::Init();
@@ -103,15 +103,11 @@ namespace MatrixOS::SYS
     HID::Init();
   }
 
-  uint64_t Millis() {
+  uint64_t Millis(void) {
     return ((((uint64_t)xTaskGetTickCount()) * 1000) / configTICK_RATE_HZ);
   }
 
-  uint64_t Micros() {
-    return Device::Micros();
-  }
-
-  uint64_t Micros() {
+  uint64_t Micros(void) {
     return Device::Micros();
   }
 
@@ -119,7 +115,7 @@ namespace MatrixOS::SYS
     vTaskDelay(pdMS_TO_TICKS(ms));
   }
 
-  void Reboot() {
+  void Reboot(void) {
     Device::Reboot();
   }
 
@@ -149,7 +145,7 @@ namespace MatrixOS::SYS
 
   uint32_t GenerateAPPID(string author, string app_name) {
     // MLOG("System", "APP ID: %u", app_id);
-    return HashString(author + "-" + app_name);
+    return StringHash(author + "-" + app_name);
   }
 
   void ExecuteAPP(uint32_t app_id) {

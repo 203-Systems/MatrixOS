@@ -88,7 +88,7 @@ namespace MatrixOS::LED
     {
       MLOGD("LED", "Partition#%d %s Size %d", i, Device::LED::partitions[i].name.c_str(), Device::LED::partitions[i].size);
       ledBrightnessMultiplier[i] = Device::LED::partitions[i].default_multiplier;
-      MatrixOS::NVS::GetVariable(HashString("system_led_brightness_multiplier_" + Device::LED::partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
+      MatrixOS::NVS::GetVariable(StringHash("system_led_brightness_multiplier_" + Device::LED::partitions[i].name), &ledBrightnessMultiplier[i], sizeof(float));
       led_count += Device::LED::partitions[i].size;
     }
 
@@ -145,7 +145,7 @@ namespace MatrixOS::LED
           return;
         }
         ledBrightnessMultiplier[i] = multiplier;
-        MatrixOS::NVS::SetVariable(HashString("system_led_brightness_multiplier_" + partition_name), &multiplier, sizeof(float));
+        MatrixOS::NVS::SetVariable(StringHash("system_led_brightness_multiplier_" + partition_name), &multiplier, sizeof(float));
         UpdateBrightness();
         return;
       }
