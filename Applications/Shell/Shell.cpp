@@ -2,13 +2,13 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <unordered_set>
 
 #include "AppLauncherBar.h"
 #include "AppLauncherPicker.h"
 #include "AppLauncherBarEditMode.h"
 #include "AppLauncherPickerEditMode.h"
 
-#define APP_FOLDER_HASH_KEY(app_id_val)  Hash("203 Systems-Shell-Folder-Of-" + std::to_string(app_id_val))
 #define APP_FOLDER_COLOR_HASH_KEY  Hash("203 Systems-Shell-Folder-Colors")
 
 namespace MatrixOS::SYS
@@ -44,44 +44,61 @@ void Shell::Loop() {
 }
 
 void Shell::InitializeFolderSystem() {
-  // Clear and initialize folders with default names and colors
+  // Clear and initialize folders
   folders.clear();
 
+  // Load folder colors
   MatrixOS::NVS::GetVariable(APP_FOLDER_COLOR_HASH_KEY, folder_colors, sizeof(folder_colors));
 
+  // Initialize folder structures
   folders[FOLDER_HIDDEN] = {{}};
   folders[FOLDER_INVISIBLE] = {{}};
-
   for (uint8_t i = 0; i < FOLDER_COUNT; i++) {
     folders[i] = {{}};
   }
+
+  // Try to load existing folder vectors from NVS
+  bool folders_loaded = false;
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++) {
+    LoadFolderVector(i);
+    if (!folders[i].app_ids.empty()) {
+      folders_loaded = true;
+    }
+  }
+  LoadFolderVector(FOLDER_HIDDEN);
+  LoadFolderVector(FOLDER_INVISIBLE);
   
-  // Iterate through all applications in registration order
+  // Build a set of all apps that are already in folders
+  std::unordered_set<uint32_t> apps_in_folders;
+  for (auto& [folder_id, folder] : folders) {
+    for (uint32_t app_id : folder.app_ids) {
+      apps_in_folders.insert(app_id);
+    }
+  }
+  
+  // Check if any apps are missing from the folders and add them to appropriate folders
+  bool missing_apps_found = false;
   for (const auto& [order_id, app_id] : application_ids) {
     auto application_it = applications.find(app_id);
     if(application_it == applications.end()) {
       continue;
     }
-    Application_Info* application = application_it->second;
     
-    uint8_t folder_id = GetAppFolder(app_id, application);
-    
-    // Make sure the folder exists in the map
-    if (folders.find(folder_id) == folders.end()) {
-      folders[folder_id] = {{}}; // Create a new folder if it doesn't exist
+    // If app is not in any folder, add it
+    if (apps_in_folders.find(app_id) == apps_in_folders.end()) {
+      Application_Info* application = application_it->second;
+      uint8_t folder_id = GetAppFolder(app_id, application);
+      
+      // Add to the appropriate folder
+      folders[folder_id].app_ids.push_back(app_id);
+      missing_apps_found = true;
     }
-    
-    // Add the app to the folder
-    folders[folder_id].app_ids.push_back(app_id);
-    MLOGD("Shell", "App [%d] %s assigned to folder %d", order_id, application->name.c_str(), folder_id);
   }
   
-  // Log folder statistics
-  for (uint8_t i = 0; i < FOLDER_COUNT; i++) {
-    MLOGD("Shell", "Folder %d: %d apps", i, folders[i].app_ids.size());
+  // Save vectors if we loaded existing ones but found missing apps, or if no folders were loaded
+  if (missing_apps_found || !folders_loaded) {
+    SaveAllFolderVectors();
   }
-  MLOGD("Shell", "Folder [Hidden]: %d apps", folders[FOLDER_HIDDEN].app_ids.size());
-  MLOGD("Shell", "Folder [Invisible]: %d apps", folders[FOLDER_INVISIBLE].app_ids.size());
 }
 
 bool Shell::EnableFolder(uint8_t folder_idx, Color color) {
@@ -102,7 +119,6 @@ bool Shell::EnableFolder(uint8_t folder_idx, Color color) {
   // Save to NVS
   MatrixOS::NVS::SetVariable(APP_FOLDER_COLOR_HASH_KEY, folder_colors, sizeof(folder_colors));
   
-  MLOGD("Shell", "Enabled folder %d with color 0x%06X", folder_idx, color.RGB());
   return true;
 }
 
@@ -129,7 +145,6 @@ void Shell::DisableFolder(uint8_t folder_id) {
     current_folder = 0;
   }
 
-  MLOGD("Shell", "Disabled folder %d and moved its apps to folder 0.", folder_id);
 }
 
 void Shell::DeleteFolder(uint8_t folder_id) {
@@ -150,7 +165,6 @@ void Shell::DeleteFolder(uint8_t folder_id) {
   folder_colors[folder_id] = Color(0x000000);
   MatrixOS::NVS::SetVariable(APP_FOLDER_COLOR_HASH_KEY, folder_colors, sizeof(folder_colors));
 
-  MLOGD("Shell", "Deleted folder %d and moved its apps to folder 0.", folder_id);
 }
 
 void Shell::MoveAppToFolder(uint32_t app_id, uint8_t folder_id) {
@@ -159,17 +173,20 @@ void Shell::MoveAppToFolder(uint32_t app_id, uint8_t folder_id) {
     MLOGW("Shell", "Folder %d does not exist. Cannot move app %d.", folder_id, app_id);
     return;
   }
-  else if(folder_colors[folder_id] == Color(0x000000)) {
+  else if(folder_id < FOLDER_COUNT && folder_colors[folder_id] == Color(0x000000)) {
     MLOGW("Shell", "Folder %d is not enabled. Cannot move app %d.", folder_id, app_id);
     return;
   }
   else
   {
+    uint8_t old_folder_id = 255; // Track which folder we removed from
+    
     // Remove app from current folder
     for (auto& [fid, folder] : folders) {
       auto it = std::find(folder.app_ids.begin(), folder.app_ids.end(), app_id);
       if (it != folder.app_ids.end()) {
         folder.app_ids.erase(it);
+        old_folder_id = fid;
         break;
       }
     }
@@ -177,12 +194,63 @@ void Shell::MoveAppToFolder(uint32_t app_id, uint8_t folder_id) {
     // Add app to new folder
     folders[folder_id].app_ids.push_back(app_id);
 
-    // Save to NVS
-    uint32_t nvs_key_hash = APP_FOLDER_HASH_KEY(app_id);
-    MatrixOS::NVS::SetVariable(nvs_key_hash, &folder_id, sizeof(folder_id));
+    // Save both affected folder vectors to NVS
+    if (old_folder_id != 255) {
+      SaveFolderVector(old_folder_id);
+    }
+    SaveFolderVector(folder_id);
 
-    MLOGD("Shell", "Moved app %d to folder %d.", app_id, folder_id);
   }
+}
+
+void Shell::SaveFolderVector(uint8_t folder_id) {
+  if (folder_id >= FOLDER_COUNT && folder_id != FOLDER_HIDDEN && folder_id != FOLDER_INVISIBLE) {
+    return;
+  }
+  
+  std::string nvs_key_str = "203 Systems-Shell-Folder-" + std::to_string(folder_id) + "-Apps";
+  uint32_t nvs_key = Hash(nvs_key_str);
+  std::vector<uint32_t>& app_vector = folders[folder_id].app_ids;
+  
+  if (!app_vector.empty()) {
+    MatrixOS::NVS::SetVariable(nvs_key, app_vector.data(), app_vector.size() * sizeof(uint32_t));
+  } else {
+    MatrixOS::NVS::DeleteVariable(nvs_key);
+  }
+}
+
+void Shell::LoadFolderVector(uint8_t folder_id) {
+  if (folder_id >= FOLDER_COUNT && folder_id != FOLDER_HIDDEN && folder_id != FOLDER_INVISIBLE) {
+    return;
+  }
+  
+  std::string nvs_key_str = "203 Systems-Shell-Folder-" + std::to_string(folder_id) + "-Apps";
+  uint32_t nvs_key = Hash(nvs_key_str);
+  
+  int stored_size_int = MatrixOS::NVS::GetSize(nvs_key);
+  
+  if (stored_size_int > 0 && stored_size_int % sizeof(uint32_t) == 0) {
+    size_t stored_size = stored_size_int;
+    size_t num_apps = stored_size / sizeof(uint32_t);
+    
+    if (num_apps > 100) {
+      return;
+    }
+    
+    std::vector<uint32_t> stored_apps(num_apps);
+    
+    if (MatrixOS::NVS::GetVariable(nvs_key, stored_apps.data(), stored_size) >= 0) {
+      folders[folder_id].app_ids = stored_apps;
+    }
+  }
+}
+
+void Shell::SaveAllFolderVectors() {
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++) {
+    SaveFolderVector(i);
+  }
+  SaveFolderVector(FOLDER_HIDDEN);
+  SaveFolderVector(FOLDER_INVISIBLE);
 }
 
 uint8_t Shell::GetAppFolder(uint32_t app_id, Application_Info* app_info) {
@@ -191,20 +259,16 @@ uint8_t Shell::GetAppFolder(uint32_t app_id, Application_Info* app_info) {
     return FOLDER_INVISIBLE;
   }
 
-  uint8_t folder_id = 0;
-  uint32_t nvs_key_hash = APP_FOLDER_HASH_KEY(app_id);
-  MatrixOS::NVS::GetVariable(nvs_key_hash, &folder_id, sizeof(folder_id));
-
-  // Only check regular folders (0-5) for validity, not special folders
-  if(folder_id < FOLDER_COUNT) {
-    if(folders.find(folder_id) == folders.end() || folder_colors[folder_id] == Color(0x000000))
-    {
-      folder_id = 0; // Default to folder 0 if folder not exist
-      MoveAppToFolder(app_id, 0);
+  // Check if app is already in a folder by searching vectors
+  for (auto& [folder_id, folder] : folders) {
+    auto it = std::find(folder.app_ids.begin(), folder.app_ids.end(), app_id);
+    if (it != folder.app_ids.end()) {
+      return folder_id;
     }
   }
 
-  return folder_id;
+  // App not found in any folder, default to folder 0
+  return 0;
 }
 
 void Shell::ApplicationLauncher() {

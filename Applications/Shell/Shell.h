@@ -46,6 +46,11 @@ class Shell : public Application {
   void DeleteFolder(uint8_t folder_id);
   void MoveAppToFolder(uint32_t app_id, uint8_t folder_id);
   
+  // Helper functions for NVS
+  void SaveFolderVector(uint8_t folder_id);
+  void LoadFolderVector(uint8_t folder_id);
+  void SaveAllFolderVectors();
+  
   // Application launcher functions
   void ApplicationLauncher();
   void ApplicationLauncherEditing();

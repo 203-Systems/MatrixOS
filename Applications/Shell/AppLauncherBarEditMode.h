@@ -4,7 +4,6 @@
 #include "ui/UI.h"
 #include "Shell.h"
 
-#define APP_FOLDER_COLOR_HASH_KEY  Hash("203 Systems-Shell-Folder-Colors")
 
 class AppLauncherBarEditMode : public UIComponent {
   public:
