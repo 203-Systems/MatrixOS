@@ -1,5 +1,4 @@
 add_library(MatrixOSAPPInterface 
-    Application.cpp
     Application.h
 )
 

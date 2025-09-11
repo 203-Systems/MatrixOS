@@ -18,13 +18,26 @@ class Application {
  public:
   void* args;
 
-  void Start(void* args = NULL);
+  void Start(void* args = NULL) {
+    this->args = args;
+    Setup();
+    while (true)
+    {
+      Loop();
+      taskYIELD();
+    }
+  }
 
-  virtual void Setup(){};
+  void Exit() { // Call this to exit the application
+    End(); 
+    MatrixOS::SYS::ExitAPP(); 
+  };
+
+  // Override these functions to implement your application
+  virtual void Setup() {};
   virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
-  virtual void End(){};
-
-  void Exit();
+  virtual void End() {};
+  
   virtual ~Application() = default;
 };
 
