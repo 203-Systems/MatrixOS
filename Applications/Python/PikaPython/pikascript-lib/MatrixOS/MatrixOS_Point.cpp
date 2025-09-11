@@ -4,11 +4,9 @@
 
 extern "C" {
     // Point constructor
-    void _MatrixOSPoint_Point___init__(PikaObj *self, PikaObj* x, PikaObj* y) {
-        int x_val = obj_getInt(x, (char*)"value");
-        int y_val = obj_getInt(y, (char*)"value");
-        obj_setInt(self, (char*)"x", x_val);
-        obj_setInt(self, (char*)"y", y_val);
+    void _MatrixOSPoint_Point___init__(PikaObj *self, int x, int y) {
+        obj_setInt(self, (char*)"x", x);
+        obj_setInt(self, (char*)"y", y);
     }
 
     // Point operators
@@ -107,12 +105,19 @@ extern "C" {
         return new_point;
     }
 
-    // Static method
+    // Static methods
     PikaObj* _MatrixOSPoint_Point_Invalid(PikaObj *self) {
         Point invalid = Point::Invalid();
         PikaObj* new_point = newNormalObj(New_PikaObj);
         obj_setInt(new_point, (char*)"x", invalid.x);
         obj_setInt(new_point, (char*)"y", invalid.y);
+        return new_point;
+    }
+
+    PikaObj* _MatrixOSPoint_Point_Origin(PikaObj *self) {
+        PikaObj* new_point = newNormalObj(New_PikaObj);
+        obj_setInt(new_point, (char*)"x", 0);
+        obj_setInt(new_point, (char*)"y", 0);
         return new_point;
     }
 }

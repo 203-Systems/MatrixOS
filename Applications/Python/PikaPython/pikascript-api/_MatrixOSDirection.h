@@ -17,5 +17,6 @@
 
 PikaObj *New__MatrixOSDirection(Args *args);
 
+Arg* _MatrixOSDirection_Direction(PikaObj *self);
 
 #endif

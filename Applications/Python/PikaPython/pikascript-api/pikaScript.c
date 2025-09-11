@@ -27,12 +27,8 @@ PikaObj *pikaPythonInit(void){
 #if PIKA_INIT_STRING_ENABLE
     obj_run(pikaMain,
             "import PikaStdLib\n"
-            "# from MatrixOSPoint import Point\n"
-            "# from MatrixOSKeyEvent import KeyInfo, KeyEvent, KeyState\n"
-            "# from MatrixOSColor import Color\n"
-            "# from MatrixOSDirection import Direction\n"
-            "# import Applications.Python.PikaPython._MatrixOS as MatrixOS\n"
             "import MatrixOS\n"
+            "from MatrixOSFramework import *\n"
             "\n");
 #else 
     obj_runModule((PikaObj*)pikaMain, "main");

@@ -12,7 +12,7 @@ extern "C" {
     }
 
     // Color property getter
-    int MatrixOSColor_Color_RGB(PikaObj *self) {
+    int _MatrixOSColor_Color_RGB(PikaObj *self) {
         return  (uint32_t)obj_getInt(self, (char*)"w") << 24 |
                 (uint32_t)obj_getInt(self, (char*)"r") << 16 |
                 (uint32_t)obj_getInt(self, (char*)"g") << 8  |
@@ -20,13 +20,14 @@ extern "C" {
     }
 
     // Color manipulation methods
-    PikaObj* MatrixOSColor_Color_Dim(PikaObj *self, pika_float factor) {
+    PikaObj* _MatrixOSColor_Color_Dim(PikaObj *self, PikaObj* factor) {
         int r = obj_getInt(self, (char*)"r");
         int g = obj_getInt(self, (char*)"g");
         int b = obj_getInt(self, (char*)"b");
         int w = obj_getInt(self, (char*)"w");
 
-        uint8_t factor_u8 = (uint8_t)(factor * 255);
+        pika_float factor_val = obj_getFloat(factor, (char*)"value");
+        uint8_t factor_u8 = (uint8_t)(factor_val * 255);
         Color color(r, g, b, w);
         Color dimmed = color.Dim(factor_u8);
 
@@ -39,16 +40,16 @@ extern "C" {
         return new_color;
     }
 
-    PikaObj* MatrixOSColor_Color_DimIfNot(PikaObj *self, pika_bool not_dim, pika_float factor) {
+    PikaObj* _MatrixOSColor_Color_DimIfNot(PikaObj *self, pika_bool not_dim, PikaObj* factor) {
         if (not_dim) {
             return self;
         } else {
             // Dim the color
-            return MatrixOSColor_Color_Dim(self, factor);
+            return _MatrixOSColor_Color_Dim(self, factor);
         }
     }
 
-    PikaObj* MatrixOSColor_Color_Scale(PikaObj *self, pika_float factor) {
+    PikaObj* _MatrixOSColor_Color_Scale(PikaObj *self, pika_float factor) {
         int r = obj_getInt(self, (char*)"r");
         int g = obj_getInt(self, (char*)"g");
         int b = obj_getInt(self, (char*)"b");
@@ -66,13 +67,13 @@ extern "C" {
     }
 
     // Color operators
-    pika_bool MatrixOSColor_Color___eq__(PikaObj *self, PikaObj* other) {
+    pika_bool _MatrixOSColor_Color___eq__(PikaObj *self, PikaObj* other) {
         int rgb1 = obj_getInt(self, (char*)"value");
         int rgb2 = obj_getInt(other, (char*)"value");
         return (rgb1 == rgb2) ? pika_true : pika_false;
     }
 
-    pika_bool MatrixOSColor_Color___ne__(PikaObj *self, PikaObj* other) {
+    pika_bool _MatrixOSColor_Color___ne__(PikaObj *self, PikaObj* other) {
         int rgb1 = obj_getInt(self, (char*)"value");
         int rgb2 = obj_getInt(other, (char*)"value");
         return (rgb1 != rgb2) ? pika_true : pika_false;

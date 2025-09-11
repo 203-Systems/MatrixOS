@@ -17,5 +17,8 @@
 
 PikaObj *New__MatrixOSKeyEvent(Args *args);
 
+Arg* _MatrixOSKeyEvent_KeyEvent(PikaObj *self);
+Arg* _MatrixOSKeyEvent_KeyInfo(PikaObj *self);
+Arg* _MatrixOSKeyEvent_KeyState(PikaObj *self);
 
 #endif

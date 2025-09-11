@@ -17,5 +17,6 @@
 
 PikaObj *New__MatrixOSPoint(Args *args);
 
+Arg* _MatrixOSPoint_Point(PikaObj *self);
 
 #endif

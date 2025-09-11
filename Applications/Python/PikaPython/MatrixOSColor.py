@@ -1,12 +1,12 @@
 import _MatrixOSColor
 
 class Color(_MatrixOSColor.Color):
-    def __init__(self, wrgb: int):
-        r = (wrgb >> 16) & 0xFF
-        g = (wrgb >> 8) & 0xFF
-        b = wrgb & 0xFF
-        w = (wrgb >> 24) & 0xFF
-        super().__init__(r, g, b, w)
+    # def __init__(self, wrgb: int):
+    #     r = (wrgb >> 16) & 0xFF
+    #     g = (wrgb >> 8) & 0xFF
+    #     b = wrgb & 0xFF
+    #     w = (wrgb >> 24) & 0xFF
+    #     super().__init__(r, g, b, w)
 
     def __init__(self, r: int, g: int, b: int, w: int = 0):
         super().__init__(r, g, b, w)

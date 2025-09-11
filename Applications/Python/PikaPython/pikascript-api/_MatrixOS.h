@@ -25,6 +25,6 @@ Arg* _MatrixOS_KeyPad(PikaObj *self);
 Arg* _MatrixOS_LED(PikaObj *self);
 int _MatrixOS_Millis(PikaObj *self);
 void _MatrixOS_OpenSetting(PikaObj *self);
-int _MatrixOS_Test(PikaObj *self, int input);
+void _MatrixOS_Reboot(PikaObj *self);
 
 #endif

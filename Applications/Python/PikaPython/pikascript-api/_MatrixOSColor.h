@@ -17,5 +17,6 @@
 
 PikaObj *New__MatrixOSColor(Args *args);
 
+Arg* _MatrixOSColor_Color(PikaObj *self);
 
 #endif

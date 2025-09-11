@@ -30,9 +30,4 @@ extern "C" {
     void _MatrixOS_ExecuteAPPByID(PikaObj *self, int app_id) {
         MatrixOS::SYS::ExecuteAPP(app_id);
     }
-
-    int _MatrixOS_Test(PikaObj *self, int input)
-    {
-        return input;
-    }
 }
