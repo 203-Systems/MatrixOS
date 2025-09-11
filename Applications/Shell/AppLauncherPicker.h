@@ -64,7 +64,7 @@ class AppLauncherPicker : public UIComponent {
 
             if(keyInfo->state == RELEASED)
             {
-                MLOGD("Shell", "Launching App ID: %d", app_id);
+                MLOGD("Shell", "Launching App ID: %X", app_id);
                 shell->LaunchAnimation(xy, application->color);
                 MatrixOS::SYS::ExecuteAPP(app_id);
                 return true;

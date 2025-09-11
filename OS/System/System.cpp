@@ -149,7 +149,7 @@ namespace MatrixOS::SYS
   }
 
   void ExecuteAPP(uint32_t app_id) {
-    // MLOG("System", "Launching APP ID\t%u", app_id);
+    // MLOG("System", "Launching APP ID\t%X", app_id);
     next_app_id = app_id;
 
     if (active_app_task != NULL)
