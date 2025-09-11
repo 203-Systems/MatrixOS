@@ -1,6 +1,5 @@
 #include <stdarg.h>
 #include "MidiSpecs.h"
-// #include "esp_log.h"
 
 enum EMidiStatus : uint8_t {
   None = 0,
@@ -133,6 +132,40 @@ struct MidiPacket {
     memcpy(this->data, data, length);
   }
 
+  EMidiStatus Status()
+  {
+    if(data[0] < NoteOff)
+    {
+      return None;
+    }
+    else if(data[0] < SysExData)
+    {
+      return (EMidiStatus)(data[1] & 0xF0);
+    }
+    else
+    {
+      return (EMidiStatus)data[0];
+    }
+  }
+
+  void SetStatus(EMidiStatus status)
+  {
+    if((uint8_t)status < NoteOff)
+    {
+      return;
+    }
+
+    this->status = status;
+    if((uint8_t)status < SysExData)
+    {
+      data[0] = (data[0] & 0x0F) | status; 
+    }
+    else
+    {
+      data[0] = status;
+    }
+  }
+  
   uint8_t channel() {
     switch (status)
     {
@@ -145,7 +178,7 @@ struct MidiPacket {
       case PitchChange:
         return data[0] & 0x0F;
       default:
-        return 0;
+        return UINT8_MAX;
     }
   }
 
@@ -159,7 +192,7 @@ struct MidiPacket {
       case ProgramChange:  // To be honest this shouldn't be here but close enough
         return data[1];
       default:
-        return 0;
+        return UINT8_MAX;
     }
   }
 
@@ -179,7 +212,7 @@ struct MidiPacket {
       case ChannelPressure:
         return data[1];
       default:
-        return 0;
+        return UINT8_MAX;
     }
   }
 
@@ -202,7 +235,7 @@ struct MidiPacket {
       case SongSelect:
         return data[0];
       default:
-        return 0;
+        return UINT16_MAX;
     }
   }
 
@@ -255,9 +288,4 @@ struct MidiPacket {
   {
     return status == SysExData && data[0] == 0xF0;
   }
-
-  // bool SysExEnd()
-  // {
-  //   return status == SysExEnd;
-  // }
 };
