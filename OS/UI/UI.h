@@ -41,7 +41,7 @@ class UI {
   UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
   virtual ~UI();
 
-  static void CleanUpUIs();
+  static void ExitAllUIs();
 
   void Start();
 

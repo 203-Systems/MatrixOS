@@ -63,6 +63,7 @@ namespace MatrixOS::SYS
                                         application_stack, &application_taskdef);
     bool exited = false;
     while (true)
+    while (true)
     {
       // Check if function key is held for more than 3 seconds
       KeyInfo* fnKeyInfo = MatrixOS::KeyPad::GetKey(FUNCTION_KEY);
@@ -77,7 +78,7 @@ namespace MatrixOS::SYS
         exited = false;
       }
       
-      if (eTaskGetState(active_app_task) == eTaskState::eDeleted)
+      if (active_app_task == NULL || eTaskGetState(active_app_task) == eTaskState::eDeleted)
       {
         active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                             application_stack, &application_taskdef);
@@ -193,22 +194,16 @@ namespace MatrixOS::SYS
       MatrixOS::SYS::DelayMs(crossfade_duration);
     }
 
+    if (xTaskGetCurrentTaskHandle() != active_app_task) {
+      vTaskSuspend(active_app_task);
+    }
     active_app_info->destructor(active_app);
     if (active_app_task != NULL)
     {
-      MLOGD("ExitAPP", "active_app_task not free");
-      MLOGD("ExitAPP", "Cleaning up UIs");
-      UI::CleanUpUIs(); // TODO move this to application implementation vis stuffs like UImanager etc. This way UI framework is decoupled from the OS or application frameworks
-      MLOGD("ExitAPP", "Setting active_app to NULL");
+      UI::ExitAllUIs();
       active_app = NULL;
-      MLOGD("ExitAPP", "Deleting active_app_task");
       vTaskDelete(active_app_task);
     }
-    else
-    {
-      MLOGD("ExitAPP", "active_app_task is free");
-    }
-    MLOGD("ExitAPP", "App Exited");
   }
 
   void ErrorHandler(string error) {

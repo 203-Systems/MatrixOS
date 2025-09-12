@@ -151,6 +151,7 @@ void UI::UIEnd() {
   MLOGD("UI", "UI %s Exited", name.c_str());
 
   MatrixOS::KeyPad::Clear();
+  uiComponents.clear();
 
   if (newLedLayer)
   { 
@@ -189,10 +190,16 @@ void UI::UnregisterUI(UI* ui) {
   }
 }
 
-void UI::CleanUpUIs() {
-  for (auto it = UI::uiList.rbegin(); it != UI::uiList.rend(); ++it)
+void UI::ExitAllUIs() {
+  auto uiListCopy = UI::uiList;
+  
+  for (auto it = uiListCopy.rbegin(); it != uiListCopy.rend(); ++it)
   {
-      (*it)->ClearUIComponents();
+    if (*it != nullptr) {
+      (*it)->Exit();
+      (*it)->UIEnd();
+    }
   }
+
   UI::uiList.clear();
 }
