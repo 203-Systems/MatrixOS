@@ -54,19 +54,20 @@ struct KeyInfo {
 
   KeyInfo() {}
 
-  uint32_t holdTime(void) {
-    if (state == IDLE)
-      return 0;
-
-    if (lastEventTime > MatrixOS::SYS::Millis())
-      return 0;
-
-    return MatrixOS::SYS::Millis() - lastEventTime;
-  }
-
   bool active() { return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING; }
 
   operator bool() { return active(); }
+
+  uint32_t holdTime(void) {
+    if (active())
+    {
+      return MatrixOS::SYS::Millis() - lastEventTime;
+    }
+    else
+    {
+      return 0;
+    }
+  }
 
   /*
   Action Checklist:
