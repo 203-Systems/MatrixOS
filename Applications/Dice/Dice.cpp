@@ -350,7 +350,7 @@ void Dice::RollDice() {
   } while (rolled_number == last_rolled_number);
 }
 
-void Dice::RenderUnderglow(UnderglowEffectMode mode, Color color, uint8_t period) {
+void Dice::RenderUnderglow(UnderglowEffectMode mode, Color color, uint16_t period) {
   if (!underglow_enabled) { return; }
   MatrixOS::LED::FillPartition("Underglow", ApplyColorEffect(color, mode, period, timestamp), 1);
 }

@@ -66,7 +66,7 @@ class Dice : public Application {
   void RenderNumber(Point point, uint8_t number, Color color);
   void RenderNumbers(uint8_t number, Color color);
   void RollDice();
-  void RenderUnderglow(UnderglowEffectMode mode, Color color, uint8_t period);
+  void RenderUnderglow(UnderglowEffectMode mode, Color color, uint16_t period);
   void FaceSelector();
 
   void DotFaceSelector();
