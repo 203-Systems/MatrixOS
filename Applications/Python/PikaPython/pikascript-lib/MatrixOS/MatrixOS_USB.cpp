@@ -34,23 +34,18 @@ extern "C" {
         return MatrixOS::USB::CDC::Read();
     }
 
-    PikaObj* _MatrixOS_USB_CDC_ReadBytes(PikaObj *self, int length) {
-        // // Create a buffer to read data
-        // uint8_t* buffer = new uint8_t[length];
-        // uint32_t bytes_read = MatrixOS::USB::CDC::ReadBytes(buffer, length);
+    Arg* _MatrixOS_USB_CDC_ReadBytes(PikaObj *self, int max_length) {
+        // Create a buffer to read data
+        uint8_t* buffer = new uint8_t[max_length];
+        uint32_t bytes_read = MatrixOS::USB::CDC::ReadBytes(buffer, max_length);
         
-        // // Create PikaObj to return bytes
-        // PikaObj* bytes_obj = newNormalObj(New_PikaObj);
+        // Create bytes argument with the data that was actually read
+        Arg* result = arg_newBytes(buffer, bytes_read);
         
-        // // Store the buffer and length for later retrieval
-        // obj_setPtr(bytes_obj, (char*)"data", buffer);
-        // obj_setInt(bytes_obj, (char*)"length", bytes_read);
-
-        // return bytes_obj;
-
-        //TODO not new
+        // Clean up the buffer
+        delete[] buffer;
         
-        return NULL;
+        return result;
     }
 
     PikaObj* _MatrixOS_USB_CDC_ReadString(PikaObj *self) {

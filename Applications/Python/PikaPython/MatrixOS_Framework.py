@@ -5,13 +5,4 @@ from MatrixOS_Color import Color
 from MatrixOS_Point import Point
 
 from _MatrixOS_HIDEnums import KeyboardKeycode, MouseKeycode, GamepadDPadDirection, ConsumerKeycode, SystemKeycode
-from _MatrixOS_MidiPacket import MidiPacket, MidiStatus, MidiPortID
-
-__all__ = [
-    "KeyInfo", "KeyEvent", "KeyState",
-    "Direction",
-    "Color", 
-    "Point",
-    "KeyboardKeycode", "MouseKeycode", "GamepadDPadDirection", "ConsumerKeycode", "SystemKeycode",
-    "MidiPacket", "MidiStatus", "MidiPortID",
-]   
+from MatrixOS_MidiPacket import MidiPacket, MidiStatus, MidiPortID

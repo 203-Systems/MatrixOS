@@ -21,7 +21,8 @@ void _MatrixOS_SYS_Bootloader(PikaObj *self);
 void _MatrixOS_SYS_DelayMs(PikaObj *self, int ms);
 void _MatrixOS_SYS_ExecuteAPP(PikaObj *self, char* author, char* app_name);
 void _MatrixOS_SYS_ExecuteAPPByID(PikaObj *self, int app_id);
-int _MatrixOS_SYS_Millis(PikaObj *self);
+int64_t _MatrixOS_SYS_Micros(PikaObj *self);
+int64_t _MatrixOS_SYS_Millis(PikaObj *self);
 void _MatrixOS_SYS_OpenSetting(PikaObj *self);
 void _MatrixOS_SYS_Reboot(PikaObj *self);
 

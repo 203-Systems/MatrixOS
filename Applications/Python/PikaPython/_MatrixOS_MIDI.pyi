@@ -1,7 +1,7 @@
 # MatrixOS Python Interface - MIDI
 # MIDI communication functions
 
-from _MatrixOS_MidiPacket import MidiPacket
+from MatrixOS_MidiPacket import MidiPacket
 
 def Get(self, timeout_ms: int) -> MidiPacket: ...
 def Send(self, packet: MidiPacket, timeout_ms: int) -> bool: ...

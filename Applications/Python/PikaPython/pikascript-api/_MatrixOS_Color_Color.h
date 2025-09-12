@@ -17,14 +17,21 @@
 
 PikaObj *New__MatrixOS_Color_Color(Args *args);
 
+int _MatrixOS_Color_Color_B(PikaObj *self);
 PikaObj* _MatrixOS_Color_Color_Dim(PikaObj *self, pika_float factor);
 PikaObj* _MatrixOS_Color_Color_DimIfNot(PikaObj *self, pika_bool not_dim, pika_float factor);
-PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int hex);
+PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int wrgb);
 PikaObj* _MatrixOS_Color_Color_FromRGB(PikaObj *self, int r, int g, int b);
 PikaObj* _MatrixOS_Color_Color_FromRGBW(PikaObj *self, int r, int g, int b, int w);
+int _MatrixOS_Color_Color_G(PikaObj *self);
+int _MatrixOS_Color_Color_R(PikaObj *self);
+int _MatrixOS_Color_Color_RGB(PikaObj *self);
 PikaObj* _MatrixOS_Color_Color_Scale(PikaObj *self, pika_float factor);
+int _MatrixOS_Color_Color_W(PikaObj *self);
+int _MatrixOS_Color_Color_WRGB(PikaObj *self);
+void _MatrixOS_Color_Color___del__(PikaObj *self);
 pika_bool _MatrixOS_Color_Color___eq__(PikaObj *self, PikaObj* other);
-void _MatrixOS_Color_Color___init__(PikaObj *self, int r, int g, int b, int w);
+void _MatrixOS_Color_Color___init__(PikaObj *self, PikaTuple* val);
 pika_bool _MatrixOS_Color_Color___ne__(PikaObj *self, PikaObj* other);
 
 #endif

@@ -1,24 +1,66 @@
 #include "MatrixOS.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
+#include "../PikaObjUtils.h"
 
 extern "C" {
+    // PikaObj constructor
+    PikaObj* New__MatrixOS_Color_Color(Args *args);
+
     // Color constructor
-    void _MatrixOS_Color_Color___init__(PikaObj *self, int r, int g, int b, int w) {
-        obj_setInt(self, (char*)"r", r);
-        obj_setInt(self, (char*)"g", g);
-        obj_setInt(self, (char*)"b", b);
-        obj_setInt(self, (char*)"w", w);
+    void _MatrixOS_Color_Color___init__(PikaObj *self, PikaTuple* val) {
+        uint8_t args_size = pikaTuple_getSize(val);
+        
+        if(args_size == 1)
+        {
+            // Single argument - could be hex value
+            Arg* arg = pikaTuple_getArg(val, 0);
+            int hex = arg_getInt(arg);
+            createCppObjPtrInPikaObj<Color>(self, (uint32_t)hex);
+        }
+        else if(args_size == 3)
+        {
+            // RGB constructor
+            Arg* r_arg = pikaTuple_getArg(val, 0);
+            Arg* g_arg = pikaTuple_getArg(val, 1);
+            Arg* b_arg = pikaTuple_getArg(val, 2);
+            
+            int r = arg_getInt(r_arg);
+            int g = arg_getInt(g_arg);
+            int b = arg_getInt(b_arg);
+            
+            createCppObjPtrInPikaObj<Color>(self, (uint8_t)r, (uint8_t)g, (uint8_t)b);
+        }
+        else if(args_size == 4)
+        {
+            // RGBW constructor
+            Arg* r_arg = pikaTuple_getArg(val, 0);
+            Arg* g_arg = pikaTuple_getArg(val, 1);
+            Arg* b_arg = pikaTuple_getArg(val, 2);
+            Arg* w_arg = pikaTuple_getArg(val, 3);
+            
+            int r = arg_getInt(r_arg);
+            int g = arg_getInt(g_arg);
+            int b = arg_getInt(b_arg);
+            int w = arg_getInt(w_arg);
+            
+            createCppObjPtrInPikaObj<Color>(self, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)w);
+        }
+        else
+        {
+            // Black
+            createCppObjPtrInPikaObj<Color>(self, 0);
+        }
+    }
+
+    void _MatrixOS_Color_Color___del__(PikaObj *self)
+    {
+        deleteCppObjInPikaObj<Color>(self);
     }
 
     PikaObj* _MatrixOS_Color_Color_FromRGBW(PikaObj *self, int r, int g, int b, int w) {
-        PikaObj* new_color = newNormalObj(New_PikaObj);
-
-        obj_setInt(new_color, (char*)"r", r);
-        obj_setInt(new_color, (char*)"g", g);
-        obj_setInt(new_color, (char*)"b", b);
-        obj_setInt(new_color, (char*)"w", w);
-
+        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        createCppObjPtrInPikaObj<Color>(new_color, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)w);
         return new_color;
     }
     
@@ -26,78 +68,100 @@ extern "C" {
         return _MatrixOS_Color_Color_FromRGBW(self, r, g, b, 0);
     }
     
-    PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int hex) {
-        // Extract WRGB components from 32-bit hex value
-        int w = (hex >> 24) & 0xFF;
-        int r = (hex >> 16) & 0xFF;
-        int g = (hex >> 8) & 0xFF;
-        int b = hex & 0xFF;
+    PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int wrgb) {
+        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        createCppObjPtrInPikaObj<Color>(new_color, (uint32_t)wrgb);
+        return new_color;
+    }
 
-        return _MatrixOS_Color_Color_FromRGBW(self, r, g, b, w);
+    // Color getter methods
+    int _MatrixOS_Color_Color_R(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return color->R;
+    }
+
+    int _MatrixOS_Color_Color_G(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return color->G;
+    }
+
+    int _MatrixOS_Color_Color_B(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return color->B;
+    }
+
+    int _MatrixOS_Color_Color_W(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return color->W;
+    }
+
+    int _MatrixOS_Color_Color_RGB(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return color->RGB();
+    }
+
+    int _MatrixOS_Color_Color_WRGB(PikaObj *self) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return 0;
+        return (color->W << 24) | (color->R << 16) | (color->G << 8) | color->B;
     }
 
     // Color manipulation methods
     PikaObj* _MatrixOS_Color_Color_Dim(PikaObj *self, pika_float factor) {
-        int r = obj_getInt(self, (char*)"r");
-        int g = obj_getInt(self, (char*)"g");
-        int b = obj_getInt(self, (char*)"b");
-        int w = obj_getInt(self, (char*)"w");
-
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return nullptr;
+        
         uint8_t factor_u8 = (uint8_t)(factor * 255);
-        Color color(r, g, b, w);
-        Color dimmed = color.Dim(factor_u8);
+        Color dimmed = color->Dim(factor_u8);
 
-        PikaObj* new_color = newNormalObj(New_PikaObj);
-
-        obj_setInt(new_color, (char*)"r", dimmed.R);
-        obj_setInt(new_color, (char*)"g", dimmed.G);
-        obj_setInt(new_color, (char*)"b", dimmed.B);
-        obj_setInt(new_color, (char*)"w", dimmed.W);
+        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        copyCppObjIntoPikaObj<Color>(new_color, dimmed);
         return new_color;
     }
 
     PikaObj* _MatrixOS_Color_Color_DimIfNot(PikaObj *self, pika_bool not_dim, pika_float factor) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return nullptr;
+        
         if (not_dim) {
             return self;
         } else {
-            // Dim the color
-            return _MatrixOS_Color_Color_Dim(self, factor);
+            uint8_t factor_u8 = (uint8_t)(factor * 255);
+            Color dimmed = color->DimIfNot(false, factor_u8);
+            
+            PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+            copyCppObjIntoPikaObj<Color>(new_color, dimmed);
+            return new_color;
         }
     }
 
     PikaObj* _MatrixOS_Color_Color_Scale(PikaObj *self, pika_float factor) {
-        int r = obj_getInt(self, (char*)"r");
-        int g = obj_getInt(self, (char*)"g");
-        int b = obj_getInt(self, (char*)"b");
-        int w = obj_getInt(self, (char*)"w");
-
-        Color color(r, g, b, w);
-        Color scaled = color.Scale(factor);
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return nullptr;
         
-        PikaObj* new_color = newNormalObj(New_PikaObj);
-        obj_setInt(new_color, (char*)"r", scaled.R);
-        obj_setInt(new_color, (char*)"g", scaled.G);
-        obj_setInt(new_color, (char*)"b", scaled.B);
-        obj_setInt(new_color, (char*)"w", scaled.W);
+        Color scaled = color->Scale((uint8_t)(factor * 255));
+        
+        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        copyCppObjIntoPikaObj<Color>(new_color, scaled);
         return new_color;
     }
 
     // Color operators
     pika_bool _MatrixOS_Color_Color___eq__(PikaObj *self, PikaObj* other) {
-        int r1 = obj_getInt(self, (char*)"r");
-        int g1 = obj_getInt(self, (char*)"g");
-        int b1 = obj_getInt(self, (char*)"b");
-        int w1 = obj_getInt(self, (char*)"w");
+        Color* color1 = getCppObjPtrInPikaObj<Color>(self);
+        Color* color2 = getCppObjPtrInPikaObj<Color>(other);
+
+        if (!color1 || !color2) return pika_false;
         
-        int r2 = obj_getInt(other, (char*)"r");
-        int g2 = obj_getInt(other, (char*)"g");
-        int b2 = obj_getInt(other, (char*)"b");
-        int w2 = obj_getInt(other, (char*)"w");
-        
-        return (r1 == r2 && g1 == g2 && b1 == b2 && w1 == w2);
+        return (*color1 == *color2) ? pika_true : pika_false;
     }
 
     pika_bool _MatrixOS_Color_Color___ne__(PikaObj *self, PikaObj* other) {
-        return _MatrixOS_Color_Color___eq__(self, other) ? pika_false : pika_true;
+        return !_MatrixOS_Color_Color___eq__(self, other);
     }
 }

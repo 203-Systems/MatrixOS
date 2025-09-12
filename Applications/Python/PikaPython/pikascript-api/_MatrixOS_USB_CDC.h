@@ -23,7 +23,7 @@ void _MatrixOS_USB_CDC_Flush(PikaObj *self);
 void _MatrixOS_USB_CDC_Poll(PikaObj *self);
 void _MatrixOS_USB_CDC_Print(PikaObj *self, char* text, char* end);
 int _MatrixOS_USB_CDC_Read(PikaObj *self);
-Arg* _MatrixOS_USB_CDC_ReadBytes(PikaObj *self, int length);
+Arg* _MatrixOS_USB_CDC_ReadBytes(PikaObj *self, int max_length);
 char* _MatrixOS_USB_CDC_ReadString(PikaObj *self);
 
 #endif

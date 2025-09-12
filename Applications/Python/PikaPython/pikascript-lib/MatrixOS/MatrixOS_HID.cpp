@@ -84,10 +84,14 @@ extern "C" {
         size_t size = MatrixOS::HID::RawHID::Get(&report, (uint32_t)timeout_ms);
         
         if (size == 0 || report == nullptr) {
-            return nullptr;
+            Arg* result = arg_newBytes(report, 0);
+            return result;
         }
         
-        // TODO
+        // Create bytes argument with the report data
+        Arg* result = arg_newBytes(report, size);
+        
+        return result;
     }
 
     pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, char* data, int length) {

@@ -15,8 +15,12 @@ extern "C" {
         MatrixOS::SYS::DelayMs(ms);
     }
 
-    int _MatrixOS_SYS_Millis(PikaObj *self) {
+    int64_t _MatrixOS_SYS_Millis(PikaObj *self) {
         return MatrixOS::SYS::Millis();
+    }
+
+    int64_t _MatrixOS_SYS_Micros(PikaObj *self) {
+        return MatrixOS::SYS::Micros();
     }
 
     void _MatrixOS_SYS_OpenSetting(PikaObj *self) {
@@ -31,25 +35,4 @@ extern "C" {
         MatrixOS::SYS::ExecuteAPP(app_id);
     }
 
-    // NVS functions
-    int _MatrixOS_NVS_GetSize(PikaObj *self, int hash) {
-        return MatrixOS::NVS::GetSize((uint32_t)hash);
-    }
-
-    Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash, int length) {
-        auto data = MatrixOS::NVS::GetVariable((uint32_t)hash);
-        if (data.empty()) {
-            return nullptr;
-        }
-        
-        // TODO
-    }
-
-    pika_bool _MatrixOS_NVS_SetVariable(PikaObj *self, int hash, char* data, int length) {
-        return MatrixOS::NVS::SetVariable((uint32_t)hash, (void*)data, (uint16_t)length);
-    }
-
-    pika_bool _MatrixOS_NVS_DeleteVariable(PikaObj *self, int hash) {
-        return MatrixOS::NVS::DeleteVariable((uint32_t)hash);
-    }
 }

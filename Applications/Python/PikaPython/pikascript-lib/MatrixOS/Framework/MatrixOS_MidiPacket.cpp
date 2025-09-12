@@ -5,7 +5,7 @@
 extern "C" {
     // MidiPacket constructor
     void _MatrixOS_MidiPacket_MidiPacket___init__(PikaObj *self, int status, int channel, int data1, int data2) {
-        obj_setInt(self, (char*)"port", MIDI_PORT_EACH_CLASS);
+        obj_setInt(self, (char*)"port", MIDI_PORT_INVALID);
         obj_setInt(self, (char*)"status", status);
         
         // Store raw data array
@@ -16,168 +16,83 @@ extern "C" {
 
     // Factory methods for creating MIDI packets
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOn(PikaObj *self, int channel, int note, int velocity) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", NoteOn);
-        obj_setInt(packet, (char*)"data0", (NoteOn & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", note & 0x7F);
-        obj_setInt(packet, (char*)"data2", velocity & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, NoteOn, channel, note & 0x7F, velocity & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOff(PikaObj *self, int channel, int note, int velocity) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", NoteOff);
-        obj_setInt(packet, (char*)"data0", (NoteOff & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", note & 0x7F);
-        obj_setInt(packet, (char*)"data2", velocity & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, NoteOff, channel, note & 0x7F, velocity & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_AfterTouch(PikaObj *self, int channel, int note, int pressure) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", AfterTouch);
-        obj_setInt(packet, (char*)"data0", (AfterTouch & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", note & 0x7F);
-        obj_setInt(packet, (char*)"data2", pressure & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, AfterTouch, channel, note & 0x7F, pressure & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ControlChange(PikaObj *self, int channel, int controller, int value) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", ControlChange);
-        obj_setInt(packet, (char*)"data0", (ControlChange & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", controller & 0x7F);
-        obj_setInt(packet, (char*)"data2", value & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, ControlChange, channel, controller & 0x7F, value & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ProgramChange(PikaObj *self, int channel, int program) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", ProgramChange);
-        obj_setInt(packet, (char*)"data0", (ProgramChange & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", program & 0x7F);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, ProgramChange, channel, program & 0x7F, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ChannelPressure(PikaObj *self, int channel, int pressure) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", ChannelPressure);
-        obj_setInt(packet, (char*)"data0", (ChannelPressure & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", pressure & 0x7F);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, ChannelPressure, channel, pressure & 0x7F, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_PitchBend(PikaObj *self, int channel, int value) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", PitchChange);
-        obj_setInt(packet, (char*)"data0", (PitchChange & 0xF0) | (channel & 0x0F));
-        obj_setInt(packet, (char*)"data1", value & 0x7F);
-        obj_setInt(packet, (char*)"data2", (value >> 7) & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, PitchChange, channel, value & 0x7F, (value >> 7) & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Clock(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", Sync);
-        obj_setInt(packet, (char*)"data0", Sync);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, Sync, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Start(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", Start);
-        obj_setInt(packet, (char*)"data0", Start);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, Start, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Continue(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", Continue);
-        obj_setInt(packet, (char*)"data0", Continue);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, Continue, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Stop(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", Stop);
-        obj_setInt(packet, (char*)"data0", Stop);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, Stop, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ActiveSense(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", ActiveSense);
-        obj_setInt(packet, (char*)"data0", ActiveSense);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, ActiveSense, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Reset(PikaObj *self) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", Reset);
-        obj_setInt(packet, (char*)"data0", Reset);
-        obj_setInt(packet, (char*)"data1", 0);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, Reset, 0, 0, 0);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongPosition(PikaObj *self, int position) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", SongPosition);
-        obj_setInt(packet, (char*)"data0", SongPosition);
-        obj_setInt(packet, (char*)"data1", position & 0x7F);
-        obj_setInt(packet, (char*)"data2", (position >> 7) & 0x7F);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, SongPosition, 0, position & 0x7F, (position >> 7) & 0x7F);
+        return self;
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongSelect(PikaObj *self, int song) {
-        PikaObj* packet = newNormalObj(New_PikaObj);
-        obj_setClass(packet, "_MatrixOS_MidiPacket_MidiPacket");
-        obj_setInt(packet, (char*)"port", MIDI_PORT_EACH_CLASS);
-        obj_setInt(packet, (char*)"status", SongSelect);
-        obj_setInt(packet, (char*)"data0", SongSelect);
-        obj_setInt(packet, (char*)"data1", song & 0x7F);
-        obj_setInt(packet, (char*)"data2", 0);
-        return packet;
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, SongSelect, 0, song & 0x7F, 0);
+        return self;
+    }
+
+    PikaObj* _MatrixOS_MidiPacket_MidiPacket_TuneRequest(PikaObj *self) {
+        _MatrixOS_MidiPacket_MidiPacket___init__(self, TuneRequest, 0, 0, 0);
+        return self;
     }
 
     // Port getter/setter

@@ -3,33 +3,65 @@
 #include "PikaObj.h"
 
 template <typename T>
-PikaObj* createPikaObj(const T& obj) {
-    // Allocate managed object
-    auto ptr = std::make_shared<T>(obj);
-
-    // Store the shared_ptr itself inside PikaObj
-    PikaObj* new_obj = newNormalObj(New_PikaObj);
-    obj_setPtr(new_obj, (char*)"cpp_obj_ptr", new std::shared_ptr<T>(ptr));
-
-    return new_obj;
-}
-
-template <typename T>
-bool loadIntoPikaObj(PikaObj* pikaObj, const T& obj) {
-    // Allocate managed object
-    auto ptr = std::make_shared<T>(obj);
-
-    // Store the shared_ptr itself inside PikaObj
-    obj_setPtr(pikaObj, (char*)"cpp_obj_ptr", new std::shared_ptr<T>(ptr));
-
-    return true;
-}
-
-template <typename T>
-T& getCppObj(PikaObj* pika_obj) {
-    auto sptr = static_cast<std::shared_ptr<T>*>(obj_getPtr(pika_obj, (char*)"cpp_obj_ptr"));
-    if (!sptr || !(*sptr)) {
-        throw std::runtime_error("No valid C++ object stored in PikaObj");
+void deleteCppObjInPikaObj(PikaObj* pika_obj) {
+    T* ptr = static_cast<T*>(obj_getPtr(pika_obj, (char*)"_obj_ptr"));
+    if (ptr) {
+        delete ptr;
+        obj_setPtr(pika_obj, (char*)"_obj_ptr", nullptr);
     }
-    return **sptr;
+}
+
+template <typename T>
+T* createCppObjPtrInPikaObj(PikaObj* pika_obj)
+{
+    deleteCppObjInPikaObj<T>(pika_obj);
+
+    // Allocate raw object with default constructor
+    T* ptr = new T();
+    obj_setPtr(pika_obj, (char*)"_obj_ptr", ptr);
+
+    return ptr;
+}
+
+// Overload for objects that need constructor arguments
+template <typename T, typename... Args>
+T* createCppObjPtrInPikaObj(PikaObj* pika_obj, Args&&... args)
+{
+    deleteCppObjInPikaObj<T>(pika_obj);
+
+    // Allocate raw object with constructor arguments
+    T* ptr = new T(std::forward<Args>(args)...);
+    obj_setPtr(pika_obj, (char*)"_obj_ptr", ptr);
+
+    return ptr;
+}
+
+template <typename T>
+T* copyCppObjIntoPikaObj(PikaObj* pika_obj, const T& obj)
+{
+    deleteCppObjInPikaObj<T>(pika_obj);
+    
+    // Create a copy of the object
+    T* ptr = new T(obj);
+    obj_setPtr(pika_obj, (char*)"_obj_ptr", ptr);
+    
+    return ptr;
+}
+
+// Convenience functions for safer pointer access
+template <typename T>
+T* getCppObjPtrInPikaObj(PikaObj* pika_obj) {
+    T* ptr = static_cast<T*>(obj_getPtr(pika_obj, (char*)"_obj_ptr"));
+    return ptr;
+}
+
+
+template <typename T>
+T& getCppObjInPikaObj(PikaObj* pika_obj) {
+    T* ptr = static_cast<T*>(obj_getPtr(pika_obj, (char*)"_obj_ptr"));
+    return *ptr;
+}
+
+inline bool hasCppObjInPikaObj(PikaObj* pika_obj) {
+    return (obj_getPtr(pika_obj, (char*)"_obj_ptr")) != nullptr;
 }
