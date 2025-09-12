@@ -1,5 +1,6 @@
 #include "MatrixOS.h"
 #include "USB.h"
+#include "tusb.h"
 
 #define NKRO_KEY_COUNT (8*13)
 

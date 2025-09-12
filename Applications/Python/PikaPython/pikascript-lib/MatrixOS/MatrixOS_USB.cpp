@@ -4,10 +4,6 @@
 
 extern "C" {
     // USB class implementation
-    pika_bool _MatrixOS_USB_Inited(PikaObj *self) {
-        return MatrixOS::USB::Inited();
-    }
-
     pika_bool _MatrixOS_USB_Connected(PikaObj *self) {
         return MatrixOS::USB::Connected();
     }

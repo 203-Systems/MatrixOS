@@ -1,6 +1,8 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
+#include "tusb.h"
+
 namespace MatrixOS::USB
 {
   void usb_device_task(void* param) {
@@ -22,10 +24,6 @@ namespace MatrixOS::USB
     (void)xTaskCreateStatic(usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, usb_device_stack,
                             &usb_device_taskdef);
     USB::MIDI::Init();
-  }
-
-  bool Inited() {
-    return tusb_inited();
   }
 
   bool Disconnect() {

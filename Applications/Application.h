@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <deque>
 
+class Application;
+
 struct Application_Info {
   string name;
   string author;

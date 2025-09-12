@@ -1,5 +1,6 @@
 #include "MatrixOS.h"
 #include "USB.h"
+#include "tusb.h"
 
 namespace MatrixOS::MIDI
 {

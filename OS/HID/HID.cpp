@@ -1,5 +1,7 @@
 #include "MatrixOS.h"
 #include "USB.h"
+#include "HID.h"
+#include "tusb.h"
 
 #define NKRO_COUNT 6 // Only 6 is supported by the current USB stack
 

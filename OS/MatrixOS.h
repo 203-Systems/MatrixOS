@@ -14,11 +14,6 @@
 
 #include "HID/HIDSpecs.h"
 
-#define noexpose  // Custom keyword to remove function to be generated as exposed API
-
-class Application;
-class Application_Info;
-
 // Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
@@ -44,8 +39,6 @@ namespace MatrixOS
 
   namespace LED
   {
-    void Init(void);
-
     void NextBrightness();
     void SetBrightness(uint8_t brightness);
     void SetBrightnessMultiplier(string partition_name, float multiplier);
@@ -69,9 +62,7 @@ namespace MatrixOS
 
   namespace KeyPad
   {
-    noexpose void Init(void);
     uint16_t Scan();                    // Return # of changed key
-    bool NewEvent(KeyEvent* keyevent);  // Adding keyevent, return true when queue is full
     bool Get(KeyEvent* keyEvent_dest, uint32_t timeout_ms = 0);
     KeyInfo* GetKey(Point keyXY);
     KeyInfo* GetKey(uint16_t keyID);
@@ -86,9 +77,6 @@ namespace MatrixOS
 
   namespace USB
   {
-    noexpose void Init();
-
-    bool Inited(void);     // If USB Stack is initialized, not sure what it will be needed but I added it anyways
     bool Connected(void);  // If USB is connected
 
     namespace CDC
@@ -185,7 +173,6 @@ namespace MatrixOS
 
     namespace RawHID
     {
-      void Init();
       size_t Get(uint8_t** report, uint32_t timeout_ms = 0);
       bool Send(const vector<uint8_t> &report);
     }

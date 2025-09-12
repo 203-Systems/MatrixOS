@@ -3,6 +3,9 @@
 #include "System.h"
 #include "Applications.h" // This is from device layer
 
+#include "../USB/USB.h"
+#include "../LED/LED.h"
+#include "../KeyPad/KeyPad.h"
 #include "../MIDI/MIDI.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;

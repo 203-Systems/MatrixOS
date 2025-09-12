@@ -2,6 +2,9 @@
 
 #define SYSTEM_VAR_NAMESPACE "SYSTEM_VAR"
 
+class Application;
+class Application_Info;
+
 namespace MatrixOS::SYS
 {
   inline StackType_t application_stack[APPLICATION_STACK_SIZE];
