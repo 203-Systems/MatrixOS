@@ -109,6 +109,7 @@ struct KeyInfo {
   #define ABOVE_THRESHOLD new_velocity > config.low_threshold
   bool update(KeyConfig& config, Fract16 new_velocity) {
     uint16_t timeNow = MatrixOS::SYS::Millis();
+    uint32_t timeNow = MatrixOS::SYS::Millis();
 
     switch (state)
     {
