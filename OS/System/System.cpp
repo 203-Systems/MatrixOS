@@ -1,6 +1,9 @@
 #include "MatrixOS.h"
 #include "../../applications/Setting/Setting.h"
 #include "System.h"
+#include "Applications.h" // This is from device layer
+
+#include "../MIDI/MIDI.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
 

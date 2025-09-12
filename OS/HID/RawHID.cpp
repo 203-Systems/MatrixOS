@@ -3,6 +3,8 @@
 #include "Commands/CommandSpecs.h"
 #include "message_buffer.h"
 
+#include "../System/System.h"
+
 namespace MatrixOS::HID::RawHID
 {
     MessageBufferHandle_t rawhid_message_buffer;

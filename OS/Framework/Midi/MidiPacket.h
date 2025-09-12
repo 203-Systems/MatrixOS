@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdarg.h>
 #include "MidiSpecs.h"
 
@@ -36,12 +38,13 @@ enum EMidiPortID : uint16_t {
   MIDI_PORT_RTP = 0x500,
   MIDI_PORT_DEVICE_CUSTOM = 0x600,
   MIDI_PORT_SYNTH = 0x8000,
+  MIDI_PORT_OS = 0xF000,
   MIDI_PORT_INVALID = 0xFFFF
 };
 
 struct MidiPacket {
-  uint16_t port = MIDI_PORT_INVALID;
-  EMidiStatus status = None;
+  uint16_t port = MIDI_PORT_INVALID; // Where the packet is coming from
+  EMidiStatus status = None;  // We need this just in case we are in SysEx transfer. We can't tell if the payload is SysEx or message purely though data[0]
   uint8_t data[3] = {0, 0, 0};
 
   MidiPacket() {}  // Place Holder data
@@ -158,7 +161,7 @@ struct MidiPacket {
     this->status = status;
     if((uint8_t)status < SysExData)
     {
-      data[0] = (data[0] & 0x0F) | status; 
+      data[0] = (data[0] & 0x0F) + status; 
     }
     else
     {
@@ -288,4 +291,9 @@ struct MidiPacket {
   {
     return status == SysExData && data[0] == 0xF0;
   }
+
+  // bool SysExEnd()
+  // {
+  //   return status == SysExEnd;
+  // }
 };

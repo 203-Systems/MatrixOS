@@ -1,15 +1,13 @@
+#pragma once
+
 #include "FreeRTOS.h"
 #include "queue.h"
-
-class MidiPort;
-namespace MatrixOS::MIDI
-{
-  bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
-  void CloseMidiPort(uint16_t port_id);
-  bool Receive(MidiPacket midipacket, uint32_t timeout_ms);
-}
+#include <map>
 
 class MidiPort {
+ private:
+  static std::map<uint16_t, MidiPort*> midiPortMap;
+
  public:
   string name;
   uint16_t id = MIDI_PORT_INVALID;
@@ -22,7 +20,7 @@ class MidiPort {
     { Close(); }
     for (uint16_t i = 0; i < id_range; i++)  // Request for ID
     {
-      if (MatrixOS::MIDI::OpenMidiPort(id + i, this))
+      if (MidiPort::OpenMidiPort(id + i, this))
       {
         this->id = id + i;
         break;
@@ -35,7 +33,7 @@ class MidiPort {
   }
 
   void Close() {
-    MatrixOS::MIDI::CloseMidiPort(id);
+    MidiPort::CloseMidiPort(id);
     this->id = MIDI_PORT_INVALID;
     vQueueDelete(midi_queue);
   }
@@ -47,9 +45,9 @@ class MidiPort {
   }
 
   // This will modify the midipacket to be the same as the midiport
-  bool Send(MidiPacket midipacket, uint32_t timeout_ms = 0) {
+  bool Send(MidiPacket midipacket, uint16_t targetPort = MIDI_PORT_OS, uint32_t timeout_ms = 0) {
     midipacket.port = this->id;
-    return MatrixOS::MIDI::Receive(midipacket, timeout_ms);
+    return MidiPort::RouteMidiPacket(midipacket, targetPort, timeout_ms);
   }
 
   // This is for Matrix OS kernal to call
@@ -75,4 +73,9 @@ class MidiPort {
   }
 
   ~MidiPort() { Close(); }
+
+  // Static methods for port management
+  static bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
+  static void CloseMidiPort(uint16_t port_id);
+  static bool RouteMidiPacket(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeout_ms);
 };

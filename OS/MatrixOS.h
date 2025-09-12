@@ -24,12 +24,6 @@ namespace MatrixOS
 {
   namespace SYS
   {
-    inline bool inited = false;
-    extern Application* active_app;
-    extern uint32_t active_app_id;
-    void Begin(void);
-    void InitSysModules(void);
-
     uint64_t Millis(void);
     uint64_t Micros(void);
     void DelayMs(uint32_t ms);
@@ -117,16 +111,9 @@ namespace MatrixOS
 
   namespace MIDI
   {
-    noexpose void Init(void);
-
     bool Get(MidiPacket* midiPacketDest, uint16_t timeout_ms = 0);
-    bool Send(MidiPacket midiPacket, uint16_t timeout_ms = 0);
+    bool Send(MidiPacket midiPacket, uint16_t targetPort = MIDI_PORT_EACH_CLASS, uint16_t timeout_ms = 0);
     bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta = true);  // If include meta, it will send the correct header and ending;
-
-    // Those APIs are only for MidiPort to use
-    noexpose bool OpenMidiPort(uint16_t port_id, MidiPort* midiPort);
-    noexpose void CloseMidiPort(uint16_t port_id);
-    noexpose bool Receive(MidiPacket midipacket_prt, uint32_t timeout_ms = 0);
   }
 
   namespace HID

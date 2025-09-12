@@ -1,6 +1,11 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
+namespace MatrixOS::MIDI
+{
+  extern MidiPort* osPort;
+}
+
 namespace MatrixOS::USB::MIDI
 {
   std::vector<MidiPort*> ports;
@@ -132,6 +137,6 @@ void tud_midi_rx_cb(uint8_t itf) {
 
     // Since we know what we are doing here, just gonna skip the wrapper
     // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implementation
-    MatrixOS::MIDI::Receive(packet); //Direct call to MIDI::Receive
+    MatrixOS::MIDI::osPort->Receive(packet);
   }
 }
