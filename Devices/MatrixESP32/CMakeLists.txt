@@ -118,6 +118,14 @@ target_link_libraries(${elf_file}
 
 idf_build_executable(${elf_file})
 
+# Copy ELF file to standard location for monitor tools
+add_custom_command(TARGET ${elf_file} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_BINARY_DIR}/${elf_file}
+        ${CMAKE_BINARY_DIR}/${elf_file}
+    COMMENT "Copying ELF file to build root for monitor tools"
+)
+
 # Workaround to enable idf.py commands
 set(PROJECT_EXECUTABLE ${elf_file})
 set(PROJECT_PATH ${CMAKE_SOURCE_DIR})
