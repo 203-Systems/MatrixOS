@@ -61,8 +61,22 @@ namespace MatrixOS::SYS
 
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
+    bool exited = false;
     while (true)
     {
+      // Check if function key is held for more than 3 seconds
+      KeyInfo* fnKeyInfo = MatrixOS::KeyPad::GetKey(FUNCTION_KEY);
+      if (exited == false && (fnKeyInfo->holdTime() > 3000))
+      {
+          MLOGD("Supervisor", "Function key held for 3s, force exiting app");
+          exited = true;
+          ExitAPP();
+      }
+      else if (fnKeyInfo->active() == false)
+      {
+        exited = false;
+      }
+      
       if (eTaskGetState(active_app_task) == eTaskState::eDeleted)
       {
         active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
@@ -75,7 +89,7 @@ namespace MatrixOS::SYS
   void Begin(void) {
     Device::DeviceInit();
 
-    USB::Init();
+    MatrixOS::USB::Init();
 
     InitSysModules();
 
@@ -103,10 +117,10 @@ namespace MatrixOS::SYS
 
   void InitSysModules(void)
   {
-    KeyPad::Init();
-    LED::Init();
-    MIDI::Init();
-    HID::Init();
+    MatrixOS::KeyPad::Init();
+    MatrixOS::LED::Init();
+    MatrixOS::MIDI::Init();
+    MatrixOS::HID::Init();
   }
 
   uint64_t Millis(void) {
@@ -126,8 +140,8 @@ namespace MatrixOS::SYS
   }
 
   void Bootloader() {
-    LED::Fill(0);
-    LED::Update();
+    MatrixOS::LED::Fill(0);
+    MatrixOS::LED::Update();
     DelayMs(20);  // Wait for led data to be updated first.
     Device::Bootloader();
   }
@@ -182,11 +196,19 @@ namespace MatrixOS::SYS
     active_app_info->destructor(active_app);
     if (active_app_task != NULL)
     {
+      MLOGD("ExitAPP", "active_app_task not free");
+      MLOGD("ExitAPP", "Cleaning up UIs");
       UI::CleanUpUIs(); // TODO move this to application implementation vis stuffs like UImanager etc. This way UI framework is decoupled from the OS or application frameworks
-      vTaskDelete(active_app_task);
-      free(active_app);
+      MLOGD("ExitAPP", "Setting active_app to NULL");
       active_app = NULL;
+      MLOGD("ExitAPP", "Deleting active_app_task");
+      vTaskDelete(active_app_task);
     }
+    else
+    {
+      MLOGD("ExitAPP", "active_app_task is free");
+    }
+    MLOGD("ExitAPP", "App Exited");
   }
 
   void ErrorHandler(string error) {
@@ -198,18 +220,18 @@ namespace MatrixOS::SYS
     MLOGE("System", "Matrix OS Error: %s", error.c_str());
 
     // Show Blue Screen
-    LED::Fill(0x00adef);
+    MatrixOS::LED::Fill(0x00adef);
     if (Device::x_size >= 5 && Device::y_size >= 5)
     {
-      LED::SetColor(Point(1, 1), 0xFFFFFF);
-      LED::SetColor(Point(1, 3), 0xFFFFFF);
+      MatrixOS::LED::SetColor(Point(1, 1), 0xFFFFFF);
+      MatrixOS::LED::SetColor(Point(1, 3), 0xFFFFFF);
 
-      LED::SetColor(Point(3, 1), 0xFFFFFF);
-      LED::SetColor(Point(3, 2), 0xFFFFFF);
-      LED::SetColor(Point(3, 3), 0xFFFFFF);
+      MatrixOS::LED::SetColor(Point(3, 1), 0xFFFFFF);
+      MatrixOS::LED::SetColor(Point(3, 2), 0xFFFFFF);
+      MatrixOS::LED::SetColor(Point(3, 3), 0xFFFFFF);
     }
 
-    LED::Update();
+    MatrixOS::LED::Update();
 
     Device::ErrorHandler();  // Low level indicator in case LED and USB failed
   }

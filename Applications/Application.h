@@ -30,8 +30,7 @@ class Application {
     }
   }
 
-  void Exit() { // Call this to exit the application
-    End(); 
+  void Exit() { // Call this to exit the application 
     MatrixOS::SYS::ExitAPP(); 
   };
 
@@ -40,7 +39,7 @@ class Application {
   virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End() {};
   
-  virtual ~Application() = default;
+  virtual ~Application() { End(); }
 };
 
 #define APPID(author, name) StaticHash(author "-" name)
