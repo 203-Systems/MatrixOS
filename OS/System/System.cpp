@@ -67,13 +67,13 @@ namespace MatrixOS::SYS
     {
       // Check if function key is held for more than 3 seconds
       KeyInfo* fnKeyInfo = MatrixOS::KeyPad::GetKey(FUNCTION_KEY);
-      if (exited == false && (fnKeyInfo->holdTime() > 3000))
+      if (exited == false && (fnKeyInfo->HoldTime() > 3000))
       {
           MLOGD("Supervisor", "Function key held for 3s, force exiting app");
           exited = true;
           ExitAPP();
       }
-      else if (fnKeyInfo->active() == false)
+      else if (fnKeyInfo->Active() == false)
       {
         exited = false;
       }

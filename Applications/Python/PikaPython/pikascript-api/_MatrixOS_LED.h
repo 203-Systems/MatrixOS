@@ -24,7 +24,7 @@ pika_bool _MatrixOS_LED_DestroyLayer(PikaObj *self, int crossfade);
 void _MatrixOS_LED_Fade(PikaObj *self, int crossfade);
 void _MatrixOS_LED_Fill(PikaObj *self, PikaObj* color, int layer);
 void _MatrixOS_LED_FillPartition(PikaObj *self, char* partition, PikaObj* color, int layer);
-int _MatrixOS_LED_GetLedCount(PikaObj *self);
+int _MatrixOS_LED_GetLEDCount(PikaObj *self);
 void _MatrixOS_LED_NextBrightness(PikaObj *self);
 void _MatrixOS_LED_PauseUpdate(PikaObj *self, pika_bool pause);
 void _MatrixOS_LED_SetBrightness(PikaObj *self, int brightness);

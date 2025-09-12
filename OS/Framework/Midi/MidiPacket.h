@@ -169,7 +169,7 @@ struct MidiPacket {
     }
   }
   
-  uint8_t channel() {
+  uint8_t Channel() {
     switch (status)
     {
       case NoteOn:
@@ -185,7 +185,7 @@ struct MidiPacket {
     }
   }
 
-  uint8_t note() {
+  uint8_t Note() {
     switch (status)
     {
       case NoteOn:
@@ -199,12 +199,12 @@ struct MidiPacket {
     }
   }
 
-  uint8_t controller()  // Just an alies for note(), specially build for Program Change
+  uint8_t Controller()  // Just an alies for Note(), specially build for Program Change
   {
-    return note();
+    return Note();
   }
 
-  uint8_t velocity() {
+  uint8_t Velocity() {
     switch (status)
     {
       case NoteOn:
@@ -219,7 +219,7 @@ struct MidiPacket {
     }
   }
 
-  uint16_t value()  // Get value all type, basically a generic getter
+  uint16_t Value()  // Get value all type, basically a generic getter
   {
     switch (status)
     {

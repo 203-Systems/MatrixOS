@@ -49,10 +49,10 @@ void Performance::MidiEventHandler(MidiPacket midiPacket) {
   {
     case NoteOn:
     case ControlChange:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), midiPacket.velocity());
+      NoteHandler(midiPacket.Channel(), midiPacket.Note(), midiPacket.Velocity());
       break;
     case NoteOff:
-      NoteHandler(midiPacket.channel(), midiPacket.note(), 0);
+      NoteHandler(midiPacket.Channel(), midiPacket.Note(), 0);
       break;
     case SysExData:
     case SysExEnd:
@@ -448,7 +448,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
         }
 
         KeyInfo* touchKey = MatrixOS::KeyPad::GetKey(point);
-        if(touchKey != nullptr && touchKey->active())
+        if(touchKey != nullptr && touchKey->Active())
         {
           combo_key = true;
           break;

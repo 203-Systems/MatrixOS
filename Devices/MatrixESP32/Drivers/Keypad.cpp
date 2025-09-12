@@ -80,7 +80,7 @@ namespace Device::KeyPad
     // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
     if (fn_active_low)
     { read = UINT16_MAX - (uint16_t)read; }
-    if (fnState.update(binary_config, read))
+    if (fnState.Update(binary_config, read))
     {
       if (NotifyOS(0, &fnState))
       { return true; }

@@ -93,7 +93,7 @@ extern "C" {
         MatrixOS::LED::PauseUpdate(pause_val != 0);
     }
 
-    int _MatrixOS_LED_GetLedCount(PikaObj *self) {
-        return MatrixOS::LED::GetLedCount();
+    int _MatrixOS_LED_GetLEDCount(PikaObj *self) {
+        return MatrixOS::LED::GetLEDCount();
     }
 }

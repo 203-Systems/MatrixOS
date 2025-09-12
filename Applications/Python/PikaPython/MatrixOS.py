@@ -74,8 +74,8 @@ class LED:
     def PauseUpdate(self, pause: bool = True) -> None:
         _MatrixOS.LED.PauseUpdate(pause)
 
-    def GetLedCount(self) -> int:
-        return _MatrixOS.LED.GetLedCount()
+    def GetLEDCount(self) -> int:
+        return _MatrixOS.LED.GetLEDCount()
 
 class KeyPad:
     def Get(self, timeout_ms: int = 0) -> KeyEvent: 

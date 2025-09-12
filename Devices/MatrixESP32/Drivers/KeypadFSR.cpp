@@ -176,7 +176,7 @@ namespace Device::KeyPad::FSR
         
         config.low_threshold = CLAMP(new_low_threshold, 512, UINT16_MAX);
         config.high_threshold = CLAMP(new_high_threshold, 25600, UINT16_MAX);
-        bool updated = keypadState[x][y].update(config, reading);
+        bool updated = keypadState[x][y].Update(config, reading);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;

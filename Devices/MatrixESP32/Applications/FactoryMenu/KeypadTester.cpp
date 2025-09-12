@@ -3,7 +3,7 @@ void FactoryMenu::KeyPadTester() {
   bool keypad_tested[X_SIZE][Y_SIZE];
   memset(keypad_tested, false, X_SIZE * Y_SIZE);
   MatrixOS::LED::Fill(0);
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->active())  // Break when fn pressed
+  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())  // Break when fn pressed
   {
     for (uint8_t x = 0; x < X_SIZE; x++)
     {
@@ -11,7 +11,7 @@ void FactoryMenu::KeyPadTester() {
       {
         KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(Point(x, y));
 
-        if (keyInfo->active())
+        if (keyInfo->Active())
         {
           keypad_tested[x][y] = true;
           MatrixOS::LED::SetColor(Point(x, y), Color(0x00FF00));

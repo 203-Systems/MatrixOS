@@ -8,49 +8,49 @@ namespace MatrixOS::NVS
   bool DeleteVariable(uint32_t hash);
 }
 
-enum SavedVariableState { NotInited, Inited, Loaded, Deleted };
+enum SavedVarState { NotInited, Inited, Loaded, Deleted };
 
 #define CreateSavedVar(scope, name, type, default_value) \
-  SavedVariable<type> name = SavedVariable(StaticHash(scope "-" #name), (type)default_value)
+  SavedVar<type> name = SavedVar(StaticHash(scope "-" #name), (type)default_value)
   
 template <class T>
-class SavedVariable {
+class SavedVar {
  public:
   uint32_t hash;
-  SavedVariableState state = SavedVariableState::NotInited;
+  SavedVarState state = SavedVarState::NotInited;
   T value;
 
-  SavedVariable(string scope, string name, T default_value)  // Scope is basically namespace for the variable. I can't
+  SavedVar(string scope, string name, T default_value)  // Scope is basically namespace for the variable. I can't
                                                              // use "namespace" or "class" as variable name but you get
                                                              // the point
   {
     this->hash = StringHash(scope + "-" + name);
     this->value = default_value;
-    this->state = SavedVariableState::Inited;
+    this->state = SavedVarState::Inited;
   }
 
-  SavedVariable(uint32_t hash, T default_value) {
+  SavedVar(uint32_t hash, T default_value) {
     this->hash = hash;
     this->value = default_value;
-    this->state = SavedVariableState::Inited;
+    this->state = SavedVarState::Inited;
   }
 
   bool Load() {
     if (MatrixOS::NVS::GetVariable(hash, &value, sizeof(T)) == 0)
     {
-      state = SavedVariableState::Loaded;
+      state = SavedVarState::Loaded;
       return true;
     }
     return false;
   }
 
-  bool Loaded() { return state == SavedVariableState::Loaded; }
+  bool Loaded() { return state == SavedVarState::Loaded; }
 
   bool Set(T new_value) {
     if (MatrixOS::NVS::SetVariable(hash, &new_value, sizeof(T)))
     {
       value = new_value;
-      state = SavedVariableState::Loaded;
+      state = SavedVarState::Loaded;
       return true;
     }
     return false;
@@ -59,7 +59,7 @@ class SavedVariable {
   bool TempSet(T new_value)  // Update the variable but do not save it.
   {
     value = new_value;
-    state = SavedVariableState::Loaded;
+    state = SavedVarState::Loaded;
     return true;
   }
 
@@ -75,7 +75,7 @@ class SavedVariable {
   bool Delete() {
     if (MatrixOS::NVS::DeleteVariable(hash))
     {
-      this->state = SavedVariableState::Deleted;
+      this->state = SavedVarState::Deleted;
       return true;
     }
     return false;

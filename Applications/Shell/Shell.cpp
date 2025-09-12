@@ -370,7 +370,7 @@ void Shell::LaunchAnimation(Point origin, Color color)
 
     if(r > endDistance) { break; }
 
-    for (uint16_t i = 0; i < MatrixOS::LED::GetLedCount(); i++)
+    for (uint16_t i = 0; i < MatrixOS::LED::GetLEDCount(); i++)
     {
       Point xy = Device::LED::Index2XY(i);
 

@@ -468,7 +468,7 @@ namespace MatrixOS::LED
     { xTimerStart(led_tm, 0); }
   }
 
-  uint32_t GetLedCount(void) {
+  uint32_t GetLEDCount(void) {
     return led_count;
   }
 }

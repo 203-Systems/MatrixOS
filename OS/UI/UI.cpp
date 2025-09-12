@@ -30,7 +30,7 @@ void UI::Start() {
   
   MatrixOS::KeyPad::Clear();
   Setup();
-  while (status != -1)
+  while (status >= 0)
   {
     LoopTask();
     Loop();
@@ -41,8 +41,10 @@ void UI::Start() {
 }
 
 void UI::Exit() {
-  MLOGD("UI", "UI Exit signaled");
-  status = -1;
+  if(status != INT8_MIN)
+  {
+    status = -1;
+  }
 }
 
 void UI::LoopTask() {
@@ -196,10 +198,10 @@ void UI::ExitAllUIs() {
   for (auto it = uiListCopy.rbegin(); it != uiListCopy.rend(); ++it)
   {
     if (*it != nullptr) {
-      (*it)->Exit();
-      (*it)->UIEnd();
+      (*it)->status = INT8_MIN;
+      (*it)->uiComponents.clear();
     }
   }
-
+  MatrixOS::KeyPad::Clear();
   UI::uiList.clear();
 }

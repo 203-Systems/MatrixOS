@@ -5,8 +5,8 @@ void FactoryMenu::LEDTester() {
   const Color colors[8] = {Color(0xFFFFFF), Color(0xFF0000), Color(0xFFFF00), Color(0x00FF00),
                            Color(0x00FFFF), Color(0x0000FF), Color(0xFF00FF), Color(0x000000)};
   MatrixOS::LED::Fill(0);
-  uint32_t led_count = MatrixOS::LED::GetLedCount();
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->active())
+  uint32_t led_count = MatrixOS::LED::GetLEDCount();
+  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())
   {
     uint8_t led_index = led_counter % led_count;
     uint8_t led_color_index = led_counter / led_count % (sizeof(colors) / sizeof(Color));

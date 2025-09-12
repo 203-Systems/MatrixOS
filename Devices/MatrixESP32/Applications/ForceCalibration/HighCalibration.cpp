@@ -42,7 +42,7 @@ void ForceCalibration::HighCalibration() {
     }
   }
 
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->active())
+  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())
   {
     if(progress < X_SIZE * Y_SIZE)
     {

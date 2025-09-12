@@ -155,7 +155,7 @@ void ForceCalibration::ForceGridVisualizer()
         Color color = Color(0xFFFFFF);
         // uint16_t value = (uint16_t)(keyInfo->raw_velocity) >> 8;
         // uint8_t value8 = value > 0xFF ? 0xFF : value & 0xFF;
-        if (keyInfo->velocity > 0 && keyInfo->active()) { color = Color(0x00FFFF).Scale(keyInfo->velocity.to8bits());}
+        if (keyInfo->velocity > 0 && keyInfo->Active()) { color = Color(0x00FFFF).Scale(keyInfo->velocity.to8bits());}
         // else if (keyInfo->raw_velocity > 0 && keyInfo->velocity == 0) {
         //     color = Color(0xFFFFFF);
         // }
@@ -166,7 +166,7 @@ void ForceCalibration::ForceGridVisualizer()
         if (keyInfo->velocity.to8bits() > 127) { activeKey = Point(x, y); }
 
         // if (activeKey.x == x && activeKey.y == y)
-        // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->velocity, keyInfo->threshold, keyInfo->active()); }
+        // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->velocity, keyInfo->threshold, keyInfo->Active()); }
       } 
     }
   });

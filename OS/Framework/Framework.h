@@ -23,7 +23,7 @@
 
 //OS Component
 #include "MidiPort.h"
-#include "SavedVariable.h"
+#include "SavedVar.h"
 
 // Device Component
 #include "Types.h"

@@ -20,7 +20,7 @@ namespace MatrixOS::SYS
   inline Application_Info* active_app_info = NULL;
   inline uint32_t next_app_id = 0;
 
-  inline SavedVariable<uint32_t> prev_system_version = SavedVariable<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
+  inline SavedVar<uint32_t> prev_system_version = SavedVar<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
 
   void Begin(void);
 

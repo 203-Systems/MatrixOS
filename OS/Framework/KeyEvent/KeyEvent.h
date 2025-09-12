@@ -4,7 +4,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "SavedVariable.h"
+#include "SavedVar.h"
 #include "Types.h"
 #include "system/Parameters.h"
 
@@ -43,7 +43,7 @@ enum KeyState : uint8_t { /*Status Keys*/ IDLE,
                            AFTERTOUCH,
                            /*Special*/ DEBUNCING = 240u, RELEASE_DEBUNCING = 241u,
                            /*Placeholder Keys*/ INVALID = 255u };
-// When adding new state, remember to update active() as well
+// When adding new state, remember to update Active() as well
 
 struct KeyInfo {
   KeyState state = IDLE;
@@ -54,12 +54,12 @@ struct KeyInfo {
 
   KeyInfo() {}
 
-  bool active() { return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING; }
+  bool Active() { return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING; }
 
-  operator bool() { return active(); }
+  operator bool() { return Active(); }
 
-  uint32_t holdTime(void) {
-    if (active())
+  uint32_t HoldTime(void) {
+    if (Active())
     {
       return MatrixOS::SYS::Millis() - lastEventTime;
     }
@@ -84,7 +84,7 @@ struct KeyInfo {
     return ((a) > (b) ? a : b);
   }
 
-  Fract16 applyVelocityCurve(KeyConfig& config, Fract16 velocity) {
+  Fract16 ApplyVelocityCurve(KeyConfig& config, Fract16 velocity) {
     if (!config.apply_curve)
     { return velocity; }
     if (velocity < config.low_threshold)
@@ -107,8 +107,7 @@ struct KeyInfo {
 
   #define BELOW_VELOCITY_THRESHOLD new_velocity <=  config.low_threshold
   #define ABOVE_THRESHOLD new_velocity > config.low_threshold
-  bool update(KeyConfig& config, Fract16 new_velocity) {
-    uint16_t timeNow = MatrixOS::SYS::Millis();
+  bool Update(KeyConfig& config, Fract16 new_velocity) {
     uint32_t timeNow = MatrixOS::SYS::Millis();
 
     switch (state)
@@ -136,7 +135,7 @@ struct KeyInfo {
             state = PRESSED;
             // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> PRESSED");
             lastEventTime = timeNow;
-            velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+            velocity = config.apply_curve ? ApplyVelocityCurve(config, new_velocity) : new_velocity;
             return true & !cleared;
           }
         }
@@ -154,7 +153,7 @@ struct KeyInfo {
           state = PRESSED;
           // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> PRESSED");
           lastEventTime = timeNow;
-          velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+          velocity = config.apply_curve ? ApplyVelocityCurve(config, new_velocity) : new_velocity;
           return true & !cleared; // I know just return "!cleared" works but I want to make it clear this is suppose to return true
         }
         return false;
@@ -199,7 +198,7 @@ struct KeyInfo {
           }
         }
         // Apply velocity Curve
-        new_velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+        new_velocity = config.apply_curve ? ApplyVelocityCurve(config, new_velocity) : new_velocity;
 
         if (timeNow - lastEventTime > hold_threshold && !hold)
         {

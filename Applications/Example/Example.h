@@ -50,7 +50,7 @@ class ExampleAPP : public Application {
   // Namespace (This namespace only applies to this application. So even if two different applications have the same variable name, they won't conflict)， variable name (no ""), variable type, default value
   // And then just use the variable as a normal variable. The value will be saved & loaded automatically!
   // However, not all variable type and operator is supported. If that is the case, you have to get the variable via .Get() and .Set()
-  // For more, see /OS/Framework/SavedVariable.h
+  // For more, see /OS/Framework/SavedVar.h
   #endif
 
   void UIMenu();
