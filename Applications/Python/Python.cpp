@@ -35,6 +35,12 @@ extern "C" {
 }
 
 void Python::Setup() {
+  // Flush serial RX buffer
+  while(MatrixOS::USB::CDC::Available())
+  {
+    (void)MatrixOS::USB::CDC::Read();
+  }
+
   // Initialize PikaPython
   PikaObj* pikaMain = pikaPythonInit();
   pikaPythonShell(pikaMain);
