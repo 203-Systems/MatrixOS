@@ -5,7 +5,7 @@
 extern "C" {
     void _MatrixOS_SYS_Reboot(PikaObj *self) {
         MatrixOS::SYS::Reboot();
-    }
+        }
 
     void _MatrixOS_SYS_Bootloader(PikaObj *self) {
         MatrixOS::SYS::Bootloader();
@@ -36,20 +36,13 @@ extern "C" {
         return MatrixOS::NVS::GetSize((uint32_t)hash);
     }
 
-    char* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash, int length) {
+    Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash, int length) {
         auto data = MatrixOS::NVS::GetVariable((uint32_t)hash);
         if (data.empty()) {
             return nullptr;
         }
         
-        // // Create a new buffer for the return value
-        // char* result = (char*)malloc(data.size() + 1);
-        // memcpy(result, data.data(), data.size());
-        // result[data.size()] = '\0';
-        // return result;
-
-        // TODO Fix Malloc
-        return NULL;
+        // TODO
     }
 
     pika_bool _MatrixOS_NVS_SetVariable(PikaObj *self, int hash, char* data, int length) {

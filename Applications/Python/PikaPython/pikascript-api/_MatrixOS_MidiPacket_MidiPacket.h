@@ -17,11 +17,22 @@
 
 PikaObj *New__MatrixOS_MidiPacket_MidiPacket(Args *args);
 
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_ActiveSense(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_AfterTouch(PikaObj *self, int channel, int note, int pressure);
 int _MatrixOS_MidiPacket_MidiPacket_Channel(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_ChannelPressure(PikaObj *self, int channel, int pressure);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_Clock(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_Continue(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_ControlChange(PikaObj *self, int channel, int controller, int value);
 int _MatrixOS_MidiPacket_MidiPacket_Controller(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Length(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Note(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOff(PikaObj *self, int channel, int note, int velocity);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOn(PikaObj *self, int channel, int note, int velocity);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_PitchBend(PikaObj *self, int channel, int value);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_Port(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_ProgramChange(PikaObj *self, int channel, int program);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_Reset(PikaObj *self);
 void _MatrixOS_MidiPacket_MidiPacket_SetChannel(PikaObj *self, int channel);
 void _MatrixOS_MidiPacket_MidiPacket_SetController(PikaObj *self, int controller);
 void _MatrixOS_MidiPacket_MidiPacket_SetNote(PikaObj *self, int note);
@@ -29,9 +40,14 @@ void _MatrixOS_MidiPacket_MidiPacket_SetPort(PikaObj *self, PikaObj* port);
 void _MatrixOS_MidiPacket_MidiPacket_SetStatus(PikaObj *self, PikaObj* status);
 void _MatrixOS_MidiPacket_MidiPacket_SetValue(PikaObj *self, int value);
 void _MatrixOS_MidiPacket_MidiPacket_SetVelocity(PikaObj *self, int velocity);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongPosition(PikaObj *self, int position);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongSelect(PikaObj *self, int song);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_Start(PikaObj *self);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_Status(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_Stop(PikaObj *self);
 pika_bool _MatrixOS_MidiPacket_MidiPacket_SysEx(PikaObj *self);
 pika_bool _MatrixOS_MidiPacket_MidiPacket_SysExStart(PikaObj *self);
+PikaObj* _MatrixOS_MidiPacket_MidiPacket_TuneRequest(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Value(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Velocity(PikaObj *self);
 void _MatrixOS_MidiPacket_MidiPacket___init__(PikaObj *self, int status, int channel, int data1, int data2);
