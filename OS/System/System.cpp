@@ -204,6 +204,7 @@ namespace MatrixOS::SYS
       active_app = NULL;
       vTaskDelete(active_app_task);
     }
+    active_app_task = NULL;
   }
 
   void ErrorHandler(string error) {
