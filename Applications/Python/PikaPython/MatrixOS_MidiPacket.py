@@ -4,8 +4,8 @@ from MatrixOS_MidiStatus import MidiStatus
 
 class MidiPacket(_MatrixOS_MidiPacket.MidiPacket):    
     # Static factory methods
-    def NoteOn(channel: int, note: int, velocity: int = 127) -> MidiPacket:
+    def NoteOn(self, channel: int, note: int, velocity: int = 127) -> MidiPacket:
         return super().NoteOn(channel, note, velocity)
     
-    def NoteOff(channel: int, note: int, velocity: int = 0) -> MidiPacket:
+    def NoteOff(self, channel: int, note: int, velocity: int = 0) -> MidiPacket:
         return super().NoteOff(channel, note, velocity)
