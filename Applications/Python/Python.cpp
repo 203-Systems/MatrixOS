@@ -40,6 +40,19 @@ void Python::Setup() {
     (void)MatrixOS::USB::CDC::Read();
   }
 
+  // Print Matrix OS ASCII art banner
+  MatrixOS::USB::CDC::Println("");
+  MatrixOS::USB::CDC::Println("███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗     ██████╗ ███████╗");
+  MatrixOS::USB::CDC::Println("████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝    ██╔═══██╗██╔════╝");
+  MatrixOS::USB::CDC::Println("██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝     ██║   ██║███████╗");
+  MatrixOS::USB::CDC::Println("██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗     ██║   ██║╚════██║");
+  MatrixOS::USB::CDC::Println("██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗    ╚██████╔╝███████║");
+  MatrixOS::USB::CDC::Println("╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝     ╚═════╝ ╚══════╝");
+  MatrixOS::USB::CDC::Println("Matrix OS Python REPL");
+  MatrixOS::USB::CDC::Println("OS Version: " + MATRIXOS_VERSION_STRING);
+  MatrixOS::USB::CDC::Println("See matrix.203.io for docs and usage guide.");
+  MatrixOS::USB::CDC::Println("");
+
   // Initialize PikaPython
   pikaMain = pikaPythonInit();
   pikaPythonShell(pikaMain);
