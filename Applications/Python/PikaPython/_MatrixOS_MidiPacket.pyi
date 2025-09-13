@@ -1,7 +1,8 @@
 # MidiPacket definitions for MatrixOS
 # Binding of OS/Framework/Midi/MidiPacket.h
 
-from MatrixOS_Framework import MidiPortID, MidiStatus
+from MatrixOS_MidiPortID import MidiPortID
+from MatrixOS_MidiStatus import MidiStatus
 
 class MidiPacket:
     def __init__(self, *val) -> None: ...

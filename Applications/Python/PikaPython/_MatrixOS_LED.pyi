@@ -1,7 +1,8 @@
 # MatrixOS Python Interface - LED
 # LED control functions
 
-from MatrixOS_Framework import Point, Color
+from MatrixOS_Point import Point
+from MatrixOS_Color import Color
 
 def NextBrightness() -> None: ...
 def SetBrightness(brightness: int) -> None: ...

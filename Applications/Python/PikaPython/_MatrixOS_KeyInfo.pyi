@@ -1,7 +1,7 @@
 # KeyInfo class for MatrixOS
 # Binding of OS/Framework/KeyEvent/KeyInfo.h
 
-from MatrixOS_Framework import KeyState
+from MatrixOS_KeyState import KeyState
 
 class KeyInfo:
     """Key information structure containing state and timing data"""

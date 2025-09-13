@@ -1,7 +1,7 @@
 # Point class for MatrixOS
 # Binding of OS/Framework/Point/Point.h
 
-from MatrixOS_Framework import Direction
+from MatrixOS_Direction import Direction
 
 class Point:
     """2D coordinate point structure"""

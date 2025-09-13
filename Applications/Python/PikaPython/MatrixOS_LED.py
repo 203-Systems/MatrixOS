@@ -1,5 +1,6 @@
 import _MatrixOS_LED
-from MatrixOS_Framework import Point, Color
+from MatrixOS_Point import Point
+from MatrixOS_Color import Color
 
 # Constants
 CROSSFADE_DURATION = 200
