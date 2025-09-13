@@ -204,7 +204,8 @@ enum
 
 #define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_DUO_MIDI_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
 
-#define EPNUM_MIDI 0x01
+#define EPNUM_MIDI_OUT  0x01
+#define EPNUM_MIDI_IN   0x81
 #define EPNUM_CDC_NOTIF 0x82
 #define EPNUM_CDC_OUT   0x02
 #define EPNUM_CDC_IN    0x83
@@ -216,7 +217,7 @@ uint8_t const desc_fs_configuration[] = {
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
-    TUD_DUO_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI, 0x80 | EPNUM_MIDI, CFG_TUD_MIDI_RX_BUFSIZE),
+    TUD_DUO_MIDI_DESCRIPTOR(ITF_NUM_MIDI, 0, EPNUM_MIDI_OUT, EPNUM_MIDI_IN, CFG_TUD_MIDI_RX_BUFSIZE),
 
     // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
     TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, CFG_TUD_CDC_RX_BUFSIZE),
