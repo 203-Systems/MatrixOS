@@ -80,13 +80,11 @@ namespace Device
     typedef uint8_t DSTATUS;
     typedef uint8_t DRESULT;
 
-    // Device interface functions
-    bool Available();                                                    // Check if storage device is available (for hot-swap detection)
-    DSTATUS Init(uint8_t pdrv);                                            // Initialize disk drive
-    DSTATUS Status(uint8_t pdrv);                                          // Get disk status
-    DRESULT Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count);      // Read sectors
-    DRESULT Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count); // Write sectors
-    DRESULT IOControl(uint8_t pdrv, uint8_t cmd, void* buff);                 // Control operations (get sector count, size, etc.)
+    DSTATUS Init(uint8_t pdrv);
+    DSTATUS Status(uint8_t pdrv);
+    DRESULT Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count);
+    DRESULT Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count);
+    DRESULT IOControl(uint8_t pdrv, uint8_t cmd, void* buff);
   }
 #endif
 
