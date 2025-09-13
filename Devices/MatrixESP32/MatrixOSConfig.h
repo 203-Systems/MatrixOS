@@ -1,8 +1,14 @@
 #pragma once
 #include "Framework.h"
-#include "Family.h"
+
+// Device feature configuration
+#define DEVICE_FATFS 1
+#define DEVICE_BATTERY 0
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key
+
+#define X_SIZE 8
+#define Y_SIZE 8
 
 #define OS_SHELL APPID("203 Systems", "Shell")
 #define DEFAULT_BOOTANIMATION APPID("203 Systems", "Mystrix Boot")
@@ -18,7 +24,7 @@ namespace Device
   inline uint16_t usb_vid = 0x0203;
   inline uint16_t usb_pid = 0x1040;  //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
-  // MatrixOS required dimensions
+  // MatrixOS required dimensions - defined directly for Mystrix
   inline uint8_t x_size = X_SIZE;
   inline uint8_t y_size = Y_SIZE;
 

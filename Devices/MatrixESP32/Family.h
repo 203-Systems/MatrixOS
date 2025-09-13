@@ -5,7 +5,6 @@
 
 #include "Framework.h"
 
-
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
 #include "driver/gpio.h"
@@ -15,11 +14,8 @@
 // Family-specific defines
 #define GRID_TYPE_8x8
 #define FAMILY_MYSTRIX
-#define DEVICE_BATTERY
 #define MULTIPRESS 10  // Key Press will be process at once
-#define X_SIZE 8
-#define Y_SIZE 8
-#define DEVICE_SETTING
+
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
 // Factory configuration

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Device.h"
-#include "Family.h"
 #include "MatrixOSConfig.h"
+#include "Device.h"
 #include "FreeRTOS.h"
 #include "Framework.h"
 #include "queue.h"
