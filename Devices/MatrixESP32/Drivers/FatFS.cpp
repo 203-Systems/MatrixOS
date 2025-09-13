@@ -21,8 +21,8 @@ namespace Device::FatFS
       gpio_config_t io_conf = {
         .pin_bit_mask = (1ULL << sd_det_pin),
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_ENABLE,
         .intr_type = GPIO_INTR_DISABLE
       };
       gpio_config(&io_conf);
@@ -107,8 +107,8 @@ namespace Device::FatFS
       return STA_NOINIT;
     }
 
-    // Check card detection pin (active low)
-    if (sd_det_pin != GPIO_NUM_NC && gpio_get_level(sd_det_pin) != 0)
+    // Check card detection pin (active high)
+    if (sd_det_pin != GPIO_NUM_NC && gpio_get_level(sd_det_pin) == 0)
     {
       return STA_NODISK;
     }
