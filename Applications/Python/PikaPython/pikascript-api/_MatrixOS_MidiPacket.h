@@ -18,7 +18,5 @@
 PikaObj *New__MatrixOS_MidiPacket(Args *args);
 
 Arg* _MatrixOS_MidiPacket_MidiPacket(PikaObj *self);
-Arg* _MatrixOS_MidiPacket_MidiPortID(PikaObj *self);
-Arg* _MatrixOS_MidiPacket_MidiStatus(PikaObj *self);
 
 #endif

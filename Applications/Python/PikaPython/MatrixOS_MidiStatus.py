@@ -1,0 +1,23 @@
+# MIDI Status enumeration
+class MidiStatus:
+    None: int = 0
+    NoteOff: int = 128
+    NoteOn: int = 144
+    AfterTouch: int = 160
+    ControlChange: int = 176
+    ProgramChange: int = 192
+    ChannelPressure: int = 208
+    PitchChange: int = 224
+    MTCQuarterFrame: int = 241
+    SongPosition: int = 242
+    SongSelect: int = 243
+    TuneRequest: int = 246
+    Sync: int = 248
+    Tick: int = 249
+    Start: int = 250
+    Continue: int = 251
+    Stop: int = 252
+    ActiveSense: int = 254
+    Reset: int = 255
+    SysExData: int = 240
+    SysExEnd: int = 247

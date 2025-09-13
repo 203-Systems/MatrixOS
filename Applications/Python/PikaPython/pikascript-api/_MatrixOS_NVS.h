@@ -19,7 +19,7 @@ PikaObj *New__MatrixOS_NVS(Args *args);
 
 pika_bool _MatrixOS_NVS_DeleteVariable(PikaObj *self, int hash);
 int _MatrixOS_NVS_GetSize(PikaObj *self, int hash);
-Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash, int length);
+Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash);
 pika_bool _MatrixOS_NVS_SetVariable(PikaObj *self, int hash, uint8_t* data, int length);
 
 #endif

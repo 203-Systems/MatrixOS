@@ -1,8 +1,7 @@
 # MatrixOS Python Interface - KeyPad
 # Keypad input functions
 
-from _MatrixOS_Point import Point
-from _MatrixOS_KeyEvent import KeyEvent, KeyInfo
+from MatrixOS_Framework import Point, KeyInfo, KeyEvent
 
 def Get(timeout_ms: int) -> KeyEvent: ...
 def GetKey(keyXY: Point) -> KeyInfo: ...

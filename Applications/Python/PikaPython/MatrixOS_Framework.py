@@ -1,8 +1,18 @@
-from _MatrixOS_KeyEvent import KeyInfo, KeyEvent, KeyState
-from _MatrixOS_Direction import Direction
+from MatrixOS_Point import Point
+from MatrixOS_Direction import Direction
 
 from MatrixOS_Color import Color
-from MatrixOS_Point import Point
 
-from _MatrixOS_HIDEnums import KeyboardKeycode, MouseKeycode, GamepadDPadDirection, ConsumerKeycode, SystemKeycode
-from MatrixOS_MidiPacket import MidiPacket, MidiStatus, MidiPortID
+from MatrixOS_KeyInfo import KeyInfo
+from MatrixOS_KeyEvent import KeyEvent
+from MatrixOS_KeyState import KeyState
+
+from MatrixOS_KeyboardKeycode import KeyboardKeycode
+from MatrixOS_MouseKeycode import MouseKeycode
+from MatrixOS_GamepadDPadDirection import GamepadDPadDirection
+from MatrixOS_ConsumerKeycode import ConsumerKeycode
+from MatrixOS_SystemKeycode import SystemKeycode
+
+from MatrixOS_MidiPortID import MidiPortID
+from MatrixOS_MidiStatus import MidiStatus
+from MatrixOS_MidiPacket import MidiPacket

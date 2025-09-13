@@ -6,8 +6,8 @@ def GetSize(hash: int) -> int:
 def GetVariable(hash: int, length: int) -> bytes:
     return _MatrixOS_NVS.GetVariable(hash, length)
 
-def SetVariable(hash: int, data: bytes, length: int) -> bool:
-    return _MatrixOS_NVS.SetVariable(hash, data, length)
+def SetVariable(hash: int, data: bytes) -> bool:
+    return _MatrixOS_NVS.SetVariable(hash, data)
 
 def DeleteVariable(hash: int) -> bool:
     return _MatrixOS_NVS.DeleteVariable(hash)

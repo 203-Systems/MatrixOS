@@ -21,9 +21,7 @@
 #include "PikaStdData.h"
 #include "PikaStdLib.h"
 #include "_MatrixOS_Color.h"
-#include "_MatrixOS_Direction.h"
 #include "_MatrixOS_HID.h"
-#include "_MatrixOS_HIDEnums.h"
 #include "_MatrixOS_HID_Consumer.h"
 #include "_MatrixOS_HID_Gamepad.h"
 #include "_MatrixOS_HID_Keyboard.h"
@@ -31,7 +29,6 @@
 #include "_MatrixOS_HID_RawHID.h"
 #include "_MatrixOS_HID_System.h"
 #include "_MatrixOS_HID_Touch.h"
-#include "_MatrixOS_KeyEvent.h"
 #include "_MatrixOS_KeyPad.h"
 #include "_MatrixOS_LED.h"
 #include "_MatrixOS_MIDI.h"
@@ -58,18 +55,7 @@
 #include "PikaStdTask.h"
 #include "PikaStdTask_Task.h"
 #include "_MatrixOS_Color_Color.h"
-#include "_MatrixOS_Direction_Direction.h"
-#include "_MatrixOS_HIDEnums_ConsumerKeycode.h"
-#include "_MatrixOS_HIDEnums_GamepadDPadDirection.h"
-#include "_MatrixOS_HIDEnums_KeyboardKeycode.h"
-#include "_MatrixOS_HIDEnums_MouseKeycode.h"
-#include "_MatrixOS_HIDEnums_SystemKeycode.h"
-#include "_MatrixOS_KeyEvent_KeyEvent.h"
-#include "_MatrixOS_KeyEvent_KeyInfo.h"
-#include "_MatrixOS_KeyEvent_KeyState.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
-#include "_MatrixOS_MidiPacket_MidiPortID.h"
-#include "_MatrixOS_MidiPacket_MidiStatus.h"
 #include "_MatrixOS_Point_Point.h"
 #include "builtins_ArithmeticError.h"
 #include "builtins_Exception.h"
@@ -271,14 +257,8 @@ PikaObj *New_PikaMain(Args *args){
 #ifndef PIKA_MODULE__MATRIXOS_COLOR_DISABLE
     obj_newObj(self, "_MatrixOS_Color", "_MatrixOS_Color", New__MatrixOS_Color);
 #endif
-#ifndef PIKA_MODULE__MATRIXOS_DIRECTION_DISABLE
-    obj_newObj(self, "_MatrixOS_Direction", "_MatrixOS_Direction", New__MatrixOS_Direction);
-#endif
 #ifndef PIKA_MODULE__MATRIXOS_HID_DISABLE
     obj_newObj(self, "_MatrixOS_HID", "_MatrixOS_HID", New__MatrixOS_HID);
-#endif
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-    obj_newObj(self, "_MatrixOS_HIDEnums", "_MatrixOS_HIDEnums", New__MatrixOS_HIDEnums);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_HID_CONSUMER_DISABLE
     obj_newObj(self, "_MatrixOS_HID_Consumer", "_MatrixOS_HID_Consumer", New__MatrixOS_HID_Consumer);
@@ -300,9 +280,6 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_HID_TOUCH_DISABLE
     obj_newObj(self, "_MatrixOS_HID_Touch", "_MatrixOS_HID_Touch", New__MatrixOS_HID_Touch);
-#endif
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-    obj_newObj(self, "_MatrixOS_KeyEvent", "_MatrixOS_KeyEvent", New__MatrixOS_KeyEvent);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_KEYPAD_DISABLE
     obj_newObj(self, "_MatrixOS_KeyPad", "_MatrixOS_KeyPad", New__MatrixOS_KeyPad);
@@ -1899,46 +1876,6 @@ Arg *_MatrixOS_Color_Color(PikaObj *self){
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_DIRECTION_DISABLE
-void _MatrixOS_Direction_DirectionMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_Direction_Direction(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_Direction_Direction,
-    "Direction", ""
-);
-
-class_def(_MatrixOS_Direction){
-    __BEFORE_MOETHOD_DEF
-    constructor_def(_MatrixOS_Direction_Direction, 74700774),
-};
-class_inhert(_MatrixOS_Direction, TinyObj);
-
-PikaObj *New__MatrixOS_Direction(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_Direction);
-    return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_DIRECTION_DISABLE
-class_def(_MatrixOS_Direction_Direction){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_Direction_Direction, TinyObj);
-
-PikaObj *New__MatrixOS_Direction_Direction(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_Direction_Direction);
-    return self;
-}
-
-Arg *_MatrixOS_Direction_Direction(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_Direction_Direction);
-}
-#endif
-
 #ifndef PIKA_MODULE__MATRIXOS_HID_DISABLE
 void _MatrixOS_HID_ReadyMethod(PikaObj *self, Args *_args_){
     pika_bool res = _MatrixOS_HID_Ready(self);
@@ -1959,154 +1896,6 @@ PikaObj *New__MatrixOS_HID(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_HID);
     return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-void _MatrixOS_HIDEnums_ConsumerKeycodeMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_HIDEnums_ConsumerKeycode(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_HIDEnums_ConsumerKeycode,
-    "ConsumerKeycode", ""
-);
-
-void _MatrixOS_HIDEnums_GamepadDPadDirectionMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_HIDEnums_GamepadDPadDirection(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_HIDEnums_GamepadDPadDirection,
-    "GamepadDPadDirection", ""
-);
-
-void _MatrixOS_HIDEnums_KeyboardKeycodeMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_HIDEnums_KeyboardKeycode(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_HIDEnums_KeyboardKeycode,
-    "KeyboardKeycode", ""
-);
-
-void _MatrixOS_HIDEnums_MouseKeycodeMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_HIDEnums_MouseKeycode(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_HIDEnums_MouseKeycode,
-    "MouseKeycode", ""
-);
-
-void _MatrixOS_HIDEnums_SystemKeycodeMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_HIDEnums_SystemKeycode(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_HIDEnums_SystemKeycode,
-    "SystemKeycode", ""
-);
-
-class_def(_MatrixOS_HIDEnums){
-    __BEFORE_MOETHOD_DEF
-    constructor_def(_MatrixOS_HIDEnums_GamepadDPadDirection, 18535246),
-    constructor_def(_MatrixOS_HIDEnums_KeyboardKeycode, 377617050),
-    constructor_def(_MatrixOS_HIDEnums_SystemKeycode, 403737902),
-    constructor_def(_MatrixOS_HIDEnums_MouseKeycode, 1231756850),
-    constructor_def(_MatrixOS_HIDEnums_ConsumerKeycode, 1976536085),
-};
-class_inhert(_MatrixOS_HIDEnums, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums);
-    return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-class_def(_MatrixOS_HIDEnums_ConsumerKeycode){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_HIDEnums_ConsumerKeycode, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums_ConsumerKeycode(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums_ConsumerKeycode);
-    return self;
-}
-
-Arg *_MatrixOS_HIDEnums_ConsumerKeycode(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_HIDEnums_ConsumerKeycode);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-class_def(_MatrixOS_HIDEnums_GamepadDPadDirection){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_HIDEnums_GamepadDPadDirection, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums_GamepadDPadDirection(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums_GamepadDPadDirection);
-    return self;
-}
-
-Arg *_MatrixOS_HIDEnums_GamepadDPadDirection(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_HIDEnums_GamepadDPadDirection);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-class_def(_MatrixOS_HIDEnums_KeyboardKeycode){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_HIDEnums_KeyboardKeycode, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums_KeyboardKeycode(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums_KeyboardKeycode);
-    return self;
-}
-
-Arg *_MatrixOS_HIDEnums_KeyboardKeycode(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_HIDEnums_KeyboardKeycode);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-class_def(_MatrixOS_HIDEnums_MouseKeycode){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_HIDEnums_MouseKeycode, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums_MouseKeycode(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums_MouseKeycode);
-    return self;
-}
-
-Arg *_MatrixOS_HIDEnums_MouseKeycode(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_HIDEnums_MouseKeycode);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_HIDENUMS_DISABLE
-class_def(_MatrixOS_HIDEnums_SystemKeycode){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_HIDEnums_SystemKeycode, TinyObj);
-
-PikaObj *New__MatrixOS_HIDEnums_SystemKeycode(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_HIDEnums_SystemKeycode);
-    return self;
-}
-
-Arg *_MatrixOS_HIDEnums_SystemKeycode(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_HIDEnums_SystemKeycode);
 }
 #endif
 
@@ -2382,100 +2171,6 @@ PikaObj *New__MatrixOS_HID_Touch(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_HID_Touch);
     return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-void _MatrixOS_KeyEvent_KeyEventMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyEvent_KeyEvent(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent,
-    "KeyEvent", ""
-);
-
-void _MatrixOS_KeyEvent_KeyInfoMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyEvent_KeyInfo(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyInfo,
-    "KeyInfo", ""
-);
-
-void _MatrixOS_KeyEvent_KeyStateMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyEvent_KeyState(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyState,
-    "KeyState", ""
-);
-
-class_def(_MatrixOS_KeyEvent){
-    __BEFORE_MOETHOD_DEF
-    constructor_def(_MatrixOS_KeyEvent_KeyInfo, 90173338),
-    constructor_def(_MatrixOS_KeyEvent_KeyEvent, 823779312),
-    constructor_def(_MatrixOS_KeyEvent_KeyState, 840306159),
-};
-class_inhert(_MatrixOS_KeyEvent, TinyObj);
-
-PikaObj *New__MatrixOS_KeyEvent(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent);
-    return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-class_def(_MatrixOS_KeyEvent_KeyEvent){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_KeyEvent_KeyEvent, TinyObj);
-
-PikaObj *New__MatrixOS_KeyEvent_KeyEvent(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent_KeyEvent);
-    return self;
-}
-
-Arg *_MatrixOS_KeyEvent_KeyEvent(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_KeyEvent_KeyEvent);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-class_def(_MatrixOS_KeyEvent_KeyInfo){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_KeyEvent_KeyInfo, TinyObj);
-
-PikaObj *New__MatrixOS_KeyEvent_KeyInfo(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent_KeyInfo);
-    return self;
-}
-
-Arg *_MatrixOS_KeyEvent_KeyInfo(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_KeyEvent_KeyInfo);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-class_def(_MatrixOS_KeyEvent_KeyState){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_KeyEvent_KeyState, TinyObj);
-
-PikaObj *New__MatrixOS_KeyEvent_KeyState(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent_KeyState);
-    return self;
-}
-
-Arg *_MatrixOS_KeyEvent_KeyState(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_KeyEvent_KeyState);
 }
 #endif
 
@@ -2789,29 +2484,9 @@ method_typedef(
     "MidiPacket", ""
 );
 
-void _MatrixOS_MidiPacket_MidiPortIDMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_MidiPacket_MidiPortID(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_MidiPacket_MidiPortID,
-    "MidiPortID", ""
-);
-
-void _MatrixOS_MidiPacket_MidiStatusMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_MidiPacket_MidiStatus(self);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_MidiPacket_MidiStatus,
-    "MidiStatus", ""
-);
-
 class_def(_MatrixOS_MidiPacket){
     __BEFORE_MOETHOD_DEF
     constructor_def(_MatrixOS_MidiPacket_MidiPacket, 1374686208),
-    constructor_def(_MatrixOS_MidiPacket_MidiPortID, 1391836986),
-    constructor_def(_MatrixOS_MidiPacket_MidiStatus, 1514563340),
 };
 class_inhert(_MatrixOS_MidiPacket, TinyObj);
 
@@ -3198,40 +2873,6 @@ Arg *_MatrixOS_MidiPacket_MidiPacket(PikaObj *self){
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
-class_def(_MatrixOS_MidiPacket_MidiPortID){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_MidiPacket_MidiPortID, TinyObj);
-
-PikaObj *New__MatrixOS_MidiPacket_MidiPortID(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_MidiPacket_MidiPortID);
-    return self;
-}
-
-Arg *_MatrixOS_MidiPacket_MidiPortID(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_MidiPacket_MidiPortID);
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_MIDIPACKET_DISABLE
-class_def(_MatrixOS_MidiPacket_MidiStatus){
-    __BEFORE_MOETHOD_DEF
-};
-class_inhert(_MatrixOS_MidiPacket_MidiStatus, TinyObj);
-
-PikaObj *New__MatrixOS_MidiPacket_MidiStatus(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_MidiPacket_MidiStatus);
-    return self;
-}
-
-Arg *_MatrixOS_MidiPacket_MidiStatus(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_MidiPacket_MidiStatus);
-}
-#endif
-
 #ifndef PIKA_MODULE__MATRIXOS_NVS_DISABLE
 void _MatrixOS_NVS_DeleteVariableMethod(PikaObj *self, Args *_args_){
     int hash = args_getInt(_args_, "hash");
@@ -3255,13 +2896,12 @@ method_typedef(
 
 void _MatrixOS_NVS_GetVariableMethod(PikaObj *self, Args *_args_){
     int hash = args_getInt(_args_, "hash");
-    int length = args_getInt(_args_, "length");
-    Arg* res = _MatrixOS_NVS_GetVariable(self, hash, length);
+    Arg* res = _MatrixOS_NVS_GetVariable(self, hash);
     method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_NVS_GetVariable,
-    "GetVariable", "hash,length"
+    "GetVariable", "hash"
 );
 
 void _MatrixOS_NVS_SetVariableMethod(PikaObj *self, Args *_args_){
