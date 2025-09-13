@@ -197,7 +197,17 @@ namespace MatrixOS::SYS
     if (xTaskGetCurrentTaskHandle() != active_app_task) {
       vTaskSuspend(active_app_task);
     }
-    active_app_info->destructor(active_app);
+    
+    // Safeguard against nullptr before calling End()
+    if (active_app != nullptr) {
+      active_app->End();
+    }
+    
+    // Safeguard destructor call
+    if (active_app_info != nullptr && active_app_info->destructor != nullptr && active_app != nullptr) {
+      active_app_info->destructor(active_app);
+    }
+
     if (active_app_task != NULL)
     {
       UI::ExitAllUIs();

@@ -39,7 +39,7 @@ class Application {
   virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End() {};
   
-  virtual ~Application() { End(); }
+  virtual ~Application() = default;
 };
 
 #define APPID(author, name) StaticHash(author "-" name)
