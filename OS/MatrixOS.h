@@ -13,6 +13,10 @@
 
 #include "HID/HIDSpecs.h"
 
+#if DEVICE_FATFS == 1
+#include "ff.h"
+#endif
+
 // Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
@@ -228,6 +232,23 @@ namespace MatrixOS
     bool SetVariable(uint32_t hash, void* pointer, uint16_t length);
     bool DeleteVariable(uint32_t hash);
   }
+
+#if DEVICE_FATFS == 1
+  namespace FS
+  {
+    typedef FIL File;
+
+    bool Available();
+    File* Open(string path, uint8_t mode);
+    bool Close(File* file);
+    size_t Read(File* file, void* buffer, size_t length);
+    size_t Write(File* file, const void* buffer, size_t length);
+    bool Exists(string path);
+    bool Delete(string path);
+    bool CreateDir(string path);
+    vector<string> ListDir(string path);
+  }
+#endif
 
   // namespace GPIO
   // {

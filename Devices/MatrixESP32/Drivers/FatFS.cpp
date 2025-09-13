@@ -12,7 +12,7 @@ namespace Device::FatFS
   static sdmmc_card_t* card = nullptr;
   static bool initialized = false;
 
-  DSTATUS Init(uint8_t pdrv)
+  uint8_t Init(uint8_t pdrv)
   {
 
     // Initialize card detection pin if available
@@ -100,7 +100,7 @@ namespace Device::FatFS
     return 0; // Success
   }
 
-  DSTATUS Status(uint8_t pdrv)
+  uint8_t Status(uint8_t pdrv)
   {
     if (!initialized || card == nullptr)
     {
@@ -117,7 +117,7 @@ namespace Device::FatFS
     return 0; // Ready
   }
 
-  DRESULT Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count)
+  uint8_t Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count)
   {
     if (!initialized || card == nullptr)
     {
@@ -134,7 +134,7 @@ namespace Device::FatFS
     return RES_OK;
   }
 
-  DRESULT Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count)
+  uint8_t Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count)
   {
     if (!initialized || card == nullptr)
     {
@@ -151,7 +151,7 @@ namespace Device::FatFS
     return RES_OK;
   }
 
-  DRESULT IOControl(uint8_t pdrv, uint8_t cmd, void* buff)
+  uint8_t IOControl(uint8_t pdrv, uint8_t cmd, void* buff)
   {
     if (!initialized || card == nullptr)
     {

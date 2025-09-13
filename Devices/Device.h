@@ -77,14 +77,11 @@ namespace Device
 #if DEVICE_FATFS == 1
   namespace FatFS
   {
-    typedef uint8_t DSTATUS;
-    typedef uint8_t DRESULT;
-
-    DSTATUS Init(uint8_t pdrv);
-    DSTATUS Status(uint8_t pdrv);
-    DRESULT Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count);
-    DRESULT Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count);
-    DRESULT IOControl(uint8_t pdrv, uint8_t cmd, void* buff);
+    uint8_t Init(uint8_t pdrv); // Returns DSTATUS
+    uint8_t Status(uint8_t pdrv); // Returns DSTATUS
+    uint8_t Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count); // Returns DRESULT
+    uint8_t Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count); // Returns DRESULT
+    uint8_t IOControl(uint8_t pdrv, uint8_t cmd, void* buff); // Returns DRESULT
   }
 #endif
 

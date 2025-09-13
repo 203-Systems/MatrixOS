@@ -9,6 +9,7 @@ add_subdirectory(NVS)
 add_subdirectory(UI)
 add_subdirectory(Framework)
 add_subdirectory(USB)
+add_subdirectory(FS)
 
 add_library(MatrixOSInterface INTERFACE)
 target_include_directories(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${FREERTOS_INC})
@@ -18,7 +19,7 @@ target_link_libraries(MatrixOSInterface INTERFACE FreeRTOS MatrixOSFramework Dev
 # MatrixOS umbrella target with main.cpp
 add_library(MatrixOS main.cpp
 )
-target_link_libraries(MatrixOS PUBLIC 
+target_link_libraries(MatrixOS PUBLIC
     MatrixOSInterface
     MatrixOSFramework
     MatrixOSSystem
@@ -30,4 +31,5 @@ target_link_libraries(MatrixOS PUBLIC
     MatrixOSUI
     MatrixOSHID
     MatrixOSMIDI
+    MatrixOSFS
 )
