@@ -33,7 +33,7 @@ uint8_t const* msc_device_descriptor_cb(void) {
 
                  .idVendor = Device::usb_vid,
                  .idProduct = 0x0001,  // Different PID for Windows driver separation
-                 .bcdDevice = (uint16_t)((MATRIXOS_MAJOR_VER << 8) + (MATRIXOS_MINOR_VER << 4) + (MATRIXOS_PATCH_VER)),
+                 .bcdDevice = MATRIXOS_VERSION_ID_16,
 
                  .iManufacturer = 0x01,
                  .iProduct = 0x02,
@@ -58,12 +58,6 @@ uint16_t const* msc_string_descriptor_cb(uint8_t index, uint16_t langid) {
   uint8_t chr_count;
 
   string product_name = Device::product_name;
-
-  if (MatrixOS::UserVar::device_id.Get())
-  {
-    product_name += " ";
-    product_name += std::to_string(MatrixOS::UserVar::device_id.Get());
-  }
 
   // Add "MSC" suffix to distinguish MSC mode
   product_name += " MSC";

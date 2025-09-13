@@ -3,6 +3,7 @@
 
 #if CFG_TUD_MSC
 #include "diskio.h"
+#include "../FS/FS.h"
 
 //--------------------------------------------------------------------+
 // MSC callbacks
