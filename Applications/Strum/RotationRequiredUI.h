@@ -1,3 +1,5 @@
+#pragma once
+
 #include <MatrixOS.h>
 
 bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
