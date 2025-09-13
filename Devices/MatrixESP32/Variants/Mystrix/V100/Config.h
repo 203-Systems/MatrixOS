@@ -42,6 +42,16 @@ namespace V100
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_46;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_45;
+
+  const gpio_num_t SD_CLK_Pin = GPIO_NUM_41;
+  const gpio_num_t SD_CMD_Pin = GPIO_NUM_40;
+  const gpio_num_t SD_D0_Pin = GPIO_NUM_42;
+  const gpio_num_t SD_D1_Pin = GPIO_NUM_34;
+  const gpio_num_t SD_D2_Pin = GPIO_NUM_48;
+  const gpio_num_t SD_D3_Pin = GPIO_NUM_39;
+  const gpio_num_t SD_DET_Pin = GPIO_NUM_26;
+  const bool SD_4bit_mode = true;
+  const uint32_t SD_FREQ_KHZ = 20000;
 }
 
 namespace Device
@@ -74,5 +84,15 @@ inline void LoadV100() {
   KeyPad::touchClock_Pin = V100::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
+
+  FatFS::sd_clk_pin = V100::SD_CLK_Pin;
+  FatFS::sd_cmd_pin = V100::SD_CMD_Pin;
+  FatFS::sd_d0_pin = V100::SD_D0_Pin;
+  FatFS::sd_d1_pin = V100::SD_D1_Pin;
+  FatFS::sd_d2_pin = V100::SD_D2_Pin;
+  FatFS::sd_d3_pin = V100::SD_D3_Pin;
+  FatFS::sd_det_pin = V100::SD_DET_Pin;
+  FatFS::sd_4bit_mode = V100::SD_4bit_mode;
+  FatFS::sd_freq_khz = V100::SD_FREQ_KHZ;
 }
 }

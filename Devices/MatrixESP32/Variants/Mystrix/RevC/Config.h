@@ -42,6 +42,16 @@ namespace REVC
 
   const gpio_num_t I2C_SDA_Pin = GPIO_NUM_34;
   const gpio_num_t I2C_SCL_Pin = GPIO_NUM_48;
+
+  const gpio_num_t SD_CLK_Pin = GPIO_NUM_41;
+  const gpio_num_t SD_CMD_Pin = GPIO_NUM_40;
+  const gpio_num_t SD_D0_Pin = GPIO_NUM_42;
+  const gpio_num_t SD_D1_Pin = GPIO_NUM_34;
+  const gpio_num_t SD_D2_Pin = GPIO_NUM_48;
+  const gpio_num_t SD_D3_Pin = GPIO_NUM_39;
+  const gpio_num_t SD_DET_Pin = GPIO_NUM_26;
+  const bool SD_4bit_mode = true;
+  const uint32_t SD_FREQ_KHZ = 20000;
 }
 
 namespace Device
@@ -74,5 +84,15 @@ inline void LoadRevC() {
   KeyPad::touchClock_Pin = REVC::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
+
+  FatFS::sd_clk_pin = REVC::SD_CLK_Pin;
+  FatFS::sd_cmd_pin = REVC::SD_CMD_Pin;
+  FatFS::sd_d0_pin = REVC::SD_D0_Pin;
+  FatFS::sd_d1_pin = REVC::SD_D1_Pin;
+  FatFS::sd_d2_pin = REVC::SD_D2_Pin;
+  FatFS::sd_d3_pin = REVC::SD_D3_Pin;
+  FatFS::sd_det_pin = REVC::SD_DET_Pin;
+  FatFS::sd_4bit_mode = REVC::SD_4bit_mode;
+  FatFS::sd_freq_khz = REVC::SD_FREQ_KHZ;
 }
 }
