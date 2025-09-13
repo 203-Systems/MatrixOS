@@ -21,6 +21,7 @@
 #include "PikaStdData.h"
 #include "PikaStdLib.h"
 #include "_MatrixOS_Color.h"
+#include "_MatrixOS_ColorEffects.h"
 #include "_MatrixOS_Dimension.h"
 #include "_MatrixOS_HID.h"
 #include "_MatrixOS_HID_Consumer.h"
@@ -262,6 +263,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_COLOR_DISABLE
     obj_newObj(self, "_MatrixOS_Color", "_MatrixOS_Color", New__MatrixOS_Color);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_COLOREFFECTS_DISABLE
+    obj_newObj(self, "_MatrixOS_ColorEffects", "_MatrixOS_ColorEffects", New__MatrixOS_ColorEffects);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_DIMENSION_DISABLE
     obj_newObj(self, "_MatrixOS_Dimension", "_MatrixOS_Dimension", New__MatrixOS_Dimension);
@@ -1697,6 +1701,158 @@ class_inhert(_MatrixOS_Color, TinyObj);
 PikaObj *New__MatrixOS_Color(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_Color);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_COLOREFFECTS_DISABLE
+void _MatrixOS_ColorEffects_BreathMethod(PikaObj *self, Args *_args_){
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    int res = _MatrixOS_ColorEffects_Breath(self, period, offset);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_Breath,
+    "Breath", "period,offset"
+);
+
+void _MatrixOS_ColorEffects_BreathLowBoundMethod(PikaObj *self, Args *_args_){
+    PikaObj* low_bound = args_getPtr(_args_, "low_bound");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    int res = _MatrixOS_ColorEffects_BreathLowBound(self, low_bound, period, offset);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_BreathLowBound,
+    "BreathLowBound", "low_bound,period,offset"
+);
+
+void _MatrixOS_ColorEffects_ColorBreathMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_ColorBreath(self, color, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_ColorBreath,
+    "ColorBreath", "color,period,offset"
+);
+
+void _MatrixOS_ColorEffects_ColorBreathLowBoundMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    PikaObj* low_bound = args_getPtr(_args_, "low_bound");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_ColorBreathLowBound(self, color, low_bound, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_ColorBreathLowBound,
+    "ColorBreathLowBound", "color,low_bound,period,offset"
+);
+
+void _MatrixOS_ColorEffects_ColorSawMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_ColorSaw(self, color, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_ColorSaw,
+    "ColorSaw", "color,period,offset"
+);
+
+void _MatrixOS_ColorEffects_ColorStrobeMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_ColorStrobe(self, color, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_ColorStrobe,
+    "ColorStrobe", "color,period,offset"
+);
+
+void _MatrixOS_ColorEffects_ColorTriangleMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_ColorTriangle(self, color, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_ColorTriangle,
+    "ColorTriangle", "color,period,offset"
+);
+
+void _MatrixOS_ColorEffects_RainbowMethod(PikaObj *self, Args *_args_){
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    PikaObj* res = _MatrixOS_ColorEffects_Rainbow(self, period, offset);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_Rainbow,
+    "Rainbow", "period,offset"
+);
+
+void _MatrixOS_ColorEffects_SawMethod(PikaObj *self, Args *_args_){
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    int res = _MatrixOS_ColorEffects_Saw(self, period, offset);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_Saw,
+    "Saw", "period,offset"
+);
+
+void _MatrixOS_ColorEffects_StrobeMethod(PikaObj *self, Args *_args_){
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    int res = _MatrixOS_ColorEffects_Strobe(self, period, offset);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_Strobe,
+    "Strobe", "period,offset"
+);
+
+void _MatrixOS_ColorEffects_TriangleMethod(PikaObj *self, Args *_args_){
+    PikaObj* period = args_getPtr(_args_, "period");
+    PikaObj* offset = args_getPtr(_args_, "offset");
+    int res = _MatrixOS_ColorEffects_Triangle(self, period, offset);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_ColorEffects_Triangle,
+    "Triangle", "period,offset"
+);
+
+class_def(_MatrixOS_ColorEffects){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_ColorEffects_Saw, 193470704),
+    method_def(_MatrixOS_ColorEffects_ColorBreath, 301506138),
+    method_def(_MatrixOS_ColorEffects_Rainbow, 366315127),
+    method_def(_MatrixOS_ColorEffects_ColorTriangle, 411825914),
+    method_def(_MatrixOS_ColorEffects_Breath, 706442747),
+    method_def(_MatrixOS_ColorEffects_ColorSaw, 896798127),
+    method_def(_MatrixOS_ColorEffects_ColorStrobe, 969661491),
+    method_def(_MatrixOS_ColorEffects_Triangle, 1153645275),
+    method_def(_MatrixOS_ColorEffects_BreathLowBound, 1229839845),
+    method_def(_MatrixOS_ColorEffects_Strobe, 1374598100),
+    method_def(_MatrixOS_ColorEffects_ColorBreathLowBound, 1778447684),
+};
+class_inhert(_MatrixOS_ColorEffects, TinyObj);
+
+PikaObj *New__MatrixOS_ColorEffects(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_ColorEffects);
     return self;
 }
 #endif

@@ -17,3 +17,5 @@ from MatrixOS_SystemKeycode import SystemKeycode
 from MatrixOS_MidiPortID import MidiPortID
 from MatrixOS_MidiStatus import MidiStatus
 from MatrixOS_MidiPacket import MidiPacket
+
+import MatrixOS_ColorEffects as ColorEffects
