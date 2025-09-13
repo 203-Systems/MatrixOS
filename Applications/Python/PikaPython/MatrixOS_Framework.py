@@ -1,5 +1,6 @@
 from MatrixOS_Point import Point
 from MatrixOS_Direction import Direction
+from MatrixOS_Dimension import Dimension
 
 from MatrixOS_Color import Color
 
