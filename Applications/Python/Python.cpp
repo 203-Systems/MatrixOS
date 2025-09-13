@@ -46,9 +46,9 @@ void Python::Setup() {
   pikaPythonShell(pikaMain);
 
   // Deinitialize PikaPython after shell exits
-  extern volatile PikaObj *__pikaMain;
-  if (pikaMain != nullptr) {
-    obj_deinit(pikaMain);
+  extern PikaObj *__pikaMain;
+  if (__pikaMain != nullptr) {
+    obj_deinit(__pikaMain);
     __pikaMain = nullptr;
   }
   
