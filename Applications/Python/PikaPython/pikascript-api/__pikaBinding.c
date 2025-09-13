@@ -42,6 +42,7 @@
 #include "_MatrixOS_SYS.h"
 #include "_MatrixOS_USB.h"
 #include "_MatrixOS_USB_CDC.h"
+#include "_MatrixOS_Utils.h"
 #include "builtins.h"
 #include "ctypes.h"
 #include "PikaStdData_ByteArray.h"
@@ -326,6 +327,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_USB_CDC_DISABLE
     obj_newObj(self, "_MatrixOS_USB_CDC", "_MatrixOS_USB_CDC", New__MatrixOS_USB_CDC);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UTILS_DISABLE
+    obj_newObj(self, "_MatrixOS_Utils", "_MatrixOS_Utils", New__MatrixOS_Utils);
 #endif
 #ifndef PIKA_MODULE_BUILTINS_DISABLE
     obj_newObj(self, "builtins", "builtins", New_builtins);
@@ -3868,6 +3872,30 @@ class_inhert(_MatrixOS_USB_CDC, TinyObj);
 PikaObj *New__MatrixOS_USB_CDC(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_USB_CDC);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UTILS_DISABLE
+void _MatrixOS_Utils_StringHashMethod(PikaObj *self, Args *_args_){
+    char* text = args_getStr(_args_, "text");
+    int res = _MatrixOS_Utils_StringHash(self, text);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Utils_StringHash,
+    "StringHash", "text"
+);
+
+class_def(_MatrixOS_Utils){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_Utils_StringHash, 494555392),
+};
+class_inhert(_MatrixOS_Utils, TinyObj);
+
+PikaObj *New__MatrixOS_Utils(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_Utils);
     return self;
 }
 #endif
