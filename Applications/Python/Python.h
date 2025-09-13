@@ -16,7 +16,10 @@ class Python : public Application {
       .visibility = true,
   };
 
+  PikaObj* pikaMain;
+
   void Setup() override;
+  void End() override;
 };
 
 // Platform functions for PikaPython

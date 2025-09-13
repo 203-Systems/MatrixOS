@@ -1,6 +1,4 @@
 #include "Python.h"
-
-#include "pika_config.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 
@@ -34,6 +32,7 @@ extern "C" {
   }
 }
 
+
 void Python::Setup() {
   // Flush serial RX buffer
   while(MatrixOS::USB::CDC::Available())
@@ -42,15 +41,14 @@ void Python::Setup() {
   }
 
   // Initialize PikaPython
-  PikaObj* pikaMain = pikaPythonInit();
+  pikaMain = pikaPythonInit();
   pikaPythonShell(pikaMain);
-
-  // Deinitialize PikaPython after shell exits
-  extern PikaObj *__pikaMain;
-  if (__pikaMain != nullptr) {
-    obj_deinit(__pikaMain);
-    __pikaMain = nullptr;
-  }
   
   Exit();
+}
+
+void Python::End()
+{
+  // Deinitialize PikaPython after shell exits
+  obj_deinit(pikaMain);
 }
