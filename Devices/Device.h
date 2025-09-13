@@ -77,34 +77,16 @@ namespace Device
 #if DEVICE_FATFS == 1
   namespace FatFS
   {
-    // FatFs types - will be defined when FatFs is included
-    typedef unsigned char BYTE;
-    typedef unsigned short WORD;
-    typedef unsigned long DWORD;
-    typedef unsigned int UINT;
-    typedef unsigned long LBA_t;
-    
-    // FatFs result types
-    typedef enum {
-      RES_OK = 0,    // Successful
-      RES_ERROR,     // R/W Error
-      RES_WRPRT,     // Write Protected
-      RES_NOTRDY,    // Not Ready
-      RES_PARERR     // Invalid Parameter
-    } DRESULT;
-    
-    typedef BYTE DSTATUS;
-    #define STA_NOINIT   0x01  // Drive not initialized
-    #define STA_NODISK   0x02  // No medium in the drive
-    #define STA_PROTECT  0x04  // Write protected
-    
+    typedef uint8_t DSTATUS;
+    typedef uint8_t DRESULT;
+
     // Device interface functions
     bool Available();                                                    // Check if storage device is available (for hot-swap detection)
-    DSTATUS Init(BYTE pdrv);                                            // Initialize disk drive
-    DSTATUS Status(BYTE pdrv);                                          // Get disk status
-    DRESULT Read(BYTE pdrv, BYTE* buff, LBA_t sector, UINT count);      // Read sectors
-    DRESULT Write(BYTE pdrv, const BYTE* buff, LBA_t sector, UINT count); // Write sectors
-    DRESULT IOControl(BYTE pdrv, BYTE cmd, void* buff);                 // Control operations (get sector count, size, etc.)
+    DSTATUS Init(uint8_t pdrv);                                            // Initialize disk drive
+    DSTATUS Status(uint8_t pdrv);                                          // Get disk status
+    DRESULT Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count);      // Read sectors
+    DRESULT Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count); // Write sectors
+    DRESULT IOControl(uint8_t pdrv, uint8_t cmd, void* buff);                 // Control operations (get sector count, size, etc.)
   }
 #endif
 
