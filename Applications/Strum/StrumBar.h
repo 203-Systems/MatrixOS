@@ -56,7 +56,7 @@ class StrumBar : public UIComponent {
     {
       if (MatrixOS::SYS::Millis() - note_queue.front().first > config->note_length)
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOff, config->midi_channel, note_queue.front().second, 0));
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->midi_channel, note_queue.front().second, 0));
         note_queue.pop();
       }
       else
@@ -137,7 +137,7 @@ class StrumBar : public UIComponent {
 
     if ((activeNote != note) && (note < 128))
     {
-      MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOn, config->midi_channel, note, 0x7F));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->midi_channel, note, 0x7F));
       note_queue.push(std::make_pair(MatrixOS::SYS::Millis(), note));
       MLOGD("StrumBar", "Note on %d", note);
       activeNote = note;

@@ -49,6 +49,7 @@ pika_bool _MatrixOS_MidiPacket_MidiPacket_SysExStart(PikaObj *self);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_TuneRequest(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Value(PikaObj *self);
 int _MatrixOS_MidiPacket_MidiPacket_Velocity(PikaObj *self);
-void _MatrixOS_MidiPacket_MidiPacket___init__(PikaObj *self, int status, int channel, int data1, int data2);
+void _MatrixOS_MidiPacket_MidiPacket___del__(PikaObj *self);
+void _MatrixOS_MidiPacket_MidiPacket___init__(PikaObj *self, PikaTuple* val);
 
 #endif

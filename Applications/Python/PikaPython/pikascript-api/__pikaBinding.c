@@ -3131,16 +3131,21 @@ method_typedef(
     "Velocity", ""
 );
 
+void _MatrixOS_MidiPacket_MidiPacket___del__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_MidiPacket_MidiPacket___del__(self);
+}
+method_typedef(
+    _MatrixOS_MidiPacket_MidiPacket___del__,
+    "__del__", ""
+);
+
 void _MatrixOS_MidiPacket_MidiPacket___init__Method(PikaObj *self, Args *_args_){
-    int status = args_getInt(_args_, "status");
-    int channel = args_getInt(_args_, "channel");
-    int data1 = args_getInt(_args_, "data1");
-    int data2 = args_getInt(_args_, "data2");
-    _MatrixOS_MidiPacket_MidiPacket___init__(self, status, channel, data1, data2);
+    PikaTuple* val = args_getTuple(_args_, "val");
+    _MatrixOS_MidiPacket_MidiPacket___init__(self, val);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket___init__,
-    "__init__", "status,channel,data1,data2"
+    "__init__", "*val"
 );
 
 class_def(_MatrixOS_MidiPacket_MidiPacket){
@@ -3174,6 +3179,7 @@ class_def(_MatrixOS_MidiPacket_MidiPacket){
     method_def(_MatrixOS_MidiPacket_MidiPacket_SongPosition, 1851394641),
     method_def(_MatrixOS_MidiPacket_MidiPacket_SetController, 1866016597),
     method_def(_MatrixOS_MidiPacket_MidiPacket_ActiveSense, 1953870239),
+    method_def(_MatrixOS_MidiPacket_MidiPacket___del__, 2038499702),
     method_def(_MatrixOS_MidiPacket_MidiPacket_ControlChange, 2086788652),
     method_def(_MatrixOS_MidiPacket_MidiPacket_Note, 2089401499),
     method_def(_MatrixOS_MidiPacket_MidiPacket_Port, 2089473322),

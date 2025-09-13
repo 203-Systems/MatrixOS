@@ -47,253 +47,64 @@ struct MidiPacket {
   EMidiStatus status = None;  // We need this just in case we are in SysEx transfer. We can't tell if the payload is SysEx or message purely though data[0]
   uint8_t data[3] = {0, 0, 0};
 
-  MidiPacket() {}  // Place Holder data
+  // Constructors
+  MidiPacket();  // Place Holder data
+  MidiPacket(EMidiStatus status, ...);
 
-  MidiPacket(EMidiStatus status, ...) {
-    va_list valst;
-    MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, status, valst);
-  }
-  
-  MidiPacket(uint16_t port, EMidiStatus status, ...) {
-    this->port = port;
-    this->status = status;
-    va_list valst;
-    va_start(valst, status);
-    switch (status)
-    {
-      case NoteOn:
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:
-        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-        data[1] = (uint8_t)va_arg(valst, int);
-        data[2] = (uint8_t)va_arg(valst, int);
-        break;
-      case ProgramChange:
-      case ChannelPressure:
-        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-        data[1] = (uint8_t)va_arg(valst, int);
-        break;
-      case PitchChange:
-      {
-        data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-        uint16_t pitch = (uint16_t)va_arg(valst, int);
-        data[1] = (uint8_t)(pitch & 0x07F);
-        data[2] = (uint8_t)((pitch >> 7) & 0x7f);
-      }
-      break;
-      case SongSelect:
-        data[0] = SongSelect;
-        data[1] = (uint8_t)va_arg(valst, int);
-        break;
-      case MTCQuarterFrame:
-      {
-        data[0] = MTCQuarterFrame;
-        data[1] = (uint8_t)va_arg(valst, int);
-        break;
-      }
-      case SongPosition:
-      {
-        data[0] = SongPosition;
-        uint16_t position = (uint16_t)va_arg(valst, int);
-        data[1] = (uint8_t)(position & 0x07F);
-        data[2] = (uint8_t)((position >> 7) & 0x7f);
-        break;
-      }
-      case SysExData:
-      case SysExEnd:
-        data[0] = (uint8_t)va_arg(valst, int);
-        data[1] = (uint8_t)va_arg(valst, int);
-        data[2] = (uint8_t)va_arg(valst, int);
-        break;
-      case TuneRequest:
-      case Sync:
-      case Start:
-      case Continue:
-      case Stop:
-      case ActiveSense:
-      case Reset:
-        data[0] = status;
-        break;
-      case None:
-      default:
-        break;
-    }
-  }
+  // Static factory methods for channel messages
+  static MidiPacket NoteOn(uint8_t channel, uint8_t note, uint8_t velocity = 127);
+  static MidiPacket NoteOff(uint8_t channel, uint8_t note, uint8_t velocity = 0);
+  static MidiPacket AfterTouch(uint8_t channel, uint8_t note, uint8_t pressure);
+  static MidiPacket ControlChange(uint8_t channel, uint8_t controller, uint8_t value);
+  static MidiPacket ProgramChange(uint8_t channel, uint8_t program);
+  static MidiPacket ChannelPressure(uint8_t channel, uint8_t pressure);
+  static MidiPacket PitchBend(uint8_t channel, uint16_t value);
 
-  MidiPacket(EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out length and
-                                                                  // assign it automaticaly
-  {
-    MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, status, data);
-  }
+  // Static factory methods for system messages
+  static MidiPacket MTCQuarterFrame(uint8_t value);
+  static MidiPacket SongPosition(uint16_t position);
+  static MidiPacket SongSelect(uint8_t song);
+  static MidiPacket TuneRequest();
 
-  MidiPacket(uint16_t port, EMidiStatus status, uint16_t length, uint8_t* data)  // I can prob use status to figure out
-                                                                                 // length and assign it automaticaly
-  {
-    this->port = port;
-    this->status = status;
-    memcpy(this->data, data, length);
-  }
+  // Static factory methods for real-time messages
+  static MidiPacket Sync();
+  static MidiPacket Tick();
+  static MidiPacket Start();
+  static MidiPacket Continue();
+  static MidiPacket Stop();
+  static MidiPacket ActiveSense();
+  static MidiPacket Reset();
 
-  EMidiStatus Status()
-  {
-    if(data[0] < NoteOff)
-    {
-      return None;
-    }
-    else if(data[0] < SysExData)
-    {
-      return (EMidiStatus)(data[1] & 0xF0);
-    }
-    else
-    {
-      return (EMidiStatus)data[0];
-    }
-  }
+  // Status methods
+  EMidiStatus Status();
+  void SetStatus(EMidiStatus status);
 
-  void SetStatus(EMidiStatus status)
-  {
-    if((uint8_t)status < NoteOff)
-    {
-      return;
-    }
+  // Port methods
+  uint16_t Port();
+  void SetPort(uint16_t port_id);
 
-    this->status = status;
-    if((uint8_t)status < SysExData)
-    {
-      data[0] = (data[0] & 0x0F) + status; 
-    }
-    else
-    {
-      data[0] = status;
-    }
-  }
-  
-  uint8_t Channel() {
-    switch (status)
-    {
-      case NoteOn:
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:
-      case ProgramChange:
-      case ChannelPressure:
-      case PitchChange:
-        return data[0] & 0x0F;
-      default:
-        return UINT8_MAX;
-    }
-  }
+  // Channel methods
+  uint8_t Channel();
+  void SetChannel(uint8_t channel);
 
-  uint8_t Note() {
-    switch (status)
-    {
-      case NoteOn:
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:  // To be honest this shouldn't be here but close enough
-      case ProgramChange:  // To be honest this shouldn't be here but close enough
-        return data[1];
-      default:
-        return UINT8_MAX;
-    }
-  }
+  // Note methods
+  uint8_t Note();
+  void SetNote(uint8_t note);
 
-  uint8_t Controller()  // Just an alies for Note(), specially build for Program Change
-  {
-    return Note();
-  }
+  // Controller methods
+  uint8_t Controller();  // Just an alias for Note(), specially build for Program Change
+  void SetController(uint8_t controller);
 
-  uint8_t Velocity() {
-    switch (status)
-    {
-      case NoteOn:
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:  // Close Enough
-        return data[2];
-      case ChannelPressure:
-        return data[1];
-      default:
-        return UINT8_MAX;
-    }
-  }
+  // Velocity methods
+  uint8_t Velocity();
+  void SetVelocity(uint8_t velocity);
 
-  uint16_t Value()  // Get value all type, basically a generic getter
-  {
-    switch (status)
-    {
-      case NoteOn:  // Close enough
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:
-        return data[2];
-      case ProgramChange:
-      case ChannelPressure:
-        return data[1];
-      case PitchChange:
-        return ((uint16_t)data[2] << 7) & data[1];
-      case SongPosition:
-        return ((uint16_t)data[1] << 7) & data[0];
-      case SongSelect:
-        return data[0];
-      default:
-        return UINT16_MAX;
-    }
-  }
+  // Value methods
+  uint16_t Value();  // Get value all type, basically a generic getter
+  void SetValue(uint16_t value);
 
-  uint8_t Length() {
-    switch (status)
-    {
-      case NoteOn:
-      case NoteOff:
-      case AfterTouch:
-      case ControlChange:
-      case PitchChange:
-      case SongPosition:
-      case SysExData:
-        return 3;
-      case ProgramChange:
-      case ChannelPressure:
-      case SongSelect:
-        return 2;
-      case TuneRequest:
-      case Sync:
-      case Tick:
-      case Start:
-      case Continue:
-      case Stop:
-      case ActiveSense:
-      case Reset:
-        return 1;
-      case SysExEnd:
-      {
-        if(data[0] == 0xF7)
-          return 1;
-        else if(data[1] == 0xF7)
-          return 2;
-        else
-          return 3;
-      }
-
-      case None:
-      default:
-        return 0;
-    }
-  }
-
-  bool SysEx()
-  {
-    return status == SysExData || status == SysExEnd;
-  }
-
-  bool SysExStart()
-  {
-    return status == SysExData && data[0] == 0xF0;
-  }
-
-  // bool SysExEnd()
-  // {
-  //   return status == SysExEnd;
-  // }
+  // Helper methods
+  uint8_t Length();
+  bool SysEx(); // Checks if packet is part of SysEx transfer - Terrible name 
+  bool SysExStart(); // Checks if packet is start of SysEx transfer - Terrible name as well
 };

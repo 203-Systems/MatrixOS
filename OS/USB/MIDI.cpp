@@ -54,83 +54,83 @@ void tud_midi_rx_cb(uint8_t itf) {
   while (tud_midi_n_packet_read(itf, raw_packet))
   {
     uint16_t port = MIDI_PORT_USB + (raw_packet[0] >> 4);
-    MidiPacket packet = MidiPacket(port, None);
+    MidiPacket packet = MidiPacket(EMidiStatus::None);
     raw_packet[0] &= 0x0F;
     switch (raw_packet[0])
     {
       case CIN_3BYTE_SYS_COMMON:
         if (raw_packet[1] == MIDIv1_SONG_POSITION_PTR)
-          packet = MidiPacket(port, SongPosition, 2, &raw_packet[2]);
+          packet = MidiPacket::SongPosition(raw_packet[2] | (raw_packet[3] << 7));
         break;
 
       case CIN_2BYTE_SYS_COMMON:
         switch (raw_packet[1])
         {
           case MIDIv1_SONG_SELECT:
-            packet = MidiPacket(port, SongSelect, 1, &raw_packet[2]);
+            packet = MidiPacket::SongSelect(raw_packet[2]);
             break;
           case MIDIv1_MTC_QUARTER_FRAME:
-            packet = MidiPacket(port, MTCQuarterFrame, 1, &raw_packet[2]);
+            packet = MidiPacket::MTCQuarterFrame(raw_packet[2]);
             break;
         }
         break;
       case CIN_NOTE_OFF:
-        packet = MidiPacket(port, NoteOff, 3, &raw_packet[1]);
+        packet = MidiPacket::NoteOff(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
         break;
       case CIN_NOTE_ON:
-        packet = MidiPacket(port, NoteOn, 3, &raw_packet[1]);
+        packet = MidiPacket::NoteOn(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
         break;
       case CIN_AFTER_TOUCH:
-        packet = MidiPacket(port, AfterTouch, 3, &raw_packet[1]);
+        packet = MidiPacket::AfterTouch(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
         break;
       case CIN_CONTROL_CHANGE:
-        packet = MidiPacket(port, ControlChange, 3, &raw_packet[1]);
+        packet = MidiPacket::ControlChange(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
         break;
       case CIN_PROGRAM_CHANGE:
-        packet = MidiPacket(port, ProgramChange, 2, &raw_packet[1]);
+        packet = MidiPacket::ProgramChange(raw_packet[1] & 0x0F, raw_packet[2]);
         break;
       case CIN_CHANNEL_PRESSURE:
-        packet = MidiPacket(port, ChannelPressure, 2, &raw_packet[1]);
+        packet = MidiPacket::ChannelPressure(raw_packet[1] & 0x0F, raw_packet[2]);
         break;
       case CIN_PITCH_WHEEL:
-        packet = MidiPacket(port, PitchChange, 3, &raw_packet[1]);
+        packet = MidiPacket::PitchBend(raw_packet[1] & 0x0F, raw_packet[2] | (raw_packet[3] << 7));
         break;
       case CIN_1BYTE:
         switch (raw_packet[1])
         {
           case MIDIv1_CLOCK:
-            packet = MidiPacket(port, Sync);
+            packet = MidiPacket::Sync();
             break;
           case MIDIv1_TICK:
-            packet = MidiPacket(port, Tick);
+            packet = MidiPacket::Tick();
             break;
           case MIDIv1_START:
-            packet = MidiPacket(port, Start);
+            packet = MidiPacket::Start();
             break;
           case MIDIv1_CONTINUE:
-            packet = MidiPacket(port, Continue);
+            packet = MidiPacket::Continue();
             break;
           case MIDIv1_STOP:
-            packet = MidiPacket(port, Stop);
+            packet = MidiPacket::Stop();
             break;
           case MIDIv1_ACTIVE_SENSE:
-            packet = MidiPacket(port, ActiveSense);
+            packet = MidiPacket::ActiveSense();
             break;
           case MIDIv1_RESET:
-            packet = MidiPacket(port, Reset);
+            packet = MidiPacket::Reset();
             break;
           case MIDIv1_TUNE_REQUEST:
-            packet = MidiPacket(port, TuneRequest);
+            packet = MidiPacket::TuneRequest();
             break;
         }
         break;
       case CIN_SYSEX:
-        packet = MidiPacket(port, SysExData, 3, &raw_packet[1]);
+        packet = MidiPacket(EMidiStatus::SysExData, raw_packet[1], raw_packet[2], raw_packet[3]);
         break;
       case CIN_SYSEX_ENDS_IN_1:
       case CIN_SYSEX_ENDS_IN_2:
       case CIN_SYSEX_ENDS_IN_3:
-        packet = MidiPacket(port, SysExEnd, 3, &raw_packet[1]);
+        packet = MidiPacket(EMidiStatus::SysExEnd, raw_packet[1], raw_packet[2], raw_packet[3]);
         break;
       default: 
         return;
@@ -138,6 +138,7 @@ void tud_midi_rx_cb(uint8_t itf) {
 
     // Since we know what we are doing here, just gonna skip the wrapper
     // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implementation
+    packet.SetPort(port);
     MatrixOS::MIDI::osPort->Receive(packet);
   }
 }

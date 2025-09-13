@@ -319,28 +319,28 @@ namespace MidiAction
     {
       case MidiType::Note:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::NoteOn, data.channel, data.note, output_value));
+        MatrixOS::MIDI::Send(MidiPacket::NoteOn(data.channel, data.note, output_value));
         return true;
       }
       case MidiType::ControlChange:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, data.control, output_value));
+        MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, data.control, output_value));
         return true;
       }
       case MidiType::ProgramChange:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ProgramChange, data.channel, data.control, 0));
+        MatrixOS::MIDI::Send(MidiPacket::ProgramChange(data.channel, data.control));
         return true;
       }
       case MidiType::ChannelPressure:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ChannelPressure, data.channel, output_value, 0));
+        MatrixOS::MIDI::Send(MidiPacket::ChannelPressure(data.channel, output_value));
         return true;
       }
       case MidiType::PitchBend:
       {
           MLOGD(TAG, "Pitch Bend: %d", output_value);
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::PitchChange, data.channel, output_value));
+          MatrixOS::MIDI::Send(MidiPacket::PitchBend(data.channel, output_value));
           return true;
       }
       case MidiType::SysEx:
@@ -368,38 +368,38 @@ namespace MidiAction
       }
       case MidiType::RPN:
       {
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 101, (data.control >> 7) & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 100, data.control & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 6, (output_value >> 7) & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 38, output_value & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 101, (data.control >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 100, data.control & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 6, (output_value >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 38, output_value & 0x7F));
           return true;
       }
       case MidiType::NRPN:
       {
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 99, (data.control >> 7) & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 98, data.control & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 6, (output_value >> 7) & 0x7F));
-          MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::ControlChange, data.channel, 38, output_value & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 99, (data.control >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 98, data.control & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 6, (output_value >> 7) & 0x7F));
+          MatrixOS::MIDI::Send(MidiPacket::ControlChange(data.channel, 38, output_value & 0x7F));
           return true;
       }
       case MidiType::Start:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Start, 0, 0, 0));
+        MatrixOS::MIDI::Send(MidiPacket::Start());
         return true;
       }
       case MidiType::Continue:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Continue, 0, 0, 0));
+        MatrixOS::MIDI::Send(MidiPacket::Continue());
         return true;
       }
       case MidiType::Stop:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Stop, 0, 0, 0));
+        MatrixOS::MIDI::Send(MidiPacket::Stop());
         return true;
       }
       case MidiType::Reset:
       {
-        MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, EMidiStatus::Reset, 0, 0, 0));
+        MatrixOS::MIDI::Send(MidiPacket::Reset());
         return true;
       }
     }

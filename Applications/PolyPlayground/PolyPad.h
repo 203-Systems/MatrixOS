@@ -107,17 +107,17 @@ class PolyPad : public UIComponent {
     }
     if (keyInfo->state == PRESSED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOn, config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
       lastNote = note;
       activeNotes[note]++;  // If this key doesn't exist, unordered_map will auto assign it to 0.
     }
     else if (config->velocitySensitive && keyInfo->state == AFTERTOUCH)
     {
-      MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, AfterTouch, config->channel, note, keyInfo->velocity.to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket::AfterTouch(config->channel, note, keyInfo->velocity.to7bits()));
     }
     else if (keyInfo->state == RELEASED)
     {
-      MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, NoteOff, config->channel, note, 0));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, 0));
       if (activeNotes[note]-- <= 1)
       {
         activeNotes.erase(note);
@@ -134,6 +134,6 @@ class PolyPad : public UIComponent {
   }
 
   ~PolyPad() {
-    MatrixOS::MIDI::Send(MidiPacket(EMidiPortID::MIDI_PORT_EACH_CLASS, ControlChange, config->channel, 123, 0));  // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0));  // All notes off
   }
 };

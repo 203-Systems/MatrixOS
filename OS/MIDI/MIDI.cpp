@@ -101,16 +101,16 @@ namespace MatrixOS::MIDI
     if(includeMeta)
     {
       uint8_t header[6] = {MIDIv1_SYSEX_START, SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1]};
-      if(!Send(MidiPacket(port, SysExData, 3, header), 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, header), port, 5))
       { return false; }
 
-      if(!Send(MidiPacket(port, SysExData, 3, header + 3), 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, header + 3), port, 5))
       { return false; }
     }
 
     for (uint8_t index = 0; index < length - 3 - !includeMeta; index += 3)
     {
-      if(!Send(MidiPacket(port, SysExData, 3, data + index), 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, data + index), port, 5))
       { return false; }
     }
 
@@ -125,7 +125,7 @@ namespace MatrixOS::MIDI
       }
       footer[length % 3] = MIDIv1_SYSEX_END;
       
-      if(!Send(MidiPacket(port, SysExEnd, length % 3 + 1, footer), 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExEnd, length % 3 + 1, footer), port, 5))
       { return false;}
      }
     else
@@ -138,7 +138,7 @@ namespace MatrixOS::MIDI
         footer[i] = data[start_ptr + i];
       }
       
-      if(!Send(MidiPacket(port, SysExEnd, end_frame_length, footer), 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExEnd, end_frame_length, footer), port, 5))
       { return false; }
     }
     return true;

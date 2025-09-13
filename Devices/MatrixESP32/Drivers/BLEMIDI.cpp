@@ -25,7 +25,7 @@ namespace Device
       // remaining_message[1]);
       if (len == 2)
       {
-        midiPort->Send(MidiPacket(midiPort->id, (EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0],
+        midiPort->Send(MidiPacket((EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0],
                                   remaining_message[1]));
       }
     }
