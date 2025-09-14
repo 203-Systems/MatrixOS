@@ -21,25 +21,27 @@ uint8_t const desc_msc_configuration[] = {
 static tusb_desc_device_t desc_device;
 
 uint8_t const* msc_device_descriptor_cb(void) {
-  desc_device = {.bLength = sizeof(tusb_desc_device_t),
-                 .bDescriptorType = TUSB_DESC_DEVICE,
-                 .bcdUSB = 0x0200,
+  desc_device = {
+    .bLength = sizeof(tusb_desc_device_t),
+    .bDescriptorType = TUSB_DESC_DEVICE,
+    .bcdUSB = 0x0200,
 
-                 // MSC uses device class 0 (per-interface class)
-                 .bDeviceClass = 0,
-                 .bDeviceSubClass = 0,
-                 .bDeviceProtocol = 0,
-                 .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+    // MSC uses device class 0 (per-interface class)
+    .bDeviceClass = 0,
+    .bDeviceSubClass = 0,
+    .bDeviceProtocol = 0,
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
-                 .idVendor = Device::usb_vid,
-                 .idProduct = (uint16_t)(Device::usb_pid + 10),  // Different PID for Windows driver separation
-                 .bcdDevice = MATRIXOS_VERSION_ID_16,
+    .idVendor = Device::usb_vid,
+    .idProduct = 0x0001,
+    .bcdDevice = MATRIXOS_VERSION_ID_16,
 
-                 .iManufacturer = 0x01,
-                 .iProduct = 0x02,
-                 .iSerialNumber = 0x03,
+    .iManufacturer = 0x01,
+    .iProduct = 0x02,
+    .iSerialNumber = 0x03,
 
-                 .bNumConfigurations = 0x01};
+    .bNumConfigurations = 0x01
+  };
 
   return (uint8_t const*)&desc_device;
 }
