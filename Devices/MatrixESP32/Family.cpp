@@ -21,6 +21,8 @@ namespace Device
     LED::Init();
     KeyPad::Init();
 
+    Storage::Init();
+
     HWMidi::Init();
     BLEMIDI::Init(name);
   }

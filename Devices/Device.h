@@ -74,14 +74,22 @@ namespace Device
     void Clear();
   }
 
-#if DEVICE_FATFS == 1
-  namespace FatFS
+#if DEVICE_STORAGE == 1
+  namespace Storage
   {
-    uint8_t Init(uint8_t pdrv); // Returns DSTATUS
-    uint8_t Status(uint8_t pdrv); // Returns DSTATUS
-    uint8_t Read(uint8_t pdrv, uint8_t* buff, uint32_t sector, uint32_t count); // Returns DRESULT
-    uint8_t Write(uint8_t pdrv, const uint8_t* buff, uint32_t sector, uint32_t count); // Returns DRESULT
-    uint8_t IOControl(uint8_t pdrv, uint8_t cmd, void* buff); // Returns DRESULT
+    // Storage subsystem is initialized automatically
+    struct Status
+    {
+      bool available;          // Storage is available for read/write operations
+      bool write_protected;    // Card is write protected
+      uint32_t sector_count;   // Total number of sectors (0 if unavailable)
+      uint16_t sector_size;    // Size of each sector in bytes (typically 512)
+      uint32_t block_size;     // Erase block size in sectors (for filesystem optimization)
+    };
+
+    const Status* GetStatus();
+    bool ReadSectors(uint8_t pdrv, uint32_t lba, uint8_t* buffer, uint32_t count);
+    bool WriteSectors(uint8_t pdrv, uint32_t lba, const uint8_t* buffer, uint32_t count);
   }
 #endif
 

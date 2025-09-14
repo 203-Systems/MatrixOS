@@ -18,8 +18,16 @@ DSTATUS disk_status (
   BYTE pdrv /* Physical drive number to identify the drive */
 )
 {
-#if DEVICE_FATFS == 1
-  return (DSTATUS)Device::FatFS::Status(pdrv);
+#if DEVICE_STORAGE == 1
+  const Device::Storage::Status* status = Device::Storage::GetStatus();
+
+  if (!status->available)
+    return STA_NOINIT;
+
+  if (status->write_protected)
+    return STA_PROTECT;
+
+  return 0; // Ready
 #else
   return STA_NOINIT;
 #endif
@@ -33,8 +41,9 @@ DSTATUS disk_initialize (
   BYTE pdrv /* Physical drive number to identify the drive */
 )
 {
-#if DEVICE_FATFS == 1
-  return (DSTATUS)Device::FatFS::Init(pdrv);
+#if DEVICE_STORAGE == 1
+  // MSC subsystem handles initialization, just return current status
+  return disk_status(pdrv);
 #else
   return STA_NOINIT;
 #endif
@@ -51,8 +60,9 @@ DRESULT disk_read (
   UINT count    /* Number of sectors to read */
 )
 {
-#if DEVICE_FATFS == 1
-  return (DRESULT)Device::FatFS::Read(pdrv, buff, sector, count);
+#if DEVICE_STORAGE == 1
+  bool result = Device::Storage::ReadSectors(pdrv, sector, buff, count);
+  return result ? RES_OK : RES_ERROR;
 #else
   return RES_NOTRDY;
 #endif
@@ -71,8 +81,9 @@ DRESULT disk_write (
   UINT count        /* Number of sectors to write */
 )
 {
-#if DEVICE_FATFS == 1
-  return (DRESULT)Device::FatFS::Write(pdrv, buff, sector, count);
+#if DEVICE_STORAGE == 1
+  bool result = Device::Storage::WriteSectors(pdrv, sector, buff, count);
+  return result ? RES_OK : RES_ERROR;
 #else
   return RES_NOTRDY;
 #endif
@@ -90,8 +101,41 @@ DRESULT disk_ioctl (
   void* buff  /* Buffer to send/receive control data */
 )
 {
-#if DEVICE_FATFS == 1
-  return (DRESULT)Device::FatFS::IOControl(pdrv, cmd, buff);
+#if DEVICE_STORAGE == 1
+  const Device::Storage::Status* status = Device::Storage::GetStatus();
+
+  switch (cmd)
+  {
+    case 0: // CTRL_SYNC
+      return RES_OK; // Always successful for SDMMC
+
+    case 1: // GET_SECTOR_COUNT
+      if (status->available && buff)
+      {
+        *(uint32_t*)buff = status->sector_count;
+        return RES_OK;
+      }
+      return RES_ERROR;
+
+    case 2: // GET_SECTOR_SIZE
+      if (buff)
+      {
+        *(uint16_t*)buff = status->sector_size;
+        return RES_OK;
+      }
+      return RES_ERROR;
+
+    case 3: // GET_BLOCK_SIZE
+      if (status->available && buff)
+      {
+        *(uint32_t*)buff = status->block_size;
+        return RES_OK;
+      }
+      return RES_ERROR;
+
+    default:
+      return RES_PARERR; // Unsupported command
+  }
 #else
   return RES_PARERR;
 #endif

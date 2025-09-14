@@ -2,7 +2,7 @@
 #include "Framework.h"
 
 // Device feature configuration
-#define DEVICE_FATFS 1
+#define DEVICE_STORAGE 1
 #define DEVICE_BATTERY 0
 
 #define FUNCTION_KEY 0  // Keypad Code for main function key

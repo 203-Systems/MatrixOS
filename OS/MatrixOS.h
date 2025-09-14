@@ -13,7 +13,7 @@
 
 #include "HID/HIDSpecs.h"
 
-#if DEVICE_FATFS == 1
+#if DEVICE_STORAGE == 1
 #include "ff.h"
 #endif
 
@@ -233,16 +233,16 @@ namespace MatrixOS
     bool DeleteVariable(uint32_t hash);
   }
 
-#if DEVICE_FATFS == 1
-  namespace FS
+#if DEVICE_STORAGE == 1
+  namespace File
   {
-    typedef FIL File;
+    typedef FIL Handle; // FIL from FatFS
 
     bool Available();
-    File* Open(string path, uint8_t mode);
-    bool Close(File* file);
-    size_t Read(File* file, void* buffer, size_t length);
-    size_t Write(File* file, const void* buffer, size_t length);
+    Handle* Open(string path, uint8_t mode);
+    bool Close(Handle* file);
+    size_t Read(Handle* file, void* buffer, size_t length);
+    size_t Write(Handle* file, const void* buffer, size_t length);
     bool Exists(string path);
     bool Delete(string path);
     bool CreateDir(string path);

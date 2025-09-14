@@ -1,18 +1,18 @@
-#include "FS.h"
+#include "File.h"
 #include "Device.h"
 #include "MatrixOS.h"
 
-namespace MatrixOS::FS
+namespace MatrixOS::File
 {
   static FATFS fs;
   static bool filesystem_mounted = false;
 
   bool Available()
   {
-#if DEVICE_FATFS == 1
+#if DEVICE_STORAGE == 1
     // Check if device storage is available
-    uint8_t status = Device::FatFS::Status(0);
-    return (status == 0);
+    const Device::Storage::Status* status = Device::Storage::GetStatus();
+    return status->available;
 #else
     return false;
 #endif
@@ -26,25 +26,25 @@ namespace MatrixOS::FS
       if (res == FR_OK)
       {
         filesystem_mounted = true;
-        MLOGI("FS", "Filesystem mounted successfully");
+        MLOGI("File", "Filesystem mounted successfully");
       }
       else
       {
-        MLOGE("FS", "Failed to mount filesystem: %d", res);
+        MLOGE("File", "Failed to mount filesystem: %d", res);
         return false;
       }
     }
     return true;
   }
 
-  File* Open(string path, uint8_t mode)
+  Handle* Open(string path, uint8_t mode)
   {
     if (!Available() || !EnsureMounted())
     {
       return nullptr;
     }
 
-    File* file = new File;
+    Handle* file = new Handle;
     FRESULT res = f_open(file, path.c_str(), mode);
 
     if (res == FR_OK)
@@ -53,13 +53,13 @@ namespace MatrixOS::FS
     }
     else
     {
-      MLOGE("FS", "Failed to open file '%s': %d", path.c_str(), res);
+      MLOGE("File", "Failed to open file '%s': %d", path.c_str(), res);
       delete file;
       return nullptr;
     }
   }
 
-  bool Close(File* file)
+  bool Close(Handle* file)
   {
     if (!file) return false;
 
@@ -69,7 +69,7 @@ namespace MatrixOS::FS
     return (res == FR_OK);
   }
 
-  size_t Read(File* file, void* buffer, size_t length)
+  size_t Read(Handle* file, void* buffer, size_t length)
   {
     if (!file || !buffer) return 0;
 
@@ -78,14 +78,14 @@ namespace MatrixOS::FS
 
     if (res != FR_OK)
     {
-      MLOGE("FS", "File read error: %d", res);
+      MLOGE("File", "File read error: %d", res);
       return 0;
     }
 
     return bytes_read;
   }
 
-  size_t Write(File* file, const void* buffer, size_t length)
+  size_t Write(Handle* file, const void* buffer, size_t length)
   {
     if (!file || !buffer) return 0;
 
@@ -94,7 +94,7 @@ namespace MatrixOS::FS
 
     if (res != FR_OK)
     {
-      MLOGE("FS", "File write error: %d", res);
+      MLOGE("File", "File write error: %d", res);
       return 0;
     }
 
@@ -123,7 +123,7 @@ namespace MatrixOS::FS
     FRESULT res = f_unlink(path.c_str());
     if (res != FR_OK)
     {
-      MLOGE("FS", "Failed to delete '%s': %d", path.c_str(), res);
+      MLOGE("File", "Failed to delete '%s': %d", path.c_str(), res);
       return false;
     }
     return true;
@@ -139,7 +139,7 @@ namespace MatrixOS::FS
     FRESULT res = f_mkdir(path.c_str());
     if (res != FR_OK && res != FR_EXIST)
     {
-      MLOGE("FS", "Failed to create directory '%s': %d", path.c_str(), res);
+      MLOGE("File", "Failed to create directory '%s': %d", path.c_str(), res);
       return false;
     }
     return true;
@@ -160,7 +160,7 @@ namespace MatrixOS::FS
     FRESULT res = f_opendir(&dir, path.c_str());
     if (res != FR_OK)
     {
-      MLOGE("FS", "Failed to open directory '%s': %d", path.c_str(), res);
+      MLOGE("File", "Failed to open directory '%s': %d", path.c_str(), res);
       return result;
     }
 

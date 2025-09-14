@@ -1,6 +1,6 @@
-file(GLOB_RECURSE FS_HEADERS "*.h")
-set(FS_SOURCES
-    FS.cpp
+file(GLOB_RECURSE FILE_HEADERS "*.h")
+set(FILE_SOURCES
+    File.cpp
     diskio.cpp
 )
 
@@ -11,15 +11,15 @@ set(FATFS_SOURCES
     ${FATFS_DIR}/source/ff.c
 )
 
-add_library(MatrixOSFS
-    ${FS_HEADERS}
-    ${FS_SOURCES}
+add_library(MatrixOSFile
+    ${FILE_HEADERS}
+    ${FILE_SOURCES}
     ${FATFS_SOURCES}
 )
 
-target_include_directories(MatrixOSFS PUBLIC
+target_include_directories(MatrixOSFile PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${FATFS_DIR}/source
 )
 
-target_link_libraries(MatrixOSFS PUBLIC MatrixOSInterface)
+target_link_libraries(MatrixOSFile PUBLIC MatrixOSInterface)

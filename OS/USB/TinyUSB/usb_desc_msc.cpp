@@ -32,7 +32,7 @@ uint8_t const* msc_device_descriptor_cb(void) {
                  .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
                  .idVendor = Device::usb_vid,
-                 .idProduct = 0x0001,  // Different PID for Windows driver separation
+                 .idProduct = (uint16_t)(Device::usb_pid + 10),  // Different PID for Windows driver separation
                  .bcdDevice = MATRIXOS_VERSION_ID_16,
 
                  .iManufacturer = 0x01,

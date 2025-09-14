@@ -9,8 +9,8 @@
  */
 
 // FileSystem Support
-#ifndef DEVICE_FATFS
-#define DEVICE_FATFS 0
+#ifndef DEVICE_STORAGE
+#define DEVICE_STORAGE 0
 #endif
 
 // Battery Support

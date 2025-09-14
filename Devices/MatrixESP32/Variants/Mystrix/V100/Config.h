@@ -85,14 +85,14 @@ inline void LoadV100() {
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
 
-  FatFS::sd_clk_pin = V100::SD_CLK_Pin;
-  FatFS::sd_cmd_pin = V100::SD_CMD_Pin;
-  FatFS::sd_d0_pin = V100::SD_D0_Pin;
-  FatFS::sd_d1_pin = V100::SD_D1_Pin;
-  FatFS::sd_d2_pin = V100::SD_D2_Pin;
-  FatFS::sd_d3_pin = V100::SD_D3_Pin;
-  FatFS::sd_det_pin = V100::SD_DET_Pin;
-  FatFS::sd_4bit_mode = V100::SD_4bit_mode;
-  FatFS::sd_freq_khz = V100::SD_FREQ_KHZ;
+  Storage::sd_clk_pin = V100::SD_CLK_Pin;
+  Storage::sd_cmd_pin = V100::SD_CMD_Pin;
+  Storage::sd_d0_pin = V100::SD_D0_Pin;
+  Storage::sd_d1_pin = V100::SD_D1_Pin;
+  Storage::sd_d2_pin = V100::SD_D2_Pin;
+  Storage::sd_d3_pin = V100::SD_D3_Pin;
+  Storage::sd_det_pin = V100::SD_DET_Pin;
+  Storage::sd_4bit_mode = V100::SD_4bit_mode;
+  Storage::sd_freq_khz = V100::SD_FREQ_KHZ;
 }
 }

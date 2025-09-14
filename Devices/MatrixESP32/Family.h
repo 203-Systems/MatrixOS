@@ -171,7 +171,7 @@ namespace Device
     void Init();
   }
 
-  namespace FatFS
+  namespace Storage
   {
     inline gpio_num_t sd_clk_pin;
     inline gpio_num_t sd_cmd_pin;
@@ -183,5 +183,7 @@ namespace Device
 
     inline bool sd_4bit_mode;
     inline uint32_t sd_freq_khz;
+
+    void Init();
   }
 }
