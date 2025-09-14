@@ -37,10 +37,100 @@ void Shell::Setup()
   
   // Initialize the folder system
   InitializeFolderSystem();
+
+  // Test filesystem functionality
+  TestFileSystem();
 }
 
 void Shell::Loop() {
     ApplicationLauncher();
+}
+
+void Shell::TestFileSystem() {
+#if DEVICE_STORAGE == 1
+    MLOGD("Shell", "Testing filesystem functionality...");
+
+    // Check storage status
+    const Device::Storage::Status* status = Device::Storage::GetStatus();
+    if (!status->available) {
+        MLOGW("Shell", "Storage not available - skipping filesystem tests");
+        return;
+    }
+
+    MLOGD("Shell", "Storage Status:");
+    MLOGD("Shell", "  Available: %s", status->available ? "true" : "false");
+    MLOGD("Shell", "  Write Protected: %s", status->write_protected ? "true" : "false");
+    MLOGD("Shell", "  Sector Count: %lu", status->sector_count);
+    MLOGD("Shell", "  Sector Size: %u bytes", status->sector_size);
+    MLOGD("Shell", "  Block Size: %lu sectors", status->block_size);
+
+    // Test basic file operations
+    string test_file = "/test.txt";
+    string test_content = "MatrixOS Filesystem Test\nTimestamp: ";
+    test_content += std::to_string(Device::Micros());
+
+    // Test file write using low-level API
+    MatrixOS::File::Handle* file = MatrixOS::File::Open(test_file, FA_WRITE | FA_CREATE_ALWAYS);
+    if (file) {
+        size_t written = MatrixOS::File::Write(file, test_content.c_str(), test_content.length());
+        MatrixOS::File::Close(file);
+
+        if (written == test_content.length()) {
+            MLOGD("Shell", "File write test: PASS");
+
+            // Test file read
+            file = MatrixOS::File::Open(test_file, FA_READ);
+            if (file) {
+                char read_buffer[256];
+                size_t read_bytes = MatrixOS::File::Read(file, read_buffer, sizeof(read_buffer));
+                MatrixOS::File::Close(file);
+
+                if (read_bytes == test_content.length()) {
+                    string read_content(read_buffer, read_bytes);
+                    if (read_content == test_content) {
+                        MLOGD("Shell", "File read test: PASS");
+                    } else {
+                        MLOGE("Shell", "File read test: FAIL - content mismatch");
+                    }
+                } else {
+                    MLOGE("Shell", "File read test: FAIL - read %zu bytes, expected %zu", read_bytes, test_content.length());
+                }
+            } else {
+                MLOGE("Shell", "File read test: FAIL - could not open file for reading");
+            }
+
+            // Test file deletion
+            if (MatrixOS::File::Delete(test_file)) {
+                MLOGD("Shell", "File delete test: PASS");
+            } else {
+                MLOGE("Shell", "File delete test: FAIL");
+            }
+        } else {
+            MLOGE("Shell", "File write test: FAIL - wrote %zu bytes, expected %zu", written, test_content.length());
+        }
+    } else {
+        MLOGE("Shell", "File write test: FAIL - could not open file for writing");
+    }
+
+    // Test directory operations
+    string test_dir = "/test_dir";
+    if (MatrixOS::File::CreateDir(test_dir)) {
+        MLOGD("Shell", "Directory create test: PASS");
+
+        // Test directory deletion
+        if (MatrixOS::File::Delete(test_dir)) {
+            MLOGD("Shell", "Directory delete test: PASS");
+        } else {
+            MLOGE("Shell", "Directory delete test: FAIL");
+        }
+    } else {
+        MLOGE("Shell", "Directory create test: FAIL");
+    }
+
+    MLOGD("Shell", "Filesystem tests completed");
+#else
+    MLOGW("Shell", "Filesystem not enabled - skipping tests");
+#endif
 }
 
 void Shell::InitializeFolderSystem() {

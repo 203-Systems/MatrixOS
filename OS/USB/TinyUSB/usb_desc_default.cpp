@@ -3,7 +3,7 @@
 #include "MatrixOS.h"
 
 //--------------------------------------------------------------------+
-// HID Report Descriptor (moved from main file)
+// HID Report Descriptor
 //--------------------------------------------------------------------+
 
 #define EXPAND(x) x
@@ -101,7 +101,7 @@ uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(RE
                                   };
 
 //--------------------------------------------------------------------+
-// MIDI Descriptor (moved from main file)
+// MIDI Descriptor
 //--------------------------------------------------------------------+
 #define TUD_DUO_MIDI_DESC_LEN (TUD_MIDI_DESC_HEAD_LEN + TUD_MIDI_DESC_JACK_LEN * 2 + TUD_MIDI_DESC_EP_LEN(2) * 2)
 #define TUD_DUO_MIDI_DESCRIPTOR(_itfnum, _stridx, _epout, _epin, _epsize) \
@@ -118,6 +118,28 @@ uint8_t const desc_hid_report[] = {TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(RE
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
+
+// Default mode: MIDI + CDC + HID
+enum DEFAULT_INTERFACES
+{
+  ITF_NUM_MIDI = 0,
+  ITF_NUM_MIDI_STREAMING,
+  ITF_NUM_CDC,
+  ITF_NUM_CDC_DATA,
+  ITF_NUM_HID,
+  ITF_NUM_DEFAULT_TOTAL
+};
+
+#define CONFIG_DEFAULT_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_DUO_MIDI_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+
+#define EPNUM_DEFAULT_MIDI_OUT  0x01
+#define EPNUM_DEFAULT_MIDI_IN   0x81
+#define EPNUM_DEFAULT_CDC_NOTIF 0x82
+#define EPNUM_DEFAULT_CDC_OUT   0x02
+#define EPNUM_DEFAULT_CDC_IN    0x83
+#define EPNUM_DEFAULT_HID_OUT   0x03
+#define EPNUM_DEFAULT_HID_IN    0x84
+
 
 uint8_t const desc_default_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA

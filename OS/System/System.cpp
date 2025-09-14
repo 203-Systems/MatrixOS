@@ -90,8 +90,8 @@ namespace MatrixOS::SYS
   void Begin(void) {
     Device::DeviceInit();
 
-    MatrixOS::USB::Init();
-    // MatrixOS::USB::Init(USB_MODE_MSC);
+    // MatrixOS::USB::Init();
+    MatrixOS::USB::Init(USB_MODE_MSC);
 
     InitSysModules();
 

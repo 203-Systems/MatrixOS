@@ -40,6 +40,7 @@ class Shell : public Application {
 
   // Folder system functions
   void InitializeFolderSystem();
+  void TestFileSystem();
   uint8_t GetAppFolder(uint32_t app_id, Application_Info* app_info);
   bool EnableFolder(uint8_t folder_idx, Color color);
   void DisableFolder(uint8_t folder_id);

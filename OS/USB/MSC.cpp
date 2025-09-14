@@ -1,8 +1,9 @@
 #include "MatrixOS.h"
 #include "tusb.h"
 #include "Device.h"
+#include "class/msc/msc.h"
 
-#if CFG_TUD_MSC
+#define DEVICE_STORAGE 1
 
 //--------------------------------------------------------------------+
 // MSC callbacks
@@ -28,13 +29,8 @@ uint32_t tud_msc_inquiry2_cb(uint8_t lun, scsi_inquiry_resp_t* inquiry_resp) {
 // Return true allowing host to read/write this LUN e.g SD card inserted
 bool tud_msc_test_unit_ready_cb(uint8_t lun) {
   (void) lun;
-
-  #if DEVICE_STORAGE == 1
   const Device::Storage::Status* status = Device::Storage::GetStatus();
   return status->available;
-  #else
-  return false;
-  #endif
 }
 
 // Invoked when received SCSI_CMD_READ_CAPACITY_10 and SCSI_CMD_READ_FORMAT_CAPACITY to determine the disk size
@@ -48,13 +44,14 @@ void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_siz
     *block_count = status->sector_count;
     *block_size = status->sector_size;
   } else {
-    // Provide a minimal dummy capacity for debugging (1MB)
-    *block_count = 2048; // 1MB = 2048 * 512 bytes
+    // When no storage available, still report minimal capacity
+    // Actual I/O operations will fail with proper error codes
+    *block_count = 1; // Minimal 1 sector
     *block_size = 512;
   }
   #else
-  // Provide a minimal dummy capacity for debugging (1MB)
-  *block_count = 2048; // 1MB = 2048 * 512 bytes
+  // Default minimal capacity when storage driver not available
+  *block_count = 1; // Minimal 1 sector
   *block_size = 512;
   #endif
 }
@@ -92,14 +89,14 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buff
   uint32_t start_sector = lba + (offset / 512);
 
   // Try to read from real storage first
-  int result = Device::Storage::ReadSectors(0, start_sector, (uint8_t*)buffer, sector_count);
+  bool result = Device::Storage::ReadSectors(0, start_sector, (uint8_t*)buffer, sector_count);
 
-  if (result == 0) {
+  if (result) {
     return bufsize;
   } else {
-    // If real storage fails, return dummy data (all zeros) for debugging
-    memset(buffer, 0, bufsize);
-    return bufsize;
+    // If real storage fails, set sense data and return error
+    tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
+    return -1;
   }
   #else
   // Return dummy data (all zeros) for debugging
@@ -123,13 +120,14 @@ int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t* 
   uint32_t start_sector = lba + (offset / 512);
 
   // Try to write to real storage first
-  int result = Device::Storage::WriteSectors(0, start_sector, buffer, sector_count);
+  bool result = Device::Storage::WriteSectors(0, start_sector, buffer, sector_count);
 
-  if (result == 0) {
+  if (result) {
     return bufsize;
   } else {
-    // If real storage fails, pretend write succeeded for debugging
-    return bufsize;
+    // If real storage fails, set sense data and return error
+    tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
+    return -1;
   }
   #else
   // Pretend write succeeded for debugging
@@ -195,5 +193,3 @@ bool tud_msc_is_writable_cb (uint8_t lun) {
   return false;
   #endif
 }
-
-#endif // CFG_TUD_MSC
