@@ -166,7 +166,26 @@ namespace Device
         return false; // Error
       }
 
-      esp_err_t ret = sdmmc_read_sectors(&card, buffer, lba, count);
+      // Retry up to 3 times with delays on error
+      esp_err_t ret = ESP_FAIL;
+      for (int retry = 0; retry < 3; retry++)
+      {
+        ret = sdmmc_read_sectors(&card, buffer, lba, count);
+        if (ret == ESP_OK)
+        {
+          break; // Success
+        }
+
+        // On error, wait a bit before retry
+        MLOGD("Storage", "Read error 0x%x at LBA %d, retry %d/3", ret, lba, retry + 1);
+        vTaskDelay(pdMS_TO_TICKS(10)); // 10ms delay
+      }
+
+      if (ret != ESP_OK)
+      {
+        MLOGE("Storage", "Failed to read sectors after 3 retries: 0x%x", ret);
+      }
+
       return (ret == ESP_OK);
     }
 
@@ -179,7 +198,26 @@ namespace Device
         return false; // Error
       }
 
-      esp_err_t ret = sdmmc_write_sectors(&card, buffer, lba, count);
+      // Retry up to 3 times with delays on error
+      esp_err_t ret = ESP_FAIL;
+      for (int retry = 0; retry < 3; retry++)
+      {
+        ret = sdmmc_write_sectors(&card, buffer, lba, count);
+        if (ret == ESP_OK)
+        {
+          break; // Success
+        }
+
+        // On error, wait a bit before retry
+        MLOGD("Storage", "Write error 0x%x at LBA %d, retry %d/3", ret, lba, retry + 1);
+        vTaskDelay(pdMS_TO_TICKS(10)); // 10ms delay
+      }
+
+      if (ret != ESP_OK)
+      {
+        MLOGE("Storage", "Failed to write sectors after 3 retries: 0x%x", ret);
+      }
+
       return (ret == ESP_OK);
     }
   }

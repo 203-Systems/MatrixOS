@@ -10,6 +10,7 @@ add_subdirectory(UI)
 add_subdirectory(Framework)
 add_subdirectory(USB)
 add_subdirectory(FileSystem)
+add_subdirectory(Storage)
 
 add_library(MatrixOSInterface INTERFACE)
 target_include_directories(MatrixOSInterface INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${FREERTOS_INC})
@@ -32,4 +33,5 @@ target_link_libraries(MatrixOS PUBLIC
     MatrixOSHID
     MatrixOSMIDI
     MatrixOSFile
+    MatrixOSStorage
 )

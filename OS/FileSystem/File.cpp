@@ -1,6 +1,7 @@
 #include "File.h"
 #include "Device.h"
 #include "MatrixOS.h"
+#include "Storage/StorageMutex.h"
 
 namespace MatrixOS::File
 {
@@ -73,6 +74,14 @@ namespace MatrixOS::File
   {
     if (!file || !buffer) return 0;
 
+    // Lock storage mutex for file read
+    MatrixOS::Storage::Lock lock(1000);
+    if (!lock.IsLocked())
+    {
+      MLOGE("File", "Failed to acquire storage lock for read");
+      return 0;
+    }
+
     UINT bytes_read = 0;
     FRESULT res = f_read(file, buffer, length, &bytes_read);
 
@@ -88,6 +97,14 @@ namespace MatrixOS::File
   size_t Write(Handle* file, const void* buffer, size_t length)
   {
     if (!file || !buffer) return 0;
+
+    // Lock storage mutex for file write
+    MatrixOS::Storage::Lock lock(1000);
+    if (!lock.IsLocked())
+    {
+      MLOGE("File", "Failed to acquire storage lock for write");
+      return 0;
+    }
 
     UINT bytes_written = 0;
     FRESULT res = f_write(file, buffer, length, &bytes_written);

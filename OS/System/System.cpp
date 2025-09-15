@@ -7,6 +7,7 @@
 #include "../LED/LED.h"
 #include "../KeyPad/KeyPad.h"
 #include "../MIDI/MIDI.h"
+#include "../Storage/StorageMutex.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
 
@@ -89,6 +90,9 @@ namespace MatrixOS::SYS
 
   void Begin(void) {
     Device::DeviceInit();
+
+    // Initialize storage mutex before any storage operations
+    MatrixOS::Storage::InitMutex();
 
     // MatrixOS::USB::Init();
     MatrixOS::USB::Init(USB_MODE_MSC);
