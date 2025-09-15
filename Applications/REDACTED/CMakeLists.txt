@@ -12,3 +12,6 @@ target_link_libraries(REDACTEDAPP PUBLIC
     MatrixOSInterface
     MatrixOSAPPInterface
 )
+
+# Register the application class
+RegisterApplicationClass(REDACTED)

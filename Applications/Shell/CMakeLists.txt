@@ -12,3 +12,6 @@ target_link_libraries(ShellAPP PUBLIC
     MatrixOSInterface
     MatrixOSAPPInterface
 )
+
+# Register the application class
+RegisterApplicationClass(Shell)

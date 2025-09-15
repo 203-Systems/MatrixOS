@@ -13,3 +13,6 @@ target_link_libraries(ReversiAPP PUBLIC
     MatrixOSAPPInterface
     BrightnessControlUI
 )
+
+# Register the application class
+RegisterApplicationClass(Reversi)

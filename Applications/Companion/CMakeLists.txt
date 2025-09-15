@@ -13,3 +13,6 @@ target_link_libraries(CompanionAPP PUBLIC
     MatrixOSAPPInterface
     BrightnessControlUI
 )
+
+# Register the application class
+RegisterApplicationClass(Companion)

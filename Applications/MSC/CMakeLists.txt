@@ -10,3 +10,6 @@ target_include_directories(MSC PUBLIC
 target_link_libraries(MSC PUBLIC
     MatrixOSAPPInterface
 )
+
+# Register the application class
+RegisterApplicationClass(MSC)

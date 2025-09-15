@@ -21,3 +21,6 @@ target_link_libraries(CustomControlMapAPP PUBLIC
     MatrixOSAPPInterface
     BrightnessControlUI
 )
+
+# Register the application class
+RegisterApplicationClass(CustomControlMap)

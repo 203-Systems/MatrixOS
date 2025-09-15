@@ -1,9 +1,8 @@
-# Applications List
+# Applications List - Simplified Format
 # Format:
-#   FolderName:HeaderFileName  - includes subdirectory AND generates in Applications.h
-#   FolderName                 - includes subdirectory only (no Applications.h entry)
-#   [System]FolderName:HeaderFileName - System app with elevated privileges
-# If an application is not listed here, it will be disabled
+#   FolderName                - Regular application (sandboxed)
+#   [System]FolderName        - System application (privileged)
+# Applications register their class via RegisterApplicationClass() in their CMakeLists.txt
 # Use # for comments and empty lines are allowed
 
 # Device UI
@@ -11,25 +10,25 @@ Setting
 BrightnessControl
 
 # System Apps (privileged)
-[System]Shell:Shell
-[System]Python:Python
-MSC:MSC
-Performance:Performance
-Note:Note
-REDACTED:REDACTED
-Companion:Companion
-CustomControlMap:CustomControlMap
+[System]Shell
+[System]Python
+MSC
+Performance
+Note
+REDACTED
+Companion
+CustomControlMap
 
 # User Apps (sandboxed - no prefix)
-Lighting:Lighting
-Dice:Dice
-Reversi:Reversi
-PolyPlayground:PolyPlayground
-Strum:Strum
+Lighting
+Dice
+Reversi
+PolyPlayground
+Strum
 
 # Boot animation
-{FAMILY_PATH}/Applications/MystrixBoot:MystrixBoot
+{FAMILY_PATH}/Applications/MystrixBoot
 
 # Device-specific applications
-{FAMILY_PATH}/Applications/FactoryMenu:FactoryMenu
-{FAMILY_PATH}/Applications/ForceCalibration:ForceCalibration
+{FAMILY_PATH}/Applications/FactoryMenu
+{FAMILY_PATH}/Applications/ForceCalibration

@@ -13,3 +13,6 @@ target_link_libraries(StrumAPP PUBLIC
     MatrixOSAPPInterface
     BrightnessControlUI
 )
+
+# Register the application class
+RegisterApplicationClass(Strum)

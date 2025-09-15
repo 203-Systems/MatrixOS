@@ -13,3 +13,6 @@ target_link_libraries(MystrixBootAPP PUBLIC
     MatrixOSAPPInterface
     BootAnimationTemplate
 )
+
+# Register the application class
+RegisterApplicationClass(MystrixBoot)

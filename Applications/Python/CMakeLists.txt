@@ -16,3 +16,6 @@ target_link_libraries(Python PUBLIC
     MatrixOSInterface
     MatrixOSAPPInterface
 )
+
+# Register the application class
+RegisterApplicationClass(Python)

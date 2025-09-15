@@ -12,3 +12,6 @@ target_link_libraries(MystrixForceCalibrationAPP PUBLIC
     MatrixOSInterface
     MatrixOSAPPInterface
 )
+
+# Register the application class
+RegisterApplicationClass(ForceCalibration)
