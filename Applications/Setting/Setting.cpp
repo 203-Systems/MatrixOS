@@ -56,7 +56,11 @@ void Setting::Start() {
   UIButton mscModeBtn;
   mscModeBtn.SetName("USB Storage Mode");
   mscModeBtn.SetSize(Dimension(1, 1));
-  mscModeBtn.OnPress([]() -> void { if (MatrixOS::File::Available()) {Setting::MSCmode();} });
+  mscModeBtn.OnPress([]() -> void {
+    if (MatrixOS::File::Available()) {
+      MatrixOS::SYS::ExecuteAPP("203 Systems", "MSC Mode");
+    }
+  });
 
   // Dynamic color based on storage availability
   mscModeBtn.SetColorFunc([]() -> Color {
@@ -203,39 +207,6 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
   return false;
 }
 
-void Setting::MSCmode() {
-#if DEVICE_STORAGE == 1
-  // Check if storage is available
-  if (!MatrixOS::File::Available()) {
-    MLOGW("Setting", "Storage not available - cannot enter USB storage mode");
-    return;
-  }
-
-  MatrixOS::USB::SetMode(USB_MODE_MSC);
-
-  // Create MSC Mode UI
-  UI mscUI("USB Storage Mode", Color(0xFF8000));
-
-  // Add instructions text or visual indicators
-  mscUI.SetPreRenderFunc([]() -> void {
-    // Display "U"
-    MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(2, 3), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(2, 4), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(3, 5), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(4, 5), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(5, 2), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(5, 3), Color(0xFF8000));
-    MatrixOS::LED::SetColor(Point(5, 4), Color(0xFF8000));
-  });
-
-  // Start the MSC UI
-  mscUI.Start();
-
-  MatrixOS::USB::SetMode(USB_MODE_NORMAL);
-
-#endif
-}
 
 void Setting::ResetConfirm() {
   UI confirmResetUI("Confirm Factory Reset", Color(0xFF00FF));
