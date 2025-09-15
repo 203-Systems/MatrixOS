@@ -12,7 +12,7 @@
 //--------------------------------------------------------------------+
 
 const struct usb_mode_interface mode_table[] = {
-  [USB_MODE_DEFAULT] = {
+  [USB_MODE_NORMAL] = {
     .get_device_descriptor = default_device_descriptor_cb,
     .get_configuration_descriptor = default_configuration_descriptor_cb,
     .get_string_descriptor = default_string_descriptor_cb,

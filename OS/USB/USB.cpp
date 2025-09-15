@@ -5,7 +5,7 @@
 
 namespace MatrixOS::USB
 {
-  static uint8_t mode = USB_MODE_DEFAULT;
+  static uint8_t mode = USB_MODE_NORMAL;
 
   // Function to get current mode for descriptor callbacks
   uint8_t GetMode() {
@@ -26,12 +26,12 @@ namespace MatrixOS::USB
 #define USBD_STACK_SIZE (3 * configMINIMAL_STACK_SIZE)
   StackType_t usb_device_stack[USBD_STACK_SIZE];
   StaticTask_t usb_device_taskdef;
-  void Init(USB_MODE initial_mode) {
-    mode = initial_mode;
+  void Init(USB_MODE mode) {
+    MatrixOS::USB::mode = mode;
     tusb_init();
     (void)xTaskCreateStatic(usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, usb_device_stack,
                             &usb_device_taskdef);
-    if (mode == USB_MODE_DEFAULT) {
+    if (mode == USB_MODE_NORMAL) {
       USB::MIDI::Init();
     }
   }
@@ -52,9 +52,11 @@ namespace MatrixOS::USB
     return MATRIXOS_VERSION_ID_16;
   }
 
-  void NormalMode() {
-    if (mode != USB_MODE_DEFAULT) {
-      mode = USB_MODE_DEFAULT;
+
+  // New unified SetMode API
+  void SetMode(USB_MODE new_mode) {
+    if (mode != new_mode) {
+      mode = new_mode;
       if (Connected()) {
         Disconnect();
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -63,18 +65,6 @@ namespace MatrixOS::USB
     }
   }
 
-  namespace MSC {
-    void Enable() {
-      if (mode != USB_MODE_MSC) {
-        mode = USB_MODE_MSC;
-        if (Connected()) {
-          Disconnect();
-          vTaskDelay(pdMS_TO_TICKS(100));
-          Connect();
-        }
-      }
-    }
-  }
 }
 
 //--------------------------------------------------------------------+
