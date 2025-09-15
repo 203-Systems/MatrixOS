@@ -18,6 +18,8 @@ class Setting : public UI {
 
    static void RotateClockwise(Direction rotation);
    static void NextBrightness();
+   static void MSCmode();
+   static void ResetConfirm();
 
    bool CustomKeyEvent(KeyEvent* keyEvent);
 
