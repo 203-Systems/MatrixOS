@@ -12,6 +12,7 @@ struct Application_Info {
   Color color;
   uint32_t version;
   bool visibility = true;
+  bool is_system = false;  // System privilege flag
   std::function<Application*()> factory = nullptr;
   std::function<void(Application*)> destructor = nullptr;
 };
@@ -54,14 +55,15 @@ inline std::unordered_map<uint32_t, Application_Info*> applications;
 inline std::map<uint32_t, uint32_t> application_ids;
 
 template <typename APPLICATION_CLASS>
-static inline void register_application(Application_Info info, uint32_t order) {
-     APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
+static inline void register_application(Application_Info info, uint32_t order, bool is_system) {
+    APPLICATION_CLASS::info.is_system = is_system;  // Set system flag
+    APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
       return new APPLICATION_CLASS();                                                              \
     };                                                                                             \
     APPLICATION_CLASS::info.destructor = [](Application* app) {                                 \
       delete (APPLICATION_CLASS*)app;                                                                   \
     };                                                                                             \
-    MLOGI("Application", "Registering application: %s", APPLICATION_CLASS::info.name.c_str());  \
+    MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), is_system ? " (system)" : "");  \
     uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name); \
     if (applications.find(app_id) != applications.end()) { \
       return; \
@@ -70,7 +72,7 @@ static inline void register_application(Application_Info info, uint32_t order) {
     application_ids[order] = app_id; \
 }
 
-#define REGISTER_APPLICATION(APPLICATION_CLASS)                                                    \
+#define REGISTER_APPLICATION(APPLICATION_CLASS, IS_SYSTEM)                                         \
   __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) { \
-    register_application<APPLICATION_CLASS>(APPLICATION_CLASS::info, __COUNTER__);                                    \
+    register_application<APPLICATION_CLASS>(APPLICATION_CLASS::info, __COUNTER__, IS_SYSTEM);      \
   }

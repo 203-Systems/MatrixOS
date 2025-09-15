@@ -33,7 +33,15 @@ function(add_enabled_applications CONFIG_FILE)
         if(LINE_TRIMMED MATCHES "^#" OR LINE_TRIMMED STREQUAL "")
             continue()
         endif()
-        
+
+        # Check for [System] prefix
+        set(IS_SYSTEM_APP FALSE)
+        if(LINE_TRIMMED MATCHES "^\\[System\\]")
+            set(IS_SYSTEM_APP TRUE)
+            # Remove [System] prefix
+            string(REGEX REPLACE "^\\[System\\]" "" LINE_TRIMMED "${LINE_TRIMMED}")
+        endif()
+
         # Parse path and header name
         if(LINE_TRIMMED MATCHES ":")
             string(REPLACE ":" ";" LINE_PARTS ${LINE_TRIMMED})
@@ -61,7 +69,13 @@ function(add_enabled_applications CONFIG_FILE)
         else()
             get_filename_component(APP_NAME ${APP_PATH} NAME)
         endif()
-        message(STATUS "${Esc}[93mLoaded application: '${APP_NAME} at ${DISPLAY_PATH}'${Esc}[0m")
+        if(IS_SYSTEM_APP)
+            # Purple color (95m) for system apps
+            message(STATUS "${Esc}[95mLoaded application with system level privilege: '${APP_NAME} at ${DISPLAY_PATH}'${Esc}[0m")
+        else()
+            # Yellow color (93m) for regular apps
+            message(STATUS "${Esc}[93mLoaded application: '${APP_NAME} at ${DISPLAY_PATH}'${Esc}[0m")
+        endif()
 
         if(EXISTS ${APP_DIR} AND EXISTS ${APP_CMAKE})
             # Add the subdirectory for this application
@@ -87,7 +101,7 @@ function(add_enabled_applications CONFIG_FILE)
             
             # Add to enabled apps list for header generation (only if header name is specified)
             if(NOT HEADER_NAME STREQUAL "")
-                list(APPEND ENABLED_APPS "${APP_PATH}:${HEADER_NAME}")
+                list(APPEND ENABLED_APPS "${APP_PATH}:${HEADER_NAME}:${IS_SYSTEM_APP}")
             endif()
         else()
             message(WARNING "Application '${APP_PATH}' directory or CMakeLists.txt not found")
@@ -110,11 +124,19 @@ function(generate_applications_header OUTPUT_FILE)
     # Add all enabled applications
     if(ENABLED_APPS)
         foreach(APP_ENTRY ${ENABLED_APPS})
-            # Parse APP_PATH:HEADER_NAME format
+            # Parse APP_PATH:HEADER_NAME:IS_SYSTEM format
             string(REPLACE ":" ";" ENTRY_PARTS ${APP_ENTRY})
             list(GET ENTRY_PARTS 0 APP_PATH)
             list(GET ENTRY_PARTS 1 HEADER_NAME)
-            
+            set(IS_SYSTEM "false")
+            list(LENGTH ENTRY_PARTS PARTS_COUNT)
+            if(PARTS_COUNT GREATER 2)
+                list(GET ENTRY_PARTS 2 IS_SYSTEM_FLAG)
+                if(IS_SYSTEM_FLAG)
+                    set(IS_SYSTEM "true")
+                endif()
+            endif()
+
             # Handle {FAMILY_PATH} substitution in include path
             if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
                 # For family path, make it relative from applications directory to the family directory
@@ -124,9 +146,9 @@ function(generate_applications_header OUTPUT_FILE)
                 # Regular relative path
                 set(APP_INCLUDE_PATH "${APP_PATH}")
             endif()
-            
+
             string(APPEND HEADER_CONTENT "#include \"${APP_INCLUDE_PATH}/${HEADER_NAME}.h\"\n")
-            string(APPEND HEADER_CONTENT "REGISTER_APPLICATION(${HEADER_NAME})\n\n")
+            string(APPEND HEADER_CONTENT "REGISTER_APPLICATION(${HEADER_NAME}, ${IS_SYSTEM})\n\n")
         endforeach()
         string(APPEND HEADER_CONTENT "\n")
     endif()

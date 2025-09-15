@@ -1,25 +1,26 @@
-# MatrixESP32 Applications List
-# Format: 
+# Applications List
+# Format:
 #   FolderName:HeaderFileName  - includes subdirectory AND generates in Applications.h
 #   FolderName                 - includes subdirectory only (no Applications.h entry)
+#   [System]FolderName:HeaderFileName - System app with elevated privileges
 # If an application is not listed here, it will be disabled
 # Use # for comments and empty lines are allowed
 
-# Device UI (subdirectory only, no header generation)
+# Device UI
 Setting
 BrightnessControl
 
-# System App
-Shell:Shell
+# System Apps (privileged)
+[System]Shell:Shell
+[System]Python:Python
 MSC:MSC
 Performance:Performance
 Note:Note
 REDACTED:REDACTED
 Companion:Companion
 CustomControlMap:CustomControlMap
-Python:Python
 
-# User Apps
+# User Apps (sandboxed - no prefix)
 Lighting:Lighting
 Dice:Dice
 Reversi:Reversi
