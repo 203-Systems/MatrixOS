@@ -7,6 +7,20 @@ class Application_Info;
 
 namespace MatrixOS::SYS
 {
+  // Task permission flags bitmap
+  struct TaskPermissions {
+    union {
+      struct {
+        uint32_t privileged : 1;   // Bit 0: System privilege (file system, etc.)
+        uint32_t reserved : 31;    // Bits 1-31: Reserved for future use
+      };
+      uint32_t raw;  // Direct access to all flags
+    };
+
+    // Constructor
+    TaskPermissions(uint32_t value = 0) : raw(value) {}
+  };
+
   inline StackType_t application_stack[APPLICATION_STACK_SIZE];
   inline StaticTask_t application_taskdef;
 
@@ -31,4 +45,9 @@ namespace MatrixOS::SYS
   uint16_t GetApplicationCount();
 
   void UpdateSystemNVS();
+
+  // Permission APIs
+  bool IsTaskPrivileged(TaskHandle_t task = nullptr);
+  TaskPermissions GetTaskPermissions(TaskHandle_t task = nullptr);
+  void SetTaskPermissions(TaskPermissions permissions, TaskHandle_t task = nullptr);
 }

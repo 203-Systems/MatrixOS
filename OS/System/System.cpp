@@ -12,6 +12,12 @@ extern std::unordered_map<uint32_t, Application_Info*> applications;
 
 namespace MatrixOS::SYS
 {
+  // Thread Local Storage indices
+  enum TLS_Index {
+    TLS_PERMISSIONS_INDEX = 0,  // Stores TaskPermissions bitmap
+    TLS_MAX_INDEX = 1           // Reserve for future use
+  };
+
   void ApplicationFactory(void* param) {
     MLOGD("Application Factory", "App ID %X", next_app_id);
 
@@ -50,6 +56,15 @@ namespace MatrixOS::SYS
     }
 
     next_app_id = 0;  // Reset active_app_id so when active app exits it will default to shell again.
+
+    // Update task permissions based on app info
+    if (active_app_info != nullptr) {
+      TaskPermissions perms;
+      perms.privileged = active_app_info->is_system;
+      SetTaskPermissions(perms);  // Uses current task (which IS the app task)
+      MLOGD("Application Factory", "Set app permissions: %s", perms.privileged ? "Privileged" : "Not Privileged");
+    }
+
     InitSysModules();
     MatrixOS::LED::Fade();
     active_app->Start();
@@ -61,8 +76,8 @@ namespace MatrixOS::SYS
 
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
+
     bool exited = false;
-    while (true)
     while (true)
     {
       // Check if function key is held for more than 3 seconds
@@ -274,5 +289,36 @@ namespace MatrixOS::SYS
     // }
 
     (void)prev_ver;
+  }
+
+  TaskPermissions GetTaskPermissions(TaskHandle_t task) {
+    // If null, get current task
+    if (task == nullptr) {
+      task = xTaskGetCurrentTaskHandle();
+    }
+
+    // System tasks (not app task) have all permissions
+    if (task != active_app_task) {
+      return TaskPermissions(0xFFFFFFFF);  // All permissions
+    }
+
+    // Get permissions from Thread Local Storage
+    uint32_t raw = (uintptr_t)pvTaskGetThreadLocalStoragePointer(task, TLS_PERMISSIONS_INDEX);
+    return TaskPermissions(raw);
+  }
+
+  bool IsTaskPrivileged(TaskHandle_t task) {
+    TaskPermissions perms = GetTaskPermissions(task);
+    return perms.privileged;
+  }
+
+  void SetTaskPermissions(TaskPermissions permissions, TaskHandle_t task) {
+    // If null, get current task
+    if (task == nullptr) {
+      task = xTaskGetCurrentTaskHandle();
+    }
+
+    // Set permissions in Thread Local Storage
+    vTaskSetThreadLocalStoragePointer(task, TLS_PERMISSIONS_INDEX, (void*)(uintptr_t)permissions.raw);
   }
 }
