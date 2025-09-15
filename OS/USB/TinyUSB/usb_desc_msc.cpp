@@ -9,30 +9,22 @@
 // MSC mode: CDC + Mass Storage composite
 enum MSC_INTERFACES
 {
-  ITF_NUM_MSC_CDC = 0,
-  ITF_NUM_MSC_CDC_DATA,
   ITF_NUM_MSC,
-  ITF_NUM_MSC_TOTAL
+  ITF_NUM_TOTAL
 };
 
-#define CONFIG_MSC_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_MSC_DESC_LEN)
+#define CONFIG_MSC_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_MSC_DESC_LEN)
 
-#define EPNUM_MSC_CDC_NOTIF 0x81
-#define EPNUM_MSC_CDC_OUT   0x01
-#define EPNUM_MSC_CDC_IN    0x82
-#define EPNUM_MSC_OUT   0x02
-#define EPNUM_MSC_IN    0x83
+#define EPNUM_MSC_OUT       0x01
+#define EPNUM_MSC_IN        0x81
 
 
 uint8_t const desc_msc_configuration[] = {
     // Config number, interface count, string index, total length, attribute, power in mA
-    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_MSC_TOTAL, 0, CONFIG_MSC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
-
-    // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-    TUD_CDC_DESCRIPTOR(ITF_NUM_MSC_CDC, 4, EPNUM_MSC_CDC_NOTIF, 8, EPNUM_MSC_CDC_OUT, EPNUM_MSC_CDC_IN, CFG_TUD_CDC_RX_BUFSIZE),
+    TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_MSC_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 500),
 
     // Interface number, string index, EP Out & EP In address, EP size
-    TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, CFG_TUD_MSC_EP_BUFSIZE)
+    TUD_MSC_DESCRIPTOR(ITF_NUM_MSC, 4, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64)
 
 };
 
@@ -82,18 +74,13 @@ uint16_t const* msc_string_descriptor_cb(uint8_t index, uint16_t langid) {
 
   uint8_t chr_count;
 
-  string product_name = Device::product_name;
-
-  string serial_number = Device::GetSerial();
-
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
       (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
       Device::manufacturer_name.c_str(),        // 1: Manufacturer
-      product_name.c_str(),                    // 2: Product (with MSC suffix)
-      serial_number.c_str(),                   // 3: Serials, should use chip ID
-      "CDC Interface",                         // 4: CDC Interface
-      (Device::product_name + " Storage").c_str()  // 5: MSC Interface
+      Device::product_name.c_str(),                    // 2: Product (with MSC suffix)
+      Device::GetSerial().c_str(),                   // 3: Serials, should use chip ID
+      (Device::product_name + " MSC").c_str()  // 4: MSC Interface
   };
 
   if (index == 0)

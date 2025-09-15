@@ -2,7 +2,6 @@
 #include "tusb.h"
 #include "Device.h"
 #include "class/msc/msc.h"
-#include "Storage/StorageMutex.h"
 
 #define DEVICE_STORAGE 1
 
@@ -32,7 +31,7 @@ uint32_t tud_msc_inquiry2_cb(uint8_t lun, scsi_inquiry_resp_t* inquiry_resp) {
 bool tud_msc_test_unit_ready_cb(uint8_t lun) {
   // MatrixOS::Logging::LogInfo("MSC", "TEST_UNIT_READY - LUN: %d", lun);
 
-  const Device::Storage::Status* status = Device::Storage::GetStatus();
+  const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
   // MatrixOS::Logging::LogInfo("MSC", "Storage - Available: %s, Sectors: %d, SectorSize: %d, WriteProtected: %s",
   //   status->available ? "YES" : "NO",
@@ -49,7 +48,7 @@ void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_siz
   // MatrixOS::Logging::LogInfo("MSC", "CAPACITY - LUN: %d", lun);
 
   #if DEVICE_STORAGE == 1
-  const Device::Storage::Status* status = Device::Storage::GetStatus();
+  const Device::Storage::StorageStatus* status = Device::Storage::Status();
   if (status->available) {
     *block_count = status->sector_count;
     *block_size = status->sector_size;
@@ -92,84 +91,18 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
 // Callback invoked when received READ10 command.
 // Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
 int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
-  // MatrixOS::Logging::LogInfo("MSC", "READ10 - LUN: %d, LBA: %d, Offset: %d, BufSize: %d", lun, lba, offset, bufsize);
-
   #if DEVICE_STORAGE == 1
-  // For reads, we need to handle partial sector reads
-  // Calculate which sectors we need to read
-  uint32_t start_byte = (lba * 512) + offset;
-  uint32_t start_sector = start_byte / 512;
-  uint32_t end_byte = start_byte + bufsize - 1;
-  uint32_t end_sector = end_byte / 512;
-  uint32_t sector_count = end_sector - start_sector + 1;
-
-  // MatrixOS::Logging::LogInfo("MSC", "Reading sectors: start=%d, count=%d for bytes %d-%d",
-  //   start_sector, sector_count, start_byte, end_byte);
-
-  // If we need to read partial sectors, use a cached sector buffer
-  if (sector_count * 512 != bufsize || (start_byte % 512) != 0) {
-    // Partial sector read - use sector cache for efficiency
-    static uint8_t cached_sector[512];
-    static uint32_t cached_sector_lba = UINT32_MAX; // Invalid LBA initially
-
-    if (sector_count > 1) {
-      MatrixOS::Logging::LogError("MSC", "READ10 - Partial read spans multiple sectors: %d", sector_count);
-      return TUD_MSC_RET_ERROR;
-    }
-
-    // Check if we already have this sector cached
-    bool cache_hit = (cached_sector_lba == start_sector);
-
-    if (!cache_hit) {
-      // Need to read new sector
-      // Lock storage mutex before reading
-      MatrixOS::Storage::Lock lock(1000); // 1 second timeout
-      if (!lock.IsLocked()) {
-        MatrixOS::Logging::LogError("MSC", "Failed to acquire storage lock for partial read");
-        tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-        return -1;
-      }
-
-      bool result = Device::Storage::ReadSectors(0, start_sector, cached_sector, 1);
-      if (!result) {
-        MatrixOS::Logging::LogError("MSC", "Partial read failed");
-        cached_sector_lba = UINT32_MAX; // Invalidate cache
-        tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-        return -1;
-      }
-      cached_sector_lba = start_sector;
-    }
-
-    // Copy the requested portion from cached sector
-    uint32_t buffer_offset = start_byte - (start_sector * 512);
-    memcpy(buffer, cached_sector + buffer_offset, bufsize);
-    // MatrixOS::Logging::LogInfo("MSC", "Partial read successful - copied %d bytes from offset %d (cached: %s)",
-    //   bufsize, buffer_offset, cache_hit ? "hit" : "miss");
-  } else {
-    // Full sector aligned read
-    // Lock storage mutex before reading
-    MatrixOS::Storage::Lock lock(1000); // 1 second timeout
-    if (!lock.IsLocked()) {
-      MatrixOS::Logging::LogError("MSC", "Failed to acquire storage lock for full read");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
-
-    bool result = Device::Storage::ReadSectors(0, start_sector, (uint8_t*)buffer, sector_count);
-    // MatrixOS::Logging::LogInfo("MSC", "Full read result: %s", result ? "SUCCESS" : "FAILED");
-
-    if (!result) {
-      MatrixOS::Logging::LogError("MSC", "Full read failed");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
+  // Simple passthrough to Storage layer - ESP-IDF style
+  uint32_t sector_count = bufsize / 512;  // Convert bytes to sector count (Hard code this for now to improve performance)
+  if (!Device::Storage::ReadSectors(lba, sector_count, buffer)) {
+    tud_msc_set_sense(lun, SCSI_SENSE_MEDIUM_ERROR, 0x11, 0x00);
+    return -1;
   }
 
   return bufsize;
   #else
   // Return dummy data (all zeros) for debugging
   memset(buffer, 0, bufsize);
-  // MatrixOS::Logging::LogWarning("MSC", "READ10 - returning dummy data (storage disabled)");
   return bufsize;
   #endif
 }
@@ -177,82 +110,17 @@ int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buff
 // Callback invoked when received WRITE10 command.
 // Process data in buffer to disk's storage and return number of written bytes
 int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize) {
-  // MatrixOS::Logging::LogInfo("MSC", "WRITE10 - LUN: %d, LBA: %d, Offset: %d, BufSize: %d", lun, lba, offset, bufsize);
-
   #if DEVICE_STORAGE == 1
-  // Calculate which sectors we need to write
-  uint32_t start_byte = (lba * 512) + offset;
-  uint32_t start_sector = start_byte / 512;
-  uint32_t end_byte = start_byte + bufsize - 1;
-  uint32_t end_sector = end_byte / 512;
-  uint32_t sector_count = end_sector - start_sector + 1;
-
-  // MatrixOS::Logging::LogInfo("MSC", "Writing sectors: start=%d, count=%d", start_sector, sector_count);
-
-  // Check if we need partial sector writes (read-modify-write)
-  if (sector_count * 512 != bufsize || (start_byte % 512) != 0) {
-    // Partial sector write - need read-modify-write
-    static uint8_t temp_sector[512];
-
-    if (sector_count > 1) {
-      MatrixOS::Logging::LogError("MSC", "WRITE10 - Partial write spans multiple sectors: %d", sector_count);
-      return TUD_MSC_RET_ERROR;
-    }
-
-    // Lock storage mutex before read-modify-write
-    MatrixOS::Storage::Lock lock(1000); // 1 second timeout
-    if (!lock.IsLocked()) {
-      MatrixOS::Logging::LogError("MSC", "Failed to acquire storage lock for partial write");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
-
-    // Read existing sector
-    bool result = Device::Storage::ReadSectors(0, start_sector, temp_sector, 1);
-    if (!result) {
-      MatrixOS::Logging::LogError("MSC", "Failed to read sector for partial write");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
-
-    // Modify the relevant portion
-    uint32_t buffer_offset = start_byte - (start_sector * 512);
-    memcpy(temp_sector + buffer_offset, buffer, bufsize);
-
-    // Write back the modified sector
-    result = Device::Storage::WriteSectors(0, start_sector, temp_sector, 1);
-    if (!result) {
-      MatrixOS::Logging::LogError("MSC", "Failed to write modified sector");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
-  } else {
-    // Full sector aligned write
-    // Lock storage mutex before writing
-    MatrixOS::Storage::Lock lock(1000); // 1 second timeout
-    if (!lock.IsLocked()) {
-      MatrixOS::Logging::LogError("MSC", "Failed to acquire storage lock for write");
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      return -1;
-    }
-
-    // Try to write to real storage first
-    bool result = Device::Storage::WriteSectors(0, start_sector, buffer, sector_count);
-
-    // MatrixOS::Logging::LogInfo("MSC", "WriteSectors result: %s", result ? "SUCCESS" : "FAILED");
-
-    if (!result) {
-      // If real storage fails, set sense data and return error
-      tud_msc_set_sense(lun, SCSI_SENSE_NOT_READY, 0x3A, 0x00);
-      MatrixOS::Logging::LogError("MSC", "WRITE10 failed - sense data set");
-      return -1;
-    }
+  // Simple passthrough to Storage layer - ESP-IDF style
+  uint32_t sector_count = bufsize / 512;  // Convert bytes to sector count (Hard code this for now to improve performance)
+  if (!Device::Storage::WriteSectors(lba, sector_count, buffer)) {
+    tud_msc_set_sense(lun, SCSI_SENSE_MEDIUM_ERROR, 0x11, 0x00);
+    return -1;
   }
 
   return bufsize;
   #else
   // Pretend write succeeded for debugging
-  // MatrixOS::Logging::LogWarning("MSC", "WRITE10 - pretending success (storage disabled)");
   return bufsize;
   #endif
 }
@@ -314,7 +182,7 @@ bool tud_msc_is_writable_cb (uint8_t lun) {
   // MatrixOS::Logging::LogInfo("MSC", "IS_WRITABLE - LUN: %d", lun);
 
   #if DEVICE_STORAGE == 1
-  const Device::Storage::Status* status = Device::Storage::GetStatus();
+  const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
   bool writable = status->available && !status->write_protected;
   // MatrixOS::Logging::LogInfo("MSC", "Writable: %s (available=%s, write_protected=%s)",

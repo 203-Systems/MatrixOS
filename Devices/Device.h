@@ -78,7 +78,7 @@ namespace Device
   namespace Storage
   {
     // Storage subsystem is initialized automatically
-    struct Status
+    struct StorageStatus
     {
       bool available;          // Storage is available for read/write operations
       bool write_protected;    // Card is write protected
@@ -87,9 +87,10 @@ namespace Device
       uint32_t block_size;     // Erase block size in sectors (for filesystem optimization)
     };
 
-    const Status* GetStatus();
-    bool ReadSectors(uint8_t pdrv, uint32_t lba, uint8_t* buffer, uint32_t count);
-    bool WriteSectors(uint8_t pdrv, uint32_t lba, const uint8_t* buffer, uint32_t count);
+    bool Available();
+    const StorageStatus* Status();
+    bool ReadSectors(uint32_t lba, uint32_t sector_count, void* dest);
+    bool WriteSectors(uint32_t lba, uint32_t sector_count, const void* src);
   }
 #endif
 

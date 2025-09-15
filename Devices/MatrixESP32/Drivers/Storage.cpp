@@ -1,5 +1,4 @@
 #include "Device.h"
-#include "Storage.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdspi_host.h"
 #include "driver/gpio.h"
@@ -12,7 +11,23 @@ namespace Device
     static sdmmc_card_t card;
     static bool initialized = false;
     static bool card_failed = false; // Card present but failed to initialize
-    static Status status = {0}; // Initialize all fields to 0/false
+    static StorageStatus status = {0}; // Initialize all fields to 0/false
+
+    // Forward declaration
+    bool Available();
+
+    // GPIO interrupt handler for card detect
+    static void IRAM_ATTR card_detect_isr_handler(void* arg)
+    {
+      if (gpio_get_level(Device::Storage::sd_det_pin) == 0) {
+        // Card removed - reset status immediately
+        status.available = false;
+        status.sector_count = 0;
+        status.sector_size = 0;
+        status.block_size = 0;
+        status.write_protected = false;
+      }
+    }
 
     void InitCard()
     {
@@ -46,14 +61,12 @@ namespace Device
       ret = sdmmc_host_init();
       if (ret != ESP_OK)
       {
-        MLOGE("Storage", "Failed to init SDMMC host: %s", esp_err_to_name(ret));
         return;
       }
 
       ret = sdmmc_host_init_slot(SDMMC_HOST_SLOT_1, &slot_config);
       if (ret != ESP_OK)
       {
-        MLOGE("Storage", "Failed to init SDMMC slot: %s", esp_err_to_name(ret));
         sdmmc_host_deinit();
         return;
       }
@@ -62,13 +75,11 @@ namespace Device
       ret = sdmmc_card_init(&host, &card);
       if (ret != ESP_OK)
       {
-        MLOGD("Storage", "Card init failed: %s", esp_err_to_name(ret));
         sdmmc_host_deinit();
         card_failed = true; // Mark card as failed, don't retry
         return;
       }
 
-      MLOGD("Storage", "SD card initialized successfully");
       initialized = true;
       card_failed = false; // Clear any previous failure
     }
@@ -79,7 +90,6 @@ namespace Device
       {
         sdmmc_host_deinit();
         initialized = false;
-        MLOGD("Storage", "SD card deinitialized");
       }
       card_failed = false; // Reset failure state on card removal
     }
@@ -94,23 +104,39 @@ namespace Device
           .mode = GPIO_MODE_INPUT,
           .pull_up_en = GPIO_PULLUP_DISABLE,
           .pull_down_en = GPIO_PULLDOWN_ENABLE,
-          .intr_type = GPIO_INTR_DISABLE
+          .intr_type = GPIO_INTR_ANYEDGE  // Trigger on both rising and falling edges
         };
         gpio_config(&io_conf);
+
+        // Install GPIO ISR service if not already installed
+        gpio_install_isr_service(0);
+
+        // Add ISR handler for card detect pin
+        gpio_isr_handler_add(Device::Storage::sd_det_pin, card_detect_isr_handler, NULL);
       }
 
-      GetStatus();
+      Available();  // Initial check
     }
 
-    const Status* GetStatus()
+    bool Available()
     {
-
       // Check if card is present (active high detection)
       bool card_present = true;
       if (Device::Storage::sd_det_pin != GPIO_NUM_NC)
       {
         card_present = (gpio_get_level(Device::Storage::sd_det_pin) == 1);
       }
+      
+      // if(card_present && initialized)
+      // {
+      //     uint8_t test_buffer[512];
+      //     esp_err_t test_result = sdmmc_read_sectors(&card, test_buffer, 0, 1);
+      //     if (test_result != ESP_OK) {
+      //       // Card not responding - mark as failed and deinit
+      //       card_present = false;
+      //     }
+      //   }
+      // }
 
       // Check if card state changed
       if (card_present && !initialized && !card_failed)
@@ -118,16 +144,10 @@ namespace Device
         // Card present and not initialized and not failed -> try to init
         InitCard();
       }
-      else if (!card_present && (initialized || card_failed))
+      else if (!card_present && initialized)
       {
         // Card removed -> deinit and reset states
         DeinitCard();
-      }
-      else if (Device::Storage::sd_det_pin == GPIO_NUM_NC && initialized)
-      {
-        // No card detect pin - check if ESP-IDF detects card removal
-        // This can happen when user removes card during operation
-        // We could add a simple read test here if needed for detection
       }
 
       // Update status based on current state
@@ -136,11 +156,8 @@ namespace Device
         // Card available - populate status
         status.available = true;
         status.sector_count = card.csd.capacity;
-        status.sector_size = 512;
-
-        uint32_t erase_block_sectors = card.ssr.erase_size_au * card.ssr.alloc_unit_kb * (1024 / 512);
-        status.block_size = (erase_block_sectors > 0) ? erase_block_sectors : 1;
-
+        status.sector_size = card.csd.sector_size;
+        status.block_size = card.csd.sector_size;
         status.write_protected = false;
       }
       else
@@ -148,76 +165,39 @@ namespace Device
         // Card not available - reset status
         status.available = false;
         status.sector_count = 0;
-        status.sector_size = 512;
-        status.block_size = 1;
+        status.sector_size = 0;
+        status.block_size = 0;
         status.write_protected = false;
       }
 
+      return status.available;
+    }
+
+    const StorageStatus* Status()
+    {
       return &status;
     }
 
 
-    bool ReadSectors(uint8_t pdrv, uint32_t lba, uint8_t* buffer, uint32_t count)
+    bool ReadSectors(uint32_t lba, uint32_t sector_count, void* dest)
     {
-      const Status* s = GetStatus();
-
-      if (!s->available)
+      if (!status.available)
       {
         return false; // Error
       }
 
-      // Retry up to 3 times with delays on error
-      esp_err_t ret = ESP_FAIL;
-      for (int retry = 0; retry < 3; retry++)
-      {
-        ret = sdmmc_read_sectors(&card, buffer, lba, count);
-        if (ret == ESP_OK)
-        {
-          break; // Success
-        }
-
-        // On error, wait a bit before retry
-        MLOGD("Storage", "Read error 0x%x at LBA %d, retry %d/3", ret, lba, retry + 1);
-        vTaskDelay(pdMS_TO_TICKS(10)); // 10ms delay
-      }
-
-      if (ret != ESP_OK)
-      {
-        MLOGE("Storage", "Failed to read sectors after 3 retries: 0x%x", ret);
-      }
-
+      esp_err_t ret = sdmmc_read_sectors(&card, dest, lba, sector_count);
       return (ret == ESP_OK);
     }
 
-    bool WriteSectors(uint8_t pdrv, uint32_t lba, const uint8_t* buffer, uint32_t count)
+    bool WriteSectors(uint32_t lba, uint32_t sector_count, const void* src)
     {
-      const Status* s = GetStatus();
-
-      if (!s->available || s->write_protected)
+      if (!status.available || status.write_protected)
       {
         return false; // Error
       }
 
-      // Retry up to 3 times with delays on error
-      esp_err_t ret = ESP_FAIL;
-      for (int retry = 0; retry < 3; retry++)
-      {
-        ret = sdmmc_write_sectors(&card, buffer, lba, count);
-        if (ret == ESP_OK)
-        {
-          break; // Success
-        }
-
-        // On error, wait a bit before retry
-        MLOGD("Storage", "Write error 0x%x at LBA %d, retry %d/3", ret, lba, retry + 1);
-        vTaskDelay(pdMS_TO_TICKS(10)); // 10ms delay
-      }
-
-      if (ret != ESP_OK)
-      {
-        MLOGE("Storage", "Failed to write sectors after 3 retries: 0x%x", ret);
-      }
-
+      esp_err_t ret = sdmmc_write_sectors(&card, src, lba, sector_count);
       return (ret == ESP_OK);
     }
   }

@@ -5,13 +5,13 @@
 
 namespace MatrixOS::File
 {
-  typedef FIL Handle;
+  typedef FIL File;
 
   bool Available();
-  Handle* Open(string path, uint8_t mode);
-  bool Close(Handle* file);
-  size_t Read(Handle* file, void* buffer, size_t length);
-  size_t Write(Handle* file, const void* buffer, size_t length);
+  File* Open(string path, uint8_t mode);
+  bool Close(File* file);
+  size_t Read(File* file, void* buffer, size_t length);
+  size_t Write(File* file, const void* buffer, size_t length);
   bool Exists(string path);
   bool Delete(string path);
   bool CreateDir(string path);

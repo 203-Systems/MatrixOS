@@ -19,7 +19,7 @@ DSTATUS disk_status (
 )
 {
 #if DEVICE_STORAGE == 1
-  const Device::Storage::Status* status = Device::Storage::GetStatus();
+  const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
   if (!status->available)
     return STA_NOINIT;
@@ -61,7 +61,7 @@ DRESULT disk_read (
 )
 {
 #if DEVICE_STORAGE == 1
-  bool result = Device::Storage::ReadSectors(pdrv, sector, buff, count);
+  bool result = Device::Storage::ReadSectors(sector, count, buff);
   return result ? RES_OK : RES_ERROR;
 #else
   return RES_NOTRDY;
@@ -82,7 +82,7 @@ DRESULT disk_write (
 )
 {
 #if DEVICE_STORAGE == 1
-  bool result = Device::Storage::WriteSectors(pdrv, sector, buff, count);
+  bool result = Device::Storage::WriteSectors(sector, count, buff);
   return result ? RES_OK : RES_ERROR;
 #else
   return RES_NOTRDY;
@@ -102,7 +102,7 @@ DRESULT disk_ioctl (
 )
 {
 #if DEVICE_STORAGE == 1
-  const Device::Storage::Status* status = Device::Storage::GetStatus();
+  const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
   switch (cmd)
   {

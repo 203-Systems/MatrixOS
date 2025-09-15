@@ -38,8 +38,8 @@ void Shell::Setup()
   // Initialize the folder system
   InitializeFolderSystem();
 
-  // Test filesystem functionality
-  TestFileSystem();
+  // Test filesystem functionality - DISABLED to prevent conflicts with USB MSC
+  // TestFileSystem();
 }
 
 void Shell::Loop() {
@@ -51,7 +51,7 @@ void Shell::TestFileSystem() {
     MLOGD("Shell", "Testing filesystem functionality...");
 
     // Check storage status
-    const Device::Storage::Status* status = Device::Storage::GetStatus();
+    const Device::Storage::StorageStatus* status = Device::Storage::Status();
     if (!status->available) {
         MLOGW("Shell", "Storage not available - skipping filesystem tests");
         return;
@@ -70,7 +70,7 @@ void Shell::TestFileSystem() {
     test_content += std::to_string(Device::Micros());
 
     // Test file write using low-level API
-    MatrixOS::File::Handle* file = MatrixOS::File::Open(test_file, FA_WRITE | FA_CREATE_ALWAYS);
+    MatrixOS::File::File* file = MatrixOS::File::Open(test_file, FA_WRITE | FA_CREATE_ALWAYS);
     if (file) {
         size_t written = MatrixOS::File::Write(file, test_content.c_str(), test_content.length());
         MatrixOS::File::Close(file);

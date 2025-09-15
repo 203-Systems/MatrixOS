@@ -135,9 +135,9 @@ enum DEFAULT_INTERFACES
 #define EPNUM_DEFAULT_MIDI_OUT  0x01
 #define EPNUM_DEFAULT_MIDI_IN   0x81
 #define EPNUM_DEFAULT_CDC_NOTIF 0x82
-#define EPNUM_DEFAULT_CDC_OUT   0x02
+#define EPNUM_DEFAULT_CDC_OUT   0x03
 #define EPNUM_DEFAULT_CDC_IN    0x83
-#define EPNUM_DEFAULT_HID_OUT   0x03
+#define EPNUM_DEFAULT_HID_OUT   0x04
 #define EPNUM_DEFAULT_HID_IN    0x84
 
 
@@ -213,16 +213,13 @@ uint16_t const* default_string_descriptor_cb(uint8_t index, uint16_t langid) {
     product_name += std::to_string(MatrixOS::UserVar::device_id.Get());
   }
 
-  string serial_number = Device::GetSerial();
-
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
       (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
       Device::manufacturer_name.c_str(),        // 1: Manufacturer
       product_name.c_str(),                    // 2: Product
-      serial_number.c_str(),                   // 3: Serials, should use chip ID
+      Device::GetSerial().c_str(),             // 3: Serials, should use chip ID
       (Device::product_name + " CDC").c_str(), // 4: CDC Interface
-      (Device::product_name + " MSC").c_str()  // 5: MSC Interface (for consistency)
   };
 
   if (index == 0)

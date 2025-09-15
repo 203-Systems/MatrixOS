@@ -1,7 +1,6 @@
 #include "File.h"
 #include "Device.h"
 #include "MatrixOS.h"
-#include "Storage/StorageMutex.h"
 
 namespace MatrixOS::File
 {
@@ -12,7 +11,7 @@ namespace MatrixOS::File
   {
 #if DEVICE_STORAGE == 1
     // Check if device storage is available
-    const Device::Storage::Status* status = Device::Storage::GetStatus();
+    const Device::Storage::StorageStatus* status = Device::Storage::Status();
     return status->available;
 #else
     return false;
@@ -38,14 +37,14 @@ namespace MatrixOS::File
     return true;
   }
 
-  Handle* Open(string path, uint8_t mode)
+  File* Open(string path, uint8_t mode)
   {
     if (!Available() || !EnsureMounted())
     {
       return nullptr;
     }
 
-    Handle* file = new Handle;
+    File* file = new File;
     FRESULT res = f_open(file, path.c_str(), mode);
 
     if (res == FR_OK)
@@ -60,7 +59,7 @@ namespace MatrixOS::File
     }
   }
 
-  bool Close(Handle* file)
+  bool Close(File* file)
   {
     if (!file) return false;
 
@@ -70,17 +69,11 @@ namespace MatrixOS::File
     return (res == FR_OK);
   }
 
-  size_t Read(Handle* file, void* buffer, size_t length)
+  size_t Read(File* file, void* buffer, size_t length)
   {
     if (!file || !buffer) return 0;
 
-    // Lock storage mutex for file read
-    MatrixOS::Storage::Lock lock(1000);
-    if (!lock.IsLocked())
-    {
-      MLOGE("File", "Failed to acquire storage lock for read");
-      return 0;
-    }
+    // Storage lock removed - be careful when using with MSC
 
     UINT bytes_read = 0;
     FRESULT res = f_read(file, buffer, length, &bytes_read);
@@ -94,17 +87,11 @@ namespace MatrixOS::File
     return bytes_read;
   }
 
-  size_t Write(Handle* file, const void* buffer, size_t length)
+  size_t Write(File* file, const void* buffer, size_t length)
   {
     if (!file || !buffer) return 0;
 
-    // Lock storage mutex for file write
-    MatrixOS::Storage::Lock lock(1000);
-    if (!lock.IsLocked())
-    {
-      MLOGE("File", "Failed to acquire storage lock for write");
-      return 0;
-    }
+    // Storage lock removed - be careful when using with MSC
 
     UINT bytes_written = 0;
     FRESULT res = f_write(file, buffer, length, &bytes_written);
