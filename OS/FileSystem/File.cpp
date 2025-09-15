@@ -27,25 +27,29 @@ namespace MatrixOS::File
 
   // Ensure app directory exists (lazy creation)
   static void EnsureAppDirectory() {
-    if (!MatrixOS::SYS::IsTaskPrivileged() && MatrixOS::SYS::active_app_info) {
+    if (MatrixOS::SYS::active_app_info) {
       string sandbox_path = GetAppSandboxPath();
 
       // Create directories if they don't exist
       // Note: We check and create each level separately to avoid issues
       FILINFO fno;
+      FRESULT res;
 
       // Check/create /MatrixOS
-      if (f_stat("/MatrixOS", &fno) != FR_OK) {
+      res = f_stat("/MatrixOS", &fno);
+      if (res != FR_OK) {
         f_mkdir("/MatrixOS");
       }
 
       // Check/create /MatrixOS/AppData
-      if (f_stat("/MatrixOS/AppData", &fno) != FR_OK) {
+      res = f_stat("/MatrixOS/AppData", &fno);
+      if (res != FR_OK) {
         f_mkdir("/MatrixOS/AppData");
       }
 
       // Check/create app-specific directory
-      if (f_stat(sandbox_path.c_str(), &fno) != FR_OK) {
+      res = f_stat(sandbox_path.c_str(), &fno);
+      if (res != FR_OK) {
         f_mkdir(sandbox_path.c_str());
       }
     }
@@ -66,7 +70,7 @@ namespace MatrixOS::File
     // Check for root filesystem access (privileged only)
     if (starts_with(path, ROOTFS_SHORTHAND)) {
       if (is_privileged) {
-        return path.substr(2);  // Remove "//" prefix
+        return path.substr(1);  // Remove one "/" from "//" prefix
       }
       // Non-privileged: deny rootfs access
       MLOGE("File", "Rootfs access denied for non-privileged task: %s", path.c_str());

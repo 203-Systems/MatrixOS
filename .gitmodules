@@ -7,6 +7,3 @@
 [submodule "Library/cb0r"]
 	path = Library/cb0r
 	url = https://github.com/203-Systems/cb0r.git
-[submodule "Library/FatFs"]
-	path = Library/FatFs
-	url = https://github.com/abbrev/fatfs.git

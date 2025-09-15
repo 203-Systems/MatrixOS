@@ -1,14 +1,14 @@
 file(GLOB_RECURSE FILE_HEADERS "*.h")
 set(FILE_SOURCES
     File.cpp
-    diskio.cpp
 )
 
-set(FATFS_DIR ${CMAKE_SOURCE_DIR}/Library/FatFs/)
-
-# FATFS_SOURCES - exclude the template diskio.c, use our own
+# Local FatFS sources
 set(FATFS_SOURCES
-    ${FATFS_DIR}/source/ff.c
+    FatFS/ff.c
+    FatFS/ffunicode.c
+    FatFS/diskio.cpp
+    FatFS/ffsystem.c
 )
 
 add_library(MatrixOSFile
@@ -19,7 +19,7 @@ add_library(MatrixOSFile
 
 target_include_directories(MatrixOSFile PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${FATFS_DIR}/source
+    ${CMAKE_CURRENT_SOURCE_DIR}/FatFS
 )
 
 target_link_libraries(MatrixOSFile PUBLIC MatrixOSInterface MatrixOSAPPInterface)

@@ -14,7 +14,7 @@
 #include "HID/HIDSpecs.h"
 
 #if DEVICE_STORAGE == 1
-#include "ff.h"
+#include "FileSystem/File.h"
 #endif
 
 // Matrix OS Modules and their API for Application layer or system layer
@@ -236,8 +236,6 @@ namespace MatrixOS
 #if DEVICE_STORAGE == 1
   namespace File
   {
-    typedef FIL File; // FIL from FatFS
-
     bool Available();
     File* Open(string path, uint8_t mode);
     bool Close(File* file);
