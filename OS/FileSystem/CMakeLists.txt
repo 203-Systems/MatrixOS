@@ -22,4 +22,4 @@ target_include_directories(MatrixOSFile PUBLIC
     ${FATFS_DIR}/source
 )
 
-target_link_libraries(MatrixOSFile PUBLIC MatrixOSInterface)
+target_link_libraries(MatrixOSFile PUBLIC MatrixOSInterface MatrixOSAPPInterface)

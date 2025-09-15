@@ -1,25 +1,110 @@
 #include "File.h"
 #include "Device.h"
 #include "MatrixOS.h"
+#include "Application.h"
+#include "../System/System.h"
+
+// Path translation constants
+#define ROOTFS_PREFIX "rootfs:/"
+#define ROOTFS_SHORTHAND "//"
+
+static bool starts_with(const string& str, const string& prefix) {
+  return str.length() >= prefix.length() && str.substr(0, prefix.length()) == prefix;
+}
 
 namespace MatrixOS::File
 {
   static FATFS fs;
   static bool filesystem_mounted = false;
 
-  bool Available()
-  {
-#if DEVICE_STORAGE == 1
-    // Check if device storage is available
-    const Device::Storage::StorageStatus* status = Device::Storage::Status();
-    return status->available;
-#else
-    return false;
-#endif
+  // Helper function to get app sandbox path
+  static string GetAppSandboxPath() {
+    if (MatrixOS::SYS::active_app_info) {
+      return "/MatrixOS/AppData/" + MatrixOS::SYS::active_app_info->author + "-" + MatrixOS::SYS::active_app_info->name;
+    }
+    return "";
   }
 
-  static bool EnsureMounted()
+  // Ensure app directory exists (lazy creation)
+  static void EnsureAppDirectory() {
+    if (!MatrixOS::SYS::IsTaskPrivileged() && MatrixOS::SYS::active_app_info) {
+      string sandbox_path = GetAppSandboxPath();
+
+      // Create directories if they don't exist
+      // Note: We check and create each level separately to avoid issues
+      FILINFO fno;
+
+      // Check/create /MatrixOS
+      if (f_stat("/MatrixOS", &fno) != FR_OK) {
+        f_mkdir("/MatrixOS");
+      }
+
+      // Check/create /MatrixOS/AppData
+      if (f_stat("/MatrixOS/AppData", &fno) != FR_OK) {
+        f_mkdir("/MatrixOS/AppData");
+      }
+
+      // Check/create app-specific directory
+      if (f_stat(sandbox_path.c_str(), &fno) != FR_OK) {
+        f_mkdir(sandbox_path.c_str());
+      }
+    }
+  }
+
+  // Translate paths based on privilege and check access
+  static string TranslatePath(const string& path) {
+    TaskHandle_t current_task = xTaskGetCurrentTaskHandle();
+    bool is_privileged = MatrixOS::SYS::IsTaskPrivileged();
+    bool is_app_task = (current_task == MatrixOS::SYS::active_app_task);
+
+    // First check if task has filesystem access
+    if (!is_privileged && !is_app_task) {
+      MLOGE("File", "Filesystem access denied for non-privileged non-app task");
+      return "";  // Empty string indicates access denied
+    }
+
+    // Check for root filesystem access (privileged only)
+    if (starts_with(path, ROOTFS_SHORTHAND)) {
+      if (is_privileged) {
+        return path.substr(2);  // Remove "//" prefix
+      }
+      // Non-privileged: deny rootfs access
+      MLOGE("File", "Rootfs access denied for non-privileged task: %s", path.c_str());
+      return "";
+    }
+    else if (starts_with(path, ROOTFS_PREFIX)) {
+      if (is_privileged) {
+        return path.substr(7);  // Remove "rootfs:/" prefix
+      }
+      // Non-privileged: deny rootfs access
+      MLOGE("File", "Rootfs access denied for non-privileged task: %s", path.c_str());
+      return "";
+    }
+
+    // Apply sandboxing for app tasks (both privileged and non-privileged)
+    if (is_app_task) {
+      // Ensure app directory exists
+      EnsureAppDirectory();
+
+      string sandbox = GetAppSandboxPath();
+
+      if (path.empty() || path == "/") {
+        return sandbox + "/";
+      } else if (path[0] == '/') {
+        return sandbox + path;  // /file.txt → /MatrixOS/AppData/{app}/file.txt
+      } else {
+        return sandbox + "/" + path;  // file.txt → /MatrixOS/AppData/{app}/file.txt
+      }
+    }
+
+    // System tasks must use rootfs prefixes for filesystem access
+    MLOGE("File", "System task must use rootfs prefix for filesystem access: %s", path.c_str());
+    return "";  // Deny access
+  }
+
+  void Init()
   {
+#if DEVICE_STORAGE == 1
     if (!filesystem_mounted)
     {
       FRESULT res = f_mount(&fs, "0:", 1);  // Mount immediately
@@ -31,17 +116,42 @@ namespace MatrixOS::File
       else
       {
         MLOGE("File", "Failed to mount filesystem: %d", res);
-        return false;
       }
     }
-    return true;
+
+    if(filesystem_mounted)
+    {
+      // Check/create /MatrixOS
+      FILINFO fno;
+      if (f_stat("/MatrixOS", &fno) != FR_OK) {
+        f_mkdir("/MatrixOS");
+      }
+    }
+#endif
+  }
+
+  bool Available()
+  {
+#if DEVICE_STORAGE == 1
+    // Check if device storage is available and filesystem is mounted
+    const Device::Storage::StorageStatus* status = Device::Storage::Status();
+    return status->available && filesystem_mounted;
+#else
+    return false;
+#endif
   }
 
   File* Open(string path, uint8_t mode)
   {
-    if (!Available() || !EnsureMounted())
+    if (!Available())
     {
       return nullptr;
+    }
+
+    // Translate path and check access (returns empty string if denied)
+    path = TranslatePath(path);
+    if (path.empty()) {
+      return nullptr;  // Access denied
     }
 
     File* file = new File;
@@ -73,8 +183,6 @@ namespace MatrixOS::File
   {
     if (!file || !buffer) return 0;
 
-    // Storage lock removed - be careful when using with MSC
-
     UINT bytes_read = 0;
     FRESULT res = f_read(file, buffer, length, &bytes_read);
 
@@ -91,8 +199,6 @@ namespace MatrixOS::File
   {
     if (!file || !buffer) return 0;
 
-    // Storage lock removed - be careful when using with MSC
-
     UINT bytes_written = 0;
     FRESULT res = f_write(file, buffer, length, &bytes_written);
 
@@ -107,9 +213,15 @@ namespace MatrixOS::File
 
   bool Exists(string path)
   {
-    if (!Available() || !EnsureMounted())
+    if (!Available())
     {
       return false;
+    }
+
+    // Translate path and check access
+    path = TranslatePath(path);
+    if (path.empty()) {
+      return false;  // Access denied
     }
 
     FILINFO fno;
@@ -119,9 +231,15 @@ namespace MatrixOS::File
 
   bool Delete(string path)
   {
-    if (!Available() || !EnsureMounted())
+    if (!Available())
     {
       return false;
+    }
+
+    // Translate path and check access
+    path = TranslatePath(path);
+    if (path.empty()) {
+      return false;  // Access denied
     }
 
     FRESULT res = f_unlink(path.c_str());
@@ -135,9 +253,15 @@ namespace MatrixOS::File
 
   bool CreateDir(string path)
   {
-    if (!Available() || !EnsureMounted())
+    if (!Available())
     {
       return false;
+    }
+
+    // Translate path and check access
+    path = TranslatePath(path);
+    if (path.empty()) {
+      return false;  // Access denied
     }
 
     FRESULT res = f_mkdir(path.c_str());
@@ -153,9 +277,15 @@ namespace MatrixOS::File
   {
     vector<string> result;
 
-    if (!Available() || !EnsureMounted())
+    if (!Available())
     {
       return result;
+    }
+
+    // Translate path and check access
+    path = TranslatePath(path);
+    if (path.empty()) {
+      return result;  // Access denied - return empty vector
     }
 
     DIR dir;

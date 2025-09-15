@@ -6,6 +6,7 @@
 #include "../USB/USB.h"
 #include "../LED/LED.h"
 #include "../KeyPad/KeyPad.h"
+#include "../FileSystem/File.h"
 #include "../MIDI/MIDI.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
@@ -135,6 +136,8 @@ namespace MatrixOS::SYS
   {
     MatrixOS::KeyPad::Init();
     MatrixOS::LED::Init();
+    MatrixOS::File::Init();
+    MatrixOS::USB::SetMode(USB_MODE_NORMAL);
     MatrixOS::MIDI::Init();
     MatrixOS::HID::Init();
   }
@@ -295,11 +298,6 @@ namespace MatrixOS::SYS
     // If null, get current task
     if (task == nullptr) {
       task = xTaskGetCurrentTaskHandle();
-    }
-
-    // System tasks (not app task) have all permissions
-    if (task != active_app_task) {
-      return TaskPermissions(0xFFFFFFFF);  // All permissions
     }
 
     // Get permissions from Thread Local Storage

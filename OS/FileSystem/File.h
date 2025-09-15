@@ -7,6 +7,7 @@ namespace MatrixOS::File
 {
   typedef FIL File;
 
+  void Init();
   bool Available();
   File* Open(string path, uint8_t mode);
   bool Close(File* file);
