@@ -18,22 +18,22 @@
 Setting
 BrightnessControl
 
-# System Apps (privileged)
+# System Apps
 [System]Shell
-[System]Python
 MSC
+
+# User Facing Apps
 Performance
 Note
 REDACTED
 Companion
 CustomControlMap
-
-# User Apps (sandboxed - no prefix)
 Lighting
 Dice
 Reversi
 PolyPlayground
 Strum
+[System]Python
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot
