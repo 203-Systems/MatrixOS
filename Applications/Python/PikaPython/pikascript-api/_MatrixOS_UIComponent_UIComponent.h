@@ -17,8 +17,8 @@
 
 PikaObj *New__MatrixOS_UIComponent_UIComponent(Args *args);
 
-void _MatrixOS_UIComponent_UIComponent_SetEnabled(PikaObj *self, pika_bool enabled);
-void _MatrixOS_UIComponent_UIComponent_ShouldEnable(PikaObj *self, Arg* enable_func);
+pika_bool _MatrixOS_UIComponent_UIComponent_SetEnableFunc(PikaObj *self, Arg* enableFunc);
+pika_bool _MatrixOS_UIComponent_UIComponent_SetEnabled(PikaObj *self, pika_bool enabled);
 void _MatrixOS_UIComponent_UIComponent___init__(PikaObj *self);
 
 #endif

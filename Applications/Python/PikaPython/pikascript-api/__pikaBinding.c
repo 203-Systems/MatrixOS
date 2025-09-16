@@ -40,6 +40,10 @@
 #include "_MatrixOS_NVS.h"
 #include "_MatrixOS_Point.h"
 #include "_MatrixOS_SYS.h"
+#include "_MatrixOS_UI4pxNumber.h"
+#include "_MatrixOS_UIButton.h"
+#include "_MatrixOS_UIComponent.h"
+#include "_MatrixOS_UISelector.h"
 #include "_MatrixOS_UIUtility.h"
 #include "_MatrixOS_USB.h"
 #include "_MatrixOS_USB_CDC.h"
@@ -66,8 +70,14 @@
 #include "_MatrixOS_KeyInfo_KeyInfo.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
 #include "_MatrixOS_Point_Point.h"
-#include "_MatrixOS_UIComponent.h"
+#include "_MatrixOS_UI.h"
+#include "_MatrixOS_UI4pxNumber_UI4pxNumber.h"
 #include "_MatrixOS_UIComponent_UIComponent.h"
+#include "_MatrixOS_UIButton_UIButton.h"
+#include "_MatrixOS_UISelector_UISelector.h"
+#include "_MatrixOS_UISelector_UISelectorDirection.h"
+#include "_MatrixOS_UISelector_UISelectorLitMode.h"
+#include "_MatrixOS_UI_UI.h"
 #include "builtins_ArithmeticError.h"
 #include "builtins_Exception.h"
 #include "builtins_AssertionError.h"
@@ -324,6 +334,18 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_SYS_DISABLE
     obj_newObj(self, "_MatrixOS_SYS", "_MatrixOS_SYS", New__MatrixOS_SYS);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UI4PXNUMBER_DISABLE
+    obj_newObj(self, "_MatrixOS_UI4pxNumber", "_MatrixOS_UI4pxNumber", New__MatrixOS_UI4pxNumber);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UIBUTTON_DISABLE
+    obj_newObj(self, "_MatrixOS_UIButton", "_MatrixOS_UIButton", New__MatrixOS_UIButton);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UICOMPONENT_DISABLE
+    obj_newObj(self, "_MatrixOS_UIComponent", "_MatrixOS_UIComponent", New__MatrixOS_UIComponent);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+    obj_newObj(self, "_MatrixOS_UISelector", "_MatrixOS_UISelector", New__MatrixOS_UISelector);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_UIUTILITY_DISABLE
     obj_newObj(self, "_MatrixOS_UIUtility", "_MatrixOS_UIUtility", New__MatrixOS_UIUtility);
@@ -2581,24 +2603,6 @@ method_typedef(
     "KeyInfo", ""
 );
 
-void _MatrixOS_KeyEvent_KeyEvent_SetIDMethod(PikaObj *self, Args *_args_){
-    int id = args_getInt(_args_, "id");
-    _MatrixOS_KeyEvent_KeyEvent_SetID(self, id);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_SetID,
-    "SetID", "id"
-);
-
-void _MatrixOS_KeyEvent_KeyEvent_SetInfoMethod(PikaObj *self, Args *_args_){
-    PikaObj* info = args_getPtr(_args_, "info");
-    _MatrixOS_KeyEvent_KeyEvent_SetInfo(self, info);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_SetInfo,
-    "SetInfo", "info"
-);
-
 void _MatrixOS_KeyEvent_KeyEvent___del__Method(PikaObj *self, Args *_args_){
     _MatrixOS_KeyEvent_KeyEvent___del__(self);
 }
@@ -2621,9 +2625,7 @@ class_def(_MatrixOS_KeyEvent_KeyEvent){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_KeyEvent_KeyEvent_ID, 5862386),
     method_def(_MatrixOS_KeyEvent_KeyEvent_KeyInfo, 90173338),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_SetID, 236342110),
     method_def(_MatrixOS_KeyEvent_KeyEvent___init__, 904762485),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_SetInfo, 1826052893),
     method_def(_MatrixOS_KeyEvent_KeyEvent___del__, 2038499702),
 };
 class_inhert(_MatrixOS_KeyEvent_KeyEvent, TinyObj);
@@ -2778,8 +2780,8 @@ method_typedef(
 
 void _MatrixOS_KeyPad_GetMethod(PikaObj *self, Args *_args_){
     int timeout_ms = args_getInt(_args_, "timeout_ms");
-    PikaObj* res = _MatrixOS_KeyPad_Get(self, timeout_ms);
-    method_returnObj(_args_, res);
+    Arg* res = _MatrixOS_KeyPad_Get(self, timeout_ms);
+    method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_KeyPad_Get,
@@ -2788,8 +2790,8 @@ method_typedef(
 
 void _MatrixOS_KeyPad_GetKeyMethod(PikaObj *self, Args *_args_){
     PikaObj* keyXY = args_getPtr(_args_, "keyXY");
-    PikaObj* res = _MatrixOS_KeyPad_GetKey(self, keyXY);
-    method_returnObj(_args_, res);
+    Arg* res = _MatrixOS_KeyPad_GetKey(self, keyXY);
+    method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_KeyPad_GetKey,
@@ -2798,8 +2800,8 @@ method_typedef(
 
 void _MatrixOS_KeyPad_GetKeyByIDMethod(PikaObj *self, Args *_args_){
     int keyID = args_getInt(_args_, "keyID");
-    PikaObj* res = _MatrixOS_KeyPad_GetKeyByID(self, keyID);
-    method_returnObj(_args_, res);
+    Arg* res = _MatrixOS_KeyPad_GetKeyByID(self, keyID);
+    method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_KeyPad_GetKeyByID,
@@ -2808,8 +2810,8 @@ method_typedef(
 
 void _MatrixOS_KeyPad_ID2XYMethod(PikaObj *self, Args *_args_){
     int keyID = args_getInt(_args_, "keyID");
-    PikaObj* res = _MatrixOS_KeyPad_ID2XY(self, keyID);
-    method_returnObj(_args_, res);
+    Arg* res = _MatrixOS_KeyPad_ID2XY(self, keyID);
+    method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_KeyPad_ID2XY,
@@ -3020,8 +3022,8 @@ PikaObj *New__MatrixOS_LED(Args *args){
 #ifndef PIKA_MODULE__MATRIXOS_MIDI_DISABLE
 void _MatrixOS_MIDI_GetMethod(PikaObj *self, Args *_args_){
     int timeout_ms = args_getInt(_args_, "timeout_ms");
-    PikaObj* res = _MatrixOS_MIDI_Get(self, timeout_ms);
-    method_returnObj(_args_, res);
+    Arg* res = _MatrixOS_MIDI_Get(self, timeout_ms);
+    method_returnArg(_args_, res);
 }
 method_typedef(
     _MatrixOS_MIDI_Get,
@@ -3766,23 +3768,289 @@ PikaObj *New__MatrixOS_SYS(Args *args){
 }
 #endif
 
+#ifndef PIKA_MODULE__MATRIXOS_UI4PXNUMBER_DISABLE
+void _MatrixOS_UI4pxNumber_UI4pxNumberMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UI4pxNumber_UI4pxNumber(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber,
+    "UI4pxNumber", ""
+);
+
+class_def(_MatrixOS_UI4pxNumber){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_UI4pxNumber_UI4pxNumber, 873132456),
+};
+class_inhert(_MatrixOS_UI4pxNumber, TinyObj);
+
+PikaObj *New__MatrixOS_UI4pxNumber(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UI4pxNumber);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UI4PXNUMBER_DISABLE
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColorMethod(PikaObj *self, Args *_args_){
+    PikaObj* alternativeColor = args_getPtr(_args_, "alternativeColor");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColor(self, alternativeColor);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColor,
+    "SetAlternativeColor", "alternativeColor"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetColorMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetColor(self, color);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetColor,
+    "SetColor", "color"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFuncMethod(PikaObj *self, Args *_args_){
+    Arg* colorFunc = args_getArg(_args_, "colorFunc");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFunc(self, colorFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFunc,
+    "SetColorFunc", "colorFunc"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetDigitsMethod(PikaObj *self, Args *_args_){
+    int digits = args_getInt(_args_, "digits");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetDigits(self, digits);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetDigits,
+    "SetDigits", "digits"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetNameMethod(PikaObj *self, Args *_args_){
+    char* name = args_getStr(_args_, "name");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetName(self, name);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetName,
+    "SetName", "name"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetSpacingMethod(PikaObj *self, Args *_args_){
+    int spacing = args_getInt(_args_, "spacing");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetSpacing(self, spacing);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetSpacing,
+    "SetSpacing", "spacing"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber_SetValueFuncMethod(PikaObj *self, Args *_args_){
+    Arg* getValueFunc = args_getArg(_args_, "getValueFunc");
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetValueFunc(self, getValueFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_SetValueFunc,
+    "SetValueFunc", "getValueFunc"
+);
+
+void _MatrixOS_UI4pxNumber_UI4pxNumber___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_UI4pxNumber_UI4pxNumber___init__(self);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_UI4pxNumber_UI4pxNumber){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetColor, 123130384),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetSpacing, 159305974),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFunc, 465157340),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber___init__, 904762485),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetValueFunc, 1651519706),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColor, 1721159599),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetName, 1826218642),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetDigits, 1947652853),
+};
+class_inhert(_MatrixOS_UI4pxNumber_UI4pxNumber, _MatrixOS_UIComponent_UIComponent);
+
+PikaObj *New__MatrixOS_UI4pxNumber_UI4pxNumber(Args *args){
+    PikaObj *self = New__MatrixOS_UIComponent_UIComponent(args);
+    obj_setClass(self, _MatrixOS_UI4pxNumber_UI4pxNumber);
+    return self;
+}
+
+Arg *_MatrixOS_UI4pxNumber_UI4pxNumber(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UI4pxNumber_UI4pxNumber);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UIBUTTON_DISABLE
+void _MatrixOS_UIButton_UIButtonMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UIButton_UIButton(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton,
+    "UIButton", ""
+);
+
+class_def(_MatrixOS_UIButton){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_UIButton_UIButton, 56987743),
+};
+class_inhert(_MatrixOS_UIButton, TinyObj);
+
+PikaObj *New__MatrixOS_UIButton(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UIButton);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UIBUTTON_DISABLE
+void _MatrixOS_UIButton_UIButton_OnHoldMethod(PikaObj *self, Args *_args_){
+    Arg* holdCallback = args_getArg(_args_, "holdCallback");
+    pika_bool res = _MatrixOS_UIButton_UIButton_OnHold(self, holdCallback);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_OnHold,
+    "OnHold", "holdCallback"
+);
+
+void _MatrixOS_UIButton_UIButton_OnPressMethod(PikaObj *self, Args *_args_){
+    Arg* pressCallback = args_getArg(_args_, "pressCallback");
+    pika_bool res = _MatrixOS_UIButton_UIButton_OnPress(self, pressCallback);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_OnPress,
+    "OnPress", "pressCallback"
+);
+
+void _MatrixOS_UIButton_UIButton_SetColorMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    pika_bool res = _MatrixOS_UIButton_UIButton_SetColor(self, color);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_SetColor,
+    "SetColor", "color"
+);
+
+void _MatrixOS_UIButton_UIButton_SetColorFuncMethod(PikaObj *self, Args *_args_){
+    Arg* colorFunc = args_getArg(_args_, "colorFunc");
+    pika_bool res = _MatrixOS_UIButton_UIButton_SetColorFunc(self, colorFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_SetColorFunc,
+    "SetColorFunc", "colorFunc"
+);
+
+void _MatrixOS_UIButton_UIButton_SetNameMethod(PikaObj *self, Args *_args_){
+    char* name = args_getStr(_args_, "name");
+    pika_bool res = _MatrixOS_UIButton_UIButton_SetName(self, name);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_SetName,
+    "SetName", "name"
+);
+
+void _MatrixOS_UIButton_UIButton_SetSizeMethod(PikaObj *self, Args *_args_){
+    PikaObj* dimension = args_getPtr(_args_, "dimension");
+    pika_bool res = _MatrixOS_UIButton_UIButton_SetSize(self, dimension);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_SetSize,
+    "SetSize", "dimension"
+);
+
+void _MatrixOS_UIButton_UIButton___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_UIButton_UIButton___init__(self);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_UIButton_UIButton){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UIButton_UIButton_SetColor, 123130384),
+    method_def(_MatrixOS_UIButton_UIButton_SetColorFunc, 465157340),
+    method_def(_MatrixOS_UIButton_UIButton___init__, 904762485),
+    method_def(_MatrixOS_UIButton_UIButton_OnHold, 1209431977),
+    method_def(_MatrixOS_UIButton_UIButton_OnPress, 1266137743),
+    method_def(_MatrixOS_UIButton_UIButton_SetName, 1826218642),
+    method_def(_MatrixOS_UIButton_UIButton_SetSize, 1826407468),
+};
+class_inhert(_MatrixOS_UIButton_UIButton, _MatrixOS_UIComponent_UIComponent);
+
+PikaObj *New__MatrixOS_UIButton_UIButton(Args *args){
+    PikaObj *self = New__MatrixOS_UIComponent_UIComponent(args);
+    obj_setClass(self, _MatrixOS_UIButton_UIButton);
+    return self;
+}
+
+Arg *_MatrixOS_UIButton_UIButton(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UIButton_UIButton);
+}
+#endif
+
 #ifndef PIKA_MODULE__MATRIXOS_UICOMPONENT_DISABLE
+void _MatrixOS_UIComponent_UIComponentMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UIComponent_UIComponent(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent,
+    "UIComponent", ""
+);
+
+class_def(_MatrixOS_UIComponent){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_UIComponent_UIComponent, 456559670),
+};
+class_inhert(_MatrixOS_UIComponent, TinyObj);
+
+PikaObj *New__MatrixOS_UIComponent(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UIComponent);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UICOMPONENT_DISABLE
+void _MatrixOS_UIComponent_UIComponent_SetEnableFuncMethod(PikaObj *self, Args *_args_){
+    Arg* enableFunc = args_getArg(_args_, "enableFunc");
+    pika_bool res = _MatrixOS_UIComponent_UIComponent_SetEnableFunc(self, enableFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent_SetEnableFunc,
+    "SetEnableFunc", "enableFunc"
+);
+
 void _MatrixOS_UIComponent_UIComponent_SetEnabledMethod(PikaObj *self, Args *_args_){
     pika_bool enabled = args_getBool(_args_, "enabled");
-    _MatrixOS_UIComponent_UIComponent_SetEnabled(self, enabled);
+    pika_bool res = _MatrixOS_UIComponent_UIComponent_SetEnabled(self, enabled);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_UIComponent_UIComponent_SetEnabled,
     "SetEnabled", "enabled"
-);
-
-void _MatrixOS_UIComponent_UIComponent_ShouldEnableMethod(PikaObj *self, Args *_args_){
-    Arg* enable_func = args_getArg(_args_, "enable_func");
-    _MatrixOS_UIComponent_UIComponent_ShouldEnable(self, enable_func);
-}
-method_typedef(
-    _MatrixOS_UIComponent_UIComponent_ShouldEnable,
-    "ShouldEnable", "enable_func"
 );
 
 void _MatrixOS_UIComponent_UIComponent___init__Method(PikaObj *self, Args *_args_){
@@ -3795,8 +4063,8 @@ method_typedef(
 
 class_def(_MatrixOS_UIComponent_UIComponent){
     __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UIComponent_UIComponent_SetEnableFunc, 186198980),
     method_def(_MatrixOS_UIComponent_UIComponent___init__, 904762485),
-    method_def(_MatrixOS_UIComponent_UIComponent_ShouldEnable, 1226777915),
     method_def(_MatrixOS_UIComponent_UIComponent_SetEnabled, 1327803484),
 };
 class_inhert(_MatrixOS_UIComponent_UIComponent, TinyObj);
@@ -3809,6 +4077,230 @@ PikaObj *New__MatrixOS_UIComponent_UIComponent(Args *args){
 
 Arg *_MatrixOS_UIComponent_UIComponent(PikaObj *self){
     return obj_newObjInPackage(New__MatrixOS_UIComponent_UIComponent);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+void _MatrixOS_UISelector_UISelectorMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UISelector_UISelector(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector,
+    "UISelector", ""
+);
+
+void _MatrixOS_UISelector_UISelectorDirectionMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UISelector_UISelectorDirection(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelectorDirection,
+    "UISelectorDirection", ""
+);
+
+void _MatrixOS_UISelector_UISelectorLitModeMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UISelector_UISelectorLitMode(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelectorLitMode,
+    "UISelectorLitMode", ""
+);
+
+class_def(_MatrixOS_UISelector){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_UISelector_UISelectorDirection, 314593253),
+    constructor_def(_MatrixOS_UISelector_UISelector, 1074223652),
+    constructor_def(_MatrixOS_UISelector_UISelectorLitMode, 1205270034),
+};
+class_inhert(_MatrixOS_UISelector, TinyObj);
+
+PikaObj *New__MatrixOS_UISelector(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UISelector);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+void _MatrixOS_UISelector_UISelector_OnChangeMethod(PikaObj *self, Args *_args_){
+    Arg* changeCallback = args_getArg(_args_, "changeCallback");
+    pika_bool res = _MatrixOS_UISelector_UISelector_OnChange(self, changeCallback);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_OnChange,
+    "OnChange", "changeCallback"
+);
+
+void _MatrixOS_UISelector_UISelector_SetColorMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetColor(self, color);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetColor,
+    "SetColor", "color"
+);
+
+void _MatrixOS_UISelector_UISelector_SetColorFuncMethod(PikaObj *self, Args *_args_){
+    Arg* colorFunc = args_getArg(_args_, "colorFunc");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetColorFunc(self, colorFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetColorFunc,
+    "SetColorFunc", "colorFunc"
+);
+
+void _MatrixOS_UISelector_UISelector_SetCountMethod(PikaObj *self, Args *_args_){
+    int count = args_getInt(_args_, "count");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetCount(self, count);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetCount,
+    "SetCount", "count"
+);
+
+void _MatrixOS_UISelector_UISelector_SetDimensionMethod(PikaObj *self, Args *_args_){
+    PikaObj* dimension = args_getPtr(_args_, "dimension");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetDimension(self, dimension);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetDimension,
+    "SetDimension", "dimension"
+);
+
+void _MatrixOS_UISelector_UISelector_SetDirectionMethod(PikaObj *self, Args *_args_){
+    int direction = args_getInt(_args_, "direction");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetDirection(self, direction);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetDirection,
+    "SetDirection", "direction"
+);
+
+void _MatrixOS_UISelector_UISelector_SetIndividualColorFuncMethod(PikaObj *self, Args *_args_){
+    Arg* individualColorFunc = args_getArg(_args_, "individualColorFunc");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetIndividualColorFunc(self, individualColorFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetIndividualColorFunc,
+    "SetIndividualColorFunc", "individualColorFunc"
+);
+
+void _MatrixOS_UISelector_UISelector_SetLitModeMethod(PikaObj *self, Args *_args_){
+    int litMode = args_getInt(_args_, "litMode");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetLitMode(self, litMode);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetLitMode,
+    "SetLitMode", "litMode"
+);
+
+void _MatrixOS_UISelector_UISelector_SetNameMethod(PikaObj *self, Args *_args_){
+    char* name = args_getStr(_args_, "name");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetName(self, name);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetName,
+    "SetName", "name"
+);
+
+void _MatrixOS_UISelector_UISelector_SetNameFuncMethod(PikaObj *self, Args *_args_){
+    Arg* nameFunc = args_getArg(_args_, "nameFunc");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetNameFunc(self, nameFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetNameFunc,
+    "SetNameFunc", "nameFunc"
+);
+
+void _MatrixOS_UISelector_UISelector_SetValueFuncMethod(PikaObj *self, Args *_args_){
+    Arg* getValueFunc = args_getArg(_args_, "getValueFunc");
+    pika_bool res = _MatrixOS_UISelector_UISelector_SetValueFunc(self, getValueFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_SetValueFunc,
+    "SetValueFunc", "getValueFunc"
+);
+
+void _MatrixOS_UISelector_UISelector___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_UISelector_UISelector___init__(self);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_UISelector_UISelector){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UISelector_UISelector_SetColor, 123130384),
+    method_def(_MatrixOS_UISelector_UISelector_SetCount, 123140154),
+    method_def(_MatrixOS_UISelector_UISelector_OnChange, 459587400),
+    method_def(_MatrixOS_UISelector_UISelector_SetColorFunc, 465157340),
+    method_def(_MatrixOS_UISelector_UISelector_SetIndividualColorFunc, 847679429),
+    method_def(_MatrixOS_UISelector_UISelector_SetNameFunc, 896876126),
+    method_def(_MatrixOS_UISelector_UISelector___init__, 904762485),
+    method_def(_MatrixOS_UISelector_UISelector_SetDimension, 1008856887),
+    method_def(_MatrixOS_UISelector_UISelector_SetDirection, 1010736594),
+    method_def(_MatrixOS_UISelector_UISelector_SetLitMode, 1604248767),
+    method_def(_MatrixOS_UISelector_UISelector_SetValueFunc, 1651519706),
+    method_def(_MatrixOS_UISelector_UISelector_SetName, 1826218642),
+};
+class_inhert(_MatrixOS_UISelector_UISelector, _MatrixOS_UIComponent_UIComponent);
+
+PikaObj *New__MatrixOS_UISelector_UISelector(Args *args){
+    PikaObj *self = New__MatrixOS_UIComponent_UIComponent(args);
+    obj_setClass(self, _MatrixOS_UISelector_UISelector);
+    return self;
+}
+
+Arg *_MatrixOS_UISelector_UISelector(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UISelector_UISelector);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+class_def(_MatrixOS_UISelector_UISelectorDirection){
+    __BEFORE_MOETHOD_DEF
+};
+class_inhert(_MatrixOS_UISelector_UISelectorDirection, TinyObj);
+
+PikaObj *New__MatrixOS_UISelector_UISelectorDirection(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UISelector_UISelectorDirection);
+    return self;
+}
+
+Arg *_MatrixOS_UISelector_UISelectorDirection(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UISelector_UISelectorDirection);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+class_def(_MatrixOS_UISelector_UISelectorLitMode){
+    __BEFORE_MOETHOD_DEF
+};
+class_inhert(_MatrixOS_UISelector_UISelectorLitMode, TinyObj);
+
+PikaObj *New__MatrixOS_UISelector_UISelectorLitMode(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UISelector_UISelectorLitMode);
+    return self;
+}
+
+Arg *_MatrixOS_UISelector_UISelectorLitMode(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UISelector_UISelectorLitMode);
 }
 #endif
 
@@ -3860,6 +4352,186 @@ PikaObj *New__MatrixOS_UIUtility(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_UIUtility);
     return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UI_DISABLE
+void _MatrixOS_UI_UI_AddUIComponentMethod(PikaObj *self, Args *_args_){
+    PikaObj* uiComponent = args_getPtr(_args_, "uiComponent");
+    PikaObj* xy = args_getPtr(_args_, "xy");
+    pika_bool res = _MatrixOS_UI_UI_AddUIComponent(self, uiComponent, xy);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_AddUIComponent,
+    "AddUIComponent", "uiComponent,xy"
+);
+
+void _MatrixOS_UI_UI_AllowExitMethod(PikaObj *self, Args *_args_){
+    pika_bool allow = args_getBool(_args_, "allow");
+    pika_bool res = _MatrixOS_UI_UI_AllowExit(self, allow);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_AllowExit,
+    "AllowExit", "allow"
+);
+
+void _MatrixOS_UI_UI_ClearUIComponentsMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UI_UI_ClearUIComponents(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_ClearUIComponents,
+    "ClearUIComponents", ""
+);
+
+void _MatrixOS_UI_UI_SetColorMethod(PikaObj *self, Args *_args_){
+    PikaObj* color = args_getPtr(_args_, "color");
+    pika_bool res = _MatrixOS_UI_UI_SetColor(self, color);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetColor,
+    "SetColor", "color"
+);
+
+void _MatrixOS_UI_UI_SetEndFuncMethod(PikaObj *self, Args *_args_){
+    Arg* endFunc = args_getArg(_args_, "endFunc");
+    pika_bool res = _MatrixOS_UI_UI_SetEndFunc(self, endFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetEndFunc,
+    "SetEndFunc", "endFunc"
+);
+
+void _MatrixOS_UI_UI_SetFPSMethod(PikaObj *self, Args *_args_){
+    int fps = args_getInt(_args_, "fps");
+    pika_bool res = _MatrixOS_UI_UI_SetFPS(self, fps);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetFPS,
+    "SetFPS", "fps"
+);
+
+void _MatrixOS_UI_UI_SetKeyEventHandlerMethod(PikaObj *self, Args *_args_){
+    Arg* key_event_handler = args_getArg(_args_, "key_event_handler");
+    pika_bool res = _MatrixOS_UI_UI_SetKeyEventHandler(self, key_event_handler);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetKeyEventHandler,
+    "SetKeyEventHandler", "key_event_handler"
+);
+
+void _MatrixOS_UI_UI_SetLoopFuncMethod(PikaObj *self, Args *_args_){
+    Arg* loopFunc = args_getArg(_args_, "loopFunc");
+    pika_bool res = _MatrixOS_UI_UI_SetLoopFunc(self, loopFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetLoopFunc,
+    "SetLoopFunc", "loopFunc"
+);
+
+void _MatrixOS_UI_UI_SetNameMethod(PikaObj *self, Args *_args_){
+    char* name = args_getStr(_args_, "name");
+    pika_bool res = _MatrixOS_UI_UI_SetName(self, name);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetName,
+    "SetName", "name"
+);
+
+void _MatrixOS_UI_UI_SetPostRenderFuncMethod(PikaObj *self, Args *_args_){
+    Arg* post_renderFunc = args_getArg(_args_, "post_renderFunc");
+    pika_bool res = _MatrixOS_UI_UI_SetPostRenderFunc(self, post_renderFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetPostRenderFunc,
+    "SetPostRenderFunc", "post_renderFunc"
+);
+
+void _MatrixOS_UI_UI_SetPreRenderFuncMethod(PikaObj *self, Args *_args_){
+    Arg* pre_renderFunc = args_getArg(_args_, "pre_renderFunc");
+    pika_bool res = _MatrixOS_UI_UI_SetPreRenderFunc(self, pre_renderFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetPreRenderFunc,
+    "SetPreRenderFunc", "pre_renderFunc"
+);
+
+void _MatrixOS_UI_UI_SetSetupFuncMethod(PikaObj *self, Args *_args_){
+    Arg* setupFunc = args_getArg(_args_, "setupFunc");
+    pika_bool res = _MatrixOS_UI_UI_SetSetupFunc(self, setupFunc);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_SetSetupFunc,
+    "SetSetupFunc", "setupFunc"
+);
+
+void _MatrixOS_UI_UI_ShouldCreatenewLEDLayerMethod(PikaObj *self, Args *_args_){
+    pika_bool create = args_getBool(_args_, "create");
+    pika_bool res = _MatrixOS_UI_UI_ShouldCreatenewLEDLayer(self, create);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_ShouldCreatenewLEDLayer,
+    "ShouldCreatenewLEDLayer", "create"
+);
+
+void _MatrixOS_UI_UI_StartMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UI_UI_Start(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_Start,
+    "Start", ""
+);
+
+void _MatrixOS_UI_UI___init__Method(PikaObj *self, Args *_args_){
+    PikaTuple* val = args_getTuple(_args_, "val");
+    _MatrixOS_UI_UI___init__(self, val);
+}
+method_typedef(
+    _MatrixOS_UI_UI___init__,
+    "__init__", "*val"
+);
+
+class_def(_MatrixOS_UI_UI){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UI_UI_SetPostRenderFunc, 86385219),
+    method_def(_MatrixOS_UI_UI_SetColor, 123130384),
+    method_def(_MatrixOS_UI_UI_Start, 236861875),
+    method_def(_MatrixOS_UI_UI_SetLoopFunc, 403850743),
+    method_def(_MatrixOS_UI_UI_SetSetupFunc, 513484014),
+    method_def(_MatrixOS_UI_UI_SetKeyEventHandler, 813681242),
+    method_def(_MatrixOS_UI_UI___init__, 904762485),
+    method_def(_MatrixOS_UI_UI_AllowExit, 915050654),
+    method_def(_MatrixOS_UI_UI_SetEndFunc, 1330365108),
+    method_def(_MatrixOS_UI_UI_SetFPS, 1356835898),
+    method_def(_MatrixOS_UI_UI_ShouldCreatenewLEDLayer, 1465366404),
+    method_def(_MatrixOS_UI_UI_AddUIComponent, 1739690047),
+    method_def(_MatrixOS_UI_UI_SetName, 1826218642),
+    method_def(_MatrixOS_UI_UI_ClearUIComponents, 1827221072),
+    method_def(_MatrixOS_UI_UI_SetPreRenderFunc, 2034883332),
+};
+class_inhert(_MatrixOS_UI_UI, TinyObj);
+
+PikaObj *New__MatrixOS_UI_UI(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UI_UI);
+    return self;
+}
+
+Arg *_MatrixOS_UI_UI(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UI_UI);
 }
 #endif
 

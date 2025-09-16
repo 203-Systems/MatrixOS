@@ -1,72 +1,58 @@
 #include "MatrixOS.h"
 #include "pikaScript.h"
-#include "PikaObj.h"
+#include "PikaObjUtils.h"
 
 extern "C" {
+    // Forward declarations for constructors
+    PikaObj* New__MatrixOS_KeyEvent_KeyEvent(Args *args);
+    PikaObj* New__MatrixOS_KeyInfo_KeyInfo(Args *args);
+    PikaObj* New__MatrixOS_Point_Point(Args *args);
+    void _MatrixOS_Point_Point___init__(PikaObj *self, int x, int y);
+
     // KeyPad class implementation
     PikaObj* _MatrixOS_KeyPad_Get(PikaObj *self, int timeout_ms) {
         KeyEvent event;
         bool success = MatrixOS::KeyPad::Get(&event, timeout_ms);
-        
-        PikaObj* key_event = newNormalObj(New_PikaObj);
+
         if (success) {
-            obj_setInt(key_event, (char*)"id", event.id);
-            obj_setInt(key_event, (char*)"state", event.info.state);
-            obj_setInt(key_event, (char*)"velocity", (int)event.info.velocity);
-            obj_setBool(key_event, (char*)"hold", event.info.hold);
-            obj_setInt(key_event, (char*)"lastEventTime", event.info.lastEventTime);
+            // Create new KeyEvent object and copy the C++ object into it
+            PikaObj* key_event = New__MatrixOS_KeyEvent_KeyEvent(NULL);
+            copyCppObjIntoPikaObj<KeyEvent>(key_event, event);
+            return key_event;
         } else {
-            // Return invalid event
-            obj_setInt(key_event, (char*)"id", UINT16_MAX);
-            obj_setInt(key_event, (char*)"state", IDLE);
-            obj_setInt(key_event, (char*)"velocity", 0);
-            obj_setBool(key_event, (char*)"hold", false);
-            obj_setInt(key_event, (char*)"lastEventTime", 0);
+            // Return None on timeout/failure
+            return nullptr;
         }
-        
-        return key_event;
     }
 
     PikaObj* _MatrixOS_KeyPad_GetKey(PikaObj *self, PikaObj* keyXY) {
         int x = obj_getInt(keyXY, (char*)"x");
         int y = obj_getInt(keyXY, (char*)"y");
         Point point(x, y);
-        
+
         KeyInfo* info = MatrixOS::KeyPad::GetKey(point);
-        
-        PikaObj* key_info = newNormalObj(New_PikaObj);
+
         if (info != nullptr) {
-            obj_setInt(key_info, (char*)"state", info->state);
-            obj_setInt(key_info, (char*)"velocity", (int)info->velocity);
-            obj_setBool(key_info, (char*)"hold", info->hold);
-            obj_setInt(key_info, (char*)"lastEventTime", info->lastEventTime);
+            PikaObj* key_info = New__MatrixOS_KeyInfo_KeyInfo(NULL);
+            copyCppObjIntoPikaObj<KeyInfo>(key_info, *info);
+            return key_info;
         } else {
-            obj_setInt(key_info, (char*)"state", IDLE);
-            obj_setInt(key_info, (char*)"velocity", 0);
-            obj_setBool(key_info, (char*)"hold", false);
-            obj_setInt(key_info, (char*)"lastEventTime", 0);
+            // Return None if invalid position
+            return nullptr;
         }
-        
-        return key_info;
     }
 
     PikaObj* _MatrixOS_KeyPad_GetKeyByID(PikaObj *self, int keyID) {
         KeyInfo* info = MatrixOS::KeyPad::GetKey(keyID);
-        
-        PikaObj* key_info = newNormalObj(New_PikaObj);
+
         if (info != nullptr) {
-            obj_setInt(key_info, (char*)"state", info->state);
-            obj_setInt(key_info, (char*)"velocity", (int)info->velocity);
-            obj_setBool(key_info, (char*)"hold", info->hold);
-            obj_setInt(key_info, (char*)"lastEventTime", info->lastEventTime);
+            PikaObj* key_info = New__MatrixOS_KeyInfo_KeyInfo(NULL);
+            copyCppObjIntoPikaObj<KeyInfo>(key_info, *info);
+            return key_info;
         } else {
-            obj_setInt(key_info, (char*)"state", IDLE);
-            obj_setInt(key_info, (char*)"velocity", 0);
-            obj_setBool(key_info, (char*)"hold", false);
-            obj_setInt(key_info, (char*)"lastEventTime", 0);
+            // Return None if invalid ID
+            return nullptr;
         }
-        
-        return key_info;
     }
 
     void _MatrixOS_KeyPad_Clear(PikaObj *self) {
@@ -83,11 +69,16 @@ extern "C" {
 
     PikaObj* _MatrixOS_KeyPad_ID2XY(PikaObj *self, int keyID) {
         Point point = MatrixOS::KeyPad::ID2XY(keyID);
-        
-        PikaObj* xy = newNormalObj(New_PikaObj);
-        obj_setInt(xy, (char*)"x", point.x);
-        obj_setInt(xy, (char*)"y", point.y);
-        
+
+        // Check if the returned point is valid (ID2XY returns Point::Invalid() for invalid IDs)
+        if (point == Point::Invalid()) {
+            // Return None if invalid ID
+            return nullptr;
+        }
+
+        PikaObj* xy = New__MatrixOS_Point_Point(NULL);
+        _MatrixOS_Point_Point___init__(xy, point.x, point.y);
+
         return xy;
     }
 }

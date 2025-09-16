@@ -17,7 +17,7 @@
 
 PikaObj *New__MatrixOS_MIDI(Args *args);
 
-PikaObj* _MatrixOS_MIDI_Get(PikaObj *self, int timeout_ms);
+Arg* _MatrixOS_MIDI_Get(PikaObj *self, int timeout_ms);
 pika_bool _MatrixOS_MIDI_Send(PikaObj *self, PikaObj* packet, int timeout_ms);
 pika_bool _MatrixOS_MIDI_SendSysEx(PikaObj *self, int port, int length, uint8_t* data, pika_bool include_meta);
 

@@ -9,14 +9,14 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS_UIComponent__H
-#define ___MatrixOS_UIComponent__H
+#ifndef ___MatrixOS_UI4pxNumber__H
+#define ___MatrixOS_UI4pxNumber__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS_UIComponent(Args *args);
+PikaObj *New__MatrixOS_UI4pxNumber(Args *args);
 
-Arg* _MatrixOS_UIComponent_UIComponent(PikaObj *self);
+Arg* _MatrixOS_UI4pxNumber_UI4pxNumber(PikaObj *self);
 
 #endif

@@ -18,10 +18,10 @@
 PikaObj *New__MatrixOS_KeyPad(Args *args);
 
 void _MatrixOS_KeyPad_Clear(PikaObj *self);
-PikaObj* _MatrixOS_KeyPad_Get(PikaObj *self, int timeout_ms);
-PikaObj* _MatrixOS_KeyPad_GetKey(PikaObj *self, PikaObj* keyXY);
-PikaObj* _MatrixOS_KeyPad_GetKeyByID(PikaObj *self, int keyID);
-PikaObj* _MatrixOS_KeyPad_ID2XY(PikaObj *self, int keyID);
+Arg* _MatrixOS_KeyPad_Get(PikaObj *self, int timeout_ms);
+Arg* _MatrixOS_KeyPad_GetKey(PikaObj *self, PikaObj* keyXY);
+Arg* _MatrixOS_KeyPad_GetKeyByID(PikaObj *self, int keyID);
+Arg* _MatrixOS_KeyPad_ID2XY(PikaObj *self, int keyID);
 int _MatrixOS_KeyPad_XY2ID(PikaObj *self, PikaObj* xy);
 
 #endif

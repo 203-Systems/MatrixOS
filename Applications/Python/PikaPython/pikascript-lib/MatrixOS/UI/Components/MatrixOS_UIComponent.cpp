@@ -7,46 +7,52 @@
 #include "../../PikaCallbackUtils.h"
 
 extern "C" {
-
     // UIComponent constructor
     void _MatrixOS_UIComponent_UIComponent___init__(PikaObj *self) {
         createCppObjPtrInPikaObj<UIComponent>(self);
     }
 
     void _MatrixOS_UIComponent_UIComponent___del__(PikaObj *self) {
+        UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);
         deleteCppObjInPikaObj<UIComponent>(self);
     }
 
     // SetEnabled method
-    void _MatrixOS_UIComponent_UIComponent_SetEnabled(PikaObj *self, pika_bool enabled) {
+    pika_bool _MatrixOS_UIComponent_UIComponent_SetEnabled(PikaObj *self, pika_bool enabled) {
         UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);
-        if (!component) return;
+        if (!component) return false;
 
         component->SetEnabled(enabled);
+        return true;
     }
 
     // SetEnableFunc method
-    void _MatrixOS_UIComponent_UIComponent_SetEnableFunc(PikaObj *self, Arg* enable_func) {
+    pika_bool _MatrixOS_UIComponent_UIComponent_SetEnableFunc(PikaObj *self, Arg* enableFunc) {
         UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);
-        if (!component) return;
+        if (!component) return false;
+        
+        SaveCallbackObjToPikaObj(self, (char*)"enableFunc", enableFunc);
 
-        if (NULL == g_pika_user_listener){
-            pika_eventListener_init(&g_pika_user_listener);
-        }
+        component->SetEnableFunc([self]() -> bool {
+            Arg* result = CallCallbackInPikaObj0(self, (char*)"enableFunc");
 
-        uint32_t eventId = RegisterCallback(enable_func);
-
-
-        component->SetEnableFunc([eventId]() -> bool {
-            Arg* returnValue = EventCallback(eventId);
-
-            if(arg_getType(returnValue) != ARG_TYPE_BOOL)
-            {
-                // Throw error
-                return false;
+            // Convert result to bool
+            bool retval = false;
+            if (result) {
+                if(arg_getType(result) == ARG_TYPE_BOOL)
+                {
+                    retval = arg_getBool(result);
+                }
+                else
+                {
+                    // Throw error
+                }
+                arg_deinit(result);
             }
 
-            return arg_getBool(returnValue);
+            return retval;
         });
+
+        return true;
     }
 }
