@@ -17,11 +17,14 @@ class UI {
   Color nameColor;
 
   UI() {};
-  UI(string name, Color color = Color(0xFFFFFF), bool newLedLayer = true);
+  UI(string name, Color color = Color(0xFFFFFF), bool newLEDLayer = true);
   virtual ~UI();
 
   void Start();
 
+  void SetName(string name);
+  void SetColor(Color color);
+  void ShouldCreatenewLEDLayer(bool create);
   void SetSetupFunc(std::function<void()> setup_func);
   void SetLoopFunc(std::function<void()> loop_func);
   void SetEndFunc(std::function<void()> end_func);
@@ -43,7 +46,7 @@ class UI {
  private:
   int8_t status = 0;
 
-  bool newLedLayer = true;
+  bool newLEDLayer = true;
   bool disableExit = false;
   bool needRender = false;
 

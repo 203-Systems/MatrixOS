@@ -2,10 +2,10 @@
 
 std::vector<UI*> UI::uiList;
 
-UI::UI(string name, Color color, bool newLedLayer) {
+UI::UI(string name, Color color, bool newLEDLayer) {
   this->name = name;
   this->nameColor = color;
-  this->newLedLayer = newLedLayer;
+  this->newLEDLayer = newLEDLayer;
 
   UI::RegisterUI(this);
 }
@@ -14,9 +14,21 @@ UI::~UI() {
   UI::UnregisterUI(this);
 }
 
+void UI::SetName(string name) {
+  this->name = name;
+}
+
+void UI::SetColor(Color color) {
+  this->nameColor = color;
+}
+
+void UI::ShouldCreatenewLEDLayer(bool create) {
+  this->newLEDLayer = create;
+}
+
 void UI::Start() {
   status = 0;
-  if (newLedLayer)
+  if (newLEDLayer)
   {
     prev_layer = MatrixOS::LED::CurrentLayer();
     current_layer = MatrixOS::LED::CreateLayer();
@@ -155,7 +167,7 @@ void UI::UIEnd() {
   MatrixOS::KeyPad::Clear();
   uiComponents.clear();
 
-  if (newLedLayer)
+  if (newLEDLayer)
   { 
     MatrixOS::LED::DestroyLayer(); }
   else
