@@ -30,6 +30,7 @@ PikaObj *pikaPythonInit(void){
             "import MatrixOS\n"
             "from MatrixOS_Framework import *\n"
             "from MatrixOS_Utils import *\n"
+            "from MatrixOS_UIUtilities import *\n"
             "\n");
 #else 
     obj_runModule((PikaObj*)pikaMain, "main");

@@ -40,6 +40,7 @@
 #include "_MatrixOS_NVS.h"
 #include "_MatrixOS_Point.h"
 #include "_MatrixOS_SYS.h"
+#include "_MatrixOS_UIUtility.h"
 #include "_MatrixOS_USB.h"
 #include "_MatrixOS_USB_CDC.h"
 #include "_MatrixOS_Utils.h"
@@ -321,6 +322,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_SYS_DISABLE
     obj_newObj(self, "_MatrixOS_SYS", "_MatrixOS_SYS", New__MatrixOS_SYS);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UIUTILITY_DISABLE
+    obj_newObj(self, "_MatrixOS_UIUtility", "_MatrixOS_UIUtility", New__MatrixOS_UIUtility);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_USB_DISABLE
     obj_newObj(self, "_MatrixOS_USB", "_MatrixOS_USB", New__MatrixOS_USB);
@@ -3756,6 +3760,57 @@ class_inhert(_MatrixOS_SYS, TinyObj);
 PikaObj *New__MatrixOS_SYS(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_SYS);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UIUTILITY_DISABLE
+void _MatrixOS_UIUtility_ColorPickerMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UIUtility_ColorPicker(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIUtility_ColorPicker,
+    "ColorPicker", ""
+);
+
+void _MatrixOS_UIUtility_NumberSelector8x8Method(PikaObj *self, Args *_args_){
+    int value = args_getInt(_args_, "value");
+    PikaObj* color = args_getPtr(_args_, "color");
+    char* name = args_getStr(_args_, "name");
+    int lower_limit = args_getInt(_args_, "lower_limit");
+    int upper_limit = args_getInt(_args_, "upper_limit");
+    int res = _MatrixOS_UIUtility_NumberSelector8x8(self, value, color, name, lower_limit, upper_limit);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIUtility_NumberSelector8x8,
+    "NumberSelector8x8", "value,color,name,lower_limit,upper_limit"
+);
+
+void _MatrixOS_UIUtility_TextScrollMethod(PikaObj *self, Args *_args_){
+    char* text = args_getStr(_args_, "text");
+    PikaObj* color = args_getPtr(_args_, "color");
+    int speed = args_getInt(_args_, "speed");
+    pika_bool loop = args_getBool(_args_, "loop");
+    _MatrixOS_UIUtility_TextScroll(self, text, color, speed, loop);
+}
+method_typedef(
+    _MatrixOS_UIUtility_TextScroll,
+    "TextScroll", "text,color,speed,loop"
+);
+
+class_def(_MatrixOS_UIUtility){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UIUtility_NumberSelector8x8, 636314519),
+    method_def(_MatrixOS_UIUtility_ColorPicker, 838666882),
+    method_def(_MatrixOS_UIUtility_TextScroll, 1733915705),
+};
+class_inhert(_MatrixOS_UIUtility, TinyObj);
+
+PikaObj *New__MatrixOS_UIUtility(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UIUtility);
     return self;
 }
 #endif
