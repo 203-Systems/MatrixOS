@@ -1,7 +1,8 @@
 #pragma once
 #include <cmath>
-#include "../Data/4pxNumber.h"
 #include "UIComponent.h"
+#include "../Data/4pxNumber.h"
+#include "../UIUtilities.h"
 
 // TODO add negative support?
 class UI4pxNumber : public UIComponent {

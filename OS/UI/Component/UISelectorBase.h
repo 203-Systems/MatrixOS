@@ -1,5 +1,6 @@
 #pragma once
 #include "UIComponent.h"
+#include "../UIUtilities.h"
 
 enum UISelectorColorMode {
   COLOR_MODE_SINGLE,
