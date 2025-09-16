@@ -205,3 +205,29 @@ void UI::ExitAllUIs() {
   MatrixOS::KeyPad::Clear();
   UI::uiList.clear();
 }
+
+// Virtual function implementations
+void UI::Setup() {
+  if (setup_func)
+    (*setup_func)();
+}
+
+void UI::Loop() {
+  if (loop_func)
+    (*loop_func)();
+}
+
+void UI::PreRender() {
+  if (pre_render_func)
+    (*pre_render_func)();
+}
+
+void UI::PostRender() {
+  if (post_render_func)
+    (*post_render_func)();
+}
+
+void UI::End() {
+  if (end_func)
+    (*end_func)();
+}
