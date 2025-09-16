@@ -22,7 +22,7 @@ class AppLauncherPicker : public UIComponent {
             auto application_it = applications.find(app_id);
             if(application_it == applications.end())
             {
-                MLOGE("Shell", "App ID %X not found in application list", app_id);
+                // Skip invalid app ID - should have been cleaned up on startup
                 continue;
             }
             Application_Info* application_info = application_it->second;
@@ -56,7 +56,7 @@ class AppLauncherPicker : public UIComponent {
             auto application_it = applications.find(app_id);
             if(application_it == applications.end())
             {
-                MLOGE("Shell", "App ID %X not found in application list", app_id);
+                // Skip invalid app ID - should have been cleaned up on startup
                 return false;
             }
             Application_Info* application = application_it->second;

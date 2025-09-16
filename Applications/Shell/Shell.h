@@ -51,6 +51,7 @@ class Shell : public Application {
   void SaveFolderVector(uint8_t folder_id);
   void LoadFolderVector(uint8_t folder_id);
   void SaveAllFolderVectors();
+  void CleanupInvalidApps();
   
   // Application launcher functions
   void ApplicationLauncher();

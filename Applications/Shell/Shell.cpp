@@ -157,7 +157,10 @@ void Shell::InitializeFolderSystem() {
   }
   LoadFolderVector(FOLDER_HIDDEN);
   LoadFolderVector(FOLDER_INVISIBLE);
-  
+
+  // Clean up any invalid app IDs that no longer exist
+  CleanupInvalidApps();
+
   // Build a set of all apps that are already in folders
   std::unordered_set<uint32_t> apps_in_folders;
   for (auto& [folder_id, folder] : folders) {
@@ -341,6 +344,46 @@ void Shell::SaveAllFolderVectors() {
   }
   SaveFolderVector(FOLDER_HIDDEN);
   SaveFolderVector(FOLDER_INVISIBLE);
+}
+
+void Shell::CleanupInvalidApps() {
+  bool any_changes = false;
+
+  // Clean up all folders including special ones
+  std::vector<uint8_t> all_folders;
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++) {
+    all_folders.push_back(i);
+  }
+  all_folders.push_back(FOLDER_HIDDEN);
+  all_folders.push_back(FOLDER_INVISIBLE);
+
+  for (uint8_t folder_id : all_folders) {
+    std::vector<uint32_t>& app_ids = folders[folder_id].app_ids;
+    std::vector<uint32_t> valid_apps;
+
+    for (uint32_t app_id : app_ids) {
+      // Check if this app exists in the applications map
+      auto app_it = applications.find(app_id);
+      if (app_it != applications.end()) {
+        // App exists, keep it
+        valid_apps.push_back(app_id);
+      } else {
+        // App doesn't exist anymore, log and remove
+        MLOGD("Shell", "Removing invalid app ID %X from folder %d", app_id, folder_id);
+        any_changes = true;
+      }
+    }
+
+    // Update the folder with only valid apps
+    if (app_ids.size() != valid_apps.size()) {
+      app_ids = valid_apps;
+      SaveFolderVector(folder_id);
+    }
+  }
+
+  if (any_changes) {
+    MLOGI("Shell", "Cleaned up invalid app entries");
+  }
 }
 
 uint8_t Shell::GetAppFolder(uint32_t app_id, Application_Info* app_info) {
