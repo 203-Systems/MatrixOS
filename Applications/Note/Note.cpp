@@ -274,7 +274,7 @@ void Note::LayoutSelector() {
   yOffsetInput.SetValuePointer((uint16_t*)&y_offset);
   yOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
-  yOffsetInput.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  yOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(yOffsetInput, Point(0, 0));
 
   UI4pxNumber yOffsetDisplay;
@@ -282,7 +282,7 @@ void Note::LayoutSelector() {
   yOffsetDisplay.SetDigits(1);
   yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
   yOffsetDisplay.SetAlternativeColor(Color(0x00FF00));
-  yOffsetDisplay.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  yOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
 
   UISelector xOffsetInput;
@@ -291,7 +291,7 @@ void Note::LayoutSelector() {
   xOffsetInput.SetColor(Color(0xFF0000));
   xOffsetInput.SetValuePointer((uint16_t*)&x_offset);
   xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
-  xOffsetInput.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));
 
   UI4pxNumber xOffsetDisplay;
@@ -299,7 +299,7 @@ void Note::LayoutSelector() {
   xOffsetDisplay.SetDigits(1);
   xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
   xOffsetDisplay.SetAlternativeColor(Color(0xFF0000));
-  xOffsetDisplay.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
 
   // Show Off Scale Notes Toggle (only for Octave and Offset modes)
@@ -307,7 +307,7 @@ void Note::LayoutSelector() {
   includeOutScaleNotesToggle.SetName("Include Out of Scale Notes");
   includeOutScaleNotesToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].includeOutScaleNotes); });
   includeOutScaleNotesToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].includeOutScaleNotes = !notePadConfigs[activeConfig].includeOutScaleNotes; });
-  includeOutScaleNotesToggle.ShouldEnable([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  includeOutScaleNotesToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(includeOutScaleNotesToggle, Point(0, 7));
 
   layoutSelector.Start();

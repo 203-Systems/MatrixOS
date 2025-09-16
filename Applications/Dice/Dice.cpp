@@ -174,7 +174,7 @@ void Dice::Settings() {
   dotFaceSelectorBtn.SetColor(Color(0x00FFFF));
   dotFaceSelectorBtn.SetSize(Dimension(4, 1));
   dotFaceSelectorBtn.OnPress([&]() -> void { DotFaceSelector(); });
-  dotFaceSelectorBtn.ShouldEnable([&]() -> bool { return mode == Dot; });
+  dotFaceSelectorBtn.SetEnableFunc([&]() -> bool { return mode == Dot; });
   settingsUI.AddUIComponent(dotFaceSelectorBtn, Point(2, 7));
 
   // Number Mode
@@ -183,7 +183,7 @@ void Dice::Settings() {
   numberFacesSelectorBtn.SetColor(Color(0x00FFFF));
   numberFacesSelectorBtn.SetSize(Dimension(4, 1));
   numberFacesSelectorBtn.OnPress([&]() -> void { number_faces = MatrixOS::UIUtility::NumberSelector8x8(number_faces, Color(0x00FFFF), "Face Selector", 1, 99); });
-  numberFacesSelectorBtn.ShouldEnable([&]() -> bool { return mode == Number; });
+  numberFacesSelectorBtn.SetEnableFunc([&]() -> bool { return mode == Number; });
   settingsUI.AddUIComponent(numberFacesSelectorBtn, Point(2, 7));
 
   // Second, set the key event handler to match the intended behavior

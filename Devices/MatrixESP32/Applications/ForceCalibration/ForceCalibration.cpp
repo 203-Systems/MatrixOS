@@ -121,7 +121,7 @@ void ForceCalibration::SetOffset(CalibrationType type)
   UIButton minusSign;
   minusSign.SetColorFunc([&]() -> Color { return (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
   minusSign.SetSize(Dimension(2, 1));
-  minusSign.ShouldEnable([&]() -> bool { return offset < 0; });
+  minusSign.SetEnableFunc([&]() -> bool { return offset < 0; });
   
   offsetUI.AddUIComponent(minusSign, Point(0, 2));
 

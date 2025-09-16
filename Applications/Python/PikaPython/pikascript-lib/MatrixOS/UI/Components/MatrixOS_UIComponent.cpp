@@ -25,8 +25,8 @@ extern "C" {
         component->SetEnabled(enabled);
     }
 
-    // ShouldEnable method
-    void _MatrixOS_UIComponent_UIComponent_ShouldEnable(PikaObj *self, Arg* enable_func) {
+    // SetEnableFunc method
+    void _MatrixOS_UIComponent_UIComponent_SetEnableFunc(PikaObj *self, Arg* enable_func) {
         UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);
         if (!component) return;
 
@@ -37,7 +37,7 @@ extern "C" {
         uint32_t eventId = RegisterCallback(enable_func);
 
 
-        component->ShouldEnable([eventId]() -> bool {
+        component->SetEnableFunc([eventId]() -> bool {
             Arg* returnValue = EventCallback(eventId);
 
             if(arg_getType(returnValue) != ARG_TYPE_BOOL)

@@ -18,7 +18,7 @@ class UIComponent {
   virtual bool Render(Point origin) { return false; }
 
   void SetEnabled(bool enabled) { this->enabled = enabled; }
-  void ShouldEnable(std::function<bool()> enableFunc) { this->enableFunc = std::make_unique<std::function<bool()>>(enableFunc); }  
+  void SetEnableFunc(std::function<bool()> enableFunc) { this->enableFunc = std::make_unique<std::function<bool()>>(enableFunc); }  
 
   bool IsEnabled() {
     if (enableFunc) {
