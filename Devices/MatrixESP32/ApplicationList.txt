@@ -2,8 +2,17 @@
 # Format:
 #   FolderName                - Regular application (sandboxed)
 #   [System]FolderName        - System application (privileged)
+#   git:URL@branch/hash       - Clone git repository at specific branch/commit
+#   [System]git:URL@branch    - System application from git repository
 # Applications register their class via RegisterApplicationClass() in their CMakeLists.txt
+# Git applications are cloned to {FAMILY_PATH}/Applications/ directory
 # Use # for comments and empty lines are allowed
+#
+# Git URL Examples:
+#   git:https://github.com/user/myapp@main
+#   git:https://github.com/user/myapp@v1.2.3
+#   git:https://github.com/user/myapp@abc123d
+#   [System]git:https://github.com/user/sysapp@feature-branch
 
 # Device UI
 Setting
@@ -32,3 +41,6 @@ Strum
 # Device-specific applications
 {FAMILY_PATH}/Applications/FactoryMenu
 {FAMILY_PATH}/Applications/ForceCalibration
+
+# Example application template
+#git:https://github.com/203-Systems/Matrix-OS-APP-Template.git@master

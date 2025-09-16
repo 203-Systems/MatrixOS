@@ -37,6 +37,87 @@ add_subdirectory(BootAnimation)
 # Read application list from device family path
 set(APPLICATION_LIST_FILE "${FAMILY_PATH}/ApplicationList.txt")
 
+# Function to clone git repository for applications
+function(clone_git_application GIT_URL GIT_REF APP_NAME)
+    set(GIT_APPS_DIR "${FAMILY_PATH}/Applications")
+    set(APP_DIR "${GIT_APPS_DIR}/${APP_NAME}")
+
+    # Create git apps directory if it doesn't exist
+    if(NOT EXISTS ${GIT_APPS_DIR})
+        file(MAKE_DIRECTORY ${GIT_APPS_DIR})
+    endif()
+
+    # Check if app already exists and is up to date
+    set(NEEDS_CLONE TRUE)
+    if(EXISTS ${APP_DIR})
+        # Check if it's a git repo and has the correct remote
+        execute_process(
+            COMMAND git -C ${APP_DIR} remote get-url origin
+            OUTPUT_VARIABLE CURRENT_REMOTE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(CURRENT_REMOTE STREQUAL GIT_URL)
+            # Check if we're on the correct ref locally
+            execute_process(
+                COMMAND git -C ${APP_DIR} rev-parse HEAD
+                OUTPUT_VARIABLE CURRENT_COMMIT
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            execute_process(
+                COMMAND git -C ${APP_DIR} rev-parse ${GIT_REF}
+                OUTPUT_VARIABLE TARGET_COMMIT
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if(CURRENT_COMMIT STREQUAL TARGET_COMMIT)
+                set(NEEDS_CLONE FALSE)
+            endif()
+        endif()
+    endif()
+
+    if(NEEDS_CLONE)
+        message(STATUS "Cloning git application: ${APP_NAME} from ${GIT_URL}@${GIT_REF}")
+
+        # Remove existing directory if it exists
+        if(EXISTS ${APP_DIR})
+            file(REMOVE_RECURSE ${APP_DIR})
+        endif()
+
+        # Clone the repository
+        execute_process(
+            COMMAND git clone ${GIT_URL} ${APP_DIR}
+            RESULT_VARIABLE CLONE_RESULT
+            ERROR_QUIET
+        )
+
+        if(NOT CLONE_RESULT EQUAL 0)
+            message(WARNING "Failed to clone ${GIT_URL}")
+            return()
+        endif()
+
+        # Checkout the specific branch/commit
+        execute_process(
+            COMMAND git -C ${APP_DIR} checkout ${GIT_REF}
+            RESULT_VARIABLE CHECKOUT_RESULT
+            ERROR_QUIET
+        )
+
+        if(NOT CHECKOUT_RESULT EQUAL 0)
+            message(WARNING "Failed to checkout ${GIT_REF} in ${APP_NAME}")
+            return()
+        endif()
+
+        message(STATUS "Successfully cloned ${APP_NAME}")
+    else()
+        message(STATUS "Git application ${APP_NAME} is up to date")
+    endif()
+
+    # Return the app directory path
+    set(GIT_APP_DIR ${APP_DIR} PARENT_SCOPE)
+endfunction()
+
 # Function to add enabled application subdirectories
 function(add_enabled_applications CONFIG_FILE)
     if(NOT EXISTS ${CONFIG_FILE})
@@ -64,14 +145,43 @@ function(add_enabled_applications CONFIG_FILE)
 
         # APP_PATH is just the folder name now
         set(APP_PATH "${LINE_TRIMMED}")
-        
-        # Resolve paths and create display path
-        if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
-            string(REPLACE "{FAMILY_PATH}" "${FAMILY_PATH}" APP_DIR "${APP_PATH}")
+
+        # Check if this is a git URL
+        set(IS_GIT_APP FALSE)
+        if(APP_PATH MATCHES "^git:")
+            set(IS_GIT_APP TRUE)
+            # Parse git:URL@ref format
+            string(REGEX REPLACE "^git:" "" GIT_SPEC "${APP_PATH}")
+            string(FIND "${GIT_SPEC}" "@" AT_POS)
+            if(AT_POS EQUAL -1)
+                message(WARNING "Invalid git URL format: ${APP_PATH}. Expected git:URL@branch/hash")
+                continue()
+            endif()
+            string(SUBSTRING "${GIT_SPEC}" 0 ${AT_POS} GIT_URL)
+            math(EXPR REF_START "${AT_POS} + 1")
+            string(SUBSTRING "${GIT_SPEC}" ${REF_START} -1 GIT_REF)
+
+            # Extract app name from URL (last part of path without .git)
+            string(REGEX REPLACE ".*/([^/]+)(\\.git)?$" "\\1" APP_NAME "${GIT_URL}")
+            string(REGEX REPLACE "\\.git$" "" APP_NAME "${APP_NAME}")
+
+            # Clone/update the git repository
+            clone_git_application("${GIT_URL}" "${GIT_REF}" "${APP_NAME}")
+
+            # Set paths to the cloned repository
+            set(APP_DIR "${GIT_APP_DIR}")
             file(RELATIVE_PATH DISPLAY_PATH ${CMAKE_SOURCE_DIR} ${APP_DIR})
-        else()
-            set(APP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${APP_PATH}")
-            set(DISPLAY_PATH "Applications/${APP_PATH}")
+        endif()
+
+        # Resolve paths and create display path for non-git apps
+        if(NOT IS_GIT_APP)
+            if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
+                string(REPLACE "{FAMILY_PATH}" "${FAMILY_PATH}" APP_DIR "${APP_PATH}")
+                file(RELATIVE_PATH DISPLAY_PATH ${CMAKE_SOURCE_DIR} ${APP_DIR})
+            else()
+                set(APP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${APP_PATH}")
+                set(DISPLAY_PATH "Applications/${APP_PATH}")
+            endif()
         endif()
         set(APP_CMAKE "${APP_DIR}/CMakeLists.txt")
         
@@ -91,7 +201,12 @@ function(add_enabled_applications CONFIG_FILE)
             set(IS_SYSTEM_APP ${IS_SYSTEM_APP})
 
             # Add the subdirectory for this application
-            if(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
+            if(IS_GIT_APP)
+                # For git applications, provide binary directory
+                string(REPLACE "/" "_" BINARY_DIR_NAME "git_${APP_NAME}")
+                string(REPLACE ":" "_" BINARY_DIR_NAME "${BINARY_DIR_NAME}")
+                add_subdirectory(${APP_DIR} ${CMAKE_BINARY_DIR}/external_apps/${BINARY_DIR_NAME})
+            elseif(APP_PATH MATCHES "\\{FAMILY_PATH\\}")
                 # For family path substitutions, provide binary directory
                 string(REPLACE "/" "_" BINARY_DIR_NAME "${APP_PATH}")
                 string(REPLACE "{FAMILY_PATH}" "FAMILY" BINARY_DIR_NAME "${BINARY_DIR_NAME}")
