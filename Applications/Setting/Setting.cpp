@@ -14,13 +14,21 @@ void Setting::Start() {
   // Conspiracy exists?) Also assume at least 4x4
 
   // Brightness Control
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
-  brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([]() -> void { MatrixOS::LED::NextBrightness(); });
-  brightnessBtn.OnHold([]() -> void { BrightnessControl().Start(); });
-  AddUIComponent(brightnessBtn, Point(3, 3));
+  UIButton brightnessDownBtn;
+  brightnessDownBtn.SetName("Brightness Down");
+  brightnessDownBtn.SetColor(Color(0xFFFFFF));
+  brightnessDownBtn.SetSize(Dimension(1, 2));
+  brightnessDownBtn.OnPress([]() -> void { MatrixOS::LED::PreviousBrightness(); });
+  brightnessDownBtn.OnHold([]() -> void { BrightnessControl().Start(); });
+  AddUIComponent(brightnessDownBtn, origin);
+
+  UIButton brightnessUpBtn;
+  brightnessUpBtn.SetName("Brightness Up");
+  brightnessUpBtn.SetColor(Color(0xFFFFFF));
+  brightnessUpBtn.SetSize(Dimension(1, 2));
+  brightnessUpBtn.OnPress([]() -> void { MatrixOS::LED::NextBrightness(); });
+  brightnessUpBtn.OnHold([]() -> void { BrightnessControl().Start(); });
+  AddUIComponent(brightnessUpBtn, origin + Point(1, 0));
 
   // Rotation control and canvas
   UIButton nothingBtn;

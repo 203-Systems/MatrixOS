@@ -109,6 +109,24 @@ namespace MatrixOS::LED
     }
   }
 
+  void PreviousBrightness() {
+    MLOGD("LED", "Previous Brightness");
+    MLOGD("LED", "Current Brightness %d", UserVar::brightness.value);
+    auto size = sizeof(Device::LED::brightness_level) - 1;
+    for (int i = size; i >= 0; i--)
+    {
+      uint8_t new_brightness = Device::LED::brightness_level[i];
+      MLOGD("LED", "Check Brightness Level  %d", new_brightness);
+      if (new_brightness < UserVar::brightness)
+      {
+        MLOGD("LED", "Brightness Level Selected");
+        SetBrightness(new_brightness);
+        return;
+      }
+    }
+    MLOGD("LED", "Highest Level Selected");
+    SetBrightness(Device::LED::brightness_level[size]);
+  }
 
   void NextBrightness() {
     MLOGD("LED", "Next Brightness");
