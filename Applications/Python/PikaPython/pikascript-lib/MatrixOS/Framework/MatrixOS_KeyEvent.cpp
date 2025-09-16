@@ -43,21 +43,4 @@ extern "C" {
         
         return keyInfoObj;
     }
-
-    // Setters
-    void _MatrixOS_KeyEvent_KeyEvent_SetID(PikaObj *self, int id) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return;
-        keyEvent->id = (uint16_t)id;
-    }
-
-    void _MatrixOS_KeyEvent_KeyEvent_SetInfo(PikaObj *self, PikaObj* info) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(info);
-        
-        if (!keyEvent || !keyInfo) return;
-        
-        // Copy the KeyInfo data
-        keyEvent->info = *keyInfo;
-    }
 }
