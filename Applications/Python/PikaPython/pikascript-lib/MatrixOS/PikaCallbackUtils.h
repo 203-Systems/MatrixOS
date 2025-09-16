@@ -2,34 +2,30 @@
 
 #include "PikaObj.h"
 
-inline PikaEventListener* g_pika_user_listener = nullptr;
-inline uint32_t callbackRegistered = 0;
-
-uint32_t RegisterCallback(Arg* cb)
+inline bool SaveCallbackObjToPikaObj(PikaObj *self, char* name, Arg* callback)
 {
-    if(NULL == cb)
+    // Check if callback already registed
+    Arg* existing_callback = obj_getArg(self, name);
+    if (existing_callback) {
+        arg_deinit(existing_callback);
+    }
+
+    // Save callback
+    if(obj_setArg(self, name, callback) != PIKA_RES_OK)
     {
-        return UINT32_MAX;
+        return true;
     }
 
-    if (NULL == g_pika_user_listener){
-        pika_eventListener_init(&g_pika_user_listener);
-    }
-
-    uint32_t eventId = callbackRegistered;
-    callbackRegistered++;
-
-    pika_eventListener_registEventCallback(g_pika_user_listener, eventId, cb);
-
-    return eventId;
+    return false;
 }
 
-Arg* EventCallback(uint32_t eventId, int eventSignal = 0)
+inline Arg* CallCallbackInPikaObj0(PikaObj *self, char* name)
 {
-    if(eventId == UINT32_MAX)
-    {
+    Arg* callback = obj_getArg(self, name);
+    if (!callback) {
         return nullptr;
     }
 
-    return pks_eventListener_sendSignalAwaitResult(g_pika_user_listener, eventId, eventSignal);
+    Arg* callback_copy = arg_copy(callback);
+    return obj_runMethodArg0(self, callback_copy);
 }
