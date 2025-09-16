@@ -66,6 +66,8 @@
 #include "_MatrixOS_KeyInfo_KeyInfo.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
 #include "_MatrixOS_Point_Point.h"
+#include "_MatrixOS_UIComponent.h"
+#include "_MatrixOS_UIComponent_UIComponent.h"
 #include "builtins_ArithmeticError.h"
 #include "builtins_Exception.h"
 #include "builtins_AssertionError.h"
@@ -3761,6 +3763,52 @@ PikaObj *New__MatrixOS_SYS(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_SYS);
     return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UICOMPONENT_DISABLE
+void _MatrixOS_UIComponent_UIComponent_SetEnabledMethod(PikaObj *self, Args *_args_){
+    pika_bool enabled = args_getBool(_args_, "enabled");
+    _MatrixOS_UIComponent_UIComponent_SetEnabled(self, enabled);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent_SetEnabled,
+    "SetEnabled", "enabled"
+);
+
+void _MatrixOS_UIComponent_UIComponent_ShouldEnableMethod(PikaObj *self, Args *_args_){
+    Arg* enable_func = args_getArg(_args_, "enable_func");
+    _MatrixOS_UIComponent_UIComponent_ShouldEnable(self, enable_func);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent_ShouldEnable,
+    "ShouldEnable", "enable_func"
+);
+
+void _MatrixOS_UIComponent_UIComponent___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_UIComponent_UIComponent___init__(self);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_UIComponent_UIComponent){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_UIComponent_UIComponent___init__, 904762485),
+    method_def(_MatrixOS_UIComponent_UIComponent_ShouldEnable, 1226777915),
+    method_def(_MatrixOS_UIComponent_UIComponent_SetEnabled, 1327803484),
+};
+class_inhert(_MatrixOS_UIComponent_UIComponent, TinyObj);
+
+PikaObj *New__MatrixOS_UIComponent_UIComponent(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UIComponent_UIComponent);
+    return self;
+}
+
+Arg *_MatrixOS_UIComponent_UIComponent(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_UIComponent_UIComponent);
 }
 #endif
 

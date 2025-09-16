@@ -2,7 +2,7 @@
 #include "ui/UIUtilities.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
-#include "PikaObjUtils.h"
+#include "../PikaObjUtils.h"
 
 extern "C" {
     // UIUtilities implementation
