@@ -1,3 +1,4 @@
 pikascript-core==v1.13.4
 PikaStdLib==v1.13.4
 ctypes==v1.1.3
+os==v0.1.4

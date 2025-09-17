@@ -205,17 +205,6 @@ int64_t args_getInt(Args* self, char* name) {
     return _PIKA_INT_ERR;
 }
 
-PIKA_RES args_setBool(Args* self, char* name, pika_bool boolIn) {
-    Arg* arg = args_getArg(self, name);
-    if (NULL == arg || arg_getType(arg) != ARG_TYPE_BOOL) {
-        args_pushArg_name(self, name, arg_newBool(boolIn));
-        return PIKA_RES_OK;
-    }
-    pika_bool* val_ptr = (pika_bool*)arg_getContent(arg);
-    *val_ptr = boolIn;
-    return PIKA_RES_OK;
-}
-
 pika_bool args_getBool(Args* self, char* name) {
     Arg* arg = args_getArg(self, name);
     if (NULL == arg) {

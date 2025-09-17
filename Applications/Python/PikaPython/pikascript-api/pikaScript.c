@@ -19,6 +19,7 @@ PikaObj *pikaPythonInit(void){
     pika_printVersion();
     pika_platform_printf("PikaStdLib===v1.13.4\r\n");
     pika_platform_printf("ctypes===v1.1.3\r\n");
+    pika_platform_printf("os===v0.1.4\r\n");
     pika_platform_printf("===========================================\r\n");
     PikaObj* pikaMain = newRootObj("pikaMain", New_PikaMain);
     __pikaMain = pikaMain;

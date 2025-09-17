@@ -285,16 +285,6 @@ PIKA_RES obj_setStr(PikaObj* self, char* argPath, char* str) {
     return args_setStr(obj->list, name, str);
 }
 
-PIKA_RES obj_setBool(PikaObj* self, char* argPath, pika_bool val) {
-    PikaObj* obj = obj_getHostObj(self, argPath);
-    if (NULL == obj) {
-        return PIKA_RES_ERR_ARG_NO_FOUND;
-    }
-    char* name = strPointToLastToken(argPath, '.');
-    args_setBool(obj->list, name, val);
-    return PIKA_RES_OK;
-}
-
 PIKA_RES obj_setNone(PikaObj* self, char* argPath) {
     PikaObj* obj = obj_getHostObj(self, argPath);
     if (NULL == obj) {
@@ -796,6 +786,13 @@ PikaObj* newRootObj(char* name, NewFun newObjFun) {
     enable_raw_mode();
 #endif
     PikaObj* newObj = newNormalObj(newObjFun);
+    if (!logo_printed) {
+        logo_printed = 1;
+        pika_platform_printf("\r\n");
+        pika_platform_printf("~~~/ POWERED BY \\~~~\r\n");
+        pika_platform_printf("~  pikapython.com  ~\r\n");
+        pika_platform_printf("~~~~~~~~~~~~~~~~~~~~\r\n");
+    }
     if (NULL != __pikaMain) {
         pika_platform_printf("Error: root object already exists\r\n");
         pika_platform_panic_handle();

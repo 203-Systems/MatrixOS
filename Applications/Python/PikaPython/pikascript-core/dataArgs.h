@@ -75,8 +75,6 @@ void* args_getPtr(Args* self, char* name);
 
 PIKA_RES args_setInt(Args* self, char* name, int64_t int64In);
 int64_t args_getInt(Args* self, char* name);
-
-PIKA_RES args_setBool(Args* self, char* name, pika_bool argBool);
 pika_bool args_getBool(Args* self, char* name);
 
 char* args_print(Args* self, char* name);

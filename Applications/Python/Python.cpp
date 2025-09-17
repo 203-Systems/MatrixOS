@@ -1,6 +1,7 @@
 #include "Python.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
+#include "System/System.h"
 
 namespace MatrixOS::USB::CDC
 {
@@ -52,6 +53,9 @@ void Python::Setup() {
   MatrixOS::USB::CDC::Println("OS Version: " + MATRIXOS_VERSION_STRING);
   MatrixOS::USB::CDC::Println("See matrix.203.io for docs and usage guide.");
   MatrixOS::USB::CDC::Println("");
+
+  // Remove previlige from application
+  MatrixOS::SYS::SetTaskPermissions(MatrixOS::SYS::TaskPermissions());
 
   // Initialize PikaPython
   pikaMain = pikaPythonInit();

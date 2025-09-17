@@ -50,6 +50,7 @@
 #include "_MatrixOS_Utils.h"
 #include "builtins.h"
 #include "ctypes.h"
+#include "os.h"
 #include "PikaStdData_ByteArray.h"
 #include "builtins_bytearray.h"
 #include "PikaStdData_Dict.h"
@@ -168,6 +169,8 @@
 #include "ctypes_c_void_p.h"
 #include "ctypes_c_wchar.h"
 #include "ctypes_create_string_buffer.h"
+#include "os_fileStat.h"
+#include "os_path.h"
 
 #ifndef PIKA_MODULE_PIKADEBUG_DISABLE
 void PikaDebug_DebugerMethod(PikaObj *self, Args *_args_){
@@ -364,6 +367,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE_CTYPES_DISABLE
     obj_newObj(self, "ctypes", "ctypes", New_ctypes);
+#endif
+#ifndef PIKA_MODULE_OS_DISABLE
+    obj_newObj(self, "os", "os", New_os);
 #endif
     obj_setClass(self, PikaMain);
     return self;
@@ -7795,6 +7801,345 @@ PikaObj *New_ctypes_create_string_buffer(Args *args){
 
 Arg *ctypes_create_string_buffer(PikaObj *self){
     return obj_newObjInPackage(New_ctypes_create_string_buffer);
+}
+#endif
+
+#ifndef PIKA_MODULE_OS_DISABLE
+void os___init__Method(PikaObj *self, Args *_args_){
+    os___init__(self);
+}
+method_typedef(
+    os___init__,
+    "__init__", ""
+);
+
+void os_chdirMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    os_chdir(self, path);
+}
+method_typedef(
+    os_chdir,
+    "chdir", "path"
+);
+
+void os_closeMethod(PikaObj *self, Args *_args_){
+    PikaObj* fd = args_getPtr(_args_, "fd");
+    os_close(self, fd);
+}
+method_typedef(
+    os_close,
+    "close", "fd"
+);
+
+void os_fileStatMethod(PikaObj *self, Args *_args_){
+    Arg* res = os_fileStat(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    os_fileStat,
+    "fileStat", ""
+);
+
+void os_fstatMethod(PikaObj *self, Args *_args_){
+    PikaObj* fd = args_getPtr(_args_, "fd");
+    PikaObj* res = os_fstat(self, fd);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    os_fstat,
+    "fstat", "fd"
+);
+
+void os_getcwdMethod(PikaObj *self, Args *_args_){
+    char* res = os_getcwd(self);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_getcwd,
+    "getcwd", ""
+);
+
+void os_listdirMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    PikaObj* res = os_listdir(self, path);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    os_listdir,
+    "listdir", "path"
+);
+
+void os_lseekMethod(PikaObj *self, Args *_args_){
+    PikaObj* fd = args_getPtr(_args_, "fd");
+    int pos = args_getInt(_args_, "pos");
+    int how = args_getInt(_args_, "how");
+    int res = os_lseek(self, fd, pos, how);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    os_lseek,
+    "lseek", "fd,pos,how"
+);
+
+void os_mkdirMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    PikaTuple* mode = args_getTuple(_args_, "mode");
+    os_mkdir(self, path, mode);
+}
+method_typedef(
+    os_mkdir,
+    "mkdir", "path,*mode"
+);
+
+void os_openMethod(PikaObj *self, Args *_args_){
+    char* filename = args_getStr(_args_, "filename");
+    int flags = args_getInt(_args_, "flags");
+    PikaObj* res = os_open(self, filename, flags);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    os_open,
+    "open", "filename,flags"
+);
+
+void os_pathMethod(PikaObj *self, Args *_args_){
+    Arg* res = os_path(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    os_path,
+    "path", ""
+);
+
+void os_readMethod(PikaObj *self, Args *_args_){
+    PikaObj* fd = args_getPtr(_args_, "fd");
+    int len = args_getInt(_args_, "len");
+    char* res = os_read(self, fd, len);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_read,
+    "read", "fd,len"
+);
+
+void os_removeMethod(PikaObj *self, Args *_args_){
+    char* filename = args_getStr(_args_, "filename");
+    os_remove(self, filename);
+}
+method_typedef(
+    os_remove,
+    "remove", "filename"
+);
+
+void os_renameMethod(PikaObj *self, Args *_args_){
+    char* old = args_getStr(_args_, "old");
+    char* new = args_getStr(_args_, "new");
+    os_rename(self, old, new);
+}
+method_typedef(
+    os_rename,
+    "rename", "old,new"
+);
+
+void os_rmdirMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    os_rmdir(self, path);
+}
+method_typedef(
+    os_rmdir,
+    "rmdir", "path"
+);
+
+void os_writeMethod(PikaObj *self, Args *_args_){
+    PikaObj* fd = args_getPtr(_args_, "fd");
+    Arg* buf = args_getArg(_args_, "buf");
+    int res = os_write(self, fd, buf);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    os_write,
+    "write", "fd,buf"
+);
+
+class_def(os){
+    __BEFORE_MOETHOD_DEF
+    method_def(os_chdir, 255408335),
+    method_def(os_close, 255564379),
+    method_def(os_fstat, 259378567),
+    method_def(os_lseek, 266477881),
+    method_def(os_mkdir, 267375356),
+    method_def(os_rmdir, 273376835),
+    method_def(os_write, 279491920),
+    method_def(os_remove, 422343795),
+    method_def(os_rename, 422364189),
+    constructor_def(os_fileStat, 869356417),
+    method_def(os___init__, 904762485),
+    method_def(os_listdir, 2057387552),
+    method_def(os_open, 2090588023),
+    constructor_def(os_path, 2090608114),
+    method_def(os_read, 2090683713),
+    method_def(os_getcwd, 2139576643),
+};
+class_inhert(os, TinyObj);
+
+PikaObj *New_os(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, os);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE_OS_DISABLE
+void os_fileStat_st_sizeMethod(PikaObj *self, Args *_args_){
+    int res = os_fileStat_st_size(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    os_fileStat_st_size,
+    "st_size", ""
+);
+
+class_def(os_fileStat){
+    __BEFORE_MOETHOD_DEF
+    method_def(os_fileStat_st_size, 766986054),
+};
+class_inhert(os_fileStat, TinyObj);
+
+PikaObj *New_os_fileStat(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, os_fileStat);
+    return self;
+}
+
+Arg *os_fileStat(PikaObj *self){
+    return obj_newObjInPackage(New_os_fileStat);
+}
+#endif
+
+#ifndef PIKA_MODULE_OS_DISABLE
+void os_path_abspathMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    char* res = os_path_abspath(self, path);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_path_abspath,
+    "abspath", "path"
+);
+
+void os_path_basenameMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    char* res = os_path_basename(self, path);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_path_basename,
+    "basename", "path"
+);
+
+void os_path_dirnameMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    char* res = os_path_dirname(self, path);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_path_dirname,
+    "dirname", "path"
+);
+
+void os_path_existsMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    pika_bool res = os_path_exists(self, path);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    os_path_exists,
+    "exists", "path"
+);
+
+void os_path_isabsMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    pika_bool res = os_path_isabs(self, path);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    os_path_isabs,
+    "isabs", "path"
+);
+
+void os_path_isdirMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    pika_bool res = os_path_isdir(self, path);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    os_path_isdir,
+    "isdir", "path"
+);
+
+void os_path_isfileMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    pika_bool res = os_path_isfile(self, path);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    os_path_isfile,
+    "isfile", "path"
+);
+
+void os_path_joinMethod(PikaObj *self, Args *_args_){
+    PikaTuple* paths = args_getTuple(_args_, "paths");
+    char* res = os_path_join(self, paths);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    os_path_join,
+    "join", "*paths"
+);
+
+void os_path_splitMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    PikaObj* res = os_path_split(self, path);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    os_path_split,
+    "split", "path"
+);
+
+void os_path_splitextMethod(PikaObj *self, Args *_args_){
+    char* path = args_getStr(_args_, "path");
+    PikaObj* res = os_path_splitext(self, path);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    os_path_splitext,
+    "splitext", "path"
+);
+
+class_def(os_path){
+    __BEFORE_MOETHOD_DEF
+    method_def(os_path_isfile, 86469729),
+    method_def(os_path_isabs, 262915671),
+    method_def(os_path_isdir, 262919168),
+    method_def(os_path_split, 274679281),
+    method_def(os_path_dirname, 314173701),
+    method_def(os_path_abspath, 462047368),
+    method_def(os_path_basename, 727364929),
+    method_def(os_path_splitext, 1314589154),
+    method_def(os_path_exists, 2083460389),
+    method_def(os_path_join, 2090407381),
+};
+class_inhert(os_path, TinyObj);
+
+PikaObj *New_os_path(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, os_path);
+    return self;
+}
+
+Arg *os_path(PikaObj *self){
+    return obj_newObjInPackage(New_os_path);
 }
 #endif
 
