@@ -2,7 +2,7 @@
 #include "ui/UI.h"  // Include the UI Framework
 
 // Run once
-void Dice::Setup() {
+void Dice::Setup(va_list args) {
   #ifdef FAMILY_MYSTRIX
   if(Device::deviceInfo.Model[3] == 'P'){
     underglow_enabled = true;

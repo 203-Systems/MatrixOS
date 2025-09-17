@@ -28,7 +28,7 @@ class ExampleAPP : public Application {
       .visibility = true,
   };
 
-  void Setup() override;
+  void Setup(va_list args) override;
   void Loop() override;
   void End() override;
 

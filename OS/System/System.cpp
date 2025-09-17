@@ -13,6 +13,9 @@ extern std::unordered_map<uint32_t, Application_Info*> applications;
 
 namespace MatrixOS::SYS
 {
+  // Application argument storage
+  static va_list next_app_args;
+
   // Thread Local Storage indices
   enum TLS_Index {
     TLS_PERMISSIONS_INDEX = 0,  // Stores TaskPermissions bitmap
@@ -68,7 +71,9 @@ namespace MatrixOS::SYS
 
     InitSysModules();
     MatrixOS::LED::Fade();
-    active_app->Start();
+
+    // Always start with va_list (may be empty)
+    active_app->Start(next_app_args);
   }
 
   void Supervisor(void* param) {
@@ -187,19 +192,31 @@ namespace MatrixOS::SYS
     return StringHash(author + "-" + app_name);
   }
 
-  void ExecuteAPP(uint32_t app_id) {
-    // MLOG("System", "Launching APP ID\t%X", app_id);
+  void ExecuteAPP(uint32_t app_id, ...) {
+    va_list args;
+    va_start(args, app_id);
+    va_copy(next_app_args, args);
+    va_end(args);
+
     next_app_id = app_id;
 
-    if (active_app_task != NULL)
-    {
+    if (active_app_task != NULL) {
       ExitAPP();
     }
   }
 
-  void ExecuteAPP(string author, string app_name) {
+  void ExecuteAPP(string author, string app_name, ...) {
+    va_list args;
+    va_start(args, app_name);
+    va_copy(next_app_args, args);
+    va_end(args);
+
     MLOGD("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
-    ExecuteAPP(GenerateAPPID(author, app_name));
+    next_app_id = GenerateAPPID(author, app_name);
+
+    if (active_app_task != NULL) {
+      ExitAPP();
+    }
   }
 
   void ExitAPP() {

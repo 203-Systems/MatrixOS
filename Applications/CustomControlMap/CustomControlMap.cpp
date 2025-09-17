@@ -1,7 +1,7 @@
 #include "CustomControlMap.h"
 #include "ui/UI.h"
 
-void CustomControlMap::Setup() {
+void CustomControlMap::Setup(va_list args) {
   LoadUADfromNVS();
 }
 

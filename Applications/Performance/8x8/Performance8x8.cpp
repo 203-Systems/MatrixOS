@@ -1,6 +1,6 @@
 #include "Performance8x8.h"
 
-void Performance::Setup() {
+void Performance::Setup(va_list args) {
   // Load variable
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
   currentKeymap = 0;

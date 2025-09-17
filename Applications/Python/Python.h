@@ -18,7 +18,7 @@ class Python : public Application {
 
   PikaObj* pikaMain;
 
-  void Setup() override;
+  void Setup(va_list args) override;
   void End() override;
 };
 

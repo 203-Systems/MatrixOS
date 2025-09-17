@@ -35,7 +35,7 @@ class Lighting : public Application {
       .version = 2,
       .visibility = true,
   };
-  void Setup() override;
+  void Setup(va_list args) override;
   void Loop() override;
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
 

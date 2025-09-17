@@ -1,6 +1,6 @@
 #include "ForceCalibration.h"
 
-void ForceCalibration::Setup() {
+void ForceCalibration::Setup(va_list args) {
   MatrixOS::SYS::Rotate(Direction::UP, true);
   // If not force sensitive, then exit
   if (!Device::KeyPad::velocity_sensitivity)

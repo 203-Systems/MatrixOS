@@ -34,7 +34,7 @@ extern "C" {
 }
 
 
-void Python::Setup() {
+void Python::Setup(va_list args) {
   // Flush serial RX buffer
   while(MatrixOS::USB::CDC::Available())
   {

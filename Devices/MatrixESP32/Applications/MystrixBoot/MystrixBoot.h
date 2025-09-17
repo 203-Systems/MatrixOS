@@ -29,7 +29,7 @@ class MystrixBoot : public BootAnimation {
       {0.5f, 0.167f}    // Standard - Yellow Cyan
   };
 
-  void Setup() override;
+  void Setup(va_list args) override;
   bool Idle(bool ready) override;
   void Boot() override;
   void BootPhase1();

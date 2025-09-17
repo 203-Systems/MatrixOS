@@ -13,5 +13,5 @@ class MSC : public Application {
       .visibility = false,
   };
 
-    void Setup() override;
+    void Setup(va_list args) override;
 };

@@ -3,6 +3,7 @@
 #include <functional>
 #include <unordered_map>
 #include <deque>
+#include <cstdarg>
 
 class Application;
 
@@ -19,11 +20,8 @@ struct Application_Info {
 
 class Application {
  public:
-  void* args;
-
-  void Start(void* args = NULL) {
-    this->args = args;
-    Setup();
+  void Start(va_list args) {
+    Setup(args);
     while (true)
     {
       Loop();
@@ -31,12 +29,12 @@ class Application {
     }
   }
 
-  void Exit() { // Call this to exit the application 
-    MatrixOS::SYS::ExitAPP(); 
+  void Exit() { // Call this to exit the application
+    MatrixOS::SYS::ExitAPP();
   };
 
   // Override these functions to implement your application
-  virtual void Setup() {};
+  virtual void Setup(va_list args) {};
   virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End() {};
   
@@ -48,7 +46,7 @@ class Application {
 #define APPLICATION_HELPER_CLASS_IMPL(CLASS) CLASS##_HELPER
 #define APPLICATION_HELPER_CLASS(CLASS) APPLICATION_HELPER_CLASS_IMPL(CLASS)
 
-// Stores all the application info - Optimal for ID lookup
+// Stores all the applications - Optimal for ID lookup
 inline std::unordered_map<uint32_t, Application_Info*> applications;
 
 // Store all the application id in order of registration - Preserves order and is optimal for iteration
@@ -71,6 +69,7 @@ static inline void register_application(Application_Info info, uint32_t order, b
     applications.insert({app_id, &APPLICATION_CLASS::info}); \
     application_ids[order] = app_id; \
 }
+
 
 #define REGISTER_APPLICATION(APPLICATION_CLASS, IS_SYSTEM)                                         \
   __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) { \

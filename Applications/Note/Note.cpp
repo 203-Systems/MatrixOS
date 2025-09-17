@@ -3,7 +3,7 @@
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
 
-void Note::Setup() {
+void Note::Setup(va_list args) {
   // Set up / Load configs --------------------------------------------------------------------------
 
   // Default Values

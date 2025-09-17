@@ -2,7 +2,7 @@
 #include "PolyOctaveShifter.h"
 #include "../Note/ScaleVisualizer.h"
 
-void PolyPlayground::Setup() {
+void PolyPlayground::Setup(va_list args) {
   // Set up / Load configs --------------------------------------------------------------------------
 
   // Load From NVS

@@ -13,7 +13,7 @@ class REDACTED : public Application  // ᗜˬᗜ
       .version = 1,
       .visibility = false,
   };
-  void Setup() override;
+  void Setup(va_list args) override;
   void Loop() override;
   void End() override;
 

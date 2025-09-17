@@ -1,6 +1,6 @@
 #include "Companion.h"
 
-void Companion::Setup() {
+void Companion::Setup(va_list args) {
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
 
   for(uint8_t i = 0; i < 5; i++)

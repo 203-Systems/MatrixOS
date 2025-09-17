@@ -3,7 +3,7 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-void MystrixBoot::Setup() {
+void MystrixBoot::Setup(va_list args) {
   for (uint8_t i = 0; i < 100; i++)  // Add small delay for USB to be connected (So no idle animation would be shown)
   {
     MatrixOS::SYS::DelayMs(5);

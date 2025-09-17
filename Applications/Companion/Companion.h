@@ -24,7 +24,7 @@ class Companion : public Application {
   bool uiOpened = false;
   bool inited = false;
 
-  void Setup() override;
+  void Setup(va_list args) override;
   void Loop() override;
   void End() override;
 

@@ -6,7 +6,7 @@
 
 #include "RotationRequiredUI.h"
 
-void Strum::Setup() {
+void Strum::Setup(va_list args) {
 
     if(RotationRequiredUI(true, true, false, false) == false)
     {

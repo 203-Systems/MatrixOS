@@ -53,7 +53,7 @@ class Reversi : public Application {
       .version = 1,
       .visibility = true,
   };
-  void Setup() override;
+  void Setup(va_list args) override;
   void Loop() override;
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
   void Place(Point pos);
