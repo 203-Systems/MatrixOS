@@ -136,7 +136,7 @@ namespace MatrixOS::SYS
   {
     MatrixOS::KeyPad::Init();
     MatrixOS::LED::Init();
-    MatrixOS::File::Init();
+    MatrixOS::FileSystem::Init();
     MatrixOS::USB::SetMode(USB_MODE_NORMAL);
     MatrixOS::MIDI::Init();
     MatrixOS::HID::Init();

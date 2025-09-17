@@ -13,10 +13,6 @@
 
 #include "HID/HIDSpecs.h"
 
-#if DEVICE_STORAGE == 1
-#include "FileSystem/File.h"
-#endif
-
 // Matrix OS Modules and their API for Application layer or system layer
 namespace MatrixOS
 {
@@ -233,21 +229,6 @@ namespace MatrixOS
     bool DeleteVariable(uint32_t hash);
   }
 
-#if DEVICE_STORAGE == 1
-  namespace File
-  {
-    bool Available();
-    File* Open(string path, uint8_t mode);
-    bool Close(File* file);
-    size_t Read(File* file, void* buffer, size_t length);
-    size_t Write(File* file, const void* buffer, size_t length);
-    bool Exists(string path);
-    bool Delete(string path);
-    bool CreateDir(string path);
-    vector<string> ListDir(string path);
-  }
-#endif
-
   // namespace GPIO
   // {
   //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16};
@@ -282,6 +263,12 @@ namespace MatrixOS
   //     void Write(uint8_t);
   //   }
 }
+
+#if DEVICE_STORAGE == 1
+    // Complete File API with FileSystem operations
+    #include "FileSystem/File.h"
+    #include "FileSystem/FileSystem.h"
+#endif
 
 
 // ui/UIUtilities.h have more callable UI related function

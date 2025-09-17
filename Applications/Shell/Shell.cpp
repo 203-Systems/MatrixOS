@@ -39,7 +39,7 @@ void Shell::Setup()
   InitializeFolderSystem();
 
   // Test filesystem functionality - DISABLED to prevent conflicts with USB MSC
-  // TestFileSystem();
+  TestFileSystem();
 }
 
 void Shell::Loop() {
@@ -69,21 +69,23 @@ void Shell::TestFileSystem() {
     string test_content = "MatrixOS Filesystem Test\nTimestamp: ";
     test_content += std::to_string(Device::Micros());
 
-    // Test file write using low-level API
-    MatrixOS::File::File* file = MatrixOS::File::Open(test_file, FA_WRITE | FA_CREATE_ALWAYS);
+    // Test file write using new File API
+    File* file = MatrixOS::FileSystem::Open(test_file, "w");
     if (file) {
-        size_t written = MatrixOS::File::Write(file, test_content.c_str(), test_content.length());
-        MatrixOS::File::Close(file);
+        size_t written = file->Write(test_content.c_str(), test_content.length());
+        file->Close();
+        delete file;
 
         if (written == test_content.length()) {
             MLOGD("Shell", "File write test: PASS");
 
             // Test file read
-            file = MatrixOS::File::Open(test_file, FA_READ);
+            file = MatrixOS::FileSystem::Open(test_file, "r");
             if (file) {
                 char read_buffer[256];
-                size_t read_bytes = MatrixOS::File::Read(file, read_buffer, sizeof(read_buffer));
-                MatrixOS::File::Close(file);
+                size_t read_bytes = file->Read(read_buffer, sizeof(read_buffer));
+                file->Close();
+                delete file;
 
                 if (read_bytes == test_content.length()) {
                     string read_content(read_buffer, read_bytes);
@@ -100,7 +102,7 @@ void Shell::TestFileSystem() {
             }
 
             // Test file deletion
-            if (MatrixOS::File::Delete(test_file)) {
+            if (MatrixOS::FileSystem::Remove(test_file)) {
                 MLOGD("Shell", "File delete test: PASS");
             } else {
                 MLOGE("Shell", "File delete test: FAIL");
@@ -114,11 +116,11 @@ void Shell::TestFileSystem() {
 
     // Test directory operations
     string test_dir = "/test_dir";
-    if (MatrixOS::File::CreateDir(test_dir)) {
+    if (MatrixOS::FileSystem::MakeDir(test_dir)) {
         MLOGD("Shell", "Directory create test: PASS");
 
         // Test directory deletion
-        if (MatrixOS::File::Delete(test_dir)) {
+        if (MatrixOS::FileSystem::RemoveDir(test_dir)) {
             MLOGD("Shell", "Directory delete test: PASS");
         } else {
             MLOGE("Shell", "Directory delete test: FAIL");

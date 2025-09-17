@@ -1,316 +1,160 @@
 #include "File.h"
-#include "Device.h"
-#include "MatrixOS.h"
-#include "Application.h"
-#include "../System/System.h"
 
-// Path translation constants
-#define ROOTFS_PREFIX "rootfs:/"
-#define ROOTFS_SHORTHAND "//"
-
-static bool starts_with(const string& str, const string& prefix) {
-  return str.length() >= prefix.length() && str.substr(0, prefix.length()) == prefix;
+// File class implementation
+File::File() : is_open(false), file_path("") {
 }
 
-namespace MatrixOS::File
-{
-  static FATFS fs;
-  static bool filesystem_mounted = false;
+File::~File() {
+  if (is_open) {
+    Close();
+  }
+}
 
-  // Helper function to get app sandbox path
-  static string GetAppSandboxPath() {
-    if (MatrixOS::SYS::active_app_info) {
-      return "/MatrixOS/AppData/" + MatrixOS::SYS::active_app_info->author + "-" + MatrixOS::SYS::active_app_info->name;
-    }
-    return "";
+string File::Name() {
+  return file_path;
+}
+
+bool File::Available() {
+  if (!is_open) return false;
+  return !f_eof(&file_handle);
+}
+
+bool File::Close() {
+  if (!is_open) return false;
+
+  FRESULT result = f_close(&file_handle);
+  is_open = false;
+  file_path = "";
+
+  return (result == FR_OK);
+}
+
+bool File::Flush() {
+  if (!is_open) return false;
+
+  FRESULT result = f_sync(&file_handle);
+  return (result == FR_OK);
+}
+
+int File::Peek() {
+  if (!is_open) return -1;
+
+  // Save current position
+  FSIZE_t current_pos = f_tell(&file_handle);
+
+  // Read one byte
+  UINT bytes_read;
+  unsigned char byte;
+  FRESULT result = f_read(&file_handle, &byte, 1, &bytes_read);
+
+  // Restore position
+  f_lseek(&file_handle, current_pos);
+
+  if (result == FR_OK && bytes_read == 1) {
+    return byte;
+  }
+  return -1;
+}
+
+size_t File::Position() {
+  if (!is_open) return 0;
+  return f_tell(&file_handle);
+}
+
+void File::Print(const string& data) {
+  if (!is_open) return;
+
+  UINT bytes_written;
+  f_write(&file_handle, data.c_str(), data.length(), &bytes_written);
+}
+
+void File::Println(const string& data) {
+  Print(data + "\\n");
+}
+
+bool File::Seek(size_t position, SeekMode whence) {
+  if (!is_open) return false;
+
+  FSIZE_t target_pos = position;
+
+  if (whence == FROM_CURRENT) {
+    target_pos = f_tell(&file_handle) + position;
+  } else if (whence == FROM_END) {
+    target_pos = f_size(&file_handle) + position;
   }
 
-  // Ensure app directory exists (lazy creation)
-  static void EnsureAppDirectory() {
-    if (MatrixOS::SYS::active_app_info) {
-      string sandbox_path = GetAppSandboxPath();
+  FRESULT result = f_lseek(&file_handle, target_pos);
+  return (result == FR_OK);
+}
 
-      // Create directories if they don't exist
-      // Note: We check and create each level separately to avoid issues
-      FILINFO fno;
-      FRESULT res;
+size_t File::Size() {
+  if (!is_open) return 0;
+  return f_size(&file_handle);
+}
 
-      // Check/create /MatrixOS
-      res = f_stat("/MatrixOS", &fno);
-      if (res != FR_OK) {
-        f_mkdir("/MatrixOS");
-      }
+size_t File::Read(void* buffer, size_t length) {
+  if (!is_open || !buffer) return 0;
 
-      // Check/create /MatrixOS/AppData
-      res = f_stat("/MatrixOS/AppData", &fno);
-      if (res != FR_OK) {
-        f_mkdir("/MatrixOS/AppData");
-      }
+  UINT bytes_read;
+  FRESULT result = f_read(&file_handle, buffer, length, &bytes_read);
 
-      // Check/create app-specific directory
-      res = f_stat(sandbox_path.c_str(), &fno);
-      if (res != FR_OK) {
-        f_mkdir(sandbox_path.c_str());
-      }
-    }
-  }
-
-  // Translate paths based on privilege and check access
-  static string TranslatePath(const string& path) {
-    TaskHandle_t current_task = xTaskGetCurrentTaskHandle();
-    bool is_privileged = MatrixOS::SYS::IsTaskPrivileged();
-    bool is_app_task = (current_task == MatrixOS::SYS::active_app_task);
-
-    // First check if task has filesystem access
-    if (!is_privileged && !is_app_task) {
-      MLOGE("File", "Filesystem access denied for non-privileged non-app task");
-      return "";  // Empty string indicates access denied
-    }
-
-    // Check for root filesystem access (privileged only)
-    if (starts_with(path, ROOTFS_SHORTHAND)) {
-      if (is_privileged) {
-        return path.substr(1);  // Remove one "/" from "//" prefix
-      }
-      // Non-privileged: deny rootfs access
-      MLOGE("File", "Rootfs access denied for non-privileged task: %s", path.c_str());
-      return "";
-    }
-    else if (starts_with(path, ROOTFS_PREFIX)) {
-      if (is_privileged) {
-        return path.substr(7);  // Remove "rootfs:/" prefix
-      }
-      // Non-privileged: deny rootfs access
-      MLOGE("File", "Rootfs access denied for non-privileged task: %s", path.c_str());
-      return "";
-    }
-
-    // Apply sandboxing for app tasks (both privileged and non-privileged)
-    if (is_app_task) {
-      // Ensure app directory exists
-      EnsureAppDirectory();
-
-      string sandbox = GetAppSandboxPath();
-
-      if (path.empty() || path == "/") {
-        return sandbox + "/";
-      } else if (path[0] == '/') {
-        return sandbox + path;  // /file.txt → /MatrixOS/AppData/{app}/file.txt
-      } else {
-        return sandbox + "/" + path;  // file.txt → /MatrixOS/AppData/{app}/file.txt
-      }
-    }
-
-    // System tasks must use rootfs prefixes for filesystem access
-    MLOGE("File", "System task must use rootfs prefix for filesystem access: %s", path.c_str());
-    return "";  // Deny access
-  }
-
-  void Init()
-  {
-#if DEVICE_STORAGE == 1
-    if (!filesystem_mounted)
-    {
-      FRESULT res = f_mount(&fs, "0:", 1);  // Mount immediately
-      if (res == FR_OK)
-      {
-        filesystem_mounted = true;
-        MLOGI("File", "Filesystem mounted successfully");
-      }
-      else
-      {
-        MLOGE("File", "Failed to mount filesystem: %d", res);
-      }
-    }
-
-    if(filesystem_mounted)
-    {
-      // Check/create /MatrixOS
-      FILINFO fno;
-      if (f_stat("/MatrixOS", &fno) != FR_OK) {
-        f_mkdir("/MatrixOS");
-      }
-    }
-#endif
-  }
-
-  bool Available()
-  {
-#if DEVICE_STORAGE == 1
-    // Check if device storage is available and filesystem is mounted
-    const Device::Storage::StorageStatus* status = Device::Storage::Status();
-    return status->available && filesystem_mounted;
-#else
-    return false;
-#endif
-  }
-
-  File* Open(string path, uint8_t mode)
-  {
-    if (!Available())
-    {
-      return nullptr;
-    }
-
-    // Translate path and check access (returns empty string if denied)
-    path = TranslatePath(path);
-    if (path.empty()) {
-      return nullptr;  // Access denied
-    }
-
-    File* file = new File;
-    FRESULT res = f_open(file, path.c_str(), mode);
-
-    if (res == FR_OK)
-    {
-      return file;
-    }
-    else
-    {
-      MLOGE("File", "Failed to open file '%s': %d", path.c_str(), res);
-      delete file;
-      return nullptr;
-    }
-  }
-
-  bool Close(File* file)
-  {
-    if (!file) return false;
-
-    FRESULT res = f_close(file);
-    delete file;
-
-    return (res == FR_OK);
-  }
-
-  size_t Read(File* file, void* buffer, size_t length)
-  {
-    if (!file || !buffer) return 0;
-
-    UINT bytes_read = 0;
-    FRESULT res = f_read(file, buffer, length, &bytes_read);
-
-    if (res != FR_OK)
-    {
-      MLOGE("File", "File read error: %d", res);
-      return 0;
-    }
-
+  if (result == FR_OK) {
     return bytes_read;
   }
+  return 0;
+}
 
-  size_t Write(File* file, const void* buffer, size_t length)
-  {
-    if (!file || !buffer) return 0;
+size_t File::Write(const void* buffer, size_t length) {
+  if (!is_open || !buffer) return 0;
 
-    UINT bytes_written = 0;
-    FRESULT res = f_write(file, buffer, length, &bytes_written);
+  UINT bytes_written;
+  FRESULT result = f_write(&file_handle, buffer, length, &bytes_written);
 
-    if (res != FR_OK)
-    {
-      MLOGE("File", "File write error: %d", res);
-      return 0;
-    }
-
+  if (result == FR_OK) {
     return bytes_written;
   }
+  return 0;
+}
 
-  bool Exists(string path)
-  {
-    if (!Available())
-    {
-      return false;
-    }
+bool File::IsDirectory() {
+  // For an open file, check if it was opened as a directory
+  // This is a simplification - actual files can't be directories
+  return false;
+}
 
-    // Translate path and check access
-    path = TranslatePath(path);
-    if (path.empty()) {
-      return false;  // Access denied
-    }
-
-    FILINFO fno;
-    FRESULT res = f_stat(path.c_str(), &fno);
-    return (res == FR_OK);
+bool File::_Open(const string& path, const string& mode) {
+  if (is_open) {
+    Close();
   }
 
-  bool Delete(string path)
-  {
-    if (!Available())
-    {
-      return false;
-    }
+  // Convert mode string to FatFS access mode
+  BYTE access_mode = 0;
 
-    // Translate path and check access
-    path = TranslatePath(path);
-    if (path.empty()) {
-      return false;  // Access denied
-    }
+  if (mode.find('r') != string::npos) {
+    access_mode |= FA_READ;
+  }
+  if (mode.find('w') != string::npos) {
+    access_mode |= FA_WRITE | FA_CREATE_ALWAYS;
+  }
+  if (mode.find('a') != string::npos) {
+    access_mode |= FA_WRITE | FA_OPEN_APPEND;
+  }
+  if (mode.find('+') != string::npos) {
+    access_mode |= FA_READ | FA_WRITE;
+  }
 
-    FRESULT res = f_unlink(path.c_str());
-    if (res != FR_OK)
-    {
-      MLOGE("File", "Failed to delete '%s': %d", path.c_str(), res);
-      return false;
-    }
+  // Default to read if no mode specified
+  if (access_mode == 0) {
+    access_mode = FA_READ;
+  }
+
+  FRESULT result = f_open(&file_handle, path.c_str(), access_mode);
+
+  if (result == FR_OK) {
+    is_open = true;
+    file_path = path;
     return true;
   }
 
-  bool CreateDir(string path)
-  {
-    if (!Available())
-    {
-      return false;
-    }
-
-    // Translate path and check access
-    path = TranslatePath(path);
-    if (path.empty()) {
-      return false;  // Access denied
-    }
-
-    FRESULT res = f_mkdir(path.c_str());
-    if (res != FR_OK && res != FR_EXIST)
-    {
-      MLOGE("File", "Failed to create directory '%s': %d", path.c_str(), res);
-      return false;
-    }
-    return true;
-  }
-
-  vector<string> ListDir(string path)
-  {
-    vector<string> result;
-
-    if (!Available())
-    {
-      return result;
-    }
-
-    // Translate path and check access
-    path = TranslatePath(path);
-    if (path.empty()) {
-      return result;  // Access denied - return empty vector
-    }
-
-    DIR dir;
-    FILINFO fno;
-
-    FRESULT res = f_opendir(&dir, path.c_str());
-    if (res != FR_OK)
-    {
-      MLOGE("File", "Failed to open directory '%s': %d", path.c_str(), res);
-      return result;
-    }
-
-    while (true)
-    {
-      res = f_readdir(&dir, &fno);
-      if (res != FR_OK || fno.fname[0] == 0) break;  // End of directory
-
-      result.push_back(string(fno.fname));
-    }
-
-    f_closedir(&dir);
-    return result;
-  }
+  return false;
 }

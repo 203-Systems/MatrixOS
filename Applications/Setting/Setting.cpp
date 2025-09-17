@@ -57,14 +57,14 @@ void Setting::Start() {
   mscModeBtn.SetName("USB Storage Mode");
   mscModeBtn.SetSize(Dimension(1, 1));
   mscModeBtn.OnPress([]() -> void {
-    if (MatrixOS::File::Available()) {
+    if (Device::Storage::Available()) {
       MatrixOS::SYS::ExecuteAPP("203 Systems", "MSC Mode");
     }
   });
 
   // Dynamic color based on storage availability
   mscModeBtn.SetColorFunc([]() -> Color {
-    return Color(0xFF8000).DimIfNot(MatrixOS::File::Available());
+    return Color(0xFF8000).DimIfNot(Device::Storage::Available());
   });
 
   AddUIComponent(mscModeBtn, Point(Device::x_size - 1, Device::y_size - 1));

@@ -1,6 +1,7 @@
 file(GLOB_RECURSE FILE_HEADERS "*.h")
 set(FILE_SOURCES
     File.cpp
+    FileSystem.cpp
 )
 
 # Local FatFS sources

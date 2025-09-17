@@ -3,7 +3,7 @@
 #include "USB/USB.h"
 
 void MSC::Setup() {
-  if (!MatrixOS::File::Available()) {
+  if (!Device::Storage::Available()) {
     MLOGW("MSC", "Storage not available - cannot enter USB storage mode");
     Exit();
     return;
