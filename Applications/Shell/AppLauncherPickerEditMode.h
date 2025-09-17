@@ -37,13 +37,14 @@ class AppLauncherPickerEditMode : public UIComponent {
         for (uint8_t i = 0; i < shell->folders[shell->current_folder].app_ids.size(); i++)
         {
             uint32_t app_id = shell->folders[shell->current_folder].app_ids[i];
-            auto application_it = applications.find(app_id);
-            if(application_it == applications.end())
+            auto application_it = shell->all_applications.find(app_id);
+            if(application_it == shell->all_applications.end())
             {
                 // Skip invalid app ID - should have been cleaned up on startup
                 continue;
             }
-            Application_Info* application_info = application_it->second;
+            ApplicationEntry* application_entry = application_it->second;
+            Application_Info* application_info = application_entry->info;
 
             uint8_t x = added_apps % 8;
             uint8_t y = added_apps / 8;
@@ -86,14 +87,15 @@ class AppLauncherPickerEditMode : public UIComponent {
             {
                 // Clicked on an app
                 uint32_t app_id = shell->folders[shell->current_folder].app_ids[index];
-                auto application_it = applications.find(app_id);
-                if(application_it == applications.end())
+                auto application_it = shell->all_applications.find(app_id);
+                if(application_it == shell->all_applications.end())
                 {
                     // Skip invalid app ID - should have been cleaned up on startup
                     return false;
                 }
-                Application_Info* application = application_it->second;
-                
+                ApplicationEntry* application_entry = application_it->second;
+                Application_Info* application = application_entry->info;
+
                 // Check if an app is already selected
                 if (shell->selected_app_id != 0 && shell->selected_app_id != app_id) {
                     // Swap positions of selected app and clicked app
@@ -126,14 +128,15 @@ class AppLauncherPickerEditMode : public UIComponent {
             {
                 // Show app info on hold
                 uint32_t app_id = shell->folders[shell->current_folder].app_ids[index];
-                auto application_it = applications.find(app_id);
-                if(application_it == applications.end())
+                auto application_it = shell->all_applications.find(app_id);
+                if(application_it == shell->all_applications.end())
                 {
                     // Skip invalid app ID - should have been cleaned up on startup
                     return false;
                 }
-                Application_Info* application = application_it->second;
-                
+                ApplicationEntry* application_entry = application_it->second;
+                Application_Info* application = application_entry->info;
+
                 MatrixOS::UIUtility::TextScroll(application->name, application->color);
                 return true;
             }

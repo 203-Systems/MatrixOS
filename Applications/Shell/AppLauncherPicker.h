@@ -19,13 +19,14 @@ class AppLauncherPicker : public UIComponent {
         for (uint8_t i = 0; i < shell->folders[shell->current_folder].app_ids.size(); i++)
         {
             uint32_t app_id = shell->folders[shell->current_folder].app_ids[i];
-            auto application_it = applications.find(app_id);
-            if(application_it == applications.end())
+            auto application_it = shell->all_applications.find(app_id);
+            if(application_it == shell->all_applications.end())
             {
                 // Skip invalid app ID - should have been cleaned up on startup
                 continue;
             }
-            Application_Info* application_info = application_it->second;
+            ApplicationEntry* application_entry = application_it->second;
+            Application_Info* application_info = application_entry->info;
 
 
             uint8_t x = added_apps % 8;
@@ -53,20 +54,29 @@ class AppLauncherPicker : public UIComponent {
             }
 
             uint32_t app_id = shell->folders[shell->current_folder].app_ids[index];
-            auto application_it = applications.find(app_id);
-            if(application_it == applications.end())
+            auto application_it = shell->all_applications.find(app_id);
+            if(application_it == shell->all_applications.end())
             {
                 // Skip invalid app ID - should have been cleaned up on startup
                 return false;
             }
-            Application_Info* application = application_it->second;
+            ApplicationEntry* application_entry = application_it->second;
+            Application_Info* application = application_entry->info;
 
 
             if(keyInfo->state == RELEASED)
             {
                 MLOGD("Shell", "Launching App ID: %X", app_id);
                 shell->LaunchAnimation(xy, application->color);
-                MatrixOS::SYS::ExecuteAPP(app_id);
+
+                if (application_entry->type == ApplicationType::Python) {
+                    // Launch Python app with script path argument
+                    const char* script_path = application_entry->python.file_path.c_str();
+                    MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", script_path);
+                } else {
+                    // Launch native app normally
+                    MatrixOS::SYS::ExecuteAPP(app_id);
+                }
                 return true;
             }
             else if(keyInfo->state == HOLD)
