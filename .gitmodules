@@ -7,3 +7,7 @@
 [submodule "Library/cb0r"]
 	path = Library/cb0r
 	url = https://github.com/203-Systems/cb0r.git
+[submodule "Library/ArduinoJson"]
+	path = Library/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+	branch = 7.x
