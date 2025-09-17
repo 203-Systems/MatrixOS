@@ -20,6 +20,9 @@ class Python : public Application {
 
   void Setup(va_list args) override;
   void End() override;
+
+private:
+  bool ExecutePythonFile(char* file_path);
 };
 
 // Platform functions for PikaPython
