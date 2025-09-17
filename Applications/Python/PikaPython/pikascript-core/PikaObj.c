@@ -732,7 +732,7 @@ static int set_disp_mode(int fd, int option) {
 }
 #endif
 
-static volatile uint8_t logo_printed = 0;
+static volatile uint8_t logo_printed = 1;
 
 #if __linux
 struct termios original_termios;
