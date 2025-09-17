@@ -75,8 +75,48 @@ namespace MatrixOS::FileSystem
 
   void Init() {
     if (Device::Storage::Available() && !filesystem_mounted) {
+      // Log storage status for debugging
+      const Device::Storage::StorageStatus* storage_status = Device::Storage::Status();
+      MLOGI("FileSystem", "Storage available - sectors: %lu, size: %u bytes",
+            storage_status->sector_count, storage_status->sector_size);
+
       FRESULT result = f_mount(&fs, "", 1);
+
+      if (result == FR_NO_FILESYSTEM) {
+        // Mount failed, try to format the filesystem
+        MLOGW("FileSystem", "No File System, formatting storage...", result);
+
+        // Try a simple format first (let FatFS choose the best format)
+        BYTE work[FF_MAX_SS]; // Work area for f_mkfs
+
+        MKFS_PARM mkfs_opt = {0}; // Initialize to zero
+        mkfs_opt.fmt = FS_FAT32;    // Let FatFS choose format (FAT12/16/32)
+        mkfs_opt.n_fat = 0;       // Number of FAT copies
+        mkfs_opt.align = 0;       // Data area alignment (0 = auto)
+        mkfs_opt.n_root = 0;      // Number of root directory entries (0 = auto)
+        mkfs_opt.au_size = 0;     // Allocation unit size (0 = auto)
+
+        FRESULT mkfs_result = f_mkfs("", &mkfs_opt, work, sizeof(work));
+
+        if (mkfs_result == FR_OK) {
+          MLOGI("FileSystem", "Format successful, mounting filesystem...");
+          // Format successful, try to mount again
+          result = f_mount(&fs, "", 1);
+          if (result == FR_OK) {
+            MLOGI("FileSystem", "Filesystem mounted successfully after format");
+          } else {
+            MLOGE("FileSystem", "Mount failed after format (code %d)", result);
+          }
+        } else {
+          MLOGE("FileSystem", "Format failed (code %d)", mkfs_result);
+        }
+      } else {
+        MLOGI("FileSystem", "Filesystem mounted successfully");
+      }
+
       filesystem_mounted = (result == FR_OK);
+    } else if (!Device::Storage::Available()) {
+      MLOGW("FileSystem", "Storage not available for filesystem");
     }
   }
 
