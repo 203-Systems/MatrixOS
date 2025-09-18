@@ -53,7 +53,7 @@ namespace MatrixOS::FileSystem
 
   // Ensure app directory exists
   void EnsureAppDirectory() {
-    if (MatrixOS::SYS::active_app_info && !MatrixOS::SYS::IsTaskPrivileged()) {
+    if (MatrixOS::SYS::active_app_info) {
       string sandbox_path = GetAppSandboxPath();
 
       FILINFO fno;
