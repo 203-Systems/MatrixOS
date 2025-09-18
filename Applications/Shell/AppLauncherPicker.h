@@ -70,8 +70,9 @@ class AppLauncherPicker : public UIComponent {
                 shell->LaunchAnimation(xy, application->color);
 
                 if (application_entry->type == ApplicationType::Python) {
-                    // Launch Python app with script path argument
-                    vector<string> args = { application_entry->python.file_path };
+                    // Launch Python app with script path argument (use rootfs prefix for privileged access)
+                    string rootfs_path = "rootfs:" + application_entry->python.file_path;
+                    vector<string> args = { rootfs_path };
                     MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", args);
                 } else {
                     // Launch native app normally
