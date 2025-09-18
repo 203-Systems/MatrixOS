@@ -33,12 +33,18 @@ struct ApplicationEntry {
 
   ApplicationEntry(const Application_Info& py_info, const string& file_path)
     : type(ApplicationType::Python) {
-      python.info = py_info;
-      python.file_path = file_path;
+      // Use placement new to construct the union members properly
+      new (&python.info) Application_Info(py_info);
+      new (&python.file_path) string(file_path);
       info = &python.info;
     }
 
-  // Destructor is implicit - union with non-trivial types handled by compiler
+  ~ApplicationEntry() {
+    if (type == ApplicationType::Python) {
+      python.info.~Application_Info();
+      python.file_path.~string();
+    }
+  }
 };
 
 class Shell : public Application {
