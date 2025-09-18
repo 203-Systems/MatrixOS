@@ -3704,20 +3704,22 @@ method_typedef(
 void _MatrixOS_SYS_ExecuteAPPMethod(PikaObj *self, Args *_args_){
     char* author = args_getStr(_args_, "author");
     char* app_name = args_getStr(_args_, "app_name");
-    _MatrixOS_SYS_ExecuteAPP(self, author, app_name);
+    PikaObj* args = args_getPtr(_args_, "args");
+    _MatrixOS_SYS_ExecuteAPP(self, author, app_name, args);
 }
 method_typedef(
     _MatrixOS_SYS_ExecuteAPP,
-    "ExecuteAPP", "author,app_name"
+    "ExecuteAPP", "author,app_name,args"
 );
 
 void _MatrixOS_SYS_ExecuteAPPByIDMethod(PikaObj *self, Args *_args_){
     int app_id = args_getInt(_args_, "app_id");
-    _MatrixOS_SYS_ExecuteAPPByID(self, app_id);
+    PikaObj* args = args_getPtr(_args_, "args");
+    _MatrixOS_SYS_ExecuteAPPByID(self, app_id, args);
 }
 method_typedef(
     _MatrixOS_SYS_ExecuteAPPByID,
-    "ExecuteAPPByID", "app_id"
+    "ExecuteAPPByID", "app_id,args"
 );
 
 void _MatrixOS_SYS_MicrosMethod(PikaObj *self, Args *_args_){

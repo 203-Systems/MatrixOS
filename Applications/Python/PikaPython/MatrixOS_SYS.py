@@ -18,8 +18,8 @@ def Micros() -> int:
 def OpenSetting() -> None:
     _MatrixOS_SYS.OpenSetting()
 
-def ExecuteAPP(author: str, app_name: str) -> None:
-    _MatrixOS_SYS.ExecuteAPP(author, app_name)
+def ExecuteAPP(author: str, app_name: str, args: list = []) -> None:
+    _MatrixOS_SYS.ExecuteAPP(author, app_name, args)
 
-def ExecuteAPPByID(app_id: int) -> None:
-    _MatrixOS_SYS.ExecuteAPPByID(app_id)
+def ExecuteAPPByID(app_id: int, args: list = []) -> None:
+    _MatrixOS_SYS.ExecuteAPPByID(app_id, args)

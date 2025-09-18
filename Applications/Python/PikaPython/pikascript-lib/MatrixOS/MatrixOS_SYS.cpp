@@ -27,12 +27,38 @@ extern "C" {
         MatrixOS::SYS::OpenSetting();
     }
 
-    void _MatrixOS_SYS_ExecuteAPP(PikaObj *self, char* author, char* app_name) {
-        MatrixOS::SYS::ExecuteAPP(string(author), string(app_name));
+    void _MatrixOS_SYS_ExecuteAPP(PikaObj *self, char* author, char* app_name, PikaObj* args_list) {
+        vector<string> args;
+
+        // Convert PikaPython list to vector<string>
+        if (args_list != nullptr) {
+            size_t list_len = pikaList_getSize((PikaList*)args_list);
+            for (int i = 0; i < list_len; i++) {
+                char* item = pikaList_getStr((PikaList*)args_list, i);
+                if (item != nullptr) {
+                    args.push_back(string(item));
+                }
+            }
+        }
+
+        MatrixOS::SYS::ExecuteAPP(string(author), string(app_name), args);
     }
 
-    void _MatrixOS_SYS_ExecuteAPPByID(PikaObj *self, int app_id) {
-        MatrixOS::SYS::ExecuteAPP(app_id);
+    void _MatrixOS_SYS_ExecuteAPPByID(PikaObj *self, int app_id, PikaObj* args_list) {
+        vector<string> args;
+
+        // Convert PikaPython list to vector<string>
+        if (args_list != nullptr) {
+            size_t list_len = pikaList_getSize((PikaList*)args_list);
+            for (int i = 0; i < list_len; i++) {
+                char* item = pikaList_getStr((PikaList*)args_list, i);
+                if (item != nullptr) {
+                    args.push_back(string(item));
+                }
+            }
+        }
+
+        MatrixOS::SYS::ExecuteAPP(app_id, args);
     }
 
 }
