@@ -10,7 +10,7 @@ namespace MatrixOS::FileSystem
   static bool filesystem_mounted = false;
 
   // Helper function to get app sandbox path
-  static string GetAppSandboxPath() {
+  string GetAppSandboxPath() {
     if (MatrixOS::SYS::active_app_info) {
       return "/MatrixOS/AppData/" + MatrixOS::SYS::active_app_info->author + "-" + MatrixOS::SYS::active_app_info->name;
     }
@@ -18,7 +18,7 @@ namespace MatrixOS::FileSystem
   }
 
   // Path translation for sandboxing
-  static string TranslatePath(const string& path) {
+  string TranslatePath(const string& path) {
     // Check for privilege escalation attempts
     if (path.substr(0, 2) == "//" || path.substr(0, 8) == "rootfs:/") {
       // Only allow system/privileged tasks to access these paths
@@ -35,7 +35,7 @@ namespace MatrixOS::FileSystem
     }
 
     // Sandbox application paths
-    if (MatrixOS::SYS::active_app_info && !MatrixOS::SYS::IsTaskPrivileged()) {
+    if (MatrixOS::SYS::active_app_info && xTaskGetCurrentTaskHandle() == MatrixOS::SYS::active_app_task) {
       string sandbox_base = GetAppSandboxPath();
       if (path[0] == '/') {
         return sandbox_base + path;
@@ -44,11 +44,11 @@ namespace MatrixOS::FileSystem
       }
     }
 
-    return path;
+    return "";
   }
 
   // Ensure app directory exists
-  static void EnsureAppDirectory() {
+  void EnsureAppDirectory() {
     if (MatrixOS::SYS::active_app_info && !MatrixOS::SYS::IsTaskPrivileged()) {
       string sandbox_path = GetAppSandboxPath();
 
