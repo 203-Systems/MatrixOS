@@ -1,6 +1,6 @@
 #include "Reversi.h"
 
-void Reversi::Setup(va_list args) {
+void Reversi::Setup(const vector<string>& args) {
   ResetGame(true);
 }
 

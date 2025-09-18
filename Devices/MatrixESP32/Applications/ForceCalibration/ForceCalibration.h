@@ -38,7 +38,7 @@ class ForceCalibration : public Application {
       .visibility = false,
       // #endif
   };
-  void Setup(va_list args) override;  
+  void Setup(const vector<string>& args) override;  
 
   void LowCalibration();
   void HighCalibration();

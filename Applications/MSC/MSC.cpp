@@ -2,7 +2,7 @@
 #include "ui/UI.h"
 #include "USB/USB.h"
 
-void MSC::Setup(va_list args) {
+void MSC::Setup(const vector<string>& args) {
   if (!Device::Storage::Available()) {
     MLOGW("MSC", "Storage not available - cannot enter USB storage mode");
     Exit();

@@ -34,7 +34,7 @@ class Dice : public Application {
     Number
   };
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
   void Loop() override;
 
 

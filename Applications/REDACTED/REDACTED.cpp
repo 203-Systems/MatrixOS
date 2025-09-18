@@ -1,6 +1,6 @@
 #include "REDACTED.h"
 
-void REDACTED::Setup(va_list args) {
+void REDACTED::Setup(const vector<string>& args) {
   // x_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeX) - 8) / 2; //TODO, wait for new API to
   // be implemented y_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeY) - 8) / 2;
 

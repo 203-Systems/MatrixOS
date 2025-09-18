@@ -4,7 +4,7 @@
 #include "UIGamepadKey.h"
 #include "UIGamepadAxis.h"
 
-void Gamepad::Setup(va_list args) {
+void Gamepad::Setup(const vector<string>& args) {
     UI gamepadUI("", Color(0xFFFFFF));
 
     UIKeyboardKey Skey(Color(0xFF0000), KEY_S);

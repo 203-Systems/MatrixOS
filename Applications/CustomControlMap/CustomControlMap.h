@@ -15,7 +15,7 @@ class CustomControlMap : public Application {
       .visibility = true,
   };
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
   void Loop() override;
 
   const uint8_t MAX_UAD_LAYER = 16;

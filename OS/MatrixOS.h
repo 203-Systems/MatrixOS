@@ -29,8 +29,8 @@ namespace MatrixOS
 
     void Rotate(Direction rotation, bool absolute = false);
 
-    void ExecuteAPP(uint32_t app_id, ...);
-    void ExecuteAPP(string author, string app_name, ...);
+    void ExecuteAPP(uint32_t app_id, const vector<string>& args = {});
+    void ExecuteAPP(string author, string app_name, const vector<string>& args = {});
     void ExitAPP();
 
     void ErrorHandler(string error = string());

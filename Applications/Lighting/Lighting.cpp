@@ -1,7 +1,7 @@
 #include "Lighting.h"
 #include "BPMTapper.h"
 
-void Lighting::Setup(va_list args) {
+void Lighting::Setup(const vector<string>& args) {
   start_time = MatrixOS::SYS::Millis();
   Update();
 }

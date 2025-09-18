@@ -6,7 +6,7 @@
 
 #include "RotationRequiredUI.h"
 
-void Strum::Setup(va_list args) {
+void Strum::Setup(const vector<string>& args) {
 
     if(RotationRequiredUI(true, true, false, false) == false)
     {

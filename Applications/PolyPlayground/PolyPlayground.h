@@ -23,7 +23,7 @@ class PolyPlayground : public Application {
 
   CreateSavedVar(TAG, nvsVersion, uint32_t, POLY_PLAYGROUND_APP_VERSION);  // In case NoteLayoutConfig got changed
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
 
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
 

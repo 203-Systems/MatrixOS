@@ -20,7 +20,7 @@ struct Application_Info {
 
 class Application {
  public:
-  void Start(va_list args) {
+  void Start(const vector<string>& args) {
     Setup(args);
     while (true)
     {
@@ -34,7 +34,7 @@ class Application {
   };
 
   // Override these functions to implement your application
-  virtual void Setup(va_list args) {};
+  virtual void Setup(const vector<string>& args) {};
   virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End() {};
   

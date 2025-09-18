@@ -26,7 +26,7 @@ class Note : public Application {
   CreateSavedVar("Note", activeConfig, uint8_t, 0);
   CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
 
   void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
 

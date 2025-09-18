@@ -1,6 +1,6 @@
 #include "FactoryMenu.h"
 
-void FactoryMenu::Setup(va_list args) {
+void FactoryMenu::Setup(const vector<string>& args) {
   MatrixOS::SYS::Rotate(Direction::UP, true);
 
   UI factoryMenu("Factory Menu", Color(0xFFFFFF));

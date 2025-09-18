@@ -71,8 +71,8 @@ class AppLauncherPicker : public UIComponent {
 
                 if (application_entry->type == ApplicationType::Python) {
                     // Launch Python app with script path argument
-                    const char* script_path = application_entry->python.file_path.c_str();
-                    MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", script_path);
+                    vector<string> args = { application_entry->python.file_path };
+                    MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", args);
                 } else {
                     // Launch native app normally
                     MatrixOS::SYS::ExecuteAPP(app_id);

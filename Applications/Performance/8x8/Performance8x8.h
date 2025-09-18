@@ -42,7 +42,7 @@ class Performance : public Application {
     StaticHash("203 Systems-Performance-Palette3"), 
     StaticHash("203 Systems-Performance-Palette4")};
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
   void Loop() override;
 
   Point NoteToXY(uint8_t note);

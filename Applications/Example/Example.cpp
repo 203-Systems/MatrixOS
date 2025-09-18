@@ -2,7 +2,7 @@
 #include "ui/UI.h" // Include the UI Framework
 
 // Run once
-void ExampleAPP::Setup(va_list args) {
+void ExampleAPP::Setup(const vector<string>& args) {
   MLOGI("Example", "Example Started");
 }
 

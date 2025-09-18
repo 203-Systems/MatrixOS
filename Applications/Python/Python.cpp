@@ -35,24 +35,23 @@ extern "C" {
 }
 
 
-void Python::Setup(va_list args) {
+void Python::Setup(const vector<string>& args) {
   // Flush serial RX buffer
   while(MatrixOS::USB::CDC::Available())
   {
     (void)MatrixOS::USB::CDC::Read();
   }
 
-  // Check if a Python file path was provided as argument
-  char* python_file_path = va_arg(args, char*);
-
-  if (python_file_path != nullptr) {
-    MLOGI("Python", "Executing Python script: %s", python_file_path);
+  // Check if a script path was provided
+  if (!args.empty()) {
+    const string& python_file_path = args[0];
+    MLOGI("Python", "Executing Python script: %s", python_file_path.c_str());
 
     // Execute the Python script file
     if (ExecutePythonFile(python_file_path)) {
       MLOGI("Python", "Python script executed successfully");
     } else {
-      MLOGE("Python", "Failed to execute Python script: %s", python_file_path);
+      MLOGE("Python", "Failed to execute Python script: %s", python_file_path.c_str());
     }
   } else {
     // No file specified, start REPL mode
@@ -75,11 +74,11 @@ void Python::Setup(va_list args) {
   Exit();
 }
 
-bool Python::ExecutePythonFile(char* file_path) {
+bool Python::ExecutePythonFile(const string& file_path) {
 #if DEVICE_STORAGE == 1
-  MLOGD("Python", "Attempting to execute Python file: %s", file_path);
+  MLOGD("Python", "Attempting to execute Python file: %s", file_path.c_str());
 
-  pikaVM_runFile(pikaMain, file_path);
+  pikaVM_runFile(pikaMain, (char*)file_path.c_str());
 
   return true;
 #else

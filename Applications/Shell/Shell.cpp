@@ -18,7 +18,7 @@ namespace MatrixOS::SYS
   uint16_t GetApplicationCount();
 }  // Use non exposed Matrix OS API
 
-void Shell::Setup(va_list args)
+void Shell::Setup(const vector<string>& args)
 {
   #ifdef configUSE_FREERTOS_PROVIDED_HEAP
     MLOGD("Shell", "Matrix OS Free Heap Size: %.2fkb (%d%%)", xPortGetFreeHeapSize() / 1024.0f, xPortGetFreeHeapSize() * 100 / configTOTAL_HEAP_SIZE);

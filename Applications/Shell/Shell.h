@@ -81,7 +81,7 @@ class Shell : public Application {
   uint8_t current_folder = 0; // Start with folder 0
   uint32_t selected_app_id = 0; // Currently selected app in edit mode (0 = none)
 
-  void Setup(va_list args) override;
+  void Setup(const vector<string>& args) override;
   void Loop() override;
 
   // Folder system functions
