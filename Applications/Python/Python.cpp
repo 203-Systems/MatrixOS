@@ -78,6 +78,20 @@ bool Python::ExecutePythonFile(const string& file_path) {
 #if DEVICE_STORAGE == 1
   MLOGD("Python", "Attempting to execute Python file: %s", file_path.c_str());
 
+  // Create pikascript-api directory for compiled output
+  size_t last_slash = file_path.find_last_of('/');
+  if (last_slash != string::npos) {
+    string script_dir = file_path.substr(0, last_slash);
+    string api_dir = script_dir + "/pikascript-api";
+
+    // Check if directory exists, create if not
+    if (!MatrixOS::FileSystem::Exists(api_dir)) {
+      if (!MatrixOS::FileSystem::MakeDir(api_dir)) {
+        return false;
+      }
+    }
+  }
+
   pikaVM_runFile(pikaMain, (char*)file_path.c_str());
 
   return true;
