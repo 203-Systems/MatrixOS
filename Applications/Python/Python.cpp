@@ -42,14 +42,16 @@ void Python::Setup(const vector<string>& args) {
     (void)MatrixOS::USB::CDC::Read();
   }
 
+  pikaMain = pikaPythonInit();
+
   // Check if a script path was provided
   if (!args.empty()) {
     const string& python_file_path = args[0];
-    MLOGI("Python", "Executing Python script: %s", python_file_path.c_str());
+    MLOGD("Python", "Executing Python script: %s", python_file_path.c_str());
 
     // Execute the Python script file
     if (ExecutePythonFile(python_file_path)) {
-      MLOGI("Python", "Python script executed successfully");
+      MLOGD("Python", "Python script executed successfully");
     } else {
       MLOGE("Python", "Failed to execute Python script: %s", python_file_path.c_str());
     }
@@ -76,8 +78,6 @@ void Python::Setup(const vector<string>& args) {
 
 bool Python::ExecutePythonFile(const string& file_path) {
 #if DEVICE_STORAGE == 1
-  MLOGD("Python", "Attempting to execute Python file: %s", file_path.c_str());
-
   // Create pikascript-api directory for compiled output
   size_t last_slash = file_path.find_last_of('/');
   if (last_slash != string::npos) {

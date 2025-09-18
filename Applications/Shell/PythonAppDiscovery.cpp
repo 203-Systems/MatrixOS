@@ -114,14 +114,14 @@ vector<DiscoveredPythonApp> ScanPythonApplications() {
     MLOGI("PythonAppDiscovery", "Starting Python application discovery");
     vector<DiscoveredPythonApp> discovered_apps;
 
-    if (!MatrixOS::FileSystem::Exists("/MatrixOS/Applications")) {
+    if (!MatrixOS::FileSystem::Exists("rootfs:/MatrixOS/Applications")) {
         MLOGW("PythonAppDiscovery", "Applications directory not found, creating it");
-        MatrixOS::FileSystem::MakeDir("/MatrixOS");
-        MatrixOS::FileSystem::MakeDir("/MatrixOS/Applications");
+        MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS");
+        MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS/Applications");
         return discovered_apps;
     }
 
-    ScanDirectory("/MatrixOS/Applications", discovered_apps);
+    ScanDirectory("rootfs:/MatrixOS/Applications", discovered_apps);
     MLOGI("PythonAppDiscovery", "Python application discovery completed: %d apps found", discovered_apps.size());
     return discovered_apps;
 }

@@ -65,8 +65,8 @@ void Shell::TestFileSystem() {
     MLOGD("Shell", "  Sector Size: %u bytes", status->sector_size);
     MLOGD("Shell", "  Block Size: %lu sectors", status->block_size);
 
-    // Test basic file operations
-    string test_file = "/test.txt";
+    // Test basic file operations (use rootfs prefix to bypass sandboxing)
+    string test_file = "//test.txt";
     string test_content = "MatrixOS Filesystem Test\nTimestamp: ";
     test_content += std::to_string(Device::Micros());
 
@@ -115,8 +115,8 @@ void Shell::TestFileSystem() {
         MLOGE("Shell", "File write test: FAIL - could not open file for writing");
     }
 
-    // Test directory operations
-    string test_dir = "/test_dir";
+    // Test directory operations (use rootfs prefix to bypass sandboxing)
+    string test_dir = "//test_dir";
     if (MatrixOS::FileSystem::MakeDir(test_dir)) {
         MLOGD("Shell", "Directory create test: PASS");
 
@@ -130,7 +130,74 @@ void Shell::TestFileSystem() {
         MLOGE("Shell", "Directory create test: FAIL");
     }
 
-    MLOGD("Shell", "Filesystem tests completed");
+    // Test sandbox filesystem operations (without rootfs prefix)
+    MLOGD("Shell", "Testing sandbox filesystem access...");
+
+    string sandbox_test_file = "/sandbox_test.txt";
+    string sandbox_test_content = "MatrixOS Sandbox Test\nTimestamp: ";
+    sandbox_test_content += std::to_string(Device::Micros());
+
+    // Test file write in sandbox
+    File* sandbox_file = MatrixOS::FileSystem::Open(sandbox_test_file, "w");
+    if (sandbox_file) {
+        size_t written = sandbox_file->Write(sandbox_test_content.c_str(), sandbox_test_content.length());
+        sandbox_file->Close();
+        delete sandbox_file;
+
+        if (written == sandbox_test_content.length()) {
+            MLOGD("Shell", "Sandbox file write test: PASS");
+
+            // Test file read from sandbox
+            sandbox_file = MatrixOS::FileSystem::Open(sandbox_test_file, "r");
+            if (sandbox_file) {
+                char read_buffer[256];
+                size_t read_bytes = sandbox_file->Read(read_buffer, sizeof(read_buffer));
+                sandbox_file->Close();
+                delete sandbox_file;
+
+                if (read_bytes == sandbox_test_content.length()) {
+                    string read_content(read_buffer, read_bytes);
+                    if (read_content == sandbox_test_content) {
+                        MLOGD("Shell", "Sandbox file read test: PASS");
+                    } else {
+                        MLOGE("Shell", "Sandbox file read test: FAIL - content mismatch");
+                    }
+                } else {
+                    MLOGE("Shell", "Sandbox file read test: FAIL - read %zu bytes, expected %zu", read_bytes, sandbox_test_content.length());
+                }
+            } else {
+                MLOGE("Shell", "Sandbox file read test: FAIL - could not open file for reading");
+            }
+
+            // Test file deletion in sandbox
+            if (MatrixOS::FileSystem::Remove(sandbox_test_file)) {
+                MLOGD("Shell", "Sandbox file delete test: PASS");
+            } else {
+                MLOGE("Shell", "Sandbox file delete test: FAIL");
+            }
+        } else {
+            MLOGE("Shell", "Sandbox file write test: FAIL - wrote %zu bytes, expected %zu", written, sandbox_test_content.length());
+        }
+    } else {
+        MLOGE("Shell", "Sandbox file write test: FAIL - could not open file for writing");
+    }
+
+    // Test sandbox directory operations
+    string sandbox_test_dir = "/sandbox_test_dir";
+    if (MatrixOS::FileSystem::MakeDir(sandbox_test_dir)) {
+        MLOGD("Shell", "Sandbox directory create test: PASS");
+
+        // Test directory deletion in sandbox
+        if (MatrixOS::FileSystem::RemoveDir(sandbox_test_dir)) {
+            MLOGD("Shell", "Sandbox directory delete test: PASS");
+        } else {
+            MLOGE("Shell", "Sandbox directory delete test: FAIL");
+        }
+    } else {
+        MLOGE("Shell", "Sandbox directory create test: FAIL");
+    }
+
+    MLOGD("Shell", "All filesystem tests completed");
 #else
     MLOGW("Shell", "Filesystem not enabled - skipping tests");
 #endif

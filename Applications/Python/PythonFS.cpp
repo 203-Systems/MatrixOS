@@ -2,20 +2,19 @@
 #include "pikaScript.h"
 #include "FileSystem/FatFS/ff.h"
 
+// Forward declarations - these will be linked from the actual implementations
 namespace MatrixOS::FileSystem {
-  string TranslatePath(const string & path);
-  void EnsureAppDirectory();
+  extern string TranslatePath(const string& path);
+  extern void EnsureAppDirectory();
 }
 
-extern "C" {
-  typedef FIL _INNER_FILE;
-  //   typedef FIL FILE;
 
+extern "C" {
   /* private prototypes */
   int __fmodeflags(const char* mode);
 
-  FILE * pika_platform_fopen(const char * filename,
-    const char * modes) {
+  FILE* pika_platform_fopen(const char* filename, const char* modes) {
+
     FRESULT res;
     int flags;
 
@@ -38,7 +37,7 @@ extern "C" {
     /* Compute the flags to pass to open() */
     flags = __fmodeflags(modes);
 
-    _INNER_FILE * _f = (_INNER_FILE*)pika_platform_malloc(sizeof( * _f));
+    FIL* _f = (FIL*)pika_platform_malloc(sizeof(FIL));
     if (NULL == _f) {
       return NULL;
     }
@@ -48,32 +47,32 @@ extern "C" {
       return NULL;
     }
 
-    return (FILE * ) _f;
+    return (FILE*)_f;
   }
 
-  size_t pika_platform_fwrite(const void * ptr, size_t size, size_t n, FILE * stream) {
-    _INNER_FILE * _f = (_INNER_FILE * ) stream;
+  size_t pika_platform_fwrite(const void* ptr, size_t size, size_t n, FILE* stream) {
+    FIL* _f = (FIL*)stream;
     size_t len = 0;
-    f_write(_f, ptr, n * size, & len);
+    FRESULT res = f_write(_f, ptr, n * size, &len);
     return len;
   }
 
-  size_t pika_platform_fread(void * ptr, size_t size, size_t n, FILE * stream) {
-    _INNER_FILE * _f = (_INNER_FILE * ) stream;
+  size_t pika_platform_fread(void* ptr, size_t size, size_t n, FILE* stream) {
+    FIL* _f = (FIL*)stream;
     size_t len = 0;
-    f_read(_f, ptr, n * size, & len);
+    FRESULT res = f_read(_f, ptr, n * size, &len);
     return len;
   }
 
-  int pika_platform_fclose(FILE * stream) {
-    _INNER_FILE * _f = (_INNER_FILE * ) stream;
-    f_close(_f);
+  int pika_platform_fclose(FILE* stream) {
+    FIL* _f = (FIL*)stream;
+    FRESULT res = f_close(_f);
     pika_platform_free(_f);
     return 0;
   }
 
-  int pika_platform_fseek(FILE * stream, long offset, int whence) {
-    _INNER_FILE * _f = (_INNER_FILE * ) stream;
+  int pika_platform_fseek(FILE* stream, long offset, int whence) {
+    FIL* _f = (FIL*)stream;
     DWORD fatfs_offset;
     switch (whence) {
     case SEEK_SET:
@@ -88,16 +87,15 @@ extern "C" {
     default:
       return -1; // Invalid argument
     }
-    if (f_lseek(_f, fatfs_offset) == FR_OK) {
-      return 0;
-    } else {
-      return -1;
-    }
+    FRESULT res = f_lseek(_f, fatfs_offset);
+    int result = (res == FR_OK) ? 0 : -1;
+    return result;
   }
 
-  long pika_platform_ftell(FILE * stream) {
-    _INNER_FILE * _f = (_INNER_FILE * ) stream;
-    return f_tell(_f);
+  long pika_platform_ftell(FILE* stream) {
+    FIL* _f = (FIL*)stream;
+    long result = f_tell(_f);
+    return result;
   }
 
   int __fmodeflags(const char * mode) {
@@ -120,7 +118,7 @@ extern "C" {
     return flags;
   }
 
-  char * pika_platform_getcwd(char * buf, size_t size) {
+  char* pika_platform_getcwd(char* buf, size_t size) {
     // FatFS doesn't directly provide a getcwd function. You might need
     // to manage the current directory yourself or return a default if it's
     // not crucial for your application.
@@ -128,52 +126,59 @@ extern "C" {
     return buf;
   }
 
-  int pika_platform_chdir(const char * path) {
+  int pika_platform_chdir(const char* path) {
     // FatFS doesn't directly provide a chdir function. You might need
     // to manage the current directory yourself.
     return -1; // Not implemented
   }
 
-  int pika_platform_rmdir(const char * pathname) {
+  int pika_platform_rmdir(const char* pathname) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(pathname));
     if (translated_path.empty()) {
       return -1; // Access denied
     }
-    return f_unlink(translated_path.c_str());
+    FRESULT res = f_unlink(translated_path.c_str());
+    int result = (res == FR_OK) ? 0 : -1;
+    return result;
   }
 
-  int pika_platform_mkdir(const char * pathname, int mode) {
+  int pika_platform_mkdir(const char* pathname, int mode) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(pathname));
     if (translated_path.empty()) {
       return -1; // Access denied
     }
 
     MatrixOS::FileSystem::EnsureAppDirectory();
-    return f_mkdir(translated_path.c_str());
+    FRESULT res = f_mkdir(translated_path.c_str());
+    int result = (res == FR_OK) ? 0 : -1;
+    return result;
   }
 
-  int pika_platform_remove(const char * pathname) {
+  int pika_platform_remove(const char* pathname) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(pathname));
     if (translated_path.empty()) {
       return -1; // Access denied
     }
-    return f_unlink(translated_path.c_str());
+    FRESULT res = f_unlink(translated_path.c_str());
+    int result = (res == FR_OK) ? 0 : -1;
+    return result;
   }
 
-  int pika_platform_rename(const char * oldpath,
-    const char * newpath) {
+  int pika_platform_rename(const char* oldpath, const char* newpath) {
     string old_translated = MatrixOS::FileSystem::TranslatePath(string(oldpath));
     string new_translated = MatrixOS::FileSystem::TranslatePath(string(newpath));
     if (old_translated.empty() || new_translated.empty()) {
       return -1; // Access denied
     }
-    return f_rename(old_translated.c_str(), new_translated.c_str());
+    FRESULT res = f_rename(old_translated.c_str(), new_translated.c_str());
+    int result = (res == FR_OK) ? 0 : -1;
+    return result;
   }
 
-  char ** pika_platform_listdir(const char * path, int * count) {
+  char** pika_platform_listdir(const char* path, int* count) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(path));
     if (translated_path.empty()) {
-      * count = 0;
+      *count = 0;
       return NULL; // Access denied
     }
 
@@ -222,11 +227,11 @@ extern "C" {
       f_closedir( & dir);
     }
 
-    * count = idx;
+    *count = idx;
     return filelist;
   }
 
-  int pika_platform_path_exists(const char * path) {
+  int pika_platform_path_exists(const char* path) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(path));
     if (translated_path.empty()) {
       return 0; // Access denied
@@ -235,14 +240,12 @@ extern "C" {
     FRESULT res;
     FILINFO fno;
 
-    res = f_stat(translated_path.c_str(), & fno);
-    if (res != FR_OK) {
-      return 0; // Path does not exist
-    }
-    return 1;
+    res = f_stat(translated_path.c_str(), &fno);
+    int result = (res == FR_OK) ? 1 : 0;
+    return result;
   }
 
-  int pika_platform_path_isdir(const char * path) {
+  int pika_platform_path_isdir(const char* path) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(path));
     if (translated_path.empty()) {
       return 0; // Access denied
@@ -252,16 +255,14 @@ extern "C" {
     FRESULT res;
     FILINFO fno;
 
-    res = f_stat(translated_path.c_str(), & fno);
+    res = f_stat(translated_path.c_str(), &fno);
     if (res == FR_OK) {
       is_dir = (fno.fattrib & AM_DIR) ? 1 : 0;
-    } else {
-      return 0;
     }
     return is_dir;
   }
 
-  int pika_platform_path_isfile(const char * path) {
+  int pika_platform_path_isfile(const char* path) {
     string translated_path = MatrixOS::FileSystem::TranslatePath(string(path));
     if (translated_path.empty()) {
       return 0; // Access denied
@@ -271,11 +272,9 @@ extern "C" {
     FRESULT res;
     FILINFO fno;
 
-    res = f_stat(translated_path.c_str(), & fno);
+    res = f_stat(translated_path.c_str(), &fno);
     if (res == FR_OK) {
       is_file = (fno.fattrib & AM_DIR) == 0 ? 1 : 0;
-    } else {
-      return 0;
     }
     return is_file;
   }

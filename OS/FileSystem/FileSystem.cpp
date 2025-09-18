@@ -27,21 +27,25 @@ namespace MatrixOS::FileSystem
       }
       // Remove prefix for system access
       if (path.substr(0, 2) == "//") {
-        return path.substr(2);
+        string result = path.substr(2);
+        return result;
       }
       if (path.substr(0, 8) == "rootfs:/") {
-        return path.substr(8);
+        string result = path.substr(8);
+        return result;
       }
     }
 
     // Sandbox application paths
     if (MatrixOS::SYS::active_app_info && xTaskGetCurrentTaskHandle() == MatrixOS::SYS::active_app_task) {
       string sandbox_base = GetAppSandboxPath();
+      string result;
       if (path[0] == '/') {
-        return sandbox_base + path;
+        result = sandbox_base + path;
       } else {
-        return sandbox_base + "/" + path;
+        result = sandbox_base + "/" + path;
       }
+      return result;
     }
 
     return "";
