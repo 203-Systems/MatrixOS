@@ -10,13 +10,13 @@ bool ParseAppInfo(const string& json_content, AppInfoJson& result) {
     DeserializationError error = deserializeJson(doc, json_content);
 
     if (error) {
-        MLOGE("PythonAppDiscovery", "JSON parsing failed: %s", error.c_str());
+        MLOGE("Shell", "JSON parsing failed: %s", error.c_str());
         return false;
     }
 
     // Parse required string fields
     if (doc["name"].isNull() || doc["author"].isNull() || doc["appMainFile"].isNull()) {
-        MLOGE("PythonAppDiscovery", "Missing required fields (name, author, or appMainFile)");
+        MLOGE("Shell", "Missing required fields (name, author, or appMainFile)");
         return false;
     }
     result.name = doc["name"].as<string>();
@@ -25,14 +25,14 @@ bool ParseAppInfo(const string& json_content, AppInfoJson& result) {
 
     // Parse version
     if (doc["version"].isNull() || !doc["version"].is<int>()) {
-        MLOGE("PythonAppDiscovery", "Missing or invalid version field");
+        MLOGE("Shell", "Missing or invalid version field");
         return false;
     }
     result.version = doc["version"].as<uint32_t>();
 
     // Parse color - can be hex string or RGB array
     if (doc["color"].isNull()) {
-        MLOGE("PythonAppDiscovery", "Missing color field");
+        MLOGE("Shell", "Missing color field");
         return false;
     }
 
@@ -40,7 +40,7 @@ bool ParseAppInfo(const string& json_content, AppInfoJson& result) {
     if (!color_array.isNull()) {
         // Parse color array [r, g, b]
         if (color_array.size() != 3) {
-            MLOGE("PythonAppDiscovery", "Color array must have 3 elements");
+            MLOGE("Shell", "Color array must have 3 elements");
             return false;
         }
         result.color = ParseColorArray(color_array);
@@ -48,7 +48,7 @@ bool ParseAppInfo(const string& json_content, AppInfoJson& result) {
         // Parse hex string like "0xFF5722" or "#FF5722"
         string color_str = doc["color"].as<string>();
         if (color_str.empty()) {
-            MLOGE("PythonAppDiscovery", "Invalid color string");
+            MLOGE("Shell", "Invalid color string");
             return false;
         }
         result.color = Color(strtol(color_str.c_str(), nullptr, 0));
@@ -57,7 +57,7 @@ bool ParseAppInfo(const string& json_content, AppInfoJson& result) {
     // Parse osMinimalVer array [major, minor, patch]
     JsonArrayConst version_array = doc["osMinimalVer"].as<JsonArrayConst>();
     if (version_array.isNull() || version_array.size() != 3) {
-        MLOGE("PythonAppDiscovery", "osMinimalVer must be an array with 3 elements");
+        MLOGE("Shell", "osMinimalVer must be an array with 3 elements");
         return false;
     }
     result.osMinimalVer[0] = version_array[0].as<uint32_t>();
@@ -89,14 +89,14 @@ bool ValidatePythonFile(const string& directory_path, const string& python_filen
     // Check if filename ends with .py
     if (python_filename.length() < 3 ||
         python_filename.substr(python_filename.length() - 3) != ".py") {
-        MLOGE("PythonAppDiscovery", "appMainFile must end with .py: %s", python_filename.c_str());
+        MLOGE("Shell", "appMainFile must end with .py: %s", python_filename.c_str());
         return false;
     }
 
     // Check if file exists
     string full_path = directory_path + "/" + python_filename;
     if (!MatrixOS::FileSystem::Exists(full_path)) {
-        MLOGE("PythonAppDiscovery", "Python file not found: %s", full_path.c_str());
+        MLOGE("Shell", "Python file not found: %s", full_path.c_str());
         return false;
     }
 
@@ -111,24 +111,20 @@ Color ParseColorArray(JsonArrayConst color_array) {
 }
 
 vector<DiscoveredPythonApp> ScanPythonApplications() {
-    MLOGI("PythonAppDiscovery", "Starting Python application discovery");
     vector<DiscoveredPythonApp> discovered_apps;
 
     if (!MatrixOS::FileSystem::Exists("rootfs:/MatrixOS/Applications")) {
-        MLOGW("PythonAppDiscovery", "Applications directory not found, creating it");
+        MLOGW("Shell", "Applications directory not found, creating it");
         MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS");
         MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS/Applications");
         return discovered_apps;
     }
 
     ScanDirectory("rootfs:/MatrixOS/Applications", discovered_apps);
-    MLOGI("PythonAppDiscovery", "Python application discovery completed: %d apps found", discovered_apps.size());
     return discovered_apps;
 }
 
 void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& discovered_apps) {
-    MLOGD("PythonAppDiscovery", "Scanning directory: %s", directory_path.c_str());
-
     vector<string> entries = MatrixOS::FileSystem::ListDir(directory_path);
 
     for (const string& entry : entries) {
@@ -149,12 +145,10 @@ void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& di
 }
 
 bool LoadApp(const string& directory_path, const string& json_filepath, vector<DiscoveredPythonApp>& discovered_apps) {
-    MLOGD("PythonAppDiscovery", "Processing AppInfo.json: %s", json_filepath.c_str());
-
     // Read JSON file
     File* file = MatrixOS::FileSystem::Open(json_filepath, "r");
     if (!file) {
-        MLOGE("PythonAppDiscovery", "Failed to open AppInfo.json: %s", json_filepath.c_str());
+        MLOGE("Shell", "Failed to open AppInfo.json: %s", json_filepath.c_str());
         return false;
     }
 
@@ -173,13 +167,13 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
     // Parse JSON
     AppInfoJson app_info;
     if (!ParseAppInfo(json_content, app_info)) {
-        MLOGE("PythonAppDiscovery", "Failed to parse AppInfo.json in %s", directory_path.c_str());
+        MLOGE("Shell", "Failed to parse AppInfo.json in %s", directory_path.c_str());
         return false;
     }
 
     // Validate version compatibility
     if (!ValidateVersionCompatibility(app_info.osMinimalVer)) {
-        MLOGW("PythonAppDiscovery", "App %s requires newer MatrixOS version [%d.%d.%d]",
+        MLOGW("Shell", "App %s requires newer MatrixOS version [%d.%d.%d]",
               app_info.name.c_str(), app_info.osMinimalVer[0],
               app_info.osMinimalVer[1], app_info.osMinimalVer[2]);
         return false;
@@ -187,6 +181,7 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
 
     // Validate Python file exists
     if (!ValidatePythonFile(directory_path, app_info.appMainFile)) {
+        MLOGW("Shell", "App %s Missing python file %s", app_info.name.c_str(), directory_path);
         return false;
     }
 
@@ -210,7 +205,7 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
     discovered_app.python_file_path = python_file_path;
     discovered_apps.push_back(discovered_app);
 
-    MLOGI("PythonAppDiscovery", "Successfully discovered Python app: %s by %s",
+    MLOGI("Shell", "Found Python app: %s by %s",
           info.name.c_str(), info.author.c_str());
     return true;
 }
@@ -222,7 +217,7 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
 // Filesystem not available, provide stub functions
 namespace PythonAppDiscovery {
     void ScanPythonApplications() {
-        MLOGW("PythonAppDiscovery", "Filesystem not available, skipping Python app discovery");
+        MLOGW("Shell", "Filesystem not available, skipping Python app discovery");
     }
 }
 #endif
