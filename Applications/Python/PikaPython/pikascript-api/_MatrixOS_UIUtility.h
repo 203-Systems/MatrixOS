@@ -9,16 +9,16 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS_UIUtilities__H
-#define ___MatrixOS_UIUtilities__H
+#ifndef ___MatrixOS_UIUtility__H
+#define ___MatrixOS_UIUtility__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS_UIUtilities(Args *args);
+PikaObj *New__MatrixOS_UIUtility(Args *args);
 
-Arg* _MatrixOS_UIUtilities_ColorPicker(PikaObj *self);
-int _MatrixOS_UIUtilities_NumberSelector8x8(PikaObj *self, int value, PikaObj* color, char* name, int lower_limit, int upper_limit);
-void _MatrixOS_UIUtilities_TextScroll(PikaObj *self, char* text, PikaObj* color, int speed, pika_bool loop);
+Arg* _MatrixOS_UIUtility_ColorPicker(PikaObj *self);
+int _MatrixOS_UIUtility_NumberSelector8x8(PikaObj *self, int value, PikaObj* color, char* name, int lower_limit, int upper_limit);
+void _MatrixOS_UIUtility_TextScroll(PikaObj *self, char* text, PikaObj* color, int speed, pika_bool loop);
 
 #endif

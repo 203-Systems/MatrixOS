@@ -1,4 +1,4 @@
-import _MatrixOS_UIUtilities
+import _MatrixOS_UIUtility as _MatrixOS_UIUtility
 from MatrixOS_Color import Color
 
 # Constants for default values

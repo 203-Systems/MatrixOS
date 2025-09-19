@@ -7,3 +7,4 @@ import MatrixOS_MIDI as MIDI
 import MatrixOS_NVS as NVS
 import MatrixOS_HID as HID
 import MatrixOS_USB as USB
+import MatrixOS_UIUtility as UIUtility
