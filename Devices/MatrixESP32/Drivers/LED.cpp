@@ -20,14 +20,17 @@ namespace Device
     uint16_t XY2Index(Point xy) {
       if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)  // Main grid
       { return xy.x + xy.y * 8; }
-      else if (xy.x == 8 && xy.y >= 0 && xy.y < 8)  // Underglow Right Column
-      { return 64 + (7 - xy.y); }
-      else if (xy.y == 8 && xy.x >= 0 && xy.x < 8)  // Underglow Bottom Row
-      { return 88 + xy.x; }
-      else if (xy.x == -1 && xy.y >= 0 && xy.y < 8)  // Underglow Left Column
-      { return 80 + xy.y; }
-      else if (xy.y == -1 && xy.x >= 0 && xy.x < 8)  // Underglow Top Row
-      { return 72 + (7 - xy.x); }
+      else if(underglow)
+      {
+        if (xy.x == 8 && xy.y >= 0 && xy.y < 8)  // Underglow Right Column
+        { return 64 + (7 - xy.y); }
+        else if (xy.y == 8 && xy.x >= 0 && xy.x < 8)  // Underglow Bottom Row
+        { return 88 + xy.x; }
+        else if (xy.x == -1 && xy.y >= 0 && xy.y < 8)  // Underglow Left Column
+        { return 80 + xy.y; }
+        else if (xy.y == -1 && xy.x >= 0 && xy.x < 8)  // Underglow Top Row
+        { return 72 + (7 - xy.x); }
+      }
       return UINT16_MAX;
     }
 

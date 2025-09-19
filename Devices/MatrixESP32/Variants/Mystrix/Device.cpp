@@ -29,12 +29,14 @@ namespace Device
       product_name += " Pro";
       model = "MX1P";
       KeyPad::velocity_sensitivity = true;
+      LED::underglow = true;
     }
     else if(deviceInfo.Model[3] == 'S')
     {
       KeyPad::velocity_sensitivity = false;
       // Remove "Underglow" from partitions
       LED::partitions.pop_back();
+      LED::underglow = false;
     }
     else
     { 
