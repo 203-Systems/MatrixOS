@@ -20,6 +20,8 @@ PikaObj *New__MatrixOS_Point_Point(Args *args);
 PikaObj* _MatrixOS_Point_Point_Invalid(PikaObj *self);
 PikaObj* _MatrixOS_Point_Point_Origin(PikaObj *self);
 PikaObj* _MatrixOS_Point_Point_Rotate(PikaObj *self, PikaObj* rotation, PikaObj* dimension, pika_bool reverse);
+int _MatrixOS_Point_Point_X(PikaObj *self);
+int _MatrixOS_Point_Point_Y(PikaObj *self);
 PikaObj* _MatrixOS_Point_Point___add__(PikaObj *self, PikaObj* other);
 PikaObj* _MatrixOS_Point_Point___div__(PikaObj *self, int val);
 pika_bool _MatrixOS_Point_Point___eq__(PikaObj *self, PikaObj* other);

@@ -44,9 +44,8 @@
 #include "_MatrixOS_UIButton.h"
 #include "_MatrixOS_UIComponent.h"
 #include "_MatrixOS_UISelector.h"
-#include "_MatrixOS_UIUtility.h"
+#include "_MatrixOS_UIUtilities.h"
 #include "_MatrixOS_USB.h"
-#include "_MatrixOS_USB_CDC.h"
 #include "_MatrixOS_Utils.h"
 #include "builtins.h"
 #include "ctypes.h"
@@ -350,14 +349,11 @@ PikaObj *New_PikaMain(Args *args){
 #ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
     obj_newObj(self, "_MatrixOS_UISelector", "_MatrixOS_UISelector", New__MatrixOS_UISelector);
 #endif
-#ifndef PIKA_MODULE__MATRIXOS_UIUTILITY_DISABLE
-    obj_newObj(self, "_MatrixOS_UIUtility", "_MatrixOS_UIUtility", New__MatrixOS_UIUtility);
+#ifndef PIKA_MODULE__MATRIXOS_UIUTILITIES_DISABLE
+    obj_newObj(self, "_MatrixOS_UIUtilities", "_MatrixOS_UIUtilities", New__MatrixOS_UIUtilities);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_USB_DISABLE
     obj_newObj(self, "_MatrixOS_USB", "_MatrixOS_USB", New__MatrixOS_USB);
-#endif
-#ifndef PIKA_MODULE__MATRIXOS_USB_CDC_DISABLE
-    obj_newObj(self, "_MatrixOS_USB_CDC", "_MatrixOS_USB_CDC", New__MatrixOS_USB_CDC);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_UTILS_DISABLE
     obj_newObj(self, "_MatrixOS_Utils", "_MatrixOS_Utils", New__MatrixOS_Utils);
@@ -3587,6 +3583,24 @@ method_typedef(
     "Rotate", "rotation,dimension,reverse"
 );
 
+void _MatrixOS_Point_Point_XMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_Point_Point_X(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Point_Point_X,
+    "X", ""
+);
+
+void _MatrixOS_Point_Point_YMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_Point_Point_Y(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Point_Point_Y,
+    "Y", ""
+);
+
 void _MatrixOS_Point_Point___add__Method(PikaObj *self, Args *_args_){
     PikaObj* other = args_getPtr(_args_, "other");
     PikaObj* res = _MatrixOS_Point_Point___add__(self, other);
@@ -3659,6 +3673,8 @@ method_typedef(
 
 class_def(_MatrixOS_Point_Point){
     __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_Point_Point_X, 177661),
+    method_def(_MatrixOS_Point_Point_Y, 177662),
     method_def(_MatrixOS_Point_Point_Invalid, 4242220),
     method_def(_MatrixOS_Point_Point___init__, 904762485),
     method_def(_MatrixOS_Point_Point_Origin, 1215352781),
@@ -4312,53 +4328,53 @@ Arg *_MatrixOS_UISelector_UISelectorLitMode(PikaObj *self){
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_UIUTILITY_DISABLE
-void _MatrixOS_UIUtility_ColorPickerMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_UIUtility_ColorPicker(self);
+#ifndef PIKA_MODULE__MATRIXOS_UIUTILITIES_DISABLE
+void _MatrixOS_UIUtilities_ColorPickerMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UIUtilities_ColorPicker(self);
     method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_UIUtility_ColorPicker,
+    _MatrixOS_UIUtilities_ColorPicker,
     "ColorPicker", ""
 );
 
-void _MatrixOS_UIUtility_NumberSelector8x8Method(PikaObj *self, Args *_args_){
+void _MatrixOS_UIUtilities_NumberSelector8x8Method(PikaObj *self, Args *_args_){
     int value = args_getInt(_args_, "value");
     PikaObj* color = args_getPtr(_args_, "color");
     char* name = args_getStr(_args_, "name");
     int lower_limit = args_getInt(_args_, "lower_limit");
     int upper_limit = args_getInt(_args_, "upper_limit");
-    int res = _MatrixOS_UIUtility_NumberSelector8x8(self, value, color, name, lower_limit, upper_limit);
+    int res = _MatrixOS_UIUtilities_NumberSelector8x8(self, value, color, name, lower_limit, upper_limit);
     method_returnInt(_args_, res);
 }
 method_typedef(
-    _MatrixOS_UIUtility_NumberSelector8x8,
+    _MatrixOS_UIUtilities_NumberSelector8x8,
     "NumberSelector8x8", "value,color,name,lower_limit,upper_limit"
 );
 
-void _MatrixOS_UIUtility_TextScrollMethod(PikaObj *self, Args *_args_){
+void _MatrixOS_UIUtilities_TextScrollMethod(PikaObj *self, Args *_args_){
     char* text = args_getStr(_args_, "text");
     PikaObj* color = args_getPtr(_args_, "color");
     int speed = args_getInt(_args_, "speed");
     pika_bool loop = args_getBool(_args_, "loop");
-    _MatrixOS_UIUtility_TextScroll(self, text, color, speed, loop);
+    _MatrixOS_UIUtilities_TextScroll(self, text, color, speed, loop);
 }
 method_typedef(
-    _MatrixOS_UIUtility_TextScroll,
+    _MatrixOS_UIUtilities_TextScroll,
     "TextScroll", "text,color,speed,loop"
 );
 
-class_def(_MatrixOS_UIUtility){
+class_def(_MatrixOS_UIUtilities){
     __BEFORE_MOETHOD_DEF
-    method_def(_MatrixOS_UIUtility_NumberSelector8x8, 636314519),
-    method_def(_MatrixOS_UIUtility_ColorPicker, 838666882),
-    method_def(_MatrixOS_UIUtility_TextScroll, 1733915705),
+    method_def(_MatrixOS_UIUtilities_NumberSelector8x8, 636314519),
+    method_def(_MatrixOS_UIUtilities_ColorPicker, 838666882),
+    method_def(_MatrixOS_UIUtilities_TextScroll, 1733915705),
 };
-class_inhert(_MatrixOS_UIUtility, TinyObj);
+class_inhert(_MatrixOS_UIUtilities, TinyObj);
 
-PikaObj *New__MatrixOS_UIUtility(Args *args){
+PikaObj *New__MatrixOS_UIUtilities(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_UIUtility);
+    obj_setClass(self, _MatrixOS_UIUtilities);
     return self;
 }
 #endif
@@ -4562,99 +4578,6 @@ class_inhert(_MatrixOS_USB, TinyObj);
 PikaObj *New__MatrixOS_USB(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_USB);
-    return self;
-}
-#endif
-
-#ifndef PIKA_MODULE__MATRIXOS_USB_CDC_DISABLE
-void _MatrixOS_USB_CDC_AvailableMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_USB_CDC_Available(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Available,
-    "Available", ""
-);
-
-void _MatrixOS_USB_CDC_ConnectedMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_USB_CDC_Connected(self);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Connected,
-    "Connected", ""
-);
-
-void _MatrixOS_USB_CDC_FlushMethod(PikaObj *self, Args *_args_){
-    _MatrixOS_USB_CDC_Flush(self);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Flush,
-    "Flush", ""
-);
-
-void _MatrixOS_USB_CDC_PollMethod(PikaObj *self, Args *_args_){
-    _MatrixOS_USB_CDC_Poll(self);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Poll,
-    "Poll", ""
-);
-
-void _MatrixOS_USB_CDC_PrintMethod(PikaObj *self, Args *_args_){
-    char* text = args_getStr(_args_, "text");
-    char* end = args_getStr(_args_, "end");
-    _MatrixOS_USB_CDC_Print(self, text, end);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Print,
-    "Print", "text,end"
-);
-
-void _MatrixOS_USB_CDC_ReadMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_USB_CDC_Read(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_Read,
-    "Read", ""
-);
-
-void _MatrixOS_USB_CDC_ReadBytesMethod(PikaObj *self, Args *_args_){
-    int max_length = args_getInt(_args_, "max_length");
-    Arg* res = _MatrixOS_USB_CDC_ReadBytes(self, max_length);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_ReadBytes,
-    "ReadBytes", "max_length"
-);
-
-void _MatrixOS_USB_CDC_ReadStringMethod(PikaObj *self, Args *_args_){
-    char* res = _MatrixOS_USB_CDC_ReadString(self);
-    method_returnStr(_args_, res);
-}
-method_typedef(
-    _MatrixOS_USB_CDC_ReadString,
-    "ReadString", ""
-);
-
-class_def(_MatrixOS_USB_CDC){
-    __BEFORE_MOETHOD_DEF
-    method_def(_MatrixOS_USB_CDC_Flush, 221179207),
-    method_def(_MatrixOS_USB_CDC_Print, 233240818),
-    method_def(_MatrixOS_USB_CDC_ReadBytes, 284509128),
-    method_def(_MatrixOS_USB_CDC_Available, 329597222),
-    method_def(_MatrixOS_USB_CDC_ReadString, 1458171128),
-    method_def(_MatrixOS_USB_CDC_Connected, 2058545880),
-    method_def(_MatrixOS_USB_CDC_Poll, 2089473116),
-    method_def(_MatrixOS_USB_CDC_Read, 2089533729),
-};
-class_inhert(_MatrixOS_USB_CDC, TinyObj);
-
-PikaObj *New__MatrixOS_USB_CDC(Args *args){
-    PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_USB_CDC);
     return self;
 }
 #endif
