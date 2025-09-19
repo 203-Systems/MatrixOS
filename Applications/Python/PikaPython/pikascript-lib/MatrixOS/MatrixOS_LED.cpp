@@ -18,15 +18,15 @@ extern "C" {
     }
 
     void _MatrixOS_LED_SetColor(PikaObj *self, PikaObj* xy, PikaObj* color, int layer) {
-        int x = obj_getInt(xy, (char*)"x");
-        int y = obj_getInt(xy, (char*)"y");
-        Point point(x, y);
-        
+        // Get Point object from PikaObj
+        Point* point_ptr = getCppObjPtrInPikaObj<Point>(xy);
+        if (!point_ptr) return;
+
         // Get Color object from PikaObj
         Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
         if (!color_ptr) return;
 
-        MatrixOS::LED::SetColor(point, *color_ptr, layer);
+        MatrixOS::LED::SetColor(*point_ptr, *color_ptr, layer);
     }
 
     void _MatrixOS_LED_SetColorByID(PikaObj *self, int id, PikaObj* color, int layer) {

@@ -26,11 +26,11 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_KeyPad_GetKey(PikaObj *self, PikaObj* keyXY) {
-        int x = obj_getInt(keyXY, (char*)"x");
-        int y = obj_getInt(keyXY, (char*)"y");
-        Point point(x, y);
+        // Get Point object from PikaObj
+        Point* point_ptr = getCppObjPtrInPikaObj<Point>(keyXY);
+        if (!point_ptr) return nullptr;
 
-        KeyInfo* info = MatrixOS::KeyPad::GetKey(point);
+        KeyInfo* info = MatrixOS::KeyPad::GetKey(*point_ptr);
 
         if (info != nullptr) {
             PikaObj* key_info = New__MatrixOS_KeyInfo_KeyInfo(NULL);
@@ -60,11 +60,11 @@ extern "C" {
     }
 
     int _MatrixOS_KeyPad_XY2ID(PikaObj *self, PikaObj* xy) {
-        int x = obj_getInt(xy, (char*)"x");
-        int y = obj_getInt(xy, (char*)"y");
-        Point point(x, y);
-        
-        return MatrixOS::KeyPad::XY2ID(point);
+        // Get Point object from PikaObj
+        Point* point_ptr = getCppObjPtrInPikaObj<Point>(xy);
+        if (!point_ptr) return -1;  // Return invalid ID
+
+        return MatrixOS::KeyPad::XY2ID(*point_ptr);
     }
 
     PikaObj* _MatrixOS_KeyPad_ID2XY(PikaObj *self, int keyID) {
