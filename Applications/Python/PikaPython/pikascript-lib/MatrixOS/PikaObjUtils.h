@@ -12,11 +12,9 @@ void createCppObjPtrInPikaObj(PikaObj* pika_obj, Args&&... args)
 template <typename T>
 void copyCppObjIntoPikaObj(PikaObj* pika_obj, T& obj)
 {
-    // Create a copy of the object
     obj_setStruct(pika_obj, (char*)"_self", obj);
 }
 
-// Convenience functions for safer pointer access
 template <typename T>
 T* getCppObjPtrInPikaObj(PikaObj* pika_obj) {
     T* ptr = (T*)(obj_getStruct(pika_obj, (char*)"_self"));

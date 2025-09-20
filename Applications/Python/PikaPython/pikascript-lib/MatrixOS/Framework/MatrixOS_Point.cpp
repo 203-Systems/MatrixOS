@@ -42,11 +42,15 @@ extern "C" {
         Point* p1 = getCppObjPtrInPikaObj<Point>(self);
         Point* p2 = getCppObjPtrInPikaObj<Point>(other);
 
+        Point result;
         if (!p1 || !p2) {
-            return nullptr;
+            result = Point::Invalid();
+        }
+        else
+        {
+            result = *p1 + *p2;
         }
 
-        Point result = *p1 + *p2;
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
         copyCppObjIntoPikaObj<Point>(new_point, result);
@@ -57,9 +61,15 @@ extern "C" {
     PikaObj* _MatrixOS_Point_Point___sub__(PikaObj *self, PikaObj* other) {
         Point* p1 = getCppObjPtrInPikaObj<Point>(self);
         Point* p2 = getCppObjPtrInPikaObj<Point>(other);
-        if (!p1 || !p2) return nullptr;
 
-        Point result = *p1 - *p2;
+        Point result;
+        if (!p1 || !p2) {
+            result = Point::Invalid();
+        }
+        else
+        {
+            result = *p1 - *p2;
+        }
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
         copyCppObjIntoPikaObj<Point>(new_point, result);
@@ -68,9 +78,15 @@ extern "C" {
 
     PikaObj* _MatrixOS_Point_Point___mul__(PikaObj *self, int val) {
         Point* p = getCppObjPtrInPikaObj<Point>(self);
-        if (!p) return nullptr;
 
-        Point result = *p * val;
+        Point result;
+        if (!p) {
+            result = Point::Invalid();
+        }
+        else
+        {
+            result = *p * val;
+        }
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
         copyCppObjIntoPikaObj<Point>(new_point, result);
@@ -79,9 +95,15 @@ extern "C" {
 
     PikaObj* _MatrixOS_Point_Point___div__(PikaObj *self, int val) {
         Point* p = getCppObjPtrInPikaObj<Point>(self);
-        if (!p) return nullptr;
 
-        Point result = *p / val;
+        Point result;
+        if (!p) {
+            result = Point::Invalid();
+        }
+        else
+        {
+            result = *p / val;
+        }
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
         copyCppObjIntoPikaObj<Point>(new_point, result);
@@ -104,9 +126,15 @@ extern "C" {
     PikaObj* _MatrixOS_Point_Point_Rotate(PikaObj *self, int rotation, PikaObj* dimension, pika_bool reverse) {
         Point* p = getCppObjPtrInPikaObj<Point>(self);
         Point* dim = getCppObjPtrInPikaObj<Point>(dimension);
-        if (!p || !dim) return nullptr;
 
-        Point result = p->Rotate((Direction)rotation, *dim, reverse != 0);
+        Point result;
+        if (!p || !dim) {
+            result = Point::Invalid();
+        }
+        else
+        {
+            result = p->Rotate((Direction)rotation, *dim, reverse != 0);
+        }
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
         copyCppObjIntoPikaObj<Point>(new_point, result);
