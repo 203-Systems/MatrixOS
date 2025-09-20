@@ -45,7 +45,6 @@ extern "C" {
 
         if (info != nullptr) {
             PikaObj* info_obj = New__MatrixOS_KeyInfo_KeyInfo(NULL);
-            MLOGD("Python KeyPad", "info_obj pointer: %p", info_obj);
             copyCppObjIntoPikaObj<KeyInfo>(info_obj, *info);
             return arg_newObj(info_obj);
         }
