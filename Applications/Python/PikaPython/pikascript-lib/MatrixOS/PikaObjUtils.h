@@ -6,6 +6,7 @@ template <typename T, typename... Args>
 void createCppObjPtrInPikaObj(PikaObj* pika_obj, Args&&... args)
 {
     T obj = T(std::forward<Args>(args)...);
+    obj_setStruct(pika_obj, (char*)"_self", obj);
 }
 
 template <typename T>
