@@ -13,8 +13,8 @@ extern "C" {
         MatrixOS::LED::SetBrightness(brightness);
     }
 
-    void _MatrixOS_LED_SetBrightnessMultiplier(PikaObj *self, char* partition_name, pika_float multiplier) {
-        MatrixOS::LED::SetBrightnessMultiplier(string(partition_name), multiplier);
+    pika_bool _MatrixOS_LED_SetBrightnessMultiplier(PikaObj *self, char* partition_name, pika_float multiplier) {
+        return MatrixOS::LED::SetBrightnessMultiplier(string(partition_name), multiplier);
     }
 
     void _MatrixOS_LED_SetColor(PikaObj *self, PikaObj* xy, PikaObj* color, int layer) {
@@ -45,12 +45,12 @@ extern "C" {
         MatrixOS::LED::Fill(*color_ptr, layer);
     }
 
-    void _MatrixOS_LED_FillPartition(PikaObj *self, char* partition, PikaObj* color, int layer) {
+    pika_bool _MatrixOS_LED_FillPartition(PikaObj *self, char* partition, PikaObj* color, int layer) {
         // Get Color object from PikaObj
         Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
-        if (!color_ptr) return;
+        if (!color_ptr) return false;
         
-        MatrixOS::LED::FillPartition(string(partition), *color_ptr, layer);
+        return MatrixOS::LED::FillPartition(string(partition), *color_ptr, layer);
     }
 
     void _MatrixOS_LED_Update(PikaObj *self, int layer) {

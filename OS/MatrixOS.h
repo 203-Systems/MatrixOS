@@ -40,12 +40,12 @@ namespace MatrixOS
   {
     void NextBrightness();
     void SetBrightness(uint8_t brightness);
-    void SetBrightnessMultiplier(string partition_name, float multiplier);
+    bool SetBrightnessMultiplier(string partition_name, float multiplier);
 
     void SetColor(Point xy, Color color, uint8_t layer = 255);
     void SetColor(uint16_t ID, Color color, uint8_t layer = 255);
     void Fill(Color color, uint8_t layer = 255);
-    void FillPartition(string partition, Color color, uint8_t layer = 255);
+    bool FillPartition(string partition, Color color, uint8_t layer = 255);
     void Update(uint8_t layer = 255);
 
     int8_t CurrentLayer();

@@ -138,7 +138,7 @@ namespace MatrixOS::LED
     UpdateBrightness();
   }
 
-  void SetBrightnessMultiplier(string partition_name, float multiplier) {
+  bool SetBrightnessMultiplier(string partition_name, float multiplier) {
     for (uint8_t i = 0; i < Device::LED::partitions.size(); i++)
     {
       if (Device::LED::partitions[i].name == partition_name)
@@ -147,15 +147,16 @@ namespace MatrixOS::LED
         if (i == 0 && multiplier < 0.1)
         {
           MLOGW("LED", "Main Partition Multiplier can not be less than 0.1");
-          return;
+          return false;
         }
         ledBrightnessMultiplier[i] = multiplier;
         MatrixOS::NVS::SetVariable(StringHash("system_led_brightness_multiplier_" + partition_name), &multiplier, sizeof(float));
         UpdateBrightness();
-        return;
+        return true;
       }
     }
-    MLOGV("LED", "Partition Not Found");
+    MLOGW("LED", "Partition Not Found");
+    return false;
   }
 
   void SetColor(Point xy, Color color, uint8_t layer) {
@@ -226,13 +227,13 @@ namespace MatrixOS::LED
     { needUpdate = true; }
   }
 
-  void FillPartition(string partition, Color color, uint8_t layer)
+  bool FillPartition(string partition, Color color, uint8_t layer)
   {
 
     if(partition.empty())
     {
       Fill(color, layer);
-      return;
+      return true;
     }
 
     if (layer == 255)
@@ -240,7 +241,7 @@ namespace MatrixOS::LED
     else if (layer >= frameBuffers.size() || frameBuffers[layer] == nullptr)
     {
       MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
-      return;
+      return false;
     }
 
     vTaskSuspendAll();
@@ -263,7 +264,7 @@ namespace MatrixOS::LED
     {
       xTaskResumeAll();
       MLOGV("LED", "Partition Not Found");
-      return;
+      return false;
     }
 
     std::fill(frameBuffers[layer] + start, frameBuffers[layer] + end, color);
@@ -272,6 +273,8 @@ namespace MatrixOS::LED
 
     if(layer == 0)
     { needUpdate = true; }
+
+    return true;
   }
 
    int8_t CurrentLayer() {
