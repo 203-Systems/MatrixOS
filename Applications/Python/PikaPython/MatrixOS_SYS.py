@@ -23,3 +23,6 @@ def ExecuteAPP(author: str, app_name: str, args: list = []) -> None:
 
 def ExecuteAPPByID(app_id: int, args: list = []) -> None:
     _MatrixOS_SYS.ExecuteAPPByID(app_id, args)
+    
+def GetVersion() -> tuple:
+    return _MatrixOS_SYS.GetVersion()
