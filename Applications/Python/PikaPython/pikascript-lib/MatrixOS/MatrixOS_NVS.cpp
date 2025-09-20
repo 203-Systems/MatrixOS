@@ -6,7 +6,7 @@ extern "C" {
         return MatrixOS::NVS::GetSize((uint32_t)hash);
     }
 
-    Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash, int length) {
+    Arg* _MatrixOS_NVS_GetVariable(PikaObj *self, int hash) {
         auto data = MatrixOS::NVS::GetVariable((uint32_t)hash);
 
         // Create bytes argument with the NVS data
