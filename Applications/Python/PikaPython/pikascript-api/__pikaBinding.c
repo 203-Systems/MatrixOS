@@ -40,6 +40,7 @@
 #include "_MatrixOS_NVS.h"
 #include "_MatrixOS_Point.h"
 #include "_MatrixOS_SYS.h"
+#include "_MatrixOS_UI.h"
 #include "_MatrixOS_UI4pxNumber.h"
 #include "_MatrixOS_UIButton.h"
 #include "_MatrixOS_UIComponent.h"
@@ -70,7 +71,6 @@
 #include "_MatrixOS_KeyInfo_KeyInfo.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
 #include "_MatrixOS_Point_Point.h"
-#include "_MatrixOS_UI.h"
 #include "_MatrixOS_UI4pxNumber_UI4pxNumber.h"
 #include "_MatrixOS_UIComponent_UIComponent.h"
 #include "_MatrixOS_UIButton_UIButton.h"
@@ -336,6 +336,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_SYS_DISABLE
     obj_newObj(self, "_MatrixOS_SYS", "_MatrixOS_SYS", New__MatrixOS_SYS);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_UI_DISABLE
+    obj_newObj(self, "_MatrixOS_UI", "_MatrixOS_UI", New__MatrixOS_UI);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_UI4PXNUMBER_DISABLE
     obj_newObj(self, "_MatrixOS_UI4pxNumber", "_MatrixOS_UI4pxNumber", New__MatrixOS_UI4pxNumber);
@@ -1994,6 +1997,42 @@ method_typedef(
     "Scale", "factor"
 );
 
+void _MatrixOS_Color_Color_SetBMethod(PikaObj *self, Args *_args_){
+    int b = args_getInt(_args_, "b");
+    _MatrixOS_Color_Color_SetB(self, b);
+}
+method_typedef(
+    _MatrixOS_Color_Color_SetB,
+    "SetB", "b"
+);
+
+void _MatrixOS_Color_Color_SetGMethod(PikaObj *self, Args *_args_){
+    int g = args_getInt(_args_, "g");
+    _MatrixOS_Color_Color_SetG(self, g);
+}
+method_typedef(
+    _MatrixOS_Color_Color_SetG,
+    "SetG", "g"
+);
+
+void _MatrixOS_Color_Color_SetRMethod(PikaObj *self, Args *_args_){
+    int r = args_getInt(_args_, "r");
+    _MatrixOS_Color_Color_SetR(self, r);
+}
+method_typedef(
+    _MatrixOS_Color_Color_SetR,
+    "SetR", "r"
+);
+
+void _MatrixOS_Color_Color_SetWMethod(PikaObj *self, Args *_args_){
+    int w = args_getInt(_args_, "w");
+    _MatrixOS_Color_Color_SetW(self, w);
+}
+method_typedef(
+    _MatrixOS_Color_Color_SetW,
+    "SetW", "w"
+);
+
 void _MatrixOS_Color_Color_WMethod(PikaObj *self, Args *_args_){
     int res = _MatrixOS_Color_Color_W(self);
     method_returnInt(_args_, res);
@@ -2057,6 +2096,10 @@ class_def(_MatrixOS_Color_Color){
     method_def(_MatrixOS_Color_Color_FromRGBW, 1743898667),
     method_def(_MatrixOS_Color_Color___eq__, 1818853367),
     method_def(_MatrixOS_Color_Color___ne__, 1819163732),
+    method_def(_MatrixOS_Color_Color_SetB, 2089570259),
+    method_def(_MatrixOS_Color_Color_SetG, 2089570264),
+    method_def(_MatrixOS_Color_Color_SetR, 2089570275),
+    method_def(_MatrixOS_Color_Color_SetW, 2089570280),
     method_def(_MatrixOS_Color_Color_WRGB, 2089691831),
 };
 class_inhert(_MatrixOS_Color_Color, TinyObj);
@@ -3551,6 +3594,24 @@ method_typedef(
     "Rotate", "rotation,dimension,reverse"
 );
 
+void _MatrixOS_Point_Point_SetXMethod(PikaObj *self, Args *_args_){
+    int x = args_getInt(_args_, "x");
+    _MatrixOS_Point_Point_SetX(self, x);
+}
+method_typedef(
+    _MatrixOS_Point_Point_SetX,
+    "SetX", "x"
+);
+
+void _MatrixOS_Point_Point_SetYMethod(PikaObj *self, Args *_args_){
+    int y = args_getInt(_args_, "y");
+    _MatrixOS_Point_Point_SetY(self, y);
+}
+method_typedef(
+    _MatrixOS_Point_Point_SetY,
+    "SetY", "y"
+);
+
 void _MatrixOS_Point_Point_XMethod(PikaObj *self, Args *_args_){
     int res = _MatrixOS_Point_Point_X(self);
     method_returnInt(_args_, res);
@@ -3653,6 +3714,8 @@ class_def(_MatrixOS_Point_Point){
     method_def(_MatrixOS_Point_Point___div__, 2038654340),
     method_def(_MatrixOS_Point_Point___mul__, 2049747983),
     method_def(_MatrixOS_Point_Point___sub__, 2056852619),
+    method_def(_MatrixOS_Point_Point_SetX, 2089570281),
+    method_def(_MatrixOS_Point_Point_SetY, 2089570282),
 };
 class_inhert(_MatrixOS_Point_Point, TinyObj);
 
@@ -3706,6 +3769,15 @@ method_typedef(
     "ExecuteAPPByID", "app_id,args"
 );
 
+void _MatrixOS_SYS_GetVersionMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_SYS_GetVersion(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_SYS_GetVersion,
+    "GetVersion", ""
+);
+
 void _MatrixOS_SYS_MicrosMethod(PikaObj *self, Args *_args_){
     int64_t res = _MatrixOS_SYS_Micros(self);
     method_returnInt(_args_, res);
@@ -3743,6 +3815,7 @@ method_typedef(
 class_def(_MatrixOS_SYS){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_SYS_Bootloader, 407357872),
+    method_def(_MatrixOS_SYS_GetVersion, 662856075),
     method_def(_MatrixOS_SYS_OpenSetting, 976650549),
     method_def(_MatrixOS_SYS_ExecuteAPPByID, 1061449825),
     method_def(_MatrixOS_SYS_Micros, 1126205266),
@@ -3756,6 +3829,29 @@ class_inhert(_MatrixOS_SYS, TinyObj);
 PikaObj *New__MatrixOS_SYS(Args *args){
     PikaObj *self = New_TinyObj(args);
     obj_setClass(self, _MatrixOS_SYS);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_UI_DISABLE
+void _MatrixOS_UI_UIMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_UI_UI(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI,
+    "UI", ""
+);
+
+class_def(_MatrixOS_UI){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_UI_UI, 5862787),
+};
+class_inhert(_MatrixOS_UI, TinyObj);
+
+PikaObj *New__MatrixOS_UI(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_UI);
     return self;
 }
 #endif

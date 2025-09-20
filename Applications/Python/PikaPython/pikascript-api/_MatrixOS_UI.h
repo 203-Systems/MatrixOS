@@ -17,5 +17,6 @@
 
 PikaObj *New__MatrixOS_UI(Args *args);
 
+Arg* _MatrixOS_UI_UI(PikaObj *self);
 
 #endif
