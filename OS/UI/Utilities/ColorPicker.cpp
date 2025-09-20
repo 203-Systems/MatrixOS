@@ -100,12 +100,8 @@ namespace MatrixOS::UIUtility
   bool ColorPicker(Color& color) {
     float hue = 0;
     bool aborted = false;
-
-    // Setup
-    // int8_t old_layer = MatrixOS::LED::CurrentLayer();
-
-    // int8_t new_layer = MatrixOS::LED::CreateLayer();
-    UI colorPicker("Color Picker", Color(0x000000), false);
+    
+    UI colorPicker("Color Picker", Color(0x000000));
 
     colorPicker.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
       if (keyEvent->id == FUNCTION_KEY)
