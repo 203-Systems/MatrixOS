@@ -38,6 +38,7 @@ namespace MatrixOS
 
   namespace LED
   {
+    void PreviousBrightness();
     void NextBrightness();
     void SetBrightness(uint8_t brightness);
     bool SetBrightnessMultiplier(string partition_name, float multiplier);
