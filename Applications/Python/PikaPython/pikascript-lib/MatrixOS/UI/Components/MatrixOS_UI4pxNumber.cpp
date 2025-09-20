@@ -13,10 +13,6 @@ extern "C" {
         createCppObjPtrInPikaObj<UI4pxNumber>(self);
     }
 
-    void _MatrixOS_UI4pxNumber_UI4pxNumber___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<UI4pxNumber>(self);
-    }
-
     // SetName method
     pika_bool _MatrixOS_UI4pxNumber_UI4pxNumber_SetName(PikaObj *self, char* name) {
         UI4pxNumber* number = getCppObjPtrInPikaObj<UI4pxNumber>(self);

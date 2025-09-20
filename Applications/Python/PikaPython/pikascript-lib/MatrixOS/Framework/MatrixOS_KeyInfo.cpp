@@ -7,7 +7,7 @@ extern "C" {
     // PikaObj constructor
     PikaObj* New__MatrixOS_KeyInfo_KeyInfo(Args *args);
 
-    // KeyInfo constructor
+    // constructor
     void _MatrixOS_KeyInfo_KeyInfo___init__(PikaObj *self) {
         createCppObjPtrInPikaObj<KeyInfo>(self);
     }

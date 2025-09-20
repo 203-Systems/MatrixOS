@@ -18,8 +18,7 @@
 PikaObj *New__MatrixOS_KeyEvent_KeyEvent(Args *args);
 
 int _MatrixOS_KeyEvent_KeyEvent_ID(PikaObj *self);
-PikaObj* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self);
-void _MatrixOS_KeyEvent_KeyEvent___del__(PikaObj *self);
-void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self, int id, PikaObj* info);
+Arg* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self);
+void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self);
 
 #endif

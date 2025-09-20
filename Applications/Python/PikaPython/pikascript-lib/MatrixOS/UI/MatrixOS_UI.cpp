@@ -43,10 +43,6 @@ extern "C" {
         createCppObjPtrInPikaObj<UI>(self, name, color, newLEDLayer);
     }
 
-    void _MatrixOS_UI_UI___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<UI>(self);
-    }
-
     // Start method
     void _MatrixOS_UI_UI_Start(PikaObj *self) {
         UI* ui = getCppObjPtrInPikaObj<UI>(self);

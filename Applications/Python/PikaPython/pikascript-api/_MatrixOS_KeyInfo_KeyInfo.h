@@ -24,7 +24,6 @@ int _MatrixOS_KeyInfo_KeyInfo_LastEventTime(PikaObj *self);
 int _MatrixOS_KeyInfo_KeyInfo_State(PikaObj *self);
 pika_float _MatrixOS_KeyInfo_KeyInfo_Velocity(PikaObj *self);
 pika_bool _MatrixOS_KeyInfo_KeyInfo___bool__(PikaObj *self);
-void _MatrixOS_KeyInfo_KeyInfo___del__(PikaObj *self);
-void _MatrixOS_KeyInfo_KeyInfo___init__(PikaObj *self);
+void _MatrixOS_KeyInfo_KeyInfo___init__(PikaObj *self, PikaTuple* val);
 
 #endif

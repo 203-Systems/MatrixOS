@@ -5,23 +5,11 @@
 
 extern "C" {
     // PikaObj constructor
-    PikaObj* New__MatrixOS_KeyEvent_KeyEvent(Args *args);
     PikaObj* New__MatrixOS_KeyInfo_KeyInfo(Args *args);
 
-    // KeyEvent constructor
-    void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self, int id, PikaObj* info) {
-        KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(info);
-        if (!keyInfo) return;
-
-        KeyEvent event = {
-            .id = (uint16_t)id,
-            .info = *keyInfo
-        };
-        createCppObjPtrInPikaObj<KeyEvent>(self, event);
-    }
-
-    void _MatrixOS_KeyEvent_KeyEvent___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<KeyEvent>(self);
+    // constructor
+    void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self) {
+        createCppObjPtrInPikaObj<KeyEvent>(self);
     }
 
     // Getters
@@ -31,9 +19,9 @@ extern "C" {
         return keyEvent->id;
     }
 
-    PikaObj* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self) {
+    Arg* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self) {
         KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return nullptr;
+        if (!keyEvent) return arg_newNone();
         
         // Create a new KeyInfo Python object
         PikaObj* keyInfoObj = New__MatrixOS_KeyInfo_KeyInfo(NULL);
@@ -41,6 +29,6 @@ extern "C" {
         // Copy the KeyInfo data from the KeyEvent
         copyCppObjIntoPikaObj<KeyInfo>(keyInfoObj, keyEvent->info);
         
-        return keyInfoObj;
+        return arg_newObj(keyInfoObj);
     }
 }

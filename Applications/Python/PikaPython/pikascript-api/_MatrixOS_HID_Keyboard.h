@@ -20,6 +20,6 @@ PikaObj *New__MatrixOS_HID_Keyboard(Args *args);
 pika_bool _MatrixOS_HID_Keyboard_Press(PikaObj *self, PikaObj* keycode);
 pika_bool _MatrixOS_HID_Keyboard_Release(PikaObj *self, PikaObj* keycode);
 void _MatrixOS_HID_Keyboard_ReleaseAll(PikaObj *self);
-pika_bool _MatrixOS_HID_Keyboard_Write(PikaObj *self, PikaObj* keycode);
+pika_bool _MatrixOS_HID_Keyboard_Tap(PikaObj *self, PikaObj* keycode, int length_ms);
 
 #endif

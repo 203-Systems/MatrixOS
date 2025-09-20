@@ -13,10 +13,6 @@ extern "C" {
         createCppObjPtrInPikaObj<UISelector>(self);
     }
 
-    void _MatrixOS_UISelector_UISelector___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<UISelector>(self);
-    }
-
     // SetValueFunc method
     pika_bool _MatrixOS_UISelector_UISelector_SetValueFunc(PikaObj *self, Arg* getValueFunc) {
         UISelector* selector = getCppObjPtrInPikaObj<UISelector>(self);

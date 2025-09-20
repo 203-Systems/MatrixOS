@@ -13,10 +13,6 @@ extern "C" {
         createCppObjPtrInPikaObj<UIButton>(self);
     }
 
-    void _MatrixOS_UIButton_UIButton___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<UIButton>(self);
-    }
-
     // SetName method
     pika_bool _MatrixOS_UIButton_UIButton_SetName(PikaObj *self, char* name) {
         UIButton* button = getCppObjPtrInPikaObj<UIButton>(self);

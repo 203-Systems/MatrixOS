@@ -12,11 +12,6 @@ extern "C" {
         createCppObjPtrInPikaObj<UIComponent>(self);
     }
 
-    void _MatrixOS_UIComponent_UIComponent___del__(PikaObj *self) {
-        UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);
-        deleteCppObjInPikaObj<UIComponent>(self);
-    }
-
     // SetEnabled method
     pika_bool _MatrixOS_UIComponent_UIComponent_SetEnabled(PikaObj *self, pika_bool enabled) {
         UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(self);

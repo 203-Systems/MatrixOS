@@ -29,7 +29,6 @@ int _MatrixOS_Color_Color_RGB(PikaObj *self);
 PikaObj* _MatrixOS_Color_Color_Scale(PikaObj *self, pika_float factor);
 int _MatrixOS_Color_Color_W(PikaObj *self);
 int _MatrixOS_Color_Color_WRGB(PikaObj *self);
-void _MatrixOS_Color_Color___del__(PikaObj *self);
 pika_bool _MatrixOS_Color_Color___eq__(PikaObj *self, PikaObj* other);
 void _MatrixOS_Color_Color___init__(PikaObj *self, PikaTuple* val);
 pika_bool _MatrixOS_Color_Color___ne__(PikaObj *self, PikaObj* other);

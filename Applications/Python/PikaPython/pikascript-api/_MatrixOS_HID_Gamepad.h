@@ -21,13 +21,14 @@ void _MatrixOS_HID_Gamepad_Button(PikaObj *self, int button_id, pika_bool state)
 void _MatrixOS_HID_Gamepad_Buttons(PikaObj *self, int button_mask);
 void _MatrixOS_HID_Gamepad_DPad(PikaObj *self, PikaObj* direction);
 void _MatrixOS_HID_Gamepad_Press(PikaObj *self, int button_id);
-void _MatrixOS_HID_Gamepad_RXAxis(PikaObj *self, int value);
-void _MatrixOS_HID_Gamepad_RYAxis(PikaObj *self, int value);
-void _MatrixOS_HID_Gamepad_RZAxis(PikaObj *self, int value);
+void _MatrixOS_HID_Gamepad_RXAxis(PikaObj *self, pika_float value);
+void _MatrixOS_HID_Gamepad_RYAxis(PikaObj *self, pika_float value);
+void _MatrixOS_HID_Gamepad_RZAxis(PikaObj *self, pika_float value);
 void _MatrixOS_HID_Gamepad_Release(PikaObj *self, int button_id);
 void _MatrixOS_HID_Gamepad_ReleaseAll(PikaObj *self);
-void _MatrixOS_HID_Gamepad_XAxis(PikaObj *self, int value);
-void _MatrixOS_HID_Gamepad_YAxis(PikaObj *self, int value);
-void _MatrixOS_HID_Gamepad_ZAxis(PikaObj *self, int value);
+void _MatrixOS_HID_Gamepad_Tap(PikaObj *self, int button_id, int length_ms);
+void _MatrixOS_HID_Gamepad_XAxis(PikaObj *self, pika_float value);
+void _MatrixOS_HID_Gamepad_YAxis(PikaObj *self, pika_float value);
+void _MatrixOS_HID_Gamepad_ZAxis(PikaObj *self, pika_float value);
 
 #endif

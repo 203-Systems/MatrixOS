@@ -24,7 +24,7 @@ extern "C" {
         return MatrixOS::UIUtility::NumberSelector8x8(value, *color_ptr, string(name), lower_limit, upper_limit);
     }
 
-    PikaObj* _MatrixOS_UIUtility_ColorPicker(PikaObj *self) {
+    Arg* _MatrixOS_UIUtility_ColorPicker(PikaObj *self) {
         Color picked_color(0);
 
         bool success = MatrixOS::UIUtility::ColorPicker(picked_color);
@@ -33,10 +33,8 @@ extern "C" {
             // Create new Color object and return it
             PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
             copyCppObjIntoPikaObj<Color>(new_color, picked_color);
-            return new_color;
-        } else {
-            // Return None as default if picker was cancelled
-            return nullptr;
+            return arg_newObj(new_color);
         }
+        return arg_newNone();
     }
 }
