@@ -23,16 +23,16 @@ bool ValidateVersionCompatibility(const uint32_t required_version[3]);
 bool ValidatePythonFile(const string& directory_path, const string& python_filename);
 Color ParseColorArray(JsonArrayConst color_array);
 
-// Structure for discovered Python apps
-struct DiscoveredPythonApp {
+// Simple struct to store Python app data
+struct PythonAppInfo {
     Application_Info info;
-    string python_file_path;
+    string file_path;
 };
 
 // Directory scanning functions
-vector<DiscoveredPythonApp> ScanPythonApplications();
-void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& discovered_apps);
-bool LoadApp(const string& directory_path, const string& json_filepath, vector<DiscoveredPythonApp>& discovered_apps);
+void ScanPythonApplications(vector<PythonAppInfo>& python_app_infos);
+void ScanDirectory(const string& directory_path, vector<PythonAppInfo>& python_app_infos);
+bool LoadApp(const string& directory_path, const string& json_filepath, vector<PythonAppInfo>& python_app_infos);
 
 
 }  // namespace PythonAppDiscovery

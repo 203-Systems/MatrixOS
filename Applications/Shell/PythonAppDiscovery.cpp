@@ -110,26 +110,23 @@ Color ParseColorArray(JsonArrayConst color_array) {
     return Color(r, g, b);
 }
 
-vector<DiscoveredPythonApp> ScanPythonApplications() {
-    vector<DiscoveredPythonApp> discovered_apps;
-
+void ScanPythonApplications(vector<PythonAppInfo>& python_app_infos) {
     if(MatrixOS::FileSystem::Available() == false)
     {
-        return discovered_apps;
+        return;
     }
 
     if (!MatrixOS::FileSystem::Exists("rootfs:/MatrixOS/Applications")) {
         MLOGW("Shell", "Applications directory not found, creating it");
         MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS");
         MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS/Applications");
-        return discovered_apps;
+        return;
     }
 
-    ScanDirectory("rootfs:/MatrixOS/Applications", discovered_apps);
-    return discovered_apps;
+    ScanDirectory("rootfs:/MatrixOS/Applications", python_app_infos);
 }
 
-void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& discovered_apps) {
+void ScanDirectory(const string& directory_path, vector<PythonAppInfo>& python_app_infos) {
     vector<string> entries = MatrixOS::FileSystem::ListDir(directory_path);
 
     for (const string& entry : entries) {
@@ -137,19 +134,19 @@ void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& di
 
         if (entry == "AppInfo.json") {
             // Found AppInfo.json, process it
-            LoadApp(directory_path, full_path, discovered_apps);
+            LoadApp(directory_path, full_path, python_app_infos);
         } else {
             // Check if it's a directory by trying to list it
             vector<string> sub_entries = MatrixOS::FileSystem::ListDir(full_path);
             if (!sub_entries.empty() || MatrixOS::FileSystem::Exists(full_path + "/AppInfo.json")) {
                 // It's a directory, scan recursively
-                ScanDirectory(full_path, discovered_apps);
+                ScanDirectory(full_path, python_app_infos);
             }
         }
     }
 }
 
-bool LoadApp(const string& directory_path, const string& json_filepath, vector<DiscoveredPythonApp>& discovered_apps) {
+bool LoadApp(const string& directory_path, const string& json_filepath, vector<PythonAppInfo>& python_app_infos) {
     // Read JSON file
     File file = MatrixOS::FileSystem::Open(json_filepath, "r");
     if (!file.Available()) {
@@ -203,11 +200,11 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
     // Full path to Python file
     string python_file_path = directory_path + "/" + app_info.appMainFile;
 
-    // Add to discovered apps
-    DiscoveredPythonApp discovered_app;
-    discovered_app.info = info;
-    discovered_app.python_file_path = python_file_path;
-    discovered_apps.push_back(discovered_app);
+    // Add to python app infos
+    PythonAppInfo app_data;
+    app_data.info = info;
+    app_data.file_path = python_file_path;
+    python_app_infos.push_back(app_data);
 
     MLOGI("Shell", "Found Python app: %s by %s",
           info.name.c_str(), info.author.c_str());

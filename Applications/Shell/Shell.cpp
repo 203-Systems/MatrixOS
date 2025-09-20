@@ -47,6 +47,7 @@ void Shell::Loop() {
 void Shell::InitializeFolderSystem() {
   // Clear and initialize folders
   folders.clear();
+  python_app_infos.clear();
   all_applications.clear();
 
   // Load folder colors
@@ -61,8 +62,7 @@ void Shell::InitializeFolderSystem() {
 
   // First, add all native apps to all_applications
   for (const auto& [app_id, app_info] : applications) {
-    ApplicationEntry* entry = new ApplicationEntry(app_info);
-    all_applications[app_id] = entry;
+    all_applications.emplace(app_id, ApplicationEntry(app_info));
   }
 
   // Then discover and add Python applications
@@ -103,9 +103,12 @@ void Shell::InitializeFolderSystem() {
       folders[folder_id].app_ids.push_back(app_id);
       missing_apps_found = true;
 
+      Application_Info* info = (app_entry.type == ApplicationType::Native) ?
+                               app_entry.native.info :
+                               &(app_entry.python.info->info);
       MLOGD("Shell", "Added app %s-%s to folder %d",
-            app_entry->info->author.c_str(),
-            app_entry->info->name.c_str(),
+            info->author.c_str(),
+            info->name.c_str(),
             folder_id);
     }
   }
@@ -308,9 +311,12 @@ void Shell::CleanupInvalidApps() {
   }
 }
 
-uint8_t Shell::GetAppFolder(uint32_t app_id, ApplicationEntry* app_entry) {
+uint8_t Shell::GetAppFolder(uint32_t app_id, const ApplicationEntry& app_entry) {
   // Check if app is invisible first
-  if (!app_entry->info->visibility) {
+  Application_Info* info = (app_entry.type == ApplicationType::Native) ?
+                           app_entry.native.info :
+                           &(app_entry.python.info->info);
+  if (!info->visibility) {
     return FOLDER_INVISIBLE;
   }
 
@@ -329,11 +335,11 @@ uint8_t Shell::GetAppFolder(uint32_t app_id, ApplicationEntry* app_entry) {
 void Shell::DiscoverPythonApps() {
   MLOGI("Shell", "Starting Python application discovery");
 
-  // Get discovered Python apps
-  vector<PythonAppDiscovery::DiscoveredPythonApp> python_apps = PythonAppDiscovery::ScanPythonApplications();
+  // Scan Python apps directly into our storage
+  PythonAppDiscovery::ScanPythonApplications(python_app_infos);
 
   // Add them to shell's application map
-  for (const auto& py_app : python_apps) {
+  for (auto& py_app : python_app_infos) {
     uint32_t app_id = StringHash(py_app.info.author + "-" + py_app.info.name);
 
     // Check for duplicates
@@ -343,15 +349,14 @@ void Shell::DiscoverPythonApps() {
       continue;
     }
 
-    // Create ApplicationEntry for Python app
-    ApplicationEntry* entry = new ApplicationEntry(py_app.info, py_app.python_file_path);
-    all_applications[app_id] = entry;
+    // Create ApplicationEntry pointing to the stored PythonAppInfo
+    all_applications.emplace(app_id, ApplicationEntry(&py_app));
 
     MLOGD("Shell", "Registered Python app: %s-%s (ID: %X)",
           py_app.info.author.c_str(), py_app.info.name.c_str(), app_id);
   }
 
-  MLOGI("Shell", "Python application discovery completed: %d apps added", python_apps.size());
+  MLOGI("Shell", "Python application discovery completed: %d apps added", python_app_infos.size());
 }
 
 void Shell::ApplicationLauncher() {

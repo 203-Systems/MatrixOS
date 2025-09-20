@@ -13,38 +13,25 @@ enum class ApplicationType : uint8_t {
 
 struct ApplicationEntry {
   ApplicationType type;
-  Application_Info* info;  // Points to either native.info or python.info
 
   union {
     struct {
-      Application_Info* info;  // Points to registered global info (not owned)
+      Application_Info* info;  // Points to Application_Info regardless of type
     } native;
     struct {
-      Application_Info info;     // Owned copy for Python apps
-      string file_path;          // Python script path
+      PythonAppDiscovery::PythonAppInfo* info;  // Points to PythonAppInfo for Python apps
     } python;
   };
 
   ApplicationEntry(Application_Info* native_app_info)
     : type(ApplicationType::Native) {
       native.info = native_app_info;
-      info = native.info;
     }
 
-  ApplicationEntry(const Application_Info& py_info, const string& file_path)
+  ApplicationEntry(PythonAppDiscovery::PythonAppInfo* py_app_info)
     : type(ApplicationType::Python) {
-      // Use placement new to construct the union members properly
-      new (&python.info) Application_Info(py_info);
-      new (&python.file_path) string(file_path);
-      info = &python.info;
+      python.info = py_app_info;
     }
-
-  ~ApplicationEntry() {
-    if (type == ApplicationType::Python) {
-      python.info.~Application_Info();
-      python.file_path.~string();
-    }
-  }
 };
 
 class Shell : public Application {
@@ -75,8 +62,11 @@ class Shell : public Application {
   // Folder definitions (0-5)
   std::unordered_map<uint8_t, Folder> folders;
 
+  // Storage for Python app infos (to keep Application_Info objects alive)
+  std::vector<PythonAppDiscovery::PythonAppInfo> python_app_infos;
+
   // Shell's view of all applications (native + Python)
-  std::unordered_map<uint32_t, ApplicationEntry*> all_applications;
+  std::unordered_map<uint32_t, ApplicationEntry> all_applications;
 
   uint8_t current_folder = 0; // Start with folder 0
   uint32_t selected_app_id = 0; // Currently selected app in edit mode (0 = none)
@@ -87,7 +77,7 @@ class Shell : public Application {
   // Folder system functions
   void InitializeFolderSystem();
   void TestFileSystem();
-  uint8_t GetAppFolder(uint32_t app_id, ApplicationEntry* app_entry);
+  uint8_t GetAppFolder(uint32_t app_id, const ApplicationEntry& app_entry);
   bool EnableFolder(uint8_t folder_idx, Color color);
   void DisableFolder(uint8_t folder_id);
   void DeleteFolder(uint8_t folder_id);

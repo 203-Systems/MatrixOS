@@ -43,8 +43,10 @@ class AppLauncherPickerEditMode : public UIComponent {
                 // Skip invalid app ID - should have been cleaned up on startup
                 continue;
             }
-            ApplicationEntry* application_entry = application_it->second;
-            Application_Info* application_info = application_entry->info;
+            ApplicationEntry& application_entry = application_it->second;
+            Application_Info* application_info = (application_entry.type == ApplicationType::Native) ?
+                                                application_entry.native.info :
+                                                &(application_entry.python.info->info);
 
             uint8_t x = added_apps % 8;
             uint8_t y = added_apps / 8;
@@ -93,8 +95,10 @@ class AppLauncherPickerEditMode : public UIComponent {
                     // Skip invalid app ID - should have been cleaned up on startup
                     return false;
                 }
-                ApplicationEntry* application_entry = application_it->second;
-                Application_Info* application = application_entry->info;
+                ApplicationEntry& application_entry = application_it->second;
+                Application_Info* application = (application_entry.type == ApplicationType::Native) ?
+                                               application_entry.native.info :
+                                               &(application_entry.python.info->info);
 
                 // Check if an app is already selected
                 if (shell->selected_app_id != 0 && shell->selected_app_id != app_id) {
@@ -134,8 +138,10 @@ class AppLauncherPickerEditMode : public UIComponent {
                     // Skip invalid app ID - should have been cleaned up on startup
                     return false;
                 }
-                ApplicationEntry* application_entry = application_it->second;
-                Application_Info* application = application_entry->info;
+                ApplicationEntry& application_entry = application_it->second;
+                Application_Info* application = (application_entry.type == ApplicationType::Native) ?
+                                               application_entry.native.info :
+                                               &(application_entry.python.info->info);
 
                 MatrixOS::UIUtility::TextScroll(application->name, application->color);
                 return true;

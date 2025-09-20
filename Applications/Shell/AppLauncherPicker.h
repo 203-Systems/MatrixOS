@@ -25,8 +25,10 @@ class AppLauncherPicker : public UIComponent {
                 // Skip invalid app ID - should have been cleaned up on startup
                 continue;
             }
-            ApplicationEntry* application_entry = application_it->second;
-            Application_Info* application_info = application_entry->info;
+            ApplicationEntry& application_entry = application_it->second;
+            Application_Info* application_info = (application_entry.type == ApplicationType::Native) ?
+                                                application_entry.native.info :
+                                                &(application_entry.python.info->info);
 
 
             uint8_t x = added_apps % 8;
@@ -60,8 +62,10 @@ class AppLauncherPicker : public UIComponent {
                 // Skip invalid app ID - should have been cleaned up on startup
                 return false;
             }
-            ApplicationEntry* application_entry = application_it->second;
-            Application_Info* application = application_entry->info;
+            ApplicationEntry& application_entry = application_it->second;
+            Application_Info* application = (application_entry.type == ApplicationType::Native) ?
+                                           application_entry.native.info :
+                                           &(application_entry.python.info->info);
 
 
             if(keyInfo->state == RELEASED)
@@ -69,9 +73,9 @@ class AppLauncherPicker : public UIComponent {
                 MLOGD("Shell", "Launching App ID: %X", app_id);
                 shell->LaunchAnimation(xy, application->color);
 
-                if (application_entry->type == ApplicationType::Python) {
+                if (application_entry.type == ApplicationType::Python) {
                     // Launch Python app with script path argument
-                    vector<string> args = { application_entry->python.file_path };
+                    vector<string> args = { application_entry.python.info->file_path };
                     MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", args);
                 } else {
                     // Launch native app normally
