@@ -67,6 +67,8 @@ namespace MatrixOS::LED
 
       // MLOGD("LED", "Partition %s Brightness %d (%d * %f = %f)", Device::LED::partitions[i].name.c_str(), ledPartitionBrightness[i], MatrixOS::UserVar::brightness, ledBrightnessMultiplier[i], brightness_multiplied);
     }
+    
+    needUpdate = true;
   }
 
   void Init() {
