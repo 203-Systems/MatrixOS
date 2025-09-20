@@ -3,4 +3,4 @@ import PikaStdLib
 import MatrixOS
 from MatrixOS_Framework import *
 from MatrixOS_Utils import *
-from MatrixOS_UIComponents import *
+from MatrixOS_UI import *
