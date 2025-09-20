@@ -113,6 +113,11 @@ Color ParseColorArray(JsonArrayConst color_array) {
 vector<DiscoveredPythonApp> ScanPythonApplications() {
     vector<DiscoveredPythonApp> discovered_apps;
 
+    if(MatrixOS::FileSystem::Available() == false)
+    {
+        return discovered_apps;
+    }
+
     if (!MatrixOS::FileSystem::Exists("rootfs:/MatrixOS/Applications")) {
         MLOGW("Shell", "Applications directory not found, creating it");
         MatrixOS::FileSystem::MakeDir("rootfs:/MatrixOS");
