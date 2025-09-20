@@ -110,7 +110,7 @@ namespace MatrixOS
     
     namespace Keyboard
     {
-      bool Write(KeyboardKeycode keycode);
+      bool Tap(KeyboardKeycode keycode, uint16_t length_ms = 100);
       bool Press(KeyboardKeycode keycode);
       bool Release(KeyboardKeycode keycode);
       void ReleaseAll(void);
@@ -137,6 +137,7 @@ namespace MatrixOS
 
     namespace Gamepad
     {
+      void Tap(uint8_t button_id, uint16_t length_ms = 100);
       void Press(uint8_t button_id);
       void Release(uint8_t button_id);
       void ReleaseAll(void);

@@ -27,6 +27,14 @@ namespace MatrixOS::HID::Gamepad
         tud_hid_n_report(0, REPORT_ID_GAMEPAD, &_report, 17); // sizeof(_report));
     }
 
+    void Tap(uint8_t b, uint16_t length_ms)
+    {
+        Press(b);
+        SYS::DelayMs(length_ms);
+        Release(b);
+    }
+
+
     void Press(uint8_t b)
     {
         _report.buttons |= (uint32_t)1 << b; 

@@ -9,8 +9,8 @@ extern "C" {
     }
 
     // HID Keyboard functions
-    pika_bool _MatrixOS_HID_Keyboard_Write(PikaObj *self, int keycode) {
-        return MatrixOS::HID::Keyboard::Write((KeyboardKeycode)keycode);
+    pika_bool _MatrixOS_HID_Keyboard_Tap(PikaObj *self, int keycode, int length_ms) {
+        return MatrixOS::HID::Keyboard::Tap((KeyboardKeycode)keycode, length_ms);
     }
 
     pika_bool _MatrixOS_HID_Keyboard_Press(PikaObj *self, int keycode) {
@@ -30,13 +30,18 @@ extern "C" {
     // HID Touch functions
     
     // HID Gamepad functions
+
+    void _MatrixOS_HID_Gamepad_Tap(PikaObj *self, int button_id, int length_ms) {
+        MatrixOS::HID::Gamepad::Tap(button_id, length_ms);
+    }
+
     void _MatrixOS_HID_Gamepad_Press(PikaObj *self, int button_id) {
         MatrixOS::HID::Gamepad::Press((uint8_t)button_id);
     }
 
     void _MatrixOS_HID_Gamepad_Release(PikaObj *self, int button_id) {
         MatrixOS::HID::Gamepad::Release((uint8_t)button_id);
-    }
+    }   
 
     void _MatrixOS_HID_Gamepad_ReleaseAll(PikaObj *self) {
         MatrixOS::HID::Gamepad::ReleaseAll();

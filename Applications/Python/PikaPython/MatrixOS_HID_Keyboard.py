@@ -1,7 +1,7 @@
 import _MatrixOS_HID_Keyboard
 
-def Write(keycode: int) -> bool:
-    return _MatrixOS_HID_Keyboard.Write(keycode)
+def Tap(keycode: int, length_ms: int = 100) -> bool:
+    return _MatrixOS_HID_Keyboard.Tap(keycode, length_ms)
 
 def Press(keycode: int) -> bool:
     return _MatrixOS_HID_Keyboard.Press(keycode)

@@ -1,5 +1,8 @@
 import _MatrixOS_HID_Gamepad
 
+def Tap(button_id: int, length_ms: int = 100) -> None:
+    _MatrixOS_HID_Gamepad.Tap(button_id, length_ms)
+
 def Press(button_id: int) -> None:
     _MatrixOS_HID_Gamepad.Press(button_id)
 
