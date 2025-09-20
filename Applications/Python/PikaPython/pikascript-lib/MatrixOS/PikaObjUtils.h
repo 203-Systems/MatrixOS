@@ -21,7 +21,6 @@ T* getCppObjPtrInPikaObj(PikaObj* pika_obj) {
     return ptr;
 }
 
-
 template <typename T>
 T& getCppObjInPikaObj(PikaObj* pika_obj) {
     T* ptr = (T*)(obj_getStruct(pika_obj, (char*)"_self"));
