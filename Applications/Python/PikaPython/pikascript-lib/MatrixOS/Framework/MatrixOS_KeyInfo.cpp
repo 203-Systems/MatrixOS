@@ -12,10 +12,6 @@ extern "C" {
         createCppObjPtrInPikaObj<KeyInfo>(self);
     }
 
-    void _MatrixOS_KeyInfo_KeyInfo___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<KeyInfo>(self);
-    }
-
     // Getter methods
     int _MatrixOS_KeyInfo_KeyInfo_State(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);

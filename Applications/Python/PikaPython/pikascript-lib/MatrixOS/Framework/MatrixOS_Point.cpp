@@ -11,10 +11,6 @@ extern "C" {
         createCppObjPtrInPikaObj<Point>(self, x, y);
     }
 
-    void _MatrixOS_Point_Point___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<Point>(self);
-    }
-
     // Point getter methods
     int _MatrixOS_Point_Point_X(PikaObj *self) {
         Point* point = getCppObjPtrInPikaObj<Point>(self);

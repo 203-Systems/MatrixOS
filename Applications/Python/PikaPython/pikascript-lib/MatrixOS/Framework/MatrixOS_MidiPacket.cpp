@@ -59,12 +59,6 @@ extern "C" {
         }
     }
 
-    // Destructor
-    void _MatrixOS_MidiPacket_MidiPacket___del__(PikaObj *self)
-    {
-        deleteCppObjInPikaObj<MidiPacket>(self);
-    }
-
     // Factory methods for creating MIDI packets
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOn(PikaObj *self, int channel, int note, int velocity) {
         PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);

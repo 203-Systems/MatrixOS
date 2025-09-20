@@ -7,8 +7,7 @@ class KeyInfo:
     """Key information structure containing state and timing data"""
     
     # Constructor
-    def __init__(self): ...
-    def __del__(self): ...
+    def __init__(self, *val): ...
 
     # Getter
     def State(self) -> int: ... # Should return KeyState

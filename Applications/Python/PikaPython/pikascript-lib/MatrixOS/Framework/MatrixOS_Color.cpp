@@ -53,11 +53,6 @@ extern "C" {
         }
     }
 
-    void _MatrixOS_Color_Color___del__(PikaObj *self)
-    {
-        deleteCppObjInPikaObj<Color>(self);
-    }
-
     PikaObj* _MatrixOS_Color_Color_FromRGBW(PikaObj *self, int r, int g, int b, int w) {
         PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
         createCppObjPtrInPikaObj<Color>(new_color, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)w);

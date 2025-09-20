@@ -36,10 +36,6 @@ extern "C" {
         }
     }
 
-    void _MatrixOS_Dimension_Dimension___del__(PikaObj *self) {
-        deleteCppObjInPikaObj<Dimension>(self);
-    }
-
     // Getters
     int _MatrixOS_Dimension_Dimension_X(PikaObj *self) {
         Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
