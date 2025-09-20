@@ -147,19 +147,15 @@ namespace MatrixOS::FileSystem
     return (result == FR_OK);
   }
 
-  File* Open(const string& path, const string& mode) {
+  File Open(const string& path, const string& mode) {
     string translated_path = TranslatePath(path);
-    if (translated_path.empty()) return nullptr;
+    if (translated_path.empty()) return File(); // Return invalid file
 
     EnsureAppDirectory();
 
-    File* file = new File();
-    if (file->_Open(translated_path, mode)) {
-      return file;
-    }
-
-    delete file;
-    return nullptr;
+    File file;
+    file._Open(translated_path, mode);
+    return file;
   }
 
   bool Remove(const string& path) {

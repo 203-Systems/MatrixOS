@@ -151,8 +151,8 @@ void ScanDirectory(const string& directory_path, vector<DiscoveredPythonApp>& di
 
 bool LoadApp(const string& directory_path, const string& json_filepath, vector<DiscoveredPythonApp>& discovered_apps) {
     // Read JSON file
-    File* file = MatrixOS::FileSystem::Open(json_filepath, "r");
-    if (!file) {
+    File file = MatrixOS::FileSystem::Open(json_filepath, "r");
+    if (!file.Available()) {
         MLOGE("Shell", "Failed to open AppInfo.json: %s", json_filepath.c_str());
         return false;
     }
@@ -161,13 +161,12 @@ bool LoadApp(const string& directory_path, const string& json_filepath, vector<D
     string json_content;
     char buffer[512];
     size_t bytes_read;
-    while ((bytes_read = file->Read(buffer, sizeof(buffer) - 1)) > 0) {
+    while ((bytes_read = file.Read(buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytes_read] = '\0';
         json_content += buffer;
     }
 
-    file->Close();
-    delete file;
+    file.Close();
 
     // Parse JSON
     AppInfoJson app_info;
