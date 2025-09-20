@@ -55,28 +55,36 @@ extern "C" {
         MatrixOS::HID::Gamepad::Buttons((uint32_t)button_mask);
     }
 
-    void _MatrixOS_HID_Gamepad_XAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::XAxis((int16_t)value);
+    // Helper function to convert float (-1.0 to 1.0) to int16_t with clamping
+    int16_t clampFloatToInt16(pika_float value) {
+        // Clamp input to -1.0 to 1.0 range
+        if (value > 1.0f) value = 1.0f;
+        if (value < -1.0f) value = -1.0f;
+        // Convert to int16_t range (-32767 to 32767)
+        return (int16_t)(value * 32767.0f);
+    }
+    void _MatrixOS_HID_Gamepad_XAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::XAxis(clampFloatToInt16(value));
     }
 
-    void _MatrixOS_HID_Gamepad_YAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::YAxis((int16_t)value);
+    void _MatrixOS_HID_Gamepad_YAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::YAxis(clampFloatToInt16(value));
     }
 
-    void _MatrixOS_HID_Gamepad_ZAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::ZAxis((int16_t)value);
+    void _MatrixOS_HID_Gamepad_ZAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::ZAxis(clampFloatToInt16(value));
     }
 
-    void _MatrixOS_HID_Gamepad_RXAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::RXAxis((int16_t)value);
+    void _MatrixOS_HID_Gamepad_RXAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::RXAxis(clampFloatToInt16(value));
     }
 
-    void _MatrixOS_HID_Gamepad_RYAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::RYAxis((int16_t)value);
+    void _MatrixOS_HID_Gamepad_RYAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::RYAxis(clampFloatToInt16(value));
     }
 
-    void _MatrixOS_HID_Gamepad_RZAxis(PikaObj *self, int value) {
-        MatrixOS::HID::Gamepad::RZAxis((int16_t)value);
+    void _MatrixOS_HID_Gamepad_RZAxis(PikaObj *self, pika_float value) {
+        MatrixOS::HID::Gamepad::RZAxis(clampFloatToInt16(value));
     }
 
     void _MatrixOS_HID_Gamepad_DPad(PikaObj *self, int direction) {
