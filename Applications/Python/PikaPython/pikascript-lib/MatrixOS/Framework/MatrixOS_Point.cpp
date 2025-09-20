@@ -24,16 +24,41 @@ extern "C" {
         return point->y;
     }
 
+    // Point setter methods
+    void _MatrixOS_Point_Point_SetX(PikaObj *self, int x) {
+        Point* point = getCppObjPtrInPikaObj<Point>(self);
+        if (!point) return;
+        point->x = x;
+    }
+
+    void _MatrixOS_Point_Point_SetY(PikaObj *self, int y) {
+        Point* point = getCppObjPtrInPikaObj<Point>(self);
+        if (!point) return;
+        point->y = y;
+    }
+
     // Point operators
     PikaObj* _MatrixOS_Point_Point___add__(PikaObj *self, PikaObj* other) {
+        MLOGD("Point", "Point addition called");
         Point* p1 = getCppObjPtrInPikaObj<Point>(self);
         Point* p2 = getCppObjPtrInPikaObj<Point>(other);
-        if (!p1 || !p2) return nullptr;
 
+        MLOGD("Point", "p1: %p, p2: %p", p1, p2);
+        if (!p1 || !p2) {
+            MLOGE("Point", "Null pointer detected: p1=%p, p2=%p", p1, p2);
+            return nullptr;
+        }
+
+        MLOGD("Point", "p1=(%d,%d), p2=(%d,%d)", p1->x, p1->y, p2->x, p2->y);
         Point result = *p1 + *p2;
+        MLOGD("Point", "result=(%d,%d)", result.x, result.y);
 
         PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        MLOGD("Point", "new_point created: %p", new_point);
+
         copyCppObjIntoPikaObj<Point>(new_point, result);
+        MLOGD("Point", "copyCppObjIntoPikaObj completed");
+
         return new_point;
     }
 
