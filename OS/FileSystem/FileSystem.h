@@ -9,6 +9,7 @@ namespace MatrixOS::FileSystem
   void Init();
 
   // Filesystem operations
+  bool Available(void);
   bool Exists(const string& path);
   bool MakeDir(const string& path);
   File* Open(const string& path, const string& mode);

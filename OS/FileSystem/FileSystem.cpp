@@ -124,6 +124,11 @@ namespace MatrixOS::FileSystem
     }
   }
 
+  bool Available(void)
+  {
+    return Device::Storage::Available();
+  }
+
   bool Exists(const string& path) {
     string translated_path = TranslatePath(path);
     if (translated_path.empty()) return false;
