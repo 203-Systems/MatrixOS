@@ -94,6 +94,31 @@ extern "C" {
         return color->W;
     }
 
+    // Color setter methods
+    void _MatrixOS_Color_Color_SetR(PikaObj *self, int r) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return;
+        color->R = (uint8_t)r;
+    }
+
+    void _MatrixOS_Color_Color_SetG(PikaObj *self, int g) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return;
+        color->G = (uint8_t)g;
+    }
+
+    void _MatrixOS_Color_Color_SetB(PikaObj *self, int b) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return;
+        color->B = (uint8_t)b;
+    }
+
+    void _MatrixOS_Color_Color_SetW(PikaObj *self, int w) {
+        Color* color = getCppObjPtrInPikaObj<Color>(self);
+        if (!color) return;
+        color->W = (uint8_t)w;
+    }
+
     int _MatrixOS_Color_Color_RGB(PikaObj *self) {
         Color* color = getCppObjPtrInPikaObj<Color>(self);
         if (!color) return 0;
