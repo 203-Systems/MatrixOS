@@ -287,29 +287,65 @@ void Note::ColorSelector() {
   preset4Btn.SetEnableFunc([&]() -> bool { return page == 0; });
   colorSelector.AddUIComponent(preset4Btn, Point(5, 5));
 
+  UIButton preset5Btn;
+  preset5Btn.SetName("Preset5");
+  preset5Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[4][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[4][1]);
+    return Color(colorPresets[4][1]).DimIfNot(selected);
+  });
+  preset5Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[4][0];
+    notePadConfigs[activeConfig].color = colorPresets[4][1];
+  });
+  preset5Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset5Btn, Point(2, 6));
+
+  UIButton preset6Btn;
+  preset6Btn.SetName("Preset6");
+  preset6Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[5][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[5][1]);
+    return Color(colorPresets[5][1]).DimIfNot(selected);
+  });
+  preset6Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[5][0];
+    notePadConfigs[activeConfig].color = colorPresets[5][1];
+  });
+  preset6Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset6Btn, Point(3, 6));
+
   UIButton rainbowColorBtn;
   rainbowColorBtn.SetName("Rainbow Color");
   rainbowColorBtn.SetColorFunc([&]() -> Color {
     bool selected = (notePadConfigs[activeConfig].colorMode == COLOR_PER_KEY_RAINBOW);
-    return Color(0xFFFFFF).DimIfNot(selected);
+    return  ColorEffects::Rainbow(2000).DimIfNot(selected);
   });
   rainbowColorBtn.OnPress([&]() -> void {
     notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_RAINBOW;
   });
   rainbowColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
-  colorSelector.AddUIComponent(rainbowColorBtn, Point(2, 6));
+  colorSelector.AddUIComponent(rainbowColorBtn, Point(4, 6));
 
   UIButton polyColorBtn;
   polyColorBtn.SetName("Poly Color");
   polyColorBtn.SetColorFunc([&]() -> Color {
     bool selected = (notePadConfigs[activeConfig].colorMode == COLOR_PER_KEY_POLY);
-    return Color(0xFFFFFF).DimIfNot(selected);
+    uint32_t index = MatrixOS::SYS::Millis() % (12 * 500) / 500;
+    Color color = polyNoteColor[index];
+    return color.DimIfNot(selected);
   });
   polyColorBtn.OnPress([&]() -> void {
     notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_POLY;
   });
   polyColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
-  colorSelector.AddUIComponent(polyColorBtn, Point(3, 6));
+  colorSelector.AddUIComponent(polyColorBtn, Point(5, 6));
 
 
   // Customize

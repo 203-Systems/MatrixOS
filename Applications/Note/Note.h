@@ -42,12 +42,14 @@ class Note : public Application {
 
   NoteLayoutConfig notePadConfigs[2];
 
-  Color colorPresets[4][2] =
+  Color colorPresets[6][2] =
   {
-    {0x0040FF, 0x00FFFF},  // Blue/Cyan
-    {0x8000FF, 0xFF00FF},  // Purple/Magenta
-    {0xFF4000, 0xFFFF00},  // Orange/Yellow
-    {0xFF0080, 0xFF80C0}   // Pink/Light Pink
+    {0x0040FF, 0x00FFFF},
+    {0x8000FF, 0xFF00FF},
+    {0xFF4000, 0xFFFF00},
+    {0xFF0080, 0xFF60C0},
+    {0x00FF00, 0x80FF00},
+    {0x40FFFF, 0xFFFFFF}
   };
 
   static inline uint16_t scales[32] = {NATURAL_MINOR,
