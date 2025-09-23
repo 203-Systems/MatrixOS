@@ -303,12 +303,12 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
 
   // Show Off Scale Notes Toggle (only for Octave and Offset modes)
-  UIButton includeOutScaleNotesToggle;
-  includeOutScaleNotesToggle.SetName("Include Out of Scale Notes");
-  includeOutScaleNotesToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].includeOutScaleNotes); });
-  includeOutScaleNotesToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].includeOutScaleNotes = !notePadConfigs[activeConfig].includeOutScaleNotes; });
-  includeOutScaleNotesToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
-  layoutSelector.AddUIComponent(includeOutScaleNotesToggle, Point(0, 7));
+  UIButton inKeyNoteOnlyToggle;
+  inKeyNoteOnlyToggle.SetName("In Key Notes Only");
+  inKeyNoteOnlyToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].inKeyNoteOnly); });
+  inKeyNoteOnlyToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].inKeyNoteOnly = !notePadConfigs[activeConfig].inKeyNoteOnly; });
+  inKeyNoteOnlyToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(inKeyNoteOnlyToggle, Point(0, 7));
 
   layoutSelector.Start();
 

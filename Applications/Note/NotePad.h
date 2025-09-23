@@ -23,7 +23,7 @@ struct NoteLayoutConfig {
   int8_t octave = 0;
   uint8_t channel = 0;
   NoteLayoutMode mode = OCTAVE_LAYOUT;
-  bool includeOutScaleNotes = false;
+  bool inKeyNoteOnly = false;
   union {
     struct // Octave Mode
     {
@@ -145,7 +145,7 @@ class NotePad : public UIComponent {
           {
             noteMap[id] = 255;
           }
-          else if(!config->includeOutScaleNotes) // If enforce scale is false, just add the next note
+          else if(!config->inKeyNoteOnly) // If enforce scale is false, just add the next note
           {
             noteMap[id] = nextNote;  // Add to map
             nextNote++;
@@ -177,7 +177,7 @@ class NotePad : public UIComponent {
   void GenerateOffsetKeymap() {
     noteMap.reserve(dimension.Area());
     uint8_t root = 12 * config->octave + config->rootKey;
-    if (config->includeOutScaleNotes)
+    if (!config->inKeyNoteOnly)
     {
       for (int8_t y = 0; y < dimension.y; y++)
       {
