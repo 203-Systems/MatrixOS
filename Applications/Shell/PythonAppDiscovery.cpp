@@ -86,10 +86,14 @@ bool ValidateVersionCompatibility(const uint32_t required_version[3]) {
 }
 
 bool ValidatePythonFile(const string& directory_path, const string& python_filename) {
-    // Check if filename ends with .py
-    if (python_filename.length() < 3 ||
-        python_filename.substr(python_filename.length() - 3) != ".py") {
-        MLOGE("Shell", "appMainFile must end with .py: %s", python_filename.c_str());
+    // Check if filename ends with .py or .py.a
+    bool ends_with_py = (python_filename.length() >= 3 &&
+                         python_filename.substr(python_filename.length() - 3) == ".py");
+    bool ends_with_pya = (python_filename.length() >= 5 &&
+                          python_filename.substr(python_filename.length() - 5) == ".py.a");
+
+    if (!ends_with_py && !ends_with_pya) {
+        MLOGE("Shell", "appMainFile must end with .py or .py.a: %s", python_filename.c_str());
         return false;
     }
 

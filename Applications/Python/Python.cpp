@@ -343,21 +343,56 @@ void Python::Setup(const vector<string>& args) {
 
 bool Python::ExecutePythonFile(const string& file_path) {
 #if DEVICE_STORAGE == 1
-  // Create pikascript-api directory for compiled output
   size_t last_slash = file_path.find_last_of('/');
-  if (last_slash != string::npos) {
-    string script_dir = file_path.substr(0, last_slash);
-    string api_dir = script_dir + "/pikascript-api";
+  if (last_slash == string::npos) {
+    MLOGD("Python", "No directory separator found in path: %s", file_path.c_str());
+    return false;
+  }
 
-    // Check if directory exists, create if not
-    if (!MatrixOS::FileSystem::Exists(api_dir)) {
-      if (!MatrixOS::FileSystem::MakeDir(api_dir)) {
-        return false;
-      }
+  // If the linked file path is already a py.a file.
+  if (file_path.size() >= 5 && file_path.substr(file_path.size() - 5) == ".py.a") {
+    // Link the library file and run "main" module
+    MLOGD("Python", "Direct .py.a file execution: %s", file_path.c_str());
+    obj_linkLibraryFile(pikaMain, (char*)file_path.c_str());
+    obj_runModule(pikaMain, (char*)"main");
+    return true;
+  }
+
+  // .py script
+  string script_dir = file_path.substr(0, last_slash + 1);  // Include trailing slash
+  string api_dir = script_dir + "pikascript-api";
+
+  // Check if directory exists, create if not
+  if (!MatrixOS::FileSystem::Exists(api_dir)) {
+    if (!MatrixOS::FileSystem::MakeDir(api_dir)) {
+      MLOGD("Python", "Failed to create pikascript-api directory: %s", api_dir.c_str());
+      return false;
     }
   }
 
-  pikaVM_runFile(pikaMain, (char*)file_path.c_str());
+  // Check if compiled byte code
+  string lib_file = api_dir + "/pikaModules_cache.py.a";
+  if (MatrixOS::FileSystem::Exists(lib_file)) {
+    // Extract just the filename without extension
+    string filename = file_path.substr(last_slash + 1);
+    size_t dot_pos = filename.find_last_of('.');
+    if (dot_pos == string::npos) {
+      MLOGD("Python", "No file extension found in filename: %s", filename.c_str());
+      return false;
+    }
+
+    string filename_no_ext = filename.substr(0, dot_pos);
+
+    // Link the library and run the module
+    MLOGD("Python", "Found compiled library: %s", lib_file.c_str());
+    MLOGD("Python", "Running module: %s", filename_no_ext.c_str());
+    obj_linkLibraryFile(pikaMain, (char*)lib_file.c_str());
+    obj_runModule(pikaMain, (char*)filename_no_ext.c_str());
+  } else {
+    // Run the file normally if no compiled library exists
+    MLOGD("Python", "No compiled library found, running script directly: %s", file_path.c_str());
+    pikaVM_runFile(pikaMain, (char*)file_path.c_str());
+  }
 
   return true;
 #else
