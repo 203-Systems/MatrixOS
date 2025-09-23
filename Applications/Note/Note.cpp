@@ -327,7 +327,7 @@ void Note::ChannelSelector() {
   numDisplay.SetColor(Color(0x60FF00));
   numDisplay.SetDigits(2);
   numDisplay.SetValuePointer(&offsettedChannel);
-  numDisplay.SetAlternativeColor(notePadConfigs[activeConfig].rootColor);
+  numDisplay.SetAlternativeColor(Color(0xFFFFFF));
   numDisplay.SetSpacing(1);
   channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 
