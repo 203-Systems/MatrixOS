@@ -1,12 +1,12 @@
 <img src="Resources/MatrixOS.svg" width="300" alt="Matrix OS" >
 
-An Open Operating System for Software Defined Controllers, Designed to be Flexible, Extensible, and Cross-Platform.
+An Open Operating System for Software Defined Controllers, Designed to be Flexible, Extensible, Multi-Modal, and Cross-Platform.
 
 ## User Guide & Documentation
 See [Project Matrix Wiki](matrix.203.io)
 
 ## Supported Devices
-| Device Name            | Type | Chip     | Supported | Note              | Purchase                                       |
+| Device Name            | Type | Chip     | Supported | Note              | Link                                       |
 |------------------------|------|----------|-----------|-------------------|------------------------------------------------|
 | Mystrix & Mystrix Pro  | Grid | ESP32-S3 | Yes       |                   | [203.io](https://203.io/products/mystrix-pro)   |
 | Mystrix Founder Edition | Grid | STM32F1  | No | Removed in OS 3.0. Might reintroduce later | [203.io](https://203.io/products/matrix-founder-edition) |
