@@ -56,12 +56,12 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
   
   if (actionInfo->indexType == ActionIndexType::COORD)
   {
-    MLOGV(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
+    // MLOGV(TAG, "Executing actions for key %d,%d", actionInfo->coord.x, actionInfo->coord.y);
     offset = actionLUT[actionInfo->coord.x][actionInfo->coord.y];
   }
   else
   {
-    MLOGV(TAG, "Executing actions for key %d", actionInfo->id);
+    MLOGV(TAG, "Executing actions for key %d ( Doesn't not support off grid keys yet)", actionInfo->id);
     return false;  // Doesn't not support off grid keys yet
   }
 
@@ -120,7 +120,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
     }
 
     // If the layer is not enabled, skip it
-    MLOGD(TAG, "Checking Layer: %d", layer);
+    MLOGV(TAG, "Checking Layer: %d", layer);
     if (!IsBitSet(layerEnabled, layer))
     {
       MLOGV(TAG, "Layer %d is not enabled", layer);
@@ -132,7 +132,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
 
     // Execute the actions
     cb0r_s actionData = actions;
-    MLOGD(TAG, "Action Length: %d", actions.length);
+    MLOGV(TAG, "Action Length: %d", actions.length);
     for (uint8_t action_index = 0; action_index < actions.length; action_index++)
     {
       newActionInfo.index = action_index;
