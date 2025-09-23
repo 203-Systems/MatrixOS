@@ -222,12 +222,6 @@ void Note::ColorSelector() {
 void Note::LayoutSelector() {
   UI layoutSelector("Layout Selector", Color(0xFFFF00), false);
 
-  Color modeColor[3] = {
-    Color(0xFFFF00),  // OCTAVE_LAYOUT - Lime Green
-    Color(0x80FF00),  // OFFSET_LAYOUT - Blue
-    Color(0x0080FF)   // PIANO_LAYOUT - Magenta
-  };
-
   int32_t x_offset = notePadConfigs[activeConfig].x_offset;
   int32_t y_offset = notePadConfigs[activeConfig].y_offset;
 
