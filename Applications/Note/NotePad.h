@@ -89,7 +89,7 @@ class NotePad : public UIComponent {
   Dimension dimension;
   NoteLayoutConfig* config;
   std::vector<uint8_t> noteMap;
-  std::unordered_map<uint8_t, uint8_t> activeNotes;
+  uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
   uint16_t c_aligned_scale_map;
 
   virtual Color GetColor() { return config->rootColor; }
@@ -117,6 +117,50 @@ class NotePad : public UIComponent {
       }
     }
     return UINT8_MAX;
+  }
+
+  uint8_t GetActiveNoteCount(uint8_t note, bool upper) {
+    if (note >= 128) return 0;
+    uint8_t index = note / 2;
+    if (upper) {
+      return (activeNotes[index] >> 4) & 0x0F; // Upper nibble
+    } else {
+      return activeNotes[index] & 0x0F; // Lower nibble
+    }
+  }
+
+  void SetActiveNoteCount(uint8_t note, bool upper, uint8_t count) {
+    if (note >= 128 || count > 15) return;
+    uint8_t index = note / 2;
+    if (upper) {
+      activeNotes[index] = (activeNotes[index] & 0x0F) | ((count & 0x0F) << 4); // Set upper nibble
+    } else {
+      activeNotes[index] = (activeNotes[index] & 0xF0) | (count & 0x0F); // Set lower nibble
+    }
+  }
+
+  bool IsNoteActive(uint8_t note) {
+    if (note >= 128) return false;
+    bool upper = (note % 2) == 1;
+    return GetActiveNoteCount(note, upper) > 0;
+  }
+
+  void IncrementActiveNote(uint8_t note) {
+    if (note >= 128) return;
+    bool upper = (note % 2) == 1;
+    uint8_t count = GetActiveNoteCount(note, upper);
+    if (count < 15) {
+      SetActiveNoteCount(note, upper, count + 1);
+    }
+  }
+
+  void DecrementActiveNote(uint8_t note) {
+    if (note >= 128) return;
+    bool upper = (note % 2) == 1;
+    uint8_t count = GetActiveNoteCount(note, upper);
+    if (count > 0) {
+      SetActiveNoteCount(note, upper, count - 1);
+    }
   }
 
   void GenerateOctaveKeymap() {
@@ -273,7 +317,7 @@ class NotePad : public UIComponent {
         Point globalPos = origin + Point(x, y);
         if (note == 255)
         { MatrixOS::LED::SetColor(globalPos, Color(0)); }
-        else if (activeNotes.find(note) != activeNotes.end())  // If find the note is currently active. Show it as white
+        else if (IsNoteActive(note))  // If find the note is currently active. Show it as white
         { MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF)); }
         else
         {
@@ -315,7 +359,7 @@ class NotePad : public UIComponent {
         Point globalPos = origin + Point(x, y);
         if (note == 255)
         { MatrixOS::LED::SetColor(globalPos, Color(0)); }
-        else if (activeNotes.find(note) != activeNotes.end())  // If find the note is currently active. Show it as white
+        else if (IsNoteActive(note))  // If find the note is currently active. Show it as white
         { MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF)); }
         else
         {
@@ -357,15 +401,14 @@ class NotePad : public UIComponent {
     if (keyInfo->state == PRESSED)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->velocitySensitive ? keyInfo->velocity.to7bits() : 0x7F));
-      activeNotes[note]++;  // If this key doesn't exist, unordered_map will auto assign it to 0.
+      IncrementActiveNote(note);
     }
     else if (config->velocitySensitive && keyInfo->state == AFTERTOUCH)
     { MatrixOS::MIDI::Send(MidiPacket::AfterTouch(config->channel, note, keyInfo->velocity.to7bits())); }
     else if (keyInfo->state == RELEASED)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, 0));
-      if (activeNotes[note]-- <= 1)
-      { activeNotes.erase(note); }
+      DecrementActiveNote(note);
     }
     return true;
   }
@@ -373,7 +416,7 @@ class NotePad : public UIComponent {
   NotePad(Dimension dimension, NoteLayoutConfig* config) {
     this->dimension = dimension;
     this->config = config;
-    activeNotes.reserve(8);
+    memset(activeNotes, 0, sizeof(activeNotes)); // Initialize all counters to 0
     GenerateKeymap();
   }
 
