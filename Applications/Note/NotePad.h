@@ -21,7 +21,6 @@ enum ColorMode : uint8_t {
   ROOT_N_SCALE,
   COLOR_PER_KEY_POLY,
   COLOR_PER_KEY_RAINBOW,
-  COLOR_PER_KEY_SCALED_RAINBOW,
 };
 
 const Color polyNoteColor[12] = {
@@ -45,13 +44,13 @@ const Color rainbowNoteColor[12] = {
     Color(0xFFFF00), // Yellow
     Color(0x80FF00),
     Color(0x00FF00), // Green
-    Color(0x00FF7F),
+    Color(0x00FF80),
     Color(0x00FFFF), // Cyan
-    Color(0x007FFF),
+    Color(0x0080FF),
     Color(0x0000FF), // Blue
-    Color(0x7F00FF),
+    Color(0x8000FF),
     Color(0xFF00FF), // Magenta
-    Color(0xFF007F)
+    Color(0xFF0080)
 };
 
 
