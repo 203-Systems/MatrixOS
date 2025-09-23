@@ -233,7 +233,7 @@ void Note::LayoutSelector() {
 
   UIButton octaveModeBtn;
   octaveModeBtn.SetName("Octave Mode");
-  octaveModeBtn.SetColorFunc([&]() -> Color { return modeColor[0].DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
+  octaveModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
   octaveModeBtn.OnPress([&]() -> void { 
     if(notePadConfigs[activeConfig].mode != OCTAVE_LAYOUT)
     {
@@ -244,7 +244,7 @@ void Note::LayoutSelector() {
 
   UIButton offsetModeBtn;
   offsetModeBtn.SetName("Offset Mode");
-  offsetModeBtn.SetColorFunc([&]() -> Color { return modeColor[1].DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
+  offsetModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
   offsetModeBtn.OnPress([&]() -> void { 
     if(notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
     {
@@ -257,7 +257,7 @@ void Note::LayoutSelector() {
 
   UIButton pianoModeBtn;
   pianoModeBtn.SetName("Piano Mode");
-  pianoModeBtn.SetColorFunc([&]() -> Color { return modeColor[2].DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
+  pianoModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
   pianoModeBtn.OnPress([&]() -> void { 
     if(notePadConfigs[activeConfig].mode != PIANO_LAYOUT)
     {
@@ -270,7 +270,7 @@ void Note::LayoutSelector() {
   UISelector yOffsetInput;
   yOffsetInput.SetDimension(Dimension(1, 8));
   yOffsetInput.SetName("Y Offset");
-  yOffsetInput.SetColor(Color(0x00FF00));
+  yOffsetInput.SetColor(Color(0xFF00FF));
   yOffsetInput.SetValuePointer((uint16_t*)&y_offset);
   yOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
@@ -278,27 +278,27 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(yOffsetInput, Point(0, 0));
 
   UI4pxNumber yOffsetDisplay;
-  yOffsetDisplay.SetColor(Color(0x00FF00));
+  yOffsetDisplay.SetColor(Color(0xFF00FF));
   yOffsetDisplay.SetDigits(1);
   yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
-  yOffsetDisplay.SetAlternativeColor(Color(0x00FF00));
+  yOffsetDisplay.SetAlternativeColor(Color(0xFF00FF));
   yOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
 
   UISelector xOffsetInput;
   xOffsetInput.SetDimension(Dimension(8, 1));
   xOffsetInput.SetName("X Offset");
-  xOffsetInput.SetColor(Color(0xFF0000));
+  xOffsetInput.SetColor(Color(0x00FFFF));
   xOffsetInput.SetValuePointer((uint16_t*)&x_offset);
   xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));
 
   UI4pxNumber xOffsetDisplay;
-  xOffsetDisplay.SetColor(Color(0xFF0000));
+  xOffsetDisplay.SetColor(Color(0x00FFFF));
   xOffsetDisplay.SetDigits(1);
   xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
-  xOffsetDisplay.SetAlternativeColor(Color(0xFF0000));
+  xOffsetDisplay.SetAlternativeColor(Color(0x00FFFF));
   xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
 
