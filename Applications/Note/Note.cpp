@@ -318,7 +318,7 @@ void Note::ColorSelector() {
   rootColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].rootColor; });
   rootColorSelectorBtn.SetSize(Dimension(2, 2));
   rootColorSelectorBtn.OnPress([&]() -> void {
-    if (page == 0) MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor);
+    MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor);
   });
   rootColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
   colorSelector.AddUIComponent(rootColorSelectorBtn, Point(2, 5));
@@ -328,7 +328,7 @@ void Note::ColorSelector() {
   notePadColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].color; });
   notePadColorSelectorBtn.SetSize(Dimension(2, 2));
   notePadColorSelectorBtn.OnPress([&]() -> void {
-    if (page == 0) MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color);
+    MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color);
   });
   notePadColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
   colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(4, 5));
