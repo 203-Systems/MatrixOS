@@ -113,9 +113,9 @@ extern "C" {
     pika_bool _MatrixOS_Point_Point___eq__(PikaObj *self, PikaObj* other) {
         Point* p1 = getCppObjPtrInPikaObj<Point>(self);
         Point* p2 = getCppObjPtrInPikaObj<Point>(other);
-        if (!p1 || !p2) return pika_false;
+        if (!p1 || !p2) return false;
 
-        return (*p1 == *p2) ? pika_true : pika_false;
+        return *p1 == *p2;
     }
 
     pika_bool _MatrixOS_Point_Point___ne__(PikaObj *self, PikaObj* other) {

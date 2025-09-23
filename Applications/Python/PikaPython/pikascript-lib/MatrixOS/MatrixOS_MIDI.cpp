@@ -21,7 +21,7 @@ extern "C" {
 
     pika_bool _MatrixOS_MIDI_Send(PikaObj *self, PikaObj* packet, int timeout_ms) {
         MidiPacket* midi_packet_ptr = getCppObjPtrInPikaObj<MidiPacket>(packet);
-        if (!midi_packet_ptr) return pika_false;
+        if (!midi_packet_ptr) return false;
 
         return MatrixOS::MIDI::Send(*midi_packet_ptr, timeout_ms);
     }

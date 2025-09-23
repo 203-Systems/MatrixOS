@@ -67,9 +67,9 @@ extern "C" {
         Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
         Point* pointPtr = getCppObjPtrInPikaObj<Point>(point);
         
-        if (!dimension || !pointPtr) return pika_false;
+        if (!dimension || !pointPtr) return false;
         
-        return dimension->Contains(*pointPtr) ? pika_true : pika_false;
+        return dimension->Contains(*pointPtr);
     }
 
     int _MatrixOS_Dimension_Dimension_Area(PikaObj *self) {
@@ -96,33 +96,33 @@ extern "C" {
         Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
         Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
         
-        if (!dimension1 || !dimension2) return pika_false;
+        if (!dimension1 || !dimension2) return false;
         
-        return !(*dimension1 != *dimension2) ? pika_true : pika_false;
+        return !(*dimension1 != *dimension2);
     }
 
     pika_bool _MatrixOS_Dimension_Dimension___ne__(PikaObj *self, PikaObj* other) {
         Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
         Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
         
-        if (!dimension1 || !dimension2) return pika_true;
+        if (!dimension1 || !dimension2) return true;
         
-        return (*dimension1 != *dimension2) ? pika_true : pika_false;
+        return *dimension1 != *dimension2;
     }
 
     pika_bool _MatrixOS_Dimension_Dimension___lt__(PikaObj *self, PikaObj* other) {
         Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
         Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
         
-        if (!dimension1 || !dimension2) return pika_false;
+        if (!dimension1 || !dimension2) return false;
         
-        return (*dimension1 < *dimension2) ? pika_true : pika_false;
+        return *dimension1 < *dimension2;
     }
 
     pika_bool _MatrixOS_Dimension_Dimension___bool__(PikaObj *self) {
         Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
-        if (!dimension) return pika_false;
-        return (*dimension) ? pika_true : pika_false;
+        if (!dimension) return false;
+        return (bool)*dimension;
     }
 
     int _MatrixOS_Dimension_Dimension___int__(PikaObj *self) {

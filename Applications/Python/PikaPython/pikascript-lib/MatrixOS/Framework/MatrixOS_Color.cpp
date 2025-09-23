@@ -176,9 +176,9 @@ extern "C" {
         Color* color1 = getCppObjPtrInPikaObj<Color>(self);
         Color* color2 = getCppObjPtrInPikaObj<Color>(other);
 
-        if (!color1 || !color2) return pika_false;
+        if (!color1 || !color2) return false;
         
-        return (*color1 == *color2) ? pika_true : pika_false;
+        return *color1 == *color2;
     }
 
     pika_bool _MatrixOS_Color_Color___ne__(PikaObj *self, PikaObj* other) {

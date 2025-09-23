@@ -298,13 +298,13 @@ extern "C" {
 
     pika_bool _MatrixOS_MidiPacket_MidiPacket_SysEx(PikaObj *self) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return pika_false;
+        if(!packet) return false;
         return packet->SysEx();
     }
 
     pika_bool _MatrixOS_MidiPacket_MidiPacket_SysExStart(PikaObj *self) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return pika_false;
+        if(!packet) return false;
         return packet->SysExStart();
     }
 }

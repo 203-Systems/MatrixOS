@@ -33,14 +33,14 @@ extern "C" {
 
     pika_bool _MatrixOS_KeyInfo_KeyInfo_Hold(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
-        if (!keyInfo) return pika_false;
+        if (!keyInfo) return false;
         return keyInfo->hold;
     }
 
     // Methods
     pika_bool _MatrixOS_KeyInfo_KeyInfo_Active(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
-        if (!keyInfo) return pika_false;
+        if (!keyInfo) return false;
         return keyInfo->Active();
     }
 
@@ -53,7 +53,7 @@ extern "C" {
     // Boolean conversion operator
     pika_bool _MatrixOS_KeyInfo_KeyInfo___bool__(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
-        if (!keyInfo) return pika_false;
+        if (!keyInfo) return false;
         return (*keyInfo);
     }
 }
