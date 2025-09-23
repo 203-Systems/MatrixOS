@@ -9,7 +9,7 @@
 #include "UIComponents.h"
 #include "UIUtilities.h"
 
-#define UI_DEFAULT_FPS 100
+#define UI_DEFAULT_MAX_FPS 100
 
 class UI {
  public:
@@ -51,7 +51,7 @@ class UI {
   bool needRender = false;
 
   Timer uiTimer;
-  uint32_t uiUpdateMS = 1000 / UI_DEFAULT_FPS;
+  uint32_t uiUpdateMS = 1000 / UI_DEFAULT_MAX_FPS;
 
   std::function<void()>* setup_func = nullptr;
   std::function<void()>* loop_func = nullptr;
