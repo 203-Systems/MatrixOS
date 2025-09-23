@@ -172,7 +172,6 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
         aBtn.OnPress([&]() -> void {
           if (konami == 9)
           {
-            MatrixOS::UserVar::developer_mode = true;
             MatrixOS::SYS::ExecuteAPP("203 Systems", "REDACTED");
           }
           else
