@@ -17,13 +17,51 @@ enum NoteType : uint8_t {
   OFF_SCALE_NOTE,
 };
 
+enum ColorMode : uint8_t {
+  ROOT_N_SCALE,
+  COLOR_PER_KEY_POLY,
+  COLOR_PER_KEY_RAINBOW,
+  COLOR_PER_KEY_SCALED_RAINBOW,
+};
+
+const Color polyNoteColor[12] = {
+    Color(0x00FFD9),
+    Color(0xFF0097),
+    Color(0xFFFB00),
+    Color(0x5D00FF),
+    Color(0xFF4B00),
+    Color(0x009BFF),
+    Color(0xFF003E),
+    Color(0xAEFF00),
+    Color(0xED00FF),
+    Color(0xFFAE00),
+    Color(0x1000FF),
+    Color(0xFF1D00)
+};
+
+const Color rainbowNoteColor[12] = {
+    Color(0xFF0000), // Red
+    Color(0xFF4000),
+    Color(0xFFFF00), // Yellow
+    Color(0x80FF00),
+    Color(0x00FF00), // Green
+    Color(0x00FF7F),
+    Color(0x00FFFF), // Cyan
+    Color(0x007FFF),
+    Color(0x0000FF), // Blue
+    Color(0x7F00FF),
+    Color(0xFF00FF), // Magenta
+    Color(0xFF007F)
+};
+
+
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;
   uint16_t scale = NATURAL_MINOR;
   int8_t octave = 0;
   uint8_t channel = 0;
   NoteLayoutMode mode = OCTAVE_LAYOUT;
-  bool inKeyNoteOnly = false;
+  bool inKeyNoteOnly = true;
   union {
     struct // Octave Mode
     {
@@ -40,8 +78,10 @@ struct NoteLayoutConfig {
     };
   };
   bool velocitySensitive = true;
-  Color color = Color(0x00FFFF);
   Color rootColor = Color(0x0040FF);
+  Color color = Color(0x00FFFF);
+  ColorMode colorMode = ROOT_N_SCALE;
+  bool useWhiteAsOutOfScale = false;
 };
 
 class NotePad : public UIComponent {
@@ -61,6 +101,10 @@ class NotePad : public UIComponent {
     if (note == config->rootKey)
       return ROOT_NOTE;  // It is a root key
     return bitRead(c_aligned_scale_map, note) ? SCALE_NOTE : OFF_SCALE_NOTE;
+  }
+
+  uint8_t NoteFromRoot(uint8_t note) {
+    return (note + config->rootKey) % 12;
   }
 
   uint8_t GetNextInScaleNote(uint8_t note) {
@@ -216,9 +260,11 @@ class NotePad : public UIComponent {
         break;
     }
   }
-  virtual bool Render(Point origin) {
+
+  bool RenderRootNScale(Point origin)
+  {
     uint8_t index = 0;
-    Color color_dim = config->color.Dim(32);
+    Color color_dim = config->useWhiteAsOutOfScale ? Color(0x202020) : config->color.Dim(32);
     for (int8_t y = 0; y < dimension.y; y++)
     {
       for (int8_t x = 0; x < dimension.x; x++)
@@ -243,6 +289,65 @@ class NotePad : public UIComponent {
       }
     }
     return true;
+  }
+
+  bool RenderColorPerKey(Point origin) {
+    uint8_t index = 0;
+    const Color* colorMap;
+    if(config->colorMode == COLOR_PER_KEY_POLY)
+    {
+      colorMap = polyNoteColor;
+    }
+    else if(config->colorMode == COLOR_PER_KEY_RAINBOW)
+    {
+      colorMap = rainbowNoteColor;
+    }
+    else
+    {
+      return false;
+    }
+
+    for (int8_t y = 0; y < dimension.y; y++)
+    {
+      for (int8_t x = 0; x < dimension.x; x++)
+      {
+        uint8_t note = noteMap[index];
+        Point globalPos = origin + Point(x, y);
+        if (note == 255)
+        { MatrixOS::LED::SetColor(globalPos, Color(0)); }
+        else if (activeNotes.find(note) != activeNotes.end())  // If find the note is currently active. Show it as white
+        { MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF)); }
+        else
+        {
+          uint8_t awayFromRoot = NoteFromRoot(note);
+          uint8_t inScale = InScale(note);
+          if (inScale == OFF_SCALE_NOTE)
+          { MatrixOS::LED::SetColor(globalPos, config->useWhiteAsOutOfScale ? Color(0x202020) : Color(colorMap[awayFromRoot]).Dim(32)); }
+          else
+          {
+            MatrixOS::LED::SetColor(globalPos, colorMap[awayFromRoot]);
+          }
+        }
+        index++;
+      }
+    }
+    return true;
+  }
+
+  virtual bool Render(Point origin) {
+    switch(config->colorMode)
+    {
+      case ROOT_N_SCALE:
+        return RenderRootNScale(origin);
+        break;
+      case COLOR_PER_KEY_POLY:
+      case COLOR_PER_KEY_RAINBOW:
+        return RenderColorPerKey(origin);
+        break;
+      default:
+        return false;
+    }
+    return false;
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {

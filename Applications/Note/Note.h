@@ -42,7 +42,15 @@ class Note : public Application {
 
   NoteLayoutConfig notePadConfigs[2];
 
-  uint16_t scales[32] = {NATURAL_MINOR,
+  Color colorPresets[4][2] =
+  {
+    {0x0040FF, 0x00FFFF},  // Blue/Cyan
+    {0x8000FF, 0xFF00FF},  // Purple/Magenta
+    {0xFF4000, 0xFFFF00},  // Orange/Yellow
+    {0xFF0080, 0xFF80C0}   // Pink/Light Pink
+  };
+
+  static inline uint16_t scales[32] = {NATURAL_MINOR,
                          MAJOR,
                          DORIAN,
                          PHRYGIAN,
@@ -75,7 +83,7 @@ class Note : public Application {
                          KUMOI,
                          BEBOP_MAJOR};
 
-  string scale_names[32] = {"Natural Minor",
+  static inline const string scale_names[32] = {"Natural Minor",
                             "Major",
                             "Dorian",
                             "Phrygian",

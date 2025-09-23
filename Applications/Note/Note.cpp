@@ -8,7 +8,7 @@ void Note::Setup(const vector<string>& args) {
 
   // Default Values
   notePadConfigs[1].color = Color(0xFF00FF);
-  notePadConfigs[1].rootColor = Color(0x8800FF);
+  notePadConfigs[1].rootColor = Color(0x8000FF);
 
   // Load From NVS
   if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
@@ -198,23 +198,151 @@ void Note::ScaleSelector() {
 
 void Note::ColorSelector() {
   UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
+  uint8_t page = 0;  // 0 = Preset, 1 = Customize
 
   NotePad notePad(Dimension(8, 4), &notePadConfigs[activeConfig]);
   colorSelector.AddUIComponent(notePad, Point(0, 0));
 
+  UIButton presetsBtn;
+  presetsBtn.SetName("Preset");
+  presetsBtn.SetColorFunc([&]() -> Color {
+    return Color(0xFFFFFF).DimIfNot(page == 0);
+  });
+  presetsBtn.OnPress([&]() -> void { page = 0; });
+  colorSelector.AddUIComponent(presetsBtn, Point(0, 5));
+
+  UIButton customizeBtn;
+  customizeBtn.SetName("Customize");
+  customizeBtn.SetColorFunc([&]() -> Color {
+    return Color(0xFFFFFF).DimIfNot(page == 1);
+  });
+  customizeBtn.OnPress([&]() -> void { page = 1; });
+  colorSelector.AddUIComponent(customizeBtn, Point(0, 6));
+
+  UIButton preset1Btn;
+  preset1Btn.SetName("Preset1");
+  preset1Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[0][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[0][1]);
+    return Color(colorPresets[0][1]).DimIfNot(selected);
+  });
+  preset1Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[0][0];
+    notePadConfigs[activeConfig].color = colorPresets[0][1];
+  });
+  preset1Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset1Btn, Point(2, 5));
+
+  UIButton preset2Btn;
+  preset2Btn.SetName("Preset2");
+  preset2Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[1][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[1][1]);
+    return Color(colorPresets[1][1]).DimIfNot(selected);
+  });
+  preset2Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[1][0];
+    notePadConfigs[activeConfig].color = colorPresets[1][1];
+  });
+  preset2Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset2Btn, Point(3, 5));
+
+  UIButton preset3Btn;
+  preset3Btn.SetName("Preset3");
+  preset3Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[2][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[2][1]);
+    return Color(colorPresets[2][1]).DimIfNot(selected);
+  });
+  preset3Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[2][0];
+    notePadConfigs[activeConfig].color = colorPresets[2][1];
+  });
+  preset3Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset3Btn, Point(4, 5));
+
+  UIButton preset4Btn;
+  preset4Btn.SetName("Preset4");
+  preset4Btn.SetColorFunc([&]() -> Color {
+    bool selected =
+      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+      (notePadConfigs[activeConfig].rootColor == colorPresets[3][0]) &&
+      (notePadConfigs[activeConfig].color == colorPresets[3][1]);
+    return Color(colorPresets[3][1]).DimIfNot(selected);
+  });
+  preset4Btn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
+    notePadConfigs[activeConfig].rootColor = colorPresets[3][0];
+    notePadConfigs[activeConfig].color = colorPresets[3][1];
+  });
+  preset4Btn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(preset4Btn, Point(5, 5));
+
+  UIButton rainbowColorBtn;
+  rainbowColorBtn.SetName("Rainbow Color");
+  rainbowColorBtn.SetColorFunc([&]() -> Color {
+    bool selected = (notePadConfigs[activeConfig].colorMode == COLOR_PER_KEY_RAINBOW);
+    return Color(0xFFFFFF).DimIfNot(selected);
+  });
+  rainbowColorBtn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_RAINBOW;
+  });
+  rainbowColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(rainbowColorBtn, Point(2, 6));
+
+  UIButton polyColorBtn;
+  polyColorBtn.SetName("Poly Color");
+  polyColorBtn.SetColorFunc([&]() -> Color {
+    bool selected = (notePadConfigs[activeConfig].colorMode == COLOR_PER_KEY_POLY);
+    return Color(0xFFFFFF).DimIfNot(selected);
+  });
+  polyColorBtn.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_POLY;
+  });
+  polyColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
+  colorSelector.AddUIComponent(polyColorBtn, Point(3, 6));
+
+
+  // Customize
   UIButton rootColorSelectorBtn;
   rootColorSelectorBtn.SetName("Root Key Color");
   rootColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].rootColor; });
   rootColorSelectorBtn.SetSize(Dimension(2, 2));
-  rootColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor); });
-  colorSelector.AddUIComponent(rootColorSelectorBtn, Point(1, 5));
+  rootColorSelectorBtn.OnPress([&]() -> void {
+    if (page == 0) MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor);
+  });
+  rootColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
+  colorSelector.AddUIComponent(rootColorSelectorBtn, Point(2, 5));
 
   UIButton notePadColorSelectorBtn;
   notePadColorSelectorBtn.SetName("Note Pad Color");
   notePadColorSelectorBtn.SetColorFunc([&]() -> Color { return notePadConfigs[activeConfig].color; });
   notePadColorSelectorBtn.SetSize(Dimension(2, 2));
-  notePadColorSelectorBtn.OnPress([&]() -> void { MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color); });
-  colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(5, 5));
+  notePadColorSelectorBtn.OnPress([&]() -> void {
+    if (page == 0) MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color);
+  });
+  notePadColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
+  colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(4, 5));
+
+  UIButton whiteOutOfScaleToggle;
+  whiteOutOfScaleToggle.SetName("White Out of Scale");
+  whiteOutOfScaleToggle.SetColorFunc([&]() -> Color {
+    return notePadConfigs[activeConfig].useWhiteAsOutOfScale ? Color(0x202020) : notePadConfigs[activeConfig].color.Dim(32);
+  });
+  whiteOutOfScaleToggle.SetSize(Dimension(1, 2));
+  whiteOutOfScaleToggle.OnPress([&]() -> void {
+    notePadConfigs[activeConfig].useWhiteAsOutOfScale = !notePadConfigs[activeConfig].useWhiteAsOutOfScale;
+  });
+  colorSelector.AddUIComponent(whiteOutOfScaleToggle, Point(7, 5));
 
   colorSelector.Start();
 }
