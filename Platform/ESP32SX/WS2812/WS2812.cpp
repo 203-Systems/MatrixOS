@@ -97,10 +97,10 @@ namespace WS2812
     led_encoder.base.del = rmt_del_led_encoder;
     led_encoder.base.reset = rmt_led_encoder_reset;
 
-    // different led might have its own timing requirements, following parameter is for WS2812
+    // different led might have its own timing requirements, following parameter is for LC8812
     rmt_bytes_encoder_config_t bytes_encoder_config = {
-      .bit0 = { 4, 1, 10, 0 },
-      .bit1 = { 10, 1, 4, 0 },
+      .bit0 = { 3, 1, 9, 0 },
+      .bit1 = { 6, 1, 6, 0 },
       .flags = { .msb_first = 1 }
     };
 
@@ -108,7 +108,7 @@ namespace WS2812
     rmt_copy_encoder_config_t copy_encoder_config = {};
     rmt_new_copy_encoder(&copy_encoder_config, &led_encoder.copy_encoder);
     
-    led_encoder.reset_code = (rmt_symbol_word_t) { 2800, 0, 0, 0 };
+    led_encoder.reset_code = (rmt_symbol_word_t) { 1000, 0, 0, 0 };
 
     *ret_encoder = &led_encoder.base;
     return ESP_OK;
