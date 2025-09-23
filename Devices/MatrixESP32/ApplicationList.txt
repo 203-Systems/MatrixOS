@@ -31,7 +31,7 @@ CustomControlMap
 Lighting
 Dice
 Reversi
-PolyPlayground
+# PolyPlayground
 Strum
 [System]Python
 
