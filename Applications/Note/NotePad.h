@@ -75,53 +75,6 @@ class NotePad : public UIComponent {
     return UINT8_MAX;
   }
 
-  // void GenerateOffsetKeymap() {
-  //   noteMap.reserve(dimension.Area());
-  //   uint8_t root = 12 * config->octave + config->rootKey;
-  //   uint8_t nextNote = root;
-  //   for (int8_t y = 0; y < dimension.y; y++)
-  //   {
-  //     int8_t ui_y = dimension.y - y - 1;
-
-  //     if(config->overlap && config->overlap < dimension.x)
-  //     { 
-  //       if(y != 0) nextNote = noteMap[(ui_y + 1) * dimension.x + config->overlap]; 
-  //     }
-
-  //     for (int8_t x = 0; x < dimension.x; x++)
-  //     {
-  //       uint8_t id = ui_y * dimension.x + x;
-  //       if (nextNote > 127) // If next note is out of range, fill with 255
-  //       {
-  //         noteMap[id] = 255;
-  //       }
-  //       else if(!config->enforceScale) // If enforce scale is false, just add the next note
-  //       {
-  //         noteMap[id] = nextNote;  // Add to map
-  //         nextNote++;
-  //       }
-  //       else // If enforce scale is true, find the next note that is in scale
-  //       {
-  //         while (true)  // Find next key that we should put in
-  //         {
-  //           uint8_t inScale = InScale(nextNote);
-  //           if (inScale == SCALE_NOTE || inScale == ROOT_NOTE)
-  //           {
-  //             noteMap[id] = nextNote;  // Add to map
-  //             nextNote++;
-  //             break;  // Break from inf loop
-  //           }
-  //           else if (inScale == OFF_SCALE_NOTE)
-  //           {
-  //             nextNote++;
-  //             continue;  // Check next note
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
   void GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
       uint8_t root = 12 * config->octave + config->rootKey;
