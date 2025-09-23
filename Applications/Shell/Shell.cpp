@@ -93,22 +93,49 @@ void Shell::InitializeFolderSystem() {
   // Check if any apps are missing from the folders and add them to appropriate folders
   bool missing_apps_found = false;
 
-  // Check all apps in all_applications (includes both native and Python apps)
-  for (const auto& [app_id, app_entry] : all_applications) {
+  // First, check native apps in registration order
+  for (const auto& [order_id, app_id] : application_ids) {
     // If app is not in any folder, add it
     if (apps_in_folders.find(app_id) == apps_in_folders.end()) {
-      uint8_t folder_id = GetAppFolder(app_id, app_entry);
+      auto app_entry_it = all_applications.find(app_id);
+      if (app_entry_it == all_applications.end()) {
+        continue;
+      }
+
+      uint8_t folder_id = GetAppFolder(app_id, app_entry_it->second);
 
       // Add to the appropriate folder
       folders[folder_id].app_ids.push_back(app_id);
       missing_apps_found = true;
 
-      Application_Info* info = (app_entry.type == ApplicationType::Native) ?
-                               app_entry.native.info :
-                               &(app_entry.python.info->info);
-      MLOGD("Shell", "Added app %s-%s to folder %d",
+      Application_Info* info = app_entry_it->second.native.info;
+      MLOGD("Shell", "Added native app %s-%s to folder %d",
             info->author.c_str(),
             info->name.c_str(),
+            folder_id);
+    }
+  }
+
+  // Then, check Python apps in discovery order
+  for (auto& py_app : python_app_infos) {
+    uint32_t app_id = StringHash(py_app.info.author + "-" + py_app.info.name);
+
+    // If app is not in any folder, add it
+    if (apps_in_folders.find(app_id) == apps_in_folders.end()) {
+      auto app_entry_it = all_applications.find(app_id);
+      if (app_entry_it == all_applications.end()) {
+        continue;
+      }
+
+      uint8_t folder_id = GetAppFolder(app_id, app_entry_it->second);
+
+      // Add to the appropriate folder
+      folders[folder_id].app_ids.push_back(app_id);
+      missing_apps_found = true;
+
+      MLOGD("Shell", "Added Python app %s-%s to folder %d",
+            py_app.info.author.c_str(),
+            py_app.info.name.c_str(),
             folder_id);
     }
   }
