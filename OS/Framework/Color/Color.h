@@ -39,6 +39,15 @@ class Color {
 
   static Color Crossfade(Color color1, Color color2, Fract16 ratio);
 
+  // Equality comparison operators
+  bool operator==(const Color& other) const {
+    return R == other.R && G == other.G && B == other.B && W == other.W;
+  }
+
+  bool operator!=(const Color& other) const {
+    return !(*this == other);
+  }
+
   operator bool() { return R || G || B || W; }
 };
 
