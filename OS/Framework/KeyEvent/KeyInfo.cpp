@@ -90,6 +90,7 @@ bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
         debouncing = false;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBOUNCING -> RELEASED");
         lastEventTime = timeNow;
+        values[0] = config.apply_curve ? ApplyVelocityCurve(config, new_value) : new_value;
         return true & !cleared;
       }
       else if (ABOVE_THRESHOLD && timeNow - lastEventTime > config.debounce) {
@@ -153,6 +154,7 @@ bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
           state = RELEASED;
           // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> RELEASED");
           lastEventTime = timeNow;
+          values[0] = 0;
           return true & !cleared;
         }
       }
