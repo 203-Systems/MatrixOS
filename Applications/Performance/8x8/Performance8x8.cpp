@@ -476,25 +476,27 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     return;
   }
 
+  Fract16 force = keyInfo->Force();
+
   if (!forceSensitive)
   {
     if (keyInfo->State() == AFTERTOUCH)
     {
       return;
     };
-    if (keyInfo->Force() > 0)
+    if (force > 0)
     {
-      keyInfo->Force() = FRACT16_MAX;
+      force = FRACT16_MAX;
     };
   }
 
   if (keyInfo->State() == PRESSED)
   {
-    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, force.to7bits()), MIDI_PORT_ALL);
   }
   else if (keyInfo->State() == AFTERTOUCH)
   {
-    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, force.to7bits()), MIDI_PORT_ALL);
   }
   else if (keyInfo->State() == RELEASED)
   {

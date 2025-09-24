@@ -38,19 +38,20 @@ class UINotePad : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint8_t note = map[xy.y * dimension.x + xy.x];
+    Fract16 force = keyInfo->Force();
     if(!forceSensitive)
     {
       if(keyInfo->State() == AFTERTOUCH){
         return true;
       };
       if(keyInfo->Force() > 0){
-        keyInfo->Force() = FRACT16_MAX;
+        force = FRACT16_MAX;
       };
     }
     if (keyInfo->State() == PRESSED)
-    { MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL); }
+    { MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, force.to7bits()), MIDI_PORT_ALL); }
     else if (keyInfo->State() == AFTERTOUCH)
-    { MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL); }
+    { MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, force.to7bits()), MIDI_PORT_ALL); }
     else if (keyInfo->State() == RELEASED)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, 0), MIDI_PORT_ALL);
