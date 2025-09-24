@@ -11,24 +11,27 @@
 #define KEY_INFO_VALUE_COUNT 3
 
 enum KeyState : uint8_t {
-  /*Placeholder Keys*/
-  INVALID = 0,
-  /*Status Keys*/
-  IDLE,
-  ACTIVATED,
-  /*Event Keys*/
-  PRESSED,
-  RELEASED,
-  HOLD,
-  AFTERTOUCH
+    /*Status Keys*/
+    IDLE,
+    ACTIVATED,
+    /*Event Keys*/
+    PRESSED,
+    RELEASED,
+    HOLD,
+    AFTERTOUCH,
+    /*Special*/
+    DEBUNCING = 240u,
+    RELEASE_DEBUNCING = 241u,
+    /*Placeholder Keys*/
+    INVALID = 255u
 };
 
+  
 struct KeyInfo {
   // Bit-packed structure for state and flags
   uint32_t lastEventTime = 0;
   KeyState state;
   struct {
-    bool debouncing : 1;
     bool hold : 1;
     bool cleared : 1;
   };
