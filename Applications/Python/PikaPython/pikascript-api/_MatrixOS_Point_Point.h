@@ -25,7 +25,6 @@ void _MatrixOS_Point_Point_SetY(PikaObj *self, int y);
 int _MatrixOS_Point_Point_X(PikaObj *self);
 int _MatrixOS_Point_Point_Y(PikaObj *self);
 PikaObj* _MatrixOS_Point_Point___add__(PikaObj *self, PikaObj* other);
-PikaObj* _MatrixOS_Point_Point___div__(PikaObj *self, int val);
 pika_bool _MatrixOS_Point_Point___eq__(PikaObj *self, PikaObj* other);
 void _MatrixOS_Point_Point___init__(PikaObj *self, int x, int y);
 PikaObj* _MatrixOS_Point_Point___mul__(PikaObj *self, int val);

@@ -11,7 +11,7 @@ extern "C" {
     PikaObj* _MatrixOS_ColorEffects_Rainbow(PikaObj *self, int period, int offset) {
         Color color = ColorEffects::Rainbow((uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, color);
         return new_color;
     }
@@ -48,7 +48,7 @@ extern "C" {
         
         Color result = ColorEffects::ColorBreath(*color, (uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
@@ -60,7 +60,7 @@ extern "C" {
         
         Color result = ColorEffects::ColorBreathLowBound(*color, (uint8_t)low_bound, (uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
@@ -72,7 +72,7 @@ extern "C" {
         
         Color result = ColorEffects::ColorStrobe(*color, (uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
@@ -84,7 +84,7 @@ extern "C" {
         
         Color result = ColorEffects::ColorSaw(*color, (uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
@@ -96,7 +96,7 @@ extern "C" {
         
         Color result = ColorEffects::ColorTriangle(*color, (uint16_t)period, (int32_t)offset);
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, result);
         return new_color;
     }

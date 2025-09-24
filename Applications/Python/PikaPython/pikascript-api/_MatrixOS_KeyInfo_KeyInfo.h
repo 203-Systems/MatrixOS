@@ -18,11 +18,12 @@
 PikaObj *New__MatrixOS_KeyInfo_KeyInfo(Args *args);
 
 pika_bool _MatrixOS_KeyInfo_KeyInfo_Active(PikaObj *self);
+pika_float _MatrixOS_KeyInfo_KeyInfo_Force(PikaObj *self);
 pika_bool _MatrixOS_KeyInfo_KeyInfo_Hold(PikaObj *self);
 int _MatrixOS_KeyInfo_KeyInfo_HoldTime(PikaObj *self);
 int _MatrixOS_KeyInfo_KeyInfo_LastEventTime(PikaObj *self);
 int _MatrixOS_KeyInfo_KeyInfo_State(PikaObj *self);
-pika_float _MatrixOS_KeyInfo_KeyInfo_Velocity(PikaObj *self);
+pika_float _MatrixOS_KeyInfo_KeyInfo_Value(PikaObj *self, PikaObj* index);
 pika_bool _MatrixOS_KeyInfo_KeyInfo___bool__(PikaObj *self);
 void _MatrixOS_KeyInfo_KeyInfo___init__(PikaObj *self, PikaTuple* val);
 

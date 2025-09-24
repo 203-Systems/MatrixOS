@@ -27,8 +27,5 @@ PikaObj* _MatrixOS_Dimension_Dimension___add__(PikaObj *self, PikaObj* other);
 pika_bool _MatrixOS_Dimension_Dimension___bool__(PikaObj *self);
 pika_bool _MatrixOS_Dimension_Dimension___eq__(PikaObj *self, PikaObj* other);
 void _MatrixOS_Dimension_Dimension___init__(PikaObj *self, PikaTuple* val);
-int _MatrixOS_Dimension_Dimension___int__(PikaObj *self);
-pika_bool _MatrixOS_Dimension_Dimension___lt__(PikaObj *self, PikaObj* other);
-pika_bool _MatrixOS_Dimension_Dimension___ne__(PikaObj *self, PikaObj* other);
 
 #endif

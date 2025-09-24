@@ -172,7 +172,7 @@ extern "C" {
 
         ui->SetKeyEventHandler([self](KeyEvent* keyEvent) -> bool {
             // Create a KeyEvent Python object and pass it to the callback
-            PikaObj* keyEventObj = New__MatrixOS_KeyEvent_KeyEvent(NULL);
+            PikaObj* keyEventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
             copyCppObjIntoPikaObj<KeyEvent>(keyEventObj, *keyEvent);
 
             // Pack the object into an Arg for the callback

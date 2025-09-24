@@ -61,7 +61,7 @@ extern "C" {
 
     // Factory methods for creating MIDI packets
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOn(PikaObj *self, int channel, int note, int velocity) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -70,7 +70,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_NoteOff(PikaObj *self, int channel, int note, int velocity) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::NoteOff(channel, note, velocity);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -79,7 +79,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_AfterTouch(PikaObj *self, int channel, int note, int pressure) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::AfterTouch(channel, note, pressure);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -88,7 +88,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ControlChange(PikaObj *self, int channel, int controller, int value) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::ControlChange(channel, controller, value);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -97,7 +97,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ProgramChange(PikaObj *self, int channel, int program) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::ProgramChange(channel, program);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -106,7 +106,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ChannelPressure(PikaObj *self, int channel, int pressure) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::ChannelPressure(channel, pressure);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -115,7 +115,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_PitchBend(PikaObj *self, int channel, int value) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::PitchBend(channel, value);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -124,7 +124,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Clock(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::Sync();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -133,7 +133,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Start(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::Start();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -142,7 +142,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Continue(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::Continue();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -151,7 +151,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Stop(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::Stop();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -160,7 +160,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_ActiveSense(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::ActiveSense();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -169,7 +169,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Reset(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::Reset();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -178,7 +178,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongPosition(PikaObj *self, int position) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::SongPosition(position);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -187,7 +187,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongSelect(PikaObj *self, int song) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::SongSelect(song);
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -196,7 +196,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_TuneRequest(PikaObj *self) {
-        PikaObj* new_midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+        PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
         MidiPacket packet = MidiPacket::TuneRequest();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
@@ -218,10 +218,10 @@ extern "C" {
         return packet->status;
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetStatus(PikaObj *self, int status) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetStatus(PikaObj *self, int status) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetStatus((EMidiStatus)status);
+        if(!packet) return false;
+        return packet->SetStatus((EMidiStatus)status);
     }
 
     // Channel getter/setter
@@ -231,10 +231,10 @@ extern "C" {
         return packet->Channel();
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetChannel(PikaObj *self, int channel) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetChannel(PikaObj *self, int channel) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetChannel((uint8_t)channel);
+        if(!packet) return false;
+        return packet->SetChannel((uint8_t)channel);
     }
 
     // Note getter/setter
@@ -244,10 +244,10 @@ extern "C" {
         return packet->Note();
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetNote(PikaObj *self, int note) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetNote(PikaObj *self, int note) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetNote((uint8_t)note);
+        if(!packet) return false;
+        return packet->SetNote((uint8_t)note);
     }
 
     // Controller getter/setter (alias for Note)
@@ -257,10 +257,10 @@ extern "C" {
         return packet->Controller();
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetController(PikaObj *self, int controller) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetController(PikaObj *self, int controller) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetController((uint8_t)controller);
+        if(!packet) return false;
+        return packet->SetController((uint8_t)controller);
     }
 
     // Velocity getter/setter
@@ -270,10 +270,10 @@ extern "C" {
         return packet->Velocity();
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetVelocity(PikaObj *self, int velocity) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetVelocity(PikaObj *self, int velocity) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetVelocity((uint8_t)velocity);
+        if(!packet) return false;
+        return packet->SetVelocity((uint8_t)velocity);
     }
 
     // Value getter/setter
@@ -283,10 +283,10 @@ extern "C" {
         return packet->Value();
     }
 
-    void _MatrixOS_MidiPacket_MidiPacket_SetValue(PikaObj *self, int value) {
+    pika_bool _MatrixOS_MidiPacket_MidiPacket_SetValue(PikaObj *self, int value) {
         MidiPacket* packet = getCppObjPtrInPikaObj<MidiPacket>(self);
-        if(!packet) return;
-        packet->SetValue((uint16_t)value);
+        if(!packet) return false;
+        return packet->SetValue((uint16_t)value);
     }
 
     // Helper methods

@@ -11,7 +11,7 @@ extern "C" {
     Arg* _MatrixOS_MIDI_Get(PikaObj *self, int timeout_ms) {
         MidiPacket packet;
         if (MatrixOS::MIDI::Get(&packet, timeout_ms)) {
-            PikaObj* midi_packet = New__MatrixOS_MidiPacket_MidiPacket(NULL);
+            PikaObj* midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
             copyCppObjIntoPikaObj<MidiPacket>(midi_packet, packet);
 
             return arg_newObj(midi_packet);

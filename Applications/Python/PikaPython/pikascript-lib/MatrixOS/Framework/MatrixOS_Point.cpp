@@ -52,7 +52,7 @@ extern "C" {
         }
 
 
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, result);
 
         return new_point;
@@ -71,7 +71,7 @@ extern "C" {
             result = *p1 - *p2;
         }
 
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, result);
         return new_point;
     }
@@ -88,24 +88,7 @@ extern "C" {
             result = *p * val;
         }
 
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
-        copyCppObjIntoPikaObj<Point>(new_point, result);
-        return new_point;
-    }
-
-    PikaObj* _MatrixOS_Point_Point___div__(PikaObj *self, int val) {
-        Point* p = getCppObjPtrInPikaObj<Point>(self);
-
-        Point result;
-        if (!p) {
-            result = Point::Invalid();
-        }
-        else
-        {
-            result = *p / val;
-        }
-
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, result);
         return new_point;
     }
@@ -136,7 +119,7 @@ extern "C" {
             result = p->Rotate((Direction)rotation, *dim, reverse != 0);
         }
 
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, result);
         return new_point;
     }
@@ -144,14 +127,14 @@ extern "C" {
     // Static methods
     PikaObj* _MatrixOS_Point_Point_Invalid(PikaObj *self) {
         Point invalid = Point::Invalid();
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, invalid);
         return new_point;
     }
 
     PikaObj* _MatrixOS_Point_Point_Origin(PikaObj *self) {
         Point origin(0, 0);
-        PikaObj* new_point = New__MatrixOS_Point_Point(NULL);
+        PikaObj* new_point = newNormalObj(New__MatrixOS_Point_Point);
         copyCppObjIntoPikaObj<Point>(new_point, origin);
         return new_point;
     }

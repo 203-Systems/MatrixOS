@@ -87,7 +87,7 @@ extern "C" {
         
         Dimension result = *dimension1 + *dimension2;
         
-        PikaObj* new_dimension = New__MatrixOS_Dimension_Dimension(NULL);
+        PikaObj* new_dimension = newNormalObj(New__MatrixOS_Dimension_Dimension);
         copyCppObjIntoPikaObj<Dimension>(new_dimension, result);
         return new_dimension;
     }
@@ -101,23 +101,6 @@ extern "C" {
         return !(*dimension1 != *dimension2);
     }
 
-    pika_bool _MatrixOS_Dimension_Dimension___ne__(PikaObj *self, PikaObj* other) {
-        Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
-        Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
-        
-        if (!dimension1 || !dimension2) return true;
-        
-        return *dimension1 != *dimension2;
-    }
-
-    pika_bool _MatrixOS_Dimension_Dimension___lt__(PikaObj *self, PikaObj* other) {
-        Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
-        Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
-        
-        if (!dimension1 || !dimension2) return false;
-        
-        return *dimension1 < *dimension2;
-    }
 
     pika_bool _MatrixOS_Dimension_Dimension___bool__(PikaObj *self) {
         Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
@@ -125,9 +108,4 @@ extern "C" {
         return (bool)*dimension;
     }
 
-    int _MatrixOS_Dimension_Dimension___int__(PikaObj *self) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
-        if (!dimension) return 0;
-        return (uint32_t)(*dimension);
-    }
 }

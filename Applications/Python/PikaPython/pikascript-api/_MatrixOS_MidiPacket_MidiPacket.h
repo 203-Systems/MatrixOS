@@ -33,12 +33,12 @@ PikaObj* _MatrixOS_MidiPacket_MidiPacket_PitchBend(PikaObj *self, int channel, i
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_Port(PikaObj *self);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_ProgramChange(PikaObj *self, int channel, int program);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_Reset(PikaObj *self);
-void _MatrixOS_MidiPacket_MidiPacket_SetChannel(PikaObj *self, int channel);
-void _MatrixOS_MidiPacket_MidiPacket_SetController(PikaObj *self, int controller);
-void _MatrixOS_MidiPacket_MidiPacket_SetNote(PikaObj *self, int note);
-void _MatrixOS_MidiPacket_MidiPacket_SetStatus(PikaObj *self, PikaObj* status);
-void _MatrixOS_MidiPacket_MidiPacket_SetValue(PikaObj *self, int value);
-void _MatrixOS_MidiPacket_MidiPacket_SetVelocity(PikaObj *self, int velocity);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetChannel(PikaObj *self, int channel);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetController(PikaObj *self, int controller);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetNote(PikaObj *self, int note);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetStatus(PikaObj *self, PikaObj* status);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetValue(PikaObj *self, int value);
+pika_bool _MatrixOS_MidiPacket_MidiPacket_SetVelocity(PikaObj *self, int velocity);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongPosition(PikaObj *self, int position);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_SongSelect(PikaObj *self, int song);
 PikaObj* _MatrixOS_MidiPacket_MidiPacket_Start(PikaObj *self);

@@ -19,10 +19,16 @@ extern "C" {
         return (int)keyInfo->State();
     }
 
-    pika_float _MatrixOS_KeyInfo_KeyInfo_Velocity(PikaObj *self) {
+    pika_float _MatrixOS_KeyInfo_KeyInfo_Force(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
         if (!keyInfo) return 0.0;
         return (float)keyInfo->Force();
+    }
+
+    pika_float _MatrixOS_KeyInfo_KeyInfo_Value(PikaObj *self, int index) {
+        KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
+        if (!keyInfo) return 0.0;
+        return (float)keyInfo->Value(index);
     }
 
     int _MatrixOS_KeyInfo_KeyInfo_LastEventTime(PikaObj *self) {

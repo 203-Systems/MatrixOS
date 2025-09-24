@@ -2232,35 +2232,6 @@ method_typedef(
     "__init__", "*val"
 );
 
-void _MatrixOS_Dimension_Dimension___int__Method(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_Dimension_Dimension___int__(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_Dimension_Dimension___int__,
-    "__int__", ""
-);
-
-void _MatrixOS_Dimension_Dimension___lt__Method(PikaObj *self, Args *_args_){
-    PikaObj* other = args_getPtr(_args_, "other");
-    pika_bool res = _MatrixOS_Dimension_Dimension___lt__(self, other);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_Dimension_Dimension___lt__,
-    "__lt__", "other"
-);
-
-void _MatrixOS_Dimension_Dimension___ne__Method(PikaObj *self, Args *_args_){
-    PikaObj* other = args_getPtr(_args_, "other");
-    pika_bool res = _MatrixOS_Dimension_Dimension___ne__(self, other);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_Dimension_Dimension___ne__,
-    "__ne__", "other"
-);
-
 class_def(_MatrixOS_Dimension_Dimension){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_Dimension_Dimension_X, 177661),
@@ -2269,10 +2240,7 @@ class_def(_MatrixOS_Dimension_Dimension){
     method_def(_MatrixOS_Dimension_Dimension___init__, 904762485),
     method_def(_MatrixOS_Dimension_Dimension_Contains, 980411972),
     method_def(_MatrixOS_Dimension_Dimension___eq__, 1818853367),
-    method_def(_MatrixOS_Dimension_Dimension___lt__, 1819108193),
-    method_def(_MatrixOS_Dimension_Dimension___ne__, 1819163732),
     method_def(_MatrixOS_Dimension_Dimension___add__, 2034897290),
-    method_def(_MatrixOS_Dimension_Dimension___int__, 2044761452),
     method_def(_MatrixOS_Dimension_Dimension_Area, 2088937086),
     method_def(_MatrixOS_Dimension_Dimension_SetX, 2089570281),
     method_def(_MatrixOS_Dimension_Dimension_SetY, 2089570282),
@@ -2624,6 +2592,42 @@ PikaObj *New__MatrixOS_KeyEvent(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
+void _MatrixOS_KeyEvent_KeyEvent_ActiveMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeyEvent_KeyEvent_Active(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_Active,
+    "Active", ""
+);
+
+void _MatrixOS_KeyEvent_KeyEvent_ForceMethod(PikaObj *self, Args *_args_){
+    pika_float res = _MatrixOS_KeyEvent_KeyEvent_Force(self);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_Force,
+    "Force", ""
+);
+
+void _MatrixOS_KeyEvent_KeyEvent_HoldMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeyEvent_KeyEvent_Hold(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_Hold,
+    "Hold", ""
+);
+
+void _MatrixOS_KeyEvent_KeyEvent_HoldTimeMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_KeyEvent_KeyEvent_HoldTime(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_HoldTime,
+    "HoldTime", ""
+);
+
 void _MatrixOS_KeyEvent_KeyEvent_IDMethod(PikaObj *self, Args *_args_){
     int res = _MatrixOS_KeyEvent_KeyEvent_ID(self);
     method_returnInt(_args_, res);
@@ -2642,6 +2646,34 @@ method_typedef(
     "KeyInfo", ""
 );
 
+void _MatrixOS_KeyEvent_KeyEvent_StateMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_KeyEvent_KeyEvent_State(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_State,
+    "State", ""
+);
+
+void _MatrixOS_KeyEvent_KeyEvent_ValueMethod(PikaObj *self, Args *_args_){
+    PikaObj* index = args_getPtr(_args_, "index");
+    pika_float res = _MatrixOS_KeyEvent_KeyEvent_Value(self, index);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent_Value,
+    "Value", "index"
+);
+
+void _MatrixOS_KeyEvent_KeyEvent___bool__Method(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeyEvent_KeyEvent___bool__(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyEvent_KeyEvent___bool__,
+    "__bool__", ""
+);
+
 void _MatrixOS_KeyEvent_KeyEvent___init__Method(PikaObj *self, Args *_args_){
     _MatrixOS_KeyEvent_KeyEvent___init__(self);
 }
@@ -2654,7 +2686,14 @@ class_def(_MatrixOS_KeyEvent_KeyEvent){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_KeyEvent_KeyEvent_ID, 5862386),
     method_def(_MatrixOS_KeyEvent_KeyEvent_KeyInfo, 90173338),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_Force, 221283220),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_State, 236861926),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_Value, 239748898),
+    method_def(_MatrixOS_KeyEvent_KeyEvent___bool__, 632207565),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_Active, 650066369),
     method_def(_MatrixOS_KeyEvent_KeyEvent___init__, 904762485),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_HoldTime, 1374032955),
+    method_def(_MatrixOS_KeyEvent_KeyEvent_Hold, 2089185612),
 };
 class_inhert(_MatrixOS_KeyEvent_KeyEvent, TinyObj);
 
@@ -2702,6 +2741,15 @@ method_typedef(
     "Active", ""
 );
 
+void _MatrixOS_KeyInfo_KeyInfo_ForceMethod(PikaObj *self, Args *_args_){
+    pika_float res = _MatrixOS_KeyInfo_KeyInfo_Force(self);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeyInfo_KeyInfo_Force,
+    "Force", ""
+);
+
 void _MatrixOS_KeyInfo_KeyInfo_HoldMethod(PikaObj *self, Args *_args_){
     pika_bool res = _MatrixOS_KeyInfo_KeyInfo_Hold(self);
     method_returnBool(_args_, res);
@@ -2738,13 +2786,14 @@ method_typedef(
     "State", ""
 );
 
-void _MatrixOS_KeyInfo_KeyInfo_VelocityMethod(PikaObj *self, Args *_args_){
-    pika_float res = _MatrixOS_KeyInfo_KeyInfo_Velocity(self);
+void _MatrixOS_KeyInfo_KeyInfo_ValueMethod(PikaObj *self, Args *_args_){
+    PikaObj* index = args_getPtr(_args_, "index");
+    pika_float res = _MatrixOS_KeyInfo_KeyInfo_Value(self, index);
     method_returnFloat(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_Velocity,
-    "Velocity", ""
+    _MatrixOS_KeyInfo_KeyInfo_Value,
+    "Value", "index"
 );
 
 void _MatrixOS_KeyInfo_KeyInfo___bool__Method(PikaObj *self, Args *_args_){
@@ -2767,11 +2816,12 @@ method_typedef(
 
 class_def(_MatrixOS_KeyInfo_KeyInfo){
     __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_KeyInfo_KeyInfo_Force, 221283220),
     method_def(_MatrixOS_KeyInfo_KeyInfo_State, 236861926),
+    method_def(_MatrixOS_KeyInfo_KeyInfo_Value, 239748898),
     method_def(_MatrixOS_KeyInfo_KeyInfo___bool__, 632207565),
     method_def(_MatrixOS_KeyInfo_KeyInfo_Active, 650066369),
     method_def(_MatrixOS_KeyInfo_KeyInfo___init__, 904762485),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_Velocity, 1015587124),
     method_def(_MatrixOS_KeyInfo_KeyInfo_HoldTime, 1374032955),
     method_def(_MatrixOS_KeyInfo_KeyInfo_LastEventTime, 2054074890),
     method_def(_MatrixOS_KeyInfo_KeyInfo_Hold, 2089185612),
@@ -3279,7 +3329,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetChannelMethod(PikaObj *self, Args *_args_){
     int channel = args_getInt(_args_, "channel");
-    _MatrixOS_MidiPacket_MidiPacket_SetChannel(self, channel);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetChannel(self, channel);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetChannel,
@@ -3288,7 +3339,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetControllerMethod(PikaObj *self, Args *_args_){
     int controller = args_getInt(_args_, "controller");
-    _MatrixOS_MidiPacket_MidiPacket_SetController(self, controller);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetController(self, controller);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetController,
@@ -3297,7 +3349,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetNoteMethod(PikaObj *self, Args *_args_){
     int note = args_getInt(_args_, "note");
-    _MatrixOS_MidiPacket_MidiPacket_SetNote(self, note);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetNote(self, note);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetNote,
@@ -3306,7 +3359,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetStatusMethod(PikaObj *self, Args *_args_){
     PikaObj* status = args_getPtr(_args_, "status");
-    _MatrixOS_MidiPacket_MidiPacket_SetStatus(self, status);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetStatus(self, status);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetStatus,
@@ -3315,7 +3369,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetValueMethod(PikaObj *self, Args *_args_){
     int value = args_getInt(_args_, "value");
-    _MatrixOS_MidiPacket_MidiPacket_SetValue(self, value);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetValue(self, value);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetValue,
@@ -3324,7 +3379,8 @@ method_typedef(
 
 void _MatrixOS_MidiPacket_MidiPacket_SetVelocityMethod(PikaObj *self, Args *_args_){
     int velocity = args_getInt(_args_, "velocity");
-    _MatrixOS_MidiPacket_MidiPacket_SetVelocity(self, velocity);
+    pika_bool res = _MatrixOS_MidiPacket_MidiPacket_SetVelocity(self, velocity);
+    method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_MidiPacket_MidiPacket_SetVelocity,
@@ -3640,16 +3696,6 @@ method_typedef(
     "__add__", "other"
 );
 
-void _MatrixOS_Point_Point___div__Method(PikaObj *self, Args *_args_){
-    int val = args_getInt(_args_, "val");
-    PikaObj* res = _MatrixOS_Point_Point___div__(self, val);
-    method_returnObj(_args_, res);
-}
-method_typedef(
-    _MatrixOS_Point_Point___div__,
-    "__div__", "val"
-);
-
 void _MatrixOS_Point_Point___eq__Method(PikaObj *self, Args *_args_){
     PikaObj* other = args_getPtr(_args_, "other");
     pika_bool res = _MatrixOS_Point_Point___eq__(self, other);
@@ -3711,7 +3757,6 @@ class_def(_MatrixOS_Point_Point){
     method_def(_MatrixOS_Point_Point___eq__, 1818853367),
     method_def(_MatrixOS_Point_Point___ne__, 1819163732),
     method_def(_MatrixOS_Point_Point___add__, 2034897290),
-    method_def(_MatrixOS_Point_Point___div__, 2038654340),
     method_def(_MatrixOS_Point_Point___mul__, 2049747983),
     method_def(_MatrixOS_Point_Point___sub__, 2056852619),
     method_def(_MatrixOS_Point_Point_SetX, 2089570281),

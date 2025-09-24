@@ -54,7 +54,7 @@ extern "C" {
     }
 
     PikaObj* _MatrixOS_Color_Color_FromRGBW(PikaObj *self, int r, int g, int b, int w) {
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         createCppObjPtrInPikaObj<Color>(new_color, (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)w);
         return new_color;
     }
@@ -64,7 +64,7 @@ extern "C" {
     }
     
     PikaObj* _MatrixOS_Color_Color_FromHex(PikaObj *self, int wrgb) {
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         createCppObjPtrInPikaObj<Color>(new_color, (uint32_t)wrgb);
         return new_color;
     }
@@ -139,7 +139,7 @@ extern "C" {
         uint8_t factor_u8 = (uint8_t)(factor * 255);
         Color dimmed = color->Dim(factor_u8);
 
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, dimmed);
         return new_color;
     }
@@ -154,7 +154,7 @@ extern "C" {
             uint8_t factor_u8 = (uint8_t)(factor * 255);
             Color dimmed = color->DimIfNot(false, factor_u8);
             
-            PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+            PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
             copyCppObjIntoPikaObj<Color>(new_color, dimmed);
             return new_color;
         }
@@ -166,7 +166,7 @@ extern "C" {
         
         Color scaled = color->Scale((uint8_t)(factor * 255));
         
-        PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+        PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
         copyCppObjIntoPikaObj<Color>(new_color, scaled);
         return new_color;
     }

@@ -17,8 +17,15 @@
 
 PikaObj *New__MatrixOS_KeyEvent_KeyEvent(Args *args);
 
+pika_bool _MatrixOS_KeyEvent_KeyEvent_Active(PikaObj *self);
+pika_float _MatrixOS_KeyEvent_KeyEvent_Force(PikaObj *self);
+pika_bool _MatrixOS_KeyEvent_KeyEvent_Hold(PikaObj *self);
+int _MatrixOS_KeyEvent_KeyEvent_HoldTime(PikaObj *self);
 int _MatrixOS_KeyEvent_KeyEvent_ID(PikaObj *self);
 Arg* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self);
+int _MatrixOS_KeyEvent_KeyEvent_State(PikaObj *self);
+pika_float _MatrixOS_KeyEvent_KeyEvent_Value(PikaObj *self, PikaObj* index);
+pika_bool _MatrixOS_KeyEvent_KeyEvent___bool__(PikaObj *self);
 void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self);
 
 #endif

@@ -31,7 +31,7 @@ extern "C" {
 
         if (success) {
             // Create new Color object and return it
-            PikaObj* new_color = New__MatrixOS_Color_Color(NULL);
+            PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
             copyCppObjIntoPikaObj<Color>(new_color, picked_color);
             return arg_newObj(new_color);
         }

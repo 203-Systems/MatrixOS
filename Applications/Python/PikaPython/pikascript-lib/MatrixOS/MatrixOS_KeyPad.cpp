@@ -16,7 +16,7 @@ extern "C" {
 
         if (success) {
             // Create new KeyEvent object and copy the C++ object into it
-            PikaObj* event_obj = New__MatrixOS_KeyEvent_KeyEvent(NULL);
+            PikaObj* event_obj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
             copyCppObjIntoPikaObj<KeyEvent>(event_obj, event);
             return arg_newObj(event_obj);
         }
@@ -32,7 +32,7 @@ extern "C" {
         KeyInfo* info = MatrixOS::KeyPad::GetKey(*point_ptr);
 
         if (info != nullptr) {
-            PikaObj* info_obj = New__MatrixOS_KeyInfo_KeyInfo(NULL);
+            PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
             copyCppObjIntoPikaObj<KeyInfo>(info_obj, *info);
             return arg_newObj(info_obj);
         }
@@ -44,7 +44,7 @@ extern "C" {
         KeyInfo* info = MatrixOS::KeyPad::GetKey(keyID);
 
         if (info != nullptr) {
-            PikaObj* info_obj = New__MatrixOS_KeyInfo_KeyInfo(NULL);
+            PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
             copyCppObjIntoPikaObj<KeyInfo>(info_obj, *info);
             return arg_newObj(info_obj);
         }
@@ -72,7 +72,7 @@ extern "C" {
             return arg_newNone();
         }
 
-        PikaObj* xy = New__MatrixOS_Point_Point(NULL);
+        PikaObj* xy = newNormalObj(New__MatrixOS_Point_Point);
         _MatrixOS_Point_Point___init__(xy, point.x, point.y);
 
         return arg_newObj(xy);

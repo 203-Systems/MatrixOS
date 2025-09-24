@@ -3,7 +3,7 @@ from MatrixOS_KeyEvent import KeyEvent
 from MatrixOS_KeyInfo import KeyInfo
 from MatrixOS_Point import Point
 
-FunctionKey:int = 0
+FunctionKeyID:int = 0
 
 def Get(timeout_ms: int = 0) -> KeyEvent:
     return _MatrixOS_KeyPad.Get(timeout_ms)

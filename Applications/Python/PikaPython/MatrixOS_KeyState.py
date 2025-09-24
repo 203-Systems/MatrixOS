@@ -1,11 +1,12 @@
 # KeyState enumeration for MatrixOS
-# Binding of OS/Framework/KeyEvent/KeyEvent.h
+# Binding of OS/Framework/KeyEvent/KeyInfo.h
 
 class KeyState:
     """Key state enumeration values"""
-    IDLE: int = 0
-    ACTIVATED: int = 1
-    PRESSED: int = 2
-    RELEASED: int = 3
-    HOLD: int = 4
-    AFTERTOUCH: int = 5
+    INVALID: int = 0
+    IDLE: int = 1
+    ACTIVATED: int = 2
+    PRESSED: int = 3
+    RELEASED: int = 4
+    HOLD: int = 5
+    AFTERTOUCH: int = 6
