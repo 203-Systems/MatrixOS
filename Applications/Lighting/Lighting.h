@@ -37,7 +37,7 @@ class Lighting : public Application {
   };
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
 
   void Update();
   Color ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t start_time);

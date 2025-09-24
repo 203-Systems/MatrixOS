@@ -28,7 +28,7 @@ class CustomControlMap : public Application {
   size_t uadSize = 0;
   CreateSavedVar("CustomControlMap", menuLock, bool, false);
 
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
   void Reload();
   void ActionMenu();
 

@@ -54,8 +54,8 @@ class ExampleAPP : public Application {
   #endif
 
   void UIMenu();
-  void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
-  void MidiEventHandler(MidiPacket midiPacket);
+  void KeyEventHandler(KeyEvent& keyEvent);
+  void MidiEventHandler(MidiPacket& midiPacket);
 };
 
 

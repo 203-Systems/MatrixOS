@@ -24,7 +24,7 @@ void Dice::Loop() {
   struct KeyEvent keyEvent;                 // Variable for the latest key event to be stored at
   while (MatrixOS::KeyPad::Get(&keyEvent))  // While there is still keyEvent in the queue
   {
-    KeyEventHandler(keyEvent.id, &keyEvent.info);
+    KeyEventHandler(keyEvent);
   }  // Handle them
 
   if (!renderTimer.Tick(1000 / Device::LED::fps))
@@ -76,14 +76,14 @@ void Dice::Loop() {
 }
 
 // Handle the key event from the OS
-void Dice::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+void Dice::KeyEventHandler(KeyEvent& keyEvent) {
+  if (keyEvent.ID() == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
   {
-    if (keyInfo->State() == HOLD)
+    if (keyEvent.State() == HOLD)
     {
       Settings();  // Open UI Menu
     }
-    else if (keyInfo->State() == RELEASED)  // If the function key is released and not hold
+    else if (keyEvent.State() == RELEASED)  // If the function key is released and not hold
     {
       rolling_start_time = MatrixOS::SYS::Millis();
       current_phase = Rolling;

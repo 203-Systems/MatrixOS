@@ -32,7 +32,7 @@ struct KeyInfo {
     bool hold : 1;
     bool cleared : 1;
   };
-  Fract16 values[KEY_INFO_VALUE_COUNT];
+  Fract16 values[KEY_INFO_VALUE_COUNT]; // Kind wasteful, TODO revise later.
 
   // Constructor
   KeyInfo() : state(IDLE), debouncing(0), hold(0), cleared(0), values{0, 0, 0} {}

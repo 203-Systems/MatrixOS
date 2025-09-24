@@ -8,7 +8,7 @@ void CustomControlMap::Setup(const vector<string>& args) {
 void CustomControlMap::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent.id, &keyEvent.info); }
+  { KeyEventHandler(keyEvent); }
 
   HIDReportHandler();
 }
@@ -363,14 +363,14 @@ bool CustomControlMap::SendHID(const vector<uint8_t> &report, uint8_t retry) {
   return false;
 }
 
-void CustomControlMap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  // Reserve Function Key 
-  if (keyID == FUNCTION_KEY && keyInfo->State() == (menuLock ? HOLD : PRESSED))
+void CustomControlMap::KeyEventHandler(KeyEvent& keyEvent) {
+  // Reserve Function Key
+  if (keyEvent.ID() == FUNCTION_KEY && keyEvent.State() == (menuLock ? HOLD : PRESSED))
   {
-    ActionMenu(); 
+    ActionMenu();
   }
 
-  uadRT.KeyEvent(keyID, keyInfo);
+  uadRT.KeyEvent(keyEvent.ID(), &keyEvent.info);
 }
 
 void CustomControlMap::Reload()

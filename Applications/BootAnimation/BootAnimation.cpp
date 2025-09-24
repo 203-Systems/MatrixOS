@@ -15,7 +15,7 @@ void BootAnimation::Loop() {
 
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEvent(keyEvent.id, &keyEvent.info); }
+  { KeyEvent(keyEvent.ID(), &keyEvent.info); }
 }
 
 void BootAnimation::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {

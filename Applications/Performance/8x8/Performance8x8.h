@@ -48,11 +48,11 @@ class Performance : public Application {
   Point NoteToXY(uint8_t note);
   int8_t XYToNote(Point xy, bool altmap = false);
 
-  void MidiEventHandler(MidiPacket midiPacket);
+  void MidiEventHandler(MidiPacket& midiPacket);
   void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
   void SysExHandler(MidiPacket midiPacket);
 
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
 
   void GridKeyEvent(Point xy, KeyInfo* KeyInfo);
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);

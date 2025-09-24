@@ -28,7 +28,7 @@ class Companion : public Application {
   void Loop() override;
   void End() override;
 
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
   void HIDReportHandler();
   void ActionMenu();
 };

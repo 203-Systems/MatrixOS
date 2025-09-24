@@ -32,7 +32,7 @@ void Performance::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
   {
-    KeyEventHandler(keyEvent.id, &keyEvent.info);
+    KeyEventHandler(keyEvent);
   }
 
   struct MidiPacket midiPacket;
@@ -42,7 +42,7 @@ void Performance::Loop() {
   }
 }
 
-void Performance::MidiEventHandler(MidiPacket midiPacket) {
+void Performance::MidiEventHandler(MidiPacket& midiPacket) {
   // MLOGD("Performance", "Midi Received from %d - %d %d %d %d", midiPacket.port, midiPacket.status, midiPacket.data[0],
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
@@ -394,15 +394,15 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
   sysExBuffer.clear();
 }
 
-void Performance::KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo) {
-  Point xy = MatrixOS::KeyPad::ID2XY(KeyID);
+void Performance::KeyEventHandler(KeyEvent& keyEvent) {
+  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
   if (xy)  // IF XY is valid, means it's on the main grid
   {
-    GridKeyEvent(xy, keyInfo);
+    GridKeyEvent(xy, &keyEvent.info);
   }
   else  // XY Not valid,
   {
-    IDKeyEvent(KeyID, keyInfo);
+    IDKeyEvent(keyEvent.ID(), &keyEvent.info);
   }
 }
 
@@ -560,7 +560,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
       struct KeyEvent keyEvent;
       if (MatrixOS::KeyPad::Get(&keyEvent))
       {
-        Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.id);
+        Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
         if(xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
           uint8_t id = xy.y * 8 + xy.x + i * 64;
@@ -586,7 +586,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
             break;
           }
         }
-        if (keyEvent.id == FUNCTION_KEY)
+        if (keyEvent.ID() == FUNCTION_KEY)
         {
           if (keyEvent.info.state == HOLD)
           { 

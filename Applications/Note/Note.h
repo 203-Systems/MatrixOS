@@ -28,7 +28,7 @@ class Note : public Application {
 
   void Setup(const vector<string>& args) override;
 
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
 
   void GridKeyEvent(Point xy, KeyInfo* KeyInfo);
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);

@@ -10,7 +10,7 @@ void Lighting::Loop()
 {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent.id, &keyEvent.info); }
+  { KeyEventHandler(keyEvent); }
 
   if(renderTimer.Tick(1000/Device::LED::fps))
   {
@@ -93,10 +93,10 @@ void Lighting::RenderGradient()
 {
 }
 
-void Lighting::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == FUNCTION_KEY)
+void Lighting::KeyEventHandler(KeyEvent& keyEvent) {
+  if (keyEvent.ID() == FUNCTION_KEY)
   {
-    if (keyInfo->State() == PRESSED)
+    if (keyEvent.State() == PRESSED)
     {
       Settings();
     }

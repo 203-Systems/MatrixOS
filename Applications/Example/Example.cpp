@@ -11,7 +11,7 @@ void ExampleAPP::Loop() {
   // Set up key event handler
   struct KeyEvent keyEvent; // Variable for the latest key event to be stored at
   while (MatrixOS::KeyPad::Get(&keyEvent)) // While there is still keyEvent in the queue
-  { KeyEventHandler(keyEvent.id, &keyEvent.info); } // Handle them
+  { KeyEventHandler(keyEvent); } // Handle them
 
 struct MidiPacket midiPacket; // Variable for the latest midi packet to be stored at
   while (MatrixOS::MIDI::Get(&midiPacket)) // While there is still midi packet in the queue
@@ -19,30 +19,30 @@ struct MidiPacket midiPacket; // Variable for the latest midi packet to be store
 }
 
 // Handle the key event from the OS
-void ExampleAPP::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  Point xy = MatrixOS::KeyPad::ID2XY(keyID);  // Trying to get the XY coordination of the KeyID
+void ExampleAPP::KeyEventHandler(KeyEvent& keyEvent) {
+  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());  // Trying to get the XY coordination of the KeyID
   if (xy)                                     // IF XY is valid, means it is a key on the grid
   {
-    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyInfo->State(); // Print the key event to the debug log
-    if (keyInfo->State() == PRESSED)            // Key is pressed
+    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyEvent.State()); // Print the key event to the debug log
+    if (keyEvent.State() == PRESSED)            // Key is pressed
     {
       MatrixOS::LED::SetColor(xy, color, 0);      // Set the LED color to a color. Last 0 means writes to the active layer (255 writes to the active layer as well but do not trigger auto update.)
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keyEvent.State() == RELEASED)
     {
       MatrixOS::LED::SetColor(xy, 0x000000, 0);  // Set the LED to off
     }
   }
   else                          // XY Not valid,
   {
-    if (keyID == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+    if (keyEvent.ID() == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
     {
       UIMenu();                 // Open UI Menu
     }
   }
 }
 
-void ExampleAPP::MidiEventHandler(MidiPacket midiPacket) {
+void ExampleAPP::MidiEventHandler(MidiPacket& midiPacket) {
   // Echo back the midi packet to the source
   MatrixOS::MIDI::Send(midiPacket);
 

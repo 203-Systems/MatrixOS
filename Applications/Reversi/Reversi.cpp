@@ -8,7 +8,7 @@ void Reversi::Loop()
 {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent.id, &keyEvent.info); }
+  { KeyEventHandler(keyEvent); }
 
   if(renderTimer.Tick(1000/Device::LED::fps))
   {
@@ -596,10 +596,10 @@ Color Reversi::GetPlayerColor(uint8_t player)
   }
 }
 
-void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == FUNCTION_KEY)
+void Reversi::KeyEventHandler(KeyEvent& keyEvent) {
+  if (keyEvent.ID() == FUNCTION_KEY)
   {
-    if (keyInfo->State() == PRESSED)
+    if (keyEvent.State() == PRESSED)
     {
       Settings();
     }
@@ -608,9 +608,9 @@ void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
 
   if(gameState == Waiting)
   {
-    Point xy = MatrixOS::KeyPad::ID2XY(keyID);
-    
-    if (xy && keyInfo->State() == RELEASED)  // IF XY is valid, means it's on the main grid
+    Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
+
+    if (xy && keyEvent.State() == RELEASED)  // IF XY is valid, means it's on the main grid
     {
       Place(xy);
     }

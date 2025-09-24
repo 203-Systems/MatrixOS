@@ -6,6 +6,7 @@ struct KeyEvent {
   uint16_t id;
   KeyInfo info;
 
+  uint16_t ID() {return id;}
   // Pass-through functions to KeyInfo
   KeyState State() { return info.State(); }
   bool Hold() { return info.Hold(); }

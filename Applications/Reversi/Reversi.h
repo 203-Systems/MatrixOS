@@ -55,7 +55,7 @@ class Reversi : public Application {
   };
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
   void Place(Point pos);
 
   void Render();

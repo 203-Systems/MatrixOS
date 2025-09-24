@@ -58,7 +58,7 @@ class Dice : public Application {
 
 
   void Settings();
-  void KeyEventHandler(uint16_t KeyID, KeyInfo* keyInfo);
+  void KeyEventHandler(KeyEvent& keyEvent);
 
   uint8_t GetRandomNumber(uint8_t upperbound, uint8_t lowerbound = 1);
   void RenderDot(Point point, Color color);
