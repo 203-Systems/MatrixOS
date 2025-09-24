@@ -35,5 +35,5 @@ class Dimension {
 
   operator bool() { return x != 0 && y != 0; }
 
-  operator uint32_t() { return (uint32_t)(x << 16 & y); }
+  operator uint32_t() { return (uint32_t)((x << 16) | y); }
 };
