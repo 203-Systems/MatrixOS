@@ -38,8 +38,8 @@ struct KeyInfo {
   Fract16 values[KEY_INFO_VALUE_COUNT]; // Kind wasteful, TODO revise later.
 
   // Constructor
-  KeyInfo() : state(IDLE), debouncing(0), hold(0), cleared(0), values{0, 0, 0} {}
-  Fract16 ApplyVelocityCurve(KeyConfig& config, Fract16 value);
+  KeyInfo() : state(IDLE), hold(0), cleared(0), values{0, 0, 0} {}
+  Fract16 ApplyForceCurve(KeyConfig& config, Fract16 value);
   bool Update(KeyConfig& config, Fract16 new_value);    // Convenience method for single value
   bool UpdateRaw(uint8_t index, Fract16 new_value);    // Update raw value
   void Clear();

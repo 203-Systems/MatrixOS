@@ -31,7 +31,7 @@ uint32_t KeyInfo::HoldTime(void) {
   }
 }
 
-Fract16 KeyInfo::ApplyVelocityCurve(KeyConfig& config, Fract16 value) {
+Fract16 KeyInfo::ApplyForceCurve(KeyConfig& config, Fract16 value) {
   if (!config.apply_curve)
   { return value; }
   if (value < config.low_threshold)
@@ -62,7 +62,7 @@ Aftertouch (Pressed, Activated, Hold, Hold Activated)
 */
 
 // Update method for single value (primary value - force/pressure)
-bool update(KeyConfig& config, Fract16 new_velocity) {
+bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
   uint16_t timeNow = MatrixOS::SYS::Millis();
 
   switch (state)
@@ -76,7 +76,7 @@ bool update(KeyConfig& config, Fract16 new_velocity) {
       hold = false;
       [[fallthrough]];
     case IDLE:
-      if (new_velocity > config.low_threshold + config.activation_offset)
+      if (new_value > config.low_threshold + config.activation_offset)
       {
         if(config.debounce > 0)
         {
@@ -90,13 +90,13 @@ bool update(KeyConfig& config, Fract16 new_velocity) {
           state = PRESSED;
           // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> PRESSED");
           lastEventTime = timeNow;
-          velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+          values[0] = config.apply_curve ? ApplyForceCurve(config, new_value) : new_value;
           return true & !cleared;
         }
       }
       break;
     case DEBUNCING:
-      if (new_velocity <= config.low_threshold + config.activation_offset)
+      if (new_value <= config.low_threshold + config.activation_offset)
       {
         // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> IDLE");
         state = IDLE;
@@ -108,12 +108,12 @@ bool update(KeyConfig& config, Fract16 new_velocity) {
         state = PRESSED;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> PRESSED");
         lastEventTime = timeNow;
-        velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+        values[0] = config.apply_curve ? ApplyForceCurve(config, new_value) : new_value;
         return true & !cleared; // I know just return "!cleared" works but I want to make it clear this is suppose to return true
       }
       return false;
     case RELEASE_DEBUNCING:
-      if (BELOW_VELOCITY_THRESHOLD)
+      if (BELOW_VALUE_THRESHOLD)
       {
         state = RELEASED;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBUNCING -> RELEASED");
@@ -135,7 +135,7 @@ bool update(KeyConfig& config, Fract16 new_velocity) {
       [[fallthrough]];
     case ACTIVATED:
     {
-      if (BELOW_VELOCITY_THRESHOLD)
+      if (BELOW_VALUE_THRESHOLD)
       {
         if(config.debounce > 0)
         {
@@ -152,22 +152,22 @@ bool update(KeyConfig& config, Fract16 new_velocity) {
           return true & !cleared;
         }
       }
-      // Apply velocity Curve
-      new_velocity = config.apply_curve ? applyVelocityCurve(config, new_velocity) : new_velocity;
+      // Apply force Curve
+      new_value = config.apply_curve ? ApplyForceCurve(config, new_value) : new_value;
 
       if (timeNow - lastEventTime > hold_threshold && !hold)
       {
         state = HOLD;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> HOLD");
-        velocity = new_velocity;
+        values[0] = new_value;
         hold = true;
         return true & !cleared;
       }
-      else if((DIFFERENCE((uint16_t)new_velocity, (uint16_t)velocity) > KEY_INFO_THRESHOLD) || ((new_velocity != velocity) && new_velocity == FRACT16_MAX))
+      else if((DIFFERENCE((uint16_t)new_value, (uint16_t)values[0]) > KEY_INFO_THRESHOLD) || ((new_value != values[0]) && new_value == FRACT16_MAX))
       {
         state = AFTERTOUCH;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> AFTERTOUCH");
-        velocity = new_velocity;
+        values[0] = new_value;
         return true & !cleared;
       }
       return false;
