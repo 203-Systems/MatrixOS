@@ -150,7 +150,7 @@ class UI4pxFloat : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == HOLD)
+    if (keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll(name, GetColor());
     }

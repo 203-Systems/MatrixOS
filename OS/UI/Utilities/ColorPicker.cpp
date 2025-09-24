@@ -34,7 +34,7 @@ class UIHueSelector : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       float hue = std::fmod(begin + step * index, 1.0);
@@ -84,7 +84,7 @@ class UIShadeSelector : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
         int16_t ui_y = dimension.y - xy.y - 1;
         float v = vBegin + ui_y * vStep;

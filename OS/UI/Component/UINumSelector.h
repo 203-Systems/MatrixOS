@@ -57,7 +57,7 @@ class UINumItemSelector : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint16_t id = PointToIndex(xy, dimension, direction);
     if (id > count){return false;}
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     { 
       *output = items[id]; 
       OnChangeCallback(*output);

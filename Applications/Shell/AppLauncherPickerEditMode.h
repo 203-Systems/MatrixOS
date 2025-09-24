@@ -81,7 +81,7 @@ class AppLauncherPickerEditMode : public UIComponent {
     }
 
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-        if (keyInfo->state == RELEASED) 
+        if (keyInfo->State() == RELEASED) 
         {
             uint8_t index = xy.y * 8 + xy.x;
             
@@ -124,7 +124,7 @@ class AppLauncherPickerEditMode : public UIComponent {
                 return true;
             }
         }
-        else if(keyInfo->state == HOLD)
+        else if(keyInfo->State() == HOLD)
         {
             uint8_t index = xy.y * 8 + xy.x;
             

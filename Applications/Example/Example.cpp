@@ -23,12 +23,12 @@ void ExampleAPP::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   Point xy = MatrixOS::KeyPad::ID2XY(keyID);  // Trying to get the XY coordination of the KeyID
   if (xy)                                     // IF XY is valid, means it is a key on the grid
   {
-    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyInfo->state); // Print the key event to the debug log
-    if (keyInfo->state == PRESSED)            // Key is pressed
+    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyInfo->State(); // Print the key event to the debug log
+    if (keyInfo->State() == PRESSED)            // Key is pressed
     {
       MatrixOS::LED::SetColor(xy, color, 0);      // Set the LED color to a color. Last 0 means writes to the active layer (255 writes to the active layer as well but do not trigger auto update.)
     }
-    else if (keyInfo->state == RELEASED)
+    else if (keyInfo->State() == RELEASED)
     {
       MatrixOS::LED::SetColor(xy, 0x000000, 0);  // Set the LED to off
     }

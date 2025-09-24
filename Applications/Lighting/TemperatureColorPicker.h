@@ -139,14 +139,14 @@ class UITemperatureColorSelector : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == RELEASED)
+    if (keyInfo->State() == RELEASED)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       uint16_t temp = begin + step * index;
       Color color = TemperatureToRGB(temp);
       callback(color);
     }
-    else if(keyInfo->state == HOLD)
+    else if(keyInfo->State() == HOLD)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       uint16_t temp = begin + step * index;

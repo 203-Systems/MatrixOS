@@ -6,14 +6,14 @@ class UINotePad : public UIComponent {
   uint8_t channel;
   uint8_t* map;
   Dimension dimension;
-  bool velocitySensitive;
+  bool forceSensitive;
 
-  UINotePad(Dimension dimension, Color color, uint8_t channel, uint8_t* map, bool velocitySensitive) {
+  UINotePad(Dimension dimension, Color color, uint8_t channel, uint8_t* map, bool forceSensitive) {
     this->color = color;
     this->channel = channel;
     this->dimension = dimension;
     this->map = map;
-    this->velocitySensitive = velocitySensitive;
+    this->forceSensitive = forceSensitive;
   }
 
   virtual Color GetColor() { return color; }
@@ -38,25 +38,25 @@ class UINotePad : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint8_t note = map[xy.y * dimension.x + xy.x];
-    if(!velocitySensitive)
+    if(!forceSensitive)
     {
-      if(keyInfo->state == AFTERTOUCH){
+      if(keyInfo->State() == AFTERTOUCH){
         return true;
       };
-      if(keyInfo->velocity > 0){
-        keyInfo->velocity = FRACT16_MAX;
+      if(keyInfo->Force() > 0){
+        keyInfo->Force() = FRACT16_MAX;
       };
     }
-    if (keyInfo->state == PRESSED)
-    { MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, keyInfo->velocity.to7bits()), MIDI_PORT_ALL); }
-    else if (keyInfo->state == AFTERTOUCH)
-    { MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, keyInfo->velocity.to7bits()), MIDI_PORT_ALL); }
-    else if (keyInfo->state == RELEASED)
+    if (keyInfo->State() == PRESSED)
+    { MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL); }
+    else if (keyInfo->State() == AFTERTOUCH)
+    { MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL); }
+    else if (keyInfo->State() == RELEASED)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, 0), MIDI_PORT_ALL);
     }
     return true;
   }
 
-  void SetVelocitySensitive(bool velocitySensitive) { this->velocitySensitive = velocitySensitive; }
+  void SetforceSensitive(bool forceSensitive) { this->forceSensitive = forceSensitive; }
 };

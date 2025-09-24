@@ -96,7 +96,7 @@ void Lighting::RenderGradient()
 void Lighting::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == FUNCTION_KEY)
   {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       Settings();
     }

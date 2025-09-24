@@ -30,7 +30,7 @@ class Performance : public Application {
   uint16_t was_combo_key;
 
   // Saved Variables
-  CreateSavedVar("Performance", velocitySensitive, bool, true);
+  CreateSavedVar("Performance", forceSensitive, bool, true);
   CreateSavedVar("Performance", menuLock, bool, false);
   CreateSavedVar("Performance", stfu, uint8_t, 0);
   CreateSavedVar("Performance", touch_combo_key, bool, false);

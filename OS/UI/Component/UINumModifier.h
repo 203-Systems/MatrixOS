@@ -41,7 +41,7 @@ class UINumberModifier : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       int64_t new_value = *valuePtr;
       new_value += modifiers[xy.x];

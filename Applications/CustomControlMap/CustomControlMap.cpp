@@ -365,7 +365,7 @@ bool CustomControlMap::SendHID(const vector<uint8_t> &report, uint8_t retry) {
 
 void CustomControlMap::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   // Reserve Function Key 
-  if (keyID == FUNCTION_KEY && keyInfo->state == (menuLock ? HOLD : PRESSED))
+  if (keyID == FUNCTION_KEY && keyInfo->State() == (menuLock ? HOLD : PRESSED))
   {
     ActionMenu(); 
   }

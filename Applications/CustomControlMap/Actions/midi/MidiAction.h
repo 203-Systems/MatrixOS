@@ -203,7 +203,7 @@ namespace MidiAction
   }
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-    if (keyInfo->state != PRESSED && keyInfo->state != RELEASED && keyInfo->state != AFTERTOUCH)
+    if (keyInfo->State() != PRESSED && keyInfo->State() != RELEASED && keyInfo->State() != AFTERTOUCH)
     {
       return false;
     }
@@ -224,11 +224,11 @@ namespace MidiAction
       }
       case AnalogSource::Momentary:
       {
-        if (keyInfo->state == PRESSED)
+        if (keyInfo->State() == PRESSED)
         {
           output_value = data.end;
         }
-        else if (keyInfo->state == RELEASED)
+        else if (keyInfo->State() == RELEASED)
         {
           output_value = data.begin;
         }
@@ -240,7 +240,7 @@ namespace MidiAction
       }
       case AnalogSource::Persistent:
       {
-        if (keyInfo->state == PRESSED)
+        if (keyInfo->State() == PRESSED)
         {
           output_value = data.end;
         }
@@ -255,7 +255,7 @@ namespace MidiAction
         ActionInfo groupActionInfo = *actionInfo;
         groupActionInfo.index = 255;
         groupActionInfo.actionType = ActionType::EFFECT;
-        if (keyInfo->state == PRESSED)
+        if (keyInfo->State() == PRESSED)
         {
           uint32_t registerValue;
           if(!uadRT->GetRegister(actionInfo, &registerValue))
@@ -298,18 +298,18 @@ namespace MidiAction
       }
       case AnalogSource::KeyForce:
       {
-        if (keyInfo->state == RELEASED)
+        if (keyInfo->State() == RELEASED)
         {
           output_value = data.begin;
         }
-        else if(keyInfo->velocity == FRACT16_MAX)
+        else if(keyInfo->Force() == FRACT16_MAX)
         {
           output_value = data.end;
         }
         else
         {
           int32_t range = data.end - data.begin;
-          output_value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
+          output_value = data.begin + (((uint16_t)keyInfo->Force() * range) >> 16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
         }
         break;
       }

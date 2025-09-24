@@ -65,12 +65,12 @@ class UIGamepadAxis : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == PRESSED || keyInfo->state == AFTERTOUCH)
+    if (keyInfo->State() == PRESSED || keyInfo->State() == AFTERTOUCH)
     {
-      value = keyInfo->velocity;
+      value = keyInfo->Force();
 
     }
-    else if (keyInfo->state == RELEASED)
+    else if (keyInfo->State() == RELEASED)
     {
       value = 0;
     }

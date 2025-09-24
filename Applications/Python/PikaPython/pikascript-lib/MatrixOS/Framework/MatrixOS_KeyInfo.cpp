@@ -16,13 +16,13 @@ extern "C" {
     int _MatrixOS_KeyInfo_KeyInfo_State(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
         if (!keyInfo) return 0;
-        return (int)keyInfo->state;
+        return (int)keyInfo->State();
     }
 
     pika_float _MatrixOS_KeyInfo_KeyInfo_Velocity(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
         if (!keyInfo) return 0.0;
-        return (float)keyInfo->velocity;
+        return (float)keyInfo->Force();
     }
 
     int _MatrixOS_KeyInfo_KeyInfo_LastEventTime(PikaObj *self) {
@@ -34,7 +34,7 @@ extern "C" {
     pika_bool _MatrixOS_KeyInfo_KeyInfo_Hold(PikaObj *self) {
         KeyInfo* keyInfo = getCppObjPtrInPikaObj<KeyInfo>(self);
         if (!keyInfo) return false;
-        return keyInfo->hold;
+        return keyInfo->Hold();
     }
 
     // Methods

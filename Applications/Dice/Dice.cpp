@@ -79,11 +79,11 @@ void Dice::Loop() {
 void Dice::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
   {
-    if (keyInfo->state == HOLD)
+    if (keyInfo->State() == HOLD)
     {
       Settings();  // Open UI Menu
     }
-    else if (keyInfo->state == RELEASED)  // If the function key is released and not hold
+    else if (keyInfo->State() == RELEASED)  // If the function key is released and not hold
     {
       rolling_start_time = MatrixOS::SYS::Millis();
       current_phase = Rolling;

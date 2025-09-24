@@ -599,7 +599,7 @@ Color Reversi::GetPlayerColor(uint8_t player)
 void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == FUNCTION_KEY)
   {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       Settings();
     }
@@ -610,7 +610,7 @@ void Reversi::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   {
     Point xy = MatrixOS::KeyPad::ID2XY(keyID);
     
-    if (xy && keyInfo->state == RELEASED)  // IF XY is valid, means it's on the main grid
+    if (xy && keyInfo->State() == RELEASED)  // IF XY is valid, means it's on the main grid
     {
       Place(xy);
     }

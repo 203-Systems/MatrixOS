@@ -45,20 +45,20 @@ void Note::Setup(const vector<string>& args) {
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
-  UIButton velocitySensitiveToggle;
-  velocitySensitiveToggle.SetName("Velocity Sensitive");
+  UIButton forceSensitiveToggle;
+  forceSensitiveToggle.SetName("Velocity Sensitive");
   if(Device::KeyPad::velocity_sensitivity)
   {
-    velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].velocitySensitive); });
-    velocitySensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].velocitySensitive = !notePadConfigs[activeConfig].velocitySensitive; });
-    velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(velocitySensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
+    forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig].forceSensitive); });
+    forceSensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].forceSensitive = !notePadConfigs[activeConfig].forceSensitive; });
+    forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig].forceSensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
   }
   else
   {
-    velocitySensitiveToggle.SetColor(Color(0x00FFB0).Dim());
-    velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
+    forceSensitiveToggle.SetColor(Color(0x00FFB0).Dim());
+    forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
   }
-  actionMenu.AddUIComponent(velocitySensitiveToggle, Point(7, 5));
+  actionMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
   OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
   actionMenu.AddUIComponent(octaveShifter, Point(0, 0));

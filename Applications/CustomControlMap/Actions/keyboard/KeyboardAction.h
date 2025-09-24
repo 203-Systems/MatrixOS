@@ -37,7 +37,7 @@ namespace KeyboardAction
     static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
         MLOGV(TAG, "KeyEvent");
-        if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
+        if(keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED) return false;
 
         struct KeyboardAction action;
 
@@ -54,13 +54,13 @@ namespace KeyboardAction
             keycode = action.user_keycode;
         }
 
-        if(keyInfo->state == KeyState::PRESSED)
+        if(keyInfo->State() == KeyState::PRESSED)
         {
           MLOGV(TAG, "Sending key char %d", keycode);
           MatrixOS::HID::Keyboard::Press((KeyboardKeycode)keycode);
           return true;
         }
-        else if(keyInfo->state == KeyState::RELEASED)
+        else if(keyInfo->State() == KeyState::RELEASED)
         {
             MLOGV(TAG, "Releasing key char %d", keycode);
             MatrixOS::HID::Keyboard::Release((KeyboardKeycode)keycode);

@@ -1,41 +1,52 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 #include "SavedVar.h"
 #include "Types.h"
 #include "system/Parameters.h"
 #include "KeyConfig.h"
 
 #define KEY_INFO_THRESHOLD 512
+#define KEY_INFO_VALUE_COUNT 3
 
-enum KeyState : uint8_t { 
-  /*Status Keys*/ 
+enum KeyState : uint8_t {
+  /*Placeholder Keys*/
+  INVALID = 0,
+  /*Status Keys*/
   IDLE,
   ACTIVATED,
-  /*Event Keys*/ 
+  /*Event Keys*/
   PRESSED,
   RELEASED,
   HOLD,
-  AFTERTOUCH,
-  /*Special*/ 
-  DEBUNCING = 240u, 
-  RELEASE_DEBUNCING = 241u,
-  /*Placeholder Keys*/ 
-  INVALID = 255u 
+  AFTERTOUCH
 };
 
 struct KeyInfo {
-  KeyState state = IDLE;
-  uint32_t lastEventTime = 0;  // PRESSED and RELEASED event only
-  Fract16 velocity = 0;
-  bool hold = false;
-  bool cleared = false;
+  // Bit-packed structure for state and flags
+  uint32_t lastEventTime = 0;
+  KeyState state;
+  struct {
+    bool debouncing : 1;
+    bool hold : 1;
+    bool cleared : 1;
+  };
+  Fract16 values[KEY_INFO_VALUE_COUNT];
 
-  KeyInfo();
+  // Constructor
+  KeyInfo() : state(IDLE), debouncing(0), hold(0), cleared(0), values{0, 0, 0} {}
+  Fract16 ApplyVelocityCurve(KeyConfig& config, Fract16 value);
+  bool Update(KeyConfig& config, Fract16 new_value);    // Convenience method for single value
+  bool UpdateRaw(uint8_t index, Fract16 new_value);    // Update raw value
+  void Clear();
+
+  // User access methods
+  KeyState State();
+  bool Hold();
+  uint32_t HoldTime(void); // Note that this is inaccurate if release debounce rejected.
   bool Active();
   operator bool();
-  uint32_t HoldTime(void);
-  Fract16 ApplyVelocityCurve(KeyConfig& config, Fract16 velocity);
-  bool Update(KeyConfig& config, Fract16 new_velocity);
-  void Clear();
+  Fract16 Force() const;
+  Fract16 Value(uint8_t index = 0) const;
 };

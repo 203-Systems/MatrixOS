@@ -117,7 +117,7 @@ class UIBPMTapper : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == RELEASED)
+    if (keyInfo->State() == RELEASED)
     {
       tap_times.push_back(MatrixOS::SYS::Micros());
       if (tap_times.size() > TAP_HISTORY_SIZE) {
@@ -125,7 +125,7 @@ class UIBPMTapper : public UIComponent {
       }
       CalculateBPM();
     }
-    else if(keyInfo->state == HOLD)
+    else if(keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll(name, color);
       tap_times.clear();

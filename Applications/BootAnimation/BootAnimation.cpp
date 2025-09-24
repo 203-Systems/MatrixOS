@@ -19,6 +19,6 @@ void BootAnimation::Loop() {
 }
 
 void BootAnimation::KeyEvent(uint16_t KeyID, KeyInfo* keyInfo) {
-  if (KeyID == FUNCTION_KEY && keyInfo->state == PRESSED)
+  if (KeyID == FUNCTION_KEY && keyInfo->State() == PRESSED)
   { Exit(); }
 }

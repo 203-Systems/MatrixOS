@@ -128,7 +128,7 @@ namespace GamepadAction
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
     MLOGV(TAG, "KeyEvent");
-    if (keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED && keyInfo->state != KeyState::AFTERTOUCH)
+    if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED && keyInfo->State() != KeyState::AFTERTOUCH)
       return false;
 
     struct GamepadAction data;
@@ -139,7 +139,7 @@ namespace GamepadAction
       return false;
     }
 
-    if(data.source != AnalogSource::KeyForce && keyInfo->state == KeyState::AFTERTOUCH)
+    if(data.source != AnalogSource::KeyForce && keyInfo->State() == KeyState::AFTERTOUCH)
     {
       return false;
     }
@@ -147,11 +147,11 @@ namespace GamepadAction
     if (data.key == GamepadActionKeycode::GAMEPAD_DPAD)
     {
       MLOGE(TAG, "DPad %d", data.dPad);
-      if (keyInfo->state == KeyState::PRESSED)
+      if (keyInfo->State() == KeyState::PRESSED)
       {
         MatrixOS::HID::Gamepad::DPad(data.dPad);
       }
-      else if (keyInfo->state == KeyState::RELEASED && MatrixOS::HID::Gamepad::_report.dPad == data.dPad)  // Only release if it was the last direction
+      else if (keyInfo->State() == KeyState::RELEASED && MatrixOS::HID::Gamepad::_report.dPad == data.dPad)  // Only release if it was the last direction
       {
         MatrixOS::HID::Gamepad::DPad(GAMEPAD_DPAD_CENTERED);
       }
@@ -162,34 +162,34 @@ namespace GamepadAction
       int32_t value = 0;
       if (data.source == AnalogSource::Binary)
       {
-        if (keyInfo->state == KeyState::PRESSED)
+        if (keyInfo->State() == KeyState::PRESSED)
         {
           value = data.end;
         }
-        else if (keyInfo->state == KeyState::RELEASED)
+        else if (keyInfo->State() == KeyState::RELEASED)
         {
           value = data.begin;
         }
       }
       else if (data.source == AnalogSource::KeyForce)
       {
-        if (keyInfo->state == RELEASED)
+        if (keyInfo->State() == RELEASED)
         {
           value = data.begin;
         }
-        else if (keyInfo->velocity == FRACT16_MAX)
+        else if (keyInfo->Force() == FRACT16_MAX)
         {
           value = data.end;
         }
         else
         {
           int32_t range = data.end - data.begin;
-          value = data.begin + (((uint16_t)keyInfo->velocity * range) >> 16); 
+          value = data.begin + (((uint16_t)keyInfo->Force() * range) >> 16); 
         }
       }
 
       value -= 32767;
-      MLOGD(TAG, "Analog mapping from %d to %d (%d to %d)", keyInfo->velocity, value, data.begin, data.end);
+      MLOGD(TAG, "Analog mapping from %d to %d (%d to %d)", keyInfo->Force(), value, data.begin, data.end);
 
       switch (data.key)
       {
@@ -220,11 +220,11 @@ namespace GamepadAction
     {
       uint8_t keycode = (uint8_t)data.key & 0x1F; // We have keys that are not in the range of 0-31 because when we send back to the host we need to be able to tell if it's was as A or as 1
       MLOGD(TAG, "Regular key %d", keycode);
-      // if (keyInfo->state == KeyState::PRESSED)
+      // if (keyInfo->State() == KeyState::PRESSED)
       // {
       //   MatrixOS::HID::Gamepad::Press(keycode);
       // }
-      // else if (keyInfo->state == KeyState::RELEASED)
+      // else if (keyInfo->State() == KeyState::RELEASED)
       // {
       //   MatrixOS::HID::Gamepad::Release(keycode);
       // }

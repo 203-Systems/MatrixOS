@@ -74,7 +74,7 @@ class UIButton : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == RELEASED && keyInfo->hold == false)
+    if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
     {
       if (PressCallback())
       {
@@ -83,7 +83,7 @@ class UIButton : public UIComponent {
         return true;
       }
     }
-    else if (keyInfo->state == HOLD)
+    else if (keyInfo->State() == HOLD)
     {
       if (HoldCallback())
       {

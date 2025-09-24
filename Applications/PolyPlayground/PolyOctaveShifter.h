@@ -28,13 +28,13 @@ class PolyOctaveShifter : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    // if (keyInfo->state == HOLD)
+    // if (keyInfo->State() == HOLD)
     // {
     //   MatrixOS::UIUtility::TextScroll(name, GetColor());
     //   return true;
     // }
     int8_t octave = count - xy.y - 1;
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     { config->octave = octave; }
     return true;
   }

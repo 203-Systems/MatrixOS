@@ -54,7 +54,7 @@ namespace ColorEffect
   }
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-    if (keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED)
+    if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
       return false;
 
     struct ColorEffectData data;
@@ -70,7 +70,7 @@ namespace ColorEffect
     //     return true;
     // }
 
-    if (keyInfo->state == KeyState::PRESSED)
+    if (keyInfo->State() == KeyState::PRESSED)
     {
       if (actionInfo->indexType == ActionIndexType::COORD)
       {
@@ -82,7 +82,7 @@ namespace ColorEffect
       }
       return true;
     }
-    else if (keyInfo->state == KeyState::RELEASED)
+    else if (keyInfo->State() == KeyState::RELEASED)
     {
       if (actionInfo->indexType == ActionIndexType::COORD)
       {

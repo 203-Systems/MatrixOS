@@ -47,7 +47,7 @@ class AppLauncherPicker : public UIComponent {
     }
 
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-        if (keyInfo->state == RELEASED || keyInfo->state == HOLD) 
+        if (keyInfo->State() == RELEASED || keyInfo->State() == HOLD) 
         {
             uint8_t index = xy.y * 8 + xy.x;
             if(index >= shell->folders[shell->current_folder].app_ids.size())
@@ -68,7 +68,7 @@ class AppLauncherPicker : public UIComponent {
                                            &(application_entry.python.info->info);
 
 
-            if(keyInfo->state == RELEASED)
+            if(keyInfo->State() == RELEASED)
             {
                 MLOGD("Shell", "Launching App ID: %X", app_id);
                 shell->LaunchAnimation(xy, application->color);
@@ -83,7 +83,7 @@ class AppLauncherPicker : public UIComponent {
                 }
                 return true;
             }
-            else if(keyInfo->state == HOLD)
+            else if(keyInfo->State() == HOLD)
             {
                 MatrixOS::UIUtility::TextScroll(application->name, application->color);
                 return true;

@@ -29,13 +29,13 @@ class StrumOctaveShifter : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == HOLD)
+    if (keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
       return true;
     }
 
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     { *this->octave = xy.x; }
     return true;
   }

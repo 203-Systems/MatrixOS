@@ -7,7 +7,7 @@ namespace ActionColorEffect
   constexpr uint32_t signature = StaticHash("actioncolor");
 
   static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-    if (keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED)
+    if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
     {
       return false;
     }

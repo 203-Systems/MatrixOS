@@ -22,12 +22,12 @@ class UIGamepadKey : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       active = true;
       MatrixOS::HID::Gamepad::Press(keycode); 
     }
-    else if (keyInfo->state == RELEASED)
+    else if (keyInfo->State() == RELEASED)
     {
       active = false;
       MatrixOS::HID::Gamepad::Release(keycode); 

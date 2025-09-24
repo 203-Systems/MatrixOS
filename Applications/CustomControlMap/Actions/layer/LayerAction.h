@@ -56,7 +56,7 @@ namespace LayerAction
 
     static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo)
     {
-        if(keyInfo->state != KeyState::PRESSED && keyInfo->state != KeyState::RELEASED) return false;
+        if(keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED) return false;
 
         struct LayerAction data;
         if(!LoadData(actionData, &data))
@@ -101,7 +101,7 @@ namespace LayerAction
         bool targetLayerState;
  
         // Process Key Event
-        if(keyInfo->state == KeyState::PRESSED)
+        if(keyInfo->State() == KeyState::PRESSED)
         {
           if(data.option == LayerActionOption::ENABLE)
           {
@@ -126,7 +126,7 @@ namespace LayerAction
             uadRT->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
             return true;
         }
-        else if(data.mode == LayerActionMode::MOMENTARY && keyInfo->state == KeyState::RELEASED)
+        else if(data.mode == LayerActionMode::MOMENTARY && keyInfo->State() == KeyState::RELEASED)
         {
 
             // Flip Back!

@@ -155,18 +155,18 @@ void ForceCalibration::ForceGridVisualizer()
         Color color = Color(0xFFFFFF);
         // uint16_t value = (uint16_t)(keyInfo->raw_velocity) >> 8;
         // uint8_t value8 = value > 0xFF ? 0xFF : value & 0xFF;
-        if (keyInfo->velocity > 0 && keyInfo->Active()) { color = Color(0x00FFFF).Scale(keyInfo->velocity.to8bits());}
-        // else if (keyInfo->raw_velocity > 0 && keyInfo->velocity == 0) {
+        if (keyInfo->Force() > 0 && keyInfo->Active()) { color = Color(0x00FFFF).Scale(keyInfo->Force().to8bits());}
+        // else if (keyInfo->raw_velocity > 0 && keyInfo->Force() == 0) {
         //     color = Color(0xFFFFFF);
         // }
 
-        if (keyInfo->velocity == FRACT16_MAX) { color = Color(0x00FF00); }
+        if (keyInfo->Force() == FRACT16_MAX) { color = Color(0x00FF00); }
         MatrixOS::LED::SetColor(Point(x, y), color);
 
-        if (keyInfo->velocity.to8bits() > 127) { activeKey = Point(x, y); }
+        if (keyInfo->Force().to8bits() > 127) { activeKey = Point(x, y); }
 
         // if (activeKey.x == x && activeKey.y == y)
-        // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->velocity, keyInfo->threshold, keyInfo->Active()); }
+        // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->raw_velocity, keyInfo->Force(), keyInfo->threshold, keyInfo->Active()); }
       } 
     }
   });

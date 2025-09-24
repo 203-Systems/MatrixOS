@@ -63,14 +63,14 @@ class UILayerControl : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->state == RELEASED && keyInfo->hold == false)
+    if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
     { 
       uint8_t layer = xy.y * dimension.x + xy.x;
       if(layer == 0) return true; // Can't change root layer
       if(layer >= uadRT->layerCount) return true;
       uadRT->SetLayerState(layer, type, !uadRT->GetLayerState(layer, type));
     }
-    else if (keyInfo->state == HOLD)
+    else if (keyInfo->State() == HOLD)
     {
         MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
     }

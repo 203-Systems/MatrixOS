@@ -194,11 +194,11 @@ class UISelectorBase : public UIComponent {
     { 
       return false;
     }
-    else if (keyInfo->state == RELEASED)
+    else if (keyInfo->State() == RELEASED)
     {
       Selected(id);
     }
-    else if (keyInfo->state == HOLD)
+    else if (keyInfo->State() == HOLD)
     {
       if(nameFunc == nullptr)
       {

@@ -123,7 +123,7 @@ class AppLauncherBarEditMode : public UIComponent {
     }
 
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-        if (keyInfo->state == RELEASED) 
+        if (keyInfo->State() == RELEASED) 
         {   
             if (xy.x < 7) {
                 uint8_t folder_idx = xy.x == 6 ? Shell::FOLDER_HIDDEN : xy.x;
@@ -153,7 +153,7 @@ class AppLauncherBarEditMode : public UIComponent {
                 return true;
             }
         }
-        else if(keyInfo->state == HOLD && xy.x < 6)
+        else if(keyInfo->State() == HOLD && xy.x < 6)
         {
             if (shell->folder_colors[xy.x] == Color(0x000000)) {
                 // Folder doesn't exist
@@ -167,7 +167,7 @@ class AppLauncherBarEditMode : public UIComponent {
             }
             return true;
         }
-        else if(keyInfo->state == HOLD && xy.x == 6)
+        else if(keyInfo->State() == HOLD && xy.x == 6)
         {
             // Show hidden folder info on hold
             MatrixOS::UIUtility::TextScroll("Hidden Apps", Color(0xFF00FF));

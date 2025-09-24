@@ -93,7 +93,7 @@ void UI::GetKey() {
 }
 
 void UI::UIKeyEvent(KeyEvent* keyEvent) {
-  // MLOGD("UI Key Event", "%d - %d", keyID, keyInfo->state);
+  // MLOGD("UI Key Event", "%d - %d", keyID, keyInfo->State();
   if (keyEvent->id == FUNCTION_KEY)
   {
     if (!disableExit && keyEvent->info.state == RELEASED)

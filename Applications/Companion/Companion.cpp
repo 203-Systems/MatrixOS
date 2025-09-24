@@ -26,7 +26,7 @@ void Companion::Loop() {
 void Companion::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == FUNCTION_KEY)
   {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       ActionMenu();
     }
@@ -36,11 +36,11 @@ void Companion::KeyEventHandler(uint16_t keyID, KeyInfo* keyInfo) {
 
   if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
   {
-    if (keyInfo->state == PRESSED)
+    if (keyInfo->State() == PRESSED)
     {
       MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x10, (uint8_t)xy.x, (uint8_t)xy.y, 0xFF});
     }
-    else if (keyInfo->state == RELEASED)
+    else if (keyInfo->State() == RELEASED)
     {
       MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x10, (uint8_t)xy.x, (uint8_t)xy.y, 0x00});
     }

@@ -457,13 +457,13 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     }
 
     // If we are in combo key state and key is pressed, set the combo key state
-    if(combo_key && keyInfo->state == PRESSED)
+    if(combo_key && keyInfo->State() == PRESSED)
     {
         was_combo_key |= 1 << combo_key_id;
     }
 
     // If we was in combo key state and key is released, clear the combo key state
-    if(keyInfo->state == RELEASED)
+    if(keyInfo->State() == RELEASED)
     {
       was_combo_key &= ~(1 << combo_key_id);
     }
@@ -476,34 +476,34 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     return;
   }
 
-  if (!velocitySensitive)
+  if (!forceSensitive)
   {
-    if (keyInfo->state == AFTERTOUCH)
+    if (keyInfo->State() == AFTERTOUCH)
     {
       return;
     };
-    if (keyInfo->velocity > 0)
+    if (keyInfo->Force() > 0)
     {
-      keyInfo->velocity = FRACT16_MAX;
+      keyInfo->Force() = FRACT16_MAX;
     };
   }
 
-  if (keyInfo->state == PRESSED)
+  if (keyInfo->State() == PRESSED)
   {
-    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, keyInfo->velocity.to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL);
   }
-  else if (keyInfo->state == AFTERTOUCH)
+  else if (keyInfo->State() == AFTERTOUCH)
   {
-    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, keyInfo->velocity.to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, keyInfo->Force().to7bits()), MIDI_PORT_ALL);
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keyInfo->State() == RELEASED)
   {
     MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, 0), MIDI_PORT_ALL);
   }
 }
 
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == 0 && keyInfo->state == (menuLock ? HOLD : PRESSED))
+  if (keyID == 0 && keyInfo->State() == (menuLock ? HOLD : PRESSED))
   {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 127), MIDI_PORT_ALL); 
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0)); // All notes off
@@ -627,15 +627,15 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(clearCanvasBtn, Point(0, 5));
 
   // Note Pad
-  UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap], velocitySensitive);
+  UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap], forceSensitive);
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
   UIToggle velocityToggle;
   velocityToggle.SetName("Velocity Sensitive");
   velocityToggle.SetColor(Color(0x00FFFF));
-  velocityToggle.SetValuePointer(&velocitySensitive);
-  velocityToggle.OnPress([&]() -> void {velocitySensitive.Save();});
+  velocityToggle.SetValuePointer(&forceSensitive);
+  velocityToggle.OnPress([&]() -> void {forceSensitive.Save();});
   velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 

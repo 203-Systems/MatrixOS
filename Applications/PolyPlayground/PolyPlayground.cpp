@@ -30,13 +30,13 @@ void PolyPlayground::Setup(const vector<string>& args) {
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
-  UIButton velocitySensitiveToggle;
-  velocitySensitiveToggle.SetName("Velocity Sensitive");
-  velocitySensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(polyPadConfig.velocitySensitive); });
-  velocitySensitiveToggle.OnPress([&]() -> void { polyPadConfig.velocitySensitive = !polyPadConfig.velocitySensitive; });
-  velocitySensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(velocitySensitiveToggle.GetName() + " " + (polyPadConfig.velocitySensitive ? "On" : "Off"), velocitySensitiveToggle.GetColor()); });
-  velocitySensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
-  actionMenu.AddUIComponent(velocitySensitiveToggle, Point(6, 7));
+  UIButton forceSensitiveToggle;
+  forceSensitiveToggle.SetName("Velocity Sensitive");
+  forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(polyPadConfig.forceSensitive); });
+  forceSensitiveToggle.OnPress([&]() -> void { polyPadConfig.forceSensitive = !polyPadConfig.forceSensitive; });
+  forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (polyPadConfig.forceSensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
+  forceSensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
+  actionMenu.AddUIComponent(forceSensitiveToggle, Point(6, 7));
 
   PolyOctaveShifter octaveShifter(8, &polyPadConfig);
   actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
