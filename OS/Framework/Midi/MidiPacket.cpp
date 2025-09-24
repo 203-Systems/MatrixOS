@@ -172,22 +172,23 @@ EMidiStatus MidiPacket::Status() {
   }
 }
 
-void MidiPacket::SetStatus(EMidiStatus status)
+bool MidiPacket::SetStatus(EMidiStatus status)
 {
   if((uint8_t)status < EMidiStatus::NoteOff)
   {
-    return;
+    return false;
   }
 
   this->status = status;
   if((uint8_t)status < EMidiStatus::SysExData)
   {
-    data[0] = (data[0] & 0x0F) + status; 
+    data[0] = (data[0] & 0x0F) + status;
   }
   else
   {
     data[0] = status;
   }
+  return true;
 }
 
 // Port methods
@@ -218,10 +219,23 @@ uint8_t MidiPacket::Channel() {
   }
 }
 
-void MidiPacket::SetChannel(uint8_t channel)
+bool MidiPacket::SetChannel(uint8_t channel)
 {
-  // Update channel in data[0] while preserving status
-  data[0] = (data[0] & 0xF0) | (channel & 0x0F);
+  switch (status)
+  {
+    case EMidiStatus::NoteOn:
+    case EMidiStatus::NoteOff:
+    case EMidiStatus::AfterTouch:
+    case EMidiStatus::ControlChange:
+    case EMidiStatus::ProgramChange:
+    case EMidiStatus::ChannelPressure:
+    case EMidiStatus::PitchChange:
+      // Update channel in data[0] while preserving status
+      data[0] = (data[0] & 0xF0) | (channel & 0x0F);
+      return true;
+    default:
+      return false;
+  }
 }
 
 // Note methods
@@ -239,9 +253,20 @@ uint8_t MidiPacket::Note() {
   }
 }
 
-void MidiPacket::SetNote(uint8_t note)
+bool MidiPacket::SetNote(uint8_t note)
 {
-  data[1] = note & 0x7F;
+  switch (status)
+  {
+    case EMidiStatus::NoteOn:
+    case EMidiStatus::NoteOff:
+    case EMidiStatus::AfterTouch:
+    case EMidiStatus::ControlChange:
+    case EMidiStatus::ProgramChange:
+      data[1] = note & 0x7F;
+      return true;
+    default:
+      return false;
+  }
 }
 
 // Controller methods
@@ -250,9 +275,20 @@ uint8_t MidiPacket::Controller()  // Just an alias for Note(), specially build f
   return Note();
 }
 
-void MidiPacket::SetController(uint8_t controller)
+bool MidiPacket::SetController(uint8_t controller)
 {
-  data[1] = controller & 0x7F;
+  switch (status)
+  {
+    case EMidiStatus::NoteOn:
+    case EMidiStatus::NoteOff:
+    case EMidiStatus::AfterTouch:
+    case EMidiStatus::ControlChange:
+    case EMidiStatus::ProgramChange:
+      data[1] = controller & 0x7F;
+      return true;
+    default:
+      return false;
+  }
 }
 
 // Velocity methods
@@ -271,7 +307,7 @@ uint8_t MidiPacket::Velocity() {
   }
 }
 
-void MidiPacket::SetVelocity(uint8_t velocity)
+bool MidiPacket::SetVelocity(uint8_t velocity)
 {
   switch (status)
   {
@@ -280,12 +316,12 @@ void MidiPacket::SetVelocity(uint8_t velocity)
     case EMidiStatus::AfterTouch:
     case EMidiStatus::ControlChange:
       data[2] = velocity & 0x7F;
-      break;
+      return true;
     case EMidiStatus::ChannelPressure:
       data[1] = velocity & 0x7F;
-      break;
+      return true;
     default:
-      break;
+      return false;
   }
 }
 
@@ -313,27 +349,27 @@ uint16_t MidiPacket::Value()  // Get value all type, basically a generic getter
   }
 }
 
-void MidiPacket::SetValue(uint16_t value)
+bool MidiPacket::SetValue(uint16_t value)
 {
   switch (status)
   {
     case EMidiStatus::ControlChange:
       data[2] = value & 0x7F;
-      break;
+      return true;
     case EMidiStatus::ProgramChange:
     case EMidiStatus::ChannelPressure:
       data[1] = value & 0x7F;
-      break;
+      return true;
     case EMidiStatus::PitchChange:
     case EMidiStatus::SongPosition:
       data[1] = value & 0x7F;
       data[2] = (value >> 7) & 0x7F;
-      break;
+      return true;
     case EMidiStatus::SongSelect:
       data[1] = value & 0x7F;
-      break;
+      return true;
     default:
-      break;
+      return false;
   }
 }
 

@@ -77,7 +77,7 @@ struct MidiPacket {
 
   // Status methods
   EMidiStatus Status();
-  void SetStatus(EMidiStatus status);
+  bool SetStatus(EMidiStatus status);
 
   // Port methods
   uint16_t Port();
@@ -85,23 +85,23 @@ struct MidiPacket {
 
   // Channel methods
   uint8_t Channel();
-  void SetChannel(uint8_t channel);
+  bool SetChannel(uint8_t channel);
 
   // Note methods
   uint8_t Note();
-  void SetNote(uint8_t note);
+  bool SetNote(uint8_t note);
 
   // Controller methods
   uint8_t Controller();  // Just an alias for Note(), specially build for Program Change
-  void SetController(uint8_t controller);
+  bool SetController(uint8_t controller);
 
   // Velocity methods
   uint8_t Velocity();
-  void SetVelocity(uint8_t velocity);
+  bool SetVelocity(uint8_t velocity);
 
   // Value methods
   uint16_t Value();  // Get value all type, basically a generic getter
-  void SetValue(uint16_t value);
+  bool SetValue(uint16_t value);
 
   // Helper methods
   uint8_t Length();
