@@ -274,7 +274,6 @@ class NotePad : public UIComponent {
     }
   }    
 
-
   void GeneratePianoKeymap() {
     noteMap.reserve(dimension.Area());
     const int8_t blackKeys[7] = {-1, 1,  3, -1, 6, 8, 10};
@@ -307,8 +306,6 @@ class NotePad : public UIComponent {
       }
     }
   }
-
-
   
   void GenerateKeymap() {
     c_aligned_scale_map = ((config->scale << config->rootKey) + ((config->scale & 0xFFF) >> (12 - config->rootKey % 12))) & 0xFFF;
@@ -435,6 +432,24 @@ class NotePad : public UIComponent {
       DecrementActiveNote(note);
     }
     return true;
+  }
+
+  void SetDimension(Dimension dimension)
+  {
+    this->dimension = dimension;
+
+    if(dimension.Area() == 0)
+    {
+      memset(activeNotes, 0, sizeof(activeNotes)); // Initialize all counters to 0
+      MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0)); // All notes off
+    }
+    GenerateKeymap();
+  }
+
+  void SetConfig(NoteLayoutConfig* config)
+  {
+    this->config = config;
+    GenerateKeymap();
   }
 
   NotePad(Dimension dimension, NoteLayoutConfig* config) {
