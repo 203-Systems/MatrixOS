@@ -16,9 +16,9 @@ enum KeyState : uint8_t {
     ACTIVATED,
     /*Event Keys*/
     PRESSED,
-    RELEASED,
     HOLD,
     AFTERTOUCH,
+    RELEASED,
     /*Special*/
     DEBUNCING = 240u,
     RELEASE_DEBUNCING = 241u,

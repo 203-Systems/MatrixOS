@@ -13,7 +13,7 @@ inline uint16_t MAX(uint16_t a, uint16_t b) {
 // Constructor is defined in the header file
 
 bool KeyInfo::Active() {
-  return state >= ACTIVATED && state <= AFTERTOUCH;
+  return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING;
 }
 
 KeyInfo::operator bool() { 
@@ -23,7 +23,7 @@ KeyInfo::operator bool() {
 uint32_t KeyInfo::HoldTime(void) {
   if (Active())
   {
-    return MatrixOS::SYS::Millis() - lastEventTime;
+    return (uint32_t)MatrixOS::SYS::Millis() - lastEventTime;
   }
   else
   {
@@ -80,10 +80,10 @@ bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
       {
         if(config.debounce > 0)
         {
-        // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> DEBUNCING");
-        state = DEBUNCING;
-        lastEventTime = timeNow;
-        return false;
+          // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> DEBUNCING");
+          state = DEBUNCING;
+          lastEventTime = timeNow;
+          return false;
         }
         else
         {
