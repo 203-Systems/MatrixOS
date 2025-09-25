@@ -111,7 +111,7 @@ extern "C" {
         std::vector<uint8_t> report;
         report.resize(length);
         memcpy(report.data(), data, length);
-        return MatrixOS::HID::RawHID::Send(report) ? pika_true : pika_false;
+        return MatrixOS::HID::RawHID::Send(report);
     }
 
     // HID Consumer functions
