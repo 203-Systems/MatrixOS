@@ -8,6 +8,7 @@
 enum NoteLayoutMode : uint8_t {
   OCTAVE_LAYOUT,
   OFFSET_LAYOUT,
+  CHROMATIC_LAYOUT,
   PIANO_LAYOUT,
 };
 
@@ -253,6 +254,27 @@ class NotePad : public UIComponent {
     }
   }    
 
+  void GenerateChromaticKeymap() {
+    noteMap.reserve(dimension.Area());
+    uint8_t note = 12 * config->octave + config->rootKey;
+    for(uint8_t i = 0; i < dimension.Area(); i++)
+    {
+      uint8_t x = i % dimension.x;
+      uint8_t y = i / dimension.x;
+      int8_t ui_y = dimension.y - y - 1;
+      noteMap[ui_y * dimension.x + x] = note;
+      if(!config->inKeyNoteOnly)
+      {
+        note++;
+      }
+      else
+      {
+        note = GetNextInScaleNote(note);
+      }
+    }
+  }    
+
+
   void GeneratePianoKeymap() {
     noteMap.reserve(dimension.Area());
     const int8_t blackKeys[7] = {-1, 1,  3, -1, 6, 8, 10};
@@ -297,6 +319,9 @@ class NotePad : public UIComponent {
         break;
       case OFFSET_LAYOUT:
         GenerateOffsetKeymap();
+        break;
+      case CHROMATIC_LAYOUT:
+        GenerateChromaticKeymap();
         break;
       case PIANO_LAYOUT:
         GeneratePianoKeymap();

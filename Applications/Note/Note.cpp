@@ -392,12 +392,7 @@ void Note::LayoutSelector() {
   UIButton octaveModeBtn;
   octaveModeBtn.SetName("Octave Mode");
   octaveModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
-  octaveModeBtn.OnPress([&]() -> void { 
-    if(notePadConfigs[activeConfig].mode != OCTAVE_LAYOUT)
-    {
-      notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT; 
-    }
-  });
+  octaveModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT; });
   layoutSelector.AddUIComponent(octaveModeBtn, Point(2, 0));
 
   UIButton offsetModeBtn;
@@ -413,16 +408,17 @@ void Note::LayoutSelector() {
   });
   layoutSelector.AddUIComponent(offsetModeBtn, Point(3, 0));
 
+  UIButton chromaticModeBtn;
+  chromaticModeBtn.SetName("Chromatic Mode");
+  chromaticModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT); });
+  chromaticModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = CHROMATIC_LAYOUT; });
+  layoutSelector.AddUIComponent(chromaticModeBtn, Point(4, 0));
+
   UIButton pianoModeBtn;
   pianoModeBtn.SetName("Piano Mode");
   pianoModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
-  pianoModeBtn.OnPress([&]() -> void { 
-    if(notePadConfigs[activeConfig].mode != PIANO_LAYOUT)
-    {
-      notePadConfigs[activeConfig].mode = PIANO_LAYOUT;
-    }
-  });
-  layoutSelector.AddUIComponent(pianoModeBtn, Point(4, 0));
+  pianoModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = PIANO_LAYOUT; });
+  layoutSelector.AddUIComponent(pianoModeBtn, Point(5, 0));
 
   // Offset Mode
   UISelector yOffsetInput;
@@ -465,7 +461,7 @@ void Note::LayoutSelector() {
   inKeyNoteOnlyToggle.SetName("In Key Notes Only");
   inKeyNoteOnlyToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].inKeyNoteOnly); });
   inKeyNoteOnlyToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].inKeyNoteOnly = !notePadConfigs[activeConfig].inKeyNoteOnly; });
-  inKeyNoteOnlyToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  inKeyNoteOnlyToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
   layoutSelector.AddUIComponent(inKeyNoteOnlyToggle, Point(0, 7));
 
   layoutSelector.Start();
