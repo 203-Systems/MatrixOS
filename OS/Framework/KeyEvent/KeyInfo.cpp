@@ -63,7 +63,7 @@ Aftertouch (Pressed, Activated, Hold, Hold Activated)
 
 // Update method for single value (primary value - force/pressure)
 bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
-  uint16_t timeNow = MatrixOS::SYS::Millis();
+  uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
 
   switch (state)
   {
