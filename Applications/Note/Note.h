@@ -25,6 +25,7 @@ class Note : public Application {
   CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NoteLayoutConfig got changed
   CreateSavedVar("Note", activeConfig, uint8_t, 0);
   CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
+  CreateSavedVar("Note", controlBar, bool, false);
 
   void Setup(const vector<string>& args) override;
 

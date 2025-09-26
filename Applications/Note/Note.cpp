@@ -2,6 +2,7 @@
 #include "OctaveShifter.h"
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
+#include "NoteControlBar.h"
 
 void Note::Setup(const vector<string>& args) {
   // Set up / Load configs --------------------------------------------------------------------------
@@ -105,6 +106,14 @@ void Note::Setup(const vector<string>& args) {
   actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
   // Other Controls
+  UIToggle controlBarToggle;
+  controlBarToggle.SetName("Control Bar");
+  controlBarToggle.SetColor(Color(0xFF8000));
+  controlBarToggle.SetValuePointer(&controlBar);
+  controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
+  actionMenu.AddUIComponent(controlBarToggle, Point(2, 7));
+
+  // Other Controls
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
   systemSettingBtn.SetColor(Color(0xFFFFFF));
@@ -141,11 +150,11 @@ void Note::PlayView() {
   switch (splitView)
   {
     case SINGLE_VIEW:
-      padSize = Dimension(8, 8);
+      padSize = Dimension(8, 8 - (controlBar ? 1 : 0));
       underglowSize = Dimension(10, 10);
       break;
     case VERT_SPLIT:
-      padSize = Dimension(4, 8);
+      padSize = Dimension(4, 8 - (controlBar ? 1 : 0));
       underglowSize = Dimension(5, 10);
       break;
     case HORIZ_SPLIT:
@@ -172,6 +181,13 @@ void Note::PlayView() {
     splitView == HORIZ_SPLIT) { 
     playView.AddUIComponent(notePad2, Point(0, 4)); 
     playView.AddUIComponent(underglow2, Point(-1, 4));
+  }
+  
+  NoteControlBar noteControlBar(this, &notePad1, &notePad2, &underglow1, &underglow2);
+  
+  if(controlBar)
+  {
+    playView.AddUIComponent(noteControlBar, Point(0, 8 - CTL_BAR_Y));
   }
 
   playView.Start();
