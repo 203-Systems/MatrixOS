@@ -165,20 +165,20 @@ void Note::PlayView() {
   }
   
 
-  // Create NotePadData structures
-  NotePadData notePadData1;
-  notePadData1.config = &notePadConfigs[activeConfig.Get() == 1];
+  // Create NotePadRuntime structures
+  NotePadRuntime NotePadRuntime1;
+  NotePadRuntime1.config = &notePadConfigs[activeConfig.Get() == 1];
 
-  NotePadData notePadData2;
-  notePadData2.config = &notePadConfigs[activeConfig.Get() == 0];
+  NotePadRuntime NotePadRuntime2;
+  NotePadRuntime2.config = &notePadConfigs[activeConfig.Get() == 0];
 
-  NotePad notePad1(padSize, &notePadData1);
+  NotePad notePad1(padSize, &NotePadRuntime1);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
   UnderglowLight underglow1(underglowSize, notePadConfigs[activeConfig.Get() == 1].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
-  NotePad notePad2(padSize, &notePadData2);
+  NotePad notePad2(padSize, &NotePadRuntime2);
   UnderglowLight underglow2(underglowSize, notePadConfigs[activeConfig.Get() == 0].color);
   
   if (splitView == VERT_SPLIT) { 
@@ -229,8 +229,8 @@ void Note::ColorSelector() {
   UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
   uint8_t page = 0;  // 0 = Preset, 1 = Customize
 
-  // Create NotePadData structure for color selector
-  NotePadData colorSelectorData;
+  // Create NotePadRuntime structure for color selector
+  NotePadRuntime colorSelectorData;
   colorSelectorData.config = &notePadConfigs[activeConfig];
 
   NotePad notePad(Dimension(8, 4), &colorSelectorData);

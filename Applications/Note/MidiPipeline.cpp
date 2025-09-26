@@ -37,7 +37,17 @@ void MidiPipeline::Tick() {
         }
     }
 
-    // Move final output to main queue
+    // Update note states and move final output to main queue
+    for (const MidiPacket& packet : effect_output) {
+        // Track note on/off states
+        if (packet.status == NoteOn && packet.Velocity() > 0) {
+            SetNoteState(packet.Note(), true);
+        }
+        else if (packet.status == NoteOff || (packet.status == NoteOn && packet.Velocity() == 0)) {
+            SetNoteState(packet.Note(), false);
+        }
+    }
+
     outputQueue.insert(outputQueue.end(),
         std::make_move_iterator(effect_output.begin()),
         std::make_move_iterator(effect_output.end()));
@@ -92,8 +102,32 @@ void MidiPipeline::Clear() {
     effects.clear();
     inputQueue.clear();
     outputQueue.clear();
+    memset(noteStates, 0, sizeof(noteStates));
 }
 
 size_t MidiPipeline::GetEffectCount() const {
     return effects.size();
+}
+
+void MidiPipeline::SetNoteState(uint8_t note, bool on) {
+    if (note >= 128) return;
+    uint8_t byteIndex = note / 8;
+    uint8_t bitIndex = note % 8;
+    if (byteIndex < 16) {
+        if (on) {
+            noteStates[byteIndex] |= (1 << bitIndex);
+        } else {
+            noteStates[byteIndex] &= ~(1 << bitIndex);
+        }
+    }
+}
+
+bool MidiPipeline::IsNoteActive(uint8_t note) const {
+    if (note >= 128) return false;
+    uint8_t byteIndex = note / 8;
+    uint8_t bitIndex = note % 8;
+    if (byteIndex < 16) {
+        return (noteStates[byteIndex] & (1 << bitIndex)) != 0;
+    }
+    return false;
 }

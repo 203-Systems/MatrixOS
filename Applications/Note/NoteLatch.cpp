@@ -10,6 +10,7 @@ void NoteLatch::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         
         enabled = false;
         disableOnNextTick = false;
+        toggleMode = false;
 
         // Passthrough everything in input to output
         for (const MidiPacket& packet : input) {
@@ -20,14 +21,15 @@ void NoteLatch::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
     }
 
     for (const MidiPacket& packet : input) {
-        if (packet.status == NoteOn || packet.status == NoteOff) {
-            ProcessNoteMessage(packet, output);
-        } else if (packet.status == AfterTouch) {
-            ProcessAfterTouch(packet, output);
-        } else {
-            // Pass through other messages unchanged
-            output.push_back(packet);
-        }
+            if (packet.status == NoteOn || packet.status == NoteOff) {
+                toggleMode ? ProcessNoteMessageToggleMode(packet, output) : ProcessNoteMessage(packet, output);
+            } else if (packet.status == AfterTouch) {
+                toggleMode ? ProcessAfterTouchToggleMode(packet, output) : ProcessAfterTouch(packet, output);
+            }
+            else
+            {
+                output.push_back(packet);
+            }
     }
 }
 
@@ -42,6 +44,15 @@ void NoteLatch::SetEnabled(bool state) {
         enabled = true;
     } else if (enabled) {
         disableOnNextTick = true;
+    }
+}
+
+void NoteLatch::SetToggleMode(bool enable) {
+    if (enable) {
+        enabled = true;
+        toggleMode = true;
+    } else if (enabled) {
+        toggleMode = false;
     }
 }
 
@@ -86,6 +97,39 @@ void NoteLatch::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& o
             );
             output.push_back(mirroredAfterTouch);
         }
+    }
+}
+
+void NoteLatch::ProcessNoteMessageToggleMode(const MidiPacket& packet, deque<MidiPacket>& output) {
+    uint8_t note = packet.Note();
+
+    if (packet.status == NoteOn && packet.Velocity() > 0) {
+        // Note On - check if note is already latched
+        auto latchedIt = std::find(latchedNotes.begin(), latchedNotes.end(), note);
+
+        if (latchedIt != latchedNotes.end()) {
+            // Note is already latched - send note off and remove from latched list
+            MidiPacket noteOff = MidiPacket::NoteOff(packet.Channel(), note, 0);
+            output.push_back(noteOff);
+            latchedNotes.erase(latchedIt);
+        } else {
+            // Note is not latched - add to latched list and send note on
+            latchedNotes.push_back(note);
+            output.push_back(packet);
+        }
+    }
+    else if (packet.status == NoteOff || (packet.status == NoteOn && packet.Velocity() == 0)) {
+        // Note Off - ignore for toggle mode (notes are toggled by note on only)
+    }
+}
+
+void NoteLatch::ProcessAfterTouchToggleMode(const MidiPacket& packet, deque<MidiPacket>& output) {
+    uint8_t note = packet.Note();
+
+    // Only pass through aftertouch if note is in latched list
+    auto latchedIt = std::find(latchedNotes.begin(), latchedNotes.end(), note);
+    if (latchedIt != latchedNotes.end()) {
+        output.push_back(packet);
     }
 }
 

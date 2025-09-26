@@ -10,6 +10,10 @@ private:
     vector<MidiEffect*> effects;      // Effects in same order
     deque<MidiPacket> inputQueue;     // Input queue
     deque<MidiPacket> outputQueue;    // Output queue
+    uint8_t noteStates[16] = {0};     // Bitmap tracking active notes (each bit represents a note)
+
+    // Private note state management
+    void SetNoteState(uint8_t note, bool on);
 
 public:
     // Send packet to input queue
@@ -40,4 +44,7 @@ public:
 
     // Get effect count
     size_t GetEffectCount() const;
+
+    // Public note state queries
+    bool IsNoteActive(uint8_t note) const;
 };

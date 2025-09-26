@@ -57,7 +57,7 @@ struct NoteLayoutConfig {
   bool useWhiteAsOutOfScale = false;
 };
 
-struct NotePadData
+struct NotePadRuntime
 {
   NoteLayoutConfig* config;
   NoteLatch noteLatch;
@@ -69,11 +69,10 @@ class NotePad : public UIComponent {
   Dimension dimension;
   std::vector<uint8_t> noteMap;
   uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
-  uint8_t pipelineFeedbackNotes[16]; // Each uint8_t stores a bit
   uint16_t c_aligned_scale_map;
-  NotePadData* data;
+  NotePadRuntime* rt;
 
-  NotePad(Dimension dimension, NotePadData* data);
+  NotePad(Dimension dimension, NotePadRuntime* data);
   ~NotePad();
 
   void Tick();
@@ -85,15 +84,12 @@ class NotePad : public UIComponent {
   uint8_t NoteFromRoot(uint8_t note);
   uint8_t GetNextInScaleNote(uint8_t note);
 
-  uint8_t GetActiveNoteCount(uint8_t note, bool upper);
-  void SetActiveNoteCount(uint8_t note, bool upper, uint8_t count);
   bool IsNoteActive(uint8_t note);
+  uint8_t GetActiveNoteCount(uint8_t note);
+  void SetActiveNoteCount(uint8_t note, uint8_t count);
   void IncrementActiveNote(uint8_t note);
   void DecrementActiveNote(uint8_t note);
 
-  void SetPipelineFeedbackNote(uint8_t note);
-  void UnsetPipelineFeedbackNote(uint8_t note);
-  bool IsPipelineFeedbackNoteActive(uint8_t note);
 
   void GenerateOctaveKeymap();
   void GenerateOffsetKeymap();
@@ -108,5 +104,5 @@ class NotePad : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
 
   void SetDimension(Dimension dimension);
-  void SetPadData(NotePadData* data);
+  void SetPadRuntime(NotePadRuntime* rt);
 };
