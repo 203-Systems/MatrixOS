@@ -76,35 +76,35 @@ struct MidiPacket {
   static MidiPacket Reset();
 
   // Status methods
-  EMidiStatus Status();
+  EMidiStatus Status() const;
   bool SetStatus(EMidiStatus status);
 
   // Port methods
-  uint16_t Port();
+  uint16_t Port() const;
   void SetPort(uint16_t port_id);
 
   // Channel methods
-  uint8_t Channel();
+  uint8_t Channel() const;
   bool SetChannel(uint8_t channel);
 
   // Note methods
-  uint8_t Note();
+  uint8_t Note() const;
   bool SetNote(uint8_t note);
 
   // Controller methods
-  uint8_t Controller();  // Just an alias for Note(), specially build for Program Change
+  uint8_t Controller() const;  // Just an alias for Note(), specially build for Program Change
   bool SetController(uint8_t controller);
 
   // Velocity methods
-  uint8_t Velocity();
+  uint8_t Velocity() const;
   bool SetVelocity(uint8_t velocity);
 
   // Value methods
-  uint16_t Value();  // Get value all type, basically a generic getter
+  uint16_t Value() const;  // Get value all type, basically a generic getter
   bool SetValue(uint16_t value);
 
   // Helper methods
-  uint8_t Length();
-  bool SysEx(); // Checks if packet is part of SysEx transfer - Terrible name 
-  bool SysExStart(); // Checks if packet is start of SysEx transfer - Terrible name as well
+  uint8_t Length() const;
+  bool SysEx() const; // Checks if packet is part of SysEx transfer - Terrible name
+  bool SysExStart() const; // Checks if packet is start of SysEx transfer - Terrible name as well
 };
