@@ -211,7 +211,7 @@ bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
     }
 
     xy = xy - Point(0, CTL_BAR_Y - 3);
-    
+
     if (xy.x == 7 || xy == Point(0, 0) || xy == Point(3, 0))
     {
       return true;
@@ -240,6 +240,7 @@ bool NoteControlBar::Render(Point origin) {
     }
     MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), latchColor);
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), Color(0x404040));
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), mode == CHORD_MODE ? Color(0xFFFFFF) : Color(0x00FFFF));
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color(0xFFFFFF) : Color(0xFF0090));
     MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctaveMinusColor());

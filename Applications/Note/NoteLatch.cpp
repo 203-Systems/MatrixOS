@@ -21,15 +21,15 @@ void NoteLatch::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
     }
 
     for (const MidiPacket& packet : input) {
-            if (packet.status == NoteOn || packet.status == NoteOff) {
-                toggleMode ? ProcessNoteMessageToggleMode(packet, output) : ProcessNoteMessage(packet, output);
-            } else if (packet.status == AfterTouch) {
-                toggleMode ? ProcessAfterTouchToggleMode(packet, output) : ProcessAfterTouch(packet, output);
-            }
-            else
-            {
-                output.push_back(packet);
-            }
+        if (packet.status == NoteOn || packet.status == NoteOff) {
+            toggleMode ? ProcessNoteMessageToggleMode(packet, output) : ProcessNoteMessage(packet, output);
+        } else if (packet.status == AfterTouch) {
+            toggleMode ? ProcessAfterTouchToggleMode(packet, output) : ProcessAfterTouch(packet, output);
+        }
+        else
+        {
+            output.push_back(packet);
+        }
     }
 }
 
