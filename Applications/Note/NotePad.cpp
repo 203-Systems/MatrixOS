@@ -86,9 +86,9 @@ uint8_t NotePad::GetActiveNoteCount(uint8_t note) {
     bool upper = (note % 2) == 1;
     uint8_t index = note / 2;
     if (upper) {
-        return (activeNotes[index] >> 4) & 0x0F; // Upper nibble
+        return (rt->activeNotes[index] >> 4) & 0x0F; // Upper nibble
     } else {
-        return activeNotes[index] & 0x0F; // Lower nibble
+        return rt->activeNotes[index] & 0x0F; // Lower nibble
     }
 }
 
@@ -97,16 +97,16 @@ void NotePad::SetActiveNoteCount(uint8_t note, uint8_t count) {
     bool upper = (note % 2) == 1;
     uint8_t index = note / 2;
     if (upper) {
-        activeNotes[index] = (activeNotes[index] & 0x0F) | ((count & 0x0F) << 4); // Set upper nibble
+        rt->activeNotes[index] = (rt->activeNotes[index] & 0x0F) | ((count & 0x0F) << 4); // Set upper nibble
     } else {
-        activeNotes[index] = (activeNotes[index] & 0xF0) | (count & 0x0F); // Set lower nibble
+        rt->activeNotes[index] = (rt->activeNotes[index] & 0xF0) | (count & 0x0F); // Set lower nibble
     }
 }
 
 bool NotePad::IsNoteActive(uint8_t note) {
     if (note >= 128) return false;
 
-    return (GetActiveNoteCount(note) > 0) || rt->midiPipeline.IsNoteActive(note);
+    return (GetActiveNoteCount(note) > 0);
 }
 
 void NotePad::IncrementActiveNote(uint8_t note) {
@@ -262,7 +262,37 @@ void NotePad::GenerateKeymap() {
             GeneratePianoKeymap();
             break;
     }
-    memset(activeNotes, 0, sizeof(activeNotes)); // Initialize all counters to 0
+    // Send NoteOff for all active notes before clearing
+    for (uint8_t note = 0; note < 128; note++) {
+        if (GetActiveNoteCount(note) > 0) {
+            rt->midiPipeline.Send(MidiPacket::NoteOff(rt->config->channel, note, 0));
+        }
+    }
+    memset(rt->activeNotes, 0, sizeof(rt->activeNotes)); // Initialize all counters to 0
+    first_scan = true;
+
+}
+
+void NotePad::FirstScan(Point origin)
+{
+    for(uint8_t y = 0; y < dimension.y; y++)
+    {
+        for(uint8_t x = 0; x < dimension.x; x++)
+        {
+            uint8_t note = noteMap[y * dimension.x + x];
+
+            if(note == 255) {
+                continue;
+            }
+
+            KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(origin + Point(x, y));
+            if(keyInfo->State() == ACTIVATED || keyInfo->State() == AFTERTOUCH || keyInfo->State() == HOLD)
+            {
+                IncrementActiveNote(note);
+                rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, rt->config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
+            }
+        }
+    }
 }
 
 bool NotePad::RenderRootNScale(Point origin) {
@@ -275,7 +305,7 @@ bool NotePad::RenderRootNScale(Point origin) {
             if (note == 255) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
-            else if (IsNoteActive(note)) { // If find the note is currently active. Show it as white
+            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)) { // If find the note is currently active. Show it as white
                 MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF));
             }
             else {
@@ -336,6 +366,10 @@ bool NotePad::RenderColorPerKey(Point origin) {
 }
 
 bool NotePad::Render(Point origin) {
+    if(first_scan) {
+        FirstScan(origin);
+        first_scan = false;
+    }
     switch(rt->config->colorMode) {
         case ROOT_N_SCALE:
             return RenderRootNScale(origin);

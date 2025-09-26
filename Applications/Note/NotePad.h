@@ -62,15 +62,16 @@ struct NotePadRuntime
   NoteLayoutConfig* config;
   NoteLatch noteLatch;
   MidiPipeline midiPipeline;
+  uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
 };
 
 class NotePad : public UIComponent {
  public:
   Dimension dimension;
   std::vector<uint8_t> noteMap;
-  uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
   uint16_t c_aligned_scale_map;
   NotePadRuntime* rt;
+  bool first_scan = true;
 
   NotePad(Dimension dimension, NotePadRuntime* data);
   ~NotePad();
@@ -100,6 +101,8 @@ class NotePad : public UIComponent {
   bool RenderRootNScale(Point origin);
   bool RenderColorPerKey(Point origin);
 
+  void FirstScan(Point origin);
+  
   virtual bool Render(Point origin) override;
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
 
