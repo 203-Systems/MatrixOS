@@ -1,4 +1,5 @@
 #include "NoteControlBar.h"
+#include "ChordEffect.h"
 
 NoteControlBar::NoteControlBar(Note* notePtr, NotePad* notepad1, NotePad* notepad2, UnderglowLight* underglow1, UnderglowLight* underglow2) {
     this->note = notePtr;
@@ -134,6 +135,20 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
        return true;
     }
 
+    // Chord Mode
+    else if(xy == Point(3, CTL_BAR_Y - 1)) {
+        if(keyInfo->State() == PRESSED) {
+            if(mode == CHORD_MODE) {
+                mode = OFF_MODE;
+                notePad[0]->rt->chordEffect.SetEnabled(false);
+            } else {
+                mode = CHORD_MODE;
+                notePad[0]->rt->chordEffect.SetEnabled(true);
+            }
+        }
+        return true;
+    }
+
     // Key Mode
     else if(xy == Point(5, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
@@ -198,6 +213,45 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
 }
 
 bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+    // Chord buttons are on the row CTL_BAR_Y - 2 (row 2)
+    // x0-x7: Dim, min, maj, sus, ext6, extMin7, extMaj7, ext9
+    if (xy.y == CTL_BAR_Y - 2) {
+        ChordCombo& combo = notePad[0]->rt->chordEffect.GetChordCombo();
+
+        if (keyInfo->state == PRESSED) {
+            // Toggle the chord bit based on x position
+            switch(xy.x) {
+                case 0: combo.dim = !combo.dim; break;
+                case 1: combo.min = !combo.min; break;
+                case 2: combo.maj = !combo.maj; break;
+                case 3: combo.sus = !combo.sus; break;
+                case 4: combo.ext6 = !combo.ext6; break;
+                case 5: combo.extMin7 = !combo.extMin7; break;
+                case 6: combo.extMaj7 = !combo.extMaj7; break;
+                case 7: combo.ext9 = !combo.ext9; break;
+            }
+
+            // Update the chord effect with new combo
+            notePad[0]->rt->chordEffect.SetChordCombo(combo);
+        }
+        else if (keyInfo->state == RELEASED && !ShiftActive()) {
+            // On release without shift, clear the selection
+            switch(xy.x) {
+                case 0: combo.dim = false; break;
+                case 1: combo.min = false; break;
+                case 2: combo.maj = false; break;
+                case 3: combo.sus = false; break;
+                case 4: combo.ext6 = false; break;
+                case 5: combo.extMin7 = false; break;
+                case 6: combo.extMaj7 = false; break;
+                case 7: combo.ext9 = false; break;
+            }
+
+            // Update the chord effect with cleared combo
+            notePad[0]->rt->chordEffect.SetChordCombo(combo);
+        }
+        return true;
+    }
     return false;
 }
 bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
@@ -233,13 +287,14 @@ bool NoteControlBar::Render(Point origin) {
     MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(0, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0xFF0000));
     MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0x00FF00));
     Color latchColor;
-    if (notePad[0]->rt->noteLatch.IsToggleMode()) {
-        latchColor = Color(0xFF00FF); // Magenta for toggle mode
+    if (notePad[0]->rt->noteLatch.IsEnabled()) {
+        latchColor = Color(0xFFFFFF); // White when enabled
+    } else if(notePad[0]->rt->noteLatch.IsToggleMode()) {
+        latchColor = Color(0xFF00FF);
     } else {
-        latchColor = Color(0xFFFF00).DimIfNot(notePad[0]->rt->noteLatch.IsEnabled()); // Yellow for regular mode
+        latchColor = Color(0xFFFF00);
     }
     MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), latchColor);
-    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), mode == CHORD_MODE ? Color(0xFFFFFF) : Color(0x00FFFF));
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color(0xFFFFFF) : Color(0xFF0090));
@@ -264,7 +319,25 @@ bool NoteControlBar::Render(Point origin) {
 }
 
 void NoteControlBar::RenderChordControl(Point origin) {
+    // Get current chord combo from the effect
+    ChordCombo& combo = notePad[0]->rt->chordEffect.GetChordCombo();
 
+    // Colors for different chord types
+    Color baseColor = Color(0x0080FF);
+    Color extColor = Color(0x00FFFF);
+
+    // Row CTL_BAR_Y - 2: Chord base and extensions
+    // x0: Dim, x1: min, x2: maj, x3: sus
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 2), combo.dim ? Color(0xFFFFFF) : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 2), combo.min ? Color(0xFFFFFF) : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 2), combo.maj ? Color(0xFFFFFF) : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 2), combo.sus ? Color(0xFFFFFF) : baseColor);
+
+    // x4: ext6, x5: extMin7, x6: extMaj7, x7: ext9
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), combo.ext6 ? Color(0xFFFFFF) : extColor);
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), combo.extMin7 ? Color(0xFFFFFF) : extColor);
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), combo.extMaj7 ? Color(0xFFFFFF) : extColor);
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), combo.ext9 ? Color(0xFFFFFF) : extColor);
 }
 
 void NoteControlBar::RenderArpControl(Point origin) {

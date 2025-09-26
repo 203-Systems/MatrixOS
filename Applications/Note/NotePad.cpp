@@ -35,6 +35,7 @@ NotePad::NotePad(Dimension dimension, NotePadRuntime* data) {
     this->rt = data;
     rt->midiPipeline.AddEffect("NoteLatch", &rt->noteLatch);
     rt->noteLatch.SetEnabled(false);
+    rt->midiPipeline.AddEffect("ChordEffect", &rt->chordEffect);
     GenerateKeymap();  
 }
 

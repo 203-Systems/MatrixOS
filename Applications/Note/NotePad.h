@@ -5,6 +5,7 @@
 #include "ui/UI.h"
 #include "MidiPipeline.h"
 #include "NoteLatch.h"
+#include "ChordEffect.h"
 
 enum NoteLayoutMode : uint8_t {
   OCTAVE_LAYOUT,
@@ -61,6 +62,7 @@ struct NotePadRuntime
 {
   NoteLayoutConfig* config;
   NoteLatch noteLatch;
+  ChordEffect chordEffect;
   MidiPipeline midiPipeline;
   uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
 };
