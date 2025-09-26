@@ -46,8 +46,24 @@ void NoteControlBar::ShiftEventOccured() {
 bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     static uint32_t pitch_down = 0;
     static uint32_t pitch_up = 0;
+
+    if(xy.y < CTL_BAR_Y - 1)
+    {
+        switch(mode) {
+            case OFF_MODE:
+                return false;
+            case CHORD_MODE:
+                return ChordControlKeyEvent(xy, keyInfo);
+            case ARP_MODE:
+                return ArpControlKeyEvent(xy, keyInfo);
+            case KEY_MODE:
+                return KeyControlKeyEvent(xy, keyInfo);
+        }
+    }
+
+    // Control Bar
     // Pitch Down
-    if(xy == Point(0, CTL_BAR_Y - 1)) {
+    else if(xy == Point(0, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 MatrixOS::MIDI::Send(MidiPacket::Stop());
@@ -118,6 +134,21 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
        return true;
     }
 
+    // Key Mode
+    else if(xy == Point(5, CTL_BAR_Y - 1)) {
+        if(keyInfo->State() == PRESSED) {
+            if(mode == KEY_MODE)
+            {
+                mode = OFF_MODE;
+            }
+            else
+            {
+                mode = KEY_MODE;
+            }
+        }
+        return true;
+    }
+
     // Octave Down
     else if(xy == Point(6, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
@@ -166,13 +197,34 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     return false;
 }
 
-Color NoteControlBar::GetOctavePlusColor()
-{
+bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+    return false;
+}
+bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+    return false;
+}
+
+bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+    if(xy.y < CTL_BAR_Y - 3)
+    {
+        return false;
+    }
+
+    xy = xy - Point(0, CTL_BAR_Y - 3);
+    
+    if (xy.x == 7 || xy == Point(0, 0) || xy == Point(3, 0))
+    {
+      return true;
+    }
+    notePad[0]->rt->config->rootKey = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+    return true;
+}
+
+Color NoteControlBar::GetOctavePlusColor() {
     return notePad[0]->rt->config->color;
 }
 
-Color NoteControlBar::GetOctaveMinusColor()
-{
+Color NoteControlBar::GetOctaveMinusColor() {
     return notePad[0]->rt->config->color;
 }
 
@@ -189,8 +241,51 @@ bool NoteControlBar::Render(Point origin) {
     MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), latchColor);
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), Color(0x404040));
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), Color(0x404040));
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color(0xFFFFFF) : Color(0xFF0090));
     MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctaveMinusColor());
     MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(7, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctavePlusColor());
+
+    switch(mode) {
+        case OFF_MODE:
+        break;
+        case CHORD_MODE:
+            RenderChordControl(origin);
+        break;
+        case ARP_MODE:
+            RenderArpControl(origin);
+        break;
+        case KEY_MODE:
+            RenderKeyControl(origin);
+        break;
+
+    }
     return true;
+}
+
+void NoteControlBar::RenderChordControl(Point origin) {
+
+}
+
+void NoteControlBar::RenderArpControl(Point origin) {
+
+}
+
+void NoteControlBar::RenderKeyControl(Point origin) {
+    uint16_t c_aligned_scale_map =
+        ((notePad[0]->rt->config->scale << notePad[0]->rt->config->rootKey) + ((notePad[0]->rt->config->scale & 0xFFF) >> (12 - notePad[0]->rt->config->rootKey % 12))) & 0xFFF;  // Root key should always < 12,
+                                                                                      // might add an assert later
+    for (uint8_t note = 0; note < 12; note++)
+    {
+      Point xy = origin + Point(CTL_BAR_Y - 3) + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
+      if (note == notePad[0]->rt->config->rootKey)
+      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->rootColor); }
+      else if (bitRead(c_aligned_scale_map, note))
+      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color); }
+      else
+      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color.DimIfNot()); }
+    }
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 3), Color(0));
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 3), Color(0));
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), Color(0));
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), Color(0));
 }
