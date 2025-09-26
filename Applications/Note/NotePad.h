@@ -3,8 +3,8 @@
 #include "MatrixOS.h"
 #include "Scales.h"
 #include "ui/UI.h"
-#include <vector>
-#include <cstring>
+#include "MidiPipeline.h"
+#include "NoteLatch.h"
 
 enum NoteLayoutMode : uint8_t {
   OCTAVE_LAYOUT,
@@ -57,16 +57,26 @@ struct NoteLayoutConfig {
   bool useWhiteAsOutOfScale = false;
 };
 
+struct NotePadData
+{
+  NoteLayoutConfig* config;
+  NoteLatch noteLatch;
+  MidiPipeline midiPipeline;
+};
+
 class NotePad : public UIComponent {
  public:
   Dimension dimension;
-  NoteLayoutConfig* config;
   std::vector<uint8_t> noteMap;
   uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
+  uint8_t pipelineFeedbackNotes[16]; // Each uint8_t stores a bit
   uint16_t c_aligned_scale_map;
+  NotePadData* data;
 
-  NotePad(Dimension dimension, NoteLayoutConfig* config);
+  NotePad(Dimension dimension, NotePadData* data);
   ~NotePad();
+
+  void Tick();
 
   virtual Color GetColor();
   virtual Dimension GetSize();
@@ -81,6 +91,10 @@ class NotePad : public UIComponent {
   void IncrementActiveNote(uint8_t note);
   void DecrementActiveNote(uint8_t note);
 
+  void SetPipelineFeedbackNote(uint8_t note);
+  void UnsetPipelineFeedbackNote(uint8_t note);
+  bool IsPipelineFeedbackNoteActive(uint8_t note);
+
   void GenerateOctaveKeymap();
   void GenerateOffsetKeymap();
   void GenerateChromaticKeymap();
@@ -94,5 +108,5 @@ class NotePad : public UIComponent {
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
 
   void SetDimension(Dimension dimension);
-  void SetConfig(NoteLayoutConfig* config);
+  void SetPadData(NotePadData* data);
 };

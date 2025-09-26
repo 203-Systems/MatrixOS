@@ -13,18 +13,20 @@ NoteControlBar::NoteControlBar(Note* notePtr, NotePad* notepad1, NotePad* notepa
 }
 
 void NoteControlBar::SwapActiveConfig() {
-    note->activeConfig = (note->activeConfig.Get() == 1) ? 0 : 1;
+    NotePadData* padData1 = notePad[0]->data;
+    NotePadData* padData2 = notePad[1]->data;
+
     if(notePad[0]) {
-        notePad[0]->SetConfig(&note->notePadConfigs[note->activeConfig]);
+        notePad[0]->SetPadData(padData2);
     }
     if(notePad[1]) {
-        notePad[1]->SetConfig(&note->notePadConfigs[(note->activeConfig.Get() == 1) ? 0 : 1]);
+        notePad[1]->SetPadData(padData1);
     }
     if(underglow[0]) {
-        underglow[0]->SetColor(note->notePadConfigs[note->activeConfig].color);
+        underglow[0]->SetColor(padData1->config->color);
     }
     if(underglow[1]) {
-        underglow[1]->SetColor(note->notePadConfigs[(note->activeConfig.Get() == 1) ? 0 : 1].color);
+        underglow[1]->SetColor(padData1->config->color);
     }
 }
 
@@ -103,6 +105,12 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         return true;
     }
 
+    else if(xy == Point(2, CTL_BAR_Y - 1)) {
+       if(keyInfo->State() == PRESSED) {
+            notePad[0]->data->noteLatch.SetEnabled(!notePad[0]->data->noteLatch.IsEnabled());
+       }
+    }
+
     // Octave Down
     else if(xy == Point(6, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
@@ -165,7 +173,7 @@ Color NoteControlBar::GetOctaveMinusColor()
 bool NoteControlBar::Render(Point origin) {
     MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(0, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0xFF0000));
     MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0x00FF00));
-    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), Color(0x404040));
+    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), Color(0xFFFF00).DimIfNot(notePad[0]->data->noteLatch.IsEnabled()));
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), Color(0x404040));
     MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), Color(0x404040));

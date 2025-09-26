@@ -30,18 +30,37 @@ const Color rainbowNoteColor[12] = {
     Color(0xFF0080)
 };
 
-NotePad::NotePad(Dimension dimension, NoteLayoutConfig* config) {
+NotePad::NotePad(Dimension dimension, NotePadData* data) {
     this->dimension = dimension;
-    this->config = config;
+    this->data = data;
+    data->midiPipeline.AddEffect("NoteLatch", &data->noteLatch);
+    data->noteLatch.SetEnabled(false);
     GenerateKeymap();
 }
 
 NotePad::~NotePad() {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0)); // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(data->config->channel, 123, 0)); // All notes off
+}
+
+void NotePad::Tick()
+{
+    data->midiPipeline.Tick();
+    MidiPacket midiPacket;
+    while (data->midiPipeline.Get(midiPacket)) {
+        // Update pipeline feedback notes based on Note On/Off events
+        if (midiPacket.status == NoteOn && midiPacket.Velocity() > 0) {
+            SetPipelineFeedbackNote(midiPacket.Note());
+        }
+        else if (midiPacket.status == NoteOff || (midiPacket.status == NoteOn && midiPacket.Velocity() == 0)) {
+            UnsetPipelineFeedbackNote(midiPacket.Note());
+        }
+
+        MatrixOS::MIDI::Send(midiPacket);
+    }
 }
 
 Color NotePad::GetColor() {
-    return config->rootColor;
+    return data->config->rootColor;
 }
 
 Dimension NotePad::GetSize() {
@@ -51,13 +70,13 @@ Dimension NotePad::GetSize() {
 NoteType NotePad::InScale(uint8_t note) {
     note %= 12;
 
-    if (note == config->rootKey)
+    if (note == data->config->rootKey)
         return ROOT_NOTE;  // It is a root key
     return bitRead(c_aligned_scale_map, note) ? SCALE_NOTE : OFF_SCALE_NOTE;
 }
 
 uint8_t NotePad::NoteFromRoot(uint8_t note) {
-    return (note + config->rootKey) % 12;
+    return (note + data->config->rootKey) % 12;
 }
 
 uint8_t NotePad::GetNextInScaleNote(uint8_t note) {
@@ -93,7 +112,14 @@ void NotePad::SetActiveNoteCount(uint8_t note, bool upper, uint8_t count) {
 bool NotePad::IsNoteActive(uint8_t note) {
     if (note >= 128) return false;
     bool upper = (note % 2) == 1;
-    return GetActiveNoteCount(note, upper) > 0;
+
+    // Check active notes
+    if (GetActiveNoteCount(note, upper) > 0) {
+        return true;
+    }
+
+    // Check pipeline feedback notes
+    return IsPipelineFeedbackNoteActive(note);
 }
 
 void NotePad::IncrementActiveNote(uint8_t note) {
@@ -114,9 +140,37 @@ void NotePad::DecrementActiveNote(uint8_t note) {
     }
 }
 
+void NotePad::SetPipelineFeedbackNote(uint8_t note) {
+    if (note >= 128) return;
+    uint8_t byteIndex = note / 8;
+    uint8_t bitIndex = note % 8;
+    if (byteIndex < 16) {
+        pipelineFeedbackNotes[byteIndex] |= (1 << bitIndex);
+    }
+}
+
+void NotePad::UnsetPipelineFeedbackNote(uint8_t note) {
+    if (note >= 128) return;
+    uint8_t byteIndex = note / 8;
+    uint8_t bitIndex = note % 8;
+    if (byteIndex < 16) {
+        pipelineFeedbackNotes[byteIndex] &= ~(1 << bitIndex);
+    }
+}
+
+bool NotePad::IsPipelineFeedbackNoteActive(uint8_t note) {
+    if (note >= 128) return false;
+    uint8_t byteIndex = note / 8;
+    uint8_t bitIndex = note % 8;
+    if (byteIndex < 16) {
+        return (pipelineFeedbackNotes[byteIndex] & (1 << bitIndex)) != 0;
+    }
+    return false;
+}
+
 void NotePad::GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t root = 12 * config->octave + config->rootKey;
+    uint8_t root = 12 * data->config->octave + data->config->rootKey;
     uint8_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++) {
@@ -133,7 +187,7 @@ void NotePad::GenerateOctaveKeymap() {
             if (nextNote > 127) { // If next note is out of range, fill with 255
                 noteMap[id] = 255;
             }
-            else if(!config->inKeyNoteOnly) { // If enforce scale is false, just add the next note
+            else if(!data->config->inKeyNoteOnly) { // If enforce scale is false, just add the next note
                 noteMap[id] = nextNote;  // Add to map
                 nextNote++;
             }
@@ -158,12 +212,12 @@ void NotePad::GenerateOctaveKeymap() {
 
 void NotePad::GenerateOffsetKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t root = 12 * config->octave + config->rootKey;
-    if (!config->inKeyNoteOnly) {
+    uint8_t root = 12 * data->config->octave + data->config->rootKey;
+    if (!data->config->inKeyNoteOnly) {
         for (int8_t y = 0; y < dimension.y; y++) {
             int8_t ui_y = dimension.y - y - 1;
             for (int8_t x = 0; x < dimension.x; x++) {
-                uint8_t note = root + config->x_offset * x + config->y_offset * y;
+                uint8_t note = root + data->config->x_offset * x + data->config->y_offset * y;
                 noteMap[ui_y * dimension.x + x] = note;
             }
         }
@@ -175,12 +229,12 @@ void NotePad::GenerateOffsetKeymap() {
 
             for (uint8_t x = 0; x < dimension.x; x++) {
                 noteMap[ui_y * dimension.x + x] = note;
-                for (uint8_t i = 0; i < config->x_offset; i++) {
+                for (uint8_t i = 0; i < data->config->x_offset; i++) {
                     note = GetNextInScaleNote(note);
                 }
             }
 
-            for (uint8_t i = 0; i < config->y_offset; i++) {
+            for (uint8_t i = 0; i < data->config->y_offset; i++) {
                 root = GetNextInScaleNote(root);
             }
         }
@@ -189,13 +243,13 @@ void NotePad::GenerateOffsetKeymap() {
 
 void NotePad::GenerateChromaticKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t note = 12 * config->octave + config->rootKey;
+    uint8_t note = 12 * data->config->octave + data->config->rootKey;
     for(uint8_t i = 0; i < dimension.Area(); i++) {
         uint8_t x = i % dimension.x;
         uint8_t y = i / dimension.x;
         int8_t ui_y = dimension.y - y - 1;
         noteMap[ui_y * dimension.x + x] = note;
-        if(!config->inKeyNoteOnly) {
+        if(!data->config->inKeyNoteOnly) {
             note++;
         }
         else {
@@ -211,7 +265,7 @@ void NotePad::GeneratePianoKeymap() {
 
     for (int8_t y = 0; y < dimension.y; y++) {
         int8_t ui_y = dimension.y - y - 1;
-        uint8_t octave = config->octave + (y / 2);
+        uint8_t octave = data->config->octave + (y / 2);
 
         if(y % 2 == 0) { // Bottom row
             for (int8_t x = 0; x < dimension.x; x++) {
@@ -235,8 +289,8 @@ void NotePad::GeneratePianoKeymap() {
 }
 
 void NotePad::GenerateKeymap() {
-    c_aligned_scale_map = ((config->scale << config->rootKey) + ((config->scale & 0xFFF) >> (12 - config->rootKey % 12))) & 0xFFF;
-    switch (config->mode) {
+    c_aligned_scale_map = ((data->config->scale << data->config->rootKey) + ((data->config->scale & 0xFFF) >> (12 - data->config->rootKey % 12))) & 0xFFF;
+    switch (data->config->mode) {
         case OCTAVE_LAYOUT:
             GenerateOctaveKeymap();
             break;
@@ -251,12 +305,13 @@ void NotePad::GenerateKeymap() {
             break;
     }
     memset(activeNotes, 0, sizeof(activeNotes)); // Initialize all counters to 0
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0)); // All notes off
+    memset(pipelineFeedbackNotes, 0, sizeof(pipelineFeedbackNotes)); // Initialize pipeline feedback bitmap to 0
+    data->midiPipeline.Send(MidiPacket::ControlChange(data->config->channel, 123, 0)); // All notes off
 }
 
 bool NotePad::RenderRootNScale(Point origin) {
     uint8_t index = 0;
-    Color color_dim = config->useWhiteAsOutOfScale ? Color(0x202020) : config->color.Dim(32);
+    Color color_dim = data->config->useWhiteAsOutOfScale ? Color(0x202020) : data->config->color.Dim(32);
     for (int8_t y = 0; y < dimension.y; y++) {
         for (int8_t x = 0; x < dimension.x; x++) {
             uint8_t note = noteMap[index];
@@ -273,10 +328,10 @@ bool NotePad::RenderRootNScale(Point origin) {
                     MatrixOS::LED::SetColor(globalPos, color_dim);
                 }
                 else if (inScale == SCALE_NOTE) {
-                    MatrixOS::LED::SetColor(globalPos, config->color);
+                    MatrixOS::LED::SetColor(globalPos, data->config->color);
                 }
                 else if (inScale == ROOT_NOTE) {
-                    MatrixOS::LED::SetColor(globalPos, config->rootColor);
+                    MatrixOS::LED::SetColor(globalPos, data->config->rootColor);
                 }
             }
             index++;
@@ -288,10 +343,10 @@ bool NotePad::RenderRootNScale(Point origin) {
 bool NotePad::RenderColorPerKey(Point origin) {
     uint8_t index = 0;
     const Color* colorMap;
-    if(config->colorMode == COLOR_PER_KEY_POLY) {
+    if(data->config->colorMode == COLOR_PER_KEY_POLY) {
         colorMap = polyNoteColor;
     }
-    else if(config->colorMode == COLOR_PER_KEY_RAINBOW) {
+    else if(data->config->colorMode == COLOR_PER_KEY_RAINBOW) {
         colorMap = rainbowNoteColor;
     }
     else {
@@ -312,7 +367,7 @@ bool NotePad::RenderColorPerKey(Point origin) {
                 uint8_t awayFromRoot = NoteFromRoot(note);
                 uint8_t inScale = InScale(note);
                 if (inScale == OFF_SCALE_NOTE) {
-                    MatrixOS::LED::SetColor(globalPos, config->useWhiteAsOutOfScale ? Color(0x202020) : Color(colorMap[awayFromRoot]).Dim(32));
+                    MatrixOS::LED::SetColor(globalPos, data->config->useWhiteAsOutOfScale ? Color(0x202020) : Color(colorMap[awayFromRoot]).Dim(32));
                 }
                 else {
                     MatrixOS::LED::SetColor(globalPos, colorMap[awayFromRoot]);
@@ -325,7 +380,7 @@ bool NotePad::RenderColorPerKey(Point origin) {
 }
 
 bool NotePad::Render(Point origin) {
-    switch(config->colorMode) {
+    switch(data->config->colorMode) {
         case ROOT_N_SCALE:
             return RenderRootNScale(origin);
             break;
@@ -345,14 +400,14 @@ bool NotePad::KeyEvent(Point xy, KeyInfo* keyInfo) {
         return true;
     }
     if (keyInfo->State() == PRESSED) {
-        MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
+        data->midiPipeline.Send(MidiPacket::NoteOn(data->config->channel, note, data->config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
         IncrementActiveNote(note);
     }
-    else if (config->forceSensitive && keyInfo->State() == AFTERTOUCH) {
-        MatrixOS::MIDI::Send(MidiPacket::AfterTouch(config->channel, note, keyInfo->Force().to7bits()));
+    else if (data->config->forceSensitive && keyInfo->State() == AFTERTOUCH) {
+        data->midiPipeline.Send(MidiPacket::AfterTouch(data->config->channel, note, keyInfo->Force().to7bits()));
     }
     else if (keyInfo->State() == RELEASED) {
-        MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, 0));
+        data->midiPipeline.Send(MidiPacket::NoteOff(data->config->channel, note, 0));
         DecrementActiveNote(note);
     }
     return true;
@@ -363,7 +418,8 @@ void NotePad::SetDimension(Dimension dimension) {
     GenerateKeymap();
 }
 
-void NotePad::SetConfig(NoteLayoutConfig* config) {
-    this->config = config;
+void NotePad::SetPadData(NotePadData* data) {
+    this->data = data;
     GenerateKeymap();
 }
+

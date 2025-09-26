@@ -134,6 +134,7 @@ void Note::Setup(const vector<string>& args) {
     }
     return false;
   });
+
   actionMenu.AllowExit(false);
   actionMenu.SetSetupFunc([&]() -> void {PlayView();});
   actionMenu.Start();
@@ -164,13 +165,20 @@ void Note::PlayView() {
   }
   
 
-  NotePad notePad1(padSize, &notePadConfigs[activeConfig.Get() == 1]);
+  // Create NotePadData structures
+  NotePadData notePadData1;
+  notePadData1.config = &notePadConfigs[activeConfig.Get() == 1];
+
+  NotePadData notePadData2;
+  notePadData2.config = &notePadConfigs[activeConfig.Get() == 0];
+
+  NotePad notePad1(padSize, &notePadData1);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
   UnderglowLight underglow1(underglowSize, notePadConfigs[activeConfig.Get() == 1].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
-  NotePad notePad2(padSize, &notePadConfigs[activeConfig.Get() == 0]);
+  NotePad notePad2(padSize, &notePadData2);
   UnderglowLight underglow2(underglowSize, notePadConfigs[activeConfig.Get() == 0].color);
   
   if (splitView == VERT_SPLIT) { 
@@ -189,6 +197,11 @@ void Note::PlayView() {
   {
     playView.AddUIComponent(noteControlBar, Point(0, 8 - CTL_BAR_Y));
   }
+
+  playView.SetLoopFunc([&]() -> void {
+    notePad1.Tick();
+    notePad2.Tick();
+  });
 
   playView.Start();
 }
@@ -216,7 +229,11 @@ void Note::ColorSelector() {
   UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
   uint8_t page = 0;  // 0 = Preset, 1 = Customize
 
-  NotePad notePad(Dimension(8, 4), &notePadConfigs[activeConfig]);
+  // Create NotePadData structure for color selector
+  NotePadData colorSelectorData;
+  colorSelectorData.config = &notePadConfigs[activeConfig];
+
+  NotePad notePad(Dimension(8, 4), &colorSelectorData);
   colorSelector.AddUIComponent(notePad, Point(0, 0));
 
   UIButton presetsBtn;
