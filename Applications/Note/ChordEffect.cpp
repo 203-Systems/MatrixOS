@@ -23,9 +23,9 @@ void ChordEffect::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
     }
 
     // If chord combo changed, update all active chords
-    if (ChordComboChanged) {
+    if (chordChanged) {
         UpdateChords(output);
-        ChordComboChanged = false;
+        chordChanged = false;
     }
 
     // Process each packet
@@ -61,31 +61,28 @@ void ChordEffect::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& out
         noteOrder.push_back(root);
     }
 
-    // Output root note
-    output.push_back(packet);
+    // Build chord notes
+    vector<uint8_t> newChordNotes = BuildChordFromNote(root);
 
-    // Calculate and generate chord notes based on chord bitmap
-    for (uint8_t interval = 1; interval < 16; interval++) {
-        if (chord & (1 << interval)) {
-            uint8_t chordNote = root + interval;
-            if (chordNote < 128) {
-                // Check if another root note owns this chord note
-                if (noteOwner.find(chordNote) != noteOwner.end()) {
-                    uint8_t previousOwner = noteOwner[chordNote];
-                    // Remove from previous owner's vector
-                    auto& prevData = noteMap[previousOwner];
-                    prevData.chordNotes.erase(std::remove(prevData.chordNotes.begin(), prevData.chordNotes.end(), chordNote), prevData.chordNotes.end());
-                }
-
-                // Add to current root's chord notes
-                data.chordNotes.push_back(chordNote);
-                // Update reverse lookup
-                noteOwner[chordNote] = root;
-
-                // Send note on
-                output.push_back(MidiPacket::NoteOn(channel, chordNote, velocity));
+    // Handle chord note conflicts and send MIDI
+    for (uint8_t chordNote : newChordNotes) {
+        // Check if another root note owns this chord note
+        if (noteOwner.find(chordNote) != noteOwner.end()) {
+            uint8_t previousOwner = noteOwner[chordNote];
+            // Remove from previous owner's vector
+            if (noteMap.find(previousOwner) != noteMap.end()) {
+                auto& prevData = noteMap[previousOwner];
+                prevData.chordNotes.erase(std::remove(prevData.chordNotes.begin(), prevData.chordNotes.end(), chordNote), prevData.chordNotes.end());
             }
         }
+
+        // Add to current root's chord notes
+        data.chordNotes.push_back(chordNote);
+        // Update reverse lookup
+        noteOwner[chordNote] = root;
+
+        // Send note on
+        output.push_back(MidiPacket::NoteOn(channel, chordNote, velocity));
     }
 }
 
@@ -95,9 +92,6 @@ void ChordEffect::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
 
     // Check if this root note exists in noteMap
     if (noteMap.find(root) == noteMap.end()) return;
-
-    // Send note off for root
-    output.push_back(packet);
 
     // Send note off for all chord notes in the noteMap under this root
     for (uint8_t chordNote : noteMap[root].chordNotes) {
@@ -124,9 +118,6 @@ void ChordEffect::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>&
     // Update velocity based on velocity (aftertouch modulates velocity)
     noteMap[root].velocity = velocity;
 
-    // Pass through aftertouch for root note
-    output.push_back(packet);
-
     // Send aftertouch for all chord notes in the noteMap under this root
     for (uint8_t chordNote : noteMap[root].chordNotes) {
         output.push_back(MidiPacket::AfterTouch(channel, chordNote, velocity));
@@ -137,8 +128,7 @@ void ChordEffect::Reset() {
     noteMap.clear();
     noteOwner.clear();
     noteOrder.clear();
-    chord = 0;
-    ChordComboChanged = false;
+    chordChanged = true;
     disableOnNextTick = false;
 }
 
@@ -156,45 +146,55 @@ void ChordEffect::SetEnabled(bool state) {
 
 void ChordEffect::SetChordCombo(ChordCombo combo) {
     chordCombo = combo;
-    chord = CalculateChord(combo);
-    ChordComboChanged = true;
+    CalculateChord(combo);  // This now populates chordIntervals
+    chordChanged = true;
 }
 
-uint16_t ChordEffect::CalculateChord(ChordCombo combo) {
-    uint16_t result = 0; // Don't include root in bitmap since we handle it separately
+void ChordEffect::SetInversion(int8_t inversion)
+{
+    this->inversion = inversion;
+    chordChanged = true;
+}
+
+void ChordEffect::CalculateChord(ChordCombo combo) {
+    // Clear and rebuild intervals directly
+    chordIntervals.clear();
+    chordIntervals.push_back(0);  // Root note
 
     // Base triads
     if (combo.dim) {
-        result |= 0b0000000001001000;  // Diminished: b3(3) b5(6)
+        chordIntervals.push_back(3);  // b3
+        chordIntervals.push_back(6);  // b5
     }
 
     if (combo.min) {
-        result |= 0b0000000010001000;  // Minor: b3(3) 5(7)
+        chordIntervals.push_back(3);  // b3
+        chordIntervals.push_back(7);  // 5
     }
 
     if (combo.maj) {
-        result |= 0b0000000010010000;  // Major: 3(4) 5(7)
+        chordIntervals.push_back(4);  // 3
+        chordIntervals.push_back(7);  // 5
     }
 
     if (combo.sus) {
-        result |= 0b0000000010100000;  // Sus4: 4(5) 5(7)
+        chordIntervals.push_back(5);  // 4
+        chordIntervals.push_back(7);  // 5
     }
 
     // Extensions
     if (combo.ext6) {
-        result |= 0b0000001000000000;  // 6th: 6(9)
+        chordIntervals.push_back(9);  // 6
     }
     if (combo.extMin7) {
-        result |= 0b0000010000000000;  // Minor 7th: b7(10)
+        chordIntervals.push_back(10); // b7
     }
     if (combo.extMaj7) {
-        result |= 0b0000100000000000;  // Major 7th: 7(11)
+        chordIntervals.push_back(11); // 7
     }
     if (combo.ext9) {
-        result |= 0b0100000000000000;  // 9th: 9(14)
+        chordIntervals.push_back(14); // 9
     }
-
-    return result;
 }
 
 void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
@@ -204,13 +204,7 @@ void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
         uint8_t note = pair.first;
         output.push_back(MidiPacket::NoteOff(0, note, 0));
     }
-
-    // Also need to send note off for root notes
-    for (auto& pair : noteMap) {
-        uint8_t root = pair.first;
-        output.push_back(MidiPacket::NoteOff(0, root, 0));
-    }
-
+    
     // Clear all maps and vectors
     noteMap.clear();
     noteOwner.clear();
@@ -219,7 +213,7 @@ void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
 
 void ChordEffect::UpdateChords(deque<MidiPacket>& output)
 {
-    // First, note off all current chord notes (not root notes)
+    // First, note off all current chord notes (including root notes)
     for (auto& pair : noteMap) {
         uint8_t root = pair.first;
         NoteData& data = pair.second;
@@ -236,34 +230,59 @@ void ChordEffect::UpdateChords(deque<MidiPacket>& output)
         if (noteMap.find(root) == noteMap.end()) continue; // Safety check
 
         NoteData& data = noteMap[root];
-        vector<uint8_t> newChordNotes;
-
         // Use the velocity stored in NoteData
         uint8_t velocity = data.velocity;
 
-        // Calculate new chord notes based on updated chord bitmap
-        for (uint8_t interval = 1; interval < 16; interval++) {
-            if (chord & (1 << interval)) {
-                uint8_t chordNote = root + interval;
-                if (chordNote < 128) {
-                    // Check if another root already owns this note
-                    if (noteOwner.find(chordNote) != noteOwner.end()) {
-                        // Find the previous owner and remove from their vector
-                        uint8_t prevOwner = noteOwner[chordNote];
-                        if (noteMap.find(prevOwner) != noteMap.end()) {
-                            auto& prevData = noteMap[prevOwner];
-                            prevData.chordNotes.erase(std::remove(prevData.chordNotes.begin(), prevData.chordNotes.end(), chordNote), prevData.chordNotes.end());
-                        }
-                    }
+        // Build new chord notes
+        vector<uint8_t> newChordNotes = BuildChordFromNote(root);
 
-                    newChordNotes.push_back(chordNote);
-                    noteOwner[chordNote] = root;
-                    output.push_back(MidiPacket::NoteOn(0, chordNote, velocity)); // Use saved velocity
+        // Handle chord note conflicts and send MIDI
+        for (uint8_t chordNote : newChordNotes) {
+            // Check if another root already owns this note
+            if (noteOwner.find(chordNote) != noteOwner.end()) {
+                // Find the previous owner and remove from their vector
+                uint8_t prevOwner = noteOwner[chordNote];
+                if (noteMap.find(prevOwner) != noteMap.end()) {
+                    auto& prevData = noteMap[prevOwner];
+                    prevData.chordNotes.erase(std::remove(prevData.chordNotes.begin(), prevData.chordNotes.end(), chordNote), prevData.chordNotes.end());
                 }
             }
+
+            noteOwner[chordNote] = root;
+            output.push_back(MidiPacket::NoteOn(0, chordNote, velocity)); // Use saved velocity
         }
 
         // Update the noteMap with new chord notes
         data.chordNotes = newChordNotes;
     }
+}
+
+vector<uint8_t> ChordEffect::BuildChordFromNote(uint8_t root)
+{
+    vector<uint8_t> chordNotes;
+
+    // Use pre-calculated intervals from CalculateChord
+    const vector<uint8_t>& intervals = chordIntervals;
+
+    // Apply inversion logic
+    for (uint8_t i = 0; i < intervals.size(); i++) {
+        uint8_t interval = intervals[i];
+        uint8_t chordNote = root + interval;
+
+        // Apply inversion: notes below the inversion point get moved up by octaves
+        if (i < (inversion % intervals.size())) {
+            uint8_t octaveShift = (inversion / intervals.size() + 1) * 12;
+            chordNote += octaveShift;
+        } else if (inversion >= intervals.size()) {
+            // For higher inversions, add base octave shifts
+            uint8_t octaveShift = (inversion / intervals.size()) * 12;
+            chordNote += octaveShift;
+        }
+
+        if (chordNote < 128) {
+            chordNotes.push_back(chordNote);
+        }
+    }
+
+    return chordNotes;
 }

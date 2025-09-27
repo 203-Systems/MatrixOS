@@ -6,6 +6,7 @@
 #include "MidiPipeline.h"
 #include "NoteLatch.h"
 #include "ChordEffect.h"
+#include "Arpeggiator.h"
 
 enum NoteLayoutMode : uint8_t {
   OCTAVE_LAYOUT,
@@ -28,6 +29,13 @@ enum ColorMode : uint8_t {
 
 extern const Color polyNoteColor[12];
 extern const Color rainbowNoteColor[12];
+
+struct ActiveKey {
+  Point position;
+  Fract16 velocity;
+
+  ActiveKey(Point pos, Fract16 vel) : position(pos), velocity(vel) {}
+};
 
 struct NoteLayoutConfig {
   uint8_t rootKey = 0;
@@ -63,8 +71,13 @@ struct NotePadRuntime
   NoteLayoutConfig* config;
   NoteLatch noteLatch;
   ChordEffect chordEffect;
+  ArpeggiatorConfig arpConfig;
+  Arpeggiator arpeggiator;
   MidiPipeline midiPipeline;
   uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
+  ArpDivision currentDivision = DIV_OFF; // Current arpeggiator division
+
+  NotePadRuntime() : arpeggiator(&arpConfig) {}
 };
 
 class NotePad : public UIComponent {
@@ -74,6 +87,7 @@ class NotePad : public UIComponent {
   uint16_t c_aligned_scale_map;
   NotePadRuntime* rt;
   bool first_scan = true;
+  std::vector<ActiveKey> activeKeys;
 
   NotePad(Dimension dimension, NotePadRuntime* data);
   ~NotePad();
@@ -93,6 +107,9 @@ class NotePad : public UIComponent {
   void IncrementActiveNote(uint8_t note);
   void DecrementActiveNote(uint8_t note);
 
+  void AddActiveKey(Point position, Fract16 velocity);
+  void RemoveActiveKey(Point position);
+  void UpdateActiveKeyVelocity(Point position, Fract16 velocity);
 
   void GenerateOctaveKeymap();
   void GenerateOffsetKeymap();

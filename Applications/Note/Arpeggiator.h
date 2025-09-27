@@ -1,0 +1,100 @@
+#pragma once
+
+#include "MatrixOS.h"
+#include "MidiEffect.h"
+#include <vector>
+#include <deque>
+
+using std::vector;
+using std::deque;
+
+enum ArpDirection {
+    ARP_UP,
+    ARP_DOWN,
+    ARP_UP_DOWN,
+    ARP_DOWN_UP,
+    ARP_UP_N_DOWN,
+    ARP_DOWN_N_UP,
+    ARP_RANDOM,
+    ARP_PLAY_ORDER,
+    ARP_CONVERGE,
+    ARP_DIVERGE,
+    ARP_CON_DIVERGE,
+    ARP_DIV_CONVERGE,
+    ARP_PINKY_UP,
+    ARP_PINKY_DOWN,
+    ARP_THUMB_UP,
+    ARP_THUMB_DOWN,
+
+};
+
+enum ArpDivision {
+    DIV_OFF = 0,
+    DIV_WHOLE = 1,
+    DIV_HALF = 2,
+    DIV_QUARTER = 4,
+    DIV_EIGHTH = 8,
+    DIV_SIXTEENTH = 16,
+    DIV_THIRTYSECOND = 32,
+    DIV_SIXTYFOURTH = 64
+};
+
+enum ArpClockSource {
+    CLOCK_INTERNAL,
+    CLOCK_INTERNAL_CLOCKOUT,  // Send clock to external devices
+    CLOCK_EXTERNAL
+};
+
+struct ArpeggiatorConfig {
+    // Timing
+    uint32_t bpm = 120;                    // BPM (60-299)
+    ArpClockSource clockSource = CLOCK_INTERNAL;
+    int8_t swingAmount = 0;                // Swing amount (-80% to 80%)
+
+    // Playback
+    uint8_t gateTime = 90;                 // Gate time (0% to 100%)
+    ArpDirection direction = ARP_UP;       // Direction of arpeggiator
+    uint8_t step = 1;                      // Octave step (1 to 8)
+    int8_t stepOffset = 0;                 // Step offset (-24 to 24 semitones)
+};
+
+struct ArpNote {
+    uint8_t note;
+    uint8_t velocity;
+    uint8_t channel;
+    uint32_t timestamp;  // When the note was pressed
+};
+
+class Arpeggiator : public MidiEffect {
+private:
+    ArpeggiatorConfig* config;       // Configuration pointer
+    vector<ArpNote> notePool;        // All active notes
+    vector<ArpNote> arpSequence;     // Current arp sequence
+    uint8_t currentIndex = 0;        // Current position in sequence
+
+    ArpDivision division = DIV_OFF;  // Note division (internal control)
+    uint32_t lastStepTime = 0;
+    uint32_t stepDuration = 125;     // Default 125ms for 1/8 at 120 BPM
+
+    bool disableOnNextTick = false;
+
+    // Helper functions
+    void ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output);
+    void ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& output);
+    void UpdateSequence();
+    void StepArpeggiator(deque<MidiPacket>& output);
+    uint32_t CalculateStepDuration();
+
+public:
+    Arpeggiator(ArpeggiatorConfig* cfg);
+
+    void Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) override;
+    void Reset() override;
+    void SetEnabled(bool state) override;
+
+    // Configuration access
+    void UpdateConfig(ArpeggiatorConfig* cfg) { config = cfg; }
+
+    // Division control
+    void SetDivision(ArpDivision div) { division = div; }
+};

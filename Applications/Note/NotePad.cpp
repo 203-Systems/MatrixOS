@@ -1,4 +1,5 @@
 #include "NotePad.h"
+#include <algorithm>
 
 const Color polyNoteColor[12] = {
     Color(0x00FFD9),
@@ -36,11 +37,14 @@ NotePad::NotePad(Dimension dimension, NotePadRuntime* data) {
     rt->midiPipeline.AddEffect("NoteLatch", &rt->noteLatch);
     rt->noteLatch.SetEnabled(false);
     rt->midiPipeline.AddEffect("ChordEffect", &rt->chordEffect);
-    GenerateKeymap();  
+    // rt->midiPipeline.AddEffect("Arpeggiator", &rt->arpeggiator);
+    activeKeys.clear();
+    GenerateKeymap();
 }
 
 NotePad::~NotePad() {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(rt->config->channel, 123, 0)); // All notes off
+    activeKeys.clear();
 }
 
 void NotePad::Tick()
@@ -126,6 +130,26 @@ void NotePad::DecrementActiveNote(uint8_t note) {
     }
 }
 
+void NotePad::AddActiveKey(Point position, Fract16 velocity) {
+    activeKeys.emplace_back(position, velocity);
+}
+
+void NotePad::RemoveActiveKey(Point position) {
+    activeKeys.erase(
+        std::remove_if(activeKeys.begin(), activeKeys.end(),
+            [position](const ActiveKey& key) { return key.position == position; }),
+        activeKeys.end()
+    );
+}
+
+void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
+    for (auto& key : activeKeys) {
+        if (key.position == position) {
+            key.velocity = velocity;
+            break;
+        }
+    }
+}
 
 void NotePad::GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
@@ -276,23 +300,17 @@ void NotePad::GenerateKeymap() {
 
 void NotePad::FirstScan(Point origin)
 {
-    for(uint8_t y = 0; y < dimension.y; y++)
+    for(const auto& activeKey : activeKeys)
     {
-        for(uint8_t x = 0; x < dimension.x; x++)
-        {
-            uint8_t note = noteMap[y * dimension.x + x];
+        uint8_t note = noteMap[activeKey.position.y * dimension.x + activeKey.position.x];
 
-            if(note == 255) {
-                continue;
-            }
-
-            KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(origin + Point(x, y));
-            if(keyInfo->State() == ACTIVATED || keyInfo->State() == AFTERTOUCH || keyInfo->State() == HOLD)
-            {
-                IncrementActiveNote(note);
-                rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, rt->config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
-            }
+        if(note == 255) {
+            continue;
         }
+
+        IncrementActiveNote(note);
+        Fract16 velocity = activeKey.velocity;
+        rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, velocity.to7bits()));
     }
 }
 
@@ -391,14 +409,19 @@ bool NotePad::KeyEvent(Point xy, KeyInfo* keyInfo) {
         return true;
     }
     if (keyInfo->State() == PRESSED) {
-        rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, rt->config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
+        Fract16 velocity = rt->config->forceSensitive ? keyInfo->Force() : Fract16(0x7F << 9);
+        rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, velocity.to7bits()));
+        AddActiveKey(xy, velocity);
         IncrementActiveNote(note);
     }
     else if (rt->config->forceSensitive && keyInfo->State() == AFTERTOUCH) {
-        rt->midiPipeline.Send(MidiPacket::AfterTouch(rt->config->channel, note, keyInfo->Force().to7bits()));
+        Fract16 velocity = keyInfo->Force();
+        rt->midiPipeline.Send(MidiPacket::AfterTouch(rt->config->channel, note, velocity.to7bits()));
+        UpdateActiveKeyVelocity(xy, velocity);
     }
     else if (keyInfo->State() == RELEASED) {
         rt->midiPipeline.Send(MidiPacket::NoteOff(rt->config->channel, note, 0));
+        RemoveActiveKey(xy);
         DecrementActiveNote(note);
     }
     return true;
