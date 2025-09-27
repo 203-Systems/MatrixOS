@@ -178,7 +178,7 @@ void Arpeggiator::UpdateSequence() {
     for (uint8_t stepNum = 0; stepNum < config->step; stepNum++) {
         for (const ArpNote& note : sortedNotes) {
             ArpNote stepNote = note;
-            stepNote.note += (stepNum * 12) + config->stepOffset;
+            stepNote.note += stepNum * config->stepOffset;
             if (stepNote.note < 128 && stepNote.note >= 0) {
                 arpSequence.push_back(stepNote);
             }
