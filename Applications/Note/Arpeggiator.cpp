@@ -7,11 +7,6 @@ Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) : config(cfg) {
 }
 
 void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
-    if (!enabled || division == DIV_OFF) {
-        output = std::move(input);
-        return;
-    }
-
     if (disableOnNextTick) {
         disableOnNextTick = false;
         enabled = false;
@@ -25,7 +20,10 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
 
     uint64_t currentTime = MatrixOS::SYS::Micros();
 
-    // Process input packets
+    // Track if notePool was empty at the start of this tick
+    bool wasEmpty = notePool.empty();
+
+    // Process input packets - always track notes even when division is OFF
     for (const MidiPacket& packet : input) {
         if (packet.status == NoteOn || packet.status == NoteOff || packet.status == AfterTouch) {
             if (packet.status == NoteOn && packet.Velocity() > 0) {
@@ -35,15 +33,30 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             } else {
                 ProcessNoteOff(packet, output);
             }
-        } else {
+        }
+
+        // Pass through all packets when division is OFF
+        if (division == DIV_OFF) {
+            output.push_back(packet);
+        } else if (packet.status != NoteOn && packet.status != NoteOff && packet.status != AfterTouch) {
             output.push_back(packet);
         }
     }
 
-    // Step arpeggiator if it's time (using swing timing)
-    if (!notePool.empty() && currentTime - lastStepTime >= stepDuration[currentIndex % 2]) {
-        StepArpeggiator(output);
-        lastStepTime = currentTime;
+    // Only do arpeggiator logic when division is not OFF
+    if (division != DIV_OFF) {
+        // Step arpeggiator if it's time (using swing timing)
+        if (!notePool.empty() && (currentTime - lastStepTime) >= stepDuration[currentIndex % 2]) {
+            StepArpeggiator(output);
+            lastStepTime = currentTime;
+        }
+
+        // If notePool was empty but now has notes, force start
+        if (wasEmpty && !notePool.empty()) {
+            currentIndex = 0;
+            StepArpeggiator(output);
+            lastStepTime = currentTime;
+        }
     }
 }
 
@@ -66,13 +79,6 @@ void Arpeggiator::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& out
         ArpNote arpNote = {note, velocity, channel, (uint32_t)timestamp};
         notePool.push_back(arpNote);
         UpdateSequence();
-
-        // If this is the first note, start arpeggiating immediately
-        if (notePool.size() == 1) {
-            currentIndex = 0;
-            lastStepTime = timestamp;
-            StepArpeggiator(output);
-        }
     }
 }
 
@@ -85,6 +91,12 @@ void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
         notePool.end());
 
     UpdateSequence();
+
+    // If all notes are released, turn off the last played note
+    if (notePool.empty() && lastPlayedNote.note != 255) {
+        output.push_back(MidiPacket::NoteOff(lastPlayedNote.channel, lastPlayedNote.note, 0));
+        lastPlayedNote = {255, 0, 0, 0}; // Reset to invalid
+    }
 
     // Reset index if we've gone beyond the sequence
     if (currentIndex >= arpSequence.size() && !arpSequence.empty()) {
@@ -177,6 +189,11 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
         return;
     }
 
+    // Turn off previous note if valid
+    if (lastPlayedNote.note != 255) {
+        output.push_back(MidiPacket::NoteOff(lastPlayedNote.channel, lastPlayedNote.note, 0));
+    }
+
     if (config->direction == ARP_RANDOM) {
         currentIndex = rand() % arpSequence.size();
     }
@@ -184,6 +201,9 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     // Play current note
     const ArpNote& currentNote = arpSequence[currentIndex];
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
+
+    // Track the note we just played
+    lastPlayedNote = currentNote;
 
     // Advance to next note
     currentIndex = (currentIndex + 1) % arpSequence.size();
@@ -212,6 +232,7 @@ void Arpeggiator::Reset() {
     arpSequence.clear();
     currentIndex = 0;
     lastStepTime = 0;
+    lastPlayedNote = {255, 0, 0, 0}; // Reset to invalid note
     disableOnNextTick = false;
 }
 
@@ -232,6 +253,15 @@ void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
 }
 
 void Arpeggiator::SetDivision(ArpDivision div) {
+    ArpDivision oldDivision = division;
     division = div;
     CalculateStepDurations();
+
+    // If turning on arpeggiator with notes already held, start immediately
+    if (oldDivision == DIV_OFF && div != DIV_OFF && !notePool.empty()) {
+        currentIndex = 0;
+        lastStepTime = MatrixOS::SYS::Micros();
+        // Note: We can't call StepArpeggiator here since we don't have output queue
+        // The force start will happen on the next Tick()
+    }
 }

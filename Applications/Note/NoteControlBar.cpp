@@ -311,14 +311,18 @@ bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
     // Map slider positions to ArpDivision values
     ArpDivision divisions[8] = {
-        DIV_OFF,         // 0
-        DIV_WHOLE,       // 1
-        DIV_HALF,        // 2
-        DIV_QUARTER,     // 4
-        DIV_EIGHTH,      // 8
-        DIV_SIXTEENTH,   // 16
-        DIV_THIRTYSECOND,// 32
-        DIV_SIXTYFOURTH  // 64
+            DIV_OFF, // 0
+            // DIV_WHOLE, // 1
+            // DIV_HALF, // 2
+            // DIV_THIRD, // 3
+            DIV_QUARTER, // 4
+            DIV_SIXTH, // 6
+            DIV_EIGHTH, // 8
+            DIV_TWELFTH, // 12
+            DIV_SIXTEENTH, // 16
+            DIV_TWENTYFOURTH, // 24
+            DIV_THIRTYSECOND, // 32
+            // DIV_SIXTYFOURTH, // 64
     };
 
     if(xy.x >= 0 && xy.x < 8) {
@@ -429,14 +433,18 @@ void NoteControlBar::RenderChordControl(Point origin) {
 void NoteControlBar::RenderArpControl(Point origin) {
     // Map ArpDivision enum to slider positions (0-7)
     ArpDivision divisions[8] = {
-        DIV_OFF,         // 0
-        DIV_WHOLE,       // 1
-        DIV_HALF,        // 2
-        DIV_QUARTER,     // 4
-        DIV_EIGHTH,      // 8
-        DIV_SIXTEENTH,   // 16
-        DIV_THIRTYSECOND,// 32
-        DIV_SIXTYFOURTH  // 64
+            DIV_OFF, // 0
+            // DIV_WHOLE, // 1
+            // DIV_HALF, // 2
+            // DIV_THIRD, // 3
+            DIV_QUARTER, // 4
+            DIV_SIXTH, // 6
+            DIV_EIGHTH, // 8
+            DIV_TWELFTH, // 12
+            DIV_SIXTEENTH, // 16
+            DIV_TWENTYFOURTH, // 24
+            DIV_THIRTYSECOND, // 32
+            // DIV_SIXTYFOURTH, // 64
     };
 
     // Render slider

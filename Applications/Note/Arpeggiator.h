@@ -32,9 +32,13 @@ enum ArpDivision {
     DIV_OFF = 0,
     DIV_WHOLE = 1,
     DIV_HALF = 2,
+    DIV_THIRD = 3,
     DIV_QUARTER = 4,
+    DIV_SIXTH = 6,
     DIV_EIGHTH = 8,
+    DIV_TWELFTH = 12,
     DIV_SIXTEENTH = 16,
+    DIV_TWENTYFOURTH = 24,
     DIV_THIRTYSECOND = 32,
     DIV_SIXTYFOURTH = 64
 };
@@ -72,9 +76,9 @@ private:
     vector<ArpNote> arpSequence;     // Current arp sequence
     uint8_t currentIndex = 0;        // Current position in sequence
 
-    ArpDivision division = DIV_OFF;  // Note division (internal control)
     uint64_t lastStepTime = 0;       // Last step time in microseconds
     uint32_t stepDuration[2];        // [0] = on-beat, [1] = off-beat (for swing)
+    ArpNote lastPlayedNote = {255, 0, 0, 0}; // Track last played note for note-off
 
     bool disableOnNextTick = false;
 
@@ -87,6 +91,8 @@ private:
     void CalculateStepDurations();
 
 public:
+    ArpDivision division = DIV_OFF;  // Note division (internal control)
+    
     Arpeggiator(ArpeggiatorConfig* cfg);
 
     void Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) override;
