@@ -4,6 +4,7 @@
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
 #include "ArpDirVisualizer.h"
+#include "TimedDisplay.h"
 
 void Note::Setup(const vector<string>& args) {
   // Set up / Load configs --------------------------------------------------------------------------
@@ -599,12 +600,54 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(arpConfigSelector, Point(1, 0));
 
   // BPM selector
+  TimedDisplay bpmTextDisplay(1000);
+  bpmTextDisplay.SetDimension(Dimension(8, 4));
+  bpmTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    Color color = arpConfigColor[ARP_BPM];
+
+    // B
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), color);
+
+    // P
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
+
+    // M
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+  });
+  bpmTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  arpConfigMenu.AddUIComponent(bpmTextDisplay, Point(0, 2));
+
+
   UI4pxNumber bpmDisplay;
   bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);
   bpmDisplay.SetDigits(3);
   bpmDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.bpm);
   bpmDisplay.SetAlternativeColor(Color(0xFFFFFF));
-  bpmDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  bpmDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_BPM) &&  !bpmTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
 
   UINumberModifier bpmNumberModifier;
@@ -616,6 +659,7 @@ void Note::ArpConfigMenu() {
   bpmNumberModifier.SetLowerLimit(20);
   bpmNumberModifier.SetUpperLimit(299);
   bpmNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  bpmNumberModifier.OnChange([&](int32_t val) -> void { bpmTextDisplay.Disable(); });
   arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
 
   // Swing selector
@@ -678,11 +722,11 @@ void Note::ArpConfigMenu() {
   // Step selector
   UI4pxNumber stepDisplay;
   stepDisplay.SetColor(arpConfigColor[ARP_STEP]);
-  stepDisplay.SetDigits(1);
+  stepDisplay.SetDigits(3);
   stepDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.step);
   stepDisplay.SetAlternativeColor(Color(0xFFFFFF));
   stepDisplay.SetEnableFunc([&]() -> bool { return page == ARP_STEP; });
-  arpConfigMenu.AddUIComponent(stepDisplay, Point(3, 2));
+  arpConfigMenu.AddUIComponent(stepDisplay, Point(-1, 2));
 
   // Custom modifier for step (1-8 range)
 
