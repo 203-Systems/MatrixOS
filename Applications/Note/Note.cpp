@@ -124,11 +124,12 @@ void Note::Setup(const vector<string>& args) {
   controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
   actionMenu.AddUIComponent(controlBarToggle, Point(1, 7));
   
-    // Other Controls
+  // Other Controls
   UIButton arpConfigBtn;
   arpConfigBtn.SetName("Arpeggiator Config");
   arpConfigBtn.SetColor(Color(0x80FF00));
   arpConfigBtn.OnPress([&]() -> void {ArpConfigMenu();});
+  arpConfigBtn.SetEnableFunc([&]() -> bool {return controlBar;});
   actionMenu.AddUIComponent(arpConfigBtn, Point(3, 7));
 
   // Other Controls
