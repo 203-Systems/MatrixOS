@@ -3,6 +3,7 @@
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
+#include "ArpDirVisualizer.h"
 
 void Note::Setup(const vector<string>& args) {
   // Set up / Load configs --------------------------------------------------------------------------
@@ -658,6 +659,21 @@ void Note::ArpConfigMenu() {
   gateNumberModifier.SetUpperLimit(200);
   gateNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_GATE; });
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
+
+  // Direction Selector
+  ArpDirVisualizer arpDirVisualizer(&notePadConfigs[activeConfig].arpConfig.direction, arpConfigColor[ARP_DIRECTION]);
+  arpDirVisualizer.SetEnableFunc([&]() -> bool { return page == ARP_DIRECTION; });
+  arpConfigMenu.AddUIComponent(arpDirVisualizer, Point(0, 2));
+
+  UISelector directionSelector;
+  directionSelector.SetDimension(Dimension(8, 4));
+  directionSelector.SetColor(arpConfigColor[ARP_DIRECTION]);
+  directionSelector.SetValueFunc([&]() -> uint16_t { return (uint16_t)notePadConfigs[activeConfig].arpConfig.direction; });
+  directionSelector.OnChange([&](uint16_t value) -> void { notePadConfigs[activeConfig].arpConfig.direction = (ArpDirection)value; });
+  directionSelector.SetCount(16);
+  directionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpDirectionNames[index]; });
+  directionSelector.SetEnableFunc([&]() -> bool { return page == ARP_DIRECTION; });
+  arpConfigMenu.AddUIComponent(directionSelector, Point(0, 6));
 
   // Step selector
   UI4pxNumber stepDisplay;

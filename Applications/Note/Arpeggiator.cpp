@@ -45,6 +45,13 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
 
     // Only do arpeggiator logic when division is not OFF
     if (division != DIV_OFF) {
+        // Check for gate off timing - process from front of queue
+        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTime <= currentTime) {
+            const GateOffEvent& event = gateOffQueue.front();
+            output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0));
+            gateOffQueue.pop_front();
+        }
+
         // Step arpeggiator if it's time (using swing timing)
         if (!notePool.empty() && (currentTime - lastStepTime) >= stepDuration[currentIndex % 2]) {
             StepArpeggiator(output);
@@ -56,6 +63,14 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             currentIndex = 0;
             StepArpeggiator(output);
             lastStepTime = currentTime;
+        }
+
+        // If notePool becomes empty, turn off any sustained notes (for gate=0 mode)
+        if (!wasEmpty && notePool.empty()) {
+            for (const auto& event : gateOffQueue) {
+                output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0)); // Turn off all sustained notes
+            }
+            gateOffQueue.clear(); // Clear all gate timers
         }
     }
 }
@@ -90,13 +105,15 @@ void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
         [note](const ArpNote& arpNote) { return arpNote.note == note; }),
         notePool.end());
 
-    UpdateSequence();
-
-    // If all notes are released, turn off the last played note
-    if (notePool.empty() && lastPlayedNote.note != 255) {
-        output.push_back(MidiPacket::NoteOff(lastPlayedNote.channel, lastPlayedNote.note, 0));
-        lastPlayedNote = {255, 0, 0, 0}; // Reset to invalid
+    // If this note is being sustained by the arpeggiator, turn it off immediately
+    auto it = std::find_if(gateOffQueue.begin(), gateOffQueue.end(),
+        [note](const GateOffEvent& event) { return event.note == note; });
+    if (it != gateOffQueue.end()) {
+        output.push_back(MidiPacket::NoteOff(it->channel, note, 0));
+        gateOffQueue.erase(it);
     }
+
+    UpdateSequence();
 
     // Reset index if we've gone beyond the sequence
     if (currentIndex >= arpSequence.size() && !arpSequence.empty()) {
@@ -189,11 +206,6 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
         return;
     }
 
-    // Turn off previous note if valid
-    if (lastPlayedNote.note != 255) {
-        output.push_back(MidiPacket::NoteOff(lastPlayedNote.channel, lastPlayedNote.note, 0));
-    }
-
     if (config->direction == ARP_RANDOM) {
         currentIndex = rand() % arpSequence.size();
     }
@@ -202,8 +214,19 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     const ArpNote& currentNote = arpSequence[currentIndex];
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
-    // Track the note we just played
-    lastPlayedNote = currentNote;
+    // Calculate gate off time based on gate percentage and current step duration
+    if (config->gateTime == 0) {
+        // Gate time 0 = always on until arp stops (don't add to map)
+        // Note will be turned off when arp stops or note is released
+    } else {
+        // Calculate gate duration as percentage of step duration
+        uint32_t currentStepDuration = stepDuration[currentIndex % 2];
+        uint32_t gateDuration = (currentStepDuration * config->gateTime) / 100;
+        uint64_t gateOffTime = MatrixOS::SYS::Micros() + gateDuration;
+
+        // Add this note to the gate off queue
+        gateOffQueue.push_back({gateOffTime, currentNote.note, currentNote.channel});
+    }
 
     // Advance to next note
     currentIndex = (currentIndex + 1) % arpSequence.size();
@@ -232,7 +255,7 @@ void Arpeggiator::Reset() {
     arpSequence.clear();
     currentIndex = 0;
     lastStepTime = 0;
-    lastPlayedNote = {255, 0, 0, 0}; // Reset to invalid note
+    gateOffQueue.clear(); // Clear all gate timers
     disableOnNextTick = false;
 }
 

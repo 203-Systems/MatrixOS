@@ -4,9 +4,11 @@
 #include "MidiEffect.h"
 #include <vector>
 #include <deque>
+#include <map>
 
 using std::vector;
 using std::deque;
+using std::map;
 
 enum ArpDirection {
     ARP_UP,
@@ -22,10 +24,9 @@ enum ArpDirection {
     ARP_CON_DIVERGE,
     ARP_DIV_CONVERGE,
     ARP_PINKY_UP,
-    ARP_PINKY_DOWN,
+    ARP_PINKY_UP_DOWN,
     ARP_THUMB_UP,
-    ARP_THUMB_DOWN,
-
+    ARP_THUMB_UP_DOWN,
 };
 
 enum ArpDivision {
@@ -43,9 +44,28 @@ enum ArpDivision {
     DIV_SIXTYFOURTH = 64
 };
 
+inline const char* arpDirectionNames[16] = {
+    "Up", 
+    "Down", 
+    "Up Down", 
+    "Down Up", 
+    "Up & Down", 
+    "Down & Up",
+    "Random", 
+    "Play Order", 
+    "Converge", 
+    "Diverge", 
+    "Con & Diverge", 
+    "Div & Converge",
+    "Pinky Up", 
+    "Pinky Up Down", 
+    "Thumb Up", 
+    "Thumb Up Down"
+};
+
 enum ArpClockSource {
     CLOCK_INTERNAL,
-    CLOCK_INTERNAL_CLOCKOUT,  // Send clock to external devices
+    CLOCK_INTERNAL_CLOCKOUT,    // Send clock to external devices
     CLOCK_EXTERNAL
 };
 
@@ -78,7 +98,12 @@ private:
 
     uint64_t lastStepTime = 0;       // Last step time in microseconds
     uint32_t stepDuration[2];        // [0] = on-beat, [1] = off-beat (for swing)
-    ArpNote lastPlayedNote = {255, 0, 0, 0}; // Track last played note for note-off
+    struct GateOffEvent {
+        uint64_t gateOffTime;
+        uint8_t note;
+        uint8_t channel;
+    };
+    deque<GateOffEvent> gateOffQueue; // Chronologically ordered queue of gate-off events
 
     bool disableOnNextTick = false;
 
