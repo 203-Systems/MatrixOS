@@ -121,6 +121,13 @@ void Note::Setup(const vector<string>& args) {
   controlBarToggle.SetValuePointer(&controlBar);
   controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
   actionMenu.AddUIComponent(controlBarToggle, Point(1, 7));
+  
+    // Other Controls
+  UIButton arpConfigBtn;
+  arpConfigBtn.SetName("Arpeggiator Config");
+  arpConfigBtn.SetColor(Color(0x80FF00));
+  arpConfigBtn.OnPress([&]() -> void {ArpConfigMenu();});
+  actionMenu.AddUIComponent(arpConfigBtn, Point(3, 7));
 
   // Other Controls
   UIButton systemSettingBtn;
@@ -539,3 +546,176 @@ void Note::ChannelSelector() {
 
   channelSelector.Start();
 }
+
+void Note::ArpConfigMenu() {
+  UI arpConfigMenu("Arpeggiator Config", Color(0x80FF00));
+  uint64_t menuOpenTime = MatrixOS::SYS::Millis();
+
+  enum ArpConfigType:uint16_t
+  {
+    ARP_BPM,
+    ARP_SWING,
+    ARP_GATE,
+    ARP_DIRECTION,
+    ARP_STEP,
+    ARP_STEP_OFFSET,
+  };
+
+  ArpConfigType page = ARP_BPM;
+
+  Color arpConfigColor[6]
+  {
+    Color(0xFF0000), // Red - BPM
+    Color(0xFF8000), // Orange - Swing
+    Color(0xFFFF00), // Yellow - Gate
+    Color(0x00FF00), // Green - Direction
+    Color(0x00FFFF), // Cyan - Step
+    Color(0x4000FF), // Blue - Step Offset
+  };
+
+  string arpConfigName[6]
+  {
+    "BPM",
+    "Swing",
+    "Gate",
+    "Direction",
+    "Step",
+    "Step Offset",
+  };
+
+  // Shared arrays for all number modifiers
+  int32_t coarseModifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};
+  int32_t fineModifier[8] = {-25, -10, -5, -1, 1, 5, 10, 25};
+  uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+
+  UISelector arpConfigSelector;
+  arpConfigSelector.SetCount(6);
+  arpConfigSelector.SetDimension(Dimension(6, 1));
+  arpConfigSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return arpConfigColor[index]; });
+  arpConfigSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpConfigName[index]; });
+  arpConfigSelector.SetValuePointer((uint16_t*)&page);
+  arpConfigSelector.OnChange([&](uint16_t val) -> void { if(page != (ArpConfigType)val) {page = (ArpConfigType)val; menuOpenTime = MatrixOS::SYS::Millis();}});
+  arpConfigMenu.AddUIComponent(arpConfigSelector, Point(1, 0));
+
+  // BPM selector
+  UI4pxNumber bpmDisplay;
+  bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);
+  bpmDisplay.SetDigits(3);
+  bpmDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.bpm);
+  bpmDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  bpmDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
+
+  UINumberModifier bpmNumberModifier;
+  bpmNumberModifier.SetColor(arpConfigColor[ARP_BPM]);
+  bpmNumberModifier.SetLength(8);
+  bpmNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.bpm);
+  bpmNumberModifier.SetModifiers(coarseModifier);
+  bpmNumberModifier.SetControlGradient(modifierGradient);
+  bpmNumberModifier.SetLowerLimit(20);
+  bpmNumberModifier.SetUpperLimit(299);
+  bpmNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
+
+  // Swing selector
+  UI4pxNumber swingDisplay;
+  swingDisplay.SetColor(arpConfigColor[ARP_SWING]);
+  swingDisplay.SetDigits(3);
+  swingDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.swingAmount);
+  swingDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  swingDisplay.SetEnableFunc([&]() -> bool { return page == ARP_SWING; });
+  arpConfigMenu.AddUIComponent(swingDisplay, Point(-1, 2));
+
+  // Custom modifier for swing (smaller increments)
+  int32_t swingModifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
+  UINumberModifier swingNumberModifier;
+  swingNumberModifier.SetColor(arpConfigColor[ARP_SWING]);
+  swingNumberModifier.SetLength(8);
+  swingNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.swingAmount);
+  swingNumberModifier.SetModifiers(swingModifier);
+  swingNumberModifier.SetControlGradient(modifierGradient);
+  swingNumberModifier.SetLowerLimit(20);
+  swingNumberModifier.SetUpperLimit(80);
+  swingNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_SWING; });
+  arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
+
+  // Gate selector
+  UI4pxNumber gateDisplay;
+  gateDisplay.SetColor(arpConfigColor[ARP_GATE]);
+  gateDisplay.SetDigits(3);
+  gateDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.gateTime);
+  gateDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  gateDisplay.SetEnableFunc([&]() -> bool { return page == ARP_GATE; });
+  arpConfigMenu.AddUIComponent(gateDisplay, Point(-1, 2));
+
+  UINumberModifier gateNumberModifier;
+  gateNumberModifier.SetColor(arpConfigColor[ARP_GATE]);
+  gateNumberModifier.SetLength(8);
+  gateNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.gateTime);
+  gateNumberModifier.SetModifiers(fineModifier);
+  gateNumberModifier.SetControlGradient(modifierGradient);
+  gateNumberModifier.SetLowerLimit(0);
+  gateNumberModifier.SetUpperLimit(200);
+  gateNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_GATE; });
+  arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
+
+  // Step selector
+  UI4pxNumber stepDisplay;
+  stepDisplay.SetColor(arpConfigColor[ARP_STEP]);
+  stepDisplay.SetDigits(1);
+  stepDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.step);
+  stepDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  stepDisplay.SetEnableFunc([&]() -> bool { return page == ARP_STEP; });
+  arpConfigMenu.AddUIComponent(stepDisplay, Point(3, 2));
+
+  // Custom modifier for step (1-8 range)
+
+  UINumberModifier stepNumberModifier;
+  stepNumberModifier.SetColor(arpConfigColor[ARP_STEP]);
+  stepNumberModifier.SetLength(8);
+  stepNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.step);
+  stepNumberModifier.SetModifiers(fineModifier);
+  stepNumberModifier.SetControlGradient(modifierGradient);
+  stepNumberModifier.SetLowerLimit(1);
+  stepNumberModifier.SetUpperLimit(8);
+  stepNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_STEP; });
+  arpConfigMenu.AddUIComponent(stepNumberModifier, Point(0, 7));
+
+  // Step Offset selector (with minus sign support)
+  int32_t stepOffsetValue = notePadConfigs[activeConfig].arpConfig.stepOffset;
+  int32_t stepOffsetDisplayValue = abs(stepOffsetValue);
+
+  UIButton stepOffsetMinusSign;
+  stepOffsetMinusSign.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
+  stepOffsetMinusSign.SetSize(Dimension(2, 1));
+  stepOffsetMinusSign.SetEnableFunc([&]() -> bool { return page == ARP_STEP_OFFSET && stepOffsetValue < 0; });
+  arpConfigMenu.AddUIComponent(stepOffsetMinusSign, Point(0, 4));
+
+  UI4pxNumber stepOffsetDisplay;
+  stepOffsetDisplay.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
+  stepOffsetDisplay.SetDigits(2);
+  stepOffsetDisplay.SetValuePointer((int32_t*)&stepOffsetDisplayValue);
+  stepOffsetDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  stepOffsetDisplay.SetEnableFunc([&]() -> bool { return page == ARP_STEP_OFFSET; });
+  arpConfigMenu.AddUIComponent(stepOffsetDisplay, Point(2, 2));
+
+  // Custom modifier for step offset (-24 to 24 semitones)
+  UINumberModifier stepOffsetNumberModifier;
+  stepOffsetNumberModifier.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
+  stepOffsetNumberModifier.SetLength(8);
+  stepOffsetNumberModifier.SetValuePointer(&stepOffsetValue);
+  stepOffsetNumberModifier.SetModifiers(fineModifier);
+  stepOffsetNumberModifier.SetControlGradient(modifierGradient);
+  stepOffsetNumberModifier.SetLowerLimit(-24);
+  stepOffsetNumberModifier.SetUpperLimit(24);
+  stepOffsetNumberModifier.OnChange([&](int32_t value) -> void {
+    stepOffsetValue = value;
+    notePadConfigs[activeConfig].arpConfig.stepOffset = (int8_t)value;
+    stepOffsetDisplayValue = abs(value);
+  });
+  stepOffsetNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_STEP_OFFSET; });
+  arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
+
+  arpConfigMenu.Start();
+}
+

@@ -40,6 +40,7 @@ class Note : public Application {
   void LayoutSelector();
   void ChannelSelector();
   void ColorSelector();
+  void ArpConfigMenu();
 
   NotePadConfig notePadConfigs[2];
 

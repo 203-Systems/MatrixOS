@@ -51,12 +51,12 @@ enum ArpClockSource {
 
 struct ArpeggiatorConfig {
     // Timing
-    uint32_t bpm = 120;                    // BPM (60-299)
+    uint32_t bpm = 120;                    // BPM (20-299)
     ArpClockSource clockSource = CLOCK_INTERNAL;
     uint8_t swingAmount = 50;              // Swing amount (20-80, 50=no swing)
 
     // Playback
-    uint8_t gateTime = 90;                 // Gate time (0% to 100%)
+    uint8_t gateTime = 50;                 // Gate time (0% to 200%, 0=always on)
     ArpDirection direction = ARP_UP;       // Direction of arpeggiator
     uint8_t step = 1;                      // Octave step (1 to 8)
     int8_t stepOffset = 0;                 // Step offset (-24 to 24 semitones)
