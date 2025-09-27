@@ -75,7 +75,6 @@ struct NotePadRuntime
   Arpeggiator arpeggiator;
   MidiPipeline midiPipeline;
   uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
-  ArpDivision currentDivision = DIV_OFF; // Current arpeggiator division
 
   NotePadRuntime() : arpeggiator(&arpConfig) {}
 };

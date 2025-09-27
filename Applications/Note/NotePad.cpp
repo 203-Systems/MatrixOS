@@ -37,7 +37,7 @@ NotePad::NotePad(Dimension dimension, NotePadRuntime* data) {
     rt->midiPipeline.AddEffect("NoteLatch", &rt->noteLatch);
     rt->noteLatch.SetEnabled(false);
     rt->midiPipeline.AddEffect("ChordEffect", &rt->chordEffect);
-    // rt->midiPipeline.AddEffect("Arpeggiator", &rt->arpeggiator);
+    rt->midiPipeline.AddEffect("Arpeggiator", &rt->arpeggiator);
     activeKeys.clear();
     GenerateKeymap();
 }

@@ -49,7 +49,7 @@ struct ArpeggiatorConfig {
     // Timing
     uint32_t bpm = 120;                    // BPM (60-299)
     ArpClockSource clockSource = CLOCK_INTERNAL;
-    int8_t swingAmount = 0;                // Swing amount (-80% to 80%)
+    uint8_t swingAmount = 50;              // Swing amount (20-80, 50=no swing)
 
     // Playback
     uint8_t gateTime = 90;                 // Gate time (0% to 100%)
@@ -73,17 +73,18 @@ private:
     uint8_t currentIndex = 0;        // Current position in sequence
 
     ArpDivision division = DIV_OFF;  // Note division (internal control)
-    uint32_t lastStepTime = 0;
-    uint32_t stepDuration = 125;     // Default 125ms for 1/8 at 120 BPM
+    uint64_t lastStepTime = 0;       // Last step time in microseconds
+    uint32_t stepDuration[2];        // [0] = on-beat, [1] = off-beat (for swing)
 
     bool disableOnNextTick = false;
 
     // Helper functions
     void ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output);
     void ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& output);
+    void ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output);
     void UpdateSequence();
     void StepArpeggiator(deque<MidiPacket>& output);
-    uint32_t CalculateStepDuration();
+    void CalculateStepDurations();
 
 public:
     Arpeggiator(ArpeggiatorConfig* cfg);
@@ -93,8 +94,8 @@ public:
     void SetEnabled(bool state) override;
 
     // Configuration access
-    void UpdateConfig(ArpeggiatorConfig* cfg) { config = cfg; }
+    void UpdateConfig(ArpeggiatorConfig* cfg);
 
     // Division control
-    void SetDivision(ArpDivision div) { division = div; }
+    void SetDivision(ArpDivision div);
 };

@@ -3,6 +3,7 @@
 #include <cstdlib>
 
 Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) : config(cfg) {
+    CalculateStepDurations();
 }
 
 void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
@@ -19,7 +20,6 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         for (const MidiPacket& packet : input) {
             output.push_back(packet);
         }
-        input.clear();
         return;
     }
 
@@ -27,9 +27,11 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
 
     // Process input packets
     for (const MidiPacket& packet : input) {
-        if (packet.status == NoteOn || packet.status == NoteOff) {
+        if (packet.status == NoteOn || packet.status == NoteOff || packet.status == AfterTouch) {
             if (packet.status == NoteOn && packet.Velocity() > 0) {
                 ProcessNoteOn(packet, output);
+            } else if (packet.status == AfterTouch) {
+                ProcessAfterTouch(packet, output);
             } else {
                 ProcessNoteOff(packet, output);
             }
@@ -37,10 +39,9 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             output.push_back(packet);
         }
     }
-    input.clear();
 
-    // Step arpeggiator if it's time
-    if (!notePool.empty() && currentTime - lastStepTime >= CalculateStepDuration() * 1000) {
+    // Step arpeggiator if it's time (using swing timing)
+    if (!notePool.empty() && currentTime - lastStepTime >= stepDuration[currentIndex % 2]) {
         StepArpeggiator(output);
         lastStepTime = currentTime;
     }
@@ -88,6 +89,26 @@ void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
     // Reset index if we've gone beyond the sequence
     if (currentIndex >= arpSequence.size() && !arpSequence.empty()) {
         currentIndex = 0;
+    }
+}
+
+void Arpeggiator::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output) {
+    uint8_t note = packet.Note();
+    uint8_t velocity = packet.Velocity();
+
+    // Update velocity for the note in notePool
+    for (ArpNote& arpNote : notePool) {
+        if (arpNote.note == note) {
+            arpNote.velocity = velocity;
+            break;
+        }
+    }
+
+    // Update velocity in arpSequence as well
+    for (ArpNote& seqNote : arpSequence) {
+        if (seqNote.note == note) {
+            seqNote.velocity = velocity;
+        }
     }
 }
 
@@ -168,14 +189,22 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     currentIndex = (currentIndex + 1) % arpSequence.size();
 }
 
-uint32_t Arpeggiator::CalculateStepDuration() {
-    if (division == DIV_OFF) {
-        return 1000; // 1 second fallback
+void Arpeggiator::CalculateStepDurations() {
+    if (division == DIV_OFF || division == 0) {
+        stepDuration[0] = stepDuration[1] = 1000000; // 1 second fallback in microseconds
+        return;
     }
 
-    // Calculate duration in milliseconds based on BPM and division
-    uint32_t quarterNoteMs = (60 * 1000) / config->bpm;
-    return quarterNoteMs / (division / 4);
+    // Calculate base duration in microseconds based on BPM and division
+    uint32_t quarterNoteUs = (60 * 1000000) / config->bpm;
+    uint32_t baseDuration = quarterNoteUs * 4 / division;
+
+    // Apply swing based on 20-80 range with 50 as center (no swing)
+    // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
+    float swingRatio = (config->swingAmount - 50) / 100.0f;
+
+    stepDuration[0] = (uint32_t)(baseDuration * (1.0f + swingRatio));  // On-beat
+    stepDuration[1] = (uint32_t)(baseDuration * (1.0f - swingRatio));  // Off-beat
 }
 
 void Arpeggiator::Reset() {
@@ -195,4 +224,14 @@ void Arpeggiator::SetEnabled(bool state) {
             disableOnNextTick = false;
         }
     }
+}
+
+void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
+    config = cfg;
+    CalculateStepDurations(); // Recalculate timings when config changes
+}
+
+void Arpeggiator::SetDivision(ArpDivision div) {
+    division = div;
+    CalculateStepDurations();
 }

@@ -323,7 +323,6 @@ bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
     if(xy.x >= 0 && xy.x < 8) {
         notePad[0]->rt->arpeggiator.SetDivision(divisions[xy.x]);
-        notePad[0]->rt->currentDivision = divisions[xy.x];
 
         return true;
     }
@@ -440,12 +439,10 @@ void NoteControlBar::RenderArpControl(Point origin) {
         DIV_SIXTYFOURTH  // 64
     };
 
-    ArpDivision currentDivision = notePad[0]->rt->currentDivision;
-
     // Render slider
     for (uint8_t x = 0; x < 8; x++) {
         Color color;
-        if (currentDivision >= divisions[x]) {
+        if (notePad[0]->rt->arpeggiator.division >= divisions[x]) {
             color = Color(0x80FF00);
         } else {
             color = Color(0x80FF00).Dim();
