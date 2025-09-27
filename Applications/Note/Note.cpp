@@ -13,8 +13,17 @@ void Note::Setup(const vector<string>& args) {
 
   // Load From NVS
   if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
-  { 
-    MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); 
+  {
+    size_t storedSize = MatrixOS::NVS::GetSize(NOTE_CONFIGS_HASH);
+
+    // Check if stored size matches current structure size
+    if (storedSize == sizeof(notePadConfigs)) {
+      MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+    } else {
+      // Size mismatch - structure has changed, use defaults and save them
+      MLOGD("Note", "Config size mismatch: stored=%d, expected=%d. Using defaults.", storedSize, sizeof(notePadConfigs));
+      MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+    }
   }
   else
   { 
