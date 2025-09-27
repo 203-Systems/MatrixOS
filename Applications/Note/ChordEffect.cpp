@@ -2,11 +2,6 @@
 #include <algorithm>
 
 void ChordEffect::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
-    if (!enabled) {
-        output = std::move(input);
-        return;
-    }
-
     if (disableOnNextTick) {
         disableOnNextTick = false;
         enabled = false;
@@ -18,7 +13,6 @@ void ChordEffect::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         for (const MidiPacket& packet : input) {
             output.push_back(packet);
         }
-        input.clear();
         return;
     }
 
@@ -41,8 +35,7 @@ void ChordEffect::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         } else {
             output.push_back(packet);
         }
-    }
-    input.clear();
+    };
 }
 
 void ChordEffect::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output) {
@@ -145,8 +138,7 @@ void ChordEffect::SetEnabled(bool state) {
 }
 
 void ChordEffect::SetChordCombo(ChordCombo combo) {
-    chordCombo = combo;
-    CalculateChord(combo);  // This now populates chordIntervals
+    chordCombo = combo; // This now populates chordIntervals
     chordChanged = true;
 }
 
@@ -156,43 +148,43 @@ void ChordEffect::SetInversion(int8_t inversion)
     chordChanged = true;
 }
 
-void ChordEffect::CalculateChord(ChordCombo combo) {
+void ChordEffect::CalculateChord() {
     // Clear and rebuild intervals directly
     chordIntervals.clear();
     chordIntervals.push_back(0);  // Root note
 
     // Base triads
-    if (combo.dim) {
+    if (chordCombo.dim) {
         chordIntervals.push_back(3);  // b3
         chordIntervals.push_back(6);  // b5
     }
 
-    if (combo.min) {
+    if (chordCombo.min) {
         chordIntervals.push_back(3);  // b3
         chordIntervals.push_back(7);  // 5
     }
 
-    if (combo.maj) {
+    if (chordCombo.maj) {
         chordIntervals.push_back(4);  // 3
         chordIntervals.push_back(7);  // 5
     }
 
-    if (combo.sus) {
+    if (chordCombo.sus) {
         chordIntervals.push_back(5);  // 4
         chordIntervals.push_back(7);  // 5
     }
 
     // Extensions
-    if (combo.ext6) {
+    if (chordCombo.ext6) {
         chordIntervals.push_back(9);  // 6
     }
-    if (combo.extMin7) {
+    if (chordCombo.extMin7) {
         chordIntervals.push_back(10); // b7
     }
-    if (combo.extMaj7) {
+    if (chordCombo.extMaj7) {
         chordIntervals.push_back(11); // 7
     }
-    if (combo.ext9) {
+    if (chordCombo.ext9) {
         chordIntervals.push_back(14); // 9
     }
 }
@@ -213,6 +205,8 @@ void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
 
 void ChordEffect::UpdateChords(deque<MidiPacket>& output)
 {
+    CalculateChord(); 
+
     // First, note off all current chord notes (including root notes)
     for (auto& pair : noteMap) {
         uint8_t root = pair.first;

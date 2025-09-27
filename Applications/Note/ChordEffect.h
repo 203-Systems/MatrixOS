@@ -26,8 +26,6 @@ private:
     unordered_map<uint8_t, uint8_t> noteOwner;          // Reverse lookup: maps chord note -> root note that owns it
     vector<uint8_t> noteOrder;                          // Tracks insertion order for FIFO processing
     vector<uint8_t> chordIntervals;                     // Pre-calculated chord intervals
-    int8_t inversion = 0;
-    ChordCombo chordCombo = {0};
     bool chordChanged = true;
     bool disableOnNextTick = false;
 
@@ -36,16 +34,17 @@ private:
     void ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& output);
     void ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output);
     vector<uint8_t> BuildChordFromNote(uint8_t root);
+    void CalculateChord();
 
 public:
+    int8_t inversion = 0;
+    ChordCombo chordCombo = {0};
+    
     void Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) override;
     void Reset() override;
     void SetEnabled(bool state) override;
     void SetChordCombo(ChordCombo combo);
-    ChordCombo& GetChordCombo() { return chordCombo; }
-    void CalculateChord(ChordCombo combo);
     void ReleaseAllChords(deque<MidiPacket>& output);
     void UpdateChords(deque<MidiPacket>& output);
     void SetInversion(int8_t inversion);
-    int8_t GetInversion() const { return inversion; }
 };
