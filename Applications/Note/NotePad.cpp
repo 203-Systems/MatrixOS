@@ -34,6 +34,11 @@ const Color rainbowNoteColor[12] = {
 NotePad::NotePad(Dimension dimension, NotePadRuntime* data) {
     this->dimension = dimension;
     this->rt = data;
+
+    // Assign arpConfig pointer to point to the config's arpConfig
+    rt->arpConfig = &rt->config->arpConfig;
+    rt->arpeggiator = Arpeggiator(rt->arpConfig);
+
     rt->midiPipeline.AddEffect("NoteLatch", &rt->noteLatch);
     rt->noteLatch.SetEnabled(false);
     rt->midiPipeline.AddEffect("ChordEffect", &rt->chordEffect);

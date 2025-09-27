@@ -64,19 +64,20 @@ struct NoteLayoutConfig {
   Color color = Color(0x00FFFF);
   ColorMode colorMode = ROOT_N_SCALE;
   bool useWhiteAsOutOfScale = false;
+  ArpeggiatorConfig arpConfig;
 };
 
 struct NotePadRuntime
 {
-  NoteLayoutConfig* config;
+  NoteLayoutConfig* config = nullptr;
   NoteLatch noteLatch;
   ChordEffect chordEffect;
-  ArpeggiatorConfig arpConfig;
+  ArpeggiatorConfig* arpConfig = nullptr;
   Arpeggiator arpeggiator;
   MidiPipeline midiPipeline;
-  uint8_t activeNotes[64]; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
+  uint8_t activeNotes[64] = {0}; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
 
-  NotePadRuntime() : arpeggiator(&arpConfig) {}
+  NotePadRuntime() : arpeggiator(nullptr) {}
 };
 
 class NotePad : public UIComponent {
