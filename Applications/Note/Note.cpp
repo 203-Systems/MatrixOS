@@ -120,7 +120,7 @@ void Note::Setup(const vector<string>& args) {
   controlBarToggle.SetColor(Color(0xFF8000));
   controlBarToggle.SetValuePointer(&controlBar);
   controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
-  actionMenu.AddUIComponent(controlBarToggle, Point(2, 7));
+  actionMenu.AddUIComponent(controlBarToggle, Point(1, 7));
 
   // Other Controls
   UIButton systemSettingBtn;
