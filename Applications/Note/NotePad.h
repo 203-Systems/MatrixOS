@@ -37,7 +37,7 @@ struct ActiveKey {
   ActiveKey(Point pos, Fract16 vel) : position(pos), velocity(vel) {}
 };
 
-struct NoteLayoutConfig {
+struct NotePadConfig {
   uint8_t rootKey = 0;
   uint16_t scale = NATURAL_MINOR;
   int8_t octave = 0;
@@ -69,7 +69,7 @@ struct NoteLayoutConfig {
 
 struct NotePadRuntime
 {
-  NoteLayoutConfig* config = nullptr;
+  NotePadConfig* config = nullptr;
   NoteLatch noteLatch;
   ChordEffect chordEffect;
   ArpeggiatorConfig* arpConfig = nullptr;

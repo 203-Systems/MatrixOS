@@ -22,7 +22,7 @@ class Note : public Application {
   
   enum ESpiltView : uint8_t { SINGLE_VIEW, VERT_SPLIT, HORIZ_SPLIT};
   // Saved Variables
-  CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NoteLayoutConfig got changed
+  CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NotePadConfig got changed
   CreateSavedVar("Note", activeConfig, uint8_t, 0);
   CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
   CreateSavedVar("Note", controlBar, bool, false);
@@ -41,7 +41,7 @@ class Note : public Application {
   void ChannelSelector();
   void ColorSelector();
 
-  NoteLayoutConfig notePadConfigs[2];
+  NotePadConfig notePadConfigs[2];
 
   Color colorPresets[6][2] =
   {

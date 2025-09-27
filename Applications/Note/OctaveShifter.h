@@ -4,10 +4,10 @@
 class OctaveShifter : public UIComponent {
  public:
   uint8_t count;
-  NoteLayoutConfig* configs;
+  NotePadConfig* configs;
   uint8_t* activeConfig;
 
-  OctaveShifter(uint8_t count, NoteLayoutConfig* configs, uint8_t* activeConfig) {
+  OctaveShifter(uint8_t count, NotePadConfig* configs, uint8_t* activeConfig) {
     this->count = count;
     this->configs = configs;
     this->activeConfig = activeConfig;
