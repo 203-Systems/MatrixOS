@@ -605,7 +605,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(arpConfigSelector, Point(0, 0));
 
   // BPM selector
-  TimedDisplay bpmTextDisplay(1000);
+  TimedDisplay bpmTextDisplay(500);
   bpmTextDisplay.SetDimension(Dimension(8, 4));
   bpmTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_BPM];
@@ -664,7 +664,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
 
   // Swing selector
-  TimedDisplay swingTextDisplay(1000);
+  TimedDisplay swingTextDisplay(500);
   swingTextDisplay.SetDimension(Dimension(8, 4));
   swingTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_SWING];
@@ -725,7 +725,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
   // Gate selector
-  TimedDisplay gateTextDisplay(1000);
+  TimedDisplay gateTextDisplay(500);
   gateTextDisplay.SetDimension(Dimension(8, 4));
   gateTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_GATE];
@@ -788,7 +788,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
 
   // Direction Selector
-  TimedDisplay directionTextDisplay(1000);
+  TimedDisplay directionTextDisplay(500);
   directionTextDisplay.SetDimension(Dimension(8, 4));
   directionTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_DIRECTION];
@@ -841,7 +841,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(directionSelector, Point(0, 6));
 
   // Step selector
-  TimedDisplay stepTextDisplay(1000);
+  TimedDisplay stepTextDisplay(500);
   stepTextDisplay.SetDimension(Dimension(8, 4));
   stepTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_STEP];
@@ -899,7 +899,7 @@ void Note::ArpConfigMenu() {
   int32_t stepOffsetValue = notePadConfigs[activeConfig].arpConfig.stepOffset;
   int32_t stepOffsetDisplayValue = abs(stepOffsetValue);
 
-  TimedDisplay offsetTextDisplay(1000);
+  TimedDisplay offsetTextDisplay(500);
   offsetTextDisplay.SetDimension(Dimension(8, 4));
   offsetTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_STEP_OFFSET];
@@ -971,7 +971,7 @@ void Note::ArpConfigMenu() {
   // Repeat selector
   int32_t repeatValue = notePadConfigs[activeConfig].arpConfig.repeat;
 
-  TimedDisplay repeatTextDisplay(1000);
+  TimedDisplay repeatTextDisplay(500);
   repeatTextDisplay.SetDimension(Dimension(8, 4));
   repeatTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_REPEAT];

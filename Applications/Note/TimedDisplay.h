@@ -10,7 +10,7 @@ class TimedDisplay : public UIComponent {
   Dimension dimension;
   std::unique_ptr<std::function<void(Point)>> renderFunc;
 
-  TimedDisplay(uint32_t enableLength = 1000) {
+  TimedDisplay(uint32_t enableLength = 500) {
     this->lastEnabledTime = 0;
     this->enableLength = enableLength;
     this->renderFunc = nullptr;
