@@ -151,7 +151,9 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Arp Mode
     else if(xy == Point(4, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(mode == ARP_MODE) {
+            if(ShiftActive()) {
+                note->ArpConfigMenu();
+            } else if(mode == ARP_MODE) {
                 mode = OFF_MODE;
             } else {
                 mode = ARP_MODE;
@@ -163,12 +165,11 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Key Mode
     else if(xy == Point(5, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(mode == KEY_MODE)
-            {
+            if(ShiftActive()) {
+                note->ScaleSelector();
+            } else if(mode == KEY_MODE) {
                 mode = OFF_MODE;
-            }
-            else
-            {
+            } else {
                 mode = KEY_MODE;
             }
         }
