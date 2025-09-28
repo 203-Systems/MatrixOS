@@ -69,19 +69,20 @@ Dimension NotePad::GetSize() {
     return dimension;
 }
 
-NoteType NotePad::InScale(uint8_t note) {
+NoteType NotePad::InScale(int16_t note) {
     note %= 12;
+    note = abs(note);
 
     if (note == rt->config->rootKey)
         return ROOT_NOTE;  // It is a root key
     return bitRead(c_aligned_scale_map, note) ? SCALE_NOTE : OFF_SCALE_NOTE;
 }
 
-uint8_t NotePad::NoteFromRoot(uint8_t note) {
+int16_t NotePad::NoteFromRoot(int16_t note) {
     return (note + rt->config->rootKey) % 12;
 }
 
-uint8_t NotePad::GetNextInScaleNote(uint8_t note) {
+int16_t NotePad::GetNextInScaleNote(int16_t note) {
     for (int8_t i = 0; i < 12; i++) {
         note++;
         if (InScale(note) == SCALE_NOTE || InScale(note) == ROOT_NOTE) {
@@ -158,7 +159,7 @@ void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
 
 void NotePad::GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t root = 12 * rt->config->octave + rt->config->rootKey;
+    int16_t root = 12 * rt->config->octave + rt->config->rootKey;
     int16_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++) {
@@ -175,9 +176,6 @@ void NotePad::GenerateOctaveKeymap() {
             if (nextNote > 127) { // If next note is out of range, fill with 255
                 noteMap[id] = 255;
             }
-            else if (nextNote < 0) { // If next note is out of range, fill with 255
-                noteMap[id] = 255;
-            }
             else if(!rt->config->inKeyNoteOnly) { // If enforce scale is false, just add the next note
                 noteMap[id] = nextNote;  // Add to map
                 nextNote++;
@@ -187,7 +185,7 @@ void NotePad::GenerateOctaveKeymap() {
                     uint8_t inScale = InScale(nextNote);
                     if (inScale == ROOT_NOTE) { rootCount++; }
                     if (inScale == SCALE_NOTE || inScale == ROOT_NOTE) {
-                        noteMap[id] = (uint8_t)nextNote;  // Add to map
+                        noteMap[id] = nextNote < 0 ? 255 : (uint8_t)nextNote;  // Add to map
                         nextNote++;
                         break;  // Break from inf loop
                     }
@@ -203,30 +201,48 @@ void NotePad::GenerateOctaveKeymap() {
 
 void NotePad::GenerateOffsetKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t root = 12 * rt->config->octave + rt->config->rootKey;
+    int16_t root = 12 * rt->config->octave + rt->config->rootKey;
     if (!rt->config->inKeyNoteOnly) {
         for (int8_t y = 0; y < dimension.y; y++) {
             int8_t ui_y = dimension.y - y - 1;
             for (int8_t x = 0; x < dimension.x; x++) {
-                uint8_t note = root + rt->config->x_offset * x + rt->config->y_offset * y;
-                noteMap[ui_y * dimension.x + x] = note;
+                int16_t note = root + rt->config->x_offset * x + rt->config->y_offset * y;
+                if (note > 127 || note < 0) {
+                    noteMap[ui_y * dimension.x + x] = 255;
+                } else {
+                    noteMap[ui_y * dimension.x + x] = note;
+                }
             }
         }
     }
     else {
         for (uint8_t y = 0; y < dimension.y; y++) {
             int8_t ui_y = dimension.y - y - 1;
-            uint8_t note = root;
+            int16_t note = root;
 
             for (uint8_t x = 0; x < dimension.x; x++) {
-                noteMap[ui_y * dimension.x + x] = note;
+                if (note > 127 || note < 0) {
+                    noteMap[ui_y * dimension.x + x] = 255;
+                } else {
+                    noteMap[ui_y * dimension.x + x] = note;
+                }
                 for (uint8_t i = 0; i < rt->config->x_offset; i++) {
-                    note = GetNextInScaleNote(note);
+                    int16_t nextNote = GetNextInScaleNote(note);
+                    if (nextNote == INT16_MAX) {
+                        note = INT16_MAX; // Mark as invalid
+                        break;
+                    }
+                    note = nextNote;
                 }
             }
 
             for (uint8_t i = 0; i < rt->config->y_offset; i++) {
-                root = GetNextInScaleNote(root);
+                int16_t nextRoot = GetNextInScaleNote(root);
+                if (nextRoot == INT16_MAX) {
+                    root = INT16_MAX; // Mark as invalid
+                    break;
+                }
+                root = nextRoot;
             }
         }
     }
@@ -234,17 +250,26 @@ void NotePad::GenerateOffsetKeymap() {
 
 void NotePad::GenerateChromaticKeymap() {
     noteMap.reserve(dimension.Area());
-    uint8_t note = 12 * rt->config->octave + rt->config->rootKey;
+    int16_t note = (12 * rt->config->octave) + rt->config->rootKey;
     for(uint8_t i = 0; i < dimension.Area(); i++) {
         uint8_t x = i % dimension.x;
         uint8_t y = i / dimension.x;
         int8_t ui_y = dimension.y - y - 1;
-        noteMap[ui_y * dimension.x + x] = note;
+        if (note > 127 || note < 0) {
+            noteMap[ui_y * dimension.x + x] = 255;
+        } else {
+            noteMap[ui_y * dimension.x + x] = note;
+        }
         if(!rt->config->inKeyNoteOnly) {
             note++;
         }
         else {
-            note = GetNextInScaleNote(note);
+            int16_t nextNote = GetNextInScaleNote(note);
+            if (nextNote == INT16_MAX) {
+                note = INT16_MAX; // Mark as invalid, subsequent notes will be 255
+            } else {
+                note = nextNote;
+            }
         }
     }
 }
@@ -256,12 +281,17 @@ void NotePad::GeneratePianoKeymap() {
 
     for (int8_t y = 0; y < dimension.y; y++) {
         int8_t ui_y = dimension.y - y - 1;
-        uint8_t octave = rt->config->octave + (y / 2);
+        int16_t octave = rt->config->octave + (y / 2);
 
         if(y % 2 == 0) { // Bottom row
             for (int8_t x = 0; x < dimension.x; x++) {
                 uint8_t id = ui_y * dimension.x + x;
-                noteMap[id] = (octave + (x / 7)) * 12 + whiteKeys[x % 7];
+                int16_t note = (octave + (x / 7)) * 12 + whiteKeys[x % 7];
+                if (note > 127 || note < 0) {
+                    noteMap[id] = 255;
+                } else {
+                    noteMap[id] = note;
+                }
             }
         }
         else { // Top row
@@ -272,7 +302,12 @@ void NotePad::GeneratePianoKeymap() {
                     noteMap[id] = 255;
                 }
                 else {
-                    noteMap[id] = (octave + (x / 7)) * 12 + offset;
+                    int16_t note = (octave + (x / 7)) * 12 + offset;
+                    if (note > 127 || note < 0) {
+                        noteMap[id] = 255;
+                    } else {
+                        noteMap[id] = note;
+                    }
                 }
             }
         }

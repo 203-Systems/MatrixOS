@@ -97,9 +97,9 @@ class NotePad : public UIComponent {
   virtual Color GetColor();
   virtual Dimension GetSize();
 
-  NoteType InScale(uint8_t note);
-  uint8_t NoteFromRoot(uint8_t note);
-  uint8_t GetNextInScaleNote(uint8_t note);
+  NoteType InScale(int16_t note);
+  int16_t NoteFromRoot(int16_t note);
+  int16_t GetNextInScaleNote(int16_t note);
 
   bool IsNoteActive(uint8_t note);
   uint8_t GetActiveNoteCount(uint8_t note);
