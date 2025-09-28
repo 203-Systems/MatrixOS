@@ -657,11 +657,12 @@ void Note::ArpConfigMenu() {
   bpmTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
   arpConfigMenu.AddUIComponent(bpmTextDisplay, Point(0, 2));
 
+  int32_t bpmValue = notePadConfigs[activeConfig].arpConfig.bpm;
 
   UI4pxNumber bpmDisplay;
   bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);
   bpmDisplay.SetDigits(3);
-  bpmDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.bpm);
+  bpmDisplay.SetValuePointer(&bpmValue);
   bpmDisplay.SetAlternativeColor(Color(0xFFFFFF));
   bpmDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_BPM) &&  !bpmTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
@@ -669,14 +670,16 @@ void Note::ArpConfigMenu() {
   UINumberModifier bpmNumberModifier;
   bpmNumberModifier.SetColor(arpConfigColor[ARP_BPM]);
   bpmNumberModifier.SetLength(8);
-  bpmNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.bpm);
+  bpmNumberModifier.SetValuePointer(&bpmValue);
   bpmNumberModifier.SetModifiers(coarseModifier);
   bpmNumberModifier.SetControlGradient(modifierGradient);
   bpmNumberModifier.SetLowerLimit(20);
   bpmNumberModifier.SetUpperLimit(299);
   bpmNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
-  bpmNumberModifier.OnChange([&](int32_t val) -> void { 
-    bpmTextDisplay.Disable(); 
+  bpmNumberModifier.OnChange([&](int32_t val) -> void {
+    bpmValue = val;
+    notePadConfigs[activeConfig].arpConfig.bpm = (uint32_t)val;
+    bpmTextDisplay.Disable();
     if(activeNotePads[0] != nullptr) {
       activeNotePads[0]->rt->arpeggiator.UpdateConfig();
     }
@@ -722,10 +725,12 @@ void Note::ArpConfigMenu() {
   swingTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_SWING; });
   arpConfigMenu.AddUIComponent(swingTextDisplay, Point(0, 2));
 
+  int32_t swingValue = (int32_t)notePadConfigs[activeConfig].arpConfig.swing;
+
   UI4pxNumber swingDisplay;
   swingDisplay.SetColor(arpConfigColor[ARP_SWING]);
   swingDisplay.SetDigits(3);
-  swingDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.swing);
+  swingDisplay.SetValuePointer(&swingValue);
   swingDisplay.SetAlternativeColor(Color(0xFFFFFF));
   swingDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_SWING) && !swingTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(swingDisplay, Point(-1, 2));
@@ -733,17 +738,18 @@ void Note::ArpConfigMenu() {
   UINumberModifier swingNumberModifier;
   swingNumberModifier.SetColor(arpConfigColor[ARP_SWING]);
   swingNumberModifier.SetLength(8);
-  swingNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.swing);
+  swingNumberModifier.SetValuePointer(&swingValue);
   swingNumberModifier.SetModifiers(fineModifier);
   swingNumberModifier.SetControlGradient(modifierGradient);
   swingNumberModifier.SetLowerLimit(20);
   swingNumberModifier.SetUpperLimit(80);
   swingNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_SWING; });
-  swingNumberModifier.OnChange([&](int32_t val) -> void { 
-    swingTextDisplay.Disable(); 
+  swingNumberModifier.OnChange([&](int32_t val) -> void {
+    swingTextDisplay.Disable();
     if(activeNotePads[0] != nullptr) {
+      notePadConfigs[activeConfig].arpConfig.swing = val;
       activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    } 
+    }
   });
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
@@ -786,10 +792,12 @@ void Note::ArpConfigMenu() {
   gateTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_GATE; });
   arpConfigMenu.AddUIComponent(gateTextDisplay, Point(0, 2));
 
+  int32_t gateValue = notePadConfigs[activeConfig].arpConfig.gateTime;
+
   UI4pxNumber gateDisplay;
   gateDisplay.SetColor(arpConfigColor[ARP_GATE]);
   gateDisplay.SetDigits(3);
-  gateDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.gateTime);
+  gateDisplay.SetValuePointer(&gateValue);
   gateDisplay.SetAlternativeColor(Color(0xFFFFFF));
   gateDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_GATE) && !gateTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(gateDisplay, Point(-1, 2));
@@ -801,17 +809,19 @@ void Note::ArpConfigMenu() {
   UINumberModifier gateNumberModifier;
   gateNumberModifier.SetColor(arpConfigColor[ARP_GATE]);
   gateNumberModifier.SetLength(8);
-  gateNumberModifier.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.gateTime);
+  gateNumberModifier.SetValuePointer(&gateValue);
   gateNumberModifier.SetModifiers(fineModifier);
   gateNumberModifier.SetControlGradient(modifierGradient);
   gateNumberModifier.SetLowerLimit(0);
   gateNumberModifier.SetUpperLimit(200);
   gateNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_GATE; });
-  gateNumberModifier.OnChange([&](int32_t val) -> void { 
-    gateTextDisplay.Disable(); 
+  gateNumberModifier.OnChange([&](int32_t val) -> void {
+    gateValue = val;
+    notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)val;
+    gateTextDisplay.Disable();
     if(activeNotePads[0] != nullptr) {
       activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    } 
+    }
   });
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
 
@@ -872,8 +882,6 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(directionSelector, Point(0, 6));
 
   // Step selector
-  int32_t stepValue = notePadConfigs[activeConfig].arpConfig.step;
-
   TimedDisplay stepTextDisplay(500);
   stepTextDisplay.SetDimension(Dimension(8, 4));
   stepTextDisplay.SetRenderFunc([&](Point origin) -> void {
@@ -906,10 +914,12 @@ void Note::ArpConfigMenu() {
   stepTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_STEP; });
   arpConfigMenu.AddUIComponent(stepTextDisplay, Point(0, 2));
 
+  int32_t stepValue = notePadConfigs[activeConfig].arpConfig.step;
+
   UI4pxNumber stepDisplay;
   stepDisplay.SetColor(arpConfigColor[ARP_STEP]);
   stepDisplay.SetDigits(3);
-  stepDisplay.SetValuePointer((int32_t*)&stepValue);
+  stepDisplay.SetValuePointer(&stepValue);
   stepDisplay.SetAlternativeColor(Color(0xFFFFFF));
   stepDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_STEP) && !stepTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(stepDisplay, Point(-1, 2));
@@ -936,9 +946,6 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(stepNumberModifier, Point(0, 7));
 
   // Step Offset selector (with minus sign support)
-  int32_t stepOffsetValue = notePadConfigs[activeConfig].arpConfig.stepOffset;
-  int32_t stepOffsetDisplayValue = abs(stepOffsetValue);
-
   TimedDisplay offsetTextDisplay(500);
   offsetTextDisplay.SetDimension(Dimension(8, 4));
   offsetTextDisplay.SetRenderFunc([&](Point origin) -> void {
@@ -976,6 +983,9 @@ void Note::ArpConfigMenu() {
   offsetTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_STEP_OFFSET; });
   arpConfigMenu.AddUIComponent(offsetTextDisplay, Point(0, 2));
 
+  int32_t stepOffsetValue = notePadConfigs[activeConfig].arpConfig.stepOffset;
+  int32_t stepOffsetDisplayValue = abs(stepOffsetValue);
+
   UIButton stepOffsetMinusSign;
   stepOffsetMinusSign.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
   stepOffsetMinusSign.SetSize(Dimension(2, 1));
@@ -985,7 +995,7 @@ void Note::ArpConfigMenu() {
   UI4pxNumber stepOffsetDisplay;
   stepOffsetDisplay.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
   stepOffsetDisplay.SetDigits(2);
-  stepOffsetDisplay.SetValuePointer((int32_t*)&stepOffsetDisplayValue);
+  stepOffsetDisplay.SetValuePointer(&stepOffsetDisplayValue);
   stepOffsetDisplay.SetAlternativeColor(Color(0xFFFFFF));
   stepOffsetDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(stepOffsetDisplay, Point(2, 2));
@@ -1012,8 +1022,6 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
 
   // Repeat selector
-  int32_t repeatValue = notePadConfigs[activeConfig].arpConfig.repeat;
-
   TimedDisplay repeatTextDisplay(500);
   repeatTextDisplay.SetDimension(Dimension(8, 4));
   repeatTextDisplay.SetRenderFunc([&](Point origin) -> void {
@@ -1052,10 +1060,12 @@ void Note::ArpConfigMenu() {
   repeatTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_REPEAT; });
   arpConfigMenu.AddUIComponent(repeatTextDisplay, Point(0, 2));
 
+  int32_t repeatValue = notePadConfigs[activeConfig].arpConfig.repeat;
+
   UI4pxNumber repeatDisplay;
   repeatDisplay.SetColor(arpConfigColor[ARP_REPEAT]);
   repeatDisplay.SetDigits(3);
-  repeatDisplay.SetValuePointer((int32_t*)&notePadConfigs[activeConfig].arpConfig.repeat);
+  repeatDisplay.SetValuePointer(&repeatValue);
   repeatDisplay.SetAlternativeColor(Color(0xFFFFFF));
   repeatDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_REPEAT) && !repeatTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(repeatDisplay, Point(-1, 2));
