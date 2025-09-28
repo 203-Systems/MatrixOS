@@ -43,6 +43,7 @@ class Note : public Application {
   void ArpConfigMenu();
 
   NotePadConfig notePadConfigs[2];
+  NotePad *activeNotePads[2] = {nullptr, nullptr};
 
   Color colorPresets[6][2] =
   {

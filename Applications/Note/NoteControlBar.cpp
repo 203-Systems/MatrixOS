@@ -29,6 +29,7 @@ void NoteControlBar::SwapActiveConfig() {
     if(underglow[1]) {
         underglow[1]->SetColor(padData1->config->color);
     }
+    note->activeConfig = note->activeConfig.Get() == 0 ? 1 : 0;
 }
 
 bool NoteControlBar::ShiftActive() {
@@ -43,6 +44,12 @@ void NoteControlBar::ShiftEventOccured() {
         shift_event[1] = true;
     }
 }
+
+void NoteControlBar::ShiftClear() {
+    shift[0] = 0;
+    shift[1] = 0;
+}
+
 
 bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     static uint32_t pitch_down = 0;
@@ -152,6 +159,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(4, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
+                ShiftClear();
                 note->ArpConfigMenu();
             } else if(mode == ARP_MODE) {
                 mode = OFF_MODE;
@@ -166,6 +174,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(5, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
+                ShiftClear();
                 note->ScaleSelector();
             } else if(mode == KEY_MODE) {
                 mode = OFF_MODE;

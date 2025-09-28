@@ -5,6 +5,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <set>
 
 using std::vector;
 using std::deque;
@@ -73,14 +74,14 @@ struct ArpeggiatorConfig {
     // Timing
     uint32_t bpm = 120;                    // BPM (20-299)
     ArpClockSource clockSource = CLOCK_INTERNAL;
-    uint8_t swingAmount = 50;              // Swing amount (20-80, 50=no swing)
+    uint8_t swing = 50;              // Swing amount (20-80, 50=no swing)
 
     // Playback
     uint8_t gateTime = 50;                 // Gate time (0% to 200%, 0=always on)
     ArpDirection direction = ARP_UP;       // Direction of arpeggiator
     uint8_t step = 1;                      // Octave step (1 to 8)
-    int8_t stepOffset = 12;                // Step offset (-24 to 24 semitones)
-    uint8_t repeat = 0;                    // Repeat the the sequence # times before stopping (0 to 100) (0 will be inf)
+    int8_t stepOffset = 12;                // Step offset (-48 to 48 semitones)
+    uint8_t repeat = 0;               // Repeat the the sequence # times before stopping (0 to 100) (0 will be inf)
 };
 
 struct ArpNote {
@@ -106,7 +107,20 @@ private:
     };
     deque<GateOffEvent> gateOffQueue; // Chronologically ordered queue of gate-off events
 
+    struct ActiveNote {
+        uint8_t note;
+        uint8_t channel;
+        bool operator<(const ActiveNote& other) const {
+            return (note < other.note) || (note == other.note && channel < other.channel);
+        }
+    };
+    std::set<ActiveNote> activeNotes; // Track all active notes for proper cleanup
+
     bool disableOnNextTick = false;
+
+    // Repeat tracking
+    uint8_t currentRepeat = 0;        // Current repeat count
+    uint8_t lastSequenceIndex = 0;    // Track last index to detect sequence completion
 
     // Helper functions
     void ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output);
@@ -126,7 +140,7 @@ public:
     void SetEnabled(bool state) override;
 
     // Configuration access
-    void UpdateConfig(ArpeggiatorConfig* cfg);
+    void UpdateConfig(ArpeggiatorConfig* cfg = nullptr);
 
     // Division control
     void SetDivision(ArpDivision div);
