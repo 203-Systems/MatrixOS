@@ -704,13 +704,13 @@ void Note::LayoutSelector() {
   pioTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == PIANO_LAYOUT; });
   layoutSelector.AddUIComponent(pioTextDisplay, Point(0, 2));
 
-  // Show Off Scale Notes Toggle (only for Octave and Offset modes)
-  UIButton inKeyNoteOnlyToggle;
-  inKeyNoteOnlyToggle.SetName("In Key Notes Only");
-  inKeyNoteOnlyToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].inKeyNoteOnly); });
-  inKeyNoteOnlyToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].inKeyNoteOnly = !notePadConfigs[activeConfig].inKeyNoteOnly; });
-  inKeyNoteOnlyToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
-  layoutSelector.AddUIComponent(inKeyNoteOnlyToggle, Point(0, 7));
+  // Show Enforce Scale Toggle (only for Octave, Offset, and Chromatic modes)
+  UIButton enforceScaleToggle;
+  enforceScaleToggle.SetName("Enforce Scale");
+  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
+  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
+  enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
+  layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
 
   layoutSelector.Start();
 }

@@ -176,7 +176,7 @@ void NotePad::GenerateOctaveKeymap() {
             if (nextNote > 127) { // If next note is out of range, fill with 255
                 noteMap[id] = 255;
             }
-            else if(!rt->config->inKeyNoteOnly) { // If enforce scale is false, just add the next note
+            else if(!rt->config->enforceScale) { // If enforce scale is false, just add the next note
                 noteMap[id] = nextNote;  // Add to map
                 nextNote++;
             }
@@ -202,7 +202,7 @@ void NotePad::GenerateOctaveKeymap() {
 void NotePad::GenerateOffsetKeymap() {
     noteMap.reserve(dimension.Area());
     int16_t root = 12 * rt->config->octave + rt->config->rootKey;
-    if (!rt->config->inKeyNoteOnly) {
+    if (!rt->config->enforceScale) {
         for (int8_t y = 0; y < dimension.y; y++) {
             int8_t ui_y = dimension.y - y - 1;
             for (int8_t x = 0; x < dimension.x; x++) {
@@ -260,7 +260,7 @@ void NotePad::GenerateChromaticKeymap() {
         } else {
             noteMap[ui_y * dimension.x + x] = note;
         }
-        if(!rt->config->inKeyNoteOnly) {
+        if(!rt->config->enforceScale) {
             note++;
         }
         else {

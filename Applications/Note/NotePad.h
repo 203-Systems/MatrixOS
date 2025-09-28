@@ -43,7 +43,7 @@ struct NotePadConfig {
   int8_t octave = 4;
   uint8_t channel = 0;
   NoteLayoutMode mode = OCTAVE_LAYOUT;
-  bool inKeyNoteOnly = true;
+  bool enforceScale = true;
   union {
     struct // Octave Mode
     {
