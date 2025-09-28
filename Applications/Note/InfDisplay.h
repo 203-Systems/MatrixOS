@@ -44,7 +44,7 @@ class InfDisplay : public UIComponent {
     MatrixOS::LED::SetColor(origin + Point(5, 2), color);
     MatrixOS::LED::SetColor(origin + Point(5, 3), color);
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
-    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 2), color);
     MatrixOS::LED::SetColor(origin + Point(7, 0), color);
 
 
