@@ -46,11 +46,10 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
     // Only do arpeggiator logic when division is not OFF
     if (division != DIV_OFF) {
         // Check for gate off timing - process from front of queue
-        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTime <= currentTime) {
+        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTime <= currentTime &&
+               gateOffQueue.front().gateOffTime != UINT64_MAX) {
             const GateOffEvent& event = gateOffQueue.front();
             output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0));
-            // Remove from active notes
-            activeNotes.erase({event.note, event.channel});
             gateOffQueue.pop_front();
         }
 
@@ -113,11 +112,15 @@ void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
         notePool.end());
 
     // If this note is being sustained by the arpeggiator, turn it off immediately
-    auto it = std::find_if(gateOffQueue.begin(), gateOffQueue.end(),
-        [note](const GateOffEvent& event) { return event.note == note; });
-    if (it != gateOffQueue.end()) {
-        output.push_back(MidiPacket::NoteOff(it->channel, note, 0));
-        gateOffQueue.erase(it);
+    // Find all instances of this note (there may be multiple with different gate times)
+    auto it = gateOffQueue.begin();
+    while (it != gateOffQueue.end()) {
+        if (it->note == note) {
+            output.push_back(MidiPacket::NoteOff(it->channel, note, 0));
+            it = gateOffQueue.erase(it);
+        } else {
+            ++it;
+        }
     }
 
     UpdateSequence();
@@ -522,11 +525,10 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
 
         // If we've reached the repeat limit, turn off sustained notes but don't play more
         if (currentRepeat >= config->repeat) {
-            // Turn off all active notes (including gate=0 notes)
-            for (const auto& activeNote : activeNotes) {
-                output.push_back(MidiPacket::NoteOff(activeNote.channel, activeNote.note, 0));
+            // Turn off all active notes by processing all pending gate-off events
+            for (const auto& gateEvent : gateOffQueue) {
+                output.push_back(MidiPacket::NoteOff(gateEvent.channel, gateEvent.note, 0));
             }
-            activeNotes.clear();
             gateOffQueue.clear();
             return;
         }
@@ -542,13 +544,12 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     const ArpNote& currentNote = arpSequence[currentIndex];
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
-    // Track this note as active
-    activeNotes.insert({currentNote.note, currentNote.channel});
 
     // Calculate gate off time based on gate percentage and current step duration
     if (config->gateTime == 0) {
-        // Gate time 0 = always on until arp stops (don't add to map)
-        // Note will be turned off when arp stops or note is released
+        // Gate time 0 = always on until arp stops
+        // Use UINT64_MAX to indicate infinite gate time
+        gateOffQueue.push_back({UINT64_MAX, currentNote.note, currentNote.channel});
     } else {
         // Calculate gate duration as percentage of step duration
         uint32_t currentStepDuration = stepDuration[currentIndex % 2];
@@ -587,7 +588,6 @@ void Arpeggiator::Reset() {
     currentIndex = 0;
     lastStepTime = 0;
     gateOffQueue.clear(); // Clear all gate timers
-    activeNotes.clear(); // Clear active note tracking
     disableOnNextTick = false;
     currentRepeat = 0;  // Reset repeat counter
     lastSequenceIndex = 0;

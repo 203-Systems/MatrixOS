@@ -5,7 +5,6 @@
 #include <vector>
 #include <deque>
 #include <map>
-#include <set>
 
 using std::vector;
 using std::deque;
@@ -106,15 +105,6 @@ private:
         uint8_t channel;
     };
     deque<GateOffEvent> gateOffQueue; // Chronologically ordered queue of gate-off events
-
-    struct ActiveNote {
-        uint8_t note;
-        uint8_t channel;
-        bool operator<(const ActiveNote& other) const {
-            return (note < other.note) || (note == other.note && channel < other.channel);
-        }
-    };
-    std::set<ActiveNote> activeNotes; // Track all active notes for proper cleanup
 
     bool disableOnNextTick = false;
 
