@@ -16,20 +16,19 @@ NoteControlBar::NoteControlBar(Note* notePtr, NotePad* notepad1, NotePad* notepa
 void NoteControlBar::SwapActiveConfig() {
     NotePadRuntime* padData1 = notePad[0]->rt;
     NotePadRuntime* padData2 = notePad[1]->rt;
-
     if(notePad[0]) {
         notePad[0]->SetPadRuntime(padData2);
     }
     if(notePad[1]) {
         notePad[1]->SetPadRuntime(padData1);
     }
+    note->activeConfig = note->activeConfig.Get() == 0 ? 1 : 0;
     if(underglow[0]) {
-        underglow[0]->SetColor(padData1->config->color);
+        underglow[0]->SetColor(notePad[0]->rt->config->color);
     }
     if(underglow[1]) {
-        underglow[1]->SetColor(padData1->config->color);
+        underglow[1]->SetColor(notePad[1]->rt->config->color);
     }
-    note->activeConfig = note->activeConfig.Get() == 0 ? 1 : 0;
 }
 
 bool NoteControlBar::ShiftActive() {
