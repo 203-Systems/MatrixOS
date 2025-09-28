@@ -159,7 +159,7 @@ void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
 void NotePad::GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
     uint8_t root = 12 * rt->config->octave + rt->config->rootKey;
-    uint8_t nextNote = root;
+    int16_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++) {
         int8_t ui_y = dimension.y - y - 1;
@@ -175,6 +175,9 @@ void NotePad::GenerateOctaveKeymap() {
             if (nextNote > 127) { // If next note is out of range, fill with 255
                 noteMap[id] = 255;
             }
+            else if (nextNote < 0) { // If next note is out of range, fill with 255
+                noteMap[id] = 255;
+            }
             else if(!rt->config->inKeyNoteOnly) { // If enforce scale is false, just add the next note
                 noteMap[id] = nextNote;  // Add to map
                 nextNote++;
@@ -184,7 +187,7 @@ void NotePad::GenerateOctaveKeymap() {
                     uint8_t inScale = InScale(nextNote);
                     if (inScale == ROOT_NOTE) { rootCount++; }
                     if (inScale == SCALE_NOTE || inScale == ROOT_NOTE) {
-                        noteMap[id] = nextNote;  // Add to map
+                        noteMap[id] = (uint8_t)nextNote;  // Add to map
                         nextNote++;
                         break;  // Break from inf loop
                     }

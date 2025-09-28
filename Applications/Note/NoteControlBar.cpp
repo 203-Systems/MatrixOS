@@ -200,7 +200,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         else if(keyInfo->State() == RELEASED) {
             if((MatrixOS::SYS::Millis() - shift[0] < hold_threshold) && shift_event[0] == false) {
                 int8_t new_octave = notePad[0]->rt->config->octave - 1;
-                notePad[0]->rt->config->octave = new_octave < 0 ? 0 : new_octave;
+                notePad[0]->rt->config->octave = new_octave < -2 ? -2 : new_octave;
                 notePad[0]->GenerateKeymap();
             }
             shift[0] = 0;
@@ -223,7 +223,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         else if(keyInfo->State() == RELEASED) {
             if((MatrixOS::SYS::Millis() - shift[1] < hold_threshold) && shift_event[1] == false) {
                 int8_t new_octave = notePad[0]->rt->config->octave + 1;
-                notePad[0]->rt->config->octave = new_octave > 7 ? 7 : new_octave; 
+                notePad[0]->rt->config->octave = new_octave > 11 ? 11 : new_octave; 
                 notePad[0]->GenerateKeymap();
             }
             shift[1] = 0;
@@ -362,12 +362,36 @@ bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
     return true;
 }
 
+const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};
+
 Color NoteControlBar::GetOctavePlusColor() {
-    return notePad[0]->rt->config->color;
+    int8_t octave = notePad[0]->rt->config->octave;
+    uint8_t brightness;
+
+    if (octave >= 4) {
+        brightness = 255;
+    } else {
+        // Use gradient for octaves below 4 - dimmer as it goes down
+        uint8_t index = (4 - octave) > 6 ? 6 : (4 - octave);
+        brightness = OctaveGradient[6 - index];
+    }
+
+    return notePad[0]->rt->config->color.Scale(brightness);
 }
 
 Color NoteControlBar::GetOctaveMinusColor() {
-    return notePad[0]->rt->config->color;
+    int8_t octave = notePad[0]->rt->config->octave;
+    uint8_t brightness;
+
+    if (octave <= 4) {
+        brightness = 255;
+    } else {
+        // Use gradient for octaves above 4 - dimmer as it goes up
+        uint8_t index = (octave - 4) > 6 ? 6 : (octave - 4);
+        brightness = OctaveGradient[6 - index];
+    }
+
+    return notePad[0]->rt->config->color.Scale(brightness);
 }
 
 
