@@ -176,6 +176,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
             if(ShiftActive()) {
                 ShiftClear();
                 note->ScaleSelector();
+                notePad[0]->GenerateKeymap();
             } else if(mode == KEY_MODE) {
                 mode = OFF_MODE;
             } else {
@@ -357,6 +358,7 @@ bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
       return true;
     }
     notePad[0]->rt->config->rootKey = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+    notePad[0]->GenerateKeymap();
     return true;
 }
 
