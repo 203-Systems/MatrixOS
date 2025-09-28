@@ -138,7 +138,7 @@ void Note::Setup(const vector<string>& args) {
   UIButton octavePlusBtn;
   octavePlusBtn.SetName("Octave +1");
   octavePlusBtn.SetSize(Dimension(2, 1));
-  octavePlusBtn.SetColorFunc([&]() -> Color { return Color(0x80FF00).DimIfNot(notePadConfigs[activeConfig].octave <= 12); });
+  octavePlusBtn.SetColorFunc([&]() -> Color { return Color(0x80FF00).DimIfNot(notePadConfigs[activeConfig].octave < 12); });
   octavePlusBtn.OnPress([&]() -> void {
     if(notePadConfigs[activeConfig].octave < 12)
     {
@@ -150,7 +150,7 @@ void Note::Setup(const vector<string>& args) {
   UIButton octaveMinusBtn;
   octaveMinusBtn.SetName("Octave -1");
   octaveMinusBtn.SetSize(Dimension(2, 1));
-  octaveMinusBtn.SetColorFunc([&]() -> Color { return Color(0xFF0060).DimIfNot(notePadConfigs[activeConfig].octave >= -2); });
+  octaveMinusBtn.SetColorFunc([&]() -> Color { return Color(0xFF0060).DimIfNot(notePadConfigs[activeConfig].octave > -2); });
   octaveMinusBtn.OnPress([&]() -> void {
     if(notePadConfigs[activeConfig].octave > -2)
     {
