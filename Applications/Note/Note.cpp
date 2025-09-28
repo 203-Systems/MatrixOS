@@ -1,5 +1,4 @@
 #include "Note.h"
-#include "OctaveShifter.h"
 #include "ScaleVisualizer.h"
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
