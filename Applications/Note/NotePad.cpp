@@ -57,7 +57,7 @@ void NotePad::Tick()
     rt->midiPipeline.Tick();
     MidiPacket midiPacket;
     while (rt->midiPipeline.Get(midiPacket)) {
-        MatrixOS::MIDI::Send(midiPacket);
+        MatrixOS::MIDI::Send(midiPacket, MIDI_PORT_ALL);
     }
 }
 
