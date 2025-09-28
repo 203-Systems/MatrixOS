@@ -161,7 +161,7 @@ MidiPacket MidiPacket::Reset()
 }
 
 // Status methods
-EMidiStatus MidiPacket::Status() {
+EMidiStatus MidiPacket::Status() const {
   if((uint8_t)status < EMidiStatus::SysExData)
   {
     return (EMidiStatus)data[0];
@@ -192,7 +192,7 @@ bool MidiPacket::SetStatus(EMidiStatus status)
 }
 
 // Port methods
-uint16_t MidiPacket::Port()
+uint16_t MidiPacket::Port() const
 {
   return port;
 }
@@ -203,7 +203,7 @@ void MidiPacket::SetPort(uint16_t port_id)
 }
 
 // Channel methods
-uint8_t MidiPacket::Channel() {
+uint8_t MidiPacket::Channel() const {
   switch (status)
   {
     case EMidiStatus::NoteOn:
@@ -239,7 +239,7 @@ bool MidiPacket::SetChannel(uint8_t channel)
 }
 
 // Note methods
-uint8_t MidiPacket::Note() {
+uint8_t MidiPacket::Note() const {
   switch (status)
   {
     case EMidiStatus::NoteOn:
@@ -270,7 +270,7 @@ bool MidiPacket::SetNote(uint8_t note)
 }
 
 // Controller methods
-uint8_t MidiPacket::Controller()  // Just an alias for Note(), specially build for Program Change
+uint8_t MidiPacket::Controller() const  // Just an alias for Note(), specially build for Program Change
 {
   return Note();
 }
@@ -292,7 +292,7 @@ bool MidiPacket::SetController(uint8_t controller)
 }
 
 // Velocity methods
-uint8_t MidiPacket::Velocity() {
+uint8_t MidiPacket::Velocity() const {
   switch (status)
   {
     case EMidiStatus::NoteOn:
@@ -326,7 +326,7 @@ bool MidiPacket::SetVelocity(uint8_t velocity)
 }
 
 // Value methods
-uint16_t MidiPacket::Value()  // Get value all type, basically a generic getter
+uint16_t MidiPacket::Value() const  // Get value all type, basically a generic getter
 {
   switch (status)
   {
@@ -374,7 +374,7 @@ bool MidiPacket::SetValue(uint16_t value)
 }
 
 // Helper methods
-uint8_t MidiPacket::Length() {
+uint8_t MidiPacket::Length() const {
   switch (status)
   {
     case EMidiStatus::NoteOn:
@@ -414,12 +414,12 @@ uint8_t MidiPacket::Length() {
   }
 }
 
-bool MidiPacket::SysEx() // Terrible name
+bool MidiPacket::SysEx() const // Terrible name
 {
   return status == EMidiStatus::SysExData || status == EMidiStatus::SysExEnd;
 }
 
-bool MidiPacket::SysExStart() // Terrible name
+bool MidiPacket::SysExStart() const // Terrible name
 {
   return status == EMidiStatus::SysExData && data[0] == MIDIv1_SYSEX_START;
 }

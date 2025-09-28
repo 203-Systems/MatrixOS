@@ -1,6 +1,8 @@
 #pragma once
 #include "UIComponent.h"
 #include <limits.h>
+#include <functional>
+#include <memory>
 
 // TODO add negative support?
 class UINumberModifier : public UIComponent {
@@ -12,6 +14,7 @@ class UINumberModifier : public UIComponent {
   uint8_t* controlGradient;
   int32_t lowerLimit;
   int32_t upperLimit;
+  std::unique_ptr<std::function<void(int32_t)>> changeCallback;
 
   UINumberModifier() {
     this->color = Color(0);
@@ -21,6 +24,7 @@ class UINumberModifier : public UIComponent {
     this->controlGradient = nullptr;
     this->lowerLimit = INT_MIN;
     this->upperLimit = INT_MAX;
+    this->changeCallback = nullptr;
   }
 
   virtual Dimension GetSize() { return Dimension(length, 1); }
@@ -33,6 +37,14 @@ class UINumberModifier : public UIComponent {
   void SetControlGradient(uint8_t* controlGradient) { this->controlGradient = controlGradient; }
   void SetLowerLimit(int32_t lowerLimit) { this->lowerLimit = lowerLimit; }
   void SetUpperLimit(int32_t upperLimit) { this->upperLimit = upperLimit; }
+
+  void OnChange(std::function<void(int32_t)> changeCallback) { this->changeCallback = std::make_unique<std::function<void(int32_t)>>(changeCallback); }
+
+  virtual void OnChangeCallback(int32_t value) {
+    if (changeCallback != nullptr) {
+      (*changeCallback)(value);
+    }
+  }
 
   virtual bool Render(Point origin) {
     for (uint8_t i = 0; i < length; i++)
@@ -50,7 +62,11 @@ class UINumberModifier : public UIComponent {
       else if (new_value < lowerLimit)
       { new_value = lowerLimit; }
 
-      *valuePtr = (int32_t)new_value;
+      int32_t final_value = (int32_t)new_value;
+      *valuePtr = final_value;
+
+      // Trigger the callback if set
+      OnChangeCallback(final_value);
     }
     return true;  // Prevent leak though to cause UI text scroll
   }

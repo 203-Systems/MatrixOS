@@ -11,6 +11,7 @@ class UnderglowLight : public UIComponent {
 
   virtual Color GetColor() { return color; }
   virtual Dimension GetSize() { return dimension; }
+  void SetColor(Color newColor) { this->color = newColor; }
 
   bool IsUnderglow(Point pos)
   {
