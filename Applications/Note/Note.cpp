@@ -579,11 +579,12 @@ void Note::LayoutSelector() {
 }
 
 void Note::ChannelSelector() {
-  UI channelSelector("Channel Selector", Color(0x60FF00), false);
+  Color color = Color(0x60FF00);
+  UI channelSelector("Channel Selector", color, false);
 
   int32_t offsettedChannel = notePadConfigs[activeConfig].channel + 1;
   UI4pxNumber numDisplay;
-  numDisplay.SetColor(Color(0x60FF00));
+  numDisplay.SetColor(color);
   numDisplay.SetDigits(2);
   numDisplay.SetValuePointer(&offsettedChannel);
   numDisplay.SetAlternativeColor(Color(0xFFFFFF));
@@ -593,12 +594,36 @@ void Note::ChannelSelector() {
   UISelector channelInput;
   channelInput.SetDimension(Dimension(8, 2));
   channelInput.SetName("Channel");
-  channelInput.SetColor(Color(0x60FF00));
+  channelInput.SetColor(color);
   channelInput.SetCount(16);
   channelInput.SetValuePointer((uint16_t*)&notePadConfigs[activeConfig].channel);
   channelInput.OnChange([&](uint16_t val) -> void { offsettedChannel = val + 1; });
 
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
+
+  channelSelector.SetPostRenderFunc([&]() -> void {
+    // C
+    MatrixOS::LED::SetColor(Point(0, 0), color);
+    MatrixOS::LED::SetColor(Point(0, 1), color);
+    MatrixOS::LED::SetColor(Point(0, 2), color);
+    MatrixOS::LED::SetColor(Point(0, 3), color);
+    MatrixOS::LED::SetColor(Point(1, 0), color);
+    MatrixOS::LED::SetColor(Point(1, 3), color);
+
+    if(notePadConfigs[activeConfig].channel < 9)
+    {
+      //h
+      MatrixOS::LED::SetColor(Point(2, 0), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(2, 1), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(2, 2), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(2, 3), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(3, 1), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(4, 0), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(4, 1), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(4, 2), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(4, 3), Color(0xFFFFFF));
+    }
+  });
 
   channelSelector.Start();
 }
