@@ -1128,7 +1128,7 @@ void Note::ArpConfigMenu() {
   stepDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_STEP) && !stepTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(stepDisplay, Point(-1, 2));
 
-  // Custom modifier for step (1-8 range)
+  // Custom modifier for step (1-16 range)
 
   UINumberModifier stepNumberModifier;
   stepNumberModifier.SetColor(arpConfigColor[ARP_STEP]);
@@ -1136,7 +1136,7 @@ void Note::ArpConfigMenu() {
   stepNumberModifier.SetValuePointer(&stepValue);
   stepNumberModifier.SetModifiers(fineModifier);
   stepNumberModifier.SetControlGradient(modifierGradient);
-  stepNumberModifier.SetLowerLimit(0);
+  stepNumberModifier.SetLowerLimit(1);
   stepNumberModifier.SetUpperLimit(16);
   stepNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_STEP; });
   stepNumberModifier.OnChange([&](int32_t val) -> void {

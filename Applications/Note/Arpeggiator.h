@@ -78,7 +78,7 @@ struct ArpeggiatorConfig {
     // Playback
     uint8_t gateTime = 50;                 // Gate time (0% to 200%, 0=always on)
     ArpDirection direction = ARP_UP;       // Direction of arpeggiator
-    uint8_t step = 1;                      // Octave step (1 to 8)
+    uint8_t step = 1;                      // Step (1 to 16)
     int8_t stepOffset = 12;                // Step offset (-48 to 48 semitones)
     uint8_t repeat = 0;               // Repeat the the sequence # times before stopping (0 to 100) (0 will be inf)
 };
