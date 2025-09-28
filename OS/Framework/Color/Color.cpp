@@ -30,32 +30,32 @@ Color::Color(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nW) {
   W = nW;
 }
 
-uint32_t Color::RGB(uint8_t brightness) {
+uint32_t Color::RGB(uint8_t brightness) const {
   if (brightness != 255)
     return (scale8_video(R, brightness) << 16) | (scale8_video(G, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (R << 16) | (G << 8) | B;
 }
 
-uint32_t Color::GRB(uint8_t brightness) {
+uint32_t Color::GRB(uint8_t brightness) const {
   if (brightness != 255)
     return (scale8_video(G, brightness) << 16) | (scale8_video(R, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (G << 16) | (R << 8) | B;
 }
 
-Color Color::Scale(uint8_t brightness) {
+Color Color::Scale(uint8_t brightness) const {
   return Color(scale8_video(R, brightness), scale8_video(G, brightness), scale8_video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
 }
-Color Color::Dim(uint8_t scale) {
+Color Color::Dim(uint8_t scale) const {
   return Scale(scale); 
 }
 
-Color Color::DimIfNot(bool not_dim, uint8_t scale) {
+Color Color::DimIfNot(bool not_dim, uint8_t scale) const {
   if (!not_dim)
   { return Scale(scale); }
   return Color(R, G, B, W);
 }
 
-Color Color::Gamma() {
+Color Color::Gamma() const {
   return Color(led_gamma[R], led_gamma[G], led_gamma[B]);
 }
 
