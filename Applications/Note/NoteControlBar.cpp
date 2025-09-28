@@ -223,7 +223,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         else if(keyInfo->State() == RELEASED) {
             if((MatrixOS::SYS::Millis() - shift[1] < hold_threshold) && shift_event[1] == false) {
                 int8_t new_octave = notePad[0]->rt->config->octave + 1;
-                notePad[0]->rt->config->octave = new_octave > 11 ? 11 : new_octave; 
+                notePad[0]->rt->config->octave = new_octave > 12 ? 12 : new_octave; 
                 notePad[0]->GenerateKeymap();
             }
             shift[1] = 0;

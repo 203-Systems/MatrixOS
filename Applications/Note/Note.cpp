@@ -73,9 +73,6 @@ void Note::Setup(const vector<string>& args) {
   }
   actionMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
-  OctaveShifter octaveShifter(8, notePadConfigs, &activeConfig.value);
-  actionMenu.AddUIComponent(octaveShifter, Point(0, 0));
-
   // Split View
   UIButton splitViewToggle;
   splitViewToggle.SetName("Split View");
@@ -97,16 +94,18 @@ void Note::Setup(const vector<string>& args) {
       case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
     }
   });
-  actionMenu.AddUIComponent(splitViewToggle, Point(1, 0));
+  actionMenu.AddUIComponent(splitViewToggle, Point(0, 0));
 
   UIButton notepad1SelectBtn;
   notepad1SelectBtn.SetName("Note Pad 1");
+  notepad1SelectBtn.SetSize(Dimension(2, 1));
   notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig.Get() == 0); });
   notepad1SelectBtn.OnPress([&]() -> void { activeConfig = 0; });
-  actionMenu.AddUIComponent(notepad1SelectBtn, Point(3, 0));
+  actionMenu.AddUIComponent(notepad1SelectBtn, Point(2, 0));
 
   UIButton notepad2SelectBtn;
   notepad2SelectBtn.SetName("Note Pad 2");
+  notepad2SelectBtn.SetSize(Dimension(2, 1));
   notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig.Get() == 1); });
   notepad2SelectBtn.OnPress([&]() -> void { activeConfig = 1; });
   actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
@@ -117,21 +116,64 @@ void Note::Setup(const vector<string>& args) {
   notepadColorBtn.OnPress([&]() -> void { ColorSelector(); });
   actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
-  // Other Controls
+  // Octave Control
+  int32_t octaveAbs;
+  actionMenu.SetLoopFunc([&]() -> void {
+    octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
+  });
+
+  UI4pxNumber octaveDisplay;
+  octaveDisplay.SetColor(notePadConfigs[activeConfig].color);
+  octaveDisplay.SetDigits(2);
+  octaveDisplay.SetValuePointer(&octaveAbs);
+  octaveDisplay.SetAlternativeColor(notePadConfigs[activeConfig].rootColor);
+  actionMenu.AddUIComponent(octaveDisplay, Point(0, 2));
+
+  UIButton octaveNegSign;
+  octaveNegSign.SetColor(notePadConfigs[activeConfig].rootColor);
+  octaveNegSign.SetSize(Dimension(2, 1));
+  octaveNegSign.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].octave < 0; });
+  actionMenu.AddUIComponent(octaveNegSign, Point(2, 4));
+
+  UIButton octavePlusBtn;
+  octavePlusBtn.SetName("Octave +1");
+  octavePlusBtn.SetSize(Dimension(2, 1));
+  octavePlusBtn.SetColorFunc([&]() -> Color { return Color(0x80FF00).DimIfNot(notePadConfigs[activeConfig].octave <= 12); });
+  octavePlusBtn.OnPress([&]() -> void {
+    if(notePadConfigs[activeConfig].octave < 12)
+    {
+      notePadConfigs[activeConfig].octave++;
+    }
+  });
+  actionMenu.AddUIComponent(octavePlusBtn, Point(4, 7));
+
+  UIButton octaveMinusBtn;
+  octaveMinusBtn.SetName("Octave -1");
+  octaveMinusBtn.SetSize(Dimension(2, 1));
+  octaveMinusBtn.SetColorFunc([&]() -> Color { return Color(0xFF0060).DimIfNot(notePadConfigs[activeConfig].octave >= -2); });
+  octaveMinusBtn.OnPress([&]() -> void {
+    if(notePadConfigs[activeConfig].octave > -2)
+    {
+      notePadConfigs[activeConfig].octave--;
+    }
+  });
+  actionMenu.AddUIComponent(octaveMinusBtn, Point(2, 7));
+
+  // Control Bar
   UIToggle controlBarToggle;
   controlBarToggle.SetName("Control Bar");
   controlBarToggle.SetColor(Color(0xFF8000));
   controlBarToggle.SetValuePointer(&controlBar);
   controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
-  actionMenu.AddUIComponent(controlBarToggle, Point(1, 7));
+  actionMenu.AddUIComponent(controlBarToggle, Point(0, 7));
   
-  // Other Controls
   UIButton arpConfigBtn;
   arpConfigBtn.SetName("Arpeggiator Config");
+  arpConfigBtn.SetSize(Dimension(1, 4));
   arpConfigBtn.SetColor(Color(0x80FF00));
   arpConfigBtn.OnPress([&]() -> void {ArpConfigMenu();});
   arpConfigBtn.SetEnableFunc([&]() -> bool {return controlBar;});
-  actionMenu.AddUIComponent(arpConfigBtn, Point(3, 7));
+  actionMenu.AddUIComponent(arpConfigBtn, Point(0, 2));
 
   // Other Controls
   UIButton systemSettingBtn;
@@ -986,11 +1028,11 @@ void Note::ArpConfigMenu() {
   int32_t stepOffsetValue = notePadConfigs[activeConfig].arpConfig.stepOffset;
   int32_t stepOffsetDisplayValue = abs(stepOffsetValue);
 
-  UIButton stepOffsetMinusSign;
-  stepOffsetMinusSign.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
-  stepOffsetMinusSign.SetSize(Dimension(2, 1));
-  stepOffsetMinusSign.SetEnableFunc([&]() -> bool { return (page == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled() && stepOffsetValue < 0; });
-  arpConfigMenu.AddUIComponent(stepOffsetMinusSign, Point(0, 4));
+  UIButton stepOffsetNegSign;
+  stepOffsetNegSign.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
+  stepOffsetNegSign.SetSize(Dimension(2, 1));
+  stepOffsetNegSign.SetEnableFunc([&]() -> bool { return (page == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled() && stepOffsetValue < 0; });
+  arpConfigMenu.AddUIComponent(stepOffsetNegSign, Point(0, 4));
 
   UI4pxNumber stepOffsetDisplay;
   stepOffsetDisplay.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
