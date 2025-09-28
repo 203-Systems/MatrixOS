@@ -123,10 +123,9 @@ void Note::Setup(const vector<string>& args) {
   });
 
   UI4pxNumber octaveDisplay;
-  octaveDisplay.SetColor(notePadConfigs[activeConfig].color);
+  octaveDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? notePadConfigs[activeConfig].rootColor : notePadConfigs[activeConfig].color; });
   octaveDisplay.SetDigits(2);
   octaveDisplay.SetValuePointer(&octaveAbs);
-  octaveDisplay.SetAlternativeColor(notePadConfigs[activeConfig].rootColor);
   actionMenu.AddUIComponent(octaveDisplay, Point(0, 2));
 
   UIButton octaveNegSign;
