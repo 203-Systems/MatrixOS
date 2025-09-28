@@ -489,21 +489,22 @@ void Note::ColorSelector() {
 }
 
 void Note::LayoutSelector() {
-  UI layoutSelector("Layout Selector", Color(0xFFFF00), false);
+  const Color color = Color(0xFFFF00);
+  UI layoutSelector("Layout Selector", color, false);
 
   int32_t x_offset = notePadConfigs[activeConfig].x_offset;
   int32_t y_offset = notePadConfigs[activeConfig].y_offset;
 
   UIButton octaveModeBtn;
   octaveModeBtn.SetName("Octave Mode");
-  octaveModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
+  octaveModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
   octaveModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT; });
   layoutSelector.AddUIComponent(octaveModeBtn, Point(2, 0));
 
   UIButton offsetModeBtn;
   offsetModeBtn.SetName("Offset Mode");
-  offsetModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
-  offsetModeBtn.OnPress([&]() -> void { 
+  offsetModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
+  offsetModeBtn.OnPress([&]() -> void {
     if(notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
     {
       notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
@@ -515,51 +516,195 @@ void Note::LayoutSelector() {
 
   UIButton chromaticModeBtn;
   chromaticModeBtn.SetName("Chromatic Mode");
-  chromaticModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT); });
+  chromaticModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT); });
   chromaticModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = CHROMATIC_LAYOUT; });
   layoutSelector.AddUIComponent(chromaticModeBtn, Point(4, 0));
 
   UIButton pianoModeBtn;
-  pianoModeBtn.SetName("Piano Mode");
-  pianoModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFF00).DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
+  pianoModeBtn.SetName("Piano Keyboard");
+  pianoModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
   pianoModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = PIANO_LAYOUT; });
   layoutSelector.AddUIComponent(pianoModeBtn, Point(5, 0));
 
+  // Octave mode
+  TimedDisplay octTextDisplay(UINT32_MAX);
+  octTextDisplay.SetDimension(Dimension(8, 4));
+  octTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // O
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), color);
+
+    // C
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+
+    // T
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+  });
+  octTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT; });
+  layoutSelector.AddUIComponent(octTextDisplay, Point(0, 2));
+
+
   // Offset Mode
+  const Color xColor = Color(0x00FFFF);
+  const Color yColor = Color(0xFF00FF);
+
+  UI4pxNumber yOffsetDisplay;
+  yOffsetDisplay.SetColor(yColor);
+  yOffsetDisplay.SetDigits(1);
+  yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
+  yOffsetDisplay.SetAlternativeColor(yColor);
+  yOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
+
+  UI4pxNumber xOffsetDisplay;
+  xOffsetDisplay.SetColor(xColor);
+  xOffsetDisplay.SetDigits(1);
+  xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
+  xOffsetDisplay.SetAlternativeColor(xColor);
+  xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
+
+  TimedDisplay ofsTextDisplay(500);
+  ofsTextDisplay.SetDimension(Dimension(6, 4));
+  ofsTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // Y
+    MatrixOS::LED::SetColor(origin + Point(0, 0), yColor);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), yColor);
+    MatrixOS::LED::SetColor(origin + Point(1, 2), yColor);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), yColor);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), yColor);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), yColor);
+
+    // X
+    MatrixOS::LED::SetColor(origin + Point(3, 0), xColor);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), xColor);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), xColor);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), xColor);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), xColor);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), xColor);
+  });
+  ofsTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  layoutSelector.AddUIComponent(ofsTextDisplay, Point(2, 2));
+
   UISelector yOffsetInput;
   yOffsetInput.SetDimension(Dimension(1, 8));
   yOffsetInput.SetName("Y Offset");
-  yOffsetInput.SetColor(Color(0xFF00FF));
+  yOffsetInput.SetColor(yColor);
   yOffsetInput.SetValuePointer((uint16_t*)&y_offset);
   yOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
   yOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  yOffsetInput.OnChange([&](uint16_t val) -> void {
+    notePadConfigs[activeConfig].y_offset = val;
+    ofsTextDisplay.Disable();
+  });
   layoutSelector.AddUIComponent(yOffsetInput, Point(0, 0));
-
-  UI4pxNumber yOffsetDisplay;
-  yOffsetDisplay.SetColor(Color(0xFF00FF));
-  yOffsetDisplay.SetDigits(1);
-  yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
-  yOffsetDisplay.SetAlternativeColor(Color(0xFF00FF));
-  yOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
-  layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
 
   UISelector xOffsetInput;
   xOffsetInput.SetDimension(Dimension(8, 1));
   xOffsetInput.SetName("X Offset");
-  xOffsetInput.SetColor(Color(0x00FFFF));
+  xOffsetInput.SetColor(xColor);
   xOffsetInput.SetValuePointer((uint16_t*)&x_offset);
   xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
+  xOffsetInput.OnChange([&](uint16_t val) -> void {
+    notePadConfigs[activeConfig].x_offset = val;
+    ofsTextDisplay.Disable();
+  });
   layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));
 
-  UI4pxNumber xOffsetDisplay;
-  xOffsetDisplay.SetColor(Color(0x00FFFF));
-  xOffsetDisplay.SetDigits(1);
-  xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
-  xOffsetDisplay.SetAlternativeColor(Color(0x00FFFF));
-  xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
-  layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
+  // Chromatic
+  TimedDisplay chmTextDisplay(UINT32_MAX);
+  chmTextDisplay.SetDimension(Dimension(8, 4));
+  chmTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // C
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+
+    // H
+    MatrixOS::LED::SetColor(origin + Point(2, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(2, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(2, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(2, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+
+    // M
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+  });
+  chmTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT; });
+  layoutSelector.AddUIComponent(chmTextDisplay, Point(0, 2));
+
+  // Piano
+  TimedDisplay pioTextDisplay(UINT32_MAX);
+  pioTextDisplay.SetDimension(Dimension(8, 4));
+  pioTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // P
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+
+    // I
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+
+
+    // O
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+  });
+  pioTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == PIANO_LAYOUT; });
+  layoutSelector.AddUIComponent(pioTextDisplay, Point(0, 2));
 
   // Show Off Scale Notes Toggle (only for Octave and Offset modes)
   UIButton inKeyNoteOnlyToggle;
@@ -570,12 +715,6 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(inKeyNoteOnlyToggle, Point(0, 7));
 
   layoutSelector.Start();
-
-  if(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT)
-  {
-    notePadConfigs[activeConfig].x_offset = x_offset;
-    notePadConfigs[activeConfig].y_offset = y_offset;
-  }
 }
 
 void Note::ChannelSelector() {
