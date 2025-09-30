@@ -508,6 +508,8 @@ void Note::LayoutSelector() {
       notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
       x_offset = 1;
       y_offset = 3;
+      notePadConfigs[activeConfig].x_offset = x_offset;
+      notePadConfigs[activeConfig].y_offset = y_offset;
     }
   });
   layoutSelector.AddUIComponent(offsetModeBtn, Point(3, 0));
