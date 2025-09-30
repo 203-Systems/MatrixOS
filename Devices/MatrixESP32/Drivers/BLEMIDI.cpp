@@ -1,5 +1,5 @@
 #include "Device.h"
-#include "blemidi/blemidi.h"
+#include "BLEMidi/BLEMidi.h"
 
 #include <queue>
 using std::queue;

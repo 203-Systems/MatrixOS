@@ -1,7 +1,7 @@
 #include <cmath>
 #include <deque>
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 #define TAP_HISTORY_SIZE 10
 

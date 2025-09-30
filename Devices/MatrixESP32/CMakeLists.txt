@@ -81,7 +81,7 @@ target_compile_options(MatrixOSDevice PUBLIC
 
 # Add Platform ESP32SX libraries
 add_subdirectory(${CMAKE_SOURCE_DIR}/Platform/ESP32SX/WS2812 ${CMAKE_BINARY_DIR}/Platform/ESP32SX/WS2812)
-add_subdirectory(${CMAKE_SOURCE_DIR}/Platform/ESP32SX/blemidi ${CMAKE_BINARY_DIR}/Platform/ESP32SX/blemidi)
+add_subdirectory(${CMAKE_SOURCE_DIR}/Platform/ESP32SX/BLEMidi ${CMAKE_BINARY_DIR}/Platform/ESP32SX/BLEMidi)
 
 target_link_libraries(MatrixOSDevice PUBLIC
     DeviceInterface

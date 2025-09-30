@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "shared/UISelectorUtils.h"
+#include "UISelectorBase.h"
 
 // Difference between NumSelector and Item Selector is that everything lower than Output will be lit instead of single item being lit
 template <class T>

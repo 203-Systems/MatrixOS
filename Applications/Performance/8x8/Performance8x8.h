@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "Application.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 #include "UINotePad.h"
 

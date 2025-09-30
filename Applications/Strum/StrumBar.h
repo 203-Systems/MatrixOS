@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "Chord.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 struct StrumBarConfig
 {

@@ -1,6 +1,6 @@
 #include "Device.h"
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 #include "esp_private/system_internal.h"  // For esp_reset_reason_set_hint
 

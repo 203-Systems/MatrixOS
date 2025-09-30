@@ -1,6 +1,6 @@
 #pragma once
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 #include "Arpeggiator.h"
 
 struct ArpDirVisual {

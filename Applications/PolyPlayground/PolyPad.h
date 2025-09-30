@@ -2,7 +2,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 struct PolyPadConfig {
   uint8_t ySpacing = 4;

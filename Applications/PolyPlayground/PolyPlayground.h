@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "PolyPad.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 #include "Application.h"
 
 #define POLY_PLAYGROUND_APP_VERSION 1

@@ -1,5 +1,5 @@
 #include "Dice.h"
-#include "ui/UI.h"  // Include the UI Framework
+#include "UI/UI.h"  // Include the UI Framework
 
 // Run once
 void Dice::Setup(const vector<string>& args) {

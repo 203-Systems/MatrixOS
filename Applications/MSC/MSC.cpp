@@ -1,5 +1,5 @@
 #include "MSC.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 #include "USB/USB.h"
 
 void MSC::Setup(const vector<string>& args) {

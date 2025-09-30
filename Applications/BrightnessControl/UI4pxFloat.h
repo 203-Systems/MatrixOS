@@ -1,6 +1,6 @@
 #pragma once
 #include <cmath>
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 // TODO add negative support?
 // Only 4x8 support right now
