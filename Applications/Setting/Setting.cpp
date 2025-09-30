@@ -134,6 +134,12 @@ void Setting::Start() {
   uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::ui_animation.Save(); });
   AddUIComponent(uiAnimationToggle, Point(7, 0));
 
+  UIToggle fastScrollToggle;
+  fastScrollToggle.SetName("Fast Text");
+  fastScrollToggle.SetColor(Color(0x5A39BD));
+  fastScrollToggle.SetValuePointer(&MatrixOS::UserVar::fast_scroll);
+  fastScrollToggle.OnPress([]() -> void { MatrixOS::UserVar::fast_scroll.Save(); });
+  AddUIComponent(fastScrollToggle, Point(6, 0));
 
   UI::Start();
 }
