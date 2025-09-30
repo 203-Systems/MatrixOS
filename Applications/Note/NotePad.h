@@ -2,7 +2,7 @@
 
 #include "MatrixOS.h"
 #include "Scales.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 #include "MidiPipeline.h"
 #include "NoteLatch.h"
 #include "ChordEffect.h"

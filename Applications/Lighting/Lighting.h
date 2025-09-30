@@ -1,8 +1,8 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "ui/UI.h"
-#include "ui/UIUtilities.h"
+#include "UI/UI.h"
+#include "UI/UIUtilities.h"
 #include "Application.h"
 #include "TemperatureColorPicker.h"
 

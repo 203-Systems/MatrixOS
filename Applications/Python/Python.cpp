@@ -1,6 +1,6 @@
 #include "Python.h"
 #include "pikaScript.h"
-#include "pikaVM.h"
+#include "PikaVM.h"
 #include "PikaObj.h"
 #include "System/System.h"
 #include "FileSystem/FatFS/ff.h"

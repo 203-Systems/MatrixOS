@@ -1,6 +1,6 @@
 #include <cmath>
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 #define DEFAULT_CENTER_TEMP 6500
 class UITemperatureColorSelector : public UIComponent {

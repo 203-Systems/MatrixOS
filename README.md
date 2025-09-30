@@ -1,4 +1,10 @@
-<img src="Resources/MatrixOS.svg" width="300" alt="Matrix OS" >
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Resources/MatrixOS_White.svg">
+  <img src="Resources/MatrixOS_Black.svg" width="300" alt="Matrix OS Logo">
+</picture>
+
+<br>
+<br>
 
 An Open Operating System for Software Defined Controllers, Designed to be Flexible, Extensible, Multi-Modal, and Cross-Platform.
 

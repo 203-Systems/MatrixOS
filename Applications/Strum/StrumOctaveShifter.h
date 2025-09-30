@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 class StrumOctaveShifter : public UIComponent {
  public:

@@ -3,7 +3,7 @@
 // This technically not an APP but a UI so it coexists with an active APP.
 
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 class Setting : public UI {
   public:

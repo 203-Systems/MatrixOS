@@ -6,8 +6,8 @@
 #include "Framework.h"
 #include "queue.h"
 #include "semphr.h"
-#include "system/Parameters.h"
-#include "system/UserVariables.h"
+#include "System/Parameters.h"
+#include "System/UserVariables.h"
 #include "task.h"
 #include "timers.h"
 

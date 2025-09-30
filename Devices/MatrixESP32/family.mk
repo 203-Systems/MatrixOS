@@ -18,10 +18,10 @@ uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
 
 $(BUILD)/$(PROJECT)-$(DEVICE).uf2: $(BUILD)/$(PROJECT)-$(DEVICE).bin
 	@echo CREATE $@
-	python tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^
+	python Tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^
 
 upload:
-	python tools/uf2/utils/uf2upload.py -f $(BUILD)/$(PROJECT)-$(DEVICE).uf2 -d "$(UF2_MODEL)" -l
+	python Tools/uf2/utils/uf2upload.py -f $(BUILD)/$(PROJECT)-$(DEVICE).uf2 -d "$(UF2_MODEL)" -l
 
 uf2-upload: $(BUILD)/$(PROJECT)-$(DEVICE).uf2 upload
 

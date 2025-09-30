@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 class BrightnessControl : public UI {
  public:

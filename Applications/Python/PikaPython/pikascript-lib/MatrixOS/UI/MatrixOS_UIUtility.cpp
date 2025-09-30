@@ -1,5 +1,5 @@
 #include "MatrixOS.h"
-#include "ui/UIUtilities.h"
+#include "UI/UIUtilities.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../PikaObjUtils.h"

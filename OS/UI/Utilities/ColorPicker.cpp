@@ -1,6 +1,6 @@
 #include <cmath>
 #include "MatrixOS.h"
-#include "ui/UI.h"
+#include "UI/UI.h"
 
 class UIHueSelector : public UIComponent {
  public:

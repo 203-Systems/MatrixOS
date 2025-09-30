@@ -4,7 +4,7 @@
 #include <vector>
 #include "SavedVar.h"
 #include "Types.h"
-#include "system/Parameters.h"
+#include "System/Parameters.h"
 #include "KeyConfig.h"
 
 #define KEY_INFO_THRESHOLD 512
