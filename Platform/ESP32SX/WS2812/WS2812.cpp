@@ -33,7 +33,7 @@ namespace WS2812
           },
   };
 
-  static size_t rmt_encode_led(rmt_encoder_t *rmt_encoder, rmt_channel_handle_t channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state) {
+  IRAM_ATTR static size_t rmt_encode_led(rmt_encoder_t *rmt_encoder, rmt_channel_handle_t channel, const void *primary_data, size_t data_size, rmt_encode_state_t *ret_state) {
     rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
     rmt_encoder_handle_t bytes_encoder = led_encoder->bytes_encoder;
     rmt_encoder_handle_t copy_encoder = led_encoder->copy_encoder;
@@ -76,7 +76,7 @@ namespace WS2812
     return encoded_symbols;
   }
 
-  static esp_err_t rmt_del_led_encoder(rmt_encoder_t *rmt_encoder) {
+  IRAM_ATTR static esp_err_t rmt_del_led_encoder(rmt_encoder_t *rmt_encoder) {
     rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
     rmt_del_encoder(led_encoder->bytes_encoder);
     rmt_del_encoder(led_encoder->copy_encoder);
@@ -84,7 +84,7 @@ namespace WS2812
     return ESP_OK;
   }
 
-  static esp_err_t rmt_led_encoder_reset(rmt_encoder_t *rmt_encoder) {
+  IRAM_ATTR static esp_err_t rmt_led_encoder_reset(rmt_encoder_t *rmt_encoder) {
     rmt_led_encoder_t* led_encoder = __containerof(rmt_encoder, rmt_led_encoder_t, base);
     rmt_encoder_reset(led_encoder->bytes_encoder);
     rmt_encoder_reset(led_encoder->copy_encoder);
@@ -147,10 +147,10 @@ namespace WS2812
         .gpio_num = gpio_pin,            // GPIO number
         .clk_src = RMT_CLK_SRC_DEFAULT,  // select source clock
         .resolution_hz = RMT_LED_STRIP_RESOLUTION_HZ,       // 10 MHz tick resolution, i.e., 1 tick = 0.1 µs
-        .mem_block_symbols = 64,         // memory block size, 64 * 4 = 256 Bytes
+        .mem_block_symbols = 256,        // memory block size, 256 * 4 = 1024 Bytes
         .trans_queue_depth = 4,          // set the number of transactions that can be pending in the background
         .intr_priority = 99,
-        .flags = {.invert_out = 0, .with_dma = 0, .io_loop_back = 0, .io_od_mode = 0},
+        .flags = {.invert_out = 0, .with_dma = 1, .io_loop_back = 0, .io_od_mode = 0},
     };
 
     ESP_ERROR_CHECK(rmt_new_tx_channel(&rmt_channel_config, &rmt_channel));
