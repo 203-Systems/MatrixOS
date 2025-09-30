@@ -17,7 +17,7 @@ namespace MatrixOS::KeyPad
     }
   }
 
-  bool NewEvent(KeyEvent* keyevent) {
+  IRAM_ATTR bool NewEvent(KeyEvent* keyevent) {
 
     if (uxQueueSpacesAvailable(keyevent_queue) == 0)
     {

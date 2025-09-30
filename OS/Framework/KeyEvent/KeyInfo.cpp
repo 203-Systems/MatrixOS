@@ -31,7 +31,7 @@ uint32_t KeyInfo::HoldTime(void) {
   }
 }
 
-Fract16 KeyInfo::ApplyForceCurve(KeyConfig& config, Fract16 value) {
+IRAM_ATTR Fract16 KeyInfo::ApplyForceCurve(KeyConfig& config, Fract16 value) {
   if (!config.apply_curve)
   { return value; }
   if (value < config.low_threshold)
@@ -62,7 +62,7 @@ Aftertouch (Pressed, Activated, Hold, Hold Activated)
 */
 
 // Update method for single value (primary value - force/pressure)
-bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
+IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
   uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
 
   switch (state)

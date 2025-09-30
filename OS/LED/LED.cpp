@@ -29,7 +29,7 @@ namespace MatrixOS::LED
 
   void RenderCrossfade();
 
-  void LEDTimerCallback(TimerHandle_t xTimer) {
+  IRAM_ATTR void LEDTimerCallback(TimerHandle_t xTimer) {
     xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
     if(crossfade_active)
     {
@@ -423,7 +423,7 @@ namespace MatrixOS::LED
 
   // If any layer is 0, it will be show up as black（or lightless)
   // If layer 2 is 255, it will be using the top layer
-  void RenderCrossfade() {
+  IRAM_ATTR void RenderCrossfade() {
     Fract16 ratio = 0;
 
     uint32_t currentTime = MatrixOS::SYS::Millis();

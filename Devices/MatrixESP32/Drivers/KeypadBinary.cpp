@@ -42,7 +42,7 @@ namespace Device::KeyPad::Binary
     // ulp_riscv_run();
   }
 
-   bool Scan()
+  IRAM_ATTR bool Scan()
   {
     for(uint8_t x = 0; x < X_SIZE; x++)
     {
@@ -56,8 +56,8 @@ namespace Device::KeyPad::Binary
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
           if (NotifyOS(keyID, &keypadState[x][y]))
-          {           
-            return true; 
+          {
+            return true;
           }
         }
       }

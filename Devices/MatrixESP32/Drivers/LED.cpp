@@ -12,7 +12,7 @@ namespace Device
 
     void Start() {}
 
-    void Update(Color* frameBuffer, vector<uint8_t>& brightness)  // Render LED
+    IRAM_ATTR void Update(Color* frameBuffer, vector<uint8_t>& brightness)  // Render LED
     {
       WS2812::Show(frameBuffer, brightness);
     }

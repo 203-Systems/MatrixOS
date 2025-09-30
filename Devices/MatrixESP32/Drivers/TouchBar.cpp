@@ -9,7 +9,7 @@ namespace Device::KeyPad
   StaticTimer_t touchbar_timer_def;
   TimerHandle_t touchbar_timer;
 
-  void TouchBarTimerHandler()  // This exists because return type of TouchBarScan is bool
+  IRAM_ATTR void TouchBarTimerHandler()  // This exists because return type of TouchBarScan is bool
   {
     if(touchbar_enable) ScanTouchBar();
   }
@@ -41,7 +41,7 @@ namespace Device::KeyPad
     xTimerStart(touchbar_timer, 0);
   }
 
-  bool ScanTouchBar() {
+  IRAM_ATTR bool ScanTouchBar() {
     for (uint8_t i = 0; i < touchbar_size; i++)
     {
       gpio_set_level(touchClock_Pin, 1);

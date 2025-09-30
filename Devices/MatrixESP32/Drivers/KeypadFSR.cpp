@@ -160,7 +160,7 @@ namespace Device::KeyPad::FSR
   }
   
   #define CLAMP(x, low, high) (x < low ? low : (x > high ? high : x))
-  bool Scan() {
+  IRAM_ATTR bool Scan() {
     // ESP_LOGI("Keypad ULP", "Scaned: %lu", ulp_count);
     uint16_t (*result)[Y_SIZE] = (uint16_t (*)[Y_SIZE])&ulp_result;
     // uint16_t(*threshold)[Y_SIZE] = (uint16_t(*)[Y_SIZE]) &ulp_threshold;
@@ -173,7 +173,7 @@ namespace Device::KeyPad::FSR
         Fract16 reading = (Fract16)result[x][y];
         int32_t new_low_threshold = (uint16_t)(*low_thresholds)[x][y] + lowOffset.Get();
         int32_t new_high_threshold = (uint16_t)(*high_thresholds)[x][y] + highOffset.Get();
-        
+
         config.low_threshold = CLAMP(new_low_threshold, 512, UINT16_MAX);
         config.high_threshold = CLAMP(new_high_threshold, 25600, UINT16_MAX);
         bool updated = keypadState[x][y].Update(config, reading);
