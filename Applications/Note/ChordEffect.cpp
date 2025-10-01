@@ -138,8 +138,10 @@ void ChordEffect::SetEnabled(bool state) {
 }
 
 void ChordEffect::SetChordCombo(ChordCombo combo) {
-    chordCombo = combo; // This now populates chordIntervals
-    chordChanged = true;
+    if (chordCombo != combo) {
+        chordCombo = combo;
+        chordChanged = true;
+    }
 }
 
 void ChordEffect::SetInversion(int8_t inversion)

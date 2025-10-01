@@ -252,7 +252,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
     // Section 1: Top left 4 buttons (CTL_BAR_Y - 3, x0-x3) - Basic chord types
     if (xy.y == CTL_BAR_Y - 3 && xy.x <= 3) {
-        ChordCombo& combo = notePad[0]->rt->chordEffect.chordCombo;
+        ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
             bool chordTypes[4] = {combo.dim, combo.min, combo.maj, combo.sus};
@@ -291,7 +291,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
     // Section 2: Bottom left 4 buttons (CTL_BAR_Y - 2, x0-x3) - Extensions
     if (xy.y == CTL_BAR_Y - 2 && xy.x <= 3) {
-        ChordCombo& combo = notePad[0]->rt->chordEffect.chordCombo;
+        ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
             if (chordToggleMode) {

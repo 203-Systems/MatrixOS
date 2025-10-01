@@ -18,6 +18,15 @@ struct ChordCombo {
     bool extMin7:1;
     bool extMaj7:1;
     bool ext9:1;
+
+    bool operator==(const ChordCombo& other) const {
+        return dim == other.dim && min == other.min && maj == other.maj && sus == other.sus &&
+               ext6 == other.ext6 && extMin7 == other.extMin7 && extMaj7 == other.extMaj7 && ext9 == other.ext9;
+    }
+
+    bool operator!=(const ChordCombo& other) const {
+        return !(*this == other);
+    }
 };
 
 class ChordEffect : public MidiEffect {
