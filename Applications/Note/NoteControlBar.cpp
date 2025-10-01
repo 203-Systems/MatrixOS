@@ -383,11 +383,30 @@ bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
     xy = xy - Point(0, CTL_BAR_Y - 3);
 
-    if (xy.x == 7 || xy == Point(0, 0) || xy == Point(3, 0))
+    if (xy == Point(7, 0)|| xy == Point(0, 0) || xy == Point(3, 0))
     {
       return true;
     }
-    notePad[0]->rt->config->rootKey = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+
+    if (xy == Point(7, 1))
+    {
+      keyOffsetMode = !keyOffsetMode;
+      return true;
+    }
+
+    uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+    if(!keyOffsetMode)
+    {
+        notePad[0]->rt->config->rootKey = note;
+        notePad[0]->rt->config->rootOffset = 0;
+    }
+    else
+    {
+        uint16_t c_aligned_scale_map = ((notePad[0]->rt->config->scale << notePad[0]->rt->config->rootKey) + ((notePad[0]->rt->config->scale & 0xFFF) >> (12 - notePad[0]->rt->config->rootKey % 12))) & 0xFFF;
+        if (bitRead(c_aligned_scale_map, note)) {
+            notePad[0]->rt->config->rootOffset = ((note + 12) - notePad[0]->rt->config->rootKey) % 12;
+        }
+    }
     notePad[0]->GenerateKeymap();
     return true;
 }
@@ -538,16 +557,19 @@ void NoteControlBar::RenderKeyControl(Point origin) {
                                                                                       // might add an assert later
     for (uint8_t note = 0; note < 12; note++)
     {
-      Point xy = origin + Point(CTL_BAR_Y - 3) + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
-      if (note == notePad[0]->rt->config->rootKey)
-      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->rootColor); }
-      else if (bitRead(c_aligned_scale_map, note))
-      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color); }
-      else
-      { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color.DimIfNot()); }
+        Point xy = origin + Point(CTL_BAR_Y - 3) + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
+        if (note == notePad[0]->rt->config->rootKey)
+        { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->rootColor); }
+        else if (notePad[0]->rt->config->rootOffset != 0 && note == (notePad[0]->rt->config->rootOffset + notePad[0]->rt->config->rootKey) % 12)
+        { MatrixOS::LED::SetColor(xy, Color(0xFF0080)); }
+        else if (bitRead(c_aligned_scale_map, note))
+        { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color); }
+        else
+        { MatrixOS::LED::SetColor(xy, notePad[0]->rt->config->color.DimIfNot()); }
     }
     MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 3), Color(0));
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 3), Color(0));
     MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), Color(0));
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), Color(0));
+
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), keyOffsetMode ? Color(0xFF0080) : Color(0x8000FF));
 }
