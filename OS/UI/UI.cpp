@@ -130,27 +130,27 @@ void UI::AllowExit(bool allow) {
 }
 
 void UI::SetSetupFunc(std::function<void()> setup_func) {
-  UI::setup_func = &setup_func;
+  UI::setup_func = std::make_unique<std::function<void()>>(setup_func);
 }
 
 void UI::SetLoopFunc(std::function<void()> loop_func) {
-  UI::loop_func = &loop_func;
+  UI::loop_func = std::make_unique<std::function<void()>>(loop_func);
 }
 
 void UI::SetEndFunc(std::function<void()> end_func) {
-  UI::end_func = &end_func;
+  UI::end_func = std::make_unique<std::function<void()>>(end_func);
 }
 
 void UI::SetPreRenderFunc(std::function<void()> pre_render_func) {
-  UI::pre_render_func = &pre_render_func;
+  UI::pre_render_func = std::make_unique<std::function<void()>>(pre_render_func);
 }
 
 void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
-  UI::post_render_func = &post_render_func;
+  UI::post_render_func = std::make_unique<std::function<void()>>(post_render_func);
 }
 
 void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler){
-  UI::key_event_handler = &key_event_handler;
+  UI::key_event_handler = std::make_unique<std::function<bool(KeyEvent*)>>(key_event_handler);
 }
 
 void UI::ClearUIComponents() {

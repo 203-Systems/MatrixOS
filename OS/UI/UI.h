@@ -53,12 +53,12 @@ class UI {
   Timer uiTimer;
   uint32_t uiUpdateMS = 1000 / UI_DEFAULT_MAX_FPS;
 
-  std::function<void()>* setup_func = nullptr;
-  std::function<void()>* loop_func = nullptr;
-  std::function<void()>* pre_render_func = nullptr;
-  std::function<void()>* post_render_func = nullptr;
-  std::function<void()>* end_func = nullptr;
-  std::function<bool(KeyEvent*)>* key_event_handler = nullptr;
+  std::unique_ptr<std::function<void()>> setup_func = nullptr;
+  std::unique_ptr<std::function<void()>> loop_func = nullptr;
+  std::unique_ptr<std::function<void()>> pre_render_func = nullptr;
+  std::unique_ptr<std::function<void()>> post_render_func = nullptr;
+  std::unique_ptr<std::function<void()>> end_func = nullptr;
+  std::unique_ptr<std::function<bool(KeyEvent*)>> key_event_handler = nullptr;
 
   std::list<pair<Point, UIComponent*>> uiComponents;
   int8_t prev_layer = -1;
