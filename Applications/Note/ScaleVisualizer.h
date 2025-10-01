@@ -53,7 +53,7 @@ class ScaleVisualizer : public UIComponent {
           ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;
 
       if (bitRead(c_aligned_scale_map, note)) {
-        *rootOffset = (note + 12) - *rootKey;
+        *rootOffset = ((note + 12) - *rootKey) % 12;
       }
     } else {
       *rootKey = note;
