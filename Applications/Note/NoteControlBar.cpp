@@ -455,14 +455,14 @@ void NoteControlBar::RenderChordControl(Point origin) {
     // Right side
     // Inversion
     int8_t currentInversion = notePad[0]->rt->chordEffect.inversion;
-    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 3), inversionColor.DimIfNot(currentInversion >= 0));
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 3), inversionColor.DimIfNot(currentInversion >= 1));
-    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 3), inversionColor.DimIfNot(currentInversion >= 2));
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), inversionColor.DimIfNot(currentInversion >= 3));
-    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 4));
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 5));
-    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 6));
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 7));
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 3), currentInversion >= 0 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 3), currentInversion >= 1 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 3), currentInversion >= 2 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), currentInversion >= 3 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), currentInversion >= 4 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), currentInversion >= 5 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), currentInversion >= 6 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), currentInversion >= 7 ? Color(0xFFFFFF) : inversionColor);
 }
 
 void NoteControlBar::RenderArpControl(Point origin) {
