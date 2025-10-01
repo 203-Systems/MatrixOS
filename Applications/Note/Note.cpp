@@ -209,6 +209,7 @@ void Note::Setup(const vector<string>& args) {
       {
         MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
         PlayView();
+        octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
       }
       return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
