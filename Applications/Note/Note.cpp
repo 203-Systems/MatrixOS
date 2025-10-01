@@ -360,6 +360,7 @@ void Note::ScaleSelector() {
     }
     notePadConfigs[activeConfig].scale = custom_scales[index];
     customScaleSlotSelected = index;
+    scaleModifier.ChangeScalePtr(&custom_scales[index]);
   });
   scaleSelector.AddUIComponent(customScaleSelector, Point(0, 6));
 

@@ -14,6 +14,11 @@ class ScaleModifier : public UIComponent {
     this->rootColor = rootColor;
   }
 
+  void ChangeScalePtr(uint16_t* scale)
+  {
+    this->scale = scale;
+  }
+
   void OnChange(std::function<void(uint16_t)> changeCallback) {
     this->changeCallback = std::make_unique<std::function<void(uint16_t)>>(changeCallback);
   }
