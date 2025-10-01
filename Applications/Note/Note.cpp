@@ -344,7 +344,7 @@ void Note::ScaleSelector() {
   });
   customScaleSelector.OnChange([&](uint16_t index) -> void {
     if (custom_scales[index] == 0) {
-      custom_scales[index] = 0b1000000000001;
+      custom_scales[index] = 0b1101010110101; // Default major
       customScaleModified = true;
     }
     notePadConfigs[activeConfig].scale = custom_scales[index];
