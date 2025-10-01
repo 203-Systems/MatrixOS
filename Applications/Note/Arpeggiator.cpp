@@ -545,15 +545,14 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
 
-    // Calculate gate off time based on gate percentage and current step ticks
+    // Calculate gate off time based on gate percentage and BASE step time (not swing-modified)
     if (config->gateTime == 0) {
         // Gate time 0 = always on until arp stops
         // Use UINT32_MAX to indicate infinite gate time
         gateOffQueue.push_back({UINT32_MAX, currentNote.note, currentNote.channel});
     } else {
-        // Calculate gate duration as percentage of step ticks
-        uint32_t currentStepTicks = ticksPerStep[currentIndex % 2];
-        uint32_t gateTicks = (currentStepTicks * config->gateTime) / 100;
+        // Gate duration is based on baseTicksPerStep (consistent note length regardless of swing)
+        uint32_t gateTicks = (baseTicksPerStep * config->gateTime) / 100;
         uint32_t gateOffTick = tickCounter + gateTicks;
 
         // Add this note to the gate off queue
@@ -566,6 +565,7 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
 
 void Arpeggiator::CalculateTicksPerStep() {
     if (division == DIV_OFF || division == 0) {
+        baseTicksPerStep = UINT32_MAX;
         ticksPerStep[0] = ticksPerStep[1] = UINT32_MAX;
         return;
     }
@@ -573,19 +573,23 @@ void Arpeggiator::CalculateTicksPerStep() {
     // Calculate base ticks based on TPQN and division
     // division = how many of this note per whole note
     // TPQN = ticks per quarter note
-    // ticksPerStep = (TPQN * 4) / division
-    uint32_t baseTicksPerStep = (EFFECT_TPQN * 4) / division;
+    // baseTicksPerStep = (TPQN * 4) / division
+    baseTicksPerStep = (EFFECT_TPQN * 4) / division;
 
     // Apply swing based on 20-80 range with 50 as center (no swing)
     // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
     float swingRatio = (config->swing - 50) / 100.0f;
 
+    // Swing modifies the timing between note triggers (not gate length)
     // On-beat gets longer by swing amount, off-beat gets shorter
     // This maintains total duration: ticksPerStep[0] + ticksPerStep[1] = 2 * baseTicksPerStep
     uint32_t swingTicks = (uint32_t)(baseTicksPerStep * swingRatio);
 
     ticksPerStep[0] = baseTicksPerStep + swingTicks;  // On-beat (longer with positive swing)
     ticksPerStep[1] = baseTicksPerStep - swingTicks;  // Off-beat (shorter with positive swing)
+
+    MLOGI("Arp", "CalculateTicksPerStep: baseTicksPerStep=%u, swing=%u, swingRatio=%.2f, swingTicks=%u, ticksPerStep[0]=%u, ticksPerStep[1]=%u",
+          baseTicksPerStep, config->swing, swingRatio, swingTicks, ticksPerStep[0], ticksPerStep[1]);
 }
 
 void Arpeggiator::Reset() {

@@ -87,7 +87,8 @@ private:
 
     // TPQN-based timing (Tick() is called on each clock pulse)
     uint32_t tickCounter = 0;        // Count ticks from clock
-    uint32_t ticksPerStep[2];        // [0] = on-beat, [1] = off-beat (for swing)
+    uint32_t baseTicksPerStep = 0;   // Base time between notes (used for gate calculation)
+    uint32_t ticksPerStep[2];        // [0] = on-beat, [1] = off-beat (swing-modified trigger timing)
     uint32_t nextStepTick = 0;       // Tick count when next step should occur
 
     struct GateOffEvent {
