@@ -1301,8 +1301,11 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
 
   arpConfigMenu.SetLoopFunc([&]() -> void {
-    if(activeNotePads[0] != nullptr) {activeNotePads[0]->Tick();}
-    if(activeNotePads[1] != nullptr) {activeNotePads[1]->Tick();}
+    if(midiClock.Tick())
+    {
+      if(activeNotePads[0] != nullptr) {activeNotePads[0]->Tick();}
+      if(activeNotePads[1] != nullptr) {activeNotePads[1]->Tick();}
+    }
   });
 
   arpConfigMenu.Start();
