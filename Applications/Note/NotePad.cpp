@@ -52,8 +52,8 @@ Dimension NotePad::GetSize() {
 }
 
 NoteType NotePad::InScale(int16_t note) {
+    note += 120; // add a big pos offset to make sure we don't get negative after mod
     note %= 12;
-    note = abs(note);
 
     if (note == ((rt->config->rootKey + rt->config->rootOffset) % 12))
         return ROOT_NOTE;  // It is a root key
