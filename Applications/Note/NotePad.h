@@ -39,6 +39,7 @@ struct ActiveKey {
 
 struct NotePadConfig {
   uint8_t rootKey = 0;
+  uint8_t rootOffset = 0;
   uint16_t scale = MINOR;
   int8_t octave = 4;
   uint8_t channel = 0;

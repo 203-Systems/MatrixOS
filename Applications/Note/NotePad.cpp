@@ -55,13 +55,13 @@ NoteType NotePad::InScale(int16_t note) {
     note %= 12;
     note = abs(note);
 
-    if (note == rt->config->rootKey)
+    if (note == ((rt->config->rootKey + rt->config->rootOffset) % 12))
         return ROOT_NOTE;  // It is a root key
     return bitRead(c_aligned_scale_map, note) ? SCALE_NOTE : OFF_SCALE_NOTE;
 }
 
 int16_t NotePad::NoteFromRoot(int16_t note) {
-    return (note + rt->config->rootKey) % 12;
+    return (note - rt->config->rootKey - rt->config->rootOffset + 24) % 12;
 }
 
 int16_t NotePad::GetNextInScaleNote(int16_t note) {
@@ -141,7 +141,7 @@ void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
 
 void NotePad::GenerateOctaveKeymap() {
     noteMap.reserve(dimension.Area());
-    int16_t root = 12 * rt->config->octave + rt->config->rootKey;
+    int16_t root = 12 * rt->config->octave + rt->config->rootKey + rt->config->rootOffset;
     int16_t nextNote = root;
     uint8_t rootCount = 0;
     for (int8_t y = 0; y < dimension.y; y++) {
@@ -183,7 +183,7 @@ void NotePad::GenerateOctaveKeymap() {
 
 void NotePad::GenerateOffsetKeymap() {
     noteMap.reserve(dimension.Area());
-    int16_t root = 12 * rt->config->octave + rt->config->rootKey;
+    int16_t root = 12 * rt->config->octave + rt->config->rootKey + rt->config->rootOffset;
     if (!rt->config->enforceScale) {
         for (int8_t y = 0; y < dimension.y; y++) {
             int8_t ui_y = dimension.y - y - 1;
@@ -232,7 +232,7 @@ void NotePad::GenerateOffsetKeymap() {
 
 void NotePad::GenerateChromaticKeymap() {
     noteMap.reserve(dimension.Area());
-    int16_t note = (12 * rt->config->octave) + rt->config->rootKey;
+    int16_t note = (12 * rt->config->octave) + rt->config->rootKey + rt->config->rootOffset;
     for(uint8_t i = 0; i < dimension.Area(); i++) {
         uint8_t x = i % dimension.x;
         uint8_t y = i / dimension.x;

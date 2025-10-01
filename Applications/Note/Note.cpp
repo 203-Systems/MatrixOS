@@ -291,8 +291,14 @@ void Note::ScaleSelector() {
   bool customScaleModified = false;
   uint8_t customScaleSlotSelected = 255;
 
-  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale);
+  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset, &notePadConfigs[activeConfig].scale);
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
+
+  UIButton offsetModeBtn;
+  offsetModeBtn.SetName("Modern Diatonic");
+  offsetModeBtn.SetColorFunc([&]() -> Color { return scaleVisualizer.offsetMode ? Color(0xFF0080) : Color(0x8000FF); });
+  offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
+  scaleSelector.AddUIComponent(offsetModeBtn, Point(7, 1));
 
   ScaleModifier scaleModifier(&custom_scales[customScaleSlotSelected]);
   scaleModifier.SetEnableFunc([&]() -> bool { return customScaleSlotSelected != 255; });
@@ -311,6 +317,7 @@ void Note::ScaleSelector() {
     custom_scales[customScaleSlotSelected] = 0;
     customScaleModified = true;
     customScaleSlotSelected = 255;
+    notePadConfigs[activeConfig].rootOffset = 0;
     notePadConfigs[activeConfig].scale = MINOR;
   });
   scaleSelector.AddUIComponent(deleteScaleBtn, Point(7, 3));
@@ -322,7 +329,10 @@ void Note::ScaleSelector() {
   scaleSelectorBar.SetCount(16);
   scaleSelectorBar.SetItems(scales);
   scaleSelectorBar.SetIndividualNameFunc([&](uint16_t index) -> string { return scale_names[index]; });
-  scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void { customScaleSlotSelected = 255; });
+  scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void { 
+    notePadConfigs[activeConfig].rootOffset = 0;
+    customScaleSlotSelected = 255; 
+  });
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
   UISelector customScaleSelector;
