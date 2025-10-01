@@ -78,6 +78,15 @@ struct NotePadRuntime
   uint8_t activeNotes[64] = {0}; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
 
   NotePadRuntime() : arpeggiator(nullptr) {}
+
+  void Tick()
+  {
+    midiPipeline.Tick();
+    MidiPacket midiPacket;
+    while (midiPipeline.Get(midiPacket)) {
+        MatrixOS::MIDI::Send(midiPacket, MIDI_PORT_ALL);
+    }
+  }
 };
 
 class NotePad : public UIComponent {
@@ -91,8 +100,6 @@ class NotePad : public UIComponent {
 
   NotePad(Dimension dimension, NotePadRuntime* data);
   ~NotePad();
-
-  void Tick();
 
   virtual Color GetColor();
   virtual Dimension GetSize();

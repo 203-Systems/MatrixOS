@@ -52,15 +52,6 @@ NotePad::~NotePad() {
     activeKeys.clear();
 }
 
-void NotePad::Tick()
-{
-    rt->midiPipeline.Tick();
-    MidiPacket midiPacket;
-    while (rt->midiPipeline.Get(midiPacket)) {
-        MatrixOS::MIDI::Send(midiPacket, MIDI_PORT_ALL);
-    }
-}
-
 Color NotePad::GetColor() {
     return rt->config->rootColor;
 }

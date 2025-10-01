@@ -52,6 +52,8 @@ class Note : public Application {
   void ColorSelector();
   void ArpConfigMenu();
 
+  void Tick();
+
   NotePadConfig notePadConfigs[2];
   NotePad *activeNotePads[2] = {nullptr, nullptr};
 

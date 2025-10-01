@@ -263,8 +263,8 @@ void Note::PlayView() {
   playView.SetLoopFunc([&]() -> void {
     if(midiClock.Tick())
     {
-      notePad1.Tick();
-      notePad2.Tick();
+      notePad1.rt->Tick();
+      notePad2.rt->Tick();
     }
   });
 
@@ -291,8 +291,8 @@ void Note::ScaleSelector() {
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
   scaleSelector.SetLoopFunc([&]() -> void {
-    if(activeNotePads[0] != nullptr) {activeNotePads[0]->Tick();}
-    if(activeNotePads[1] != nullptr) {activeNotePads[1]->Tick();}
+    if(activeNotePads[0] != nullptr) {activeNotePads[0]->rt->Tick();}
+    if(activeNotePads[1] != nullptr) {activeNotePads[1]->rt->Tick();}
   });
 
   scaleSelector.Start();
@@ -1303,8 +1303,8 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.SetLoopFunc([&]() -> void {
     if(midiClock.Tick())
     {
-      if(activeNotePads[0] != nullptr) {activeNotePads[0]->Tick();}
-      if(activeNotePads[1] != nullptr) {activeNotePads[1]->Tick();}
+      if(activeNotePads[0] != nullptr) {activeNotePads[0]->rt->Tick();}
+      if(activeNotePads[1] != nullptr) {activeNotePads[1]->rt->Tick();}
     }
   });
 
