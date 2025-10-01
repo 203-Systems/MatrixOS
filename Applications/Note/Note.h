@@ -10,6 +10,7 @@
 #define NOTE_APP_VERSION 2
 
 #define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
+#define CUSTOM_SCALES_HASH StaticHash("203 Systems-Note-CustomScales")
 
 enum MidiClockMode {
     CLOCK_INTERNAL,
@@ -67,7 +68,7 @@ class Note : public Application {
     {0x40FFFF, 0xFFFFFF}
   };
 
-  static inline uint16_t scales[32] = {NATURAL_MINOR,
+  static inline uint16_t scales[16] = {MINOR,
                          MAJOR,
                          DORIAN,
                          PHRYGIAN,
@@ -82,25 +83,9 @@ class Note : public Application {
                          MARVA,
                          TODI,
                          WHOLE_TONE,
-                         CHROMATIC,
-                         LYDIAN,
-                         LOCRIAN,
-                         MAJOR_PENTATONIC,
-                         PHRYGIAN_DOMINANT,
-                         HALF_WHOLE_DIMINISHED,
-                         MIXOLYDIAN_BEBOP,
-                         SUPER_LOCRIAN,
-                         HIRAJOSHI,
-                         IN_SEN,
-                         YO_SCALE,
-                         IWATO,
-                         WHOLE_HALF,
-                         BEBOP_MINOR,
-                         MAJOR_BLUES,
-                         KUMOI,
-                         BEBOP_MAJOR};
+                         CHROMATIC};
 
-  static inline const string scale_names[32] = {"Natural Minor",
+  static inline const string scale_names[16] = {"Minor",
                             "Major",
                             "Dorian",
                             "Phrygian",
@@ -115,23 +100,9 @@ class Note : public Application {
                             "Marva",
                             "Todi",
                             "Whole Tone",
-                            "Chromatic",
-                            "Lydian",
-                            "Locrian",
-                            "Major Pentatonic",
-                            "Phrygian Dominant",
-                            "Half-Whole Diminished",
-                            "Mixolydian BeBop",
-                            "Super Locrian",
-                            "Hirajoshi",
-                            "In Sen",
-                            "Yo Scale",
-                            "Iwato",
-                            "Whole Half",
-                            "BeBop Minor",
-                            "Major Blues",
-                            "Kumoi",
-                            "BeBop Major"};
+                            "Chromatic"};
+
+  static inline uint16_t custom_scales[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 };
 
 

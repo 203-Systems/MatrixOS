@@ -2,7 +2,7 @@
 
 // Bit map for scales, LSB(Bit0) is C and Bit11 is B. First 4 bits are reserved
 enum EScale : uint16_t {
-  NATURAL_MINOR = 0b010110101101,
+  MINOR = 0b010110101101,
   MAJOR = 0b101010110101,
   DORIAN = 0b011010101101,
   PHRYGIAN = 0b010110101011,

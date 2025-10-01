@@ -1,5 +1,6 @@
 #include "Note.h"
 #include "ScaleVisualizer.h"
+#include "ScaleModifier.h"
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
 #include "ArpDirVisualizer.h"
@@ -28,10 +29,13 @@ void Note::Setup(const vector<string>& args) {
     }
   }
   else
-  { 
+  {
     MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); \
     nvsVersion = NOTE_APP_VERSION;
   }
+
+  // Load custom scales from NVS
+  MatrixOS::NVS::GetVariable(CUSTOM_SCALES_HASH, custom_scales, sizeof(custom_scales));
 
   // Initialize runtimes
   for(uint8_t i = 0; i < 2; i++)
@@ -284,25 +288,79 @@ void Note::PlayView() {
 
 void Note::ScaleSelector() {
   UI scaleSelector("Scale Selector", Color(0xFF0090), false);
+  bool customScaleModified = false;
+  uint8_t customScaleSlotSelected = 255;
 
-  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale, notePadConfigs[activeConfig].color,
-                                  notePadConfigs[activeConfig].rootColor);
+  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].scale);
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
+
+  ScaleModifier scaleModifier(&custom_scales[customScaleSlotSelected]);
+  scaleModifier.SetEnableFunc([&]() -> bool { return customScaleSlotSelected != 255; });
+  scaleModifier.OnChange([&](uint16_t newScale) -> void {
+    customScaleModified = true;
+    custom_scales[customScaleSlotSelected] = newScale;
+    notePadConfigs[activeConfig].scale = newScale;
+  });
+  scaleSelector.AddUIComponent(scaleModifier, Point(0, 2));
+
+  UIButton deleteScaleBtn;
+  deleteScaleBtn.SetName("Delete Custom Scale");
+  deleteScaleBtn.SetColor(Color(0xFF0000));
+  deleteScaleBtn.SetEnableFunc([&]() -> bool { return customScaleSlotSelected != 255; });
+  deleteScaleBtn.OnPress([&]() -> void {
+    custom_scales[customScaleSlotSelected] = 0;
+    customScaleModified = true;
+    customScaleSlotSelected = 255;
+    notePadConfigs[activeConfig].scale = MINOR;
+  });
+  scaleSelector.AddUIComponent(deleteScaleBtn, Point(7, 3));
 
   UIItemSelector<uint16_t> scaleSelectorBar;
   scaleSelectorBar.SetDimension(Dimension(8, 4));
   scaleSelectorBar.SetColor(Color(0xFF0090));
   scaleSelectorBar.SetItemPointer(&notePadConfigs[activeConfig].scale);
-  scaleSelectorBar.SetCount(32);
+  scaleSelectorBar.SetCount(16);
   scaleSelectorBar.SetItems(scales);
   scaleSelectorBar.SetIndividualNameFunc([&](uint16_t index) -> string { return scale_names[index]; });
+  scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void { customScaleSlotSelected = 255; });
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
+
+  UISelector customScaleSelector;
+  customScaleSelector.SetDimension(Dimension(8, 2));
+  customScaleSelector.SetIndividualColorFunc([&](uint16_t index) -> Color {
+    if (customScaleSlotSelected == index) {
+      return Color(0xFFFFFF);
+    }
+    if (custom_scales[index] == notePadConfigs[activeConfig].scale && custom_scales[index] != 0) {
+      return Color(0xFFFF00);
+    }
+    if (custom_scales[index] != 0) {
+      return Color(0xFFFF00).Dim();
+    }
+    return Color(0xFFFFFF).Dim();
+  });
+  customScaleSelector.SetIndividualNameFunc([&](uint16_t index) -> string {
+    return "Custom Scale " + std::to_string(index + 1);
+  });
+  customScaleSelector.OnChange([&](uint16_t index) -> void {
+    if (custom_scales[index] == 0) {
+      custom_scales[index] = 0b1000000000001;
+      customScaleModified = true;
+    }
+    notePadConfigs[activeConfig].scale = custom_scales[index];
+    customScaleSlotSelected = index;
+  });
+  scaleSelector.AddUIComponent(customScaleSelector, Point(0, 6));
 
   scaleSelector.SetLoopFunc([&]() -> void {
     Tick();
   });
 
   scaleSelector.Start();
+
+  if (customScaleModified) {
+    MatrixOS::NVS::SetVariable(CUSTOM_SCALES_HASH, custom_scales, sizeof(custom_scales));
+  }
 }
 
 void Note::ColorSelector() {
