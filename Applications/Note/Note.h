@@ -5,10 +5,17 @@
 #include "Scales.h"
 #include "UI/UI.h"
 #include "Application.h"
+#include "MidiClock.h"
 
 #define NOTE_APP_VERSION 2
 
 #define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
+
+enum MidiClockMode {
+    CLOCK_INTERNAL,
+    CLOCK_INTERNAL_CLOCKOUT,    // Send clock to external devices
+    CLOCK_EXTERNAL
+};
 
 class Note : public Application {
  public:
@@ -19,13 +26,16 @@ class Note : public Application {
       .version = NOTE_APP_VERSION,
       .visibility = true,
   };
-  
+
   enum ESpiltView : uint8_t { SINGLE_VIEW, VERT_SPLIT, HORIZ_SPLIT};
   // Saved Variables
   CreateSavedVar("Note", nvsVersion, uint32_t, NOTE_APP_VERSION);  // In case NotePadConfig got changed
   CreateSavedVar("Note", activeConfig, uint8_t, 0);
   CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
   CreateSavedVar("Note", controlBar, bool, false);
+  CreateSavedVar("Note", bpm, uint16_t, 120);
+
+  MidiClock midiClock = MidiClock(bpm, EFFECT_TPQN);
 
   void Setup(const vector<string>& args) override;
 

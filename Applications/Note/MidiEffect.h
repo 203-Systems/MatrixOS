@@ -2,6 +2,8 @@
 
 #include "MatrixOS.h"
 
+#define EFFECT_TPQN 96 //Tick per quarter note
+
 // Base class for MIDI effects - processes arrays of packets
 class MidiEffect {
 protected:

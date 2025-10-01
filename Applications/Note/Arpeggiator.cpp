@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) : config(cfg) {
-    CalculateStepDurations();
+    CalculateTicksPerStep();
 }
 
 void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
@@ -17,8 +17,6 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         }
         return;
     }
-
-    uint64_t currentTime = MatrixOS::SYS::Micros();
 
     // Track if notePool was empty at the start of this tick
     bool wasEmpty = notePool.empty();
@@ -45,19 +43,22 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
 
     // Only do arpeggiator logic when division is not OFF
     if (division != DIV_OFF) {
+        // Increment tick counter (Tick() is called on each clock pulse)
+        tickCounter++;
+
         // Check for gate off timing - process from front of queue
-        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTime <= currentTime &&
-               gateOffQueue.front().gateOffTime != UINT64_MAX) {
+        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTick <= tickCounter &&
+               gateOffQueue.front().gateOffTick != UINT32_MAX) {
             const GateOffEvent& event = gateOffQueue.front();
             output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0));
             gateOffQueue.pop_front();
         }
 
         // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
-        if (!notePool.empty() && (currentTime - lastStepTime) >= stepDuration[currentIndex % 2] &&
+        if (!notePool.empty() && tickCounter >= nextStepTick &&
             (config->repeat == 0 || currentRepeat < config->repeat)) {
             StepArpeggiator(output);
-            lastStepTime = currentTime;
+            nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
         }
 
         // If notePool was empty but now has notes, force start
@@ -67,7 +68,7 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             lastSequenceIndex = 0;
             if (config->repeat == 0 || currentRepeat < config->repeat) {
                 StepArpeggiator(output);
-                lastStepTime = currentTime;
+                nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
             }
         }
 
@@ -85,7 +86,6 @@ void Arpeggiator::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& out
     uint8_t note = packet.Note();
     uint8_t velocity = packet.Velocity();
     uint8_t channel = packet.Channel();
-    uint64_t timestamp = MatrixOS::SYS::Micros();
 
     // Add to note pool if not already present
     bool found = false;
@@ -97,7 +97,7 @@ void Arpeggiator::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& out
     }
 
     if (!found) {
-        ArpNote arpNote = {note, velocity, channel, (uint32_t)timestamp};
+        ArpNote arpNote = {note, velocity, channel, tickCounter};
         notePool.push_back(arpNote);
         UpdateSequence();
     }
@@ -545,48 +545,55 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
 
-    // Calculate gate off time based on gate percentage and current step duration
+    // Calculate gate off time based on gate percentage and current step ticks
     if (config->gateTime == 0) {
         // Gate time 0 = always on until arp stops
-        // Use UINT64_MAX to indicate infinite gate time
-        gateOffQueue.push_back({UINT64_MAX, currentNote.note, currentNote.channel});
+        // Use UINT32_MAX to indicate infinite gate time
+        gateOffQueue.push_back({UINT32_MAX, currentNote.note, currentNote.channel});
     } else {
-        // Calculate gate duration as percentage of step duration
-        uint32_t currentStepDuration = stepDuration[currentIndex % 2];
-        uint32_t gateDuration = (currentStepDuration * config->gateTime) / 100;
-        uint64_t gateOffTime = MatrixOS::SYS::Micros() + gateDuration;
+        // Calculate gate duration as percentage of step ticks
+        uint32_t currentStepTicks = ticksPerStep[currentIndex % 2];
+        uint32_t gateTicks = (currentStepTicks * config->gateTime) / 100;
+        uint32_t gateOffTick = tickCounter + gateTicks;
 
         // Add this note to the gate off queue
-        gateOffQueue.push_back({gateOffTime, currentNote.note, currentNote.channel});
+        gateOffQueue.push_back({gateOffTick, currentNote.note, currentNote.channel});
     }
 
     // Advance to next note
     currentIndex = (currentIndex + 1) % arpSequence.size();
 }
 
-void Arpeggiator::CalculateStepDurations() {
+void Arpeggiator::CalculateTicksPerStep() {
     if (division == DIV_OFF || division == 0) {
-        stepDuration[0] = stepDuration[1] = 1000000; // 1 second fallback in microseconds
+        ticksPerStep[0] = ticksPerStep[1] = UINT32_MAX;
         return;
     }
 
-    // Calculate base duration in microseconds based on BPM and division
-    uint32_t quarterNoteUs = (60 * 1000000) / config->bpm;
-    uint32_t baseDuration = quarterNoteUs * 4 / division;
+    // Calculate base ticks based on TPQN and division
+    // division = how many of this note per whole note
+    // TPQN = ticks per quarter note
+    // ticksPerStep = (TPQN * 4) / division
+    uint32_t baseTicksPerStep = (EFFECT_TPQN * 4) / division;
 
     // Apply swing based on 20-80 range with 50 as center (no swing)
     // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
     float swingRatio = (config->swing - 50) / 100.0f;
 
-    stepDuration[0] = (uint32_t)(baseDuration * (1.0f + swingRatio));  // On-beat
-    stepDuration[1] = (uint32_t)(baseDuration * (1.0f - swingRatio));  // Off-beat
+    // On-beat gets longer by swing amount, off-beat gets shorter
+    // This maintains total duration: ticksPerStep[0] + ticksPerStep[1] = 2 * baseTicksPerStep
+    uint32_t swingTicks = (uint32_t)(baseTicksPerStep * swingRatio);
+
+    ticksPerStep[0] = baseTicksPerStep + swingTicks;  // On-beat (longer with positive swing)
+    ticksPerStep[1] = baseTicksPerStep - swingTicks;  // Off-beat (shorter with positive swing)
 }
 
 void Arpeggiator::Reset() {
     notePool.clear();
     arpSequence.clear();
     currentIndex = 0;
-    lastStepTime = 0;
+    tickCounter = 0;
+    nextStepTick = ticksPerStep[0];  // Initialize to first step duration, not 0
     gateOffQueue.clear(); // Clear all gate timers
     disableOnNextTick = false;
     currentRepeat = 0;  // Reset repeat counter
@@ -609,20 +616,20 @@ void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
     {
         config = cfg;
     }
-    CalculateStepDurations(); // Recalculate timings when config changes
+    CalculateTicksPerStep(); // Recalculate timings when config changes
 }
 
 void Arpeggiator::SetDivision(ArpDivision div) {
     ArpDivision oldDivision = division;
     division = div;
-    CalculateStepDurations();
+    CalculateTicksPerStep();
 
     // If turning on arpeggiator with notes already held, start immediately
     if (oldDivision == DIV_OFF && div != DIV_OFF && !notePool.empty()) {
         currentIndex = 0;
         currentRepeat = 0;  // Reset repeat counter when restarting
         lastSequenceIndex = 0;
-        lastStepTime = MatrixOS::SYS::Micros();
+        nextStepTick = tickCounter;
         // Note: We can't call StepArpeggiator here since we don't have output queue
         // The force start will happen on the next Tick()
     }

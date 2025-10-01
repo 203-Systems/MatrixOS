@@ -6,10 +6,6 @@
 #include <deque>
 #include <map>
 
-using std::vector;
-using std::deque;
-using std::map;
-
 enum ArpDirection {
     ARP_UP,
     ARP_DOWN,
@@ -41,7 +37,7 @@ enum ArpDivision {
     DIV_SIXTEENTH = 16,
     DIV_TWENTYFOURTH = 24,
     DIV_THIRTYSECOND = 32,
-    DIV_SIXTYFOURTH = 64
+    DIV_SIXTYFOURTH = 64 
 };
 
 inline const char* arpDirectionNames[16] = {
@@ -63,16 +59,8 @@ inline const char* arpDirectionNames[16] = {
     "Thumb Up Down"
 };
 
-enum ArpClockSource {
-    CLOCK_INTERNAL,
-    CLOCK_INTERNAL_CLOCKOUT,    // Send clock to external devices
-    CLOCK_EXTERNAL
-};
-
 struct ArpeggiatorConfig {
     // Timing
-    uint32_t bpm = 120;                    // BPM (20-299)
-    ArpClockSource clockSource = CLOCK_INTERNAL;
     uint8_t swing = 50;              // Swing amount (20-80, 50=no swing)
 
     // Playback
@@ -97,10 +85,13 @@ private:
     vector<ArpNote> arpSequence;     // Current arp sequence
     uint8_t currentIndex = 0;        // Current position in sequence
 
-    uint64_t lastStepTime = 0;       // Last step time in microseconds
-    uint32_t stepDuration[2];        // [0] = on-beat, [1] = off-beat (for swing)
+    // TPQN-based timing (Tick() is called on each clock pulse)
+    uint32_t tickCounter = 0;        // Count ticks from clock
+    uint32_t ticksPerStep[2];        // [0] = on-beat, [1] = off-beat (for swing)
+    uint32_t nextStepTick = 0;       // Tick count when next step should occur
+
     struct GateOffEvent {
-        uint64_t gateOffTime;
+        uint32_t gateOffTick;        // Tick count when gate should close
         uint8_t note;
         uint8_t channel;
     };
@@ -118,7 +109,7 @@ private:
     void ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output);
     void UpdateSequence();
     void StepArpeggiator(deque<MidiPacket>& output);
-    void CalculateStepDurations();
+    void CalculateTicksPerStep();
 
 public:
     ArpDivision division = DIV_OFF;  // Note division (internal control)

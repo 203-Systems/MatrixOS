@@ -261,8 +261,11 @@ void Note::PlayView() {
   }
 
   playView.SetLoopFunc([&]() -> void {
-    notePad1.Tick();
-    notePad2.Tick();
+    if(midiClock.Tick())
+    {
+      notePad1.Tick();
+      notePad2.Tick();
+    }
   });
 
   playView.Start();
@@ -863,7 +866,7 @@ void Note::ArpConfigMenu() {
   bpmTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
   arpConfigMenu.AddUIComponent(bpmTextDisplay, Point(0, 2));
 
-  int32_t bpmValue = notePadConfigs[activeConfig].arpConfig.bpm;
+  int32_t bpmValue = bpm.Get();
 
   UI4pxNumber bpmDisplay;
   bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);
@@ -884,11 +887,9 @@ void Note::ArpConfigMenu() {
   bpmNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
   bpmNumberModifier.OnChange([&](int32_t val) -> void {
     bpmValue = val;
-    notePadConfigs[activeConfig].arpConfig.bpm = (uint32_t)val;
+    bpm = (uint16_t)val;
+    midiClock->SetBPM((uint16_t)val);
     bpmTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
   });
   arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
 
