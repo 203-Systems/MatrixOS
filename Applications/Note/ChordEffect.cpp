@@ -258,6 +258,12 @@ vector<uint8_t> ChordEffect::BuildChordFromNote(uint8_t root)
     // Use pre-calculated intervals from CalculateChord
     const vector<uint8_t>& intervals = chordIntervals;
 
+    // If no intervals or only root, just return root note
+    if (intervals.size() <= 1) {
+        chordNotes.push_back(root);
+        return chordNotes;
+    }
+
     // Apply inversion logic
     for (uint8_t i = 0; i < intervals.size(); i++) {
         uint8_t interval = intervals[i];
