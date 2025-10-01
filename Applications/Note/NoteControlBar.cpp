@@ -147,18 +147,15 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
                 // Shift click: Toggle the toggle mode (turn on chord mode if off)
                 if(mode != CHORD_MODE) {
                     mode = CHORD_MODE;
-                    notePad[0]->rt->chordEffect.SetEnabled(true);
                 }
                 chordToggleMode = !chordToggleMode;
             }
             else if(mode == CHORD_MODE) {
                 // Already on: turn off
                 mode = OFF_MODE;
-                notePad[0]->rt->chordEffect.SetEnabled(false);
             } else {
                 // Off: turn on without toggle mode
                 mode = CHORD_MODE;
-                notePad[0]->rt->chordEffect.SetEnabled(true);
                 chordToggleMode = false;
             }
         }
