@@ -33,7 +33,16 @@ void Note::Setup(const vector<string>& args) {
     nvsVersion = NOTE_APP_VERSION;
   }
 
-  activeConfig.Get(); //Load it first
+  // Initialize runtimes
+  for(uint8_t i = 0; i < 2; i++)
+  {
+    runtimes[i].config = &notePadConfigs[(activeConfig.Get() == 0) ? i : (1 - i)];
+    runtimes[i].arpeggiator = Arpeggiator(&runtimes[i].config->arpConfig);
+    runtimes[i].midiPipeline.AddEffect("NoteLatch", &runtimes[i].noteLatch);
+    runtimes[i].noteLatch.SetEnabled(false);
+    runtimes[i].midiPipeline.AddEffect("ChordEffect", &runtimes[i].chordEffect);
+    runtimes[i].midiPipeline.AddEffect("Arpeggiator", &runtimes[i].arpeggiator);
+  }
 
   // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF), false);
@@ -99,14 +108,22 @@ void Note::Setup(const vector<string>& args) {
   notepad1SelectBtn.SetName("Note Pad 1");
   notepad1SelectBtn.SetSize(Dimension(2, 1));
   notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig.Get() == 0); });
-  notepad1SelectBtn.OnPress([&]() -> void { activeConfig = 0; });
+  notepad1SelectBtn.OnPress([&]() -> void {
+    activeConfig = 0;
+    runtimes[0].config = &notePadConfigs[0];
+    runtimes[1].config = &notePadConfigs[1];
+  });
   actionMenu.AddUIComponent(notepad1SelectBtn, Point(2, 0));
 
   UIButton notepad2SelectBtn;
   notepad2SelectBtn.SetName("Note Pad 2");
   notepad2SelectBtn.SetSize(Dimension(2, 1));
   notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig.Get() == 1); });
-  notepad2SelectBtn.OnPress([&]() -> void { activeConfig = 1; });
+  notepad2SelectBtn.OnPress([&]() -> void {
+    activeConfig = 1;
+    runtimes[0].config = &notePadConfigs[1];
+    runtimes[1].config = &notePadConfigs[0];
+  });
   actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
 
   UIButton notepadColorBtn;
@@ -116,10 +133,7 @@ void Note::Setup(const vector<string>& args) {
   actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
   // Octave Control
-  int32_t octaveAbs;
-  actionMenu.SetLoopFunc([&]() -> void {
-    octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
-  });
+  int32_t octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
 
   UI4pxNumber octaveDisplay;
   octaveDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? notePadConfigs[activeConfig].rootColor : notePadConfigs[activeConfig].color; });
@@ -141,6 +155,7 @@ void Note::Setup(const vector<string>& args) {
     if(notePadConfigs[activeConfig].octave < 12)
     {
       notePadConfigs[activeConfig].octave++;
+      octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
     }
   });
   actionMenu.AddUIComponent(octavePlusBtn, Point(4, 7));
@@ -153,6 +168,7 @@ void Note::Setup(const vector<string>& args) {
     if(notePadConfigs[activeConfig].octave > -2)
     {
       notePadConfigs[activeConfig].octave--;
+      octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
     }
   });
   actionMenu.AddUIComponent(octaveMinusBtn, Point(2, 7));
@@ -195,6 +211,10 @@ void Note::Setup(const vector<string>& args) {
     return false;
   });
 
+  actionMenu.SetLoopFunc([&]() -> void {
+    Tick();
+  });
+
   actionMenu.AllowExit(false);
   actionMenu.SetSetupFunc([&]() -> void {PlayView();});
   actionMenu.Start();
@@ -225,23 +245,18 @@ void Note::PlayView() {
   }
   
 
-  // Create NotePadRuntime structures
-  NotePadRuntime NotePadRuntime1;
-  NotePadRuntime1.config = &notePadConfigs[activeConfig.Get() == 1];
+  // Update runtime config pointers based on activeConfig
+  runtimes[0].config = &notePadConfigs[activeConfig.Get() == 1];
+  runtimes[1].config = &notePadConfigs[activeConfig.Get() == 0];
 
-  NotePadRuntime NotePadRuntime2;
-  NotePadRuntime2.config = &notePadConfigs[activeConfig.Get() == 0];
-
-  NotePad notePad1(padSize, &NotePadRuntime1);
+  NotePad notePad1(padSize, &runtimes[0]);
   playView.AddUIComponent(notePad1, Point(0, 0));
-  activeNotePads[0] = &notePad1;
 
   UnderglowLight underglow1(underglowSize, notePadConfigs[activeConfig.Get() == 1].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
-  NotePad notePad2(padSize, &NotePadRuntime2);
+  NotePad notePad2(padSize, &runtimes[1]);
   UnderglowLight underglow2(underglowSize, notePadConfigs[activeConfig.Get() == 0].color);
-  activeNotePads[1] = &notePad2;
   
   if (splitView == VERT_SPLIT) { 
     playView.AddUIComponent(notePad2, Point(4, 0)); 
@@ -261,17 +276,10 @@ void Note::PlayView() {
   }
 
   playView.SetLoopFunc([&]() -> void {
-    if(midiClock.Tick())
-    {
-      notePad1.rt->Tick();
-      notePad2.rt->Tick();
-    }
+    Tick();
   });
 
   playView.Start();
-
-  activeNotePads[0] = nullptr;
-  activeNotePads[1] = nullptr;
 }
 
 void Note::ScaleSelector() {
@@ -291,8 +299,7 @@ void Note::ScaleSelector() {
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
   scaleSelector.SetLoopFunc([&]() -> void {
-    if(activeNotePads[0] != nullptr) {activeNotePads[0]->rt->Tick();}
-    if(activeNotePads[1] != nullptr) {activeNotePads[1]->rt->Tick();}
+    Tick();
   });
 
   scaleSelector.Start();
@@ -485,6 +492,10 @@ void Note::ColorSelector() {
     notePadConfigs[activeConfig].useWhiteAsOutOfScale = !notePadConfigs[activeConfig].useWhiteAsOutOfScale;
   });
   colorSelector.AddUIComponent(whiteOutOfScaleToggle, Point(7, 5));
+
+  colorSelector.SetLoopFunc([&]() -> void {
+    Tick();
+  });
 
   colorSelector.Start();
 }
@@ -767,6 +778,10 @@ void Note::ChannelSelector() {
     }
   });
 
+  channelSelector.SetLoopFunc([&]() -> void {
+    Tick();
+  });
+
   channelSelector.Start();
 }
 
@@ -953,10 +968,8 @@ void Note::ArpConfigMenu() {
   swingNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_SWING; });
   swingNumberModifier.OnChange([&](int32_t val) -> void {
     swingTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
       notePadConfigs[activeConfig].arpConfig.swing = val;
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+      runtimes[0].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
@@ -1026,9 +1039,7 @@ void Note::ArpConfigMenu() {
     gateValue = val;
     notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)val;
     gateTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
 
@@ -1079,9 +1090,7 @@ void Note::ArpConfigMenu() {
   directionSelector.OnChange([&](uint16_t value) -> void {
     notePadConfigs[activeConfig].arpConfig.direction = (ArpDirection)value;
     directionTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   directionSelector.SetCount(16);
   directionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpDirectionNames[index]; });
@@ -1146,9 +1155,7 @@ void Note::ArpConfigMenu() {
     stepValue = val;
     notePadConfigs[activeConfig].arpConfig.step = (uint8_t)val;
     stepTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(stepNumberModifier, Point(0, 7));
 
@@ -1221,9 +1228,7 @@ void Note::ArpConfigMenu() {
     notePadConfigs[activeConfig].arpConfig.stepOffset = (int8_t)value;
     stepOffsetDisplayValue = abs(value);
     offsetTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+      runtimes[0].arpeggiator.UpdateConfig();
   });
   stepOffsetNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_STEP_OFFSET; });
   arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
@@ -1293,21 +1298,22 @@ void Note::ArpConfigMenu() {
     repeatValue = value;
     notePadConfigs[activeConfig].arpConfig.repeat = (uint8_t)value;
     repeatTextDisplay.Disable();
-    if(activeNotePads[0] != nullptr) {
-      activeNotePads[0]->rt->arpeggiator.UpdateConfig();
-    }
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   repeatNumberModifier.SetEnableFunc([&]() -> bool { return page == ARP_REPEAT; });
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
 
   arpConfigMenu.SetLoopFunc([&]() -> void {
-    if(midiClock.Tick())
-    {
-      if(activeNotePads[0] != nullptr) {activeNotePads[0]->rt->Tick();}
-      if(activeNotePads[1] != nullptr) {activeNotePads[1]->rt->Tick();}
-    }
+    Tick();
   });
 
   arpConfigMenu.Start();
 }
 
+void Note::Tick() {
+  if(midiClock.Tick())
+  {
+    runtimes[0].Tick();
+    runtimes[1].Tick();
+  }
+}

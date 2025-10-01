@@ -72,7 +72,6 @@ struct NotePadRuntime
   NotePadConfig* config = nullptr;
   NoteLatch noteLatch;
   ChordEffect chordEffect;
-  ArpeggiatorConfig* arpConfig = nullptr;
   Arpeggiator arpeggiator;
   MidiPipeline midiPipeline;
   uint8_t activeNotes[64] = {0}; // Each uint8_t stores two 4-bit counters (upper/lower nibble)
@@ -98,7 +97,7 @@ class NotePad : public UIComponent {
   bool first_scan = true;
   std::vector<ActiveKey> activeKeys;
 
-  NotePad(Dimension dimension, NotePadRuntime* data);
+  NotePad(Dimension dimension, NotePadRuntime* rt);
   ~NotePad();
 
   virtual Color GetColor();
