@@ -24,6 +24,7 @@ class NoteControlBar : public UIComponent {
     bool shift_event[2];
     static const uint32_t hold_threshold = 500; // Define hold threshold
     NoteControlBarMode mode = OFF_MODE;
+    bool chordToggleMode = false;
 
     void SwapActiveConfig();
     bool ShiftActive();

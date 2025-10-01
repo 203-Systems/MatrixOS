@@ -143,12 +143,23 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Chord Mode
     else if(xy == Point(3, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(mode == CHORD_MODE) {
+            if(ShiftActive()) {
+                // Shift click: Toggle the toggle mode (turn on chord mode if off)
+                if(mode != CHORD_MODE) {
+                    mode = CHORD_MODE;
+                    notePad[0]->rt->chordEffect.SetEnabled(true);
+                }
+                chordToggleMode = !chordToggleMode;
+            }
+            else if(mode == CHORD_MODE) {
+                // Already on: turn off
                 mode = OFF_MODE;
                 notePad[0]->rt->chordEffect.SetEnabled(false);
             } else {
+                // Off: turn on without toggle mode
                 mode = CHORD_MODE;
                 notePad[0]->rt->chordEffect.SetEnabled(true);
+                chordToggleMode = false;
             }
         }
         return true;
@@ -244,30 +255,37 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
         ChordCombo& combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
-            // Clear all basic chord types first (mutually exclusive)
+            bool chordTypes[4] = {combo.dim, combo.min, combo.maj, combo.sus};
+            bool wasActive = chordTypes[xy.x];
+
+            // Clear all basic chord types
             combo.dim = false;
             combo.min = false;
             combo.maj = false;
             combo.sus = false;
 
-            // Set only the selected one
-            switch(xy.x) {
-                case 0: combo.dim = true; break;
-                case 1: combo.min = true; break;
-                case 2: combo.maj = true; break;
-                case 3: combo.sus = true; break;
+            // In toggle mode, only set if wasn't already active
+            // In momentary mode, always set
+            if (!chordToggleMode || !wasActive) {
+                switch(xy.x) {
+                    case 0: combo.dim = true; break;
+                    case 1: combo.min = true; break;
+                    case 2: combo.maj = true; break;
+                    case 3: combo.sus = true; break;
+                }
             }
-            notePad[0]->rt->chordEffect.SetChordCombo(combo);
-        } else if (keyInfo->State() == RELEASED && !ShiftActive()) {
+        } else if (keyInfo->State() == RELEASED && !ShiftActive() && !chordToggleMode) {
             switch(xy.x) {
                 case 0: combo.dim = false; break;
                 case 1: combo.min = false; break;
                 case 2: combo.maj = false; break;
                 case 3: combo.sus = false; break;
             }
-            notePad[0]->rt->chordEffect.SetChordCombo(combo);
+        } else {
+            return true;
         }
 
+        notePad[0]->rt->chordEffect.SetChordCombo(combo);
         return true;
     }
 
@@ -276,22 +294,33 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
         ChordCombo& combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
-            switch(xy.x) {
-                case 0: combo.ext6 = !combo.ext6; break;
-                case 1: combo.extMin7 = !combo.extMin7; break;
-                case 2: combo.extMaj7 = !combo.extMaj7; break;
-                case 3: combo.ext9 = !combo.ext9; break;
+            if (chordToggleMode) {
+                switch(xy.x) {
+                    case 0: combo.ext6 = !combo.ext6; break;
+                    case 1: combo.extMin7 = !combo.extMin7; break;
+                    case 2: combo.extMaj7 = !combo.extMaj7; break;
+                    case 3: combo.ext9 = !combo.ext9; break;
+                }
+            } else {
+                switch(xy.x) {
+                    case 0: combo.ext6 = true; break;
+                    case 1: combo.extMin7 = true; break;
+                    case 2: combo.extMaj7 = true; break;
+                    case 3: combo.ext9 = true; break;
+                }
             }
-            notePad[0]->rt->chordEffect.SetChordCombo(combo);
-        } else if (keyInfo->State() == RELEASED && !ShiftActive()) {
+        } else if (keyInfo->State() == RELEASED && !ShiftActive() && !chordToggleMode) {
             switch(xy.x) {
                 case 0: combo.ext6 = false; break;
                 case 1: combo.extMin7 = false; break;
                 case 2: combo.extMaj7 = false; break;
                 case 3: combo.ext9 = false; break;
             }
-            notePad[0]->rt->chordEffect.SetChordCombo(combo);
+        } else {
+            return true;
         }
+
+        notePad[0]->rt->chordEffect.SetChordCombo(combo);
         return true;
     }
 
@@ -406,7 +435,14 @@ bool NoteControlBar::Render(Point origin) {
         latchColor = Color(0xFFFF00); 
     }
     MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 1), latchColor);
-    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), mode == CHORD_MODE ? Color(0xFFFFFF) : Color(0x00FFFF));
+
+    Color chordColor;
+    if(mode == CHORD_MODE) {
+        chordColor = chordToggleMode ? Color(0x0080FF) : Color(0xFFFFFF);
+    } else {
+        chordColor = Color(0x00FFFF);
+    }
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), chordColor);
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), mode == ARP_MODE ? Color(0xFFFFFF) : Color(0x80FF00));
     MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color(0xFFFFFF) : Color(0xFF0060));
     MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctaveMinusColor());
