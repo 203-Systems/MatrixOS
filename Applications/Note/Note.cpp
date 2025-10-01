@@ -888,7 +888,7 @@ void Note::ArpConfigMenu() {
   bpmNumberModifier.OnChange([&](int32_t val) -> void {
     bpmValue = val;
     bpm = (uint16_t)val;
-    midiClock->SetBPM((uint16_t)val);
+    midiClock.SetBPM((uint16_t)val);
     bpmTextDisplay.Disable();
   });
   arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
