@@ -379,6 +379,11 @@ bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
         return false;
     }
 
+    if (keyInfo->State() != PRESSED)
+    {
+      return true;
+    }
+
     xy = xy - Point(0, CTL_BAR_Y - 3);
 
     if (xy.x == 7 || xy == Point(0, 0) || xy == Point(3, 0))

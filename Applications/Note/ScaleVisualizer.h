@@ -45,8 +45,18 @@ class ScaleVisualizer : public UIComponent {
     if (xy == Point(0, 0) || xy == Point(3, 0))
       return false;
 
-    uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+    if (keyInfo->State() == HOLD)
+    {
+      MatrixOS::UIUtility::TextScroll("Scale Visualizer", color);
+    }
 
+    if (keyInfo->State() != PRESSED)
+    {
+      return true;
+    }
+
+    uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
+    
     if (offsetMode) {
       // Only allow setting rootOffset if the note is in the scale
       uint16_t c_aligned_scale_map =
