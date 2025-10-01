@@ -728,6 +728,10 @@ void Note::LayoutSelector() {
   enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
   layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
 
+  layoutSelector.SetLoopFunc([&]() -> void {
+    Tick();
+  });
+
   layoutSelector.Start();
 }
 
