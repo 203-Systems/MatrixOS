@@ -90,7 +90,7 @@ class UIButton : public UIComponent {
         MatrixOS::KeyPad::Clear();
         return true;
       }
-      else if(GetName() != "")
+      else if(!GetName().empty())
       {
         MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
         return true;

@@ -106,6 +106,11 @@ class UI4pxNumber : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+    if(name.empty())
+    {
+      return false;
+    }
+
     if (keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll(name, GetColor(UINT16_MAX));
