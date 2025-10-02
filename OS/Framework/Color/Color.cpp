@@ -111,3 +111,13 @@ Color Color::Crossfade(Color color1, Color color2, Fract16 ratio) {
   uint8_t newB = (color1.B * (255 - r) + color2.B * r) >> 8;
   return Color(newR, newG, newB);
 }
+
+// Predefined color constants
+const Color Color::White = Color(255, 255, 255);
+const Color Color::Black = Color(0, 0, 0);
+const Color Color::Red = Color(255, 0, 0);
+const Color Color::Green = Color(0, 255, 0);
+const Color Color::Blue = Color(0, 0, 255);
+const Color Color::Yellow = Color(255, 255, 0);
+const Color Color::Cyan = Color(0, 255, 255);
+const Color Color::Magenta = Color(255, 0, 255);

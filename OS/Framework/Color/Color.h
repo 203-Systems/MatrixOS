@@ -34,6 +34,16 @@ class Color {
 
   static Color Crossfade(Color color1, Color color2, Fract16 ratio);
 
+  // Predefined colors
+  static const Color White;
+  static const Color Black;
+  static const Color Red;
+  static const Color Green;
+  static const Color Blue;
+  static const Color Yellow;
+  static const Color Cyan;
+  static const Color Magenta;
+
   // Equality comparison operators
   bool operator==(const Color& other) const {
     return R == other.R && G == other.G && B == other.B && W == other.W;
