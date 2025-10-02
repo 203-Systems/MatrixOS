@@ -397,7 +397,7 @@ void Shell::ApplicationLauncher() {
   #elif MATRIXOS_LOG_LEVEL == LOG_LEVEL_VERBOSE
   #define SHELL_SYSTEM_SETTING_COLOR Color(0xFF007F)
   #else
-  #define SHELL_SYSTEM_SETTING_COLOR Color(0xFFFFFF)
+  #define SHELL_SYSTEM_SETTING_COLOR Color::White
   #endif
   
   UIButton systemSettingBtn;

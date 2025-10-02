@@ -17,7 +17,7 @@ class UI {
   Color nameColor;
 
   UI() {};
-  UI(string name, Color color = Color(0xFFFFFF), bool newLEDLayer = true);
+  UI(string name, Color color = Color::White, bool newLEDLayer = true);
   virtual ~UI();
 
   void Start();

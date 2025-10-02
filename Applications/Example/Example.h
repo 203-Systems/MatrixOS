@@ -23,7 +23,7 @@ class ExampleAPP : public Application {
   inline static Application_Info info = {
       .name = "Example",
       .author = "203 Systems",
-      .color = Color(0xFFFFFF),
+      .color = Color::White,
       .version = 1,
       .visibility = true,
   };
@@ -42,10 +42,10 @@ class ExampleAPP : public Application {
 
 #ifndef EXAMPLEAPP_SAVED_VAR
   uint8_t number = 0;
-  Color color = Color(0xFFFFFF);
+  Color color = Color::White;
 #else
   CreateSavedVar("Example", number, uint8_t, 0);
-  CreateSavedVar("Example", color, Color, Color(0xFFFFFF));
+  CreateSavedVar("Example", color, Color, Color::White);
   
   // Namespace (This namespace only applies to this application. So even if two different applications have the same variable name, they won't conflict)， variable name (no ""), variable type, default value
   // And then just use the variable as a normal variable. The value will be saved & loaded automatically!

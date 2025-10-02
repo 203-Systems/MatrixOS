@@ -30,7 +30,7 @@ class AppLauncherBarEditMode : public UIComponent {
             else
             {
                 // Empty slot - show as dark gray
-                MatrixOS::LED::SetColor(origin + Point(i, 0), ColorEffects::ColorBreathLowBound(Color(0xFFFFFF).Dim(), 64, 1000, start_time));
+                MatrixOS::LED::SetColor(origin + Point(i, 0), ColorEffects::ColorBreathLowBound(Color::White.Dim(), 64, 1000, start_time));
             }
         }
 
@@ -42,7 +42,7 @@ class AppLauncherBarEditMode : public UIComponent {
 
     void FolderSettings(uint8_t folder_idx)
     {
-        UI folderSettingsUI("Folder Settings", Color(0xFFFFFF), true);
+        UI folderSettingsUI("Folder Settings", Color::White, true);
 
         // Color picker
         UIButton colorPickerBtn;
@@ -79,15 +79,15 @@ class AppLauncherBarEditMode : public UIComponent {
                 MatrixOS::LED::SetColor(Point(2, 1), Color(0xFF0000));
                 MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF0000));
                 // E
-                MatrixOS::LED::SetColor(Point(3, 0), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(3, 1), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(3, 2), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(3, 3), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(4, 0), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(4, 1), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(4, 3), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(5, 0), Color(0xFFFFFF));
-                MatrixOS::LED::SetColor(Point(5, 3), Color(0xFFFFFF));
+                MatrixOS::LED::SetColor(Point(3, 0), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 1), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 2), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 3), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 0), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 1), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 3), Color::White);
+                MatrixOS::LED::SetColor(Point(5, 0), Color::White);
+                MatrixOS::LED::SetColor(Point(5, 3), Color::White);
 
                 // L
                 MatrixOS::LED::SetColor(Point(6, 0), Color(0xFF0000));
@@ -99,7 +99,7 @@ class AppLauncherBarEditMode : public UIComponent {
 
             UIButton cancelDeleteBtn;
             cancelDeleteBtn.SetName("Cancel");
-            cancelDeleteBtn.SetColor(Color(0xFFFFFF));
+            cancelDeleteBtn.SetColor(Color::White);
             cancelDeleteBtn.SetSize(Dimension(2, 2));
             cancelDeleteBtn.OnPress([&]() -> void { confirmDeleteUI.Exit(); });
             confirmDeleteUI.AddUIComponent(cancelDeleteBtn, Point(1, 5));
@@ -157,7 +157,7 @@ class AppLauncherBarEditMode : public UIComponent {
         {
             if (shell->folder_colors[xy.x] == Color(0x000000)) {
                 // Folder doesn't exist
-                MatrixOS::UIUtility::TextScroll("Active Group " + std::to_string(xy.x + 1), Color(0xFFFFFF));
+                MatrixOS::UIUtility::TextScroll("Active Group " + std::to_string(xy.x + 1), Color::White);
             }
             else
             {

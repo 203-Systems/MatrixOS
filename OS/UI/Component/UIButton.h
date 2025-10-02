@@ -13,7 +13,7 @@ class UIButton : public UIComponent {
 
   UIButton() {
     this->name = "";
-    this->color = Color(0xFFFFFF);
+    this->color = Color::White;
     this->dimension = Dimension(1, 1);
     this->pressCallback = nullptr;
     this->holdCallback = nullptr;

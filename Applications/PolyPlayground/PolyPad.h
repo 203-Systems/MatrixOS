@@ -81,7 +81,7 @@ class PolyPad : public UIComponent {
         }
         else if (activeNotes.find(note) != activeNotes.end())  // If find the note is currently active. Show it as white
         {
-          MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF));
+          MatrixOS::LED::SetColor(globalPos, Color::White);
         }
         else
         {

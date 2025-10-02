@@ -94,14 +94,14 @@ void Note::Setup(const vector<string>& args) {
 
       case VERT_SPLIT: return Color(0x00FFFF);
       case HORIZ_SPLIT: return Color(0xFF00FF);
-      default: return Color(0xFFFFFF).Dim();
+      default: return Color::White.Dim();
     }
   });
   splitViewToggle.OnPress([&]() -> void { splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3); });
   splitViewToggle.OnHold([&]() -> void { 
     switch(splitView)
     {
-      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color(0xFFFFFF)); break;
+      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color::White); break;
       case VERT_SPLIT: MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF)); break;
       case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
     }
@@ -196,7 +196,7 @@ void Note::Setup(const vector<string>& args) {
   // Other Controls
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
-  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.SetColor(Color::White);
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
@@ -340,7 +340,7 @@ void Note::ScaleSelector() {
   customScaleSelector.SetDimension(Dimension(8, 2));
   customScaleSelector.SetIndividualColorFunc([&](uint16_t index) -> Color {
     if (customScaleSlotSelected == index) {
-      return Color(0xFFFFFF);
+      return Color::White;
     }
     if (custom_scales[index] == notePadConfigs[activeConfig].scale && custom_scales[index] != 0) {
       return Color(0xFFFF00);
@@ -348,7 +348,7 @@ void Note::ScaleSelector() {
     if (custom_scales[index] != 0) {
       return Color(0xFFFF00).Dim();
     }
-    return Color(0xFFFFFF).Dim();
+    return Color::White.Dim();
   });
   customScaleSelector.SetIndividualNameFunc([&](uint16_t index) -> string {
     return "Custom Scale " + std::to_string(index + 1);
@@ -389,7 +389,7 @@ void Note::ColorSelector() {
   UIButton presetsBtn;
   presetsBtn.SetName("Preset");
   presetsBtn.SetColorFunc([&]() -> Color {
-    return Color(0xFFFFFF).DimIfNot(page == 0);
+    return Color::White.DimIfNot(page == 0);
   });
   presetsBtn.OnPress([&]() -> void { page = 0; });
   colorSelector.AddUIComponent(presetsBtn, Point(0, 5));
@@ -397,7 +397,7 @@ void Note::ColorSelector() {
   UIButton customizeBtn;
   customizeBtn.SetName("Customize");
   customizeBtn.SetColorFunc([&]() -> Color {
-    return Color(0xFFFFFF).DimIfNot(page == 1);
+    return Color::White.DimIfNot(page == 1);
   });
   customizeBtn.OnPress([&]() -> void { page = 1; });
   colorSelector.AddUIComponent(customizeBtn, Point(0, 6));
@@ -627,12 +627,12 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // C
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
     // T
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
@@ -728,15 +728,15 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(1, 3), color);
 
     // H
-    MatrixOS::LED::SetColor(origin + Point(2, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
     // M
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
@@ -769,10 +769,10 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(2, 2), color);
 
     // I
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
 
     // O
@@ -793,7 +793,7 @@ void Note::LayoutSelector() {
   // Show Enforce Scale Toggle (only for Octave, Offset, and Chromatic modes)
   UIButton enforceScaleToggle;
   enforceScaleToggle.SetName("Enforce Scale");
-  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(notePadConfigs[activeConfig].enforceScale); });
+  enforceScaleToggle.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(notePadConfigs[activeConfig].enforceScale); });
   enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
   enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
   layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
@@ -814,7 +814,7 @@ void Note::ChannelSelector() {
   numDisplay.SetColor(color);
   numDisplay.SetDigits(2);
   numDisplay.SetValuePointer(&offsettedChannel);
-  numDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  numDisplay.SetAlternativeColor(Color::White);
   numDisplay.SetSpacing(1);
   channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 
@@ -840,15 +840,15 @@ void Note::ChannelSelector() {
     if(notePadConfigs[activeConfig].channel < 9)
     {
       //h
-      MatrixOS::LED::SetColor(Point(2, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(2, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(2, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(2, 3), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(3, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(4, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(4, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(4, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(Point(4, 3), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(Point(2, 0), Color::White);
+      MatrixOS::LED::SetColor(Point(2, 1), Color::White);
+      MatrixOS::LED::SetColor(Point(2, 2), Color::White);
+      MatrixOS::LED::SetColor(Point(2, 3), Color::White);
+      MatrixOS::LED::SetColor(Point(3, 1), Color::White);
+      MatrixOS::LED::SetColor(Point(4, 0), Color::White);
+      MatrixOS::LED::SetColor(Point(4, 1), Color::White);
+      MatrixOS::LED::SetColor(Point(4, 2), Color::White);
+      MatrixOS::LED::SetColor(Point(4, 3), Color::White);
     }
   });
 
@@ -932,12 +932,12 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // P
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
 
     // M
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
@@ -961,7 +961,7 @@ void Note::ArpConfigMenu() {
   bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);
   bpmDisplay.SetDigits(3);
   bpmDisplay.SetValuePointer(&bpmValue);
-  bpmDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  bpmDisplay.SetAlternativeColor(Color::White);
   bpmDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_BPM) &&  !bpmTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
 
@@ -991,11 +991,11 @@ void Note::ArpConfigMenu() {
     }
     else if(clockMode == CLOCK_INTERNAL_CLOCKOUT)
     {
-      return Color(0xFFFFFF);
+      return Color::White;
     }
     else if(clockMode == CLOCK_INTERNAL)
     {
-      return Color(0xFFFFFF).Dim();
+      return Color::White.Dim();
     }
     return Color(0xFF0000);
   });
@@ -1024,16 +1024,16 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(1, 3), color);
 
     // W
-    MatrixOS::LED::SetColor(origin + Point(2, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(2, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
     // G
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
@@ -1054,7 +1054,7 @@ void Note::ArpConfigMenu() {
   swingDisplay.SetColor(arpConfigColor[ARP_SWING]);
   swingDisplay.SetDigits(3);
   swingDisplay.SetValuePointer(&swingValue);
-  swingDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  swingDisplay.SetAlternativeColor(Color::White);
   swingDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_SWING) && !swingTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(swingDisplay, Point(-1, 2));
 
@@ -1091,16 +1091,16 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // A
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
 
     // T
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
@@ -1119,7 +1119,7 @@ void Note::ArpConfigMenu() {
   gateDisplay.SetColor(arpConfigColor[ARP_GATE]);
   gateDisplay.SetDigits(3);
   gateDisplay.SetValuePointer(&gateValue);
-  gateDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  gateDisplay.SetAlternativeColor(Color::White);
   gateDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_GATE) && !gateTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(gateDisplay, Point(-1, 2));
 
@@ -1161,10 +1161,10 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(3, 2), color);
 
     // I
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
     // R
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
@@ -1213,12 +1213,12 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // T
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
     // P
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
@@ -1237,7 +1237,7 @@ void Note::ArpConfigMenu() {
   stepDisplay.SetColor(arpConfigColor[ARP_STEP]);
   stepDisplay.SetDigits(3);
   stepDisplay.SetValuePointer(&stepValue);
-  stepDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  stepDisplay.SetAlternativeColor(Color::White);
   stepDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_STEP) && !stepTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(stepDisplay, Point(-1, 2));
 
@@ -1279,13 +1279,13 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // F
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
 
     // S
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
@@ -1311,7 +1311,7 @@ void Note::ArpConfigMenu() {
   stepOffsetDisplay.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
   stepOffsetDisplay.SetDigits(2);
   stepOffsetDisplay.SetValuePointer(&stepOffsetDisplayValue);
-  stepOffsetDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  stepOffsetDisplay.SetAlternativeColor(Color::White);
   stepOffsetDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(stepOffsetDisplay, Point(2, 2));
 
@@ -1352,15 +1352,15 @@ void Note::ArpConfigMenu() {
     MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
     // E
-    MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(4, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(origin + Point(5, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
 
     // P
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
@@ -1379,7 +1379,7 @@ void Note::ArpConfigMenu() {
   repeatDisplay.SetColor(arpConfigColor[ARP_REPEAT]);
   repeatDisplay.SetDigits(3);
   repeatDisplay.SetValuePointer(&repeatValue);
-  repeatDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  repeatDisplay.SetAlternativeColor(Color::White);
   repeatDisplay.SetEnableFunc([&]() -> bool { return (page == ARP_REPEAT) && !repeatTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(repeatDisplay, Point(-1, 2));
   

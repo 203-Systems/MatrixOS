@@ -6,7 +6,7 @@ void ForceCalibration::Setup(const vector<string>& args) {
   if (!Device::KeyPad::velocity_sensitivity)
   { return; }
 
-  UI forceCalibrationMenu = UI("Force Calibration", Color(0xFFFFFF));
+  UI forceCalibrationMenu = UI("Force Calibration", Color::White);
 
   UIButton highCalibrationBtn;
   highCalibrationBtn.SetName("Force Max Calibration");
@@ -52,7 +52,7 @@ void ForceCalibration::Setup(const vector<string>& args) {
 
   UIButton keypadVisualizerBtn;
   keypadVisualizerBtn.SetName("Keypad Visualizer");
-  keypadVisualizerBtn.SetColor(Color(0xFFFFFF));
+  keypadVisualizerBtn.SetColor(Color::White);
   keypadVisualizerBtn.SetSize(Dimension(6, 2));
   keypadVisualizerBtn.OnPress([&]() -> void { ForceGridVisualizer(); });
   forceCalibrationMenu.AddUIComponent(keypadVisualizerBtn, Point(1, 3));
@@ -127,7 +127,7 @@ void ForceCalibration::SetOffset(CalibrationType type)
 
 
   UI4pxNumber offsetDisplay;
-  offsetDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color(0xFFFFFF) : (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
+  offsetDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color::White : (offset < 0 ? Color(0xFF00FF) : Color(0x00FFFF)); });
   offsetDisplay.SetDigits(2);
   offsetDisplay.SetValuePointer((int32_t*)&display_value);
   offsetUI.AddUIComponent(offsetDisplay, Point(2, 0));
@@ -143,7 +143,7 @@ void ForceCalibration::SetOffset(CalibrationType type)
 
 void ForceCalibration::ForceGridVisualizer()
 {
-  UI forceGridVisualizer = UI("", Color(0xFFFFFF));
+  UI forceGridVisualizer = UI("", Color::White);
 
   Point activeKey = Point::Invalid();
   forceGridVisualizer.SetPreRenderFunc([&]() -> void {
@@ -152,12 +152,12 @@ void ForceCalibration::ForceGridVisualizer()
       for (uint8_t y = 0; y < 8; y++)
       {
         KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(Point(x, y));
-        Color color = Color(0xFFFFFF);
+        Color color = Color::White;
         // uint16_t value = (uint16_t)(keyInfo->raw_velocity) >> 8;
         // uint8_t value8 = value > 0xFF ? 0xFF : value & 0xFF;
         if (keyInfo->Force() > 0 && keyInfo->Active()) { color = Color(0x00FFFF).Scale(keyInfo->Force().to8bits());}
         // else if (keyInfo->raw_velocity > 0 && keyInfo->Force() == 0) {
-        //     color = Color(0xFFFFFF);
+        //     color = Color::White;
         // }
 
         if (keyInfo->Force() == FRACT16_MAX) { color = Color(0x00FF00); }

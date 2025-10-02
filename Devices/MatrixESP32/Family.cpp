@@ -109,7 +109,7 @@ namespace Device
 
     UIButton keypadCalibrationBtn;
     keypadCalibrationBtn.SetName("Keypad Calibration");
-    keypadCalibrationBtn.SetColor(Color(0xFFFFFF));
+    keypadCalibrationBtn.SetColor(Color::White);
     keypadCalibrationBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Systems", "Force Calibration"); });
     keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
     deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));

@@ -17,7 +17,7 @@ bool MystrixBoot::Idle(bool ready) {
   if (timer.Tick(80))
   {
     MatrixOS::LED::Fill(0);
-    const Color local_color = Color(0xFFFFFF).Scale(MATRIX_BOOT_IDLE * 255);
+    const Color local_color = Color::White.Scale(MATRIX_BOOT_IDLE * 255);
     if (step <= 3)
     {
       Point line_origin = origin + Point(-1, -1) + Point(0, step);

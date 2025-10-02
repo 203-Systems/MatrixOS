@@ -85,7 +85,7 @@ class UIDPad : public UIComponent {
     {
       for(int y = 0; y < 3; y++)
       {
-        MatrixOS::LED::SetColor(origin + Point(x,y), Point(x,y) == DirectionToPoint(lastDirection) ? Color(0xFFFFFF) : GetColor());
+        MatrixOS::LED::SetColor(origin + Point(x,y), Point(x,y) == DirectionToPoint(lastDirection) ? Color::White : GetColor());
       }
     }
     return true;

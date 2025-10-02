@@ -29,7 +29,7 @@ class UIGamepadAxis : public UIComponent {
   virtual bool Render(Point origin) {
     if (value)
     {
-      MatrixOS::LED::SetColor(origin, Color(0xFFFFFF).Scale(value.to8bits()));
+      MatrixOS::LED::SetColor(origin, Color::White.Scale(value.to8bits()));
     }
     else
     {

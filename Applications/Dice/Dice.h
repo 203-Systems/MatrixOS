@@ -41,8 +41,8 @@ class Dice : public Application {
   CreateSavedVar("Dice", mode, DiceMode, Dot);
 
   // Dot Mode
-  CreateSavedVar("Dice", rolling_color, Color, Color(0xFFFFFF));
-  CreateSavedVar("Dice", confirmed_color, Color, Color(0xFFFFFF));
+  CreateSavedVar("Dice", rolling_color, Color, Color::White);
+  CreateSavedVar("Dice", confirmed_color, Color, Color::White);
   CreateSavedVar("Dice", dot_faces, uint8_t, 6);
   CreateSavedVar("Dice", rolling_speed, uint8_t, 30);
   CreateSavedVar("Dice", flashing_speed, uint8_t, 10);

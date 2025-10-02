@@ -81,12 +81,12 @@ class ArpDirVisualizer : public UIComponent {
       MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
       // n
-      MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(4, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 3), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
 
       // d
       MatrixOS::LED::SetColor(origin + Point(6, 2), color);
@@ -111,15 +111,15 @@ class ArpDirVisualizer : public UIComponent {
       MatrixOS::LED::SetColor(origin + Point(2, 3), color);
 
       // R
-      MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 3), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
 
       // d
       MatrixOS::LED::SetColor(origin + Point(6, 2), color);
@@ -163,9 +163,9 @@ class ArpDirVisualizer : public UIComponent {
           // y > 4: render at Point(i, 8-y) with white color
           xy = origin + Point(i, 8 - y);
           if (i < currentStep) {
-            ledColor = Color(0xFFFFFF); // Current step - bright white
+            ledColor = Color::White; // Current step - bright white
           } else {
-            ledColor = Color(0xFFFFFF).Dim(); // Dim white
+            ledColor = Color::White.Dim(); // Dim white
           }
         }
 

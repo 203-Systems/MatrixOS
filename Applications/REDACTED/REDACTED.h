@@ -9,7 +9,7 @@ class REDACTED : public Application  // ᗜˬᗜ
   inline static Application_Info info = {
       .name = "REDACTED",
       .author = "203 Systems",
-      .color = Color(0xFFFFFF),
+      .color = Color::White,
       .version = 1,
       .visibility = false,
   };

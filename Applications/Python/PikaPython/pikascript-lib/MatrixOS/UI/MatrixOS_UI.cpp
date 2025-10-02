@@ -17,7 +17,7 @@ extern "C" {
 
         // Start with defaults
         string name = "";
-        Color color = Color(0xFFFFFF);
+        Color color = Color::White;
         bool newLEDLayer = true;
 
         // Progressive fill based on available arguments

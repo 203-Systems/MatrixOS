@@ -24,7 +24,7 @@ void Strum::Setup(const vector<string>& args) {
       nvsVersion = STRUM_APP_VERSION;
     }
 
-    UI strumUI("Strum", Color(0xFFFFFF));
+    UI strumUI("Strum", Color::White);
 
     StrumChordVisualizer scaleVisualizer(&strumBarConfigs[activeLayout].root, (uint16_t*)&strumBarConfigs[activeLayout].chord, Color(0x8000FF), Color(0xFF00FF));
     strumUI.AddUIComponent(scaleVisualizer, Point(0, 0));
@@ -125,7 +125,7 @@ void Strum::ActionMenu() {
 
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
-  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.SetColor(Color::White);
   systemSettingBtn.OnPress([&]() -> void { 
     MatrixOS::SYS::OpenSetting(); 
     if(RotationRequiredUI(true, true, false, false) == false)

@@ -127,7 +127,7 @@ void ForceCalibration::HighCalibration() {
           float brightness = (1 + sin(2 * M_PI * time / period)) / 2 * 255;
 
           // Apply brightness to the color
-          Color color = Color(0xFFFFFF).Scale((uint8_t)brightness);
+          Color color = Color::White.Scale((uint8_t)brightness);
 
           MatrixOS::LED::SetColor(Point(x, y), color, 0);
         }

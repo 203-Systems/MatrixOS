@@ -5,7 +5,7 @@
 #include "UIGamepadAxis.h"
 
 void Gamepad::Setup(const vector<string>& args) {
-    UI gamepadUI("", Color(0xFFFFFF));
+    UI gamepadUI("", Color::White);
 
     UIKeyboardKey Skey(Color(0xFF0000), KEY_S);
     gamepadUI.AddUIComponent(Skey, Point(0, 1));
@@ -80,7 +80,7 @@ void Gamepad::ActionMenu() {
 
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
-  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.SetColor(Color::White);
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 

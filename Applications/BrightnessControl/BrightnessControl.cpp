@@ -11,7 +11,7 @@ namespace MatrixOS::LED
 
 void BrightnessControl::Start() {
   name = "Brightness Control";
-  nameColor = Color(0xFFFFFF);
+  nameColor = Color::White;
 
   
   // Brightness Control
@@ -36,7 +36,7 @@ void BrightnessControl::Start() {
   brightnessSelector.SetDimension(brightnessSelectorDimension);
   brightnessSelector.SetCount(map_length);
   brightnessSelector.SetLitMode(UISelectorLitMode::LIT_ALWAYS);
-  brightnessSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return (map[index] > threshold ? Color(0xFF0000) : Color(0xFFFFFF)).DimIfNot(map[index] <= MatrixOS::UserVar::brightness.value); });
+  brightnessSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return (map[index] > threshold ? Color(0xFF0000) : Color::White).DimIfNot(map[index] <= MatrixOS::UserVar::brightness.value); });
   brightnessSelector.OnChange([&](uint8_t value) -> void {
     uint8_t brightness = map[value];
     MatrixOS::LED::SetBrightness(brightness);
@@ -47,7 +47,7 @@ void BrightnessControl::Start() {
   // Number Display
   UI4pxNumber brightnessDisplay;
   brightnessDisplay.SetName("Brightness");
-  brightnessDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color(0xFFFFFF) : (MatrixOS::UserVar::brightness.value > threshold) ? Color(0xFF0000) : GLOBAL_BRIGHTNESS_COLOR; });
+  brightnessDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color::White : (MatrixOS::UserVar::brightness.value > threshold) ? Color(0xFF0000) : GLOBAL_BRIGHTNESS_COLOR; });
   brightnessDisplay.SetDigits(3);
   brightnessDisplay.SetValuePointer((int32_t*)&displayValue);
   AddUIComponent(brightnessDisplay, origin + Point(-4, -3));

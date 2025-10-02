@@ -16,7 +16,7 @@ void Setting::Start() {
   // Brightness Control
   UIButton brightnessBtn;
   brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetColor(Color::White);
   brightnessBtn.SetSize(Dimension(2, 2));
   brightnessBtn.OnPress([]() -> void { MatrixOS::LED::NextBrightness(); });
   brightnessBtn.OnHold([]() -> void { BrightnessControl().Start(); });
@@ -121,7 +121,7 @@ void Setting::Start() {
 
   UIButton deviceSettingsBtn;
   deviceSettingsBtn.SetName("Device Settings");
-  deviceSettingsBtn.SetColor(Color(0xFFFFFF));
+  deviceSettingsBtn.SetColor(Color::White);
   deviceSettingsBtn.OnPress([]() -> void {
     Device::DeviceSettings();
   });
@@ -228,11 +228,11 @@ void Setting::ResetConfirm() {
     MatrixOS::LED::SetColor(Point(2, 3), Color(0xFF00FF));
 
     // L
-    MatrixOS::LED::SetColor(Point(3, 0), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(Point(3, 1), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(Point(3, 2), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(Point(3, 3), Color(0xFFFFFF));
-    MatrixOS::LED::SetColor(Point(4, 3), Color(0xFFFFFF));
+    MatrixOS::LED::SetColor(Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(Point(4, 3), Color::White);
 
     // R
     MatrixOS::LED::SetColor(Point(5, 0), Color(0xFF00FF));

@@ -355,18 +355,18 @@ void Reversi::Render()
             localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
           }
           Fract16 ratio = (timeSinceEvent - 700 - startTime) * FRACT16_MAX / 300;
-          MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(Color(0xFFFFFF), GetPlayerColor(localWinner), ratio));
+          MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(Color::White, GetPlayerColor(localWinner), ratio));
         }
         else if(timeSinceEvent >= (startTime + 300)) // 300 - 700
         {
           done = false;
-          MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF));
+          MatrixOS::LED::SetColor(Point(x, y), Color::White);
         }
         else if(timeSinceEvent >= startTime) // 0 - 300
         {
           done = false;
           Fract16 ratio = (timeSinceEvent - startTime) * FRACT16_MAX / 300;
-          MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].player), Color(0xFFFFFF), ratio));
+          MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].player), Color::White, ratio));
         }
         else // Before the start time
         {
@@ -588,7 +588,7 @@ Color Reversi::GetPlayerColor(uint8_t player)
   }
   else if(player == 3) // Draw
   {
-    return Color(0xFFFFFF);
+    return Color::White;
   }
   else
   {
@@ -637,13 +637,13 @@ void Reversi::Settings() {
 
   UIButton player1FirstHand;
   player1FirstHand.SetName("Player 1 First Hand");
-  player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 1); });
+  player1FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(firstPlayer == 1); });
   player1FirstHand.OnPress([&]() -> void { if(firstPlayer == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
   settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
   UIButton player2FirstHand;
   player2FirstHand.SetName("Player 2 First Hand");
-  player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 2); });
+  player2FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(firstPlayer == 2); });
   player2FirstHand.OnPress([&]() -> void { if(firstPlayer == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
   settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 

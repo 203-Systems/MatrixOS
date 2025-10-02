@@ -17,7 +17,7 @@ void Performance::Setup(const vector<string>& args) {
       custom_palette[i][0] = Color(0);
       for (uint8_t j = 1; j < 128; j++)
       {
-        custom_palette[i][j] = Color(0xFFFFFF);
+        custom_palette[i][j] = Color::White;
       }
     }
   }
@@ -581,7 +581,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
           else if (keyEvent.info.state == HOLD)
           {
             string text = "Color " + std::to_string(id);
-            MatrixOS::UIUtility::TextScroll(text, Color(0xFFFFFF));
+            MatrixOS::UIUtility::TextScroll(text, Color::White);
           }
           else if (keyEvent.info.state == RELEASED)
           {
@@ -643,7 +643,7 @@ void Performance::ActionMenu() {
 
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
-  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.SetColor(Color::White);
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 5));
 
@@ -670,25 +670,25 @@ void Performance::ActionMenu() {
 
   UIButton customPaletteViewer1;
   customPaletteViewer1.SetName("Custom Palette 1");
-  customPaletteViewer1.SetColorFunc([&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer1.SetColorFunc([&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF) : Color::White.Dim(); });
   customPaletteViewer1.OnPress([&]() -> void { PaletteViewer(0); });
   actionMenu.AddUIComponent(customPaletteViewer1, Point(2, 0));
 
   UIButton customPaletteViewer2;
   customPaletteViewer2.SetName("Custom Palette 2");
-  customPaletteViewer2.SetColorFunc([&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer2.SetColorFunc([&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF) : Color::White.Dim(); });
   customPaletteViewer2.OnPress([&]() -> void { PaletteViewer(1); });
   actionMenu.AddUIComponent(customPaletteViewer2, Point(3, 0));
 
   UIButton customPaletteViewer3;
   customPaletteViewer3.SetName("Custom Palette 3");
-  customPaletteViewer3.SetColorFunc([&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer3.SetColorFunc([&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF) : Color::White.Dim(); });
   customPaletteViewer3.OnPress([&]() -> void { PaletteViewer(2); });
   actionMenu.AddUIComponent(customPaletteViewer3, Point(4, 0));
 
   UIButton customPaletteViewer4;
   customPaletteViewer4.SetName("Custom Palette 4");
-  customPaletteViewer4.SetColorFunc([&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF) : Color(0xFFFFFF).Dim(); });
+  customPaletteViewer4.SetColorFunc([&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF) : Color::White.Dim(); });
   customPaletteViewer4.OnPress([&]() -> void { PaletteViewer(3); });
   actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
 

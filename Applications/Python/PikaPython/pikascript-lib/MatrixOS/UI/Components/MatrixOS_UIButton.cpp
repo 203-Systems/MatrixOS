@@ -42,7 +42,7 @@ extern "C" {
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
 
         button->SetColorFunc([self]() -> Color {
-            Color retval = Color(0xFFFFFF);
+            Color retval = Color::White;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"colorFunc");
 
             if (result) {

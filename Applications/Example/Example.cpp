@@ -120,7 +120,7 @@ void ExampleAPP::UIMenu() {
   // A large button that cycles though the brightness of the device
   UIButton brightnessBtn;
   brightnessBtn.SetName("Brightness"); // Name
-  brightnessBtn.SetColor(Color(0xFFFFFF)); // Color
+  brightnessBtn.SetColor(Color::White); // Color
   brightnessBtn.SetSize(Dimension(2, 2)); // Size of the button
   brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); }); // Function to call when the button is pressed
   brightnessBtn.OnHold([&]() -> void {BrightnessControl().Start(); }); // Function to call when the button is hold down

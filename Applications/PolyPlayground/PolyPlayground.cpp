@@ -44,7 +44,7 @@ void PolyPlayground::Setup(const vector<string>& args) {
   // Other Controls
   UIButton systemSettingBtn;
   systemSettingBtn.SetName("System Setting");
-  systemSettingBtn.SetColor(Color(0xFFFFFF));
+  systemSettingBtn.SetColor(Color::White);
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
@@ -87,7 +87,7 @@ void PolyPlayground::ChannelSelector() {
   numDisplay.SetColor(Color(0x60FF00));
   numDisplay.SetDigits(2);
   numDisplay.SetValuePointer(&offsettedChannel);
-  numDisplay.SetAlternativeColor(Color(0xFFFFFF));
+  numDisplay.SetAlternativeColor(Color::White);
   numDisplay.SetSpacing(1);
   channelSelector.AddUIComponent(numDisplay, Point(1, 0));
 

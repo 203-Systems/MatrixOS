@@ -94,16 +94,16 @@ class UIBPMTapper : public UIComponent {
       MatrixOS::LED::SetColor(origin + Point(1, 3), color);
 
       // A
-      MatrixOS::LED::SetColor(origin + Point(3, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(4, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 0), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 1), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(4, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 2), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(3, 3), Color(0xFFFFFF));
-      MatrixOS::LED::SetColor(origin + Point(5, 3), Color(0xFFFFFF));
+      MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 1), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 2), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+      MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
 
       // P
       MatrixOS::LED::SetColor(origin + Point(6, 0), color);

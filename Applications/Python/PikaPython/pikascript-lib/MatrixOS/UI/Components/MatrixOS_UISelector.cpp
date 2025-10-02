@@ -125,7 +125,7 @@ extern "C" {
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
 
         selector->SetColorFunc([self]() -> Color {
-            Color retval = Color(0xFFFFFF);
+            Color retval = Color::White;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"colorFunc");
 
             if (result) {
@@ -153,7 +153,7 @@ extern "C" {
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
 
         selector->SetIndividualColorFunc([self](uint16_t index) -> Color {
-            Color retval = Color(0xFFFFFF);
+            Color retval = Color::White;
             Arg* indexArg = arg_newInt(index);
             Arg* result = CallCallbackInPikaObj1(self, (char*)"colorFunc", indexArg);
 

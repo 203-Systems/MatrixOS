@@ -350,7 +350,7 @@ bool NotePad::RenderRootNScale(Point origin) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
             else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)) { // If find the note is currently active. Show it as white
-                MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF));
+                MatrixOS::LED::SetColor(globalPos, Color::White);
             }
             else {
                 uint8_t inScale = InScale(note);  // Check if the note is in scale.
@@ -391,7 +391,7 @@ bool NotePad::RenderColorPerKey(Point origin) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
             else if (IsNoteActive(note)) { // If find the note is currently active. Show it as white
-                MatrixOS::LED::SetColor(globalPos, Color(0xFFFFFF));
+                MatrixOS::LED::SetColor(globalPos, Color::White);
             }
             else {
                 uint8_t awayFromRoot = NoteFromRoot(note);

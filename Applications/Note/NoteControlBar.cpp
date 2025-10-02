@@ -445,13 +445,13 @@ Color NoteControlBar::GetOctaveMinusColor() {
 
 
 bool NoteControlBar::Render(Point origin) {
-    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(0, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0xFF0000));
-    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : Color(0x00FF00));
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(0, CTL_BAR_Y - 1))->Active() ? Color::White : Color(0xFF0000));
+    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color::White : Color(0x00FF00));
     Color latchColor;
     if (notePad[0]->rt->noteLatch.IsToggleMode()) {
         latchColor = Color(0xFF00FF);
     } else if(notePad[0]->rt->noteLatch.IsEnabled()) {
-        latchColor = Color(0xFFFFFF); // White when enabled
+        latchColor = Color::White; // White when enabled
     } else {
         latchColor = Color(0xFFFF00); 
     }
@@ -459,15 +459,15 @@ bool NoteControlBar::Render(Point origin) {
 
     Color chordColor;
     if(mode == CHORD_MODE) {
-        chordColor = chordToggleMode ? Color(0x0080FF) : Color(0xFFFFFF);
+        chordColor = chordToggleMode ? Color(0x0080FF) : Color::White;
     } else {
         chordColor = Color(0x00FFFF);
     }
     MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 1), chordColor);
-    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), mode == ARP_MODE ? Color(0xFFFFFF) : Color(0x80FF00));
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color(0xFFFFFF) : Color(0xFF0060));
-    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctaveMinusColor());
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(7, CTL_BAR_Y - 1))->Active() ? Color(0xFFFFFF) : GetOctavePlusColor());
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), mode == ARP_MODE ? Color::White : Color(0x80FF00));
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color::White : Color(0xFF0060));
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color::White : GetOctaveMinusColor());
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(7, CTL_BAR_Y - 1))->Active() ? Color::White : GetOctavePlusColor());
 
     switch(mode) {
         case OFF_MODE:
@@ -497,29 +497,29 @@ void NoteControlBar::RenderChordControl(Point origin) {
 
     // Row 0
     // x0: Dim, x1: min, x2: maj, x3: sus
-    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 3), combo.dim ? Color(0xFFFFFF) : baseColor);
-    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 3), combo.min ? Color(0xFFFFFF) : baseColor);
-    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 3), combo.maj ? Color(0xFFFFFF) : baseColor);
-    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 3), combo.sus ? Color(0xFFFFFF) : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 3), combo.dim ? Color::White : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 3), combo.min ? Color::White : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 3), combo.maj ? Color::White : baseColor);
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 3), combo.sus ? Color::White : baseColor);
 
     // Row 2
     // x0: ext6, x1: extMin7, x2: extMaj7, x3: ext9
-    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 2), combo.ext6 ? Color(0xFFFFFF) : extColor);
-    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 2), combo.extMin7 ? Color(0xFFFFFF) : extColor);
-    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 2), combo.extMaj7 ? Color(0xFFFFFF) : extColor);
-    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 2), combo.ext9 ? Color(0xFFFFFF) : extColor);
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 2), combo.ext6 ? Color::White : extColor);
+    MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 2), combo.extMin7 ? Color::White : extColor);
+    MatrixOS::LED::SetColor(origin + Point(2, CTL_BAR_Y - 2), combo.extMaj7 ? Color::White : extColor);
+    MatrixOS::LED::SetColor(origin + Point(3, CTL_BAR_Y - 2), combo.ext9 ? Color::White : extColor);
 
     // Right side
     // Inversion
     int8_t currentInversion = notePad[0]->rt->chordEffect.inversion;
-    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 3), currentInversion >= 0 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 3), currentInversion >= 1 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 3), currentInversion >= 2 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), currentInversion >= 3 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), currentInversion >= 4 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), currentInversion >= 5 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), currentInversion >= 6 ? Color(0xFFFFFF) : inversionColor);
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), currentInversion >= 7 ? Color(0xFFFFFF) : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 3), currentInversion >= 0 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 3), currentInversion >= 1 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 3), currentInversion >= 2 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 3), currentInversion >= 3 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), currentInversion >= 4 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), currentInversion >= 5 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), currentInversion >= 6 ? Color::White : inversionColor);
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), currentInversion >= 7 ? Color::White : inversionColor);
 }
 
 void NoteControlBar::RenderArpControl(Point origin) {

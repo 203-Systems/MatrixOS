@@ -3,23 +3,23 @@
 void FactoryMenu::Setup(const vector<string>& args) {
   MatrixOS::SYS::Rotate(Direction::UP, true);
 
-  UI factoryMenu("Factory Menu", Color(0xFFFFFF));
+  UI factoryMenu("Factory Menu", Color::White);
 
   UIButton ledTestBtn;
   ledTestBtn.SetName("LED Test");
-  ledTestBtn.SetColor(Color(0xFFFFFF));
+  ledTestBtn.SetColor(Color::White);
   ledTestBtn.OnPress([&]() -> void { LEDTester(); });
   factoryMenu.AddUIComponent(ledTestBtn, Point(0, 0));
 
   UIButton keypadTestBtn;
   keypadTestBtn.SetName("Keypad Test");
-  keypadTestBtn.SetColor(Color(0xFFFFFF));
+  keypadTestBtn.SetColor(Color::White);
   keypadTestBtn.OnPress([&]() -> void { KeyPadTester(); });
   factoryMenu.AddUIComponent(keypadTestBtn, Point(1, 0));
 
   UIButton touchBarTest;
   touchBarTest.SetName("Touch Bar Test");
-  touchBarTest.SetColor(Color(0xFFFFFF));
+  touchBarTest.SetColor(Color::White);
   touchBarTest.OnPress([&]() -> void { TouchBarTester(); });
   factoryMenu.AddUIComponent(touchBarTest, Point(2, 0));
 
@@ -35,7 +35,7 @@ void FactoryMenu::Setup(const vector<string>& args) {
   usbConnection.OnPress([&]() -> void {});
   factoryMenu.AddUIComponent(usbConnection, Point(7, 7));
 
-  Color deviceColor = Color(0xFFFFFF);
+  Color deviceColor = Color::White;
   #ifdef FAMILY_MYSTRIX
   if(Device::deviceInfo.Model[3] == 'S')
   {

@@ -14,7 +14,7 @@ namespace MatrixOS::UIUtility
     numberDisplay.SetColor(color);
     numberDisplay.SetDigits(3);
     numberDisplay.SetValuePointer((int32_t*)&value);
-    numberDisplay.SetAlternativeColor(Color(0xFFFFFF));
+    numberDisplay.SetAlternativeColor(Color::White);
     numberSelector.AddUIComponent(numberDisplay, origin + Point(-4, -3));
 
     int32_t modifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};

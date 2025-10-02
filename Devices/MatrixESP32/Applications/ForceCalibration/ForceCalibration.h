@@ -30,7 +30,7 @@ class ForceCalibration : public Application {
   inline static Application_Info info = {
       .name = "Force Calibration",
       .author = "203 Systems",
-      .color =  Color(0xFFFFFF),
+      .color =  Color::White,
       .version = 1,
       // #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
       // .visibility = true,

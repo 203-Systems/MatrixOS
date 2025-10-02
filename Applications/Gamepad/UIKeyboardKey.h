@@ -17,7 +17,7 @@ class UIKeyboardKey : public UIComponent {
 
   
   virtual bool Render(Point origin) {
-    MatrixOS::LED::SetColor(origin, active ? Color(0xFFFFFF) : GetColor());
+    MatrixOS::LED::SetColor(origin, active ? Color::White : GetColor());
     return true;
   }
 

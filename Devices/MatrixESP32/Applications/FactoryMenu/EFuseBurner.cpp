@@ -6,7 +6,7 @@ void FactoryMenu::EFuseBurner() {
 #ifdef EFUSE_BURNER
   if (true)
   {
-    UI efuseConfirm("eFuse Burn Confirmation", Color(0xFFFFFF));
+    UI efuseConfirm("eFuse Burn Confirmation", Color::White);
 
     UIButton confirmBtn;
     confirmBtn.SetName("Confirm");

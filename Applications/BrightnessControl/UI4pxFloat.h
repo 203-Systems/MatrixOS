@@ -15,7 +15,7 @@ class UI4pxFloat : public UIComponent {
     this->name = "";
     this->color = Color(0);
     this->value = nullptr;
-    this->alternativeColor = Color(0xFFFFFF);
+    this->alternativeColor = Color::White;
   }
 
   virtual Dimension GetSize() { return Dimension(8, 4); }

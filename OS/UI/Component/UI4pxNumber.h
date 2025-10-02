@@ -18,7 +18,7 @@ class UI4pxNumber : public UIComponent {
 
   UI4pxNumber() {
     this->color = Color(0);
-    this->alternativeColor = Color(0xFFFFFF);
+    this->alternativeColor = Color::White;
     this->digits = 0;
     this->valuePtr = nullptr;
     this->getValueFunc = nullptr;

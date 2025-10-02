@@ -25,7 +25,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
 
   UIButton brightnessBtn;
   brightnessBtn.SetName("Brightness");
-  brightnessBtn.SetColor(Color(0xFFFFFF));
+  brightnessBtn.SetColor(Color::White);
   brightnessBtn.SetSize(Dimension(2, 2));
   brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
   rotationRequiredUI.AddUIComponent(brightnessBtn, Point(3, 3));

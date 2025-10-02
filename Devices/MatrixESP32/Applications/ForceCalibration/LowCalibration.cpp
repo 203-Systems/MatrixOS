@@ -67,10 +67,10 @@ void ForceCalibration::LowCalibration() {
           uint8_t last_x = (uint16_t)(last_progress - 1) % X_SIZE;
           uint8_t last_y = (uint16_t)(last_progress - 1) / X_SIZE;
 
-          MatrixOS::LED::SetColor(Point(last_x, last_y), Color(0xFFFFFF), 0);
+          MatrixOS::LED::SetColor(Point(last_x, last_y), Color::White, 0);
         }
 
-        MatrixOS::LED::SetColor(Point(active_x, active_y), Color(0xFFFFFF).Scale(255 * (progress - (uint8_t)progress)), 0);
+        MatrixOS::LED::SetColor(Point(active_x, active_y), Color::White.Scale(255 * (progress - (uint8_t)progress)), 0);
         last_progress = progress;
 
         // for(uint8_t y = 0; y < 8; y++)
@@ -79,12 +79,12 @@ void ForceCalibration::LowCalibration() {
         //   {
         //     if(y * 8 + x < progress)
         //     {
-        //       MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF));
+        //       MatrixOS::LED::SetColor(Point(x, y), Color::White);
         //     }
         //     else if(y * 8 + x + 1 < progress)
         //     {
         //       float brightness = (progress - (y * 8 + x)) / 1.0;
-        //       MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF).Scale(brightness * 255));
+        //       MatrixOS::LED::SetColor(Point(x, y), Color::White.Scale(brightness * 255));
         //     }
         //     else
         //     {

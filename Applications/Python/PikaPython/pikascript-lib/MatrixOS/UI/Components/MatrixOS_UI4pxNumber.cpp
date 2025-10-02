@@ -96,7 +96,7 @@ extern "C" {
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
 
         number->SetColorFunc([self](uint16_t digit) -> Color {
-            Color retval = Color(0xFFFFFF);
+            Color retval = Color::White;
             Arg* digitArg = arg_newInt(digit);
             Arg* result = CallCallbackInPikaObj1(self, (char*)"colorFunc", digitArg);
 

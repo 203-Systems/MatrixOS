@@ -69,7 +69,7 @@ Color Lighting::ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t p
 
 Color Lighting::GetAnimationColor(Animations animation, uint16_t start_time)
 {
-  Color color = Color(0xFFFFFF);
+  Color color = Color::White;
   switch(animation)
   {
     case PoliceCar:
@@ -119,7 +119,7 @@ void Lighting::Settings() {
 
   UIButton temperatureModeBtn;
   temperatureModeBtn.SetName("Temperature Mode");
-  temperatureModeBtn.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(mode == Temperature); });
+  temperatureModeBtn.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(mode == Temperature); });
   temperatureModeBtn.OnPress([&]() -> void { mode = Temperature; });
   settingsUI.AddUIComponent(temperatureModeBtn, Point(4, 0));
 
@@ -257,7 +257,7 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
 
   UI4pxNumber bpmDisplay;
   bpmDisplay.SetName("BPM");
-  bpmDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color(0xFFFFFF) : Color(0xFF00FF); });
+  bpmDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? Color::White : Color(0xFF00FF); });
   bpmDisplay.SetDigits(3);
   bpmDisplay.SetValuePointer((int32_t*)&bpm);
   effectUI.AddUIComponent(bpmDisplay, Point(-1, 2));
