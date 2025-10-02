@@ -81,62 +81,65 @@ class SavedVar {
     return false;
   }
 
-  bool operator=(T new_value) { return Set(new_value); }
+  SavedVar& operator=(T new_value) { Set(new_value); return *this; }
 
-  bool operator==(T new_value) { return value == new_value; }
-  bool operator!=(T new_value) { return value != new_value; }
-  bool operator>(T new_value) { return value == new_value; }
-  bool operator<(T new_value) { return value < new_value; }
-  bool operator>=(T new_value) { return value >= new_value; }
-  bool operator<=(T new_value) { return value <= new_value; }
+  bool operator==(T new_value) { return Get() == new_value; }
+  bool operator!=(T new_value) { return Get() != new_value; }
+  bool operator>(T new_value) { return Get() > new_value; }
+  bool operator<(T new_value) { return Get() < new_value; }
+  bool operator>=(T new_value) { return Get() >= new_value; }
+  bool operator<=(T new_value) { return Get() <= new_value; }
 
-  T operator+(T operation_value) { return value + operation_value; }
-  T operator-(T operation_value) { return value - operation_value; }
-  T operator*(T operation_value) { return value * operation_value; }
-  T operator/(T operation_value) { return value / operation_value; }
-  T operator%(T operation_value) { return value % operation_value; }
+  T operator+(T operation_value) { return Get() + operation_value; }
+  T operator-(T operation_value) { return Get() - operation_value; }
+  T operator*(T operation_value) { return Get() * operation_value; }
+  T operator/(T operation_value) { return Get() / operation_value; }
+  T operator%(T operation_value) { return Get() % operation_value; }
 
- 
+
+  T& operator+=(T operation_value) {
+    Set(Get() + operation_value);
+    return value;
+  }
   T& operator-=(T operation_value) {
-    Set(value - operation_value);
-    return *value;
+    Set(Get() - operation_value);
+    return value;
   }
   T& operator*=(T operation_value) {
-    Set(value * operation_value);
-    return *value;
+    Set(Get() * operation_value);
+    return value;
   }
   T& operator/=(T operation_value) {
-    Set(value / operation_value);
-    return *value;
+    Set(Get() / operation_value);
+    return value;
   }
   T& operator%=(T operation_value) {
-    Set(value % operation_value);
-    return *value;
+    Set(Get() % operation_value);
+    return value;
   }
 
   T& operator++() {
-    Set(value + 1);
-    return *value;
+    Set(Get() + 1);
+    return value;
   };
   T operator++(int) {
-    T temp_value = value;
-    Set(value + 1);
+    T temp_value = Get();
+    Set(temp_value + 1);
     return temp_value;
   };
 
   T& operator--() {
-    Set(value + 1);
-    return *value;
+    Set(Get() - 1);
+    return value;
   };
 
   T operator--(int) {
-    T temp_value = value;
-    Set(value - 1);
+    T temp_value = Get();
+    Set(temp_value - 1);
     return temp_value;
   };
 
   T* operator&() { return &Get(); }
 
   operator T() { return Get(); }
-  operator T*() { return &Get(); }
 };
