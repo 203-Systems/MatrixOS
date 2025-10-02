@@ -16,7 +16,7 @@ enum EMidiStatus : uint8_t {
   SongPosition = MIDIv1_SONG_POSITION_PTR,
   SongSelect = MIDIv1_SONG_SELECT,
   TuneRequest = MIDIv1_TUNE_REQUEST,
-  Sync = MIDIv1_CLOCK,
+  Clock = MIDIv1_CLOCK,
   Tick = MIDIv1_TICK,
   Start = MIDIv1_START,
   Continue = MIDIv1_CONTINUE,
@@ -67,7 +67,7 @@ struct MidiPacket {
   static MidiPacket TuneRequest();
 
   // Static factory methods for real-time messages
-  static MidiPacket Sync();
+  static MidiPacket Clock();
   static MidiPacket Tick();
   static MidiPacket Start();
   static MidiPacket Continue();

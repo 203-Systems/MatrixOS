@@ -99,7 +99,7 @@ void tud_midi_rx_cb(uint8_t itf) {
         switch (raw_packet[1])
         {
           case MIDIv1_CLOCK:
-            packet = MidiPacket::Sync();
+            packet = MidiPacket::Clock();
             break;
           case MIDIv1_TICK:
             packet = MidiPacket::Tick();

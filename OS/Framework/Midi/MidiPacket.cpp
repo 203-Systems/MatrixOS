@@ -49,7 +49,7 @@ MidiPacket::MidiPacket(EMidiStatus status, ...) {
       break;
     }
     case EMidiStatus::TuneRequest:
-    case EMidiStatus::Sync:
+    case EMidiStatus::Clock:
     case EMidiStatus::Tick:
     case EMidiStatus::Start:
     case EMidiStatus::Continue:
@@ -125,9 +125,9 @@ MidiPacket MidiPacket::TuneRequest()
 }
 
 // Static factory methods for real-time messages
-MidiPacket MidiPacket::Sync()
+MidiPacket MidiPacket::Clock()
 {
-  return MidiPacket(EMidiStatus::Sync);
+  return MidiPacket(EMidiStatus::Clock);
 }
 
 MidiPacket MidiPacket::Tick()
@@ -390,7 +390,7 @@ uint8_t MidiPacket::Length() const {
     case EMidiStatus::SongSelect:
       return 2;
     case EMidiStatus::TuneRequest:
-    case EMidiStatus::Sync:
+    case EMidiStatus::Clock:
     case EMidiStatus::Tick:
     case EMidiStatus::Start:
     case EMidiStatus::Continue:

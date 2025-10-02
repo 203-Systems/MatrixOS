@@ -125,7 +125,7 @@ extern "C" {
 
     PikaObj* _MatrixOS_MidiPacket_MidiPacket_Clock(PikaObj *self) {
         PikaObj* new_midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
-        MidiPacket packet = MidiPacket::Sync();
+        MidiPacket packet = MidiPacket::Clock();
 
         copyCppObjIntoPikaObj<MidiPacket>(new_midi_packet, packet);
 
