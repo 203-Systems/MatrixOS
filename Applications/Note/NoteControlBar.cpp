@@ -73,7 +73,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(0, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
-                MatrixOS::MIDI::Send(MidiPacket::Stop());
+                MatrixOS::MIDI::Send(MidiPacket::Stop(), MIDI_PORT_ALL);
             }
             else {
                 pitch_down = MatrixOS::SYS::Millis();
@@ -86,13 +86,13 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
                 int32_t pitch_val = 8192 - (((uint16_t)keyInfo->Force() * 8192) >> 16);
                 if(pitch_val < 0) {pitch_val = 0;}
                 MLOGD("Note", "Pitch Bend: %d", pitch_val);
-                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitch_val));
+                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitch_val), MIDI_PORT_ALL);
             }
         }
         else if(keyInfo->State() == RELEASED) {
             if(pitch_down != 0 && pitch_down > pitch_up)
             {
-                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, 8192));
+                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, 8192), MIDI_PORT_ALL);
             }
             pitch_down = 0;
         }
@@ -102,7 +102,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(1, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
-                MatrixOS::MIDI::Send(MidiPacket::Start());
+                MatrixOS::MIDI::Send(MidiPacket::Start(), MIDI_PORT_ALL);
             }
             else {
                 pitch_up = MatrixOS::SYS::Millis();
@@ -114,13 +114,13 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
             {
                 int32_t pitch_val = 8192 + (((uint16_t)keyInfo->Force() * 8191) >> 16);
                 if(pitch_val > 16383) {pitch_val = 16383;}
-                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitch_val));
+                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitch_val), MIDI_PORT_ALL);
             }
         }
         else if(keyInfo->State() == RELEASED) {
             if(pitch_up != 0 && pitch_up >= pitch_down)
             {
-                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, 8192));
+                MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, 8192), MIDI_PORT_ALL);
             }
             pitch_up = 0;
         }

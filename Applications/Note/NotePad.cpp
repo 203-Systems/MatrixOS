@@ -39,7 +39,7 @@ NotePad::NotePad(Dimension dimension, NotePadRuntime* rt) {
 }
 
 NotePad::~NotePad() {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(rt->config->channel, 123, 0)); // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(rt->config->channel, 123, 0), MIDI_PORT_ALL); // All notes off
     activeKeys.clear();
 }
 
