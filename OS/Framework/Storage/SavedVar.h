@@ -141,6 +141,5 @@ class SavedVar {
 
   T* operator&() { return &Get(); }
 
-  operator T() { return Get(); }
   operator T&() { return Get(); }
 };
