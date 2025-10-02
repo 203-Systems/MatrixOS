@@ -982,6 +982,33 @@ void Note::ArpConfigMenu() {
   });
   arpConfigMenu.AddUIComponent(bpmNumberModifier, Point(0, 7));
 
+  UIButton clockOutBtn;
+  clockOutBtn.SetSize(Dimension(1, 1));
+  clockOutBtn.SetColorFunc([&]() -> Color {
+    if(clockMode == CLOCK_EXTERNAL)
+    {
+      return Color(0xFF00FF);
+    }
+    else if(clockMode == CLOCK_INTERNAL_CLOCKOUT)
+    {
+      return Color(0xFFFFFF);
+    }
+    else if(clockMode == CLOCK_INTERNAL)
+    {
+      return Color(0xFFFFFF).Dim();
+    }
+    return Color(0xFF0000);
+  });
+  clockOutBtn.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
+  clockOutBtn.OnPress([&]() -> void {;
+    if (clockMode == CLOCK_INTERNAL) {
+      clockMode = CLOCK_INTERNAL_CLOCKOUT;
+    } else {
+      clockMode = CLOCK_INTERNAL;
+    }
+  });
+  arpConfigMenu.AddUIComponent(clockOutBtn, Point(7, 6));
+
   // Swing selector
   TimedDisplay swingTextDisplay(500);
   swingTextDisplay.SetDimension(Dimension(8, 4));
@@ -1384,9 +1411,13 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.Start();
 }
 
-void Note::Tick() {
+void Note::Tick() { 
   if(midiClock.Tick())
   {
+    if(clockMode == CLOCK_INTERNAL_CLOCKOUT && midiClock.TickCount() % (EFFECT_TPQN / 24) == 0)
+    {
+      MatrixOS::MIDI::Send(MidiPacket::Clock(), MIDI_PORT_ALL);
+    }
     runtimes[0].Tick();
     runtimes[1].Tick();
   }

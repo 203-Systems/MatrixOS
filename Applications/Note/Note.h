@@ -12,7 +12,7 @@
 #define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
 #define CUSTOM_SCALES_HASH StaticHash("203 Systems-Note-CustomScales")
 
-enum MidiClockMode {
+enum MidiClockMode : uint8_t {
     CLOCK_INTERNAL,
     CLOCK_INTERNAL_CLOCKOUT,    // Send clock to external devices
     CLOCK_EXTERNAL
@@ -35,6 +35,7 @@ class Note : public Application {
   CreateSavedVar("Note", splitView, ESpiltView, SINGLE_VIEW);
   CreateSavedVar("Note", controlBar, bool, false);
   CreateSavedVar("Note", bpm, uint16_t, 120);
+  CreateSavedVar("Note", clockMode, MidiClockMode, CLOCK_INTERNAL);
 
   MidiClock midiClock = MidiClock(bpm, EFFECT_TPQN);
 
