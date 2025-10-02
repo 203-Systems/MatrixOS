@@ -548,7 +548,7 @@ bool Reversi::ResetGame(bool confirmed)
 
   firstPlayer.Load(); // For some reason, the firstPlayer is not auto loaded correctly
 
-  uint8_t secondPlayer = (firstPlayer.Get() == 1) ? 2 : 1;
+  uint8_t secondPlayer = (firstPlayer == 1) ? 2 : 1;
 
   board[3][3].player = firstPlayer;
   board[3][3].wasPlayer = firstPlayer;
@@ -625,26 +625,26 @@ void Reversi::Settings() {
   player1ColorSelector.SetName("Player 1 Color");
   player1ColorSelector.SetColorFunc([&]() -> Color { return player1Color; });
   player1ColorSelector.SetSize(Dimension(8,1));
-  player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color.Get())) { player1Color.Save(); } });
+  player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color)) { player1Color.Save(); } });
   settingsUI.AddUIComponent(player1ColorSelector, Point(0, 7));
 
   UIButton player2ColorSelector;
   player2ColorSelector.SetName("Player 2 Color");
   player2ColorSelector.SetColorFunc([&]() -> Color { return player2Color; });
   player2ColorSelector.SetSize(Dimension(8,1));
-  player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color.Get())) { player2Color.Save(); } });
+  player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color)) { player2Color.Save(); } });
   settingsUI.AddUIComponent(player2ColorSelector, Point(0, 0));
 
   UIButton player1FirstHand;
   player1FirstHand.SetName("Player 1 First Hand");
-  player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 1); });
-  player1FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
+  player1FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 1); });
+  player1FirstHand.OnPress([&]() -> void { if(firstPlayer == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
   settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
   UIButton player2FirstHand;
   player2FirstHand.SetName("Player 2 First Hand");
-  player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer.Get() == 2); });
-  player2FirstHand.OnPress([&]() -> void { if(firstPlayer.Get() == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
+  player2FirstHand.SetColorFunc([&]() -> Color { return Color(0xFFFFFF).DimIfNot(firstPlayer == 2); });
+  player2FirstHand.OnPress([&]() -> void { if(firstPlayer == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
   settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
   UIToggle hintToggle;

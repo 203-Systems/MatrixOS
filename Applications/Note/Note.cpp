@@ -40,7 +40,7 @@ void Note::Setup(const vector<string>& args) {
   // Initialize runtimes
   for(uint8_t i = 0; i < 2; i++)
   {
-    runtimes[i].config = &notePadConfigs[(activeConfig.Get() == 0) ? i : (1 - i)];
+    runtimes[i].config = &notePadConfigs[(activeConfig == 0) ? i : (1 - i)];
     runtimes[i].arpeggiator = Arpeggiator(&runtimes[i].config->arpConfig);
     runtimes[i].midiPipeline.AddEffect("NoteLatch", &runtimes[i].noteLatch);
     runtimes[i].noteLatch.SetEnabled(false);
@@ -111,7 +111,7 @@ void Note::Setup(const vector<string>& args) {
   UIButton notepad1SelectBtn;
   notepad1SelectBtn.SetName("Note Pad 1");
   notepad1SelectBtn.SetSize(Dimension(2, 1));
-  notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig.Get() == 0); });
+  notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(activeConfig == 0); });
   notepad1SelectBtn.OnPress([&]() -> void {
     activeConfig = 0;
     runtimes[0].config = &notePadConfigs[0];
@@ -122,7 +122,7 @@ void Note::Setup(const vector<string>& args) {
   UIButton notepad2SelectBtn;
   notepad2SelectBtn.SetName("Note Pad 2");
   notepad2SelectBtn.SetSize(Dimension(2, 1));
-  notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig.Get() == 1); });
+  notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(activeConfig == 1); });
   notepad2SelectBtn.OnPress([&]() -> void {
     activeConfig = 1;
     runtimes[0].config = &notePadConfigs[1];
@@ -251,17 +251,17 @@ void Note::PlayView() {
   
 
   // Update runtime config pointers based on activeConfig
-  runtimes[0].config = &notePadConfigs[activeConfig.Get() == 1];
-  runtimes[1].config = &notePadConfigs[activeConfig.Get() == 0];
+  runtimes[0].config = &notePadConfigs[(activeConfig == 1) ? 1 : 0];
+  runtimes[1].config = &notePadConfigs[(activeConfig == 0) ? 1 : 0];
 
   NotePad notePad1(padSize, &runtimes[0]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
-  UnderglowLight underglow1(underglowSize, notePadConfigs[activeConfig.Get() == 1].color);
+  UnderglowLight underglow1(underglowSize, notePadConfigs[(activeConfig == 1) ? 1 : 0].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
   NotePad notePad2(padSize, &runtimes[1]);
-  UnderglowLight underglow2(underglowSize, notePadConfigs[activeConfig.Get() == 0].color);
+  UnderglowLight underglow2(underglowSize, notePadConfigs[(activeConfig == 0) ? 1 : 0].color);
   
   if (splitView == VERT_SPLIT) { 
     playView.AddUIComponent(notePad2, Point(4, 0)); 
@@ -955,7 +955,7 @@ void Note::ArpConfigMenu() {
   bpmTextDisplay.SetEnableFunc([&]() -> bool { return page == ARP_BPM; });
   arpConfigMenu.AddUIComponent(bpmTextDisplay, Point(0, 2));
 
-  int32_t bpmValue = bpm.Get();
+  int32_t bpmValue = bpm;
 
   UI4pxNumber bpmDisplay;
   bpmDisplay.SetColor(arpConfigColor[ARP_BPM]);

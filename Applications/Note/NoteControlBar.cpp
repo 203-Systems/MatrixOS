@@ -22,7 +22,7 @@ void NoteControlBar::SwapActiveConfig() {
     if(notePad[1]) {
         notePad[1]->SetPadRuntime(padData1);
     }
-    note->activeConfig = note->activeConfig.Get() == 0 ? 1 : 0;
+    note->activeConfig = note->activeConfig == 0 ? 1 : 0;
     if(underglow[0]) {
         underglow[0]->SetColor(notePad[0]->rt->config->color);
     }

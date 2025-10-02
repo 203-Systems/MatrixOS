@@ -102,12 +102,12 @@ void Dice::Settings() {
 
   UIButton rollingColorSelectorBtn;
   rollingColorSelectorBtn.SetName("Rolling Color");
-  rollingColorSelectorBtn.SetColorFunc([&]() -> Color { return rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color.Get(); });
+  rollingColorSelectorBtn.SetColorFunc([&]() -> Color { return rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color; });
   rollingColorSelectorBtn.SetSize(Dimension(1, 4));
   rollingColorSelectorBtn.OnPress([&]() -> void {
     if (!rolling_rainbow_mode)
     {
-      MatrixOS::UIUtility::ColorPicker(rolling_color.Get());
+      MatrixOS::UIUtility::ColorPicker(rolling_color);
       rolling_color.Save();
     }
   });
@@ -123,19 +123,19 @@ void Dice::Settings() {
   
   UIButton rollingUnderglowEffectMenuBtn;
   rollingUnderglowEffectMenuBtn.SetName("Rolling Underglow Effect");
-  rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color.Get(), rolling_underglow_mode, rolling_underglow_effect_period, timestamp); });
+  rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color, rolling_underglow_mode, rolling_underglow_effect_period, timestamp); });
   rollingUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Rolling); });
   rollingUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
   settingsUI.AddUIComponent(rollingUnderglowEffectMenuBtn, Point(0, 7));
 
   UIButton confirmedColorSelectorBtn;
   confirmedColorSelectorBtn.SetName("Confirmed Color");
-  confirmedColorSelectorBtn.SetColorFunc([&]() -> Color { return confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color.Get(); });
+  confirmedColorSelectorBtn.SetColorFunc([&]() -> Color { return confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color; });
   confirmedColorSelectorBtn.SetSize(Dimension(1, 4));
   confirmedColorSelectorBtn.OnPress([&]() -> void {
     if (!confirmed_rainbow_mode)
     {
-      MatrixOS::UIUtility::ColorPicker(confirmed_color.Get());
+      MatrixOS::UIUtility::ColorPicker(confirmed_color);
       confirmed_color.Save();
     }
   });
@@ -151,7 +151,7 @@ void Dice::Settings() {
 
   UIButton confirmedUnderglowEffectMenuBtn;
   confirmedUnderglowEffectMenuBtn.SetName("Confirmed Underglow Effect");
-  confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color.Get(), confirmed_underglow_mode, confirmed_underglow_effect_period, timestamp); });
+  confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color, confirmed_underglow_mode, confirmed_underglow_effect_period, timestamp); });
   confirmedUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Confirmed); });
   confirmedUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
   settingsUI.AddUIComponent(confirmedUnderglowEffectMenuBtn, Point(7, 7));
@@ -377,7 +377,7 @@ Color Dice::ApplyColorEffect(Color color, UnderglowEffectMode effect, uint16_t p
 }
 
 void Dice::DotFaceSelector() {
-  int32_t dot_faces_num = dot_faces.Get();
+  int32_t dot_faces_num = dot_faces;
   int32_t selector_dot_faces = dot_faces_num - 2;
   UI dotFaceSelector("Face Selector", Color(0x00FFFF));
 
@@ -409,14 +409,14 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
 
   if (phase == Rolling)
   {
-    color = rolling_color.Get();
+    color = rolling_color;
     rainbow = rolling_rainbow_mode;
     period = rolling_underglow_effect_period;
     effectMode = rolling_underglow_mode;
   }
   else if (phase == Confirmed)
   {
-    color = confirmed_color.Get();
+    color = confirmed_color;
     rainbow = confirmed_rainbow_mode;
     period = confirmed_underglow_effect_period;
     effectMode = confirmed_underglow_mode;
