@@ -1447,6 +1447,31 @@ void Note::ArpConfigMenu() {
   });
   arpConfigMenu.AddUIComponent(resetBtn, Point(0, 6));
 
+  // Infinity button (for Gate and Repeat)
+  UIButton infBtn;
+  infBtn.SetName("Inf");
+  infBtn.SetColorFunc([&]() -> Color {
+    if (arpMenuPage == ARP_GATE) {
+      return Color::White.DimIfNot(notePadConfigs[activeConfig].arpConfig.gateTime == 0);
+    } else if (arpMenuPage == ARP_REPEAT) {
+      return Color::White.DimIfNot(notePadConfigs[activeConfig].arpConfig.repeat == 0);
+    }
+    return Color::White.Dim();
+  });
+  infBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_GATE || arpMenuPage == ARP_REPEAT; });
+  infBtn.OnPress([&]() -> void {
+    if (arpMenuPage == ARP_GATE) {
+      gateValue = 0;
+      notePadConfigs[activeConfig].arpConfig.gateTime = 0;
+      runtimes[0].arpeggiator.UpdateConfig();
+    } else if (arpMenuPage == ARP_REPEAT) {
+      repeatValue = 0;
+      notePadConfigs[activeConfig].arpConfig.repeat = 0;
+      runtimes[0].arpeggiator.UpdateConfig();
+    }
+  });
+  arpConfigMenu.AddUIComponent(infBtn, Point(7, 6));
+
   arpConfigMenu.SetLoopFunc([&]() -> void {
     Tick();
   });
