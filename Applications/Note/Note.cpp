@@ -1402,6 +1402,51 @@ void Note::ArpConfigMenu() {
   repeatNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_REPEAT; });
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
 
+  // Reset button
+  UIButton resetBtn;
+  resetBtn.SetName("Reset");
+  resetBtn.SetColor(Color(0xFF0000));
+  resetBtn.SetColorFunc([&]() -> Color {
+    return Color(0xFF0000).DimIfNot(arpMenuPage != ARP_DIRECTION);
+  });
+  resetBtn.SetEnableFunc([&]() -> bool { return arpMenuPage != ARP_DIRECTION; });
+  resetBtn.OnPress([&]() -> void {
+    switch(arpMenuPage) {
+      case ARP_BPM:
+        bpmValue = 120;
+        bpm = 120;
+        midiClock.SetBPM(120);
+        break;
+      case ARP_SWING:
+        swingValue = 50;
+        notePadConfigs[activeConfig].arpConfig.swing = 50;
+        runtimes[0].arpeggiator.UpdateConfig();
+        break;
+      case ARP_GATE:
+        gateValue = 50;
+        notePadConfigs[activeConfig].arpConfig.gateTime = 50;
+        runtimes[0].arpeggiator.UpdateConfig();
+        break;
+      case ARP_STEP:
+        stepValue = 1;
+        notePadConfigs[activeConfig].arpConfig.step = 1;
+        runtimes[0].arpeggiator.UpdateConfig();
+        break;
+      case ARP_STEP_OFFSET:
+        stepOffsetValue = 12;
+        stepOffsetDisplayValue = 12;
+        notePadConfigs[activeConfig].arpConfig.stepOffset = 12;
+        runtimes[0].arpeggiator.UpdateConfig();
+        break;
+      case ARP_REPEAT:
+        repeatValue = 0;
+        notePadConfigs[activeConfig].arpConfig.repeat = 0;
+        runtimes[0].arpeggiator.UpdateConfig();
+        break;
+    }
+  });
+  arpConfigMenu.AddUIComponent(resetBtn, Point(0, 6));
+
   arpConfigMenu.SetLoopFunc([&]() -> void {
     Tick();
   });
