@@ -24,9 +24,14 @@ uint16_t MidiPort::Open(uint16_t id, uint16_t queue_size, uint16_t id_range) {
 }
 
 void MidiPort::Close() {
-  MidiPort::CloseMidiPort(id);
-  this->id = MIDI_PORT_INVALID;
-  vQueueDelete(midi_queue);
+  if (id != MIDI_PORT_INVALID) {
+    MidiPort::CloseMidiPort(id);
+    this->id = MIDI_PORT_INVALID;
+  }
+  if (midi_queue != nullptr) {
+    vQueueDelete(midi_queue);
+    midi_queue = nullptr;
+  }
 }
 
 void MidiPort::SetName(string name) {
@@ -43,16 +48,22 @@ bool MidiPort::Send(MidiPacket midipacket, uint16_t targetPort, uint32_t timeout
 }
 
 bool MidiPort::Receive(MidiPacket midipacket, uint32_t timeout_ms) {
+  if (midi_queue == nullptr)
+    return false;
+
   if (uxQueueSpacesAvailable(midi_queue) == 0)
   {
-    // TODO: Drop first element
-    return false;
+    // Drop oldest packet to make room for new one (FIFO overflow behavior)
+    MidiPacket discarded;
+    xQueueReceive(midi_queue, &discarded, 0);
   }
   xQueueSend(midi_queue, &midipacket, pdMS_TO_TICKS(timeout_ms));
   return true;
 }
 
-MidiPort::MidiPort() {}
+MidiPort::MidiPort() {
+  midi_queue = nullptr;
+}
 
 MidiPort::MidiPort(string name, uint16_t id, uint16_t queue_size) {
   this->name = name;
@@ -69,7 +80,7 @@ MidiPort::~MidiPort() {
 }
 
 bool MidiPort::OpenMidiPort(uint16_t port_id, MidiPort* midiPort) {
-    if (port_id < 0x100)
+    if (port_id < 0x100 || midiPort == nullptr)
       return false;
 
     if (midiPortMap.find(port_id) == midiPortMap.end())
