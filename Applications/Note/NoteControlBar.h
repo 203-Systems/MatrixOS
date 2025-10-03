@@ -26,6 +26,8 @@ class NoteControlBar : public UIComponent {
     NoteControlBarMode mode = OFF_MODE;
     bool chordToggleMode = false;
     bool keyOffsetMode = false;
+    uint32_t pitch_down = 0;
+    uint32_t pitch_up = 0;
 
     void SwapActiveConfig();
     bool ShiftActive();
