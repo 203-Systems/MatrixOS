@@ -58,6 +58,7 @@ void NoteLatch::SetToggleMode(bool enable) {
 
 void NoteLatch::ProcessNoteMessage(const MidiPacket& packet, deque<MidiPacket>& output) {
     uint8_t note = packet.Note();
+    lastChannel = packet.Channel();
 
     if (packet.status == NoteOn && packet.Velocity() > 0) {
         // Note On
@@ -136,7 +137,7 @@ void NoteLatch::ProcessAfterTouchToggleMode(const MidiPacket& packet, deque<Midi
 void NoteLatch::ReleaseAllLatchedNotes(deque<MidiPacket>& output) {
     // Send note off for all latched notes
     for (uint8_t note : latchedNotes) {
-        MidiPacket noteOff = MidiPacket::NoteOff(0, note, 0); // Channel 0 for simplicity
+        MidiPacket noteOff = MidiPacket::NoteOff(lastChannel, note, 0); // Channel 0 for simplicity
         output.push_back(noteOff);
     }
 

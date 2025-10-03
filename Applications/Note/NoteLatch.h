@@ -12,6 +12,7 @@ private:
     std::vector<uint8_t> stillHoldingNotes; // Notes that are physically still being held
     bool disableOnNextTick = false;
     bool toggleMode = false;
+    uint8_t lastChannel = 0;
 public:
     void Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) override;
     void Reset() override;
