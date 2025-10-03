@@ -7,7 +7,7 @@ class ScaleModifier : public UIComponent {
   Color color;
   Color rootColor;
 
-  ScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
+  ScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF)) {
     this->scale = scale;
     this->changeCallback = nullptr;
     this->color = color;
@@ -39,9 +39,7 @@ class ScaleModifier : public UIComponent {
     for (uint8_t note = 0; note < 12; note++)
     {
       Point xy = origin + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
-      if (note == 0)
-      { MatrixOS::LED::SetColor(xy, rootColor); }
-      else if (bitRead(scale_map, note))
+      if (bitRead(scale_map, note))
       { MatrixOS::LED::SetColor(xy, color); }
       else
       { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
