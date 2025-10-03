@@ -42,6 +42,8 @@ void ChordEffect::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& out
     uint8_t root = packet.Note();
     uint8_t velocity = packet.Velocity();
     uint8_t channel = packet.Channel();
+    
+    lastChannel = channel;
 
     // Initialize NoteData for this root note
     NoteData& data = noteMap[root];
@@ -196,7 +198,7 @@ void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
     // Go through all keys in noteOwner and send note off
     for (auto& pair : noteOwner) {
         uint8_t note = pair.first;
-        output.push_back(MidiPacket::NoteOff(0, note, 0));
+        output.push_back(MidiPacket::NoteOff(lastChannel, note, 0));
     }
     
     // Clear all maps and vectors
@@ -214,7 +216,7 @@ void ChordEffect::UpdateChords(deque<MidiPacket>& output)
         uint8_t root = pair.first;
         NoteData& data = pair.second;
         for (uint8_t chordNote : data.chordNotes) {
-            output.push_back(MidiPacket::NoteOff(0, chordNote, 0));
+            output.push_back(MidiPacket::NoteOff(lastChannel, chordNote, 0));
         }
     }
 
@@ -245,7 +247,7 @@ void ChordEffect::UpdateChords(deque<MidiPacket>& output)
             }
 
             noteOwner[chordNote] = root;
-            output.push_back(MidiPacket::NoteOn(0, chordNote, velocity)); // Use saved velocity
+            output.push_back(MidiPacket::NoteOn(lastChannel, chordNote, velocity)); // Use saved velocity
         }
 
         // Update the noteMap with new chord notes

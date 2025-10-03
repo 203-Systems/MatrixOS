@@ -37,6 +37,7 @@ private:
     vector<uint8_t> chordIntervals;                     // Pre-calculated chord intervals
     bool chordChanged = true;
     bool disableOnNextTick = false;
+    uint8_t lastChannel = 0;
 
     // Helper functions
     void ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output);
