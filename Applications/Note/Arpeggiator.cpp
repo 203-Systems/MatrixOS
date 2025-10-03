@@ -72,7 +72,7 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             }
         }
 
-        // If notePool becomes empty, turn off any sustained notes (for gate=0 mode)
+        // If notePool becomes empty, turn off any sustained notes (for inf gate mode)
         if (!wasEmpty && notePool.empty()) {
             for (const auto& event : gateOffQueue) {
                 output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0)); // Turn off all sustained notes
@@ -518,22 +518,26 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
         return;
     }
 
-    // Check if we've completed a sequence and need to handle repeats
-    if (config->repeat != 0 && currentIndex == 0 && lastSequenceIndex != 0) {
-        // We've wrapped around to the beginning of the sequence
-        currentRepeat++;
+    // Check if currentIndex is out of bounds (sequence changed) or needs wrapping
+    if (currentIndex >= arpSequence.size()) {
+        // Detect sequence completion when wrapping
+        // lastSequenceIndex holds the last valid index we played
+        if (config->repeat != 0 && lastSequenceIndex < arpSequence.size()) {
+            currentRepeat++;
 
-        // If we've reached the repeat limit, turn off sustained notes but don't play more
-        if (currentRepeat >= config->repeat) {
-            // Turn off all active notes by processing all pending gate-off events
-            for (const auto& gateEvent : gateOffQueue) {
-                output.push_back(MidiPacket::NoteOff(gateEvent.channel, gateEvent.note, 0));
+            // If we've reached the repeat limit, stop
+            if (currentRepeat >= config->repeat) {
+                // Turn off all sustained notes
+                for (const auto& gateEvent : gateOffQueue) {
+                    output.push_back(MidiPacket::NoteOff(gateEvent.channel, gateEvent.note, 0));
+                }
+                gateOffQueue.clear();
+                return;
             }
-            gateOffQueue.clear();
-            return;
         }
+
+        currentIndex = 0;
     }
-    lastSequenceIndex = currentIndex;
 
     // For random mode, pick a random note from the sequence
     if (config->direction == ARP_RANDOM) {
@@ -559,8 +563,11 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
         gateOffQueue.push_back({gateOffTick, currentNote.note, currentNote.channel});
     }
 
-    // Advance to next note
-    currentIndex = (currentIndex + 1) % arpSequence.size();
+    // Store last index before advancing
+    lastSequenceIndex = currentIndex;
+
+    // Advance to next note (just increment, will wrap on next call if needed)
+    currentIndex++;
 }
 
 void Arpeggiator::CalculateTicksPerStep() {
