@@ -44,12 +44,6 @@ void NoteControlBar::ShiftEventOccured() {
     }
 }
 
-void NoteControlBar::ShiftClear() {
-    shift[0] = 0;
-    shift[1] = 0;
-}
-
-
 bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     if(xy.y < CTL_BAR_Y - 1)
     {
@@ -71,6 +65,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 MatrixOS::MIDI::Send(MidiPacket::Stop(), MIDI_PORT_ALL);
+                ShiftEventOccured();
             }
             else {
                 pitch_down = MatrixOS::SYS::Millis();
@@ -100,6 +95,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 MatrixOS::MIDI::Send(MidiPacket::Start(), MIDI_PORT_ALL);
+                ShiftEventOccured();
             }
             else {
                 pitch_up = MatrixOS::SYS::Millis();
@@ -128,6 +124,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
        if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 notePad[0]->rt->noteLatch.SetToggleMode(!notePad[0]->rt->noteLatch.IsToggleMode());
+                ShiftEventOccured();
             }
             else
             {
@@ -146,6 +143,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
                     mode = CHORD_MODE;
                 }
                 chordToggleMode = !chordToggleMode;
+                ShiftEventOccured();
             }
             else if(mode == CHORD_MODE) {
                 // Already on: turn off
@@ -163,8 +161,8 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(4, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
-                ShiftClear();
                 note->ArpConfigMenu();
+                ShiftEventOccured();
             } else if(mode == ARP_MODE) {
                 mode = OFF_MODE;
             } else {
@@ -178,9 +176,9 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     else if(xy == Point(5, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
-                ShiftClear();
                 note->ScaleSelector();
                 notePad[0]->GenerateKeymap();
+                ShiftEventOccured();
             } else if(mode == KEY_MODE) {
                 mode = OFF_MODE;
             } else {
@@ -193,12 +191,12 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Octave Down
     else if(xy == Point(6, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(!ShiftActive()) {
-                shift[0] = MatrixOS::SYS::Millis();
-            }
-            else {
+            if(ShiftActive()) {
                 SwapActiveConfig();
                 ShiftEventOccured();
+            }
+            else {
+                shift[0] = MatrixOS::SYS::Millis();
             }
         }
         else if(keyInfo->State() == RELEASED) {
@@ -216,12 +214,12 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Octave Up
     else if(xy == Point(7, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(!ShiftActive()) {
-                shift[1] = MatrixOS::SYS::Millis();
-            }
-            else {
+            if(ShiftActive()) {
                 SwapActiveConfig();
                 ShiftEventOccured();
+            }
+            else {
+                shift[1] = MatrixOS::SYS::Millis();
             }
         }
         else if(keyInfo->State() == RELEASED) {

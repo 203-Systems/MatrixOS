@@ -32,7 +32,6 @@ class NoteControlBar : public UIComponent {
     void SwapActiveConfig();
     bool ShiftActive();
     void ShiftEventOccured();
-    void ShiftClear();
     Color GetOctavePlusColor();
     Color GetOctaveMinusColor();
 
