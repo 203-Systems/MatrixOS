@@ -40,13 +40,15 @@ void Note::Setup(const vector<string>& args) {
   // Initialize runtimes
   for(uint8_t i = 0; i < 2; i++)
   {
-    runtimes[i].config = &notePadConfigs[(0 == activeConfig) ? i : (1 - i)];
+    runtimes[i].config = &notePadConfigs[i];
     runtimes[i].arpeggiator = Arpeggiator(&runtimes[i].config->arpConfig);
     runtimes[i].midiPipeline.AddEffect("NoteLatch", &runtimes[i].noteLatch);
     runtimes[i].noteLatch.SetEnabled(false);
     runtimes[i].midiPipeline.AddEffect("ChordEffect", &runtimes[i].chordEffect);
     runtimes[i].midiPipeline.AddEffect("Arpeggiator", &runtimes[i].arpeggiator);
   }
+
+  int32_t octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
 
   // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF), false);
@@ -115,8 +117,7 @@ void Note::Setup(const vector<string>& args) {
   notepad1SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[0].color.DimIfNot(0 == activeConfig); });
   notepad1SelectBtn.OnPress([&]() -> void {
     activeConfig = 0;
-    runtimes[0].config = &notePadConfigs[0];
-    runtimes[1].config = &notePadConfigs[1];
+    octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
   });
   actionMenu.AddUIComponent(notepad1SelectBtn, Point(2, 0));
 
@@ -126,8 +127,7 @@ void Note::Setup(const vector<string>& args) {
   notepad2SelectBtn.SetColorFunc([&]() -> Color { return notePadConfigs[1].color.DimIfNot(1 == activeConfig); });
   notepad2SelectBtn.OnPress([&]() -> void {
     activeConfig = 1;
-    runtimes[0].config = &notePadConfigs[1];
-    runtimes[1].config = &notePadConfigs[0];
+    octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
   });
   actionMenu.AddUIComponent(notepad2SelectBtn, Point(4, 0));
 
@@ -138,7 +138,6 @@ void Note::Setup(const vector<string>& args) {
   actionMenu.AddUIComponent(notepadColorBtn, Point(7, 0));
 
   // Octave Control
-  int32_t octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
 
   UI4pxNumber octaveDisplay;
   octaveDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? notePadConfigs[activeConfig].rootColor : notePadConfigs[activeConfig].color; });
@@ -266,20 +265,15 @@ void Note::PlayView() {
       underglowSize = Dimension(10, 5);
       break;
   }
-  
 
-  // Update runtime config pointers based on activeConfig
-  runtimes[0].config = &notePadConfigs[(1 == activeConfig) ? 1 : 0];
-  runtimes[1].config = &notePadConfigs[(0 == activeConfig) ? 1 : 0];
-
-  NotePad notePad1(padSize, &runtimes[0]);
+  NotePad notePad1(padSize, &runtimes[(1 == activeConfig) ? 1 : 0]);
   playView.AddUIComponent(notePad1, Point(0, 0));
 
   UnderglowLight underglow1(underglowSize, notePadConfigs[(1 == activeConfig) ? 1 : 0].color);
   playView.AddUIComponent(underglow1, Point(-1, -1));
 
-  NotePad notePad2(padSize, &runtimes[1]);
-  UnderglowLight underglow2(underglowSize, notePadConfigs[(0 == activeConfig) ? 1 : 0].color);
+  NotePad notePad2(padSize, &runtimes[(1 == activeConfig) ? 0 : 1]);
+  UnderglowLight underglow2(underglowSize, notePadConfigs[(0 == activeConfig) ? 0 : 1].color);
   
   if (splitView == VERT_SPLIT) { 
     playView.AddUIComponent(notePad2, Point(4, 0)); 
