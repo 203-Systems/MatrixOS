@@ -202,7 +202,7 @@ extern "C" {
     }
 
     DIR dir;
-    static FILINFO fno;
+    FILINFO fno;
     FRESULT res;
     char ** filelist = NULL;
     int idx = 0, capacity = 10; // start with a capacity of 10, then grow if necessary
