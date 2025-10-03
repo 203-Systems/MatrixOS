@@ -404,109 +404,101 @@ void Arpeggiator::UpdateSequence() {
             break;
 
         case ARP_PINKY_UP:
-            // Play lowest note, then rest ascending
+            // Play each note ascending with highest note in between: 1 4 2 4 3 4
             for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                bool first = true;
+                vector<ArpNote> stepNotes;
                 for (const ArpNote& note : sortedNotes) {
                     ArpNote stepNote = note;
                     stepNote.note += stepNum * config->stepOffset;
                     if (stepNote.note < 128 && stepNote.note >= 0) {
-                        if (first) {
-                            arpSequence.push_back(stepNote);
-                            first = false;
-                        }
+                        stepNotes.push_back(stepNote);
                     }
                 }
-                for (size_t i = 1; i < sortedNotes.size(); i++) {
-                    ArpNote stepNote = sortedNotes[i];
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
+                if (stepNotes.size() > 0) {
+                    for (size_t i = 0; i < stepNotes.size() - 1; i++) {
+                        arpSequence.push_back(stepNotes[i]);  // Lower note
+                        arpSequence.push_back(stepNotes[stepNotes.size() - 1]);  // Highest note (pinky)
                     }
                 }
             }
             break;
 
         case ARP_PINKY_UP_DOWN:
-            // Play lowest, then up, then down
+            // Play pinky up then pinky down: 1 4 2 4 3 4 2 4
             {
-                vector<ArpNote> baseSeq;
+                vector<ArpNote> upSeq;
                 for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    bool first = true;
+                    vector<ArpNote> stepNotes;
                     for (const ArpNote& note : sortedNotes) {
                         ArpNote stepNote = note;
                         stepNote.note += stepNum * config->stepOffset;
                         if (stepNote.note < 128 && stepNote.note >= 0) {
-                            if (first) {
-                                baseSeq.push_back(stepNote);
-                                first = false;
-                            }
+                            stepNotes.push_back(stepNote);
                         }
                     }
-                    for (size_t i = 1; i < sortedNotes.size(); i++) {
-                        ArpNote stepNote = sortedNotes[i];
-                        stepNote.note += stepNum * config->stepOffset;
-                        if (stepNote.note < 128 && stepNote.note >= 0) {
-                            baseSeq.push_back(stepNote);
+                    if (stepNotes.size() > 0) {
+                        // Ascending with pinky in between
+                        for (size_t i = 0; i < stepNotes.size() - 1; i++) {
+                            upSeq.push_back(stepNotes[i]);
+                            upSeq.push_back(stepNotes[stepNotes.size() - 1]);
                         }
                     }
                 }
-                arpSequence = baseSeq;
-                // Add reverse without endpoints
-                for (int i = baseSeq.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(baseSeq[i]);
+                arpSequence = upSeq;
+                // Add descending (reverse without first and last pairs to avoid duplication)
+                for (int i = upSeq.size() - 4; i >= 2; i -= 2) {
+                    arpSequence.push_back(upSeq[i]);
+                    arpSequence.push_back(upSeq[i + 1]);
                 }
             }
             break;
 
         case ARP_THUMB_UP:
-            // Play highest note, then rest ascending from lowest
+            // Play each note ascending with lowest note in between: 1 2 1 3 1 4
             for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                // Add highest note first
-                if (!sortedNotes.empty()) {
-                    ArpNote highNote = sortedNotes.back();
-                    highNote.note += stepNum * config->stepOffset;
-                    if (highNote.note < 128 && highNote.note >= 0) {
-                        arpSequence.push_back(highNote);
-                    }
-                }
-                // Add rest ascending except the highest
-                for (size_t i = 0; i < sortedNotes.size() - 1; i++) {
-                    ArpNote stepNote = sortedNotes[i];
+                vector<ArpNote> stepNotes;
+                for (const ArpNote& note : sortedNotes) {
+                    ArpNote stepNote = note;
                     stepNote.note += stepNum * config->stepOffset;
                     if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
+                        stepNotes.push_back(stepNote);
+                    }
+                }
+                if (stepNotes.size() > 0) {
+                    for (size_t i = 1; i < stepNotes.size(); i++) {
+                        arpSequence.push_back(stepNotes[0]);  // Lowest note (thumb)
+                        arpSequence.push_back(stepNotes[i]);  // Higher note
                     }
                 }
             }
             break;
 
         case ARP_THUMB_UP_DOWN:
-            // Play highest, then up from lowest, then down
+            // Play thumb up then thumb down: 1 2 1 3 1 4 1 3
             {
-                vector<ArpNote> baseSeq;
+                vector<ArpNote> upSeq;
                 for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    // Add highest note first
-                    if (!sortedNotes.empty()) {
-                        ArpNote highNote = sortedNotes.back();
-                        highNote.note += stepNum * config->stepOffset;
-                        if (highNote.note < 128 && highNote.note >= 0) {
-                            baseSeq.push_back(highNote);
-                        }
-                    }
-                    // Add rest ascending except the highest
-                    for (size_t i = 0; i < sortedNotes.size() - 1; i++) {
-                        ArpNote stepNote = sortedNotes[i];
+                    vector<ArpNote> stepNotes;
+                    for (const ArpNote& note : sortedNotes) {
+                        ArpNote stepNote = note;
                         stepNote.note += stepNum * config->stepOffset;
                         if (stepNote.note < 128 && stepNote.note >= 0) {
-                            baseSeq.push_back(stepNote);
+                            stepNotes.push_back(stepNote);
+                        }
+                    }
+                    if (stepNotes.size() > 0) {
+                        // Ascending with thumb in between
+                        for (size_t i = 1; i < stepNotes.size(); i++) {
+                            upSeq.push_back(stepNotes[0]);
+                            upSeq.push_back(stepNotes[i]);
                         }
                     }
                 }
-                arpSequence = baseSeq;
-                // Add reverse without endpoints
-                for (int i = baseSeq.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(baseSeq[i]);
+                arpSequence = upSeq;
+                // Add descending (reverse without first and last pairs to avoid duplication)
+                for (int i = upSeq.size() - 4; i >= 2; i -= 2) {
+                    arpSequence.push_back(upSeq[i]);
+                    arpSequence.push_back(upSeq[i + 1]);
                 }
             }
             break;
