@@ -44,6 +44,11 @@ void NoteControlBar::ShiftEventOccured() {
     }
 }
 
+void NoteControlBar::ShiftClear() {
+    shift[0] = 0;
+    shift[1] = 0;
+}
+
 bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     if(xy.y < CTL_BAR_Y - 1)
     {
@@ -162,7 +167,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 note->ArpConfigMenu();
-                ShiftEventOccured();
+                ShiftClear();
             } else if(mode == ARP_MODE) {
                 mode = OFF_MODE;
             } else {
@@ -178,7 +183,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
             if(ShiftActive()) {
                 note->ScaleSelector();
                 notePad[0]->GenerateKeymap();
-                ShiftEventOccured();
+                ShiftClear();
             } else if(mode == KEY_MODE) {
                 mode = OFF_MODE;
             } else {
