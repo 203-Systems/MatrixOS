@@ -1,4 +1,5 @@
 #include "MatrixOS.h"
+#include "UI/UI.h"
 #include "../Data/font.h"
 
 #define TEXT_SCROLL_SPACING 2
@@ -96,6 +97,7 @@ namespace MatrixOS::UIUtility
               // Wait for the next frame
               while (!textScrollTimer.Tick(speed))
               {
+                UI::GlobalLoops();
                 // MatrixOS::KeyPad::Scan(true);
                 MatrixOS::KeyPad::ClearList();  // Keypad will scan itself after list is cleared
                 // MLOGD("Text Scroll Slow", "FN Velocity %d",
@@ -213,6 +215,7 @@ namespace MatrixOS::UIUtility
             // Wait for the next frame
             while (!textScrollTimer.Tick(speed))
             {
+              UI::GlobalLoops();
              // MatrixOS::KeyPad::Scan(true);
               MatrixOS::KeyPad::ClearList();  // Keypad will scan itself after list is cleared
               // MLOGD("Text Scroll Fast", "FN Velocity %d",
@@ -250,6 +253,7 @@ namespace MatrixOS::UIUtility
             // Wait for 4 ticks
             while (!textScrollTimer.Tick(speed * 4))
             {
+              UI::GlobalLoops();
               // MatrixOS::KeyPad::Scan(true);
               MatrixOS::KeyPad::ClearList();  // Keypad will scan itself after list is cleared
               // MLOGD("Text Scroll Fast", "FN Velocity %d",

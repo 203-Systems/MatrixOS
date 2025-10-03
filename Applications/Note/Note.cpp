@@ -227,7 +227,7 @@ void Note::Setup(const vector<string>& args) {
     return false;
   });
 
-  actionMenu.SetLoopFunc([&]() -> void {
+  actionMenu.SetGlobalLoopFunc([&]() -> void {
     Tick();
   });
 
@@ -290,10 +290,6 @@ void Note::PlayView() {
   {
     playView.AddUIComponent(noteControlBar, Point(0, 8 - CTL_BAR_Y));
   }
-
-  playView.SetLoopFunc([&]() -> void {
-    Tick();
-  });
 
   playView.Start();
 }
@@ -380,10 +376,6 @@ void Note::ScaleSelector() {
     scaleModifier.ChangeScalePtr(&custom_scales[index]);
   });
   scaleSelector.AddUIComponent(customScaleSelector, Point(0, 6));
-
-  scaleSelector.SetLoopFunc([&]() -> void {
-    Tick();
-  });
 
   scaleSelector.Start();
 
@@ -595,10 +587,6 @@ void Note::ColorSelector() {
     notePadConfigs[activeConfig].useWhiteAsOutOfScale = !notePadConfigs[activeConfig].useWhiteAsOutOfScale;
   });
   colorSelector.AddUIComponent(whiteOutOfScaleToggle, Point(7, 5));
-
-  colorSelector.SetLoopFunc([&]() -> void {
-    Tick();
-  });
 
   colorSelector.Start();
 
@@ -851,10 +839,6 @@ void Note::LayoutSelector() {
   enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
   layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
 
-  layoutSelector.SetLoopFunc([&]() -> void {
-    Tick();
-  });
-
   layoutSelector.Start();
 
   if (configModified) {
@@ -911,10 +895,6 @@ void Note::ChannelSelector() {
       MatrixOS::LED::SetColor(Point(4, 2), Color::White);
       MatrixOS::LED::SetColor(Point(4, 3), Color::White);
     }
-  });
-
-  channelSelector.SetLoopFunc([&]() -> void {
-    Tick();
   });
 
   channelSelector.Start();
@@ -1550,10 +1530,6 @@ void Note::ArpConfigMenu() {
     }
   });
   arpConfigMenu.AddUIComponent(infBtn, Point(7, 6));
-
-  arpConfigMenu.SetLoopFunc([&]() -> void {
-    Tick();
-  });
 
   arpConfigMenu.Start();
 

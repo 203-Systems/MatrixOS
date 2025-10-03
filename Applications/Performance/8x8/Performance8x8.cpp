@@ -692,7 +692,7 @@ void Performance::ActionMenu() {
   customPaletteViewer4.OnPress([&]() -> void { PaletteViewer(3); });
   actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
 
-  actionMenu.SetLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open
+  actionMenu.SetGlobalLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open
     struct MidiPacket midiPacket;
     while (MatrixOS::MIDI::Get(&midiPacket))
     {
