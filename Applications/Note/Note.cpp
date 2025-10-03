@@ -989,11 +989,11 @@ void Note::ArpConfigMenu() {
     }
     else if(clockMode == CLOCK_INTERNAL_CLOCKOUT)
     {
-      return Color::White;
+      return Color(0x80FF00);
     }
     else if(clockMode == CLOCK_INTERNAL)
     {
-      return Color::White.Dim();
+      return Color(0x80FF00).Dim();
     }
     return Color(0xFF0000);
   });
