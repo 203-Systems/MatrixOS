@@ -25,12 +25,12 @@ void Note::Setup(const vector<string>& args) {
     } else {
       // Size mismatch - structure has changed, use defaults and save them
       MLOGD("Note", "Config size mismatch: stored=%d, expected=%d. Using defaults.", storedSize, sizeof(notePadConfigs));
-      MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+      SaveConfigs();
     }
   }
   else
   {
-    MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs)); \
+    SaveConfigs();
     nvsVersion = NOTE_APP_VERSION;
   }
 
@@ -50,6 +50,7 @@ void Note::Setup(const vector<string>& args) {
 
   // Set up the Action Menu UI ---------------------------------------------------------------------
   UI actionMenu("Action Menu", Color(0x00FFFF), false);
+  bool configModified = false;
 
   // Note Pad Control
   UIButton scaleSelectorBtn;
@@ -75,7 +76,7 @@ void Note::Setup(const vector<string>& args) {
   if(Device::KeyPad::velocity_sensitivity)
   {
     forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
-    forceSensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig.Get()].forceSensitive = !notePadConfigs[activeConfig.Get()].forceSensitive; });
+    forceSensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig.Get()].forceSensitive = !notePadConfigs[activeConfig.Get()].forceSensitive; configModified = true; });
     forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig.Get()].forceSensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
   }
   else
@@ -160,6 +161,7 @@ void Note::Setup(const vector<string>& args) {
     {
       notePadConfigs[activeConfig].octave++;
       octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
+      configModified = true;
     }
   });
   actionMenu.AddUIComponent(octavePlusBtn, Point(4, 7));
@@ -173,6 +175,7 @@ void Note::Setup(const vector<string>& args) {
     {
       notePadConfigs[activeConfig].octave--;
       octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
+      configModified = true;
     }
   });
   actionMenu.AddUIComponent(octaveMinusBtn, Point(2, 7));
@@ -204,10 +207,18 @@ void Note::Setup(const vector<string>& args) {
     if (keyEvent->id == FUNCTION_KEY)
     {
       if (keyEvent->info.state == HOLD)
-      { Exit(); }
+      { 
+        if (configModified) {
+          SaveConfigs();
+        }
+        Exit(); 
+      }
       else if (keyEvent->info.state == RELEASED)
       {
-        MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+        if (configModified) {
+          SaveConfigs();
+          configModified = false;
+        }
         PlayView();
         octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
       }
@@ -290,9 +301,11 @@ void Note::PlayView() {
 void Note::ScaleSelector() {
   UI scaleSelector("Scale Selector", Color(0xFF0090), false);
   bool customScaleModified = false;
+  bool configModified = false;
   uint8_t customScaleSlotSelected = 255;
 
   ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset, &notePadConfigs[activeConfig].scale);
+  scaleVisualizer.OnChange([&]() -> void { configModified = true; });
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
   UIButton offsetModeBtn;
@@ -305,6 +318,7 @@ void Note::ScaleSelector() {
   scaleModifier.SetEnableFunc([&]() -> bool { return customScaleSlotSelected != 255; });
   scaleModifier.OnChange([&](uint16_t newScale) -> void {
     customScaleModified = true;
+    configModified = true;
     custom_scales[customScaleSlotSelected] = newScale;
     notePadConfigs[activeConfig].scale = newScale;
   });
@@ -317,6 +331,7 @@ void Note::ScaleSelector() {
   deleteScaleBtn.OnPress([&]() -> void {
     custom_scales[customScaleSlotSelected] = 0;
     customScaleModified = true;
+    configModified = true;
     customScaleSlotSelected = 255;
     notePadConfigs[activeConfig].rootOffset = 0;
     notePadConfigs[activeConfig].scale = MINOR;
@@ -330,9 +345,10 @@ void Note::ScaleSelector() {
   scaleSelectorBar.SetCount(16);
   scaleSelectorBar.SetItems(scales);
   scaleSelectorBar.SetIndividualNameFunc([&](uint16_t index) -> string { return scale_names[index]; });
-  scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void { 
+  scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void {
+    configModified = true;
     notePadConfigs[activeConfig].rootOffset = 0;
-    customScaleSlotSelected = 255; 
+    customScaleSlotSelected = 255;
   });
   scaleSelector.AddUIComponent(scaleSelectorBar, Point(0, 4));
 
@@ -358,6 +374,7 @@ void Note::ScaleSelector() {
       custom_scales[index] = 0b1101010110101; // Default major
       customScaleModified = true;
     }
+    configModified = true;
     notePadConfigs[activeConfig].scale = custom_scales[index];
     customScaleSlotSelected = index;
     scaleModifier.ChangeScalePtr(&custom_scales[index]);
@@ -373,10 +390,15 @@ void Note::ScaleSelector() {
   if (customScaleModified) {
     MatrixOS::NVS::SetVariable(CUSTOM_SCALES_HASH, custom_scales, sizeof(custom_scales));
   }
+
+  if (configModified) {
+    SaveConfigs();
+  }
 }
 
 void Note::ColorSelector() {
   UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
+  bool configModified = false;
   uint8_t page = 0;  // 0 = Preset, 1 = Customize
 
   // Create NotePadRuntime structure for color selector
@@ -412,6 +434,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[0][1]).DimIfNot(selected);
   });
   preset1Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[0][0];
     notePadConfigs[activeConfig].color = colorPresets[0][1];
@@ -429,6 +452,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[1][1]).DimIfNot(selected);
   });
   preset2Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[1][0];
     notePadConfigs[activeConfig].color = colorPresets[1][1];
@@ -446,6 +470,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[2][1]).DimIfNot(selected);
   });
   preset3Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[2][0];
     notePadConfigs[activeConfig].color = colorPresets[2][1];
@@ -463,6 +488,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[3][1]).DimIfNot(selected);
   });
   preset4Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[3][0];
     notePadConfigs[activeConfig].color = colorPresets[3][1];
@@ -480,6 +506,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[4][1]).DimIfNot(selected);
   });
   preset5Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[4][0];
     notePadConfigs[activeConfig].color = colorPresets[4][1];
@@ -497,6 +524,7 @@ void Note::ColorSelector() {
     return Color(colorPresets[5][1]).DimIfNot(selected);
   });
   preset6Btn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = ROOT_N_SCALE;
     notePadConfigs[activeConfig].rootColor = colorPresets[5][0];
     notePadConfigs[activeConfig].color = colorPresets[5][1];
@@ -511,6 +539,7 @@ void Note::ColorSelector() {
     return  ColorEffects::Rainbow(2000).DimIfNot(selected);
   });
   rainbowColorBtn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_RAINBOW;
   });
   rainbowColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
@@ -525,6 +554,7 @@ void Note::ColorSelector() {
     return color.DimIfNot(selected);
   });
   polyColorBtn.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].colorMode = COLOR_PER_KEY_POLY;
   });
   polyColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
@@ -538,6 +568,7 @@ void Note::ColorSelector() {
   rootColorSelectorBtn.SetSize(Dimension(2, 2));
   rootColorSelectorBtn.OnPress([&]() -> void {
     MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].rootColor);
+    configModified = true;
   });
   rootColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
   colorSelector.AddUIComponent(rootColorSelectorBtn, Point(2, 5));
@@ -548,6 +579,7 @@ void Note::ColorSelector() {
   notePadColorSelectorBtn.SetSize(Dimension(2, 2));
   notePadColorSelectorBtn.OnPress([&]() -> void {
     MatrixOS::UIUtility::ColorPicker(notePadConfigs[activeConfig].color);
+    configModified = true;
   });
   notePadColorSelectorBtn.SetEnableFunc([&]() -> bool { return page == 1; });
   colorSelector.AddUIComponent(notePadColorSelectorBtn, Point(4, 5));
@@ -559,6 +591,7 @@ void Note::ColorSelector() {
   });
   whiteOutOfScaleToggle.SetSize(Dimension(1, 2));
   whiteOutOfScaleToggle.OnPress([&]() -> void {
+    configModified = true;
     notePadConfigs[activeConfig].useWhiteAsOutOfScale = !notePadConfigs[activeConfig].useWhiteAsOutOfScale;
   });
   colorSelector.AddUIComponent(whiteOutOfScaleToggle, Point(7, 5));
@@ -568,11 +601,16 @@ void Note::ColorSelector() {
   });
 
   colorSelector.Start();
+
+  if (configModified) {
+    SaveConfigs();
+  }
 }
 
 void Note::LayoutSelector() {
   const Color color = Color(0xFFFF00);
   UI layoutSelector("Layout Selector", color, false);
+  bool configModified = false;
 
   int32_t x_offset = notePadConfigs[activeConfig].x_offset;
   int32_t y_offset = notePadConfigs[activeConfig].y_offset;
@@ -580,7 +618,10 @@ void Note::LayoutSelector() {
   UIButton octaveModeBtn;
   octaveModeBtn.SetName("Octave Mode");
   octaveModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
-  octaveModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT; });
+  octaveModeBtn.OnPress([&]() -> void {
+    configModified = true;
+    notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT;
+  });
   layoutSelector.AddUIComponent(octaveModeBtn, Point(2, 0));
 
   UIButton offsetModeBtn;
@@ -589,6 +630,7 @@ void Note::LayoutSelector() {
   offsetModeBtn.OnPress([&]() -> void {
     if(notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
     {
+      configModified = true;
       notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
       x_offset = 1;
       y_offset = 3;
@@ -601,13 +643,19 @@ void Note::LayoutSelector() {
   UIButton chromaticModeBtn;
   chromaticModeBtn.SetName("Chromatic Mode");
   chromaticModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT); });
-  chromaticModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = CHROMATIC_LAYOUT; });
+  chromaticModeBtn.OnPress([&]() -> void {
+    configModified = true;
+    notePadConfigs[activeConfig].mode = CHROMATIC_LAYOUT;
+  });
   layoutSelector.AddUIComponent(chromaticModeBtn, Point(4, 0));
 
   UIButton pianoModeBtn;
   pianoModeBtn.SetName("Piano Keyboard");
   pianoModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
-  pianoModeBtn.OnPress([&]() -> void { notePadConfigs[activeConfig].mode = PIANO_LAYOUT; });
+  pianoModeBtn.OnPress([&]() -> void {
+    configModified = true;
+    notePadConfigs[activeConfig].mode = PIANO_LAYOUT;
+  });
   layoutSelector.AddUIComponent(pianoModeBtn, Point(5, 0));
 
   // Octave mode
@@ -697,6 +745,7 @@ void Note::LayoutSelector() {
   yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
   yOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   yOffsetInput.OnChange([&](uint16_t val) -> void {
+    configModified = true;
     notePadConfigs[activeConfig].y_offset = val;
     ofsTextDisplay.Disable();
   });
@@ -710,6 +759,7 @@ void Note::LayoutSelector() {
   xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   xOffsetInput.OnChange([&](uint16_t val) -> void {
+    configModified = true;
     notePadConfigs[activeConfig].x_offset = val;
     ofsTextDisplay.Disable();
   });
@@ -794,7 +844,10 @@ void Note::LayoutSelector() {
   UIButton enforceScaleToggle;
   enforceScaleToggle.SetName("Enforce Scale");
   enforceScaleToggle.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(notePadConfigs[activeConfig].enforceScale); });
-  enforceScaleToggle.OnPress([&]() -> void { notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale; });
+  enforceScaleToggle.OnPress([&]() -> void {
+    configModified = true;
+    notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale;
+  });
   enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
   layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
 
@@ -803,11 +856,16 @@ void Note::LayoutSelector() {
   });
 
   layoutSelector.Start();
+
+  if (configModified) {
+    SaveConfigs();
+  }
 }
 
 void Note::ChannelSelector() {
   Color color = Color(0x60FF00);
   UI channelSelector("Channel Selector", color, false);
+  bool configModified = false;
 
   int32_t offsettedChannel = notePadConfigs[activeConfig].channel + 1;
   UI4pxNumber numDisplay;
@@ -824,7 +882,10 @@ void Note::ChannelSelector() {
   channelInput.SetColor(color);
   channelInput.SetCount(16);
   channelInput.SetValuePointer((uint16_t*)&notePadConfigs[activeConfig].channel);
-  channelInput.OnChange([&](uint16_t val) -> void { offsettedChannel = val + 1; });
+  channelInput.OnChange([&](uint16_t val) -> void {
+    configModified = true;
+    offsettedChannel = val + 1;
+  });
 
   channelSelector.AddUIComponent(channelInput, Point(0, 6));
 
@@ -857,10 +918,15 @@ void Note::ChannelSelector() {
   });
 
   channelSelector.Start();
+
+  if (configModified) {
+    SaveConfigs();
+  }
 }
 
 void Note::ArpConfigMenu() {
   UI arpConfigMenu("Arpeggiator Config", Color(0x80FF00));
+  bool configModified = false;
   uint64_t menuOpenTime = MatrixOS::SYS::Millis();
 
   enum ArpConfigType:uint16_t
@@ -1067,8 +1133,9 @@ void Note::ArpConfigMenu() {
   swingNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_SWING; });
   swingNumberModifier.OnChange([&](int32_t val) -> void {
     swingTextDisplay.Disable();
-      notePadConfigs[activeConfig].arpConfig.swing = val;
-      runtimes[0].arpeggiator.UpdateConfig();
+    configModified = true;
+    notePadConfigs[activeConfig].arpConfig.swing = val;
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
@@ -1136,6 +1203,7 @@ void Note::ArpConfigMenu() {
   gateNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_GATE; });
   gateNumberModifier.OnChange([&](int32_t val) -> void {
     gateValue = val;
+    configModified = true;
     notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)val;
     gateTextDisplay.Disable();
     runtimes[0].arpeggiator.UpdateConfig();
@@ -1187,6 +1255,7 @@ void Note::ArpConfigMenu() {
   directionSelector.SetColor(arpConfigColor[ARP_DIRECTION]);
   directionSelector.SetValueFunc([&]() -> uint16_t { return (uint16_t)notePadConfigs[activeConfig].arpConfig.direction; });
   directionSelector.OnChange([&](uint16_t value) -> void {
+    configModified = true;
     notePadConfigs[activeConfig].arpConfig.direction = (ArpDirection)value;
     directionTextDisplay.Disable();
     runtimes[0].arpeggiator.UpdateConfig();
@@ -1252,6 +1321,7 @@ void Note::ArpConfigMenu() {
   stepNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_STEP; });
   stepNumberModifier.OnChange([&](int32_t val) -> void {
     stepValue = val;
+    configModified = true;
     notePadConfigs[activeConfig].arpConfig.step = (uint8_t)val;
     stepTextDisplay.Disable();
     runtimes[0].arpeggiator.UpdateConfig();
@@ -1324,10 +1394,11 @@ void Note::ArpConfigMenu() {
   stepOffsetNumberModifier.SetUpperLimit(48);
   stepOffsetNumberModifier.OnChange([&](int32_t value) -> void {
     stepOffsetValue = value;
+    configModified = true;
     notePadConfigs[activeConfig].arpConfig.stepOffset = (int8_t)value;
     stepOffsetDisplayValue = abs(value);
     offsetTextDisplay.Disable();
-      runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[0].arpeggiator.UpdateConfig();
   });
   stepOffsetNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_STEP_OFFSET; });
   arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
@@ -1395,6 +1466,7 @@ void Note::ArpConfigMenu() {
   repeatNumberModifier.SetUpperLimit(100);
   repeatNumberModifier.OnChange([&](int32_t value) -> void {
     repeatValue = value;
+    configModified = true;
     notePadConfigs[activeConfig].arpConfig.repeat = (uint8_t)value;
     repeatTextDisplay.Disable();
     runtimes[0].arpeggiator.UpdateConfig();
@@ -1419,27 +1491,32 @@ void Note::ArpConfigMenu() {
         break;
       case ARP_SWING:
         swingValue = 50;
+        configModified = true;
         notePadConfigs[activeConfig].arpConfig.swing = 50;
         runtimes[0].arpeggiator.UpdateConfig();
         break;
       case ARP_GATE:
         gateValue = 50;
+        configModified = true;
         notePadConfigs[activeConfig].arpConfig.gateTime = 50;
         runtimes[0].arpeggiator.UpdateConfig();
         break;
       case ARP_STEP:
         stepValue = 1;
+        configModified = true;
         notePadConfigs[activeConfig].arpConfig.step = 1;
         runtimes[0].arpeggiator.UpdateConfig();
         break;
       case ARP_STEP_OFFSET:
         stepOffsetValue = 12;
         stepOffsetDisplayValue = 12;
+        configModified = true;
         notePadConfigs[activeConfig].arpConfig.stepOffset = 12;
         runtimes[0].arpeggiator.UpdateConfig();
         break;
       case ARP_REPEAT:
         repeatValue = 0;
+        configModified = true;
         notePadConfigs[activeConfig].arpConfig.repeat = 0;
         runtimes[0].arpeggiator.UpdateConfig();
         break;
@@ -1462,10 +1539,12 @@ void Note::ArpConfigMenu() {
   infBtn.OnPress([&]() -> void {
     if (arpMenuPage == ARP_GATE) {
       gateValue = 0;
+      configModified = true;
       notePadConfigs[activeConfig].arpConfig.gateTime = 0;
       runtimes[0].arpeggiator.UpdateConfig();
     } else if (arpMenuPage == ARP_REPEAT) {
       repeatValue = 0;
+      configModified = true;
       notePadConfigs[activeConfig].arpConfig.repeat = 0;
       runtimes[0].arpeggiator.UpdateConfig();
     }
@@ -1477,9 +1556,17 @@ void Note::ArpConfigMenu() {
   });
 
   arpConfigMenu.Start();
+
+  if (configModified) {
+    SaveConfigs();
+  }
 }
 
-void Note::Tick() { 
+void Note::SaveConfigs() {
+  MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+}
+
+void Note::Tick() {
   if(midiClock.Tick())
   {
     if(clockMode == CLOCK_INTERNAL_CLOCKOUT && midiClock.TickCount() % (EFFECT_TPQN / 24) == 0)

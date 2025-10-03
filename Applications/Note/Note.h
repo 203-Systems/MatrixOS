@@ -56,6 +56,8 @@ class Note : public Application {
 
   void Tick();
 
+  void SaveConfigs();
+
   NotePadConfig notePadConfigs[2];
   NotePadRuntime runtimes[2];
 

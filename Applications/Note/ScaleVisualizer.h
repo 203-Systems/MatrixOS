@@ -19,6 +19,11 @@ class ScaleVisualizer : public UIComponent {
     this->rootOffsetColor = rootOffsetColor;
   }
 
+  void OnChange(std::function<void()> callback) { onChange = callback; }
+
+ private:
+  std::function<void()> onChange;
+
   virtual Color GetColor() { return color; }
   virtual Dimension GetSize() { return Dimension(7, 2); }
 
@@ -56,7 +61,7 @@ class ScaleVisualizer : public UIComponent {
     }
 
     uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
-    
+
     if (offsetMode) {
       // Only allow setting rootOffset if the note is in the scale
       uint16_t c_aligned_scale_map =
@@ -64,10 +69,12 @@ class ScaleVisualizer : public UIComponent {
 
       if (bitRead(c_aligned_scale_map, note)) {
         *rootOffset = ((note + 12) - *rootKey) % 12;
+        if (onChange) { onChange(); }
       }
     } else {
       *rootKey = note;
       *rootOffset = 0;
+      if (onChange) { onChange(); }
     }
 
     return true;
