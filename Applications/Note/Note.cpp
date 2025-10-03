@@ -293,6 +293,16 @@ void Note::PlayView() {
   }
 
   playView.Start();
+
+  if(runtimes[0].noteLatch.IsEnabled())
+  {
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->untimes[0].channel, 123, 0), MIDI_PORT_ALL); // All notes off
+  }
+
+  if(runtimes[1].noteLatch.IsEnabled())
+  {
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->untimes[1].channel, 123, 0), MIDI_PORT_ALL); // All notes off
+  }
 }
 
 void Note::ScaleSelector() {
