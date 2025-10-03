@@ -185,7 +185,14 @@ void Note::Setup(const vector<string>& args) {
   controlBarToggle.SetName("Control Bar");
   controlBarToggle.SetColor(Color(0xFF8000));
   controlBarToggle.SetValuePointer(&controlBar);
-  controlBarToggle.OnPress([&]() -> void {controlBar.Save();});
+  controlBarToggle.OnPress([&]() -> void {
+    controlBar.Save();
+    if(controlBar == false)
+    {
+      runtimes[0].midiPipeline.Reset();
+      runtimes[1].midiPipeline.Reset();
+    }
+  });
   actionMenu.AddUIComponent(controlBarToggle, Point(0, 7));
   
   UIButton arpConfigBtn;
