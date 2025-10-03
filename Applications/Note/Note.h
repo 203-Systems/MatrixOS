@@ -59,6 +59,8 @@ class Note : public Application {
   NotePadConfig notePadConfigs[2];
   NotePadRuntime runtimes[2];
 
+  uint8_t arpMenuPage = 0;  // ARP_BPM
+
   Color colorPresets[6][2] =
   {
     {0x0040FF, 0x00FFFF},
