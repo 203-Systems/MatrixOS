@@ -142,21 +142,12 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     // Chord Mode
     else if(xy == Point(3, CTL_BAR_Y - 1)) {
         if(keyInfo->State() == PRESSED) {
-            if(ShiftActive()) {
-                // Shift click: Toggle the toggle mode (turn on chord mode if off)
-                if(mode != CHORD_MODE) {
-                    mode = CHORD_MODE;
-                }
-                chordToggleMode = !chordToggleMode;
-                ShiftEventOccured();
-            }
-            else if(mode == CHORD_MODE) {
+            if(mode == CHORD_MODE) {
                 // Already on: turn off
                 mode = OFF_MODE;
             } else {
                 // Off: turn on without toggle mode
                 mode = CHORD_MODE;
-                chordToggleMode = false;
             }
         }
         return true;
@@ -252,31 +243,35 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
         ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
-            bool chordTypes[4] = {combo.dim, combo.min, combo.maj, combo.sus};
-            bool wasActive = chordTypes[xy.x];
+            // Count how many chord types are currently on
+            int typeCount = (combo.dim ? 1 : 0) + (combo.min ? 1 : 0) + (combo.maj ? 1 : 0) + (combo.sus ? 1 : 0);
 
-            // Clear all basic chord types
-            combo.dim = false;
-            combo.min = false;
-            combo.maj = false;
-            combo.sus = false;
+            // Check which chord type is currently active
+            int activeChord = -1;
+            if (combo.dim) activeChord = 0;
+            else if (combo.min) activeChord = 1;
+            else if (combo.maj) activeChord = 2;
+            else if (combo.sus) activeChord = 3;
 
-            // In toggle mode, only set if wasn't already active
-            // In momentary mode, always set
-            if (!chordToggleMode || !wasActive) {
+            // If tapping the exact chord that's currently the only one on, disable it
+            if (typeCount == 1 && activeChord == xy.x) {
+                combo.dim = false;
+                combo.min = false;
+                combo.maj = false;
+                combo.sus = false;
+            } else {
+                // Otherwise, clear all and set the new one
+                combo.dim = false;
+                combo.min = false;
+                combo.maj = false;
+                combo.sus = false;
+
                 switch(xy.x) {
                     case 0: combo.dim = true; break;
                     case 1: combo.min = true; break;
                     case 2: combo.maj = true; break;
                     case 3: combo.sus = true; break;
                 }
-            }
-        } else if (keyInfo->State() == RELEASED && !ShiftActive() && !chordToggleMode) {
-            switch(xy.x) {
-                case 0: combo.dim = false; break;
-                case 1: combo.min = false; break;
-                case 2: combo.maj = false; break;
-                case 3: combo.sus = false; break;
             }
         } else {
             return true;
@@ -291,28 +286,45 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
         ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
         if (keyInfo->State() == PRESSED) {
-            if (chordToggleMode) {
-                switch(xy.x) {
-                    case 0: combo.ext6 = !combo.ext6; break;
-                    case 1: combo.extMin7 = !combo.extMin7; break;
-                    case 2: combo.extMaj7 = !combo.extMaj7; break;
-                    case 3: combo.ext9 = !combo.ext9; break;
-                }
+            // Check if any extension key is already pressed
+            bool anyKeyPressed = chordExtKeyOn[0] || chordExtKeyOn[1] || chordExtKeyOn[2] || chordExtKeyOn[3];
+
+            // Count how many extensions are currently on
+            int extCount = (combo.ext6 ? 1 : 0) + (combo.extMin7 ? 1 : 0) + (combo.extMaj7 ? 1 : 0) + (combo.ext9 ? 1 : 0);
+
+            // Check which extension is currently active
+            int activeExt = -1;
+            if (combo.ext6) activeExt = 0;
+            else if (combo.extMin7) activeExt = 1;
+            else if (combo.extMaj7) activeExt = 2;
+            else if (combo.ext9) activeExt = 3;
+
+            // If tapping the exact extension that's currently the only one on, disable it
+            if (extCount == 1 && activeExt == xy.x) {
+                combo.ext6 = false;
+                combo.extMin7 = false;
+                combo.extMaj7 = false;
+                combo.ext9 = false;
             } else {
+                // If no keys are pressed, clear all extensions before setting the new one
+                if (!anyKeyPressed) {
+                    combo.ext6 = false;
+                    combo.extMin7 = false;
+                    combo.extMaj7 = false;
+                    combo.ext9 = false;
+                }
+
+                // Set the pressed key's extension and mark it as pressed
                 switch(xy.x) {
-                    case 0: combo.ext6 = true; break;
-                    case 1: combo.extMin7 = true; break;
-                    case 2: combo.extMaj7 = true; break;
-                    case 3: combo.ext9 = true; break;
+                    case 0: combo.ext6 = true; chordExtKeyOn[0] = true; break;
+                    case 1: combo.extMin7 = true; chordExtKeyOn[1] = true; break;
+                    case 2: combo.extMaj7 = true; chordExtKeyOn[2] = true; break;
+                    case 3: combo.ext9 = true; chordExtKeyOn[3] = true; break;
                 }
             }
-        } else if (keyInfo->State() == RELEASED && !ShiftActive() && !chordToggleMode) {
-            switch(xy.x) {
-                case 0: combo.ext6 = false; break;
-                case 1: combo.extMin7 = false; break;
-                case 2: combo.extMaj7 = false; break;
-                case 3: combo.ext9 = false; break;
-            }
+        } else if (keyInfo->State() == RELEASED) {
+            // Clear the pressed flag but don't turn off the extension
+            chordExtKeyOn[xy.x] = false;
         } else {
             return true;
         }
@@ -459,7 +471,7 @@ bool NoteControlBar::Render(Point origin) {
 
     Color chordColor;
     if(mode == CHORD_MODE) {
-        chordColor = chordToggleMode ? Color(0x6060FF) : Color::White;
+        chordColor = Color::White;
     } else {
         chordColor = Color(0x00FFFF);
     }
