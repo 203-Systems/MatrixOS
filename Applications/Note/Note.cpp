@@ -296,12 +296,12 @@ void Note::PlayView() {
 
   if(runtimes[0].noteLatch.IsEnabled())
   {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->untimes[0].channel, 123, 0), MIDI_PORT_ALL); // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(runtimes[0].config->channel, 123, 0), MIDI_PORT_ALL); // All notes off
   }
 
   if(runtimes[1].noteLatch.IsEnabled())
   {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->untimes[1].channel, 123, 0), MIDI_PORT_ALL); // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(runtimes[1].config->channel, 123, 0), MIDI_PORT_ALL); // All notes off
   }
 }
 
