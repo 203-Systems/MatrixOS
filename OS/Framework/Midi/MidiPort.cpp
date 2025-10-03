@@ -4,6 +4,70 @@
 // Define the static member variable
 std::map<uint16_t, MidiPort*> MidiPort::midiPortMap;
 
+uint16_t MidiPort::Open(uint16_t id, uint16_t queue_size, uint16_t id_range) {
+  if (id == MIDI_PORT_INVALID)  // Check if ID is valid
+  { return MIDI_PORT_INVALID; }
+  if (this->id != MIDI_PORT_INVALID)  // If already registered, go unregister
+  { Close(); }
+  for (uint16_t i = 0; i < id_range; i++)  // Request for ID
+  {
+    if (MidiPort::OpenMidiPort(id + i, this))
+    {
+      this->id = id + i;
+      break;
+    }
+  }
+  if (this->id == MIDI_PORT_INVALID)  // Check if registered
+  { return MIDI_PORT_INVALID; }
+  midi_queue = xQueueCreate(queue_size, sizeof(MidiPacket));
+  return this->id;
+}
+
+void MidiPort::Close() {
+  MidiPort::CloseMidiPort(id);
+  this->id = MIDI_PORT_INVALID;
+  vQueueDelete(midi_queue);
+}
+
+void MidiPort::SetName(string name) {
+  this->name = name;
+}
+
+bool MidiPort::Get(MidiPacket* midipacket_dest, uint32_t timeout_ms) {
+  return xQueueReceive(midi_queue, (void*)midipacket_dest, pdMS_TO_TICKS(timeout_ms)) == pdTRUE;
+}
+
+bool MidiPort::Send(MidiPacket midipacket, uint16_t targetPort, uint32_t timeout_ms) {
+  midipacket.port = this->id;
+  return MidiPort::RouteMidiPacket(midipacket, targetPort, timeout_ms);
+}
+
+bool MidiPort::Receive(MidiPacket midipacket, uint32_t timeout_ms) {
+  if (uxQueueSpacesAvailable(midi_queue) == 0)
+  {
+    // TODO: Drop first element
+    return false;
+  }
+  xQueueSend(midi_queue, &midipacket, pdMS_TO_TICKS(timeout_ms));
+  return true;
+}
+
+MidiPort::MidiPort() {}
+
+MidiPort::MidiPort(string name, uint16_t id, uint16_t queue_size) {
+  this->name = name;
+  Open(id, queue_size);
+}
+
+MidiPort::MidiPort(string name, EMidiPortID port_class, uint16_t queue_size) {
+  this->name = name;
+  Open(port_class, queue_size, 0x100);
+}
+
+MidiPort::~MidiPort() {
+  Close();
+}
+
 bool MidiPort::OpenMidiPort(uint16_t port_id, MidiPort* midiPort) {
     if (port_id < 0x100)
       return false;
