@@ -45,6 +45,7 @@ void UI::Start() {
   while (status >= 0)
   {
     LoopTask();
+    GlobalLoops();
     Loop();
     RenderUI();
     taskYIELD();
@@ -137,6 +138,10 @@ void UI::SetLoopFunc(std::function<void()> loop_func) {
   UI::loop_func = std::make_unique<std::function<void()>>(loop_func);
 }
 
+void UI::SetGlobalLoopFunc(std::function<void()> global_loop_func) {
+  UI::global_loop_func = std::make_unique<std::function<void()>>(global_loop_func);
+}
+
 void UI::SetEndFunc(std::function<void()> end_func) {
   UI::end_func = std::make_unique<std::function<void()>>(end_func);
 }
@@ -204,6 +209,12 @@ void UI::UnregisterUI(UI* ui) {
   }
 }
 
+void UI::GlobalLoops() {
+  for (UI* ui : uiList) {
+    ui->GlobalLoop();
+  }
+}
+
 void UI::ExitAllUIs() {
   auto uiListCopy = UI::uiList;
   
@@ -227,6 +238,11 @@ void UI::Setup() {
 void UI::Loop() {
   if (loop_func)
     (*loop_func)();
+}
+
+void UI::GlobalLoop() {
+  if (global_loop_func)
+    (*global_loop_func)();
 }
 
 void UI::PreRender() {

@@ -27,6 +27,7 @@ class UI {
   void ShouldCreatenewLEDLayer(bool create);
   void SetSetupFunc(std::function<void()> setup_func);
   void SetLoopFunc(std::function<void()> loop_func);
+  void SetGlobalLoopFunc(std::function<void()> global_loop_func);
   void SetEndFunc(std::function<void()> end_func);
   void SetPreRenderFunc(std::function<void()> pre_render_func);
   void SetPostRenderFunc(std::function<void()> post_render_func);
@@ -38,6 +39,8 @@ class UI {
   void AllowExit(bool allow);
 
   void SetFPS(uint16_t fps);
+
+  static void GlobalLoops();
 
   void Exit();
 
@@ -55,6 +58,7 @@ class UI {
 
   std::unique_ptr<std::function<void()>> setup_func = nullptr;
   std::unique_ptr<std::function<void()>> loop_func = nullptr;
+  std::unique_ptr<std::function<void()>> global_loop_func = nullptr;
   std::unique_ptr<std::function<void()>> pre_render_func = nullptr;
   std::unique_ptr<std::function<void()>> post_render_func = nullptr;
   std::unique_ptr<std::function<void()>> end_func = nullptr;
@@ -66,6 +70,7 @@ class UI {
 
   virtual void Setup();
   virtual void Loop();
+  virtual void GlobalLoop();
   virtual void PreRender();
   virtual void PostRender();
   virtual void End();
