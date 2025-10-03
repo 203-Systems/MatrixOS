@@ -1126,7 +1126,7 @@ void Note::ArpConfigMenu() {
     swingTextDisplay.Disable();
     configModified = true;
     notePadConfigs[activeConfig].arpConfig.swing = val;
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
@@ -1197,7 +1197,7 @@ void Note::ArpConfigMenu() {
     configModified = true;
     notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)val;
     gateTextDisplay.Disable();
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
 
@@ -1249,7 +1249,7 @@ void Note::ArpConfigMenu() {
     configModified = true;
     notePadConfigs[activeConfig].arpConfig.direction = (ArpDirection)value;
     directionTextDisplay.Disable();
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   directionSelector.SetCount(16);
   directionSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpDirectionNames[index]; });
@@ -1315,7 +1315,7 @@ void Note::ArpConfigMenu() {
     configModified = true;
     notePadConfigs[activeConfig].arpConfig.step = (uint8_t)val;
     stepTextDisplay.Disable();
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   arpConfigMenu.AddUIComponent(stepNumberModifier, Point(0, 7));
 
@@ -1389,7 +1389,7 @@ void Note::ArpConfigMenu() {
     notePadConfigs[activeConfig].arpConfig.stepOffset = (int8_t)value;
     stepOffsetDisplayValue = abs(value);
     offsetTextDisplay.Disable();
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   stepOffsetNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_STEP_OFFSET; });
   arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
@@ -1460,7 +1460,7 @@ void Note::ArpConfigMenu() {
     configModified = true;
     notePadConfigs[activeConfig].arpConfig.repeat = (uint8_t)value;
     repeatTextDisplay.Disable();
-    runtimes[0].arpeggiator.UpdateConfig();
+    runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
   repeatNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_REPEAT; });
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
@@ -1484,32 +1484,32 @@ void Note::ArpConfigMenu() {
         swingValue = 50;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.swing = 50;
-        runtimes[0].arpeggiator.UpdateConfig();
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
       case ARP_GATE:
         gateValue = 50;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.gateTime = 50;
-        runtimes[0].arpeggiator.UpdateConfig();
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
       case ARP_STEP:
         stepValue = 1;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.step = 1;
-        runtimes[0].arpeggiator.UpdateConfig();
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
       case ARP_STEP_OFFSET:
         stepOffsetValue = 12;
         stepOffsetDisplayValue = 12;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.stepOffset = 12;
-        runtimes[0].arpeggiator.UpdateConfig();
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
       case ARP_REPEAT:
         repeatValue = 0;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.repeat = 0;
-        runtimes[0].arpeggiator.UpdateConfig();
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
     }
   });
@@ -1532,12 +1532,12 @@ void Note::ArpConfigMenu() {
       gateValue = 0;
       configModified = true;
       notePadConfigs[activeConfig].arpConfig.gateTime = 0;
-      runtimes[0].arpeggiator.UpdateConfig();
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
     } else if (arpMenuPage == ARP_REPEAT) {
       repeatValue = 0;
       configModified = true;
       notePadConfigs[activeConfig].arpConfig.repeat = 0;
-      runtimes[0].arpeggiator.UpdateConfig();
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
     }
   });
   arpConfigMenu.AddUIComponent(infBtn, Point(7, 6));

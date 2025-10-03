@@ -620,6 +620,7 @@ void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
         config = cfg;
     }
     CalculateTicksPerStep(); // Recalculate timings when config changes
+    UpdateSequence();
 }
 
 void Arpeggiator::SetDivision(ArpDivision div) {
