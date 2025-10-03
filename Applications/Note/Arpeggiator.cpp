@@ -334,7 +334,7 @@ void Arpeggiator::UpdateSequence() {
                     if (mid - i >= 0) {
                         arpSequence.push_back(stepNotes[mid - i]);
                     }
-                    if (mid + i + 1 < stepNotes.size() && i > 0) {
+                    if (mid + i < stepNotes.size() && i > 0) {
                         arpSequence.push_back(stepNotes[mid + i]);
                     }
                 }
@@ -389,7 +389,7 @@ void Arpeggiator::UpdateSequence() {
                         if (mid - i >= 0) {
                             divergeSeq.push_back(stepNotes[mid - i]);
                         }
-                        if (mid + i + 1 < stepNotes.size() && i > 0) {
+                        if (mid + i < stepNotes.size() && i > 0) {
                             divergeSeq.push_back(stepNotes[mid + i]);
                         }
                     }
