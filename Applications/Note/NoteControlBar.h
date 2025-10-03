@@ -24,10 +24,10 @@ class NoteControlBar : public UIComponent {
     bool shift_event[2];
     static const uint32_t hold_threshold = 500; // Define hold threshold
     NoteControlBarMode mode = OFF_MODE;
+    bool chordToggleMode = false;
     bool keyOffsetMode = false;
     uint32_t pitch_down = 0;
     uint32_t pitch_up = 0;
-    bool chordExtKeyOn[4] = {false, false, false, false}; // Track which extension keys are pressed
 
     void SwapActiveConfig();
     bool ShiftActive();
