@@ -7,7 +7,7 @@
 #include "stm32f1xx_hal.h"
 #include "WS2812/WS2812.h"
 
-#define STM32_PLATFORM 1
+#undef USB  // CMSIS defined the USB, undef so we can use USB as MatrixOS namespace
 
 // Family-specific defines
 #define GRID_TYPE_8x8
@@ -29,32 +29,22 @@ namespace Device
 
   // Device Variable
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
-  inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
-  namespace HWMidi
+  void LoadDeviceInfo();
+  void LoadVariantInfo();
+  
+  void SystemClock_Config();
+
+  namespace USB
   {
-    inline GPIO_TypeDef* tx_port = nullptr;
-    inline uint16_t tx_pin = 0;
-    inline GPIO_TypeDef* rx_port = nullptr;
-    inline uint16_t rx_pin = 0;
+    void Init();
   }
 
   namespace LED
   {
     inline GPIO_TypeDef* led_port = nullptr;
     inline uint16_t led_pin = 0;
-    inline bool underglow = false;
-  }
 
-  void LoadDeviceInfo();
-  void LoadVariantInfo();
-
-  namespace USBController
-  {
-    void Init();
-  }
-  namespace LED
-  {
     void Init();
     void Start();
   }
@@ -118,20 +108,6 @@ namespace Device
     inline KeyInfo keypadState[X_SIZE][Y_SIZE];
     inline KeyInfo touchbarState[touchbar_size];
 
-    namespace Binary
-    {
-      void Init();
-      void Start();
-      bool Scan();
-    }
-
-    namespace FSR
-    {
-      void Init();
-      void Start();
-      bool Scan();
-    }
-
     bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthrough MatrixOS::KeyPad::NewEvent() result
   }
 
@@ -139,25 +115,4 @@ namespace Device
   {
     void Init();
   }
-
-  namespace WIFI
-  {
-    void Init();
-  }
-
-  namespace BLEMIDI
-  {
-    extern bool started;
-    void Init(string name);
-    void Start();
-    void Stop();
-  }
-
-  namespace HWMidi
-  {
-    void Init();
-  }
-
 }
-
-#undef USB  // CMSIS defined the USB, undef so we can use USB as MatrixOS namespace

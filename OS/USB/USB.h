@@ -11,7 +11,7 @@ enum USB_MODE {
 };
 
 // Undefine STM32 peripheral macros that conflict with C++ namespace names
-#ifdef STM32F103xB
+#ifdef USB
 #undef USB
 #endif
 

@@ -42,8 +42,8 @@
  *----------------------------------------------------------*/
 
 // STM32 device definition - must be defined before including HAL headers
-#ifndef STM32F103xB
-#define STM32F103xB
+#ifndef STM32F103xE
+#define STM32F103xE
 #endif
 
 // Include MCU header

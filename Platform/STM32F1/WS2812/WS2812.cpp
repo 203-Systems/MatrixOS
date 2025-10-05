@@ -76,7 +76,11 @@ namespace WS2812
         for (int ch = 0; ch < 3; ch++) {
           uint16_t channel_index = data_index + ch;
           if (led_data[channel_index] >= dithering_threshold) {
-            uint16_t expected = (uint16_t)buffer[i].components[ch] * local_brightness;
+            uint16_t expected;
+            // Get the appropriate color component based on channel
+            if (ch == 0) expected = (uint16_t)buffer[i].G * local_brightness;      // Green
+            else if (ch == 1) expected = (uint16_t)buffer[i].R * local_brightness;  // Red
+            else expected = (uint16_t)buffer[i].B * local_brightness;               // Blue
             uint16_t actual = (uint16_t)led_data[channel_index] << 8;
 
             if (expected > actual) {

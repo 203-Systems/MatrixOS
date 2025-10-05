@@ -1,6 +1,8 @@
 # MatrixBlock5 uses STM32F103
 set(DEVICE_TARGET "STM32F103")
 
+enable_language(ASM)
+
 # Include the STM32 toolchain file
 include(${CMAKE_CURRENT_SOURCE_DIR}/toolchain-stm32f103.cmake)
 
@@ -55,6 +57,7 @@ file(GLOB_RECURSE DEVICE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Family.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Variants/MatrixFounderEdition/*.cpp"
+    "${CMAKE_SOURCE_DIR}/Platform/STM32F1/WS2812/*.cpp"
 )
 
 # STM32 HAL source files
@@ -86,7 +89,7 @@ add_library(MatrixOSDevice
     ${STM32_HAL_SOURCES}
     ${DEVICE_HEADERS}
     ${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/startup_stm32f103xe.s
+    ${CMAKE_SOURCE_DIR}/Platform/STM32F1/cmsis_device_f1/Source/Templates/gcc/startup_stm32f103xe.s
 )
 
 target_include_directories(MatrixOSDevice PUBLIC
@@ -145,10 +148,11 @@ target_compile_definitions(FreeRTOS PUBLIC
 # STM32F103 specific definitions
 # Note: VDD_VALUE, PREFETCH_ENABLE, HSE/LSE/HSI/LSI values are defined in stm32f1xx_hal_conf.h
 target_compile_definitions(MatrixOSDevice PUBLIC
-    STM32F103xB
+    STM32F103xE
     USE_HAL_DRIVER
     CFG_TUSB_MCU=OPT_MCU_STM32F1
     __thumb2__=1
+    VECT_TAB_OFFSET=0x2000
 )
 
 # Set C++ standard for MatrixOSDevice target
