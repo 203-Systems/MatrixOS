@@ -90,7 +90,7 @@ add_library(MatrixOSDevice
     ${DEVICE_SOURCES}
     ${STM32_HAL_SOURCES}
     ${DEVICE_HEADERS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/dcd_stm32f1.c
+    ${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/st/stm32_fsdev/dcd_stm32_fsdev.c
     ${CMAKE_CURRENT_SOURCE_DIR}/startup_stm32f103xe.s
 )
 
