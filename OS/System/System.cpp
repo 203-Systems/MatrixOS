@@ -31,6 +31,7 @@ namespace MatrixOS::SYS
 
     if (next_app_id != 0)
     {
+      auto& applications = GetApplications();
       auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
@@ -50,6 +51,7 @@ namespace MatrixOS::SYS
       }
       MLOGD("Application Factory", "Launching Shell");
       next_app_id = OS_SHELL;
+      auto& applications = GetApplications();
       auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
@@ -80,7 +82,7 @@ namespace MatrixOS::SYS
 
   void Supervisor(void* param) {
 
-    MLOGD("Supervisor", "%d Apps registered", applications.size());
+    MLOGD("Supervisor", "%d Apps registered", GetApplications().size());
 
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
@@ -275,7 +277,7 @@ namespace MatrixOS::SYS
 
   uint16_t GetApplicationCount()  // Used by shell, for some reason shell can not access app_count
   {
-    return applications.size();
+    return GetApplications().size();
   }
 
   #define SYSTEM_VERSION_ID(major, minor, patch) ((major << 16) | (minor << 8) | patch)

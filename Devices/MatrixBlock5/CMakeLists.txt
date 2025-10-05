@@ -168,7 +168,7 @@ target_link_libraries(MatrixOSDevice PUBLIC
 # Create executable
 set(elf_file ${CMAKE_PROJECT_NAME}.elf)
 
-add_executable(${elf_file} main.cpp)
+add_executable(${elf_file} ${CMAKE_SOURCE_DIR}/OS/main.cpp)
 target_compile_features(${elf_file} PUBLIC cxx_std_17)
 
 target_link_libraries(${elf_file}

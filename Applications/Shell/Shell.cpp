@@ -61,6 +61,7 @@ void Shell::InitializeFolderSystem() {
   }
 
   // First, add all native apps to all_applications
+  auto& applications = GetApplications();
   for (const auto& [app_id, app_info] : applications) {
     all_applications.emplace(app_id, ApplicationEntry(app_info));
   }
@@ -96,6 +97,7 @@ void Shell::InitializeFolderSystem() {
   bool missing_apps_found = false;
 
   // First, check native apps in registration order
+  auto& application_ids = GetApplicationIDs();
   for (const auto& [order_id, app_id] : application_ids) {
     // If app is not in any folder, add it
     if (apps_in_folders.find(app_id) == apps_in_folders.end()) {
