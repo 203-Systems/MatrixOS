@@ -115,6 +115,9 @@ namespace MatrixOS::SYS
   void Begin(void) {
     Device::DeviceInit();
 
+    // Initialize MIDI system before USB to ensure osPort exists
+    MatrixOS::MIDI::Init();
+
     MatrixOS::USB::Init();
 
     InitSysModules();

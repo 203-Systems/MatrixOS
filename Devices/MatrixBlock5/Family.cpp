@@ -18,6 +18,9 @@ namespace Device
     HAL_Init();
     SystemClock_Config();
 
+    // Load device variant info - MUST be called before subsystem Init()
+    LoadDeviceInfo();
+
     USB::Init();
     LED::Init();
     KeyPad::Init();

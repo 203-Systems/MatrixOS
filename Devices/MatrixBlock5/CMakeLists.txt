@@ -42,15 +42,14 @@ set(DEVICE_TINYUSB_COMPILE_OPTIONS
 
 # Debug flags
 if(MODE STREQUAL "DEVELOPMENT" OR MODE STREQUAL "UNDEFINED")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Og")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Og")
+    set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -g3 -specs=nosys.specs -specs=nano.specs -Wl,--gc-sections -Wl,-Map=${PROJECT_NAME}.map -T${CMAKE_CURRENT_SOURCE_DIR}/Variants/MatrixFounderEdition/STM32F103RETx_FLASH.ld")
 else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os")
+    set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -specs=nosys.specs -specs=nano.specs -Wl,--gc-sections -Wl,-Map=${PROJECT_NAME}.map -T${CMAKE_CURRENT_SOURCE_DIR}/Variants/MatrixFounderEdition/STM32F103RETx_FLASH.ld")
 endif()
-
-# Linker flags
-set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -specs=nosys.specs -specs=nano.specs -Wl,--gc-sections -Wl,-Map=${PROJECT_NAME}.map -T${CMAKE_CURRENT_SOURCE_DIR}/Variants/MatrixFounderEdition/STM32F103RETx_FLASH.ld")
 
 # Collect all device source files
 file(GLOB_RECURSE DEVICE_SOURCES

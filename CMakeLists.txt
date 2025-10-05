@@ -105,6 +105,13 @@ add_compile_definitions(
     DEVICE_BATTERY=${DEVICE_BATTERY}
 )
 
+# Set debug flags globally for all targets before adding subdirectories
+if(MODE STREQUAL "DEVELOPMENT" OR MODE STREQUAL "UNDEFINED")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Og")
+    message(STATUS "Building with debug symbols: -g3 -Og")
+endif()
+
 add_subdirectory(${FAMILY_PATH})
 add_subdirectory(Devices)
 add_subdirectory(OS)
