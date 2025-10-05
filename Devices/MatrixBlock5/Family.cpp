@@ -81,13 +81,6 @@ namespace Device
     touchbarToggle.OnPress([&]() -> void { touchbar_enable.Save(); });
     deviceSettings.AddUIComponent(touchbarToggle, Point(0, 0));
 
-    UIButton keypadCalibrationBtn;
-    keypadCalibrationBtn.SetName("Keypad Calibration");
-    keypadCalibrationBtn.SetColor(Color::White);
-    keypadCalibrationBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Systems", "Force Calibration"); });
-    keypadCalibrationBtn.SetEnabled(KeyPad::velocity_sensitivity);
-    deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
-
     deviceSettings.Start();
   }
 
