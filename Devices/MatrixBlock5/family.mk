@@ -2,6 +2,20 @@ UF2_FAMILY_ID = 0x5ee21072
 ST_FAMILY = f1
 DEPS_SUBMODULES += lib/CMSIS_5 core/stm32$(ST_FAMILY)/cmsis_device_$(ST_FAMILY) core/stm32$(ST_FAMILY)/stm32$(ST_FAMILY)xx_hal_driver
 
+# Detect whether shell style is windows or not
+# https://stackoverflow.com/questions/714100/os-detecting-makefile/52062069#52062069
+ifeq '$(findstring ;,$(PATH))' ';'
+CMDEXE := 1
+endif
+
+ifeq ($(CMDEXE),1)
+  CP = copy >nul
+  RM = del
+else
+  CP = cp
+  RM = rm
+endif
+
 ST_CMSIS = core/stm32$(ST_FAMILY)/cmsis_device_$(ST_FAMILY)
 ST_HAL_DRIVER = core/stm32$(ST_FAMILY)/stm32$(ST_FAMILY)xx_hal_driver
 
@@ -51,7 +65,9 @@ FREERTOS_PORT = ARM_CM3
 $(BUILD)/$(PROJECT)-$(DEVICE).bin build:
 	cmake -B $(BUILD) -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$(FAMILY_PATH)/toolchain-stm32f103.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -G"Unix Makefiles"
 	cmake --build $(BUILD) -- -j8
+	@$(CP) "$(subst /,\,$(BUILD)/Devices/MatrixBlock5/$(PROJECT)-$(DEVICE).bin)" "$(subst /,\,$(BUILD)/)"
+	$(if $(wildcard $(BUILD)/Devices/MatrixBlock5/$(PROJECT)-$(DEVICE).map),@$(CP) "$(subst /,\,$(BUILD)/Devices/MatrixBlock5/$(PROJECT)-$(DEVICE).map)" "$(subst /,\,$(BUILD)/)",)
 
-flash upload:
-	@echo "Flash commands not implemented for STM32 yet"
+flash upload: $(BUILD)/$(PROJECT)-$(DEVICE).bin
+	dfu-util "-a 0" "-d 0203:0003" -D"$<" -R 
 
