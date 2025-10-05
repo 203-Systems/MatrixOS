@@ -85,8 +85,13 @@ namespace Device
   }
 
   void Bootloader() {
-    // TODO: Implement bootloader entry mechanism for STM32F103
-    // For now, just reboot
+    // Write bootloader magic to RTC backup register
+    RTC_HandleTypeDef RtcHandle;
+    RtcHandle.Instance = RTC;
+    HAL_PWR_EnableBkUpAccess();
+    HAL_RTCEx_BKUPWrite(&RtcHandle, 10, 0x424C);
+    HAL_PWR_DisableBkUpAccess();
+
     Reboot();
   }
 
