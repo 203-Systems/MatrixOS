@@ -11,7 +11,7 @@ namespace MatrixOS::NVS
 enum SavedVarState { NotInited, Inited, Loaded, Deleted };
 
 #define CreateSavedVar(scope, name, type, default_value) \
-  SavedVar<type> name = SavedVar(StaticHash(scope "-" #name), (type)default_value)
+  SavedVar<type> name = SavedVar<type>(StaticHash(scope "-" #name), (type)default_value)
   
 template <class T>
 class SavedVar {

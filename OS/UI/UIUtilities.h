@@ -1,5 +1,6 @@
   #pragma once
   #include "MatrixOS.h"
+  #include <climits>
   
   namespace MatrixOS::UIUtility
 

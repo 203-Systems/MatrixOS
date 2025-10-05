@@ -1,5 +1,22 @@
 file(GLOB_RECURSE USB_HEADERS "*.h")
-file(GLOB_RECURSE USB_SOURCES "*.cpp" "*.c")
+
+# USB source files
+set(USB_SOURCES
+    USB.cpp
+    HID.cpp
+    MIDI.cpp
+    CDC.cpp
+    TinyUSB/usb_desc_default.cpp
+    TinyUSB/usb_descriptors.cpp
+)
+
+# Conditionally add MSC sources if device has storage
+if(DEVICE_STORAGE)
+    list(APPEND USB_SOURCES
+        MSC.cpp
+        TinyUSB/usb_desc_msc.cpp
+    )
+endif()
 
 set(TINYUSB_DIR ${CMAKE_SOURCE_DIR}/Library/tinyusb/)
 
@@ -15,7 +32,6 @@ set(TINYUSB_SOURCES
     ${TINYUSB_DIR}/src/class/dfu/dfu_rt_device.c
     ${TINYUSB_DIR}/src/class/hid/hid_device.c
     ${TINYUSB_DIR}/src/class/midi/midi_device.c
-    ${TINYUSB_DIR}/src/class/msc/msc_device.c
     ${TINYUSB_DIR}/src/class/net/ecm_rndis_device.c
     ${TINYUSB_DIR}/src/class/net/ncm_device.c
     ${TINYUSB_DIR}/src/class/usbtmc/usbtmc_device.c
@@ -23,8 +39,13 @@ set(TINYUSB_SOURCES
     ${TINYUSB_DIR}/src/class/vendor/vendor_device.c
 )
 
+# Only include MSC device class if device has storage
+if(DEVICE_STORAGE)
+    list(APPEND TINYUSB_SOURCES ${TINYUSB_DIR}/src/class/msc/msc_device.c)
+endif()
+
 # if(TINYUSB_MCU_OPT STREQUAL "ESP32S3" OR TINYUSB_MCU_OPT STREQUAL "ESP32S2")
-    list(APPEND TINYUSB_SOURCES 
+    list(APPEND TINYUSB_SOURCES
         "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c"
         "${CMAKE_SOURCE_DIR}/Library/tinyusb/src/portable/synopsys/dwc2/dwc2_common.c"
     )
@@ -43,8 +64,8 @@ add_library(MatrixOSUSB
     ${PRINTF_SOURCES}
 )
 
-target_include_directories(MatrixOSUSB PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR} 
+target_include_directories(MatrixOSUSB PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/TinyUSB
     ${TINYUSB_DIR}/src
     ${PRINTF_DIR}/src
@@ -52,7 +73,12 @@ target_include_directories(MatrixOSUSB PUBLIC
 )
 
 # target_compile_options(MatrixOSUSB PUBLIC
-#     "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"  
+#     "-DCFG_TUSB_MCU=OPT_MCU_${TINYUSB_MCU_OPT}"
 # )
 
-target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface) 
+target_link_libraries(MatrixOSUSB PUBLIC MatrixOSInterface)
+
+# Apply device-specific TinyUSB compile options if provided
+if(DEFINED DEVICE_TINYUSB_COMPILE_OPTIONS)
+    target_compile_options(MatrixOSUSB PRIVATE ${DEVICE_TINYUSB_COMPILE_OPTIONS})
+endif()

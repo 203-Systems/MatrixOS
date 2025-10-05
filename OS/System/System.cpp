@@ -7,7 +7,9 @@
 #include "../LED/LED.h"
 #include "../KeyPad/KeyPad.h"
 #include "../FileSystem/File.h"
+#include "../FileSystem/FileSystem.h"
 #include "../MIDI/MIDI.h"
+#include "task.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
 
@@ -141,7 +143,9 @@ namespace MatrixOS::SYS
   {
     MatrixOS::KeyPad::Init();
     MatrixOS::LED::Init();
+#if DEVICE_STORAGE
     MatrixOS::FileSystem::Init();
+#endif
     MatrixOS::USB::SetMode(USB_MODE_NORMAL);
     MatrixOS::MIDI::Init();
     MatrixOS::HID::Init();

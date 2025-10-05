@@ -5,7 +5,9 @@
 #include "usb_mode_interface.h"
 
 #include "usb_desc_default.h"
+#if DEVICE_STORAGE
 #include "usb_desc_msc.h"
+#endif
 
 //--------------------------------------------------------------------+
 // Mode Dispatch Table
@@ -18,12 +20,14 @@ const struct usb_mode_interface mode_table[] = {
     .get_string_descriptor = default_string_descriptor_cb,
     .get_hid_report_descriptor = default_hid_report_descriptor_cb
   },
+#if DEVICE_STORAGE
   [USB_MODE_MSC] = {
     .get_device_descriptor = msc_device_descriptor_cb,
     .get_configuration_descriptor = msc_configuration_descriptor_cb,
     .get_string_descriptor = msc_string_descriptor_cb,
     .get_hid_report_descriptor = NULL  // MSC mode has no HID
   }
+#endif
 };
 
 //--------------------------------------------------------------------+

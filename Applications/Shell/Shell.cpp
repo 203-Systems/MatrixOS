@@ -66,7 +66,9 @@ void Shell::InitializeFolderSystem() {
   }
 
   // Then discover and add Python applications
+#if DEVICE_STORAGE
   DiscoverPythonApps();
+#endif
 
   // Try to load existing folder vectors from NVS
   bool folders_loaded = false;
@@ -359,6 +361,7 @@ uint8_t Shell::GetAppFolder(uint32_t app_id, const ApplicationEntry& app_entry) 
   return 0;
 }
 
+#if DEVICE_STORAGE
 void Shell::DiscoverPythonApps() {
   MLOGI("Shell", "Starting Python application discovery");
 
@@ -385,6 +388,7 @@ void Shell::DiscoverPythonApps() {
 
   MLOGI("Shell", "Python application discovery completed: %d apps added", python_app_infos.size());
 }
+#endif
 
 void Shell::ApplicationLauncher() {
   uint8_t tap_counter = 0;
