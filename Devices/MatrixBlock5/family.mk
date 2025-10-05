@@ -46,29 +46,12 @@ INC += \
 # For freeRTOS port source
 FREERTOS_PORT = ARM_CM3
 
-.PHONY: build flash bootloader-flash app-flash erase monitor dfu-flash dfu
+.PHONY: build flash upload
 
-build:
-	cmake -B $(BUILD) -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$(FAMILY_PATH)/toolchain-stm32f103.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DSTM32_TOOLCHAIN_PATH="C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/gcc-arm-none-eabi" -G"Unix Makefiles"
+$(BUILD)/$(PROJECT)-$(DEVICE).bin build:
+	cmake -B $(BUILD) -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$(FAMILY_PATH)/toolchain-stm32f103.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -G"Unix Makefiles"
 	cmake --build $(BUILD) -- -j8
 
-$(BUILD)/$(PROJECT)-$(DEVICE).bin:
-	cmake -B $(BUILD) -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$(FAMILY_PATH)/toolchain-stm32f103.cmake -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -DSTM32_TOOLCHAIN_PATH="C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/gcc-arm-none-eabi" -G"Unix Makefiles"
-	cmake --build $(BUILD) -- -j8
-
-flash bootloader-flash app-flash erase monitor dfu-flash dfu:
+flash upload:
 	@echo "Flash commands not implemented for STM32 yet"
 
-uf2: $(BUILD)/$(PROJECT)-$(DEVICE).uf2
-
-$(BUILD)/$(PROJECT)-$(DEVICE).uf2: $(BUILD)/$(PROJECT)-$(DEVICE).bin
-	@echo CREATE $@
-	python Tools/uf2/utils/uf2conv.py -f $(UF2_FAMILY_ID) -b 0x0 -c -o $@ $^
-
-upload:
-	python Tools/uf2/utils/uf2upload.py -f $(BUILD)/$(PROJECT)-$(DEVICE).uf2 -d "$(UF2_MODEL)" -l
-
-uf2-upload: $(BUILD)/$(PROJECT)-$(DEVICE).uf2 upload
-
-menuconfig:
-	@echo "Menuconfig not available for STM32"

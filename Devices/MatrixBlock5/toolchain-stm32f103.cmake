@@ -3,24 +3,12 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ARM)
 
-# Use Raspberry Pi Pico SDK toolchain
-set(STM32_TOOLCHAIN_PATH "C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/gcc-arm-none-eabi")
-
-if(WIN32)
-    set(TOOLCHAIN_PREFIX "${STM32_TOOLCHAIN_PATH}/bin/arm-none-eabi-")
-    set(CMAKE_C_COMPILER "${TOOLCHAIN_PREFIX}gcc.exe")
-    set(CMAKE_CXX_COMPILER "${TOOLCHAIN_PREFIX}g++.exe")
-    set(CMAKE_ASM_COMPILER "${TOOLCHAIN_PREFIX}gcc.exe")
-    set(CMAKE_OBJCOPY "${TOOLCHAIN_PREFIX}objcopy.exe")
-    set(CMAKE_SIZE "${TOOLCHAIN_PREFIX}size.exe")
-else()
-    set(TOOLCHAIN_PREFIX "${STM32_TOOLCHAIN_PATH}/bin/arm-none-eabi-")
-    set(CMAKE_C_COMPILER "${TOOLCHAIN_PREFIX}gcc")
-    set(CMAKE_CXX_COMPILER "${TOOLCHAIN_PREFIX}g++")
-    set(CMAKE_ASM_COMPILER "${TOOLCHAIN_PREFIX}gcc")
-    set(CMAKE_OBJCOPY "${TOOLCHAIN_PREFIX}objcopy")
-    set(CMAKE_SIZE "${TOOLCHAIN_PREFIX}size")
-endif()
+# Assume toolchain is in PATH like MatrixOS-2.6.0
+set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
+set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
+set(CMAKE_SIZE arm-none-eabi-size)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
