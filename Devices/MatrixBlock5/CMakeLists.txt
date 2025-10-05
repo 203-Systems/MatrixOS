@@ -1,11 +1,6 @@
 # MatrixBlock5 uses STM32F103
 set(DEVICE_TARGET "STM32F103")
 
-# Set up STM32CubeIDE toolchain if available
-if(NOT DEFINED STM32_TOOLCHAIN_PATH)
-    message(FATAL_ERROR "STM32 toolchain not defined. Please set STM32_TOOLCHAIN_PATH environment variable.")
-endif()
-
 # Include the STM32 toolchain file
 include(${CMAKE_CURRENT_SOURCE_DIR}/toolchain-stm32f103.cmake)
 
