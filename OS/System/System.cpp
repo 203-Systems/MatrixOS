@@ -39,6 +39,10 @@ namespace MatrixOS::SYS
                                     application->second->name.c_str());
         active_app_id = next_app_id;
         active_app = application->second->factory();
+        if (active_app == NULL) {
+          MLOGE("Application Factory", "Factory returned NULL - allocation failed!");
+          ErrorHandler("App allocation failed");
+        }
         active_app_info = application->second;
       }
     } 
@@ -50,6 +54,7 @@ namespace MatrixOS::SYS
         MLOGD("Application Factory", "Can't find target app.");
       }
       MLOGD("Application Factory", "Launching Shell");
+      MLOGD("Application Factory", "Free heap before Shell factory: %d bytes", xPortGetFreeHeapSize());
       next_app_id = OS_SHELL;
       auto& applications = GetApplications();
       auto application = applications.find(next_app_id);
@@ -58,6 +63,10 @@ namespace MatrixOS::SYS
         MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
         active_app = application->second->factory();
+        if (active_app == NULL) {
+          MLOGE("Application Factory", "Shell factory returned NULL - allocation failed!");
+          ErrorHandler("Shell allocation failed");
+        }
         active_app_id = next_app_id;
         active_app_info = application->second;
       }

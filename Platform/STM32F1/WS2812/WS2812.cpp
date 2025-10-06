@@ -1,152 +1,110 @@
 #include "WS2812.h"
 
+namespace Device
+{
+  void ErrorHandler(void);
+}
+
 namespace WS2812
 {
-  static uint16_t numsOfLED;
-  static uint8_t* led_data;
-  static uint8_t* dither_error;
-  static bool transfer_in_progress = false;
-
-  // STM32 specific variables
-  static TIM_HandleTypeDef* ws2812_timer = nullptr;
-  static uint32_t ws2812_channel;
-  static DMA_HandleTypeDef hdma_tim;
-
-  // WS2812 timing constants (for 72MHz system clock)
-  const uint32_t T0H = 29;  // 0.4us at 72MHz (29 cycles)
-  const uint32_t T1H = 58;  // 0.8us at 72MHz (58 cycles)
-  const uint32_t T0L = 58;  // 0.85us at 72MHz (58 cycles)
-  const uint32_t T1L = 29;  // 0.45us at 72MHz (29 cycles)
-  const uint32_t RESET = 2400; // 50us at 72MHz (2400 cycles)
+  uint16_t numsOfLED;
+  uint8_t TH_DutyCycle;
+  uint8_t TL_DutyCycle;
+  TIM_HandleTypeDef* ws2812_timer = nullptr;
+  uint32_t ws2812_channel;
+  Color* frameBuffer = nullptr;
+  uint8_t* pwmBuffer = nullptr;
+  uint16_t bufferSize;
+  int32_t progress = -1;  // -1 means signal end has been sent and ready for new job
 
   void Init(TIM_HandleTypeDef* timer, uint32_t channel, uint16_t led_count) {
     ws2812_timer = timer;
     ws2812_channel = channel;
     numsOfLED = led_count;
 
-    // Allocate memory for LED data (3 bytes per LED)
-    led_data = (uint8_t*)malloc(numsOfLED * 3);
-    if (led_data == NULL) {
-      // Handle memory allocation failure
+    // Calculate buffer size and allocate PWM buffer
+    bufferSize = numsOfLED * 24 + LED_DMA_END_LENGTH * 2;
+    pwmBuffer = (uint8_t*)calloc(bufferSize, 1);
+    if (pwmBuffer == NULL) {
+      Device::ErrorHandler();
       return;
     }
 
-    // Allocate memory for dithering error
-    dither_error = (uint8_t*)malloc(numsOfLED * 3 * sizeof(uint8_t));
-    if (dither_error == NULL) {
-      free(led_data);
-      led_data = NULL;
-      return;
+    // Register TIM callback for DMA completion
+    if (HAL_TIM_RegisterCallback(ws2812_timer, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, DMAHandler) != HAL_OK) {
+      Device::ErrorHandler();
+    }
+  }
+
+  uint32_t GetTimerPeriod() {
+    uint32_t timerPeriod;
+    if (HAL_RCC_GetHCLKFreq() % 800000 == 0) {
+      timerPeriod = (HAL_RCC_GetHCLKFreq() / 800000) - 1;
+    }
+    else {
+      return -1;  // Error: clock frequency not compatible
     }
 
-    // Initialize dither error with random values
-    for (uint16_t i = 0; i < numsOfLED * 3; i++) {
-      dither_error[i] = HAL_GetTick() & 0x7F; // Simple pseudo-random
-    }
+    // Calculate duty cycles for WS2812 timing
+    // TH (high time for '1'): ~0.8us = 173/256 of period
+    // TL (high time for '0'): ~0.4us = 82/256 of period
+    TH_DutyCycle = (timerPeriod * 173) >> 8;
+    TL_DutyCycle = (timerPeriod * 82) >> 8;
 
-    // Clear LED data
-    memset(led_data, 0, numsOfLED * 3);
-
-    // Start PWM output
-    HAL_TIM_PWM_Start(ws2812_timer, ws2812_channel);
+    return timerPeriod;
   }
 
   void Show(Color* buffer, std::vector<uint8_t>& brightness) {
     // Safety checks
-    if (buffer == NULL || led_data == NULL || transfer_in_progress) {
+    if (buffer == NULL || pwmBuffer == NULL || progress != -1) {
       return;
     }
 
-    // Process LED data with brightness and dithering
-    for (uint16_t i = 0; i < numsOfLED; i++) {
-      uint16_t data_index = i * 3;
+    // Get brightness value (assume single partition for MatrixBlock5)
+    uint8_t local_brightness = brightness.size() > 0 ? brightness[0] : 255;
 
-      // Apply brightness (assuming single partition for MatrixBlock5)
-      uint8_t local_brightness = brightness.size() > 0 ? brightness[0] : 255;
-
-      led_data[data_index] = Color::scale8_video(buffer[i].G, local_brightness);
-      led_data[data_index + 1] = Color::scale8_video(buffer[i].R, local_brightness);
-      led_data[data_index + 2] = Color::scale8_video(buffer[i].B, local_brightness);
-
-      // Apply dithering if enabled
-      if (dithering && dither_error != NULL) {
-        const uint8_t dither_error_threshold = 16;
-
-        // Process all channels
-        for (int ch = 0; ch < 3; ch++) {
-          uint16_t channel_index = data_index + ch;
-          if (led_data[channel_index] >= dithering_threshold) {
-            uint16_t expected;
-            // Get the appropriate color component based on channel
-            if (ch == 0) expected = (uint16_t)buffer[i].G * local_brightness;      // Green
-            else if (ch == 1) expected = (uint16_t)buffer[i].R * local_brightness;  // Red
-            else expected = (uint16_t)buffer[i].B * local_brightness;               // Blue
-            uint16_t actual = (uint16_t)led_data[channel_index] << 8;
-
-            if (expected > actual) {
-              uint8_t new_dither_error = (expected - actual) >> 8;
-              if (new_dither_error >= dither_error_threshold) {
-                dither_error[channel_index] += new_dither_error >> 1;
-                if (dither_error[channel_index] >= 128) {
-                  if (led_data[channel_index] < 255) {
-                    led_data[channel_index] += 1;
-                  }
-                  dither_error[channel_index] -= 128;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // For STM32F1, we'll use a simple blocking approach for now
-    // In a real implementation, this would use DMA
-
-    // Convert RGB data to PWM duty cycles and send
-    // This is a simplified implementation - real implementation would use DMA
-
-    // Set transfer flag
-    transfer_in_progress = true;
-
-    // Simple blocking transmission (replace with DMA in production)
-    for (uint16_t i = 0; i < numsOfLED * 3; i++) {
-      uint8_t byte = led_data[i];
-
-      // Send each bit
-      for (int bit = 7; bit >= 0; bit--) {
-        if (byte & (1 << bit)) {
-          // Send '1' bit
-          __HAL_TIM_SET_COMPARE(ws2812_timer, ws2812_channel, T1H);
-          // Wait for T1H duration
-          for (volatile int j = 0; j < 10; j++); // Simple delay
-          __HAL_TIM_SET_COMPARE(ws2812_timer, ws2812_channel, T1L);
-        } else {
-          // Send '0' bit
-          __HAL_TIM_SET_COMPARE(ws2812_timer, ws2812_channel, T0H);
-          // Wait for T0H duration
-          for (volatile int j = 0; j < 10; j++); // Simple delay
-          __HAL_TIM_SET_COMPARE(ws2812_timer, ws2812_channel, T0L);
-        }
-        // Wait for bit period
-        for (volatile int j = 0; j < 10; j++); // Simple delay
-      }
-    }
-
-    // Send reset pulse
-    __HAL_TIM_SET_COMPARE(ws2812_timer, ws2812_channel, 0);
-    // Wait for reset duration
-    for (volatile int j = 0; j < 1000; j++); // Simple delay
-
-    transfer_in_progress = false;
+    // Set up for DMA transfer
+    progress = 0;
+    frameBuffer = buffer;
+    PrepLEDBuffer(local_brightness);
+    SendData();
   }
 
-  // DMA callback functions
-  void DMA_TransferComplete_Callback(void) {
-    transfer_in_progress = false;
+  void DMAHandler(TIM_HandleTypeDef* htim) {
+    HAL_TIM_PWM_Stop_DMA(htim, ws2812_channel);
+    progress = -1;
   }
 
-  void DMA_TransferHalfComplete_Callback(void) {
-    // Handle half transfer if needed
+  void SendData() {
+    HAL_TIM_PWM_Start_DMA(ws2812_timer, ws2812_channel, (uint32_t*)pwmBuffer, bufferSize);
+  }
+
+  void PrepLEDBuffer(uint8_t brightness) {
+    uint16_t index = 0;
+
+    // Add start padding
+    for (uint8_t i = 0; i < LED_DMA_END_LENGTH; i++) {
+      pwmBuffer[index] = 0;
+      index++;
+    }
+
+    // Fill PWM buffer with LED data
+    while (index <= (bufferSize - 24) && progress < numsOfLED) {
+      // Get GRB value with brightness applied
+      uint32_t GRB = frameBuffer[progress].GRB(brightness);
+
+      // Convert each bit to PWM duty cycle
+      for (int8_t i = 23; i >= 0; i--) {
+        pwmBuffer[index] = (GRB & (1 << i)) ? TH_DutyCycle : TL_DutyCycle;
+        index++;
+      }
+      progress++;
+    }
+
+    // Add end padding
+    for (uint8_t i = 0; i < LED_DMA_END_LENGTH; i++) {
+      pwmBuffer[index] = 0;
+      index++;
+    }
   }
 }

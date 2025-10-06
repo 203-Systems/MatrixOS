@@ -2,13 +2,21 @@
 #include "MatrixOSConfig.h"
 #include "WS2812/WS2812.h"
 
+// TIM8 handle for WS2812 LED driver
+extern TIM_HandleTypeDef htim8;
+
+// Forward declarations
+extern void MX_DMA_Init(void);
+extern void MX_TIM8_Init(void);
+
 namespace Device
 {
   namespace LED
   {
     void Init() {
-      // LED initialization is handled in Family.cpp's LED_Init()
-      // This function is kept for API compatibility
+      MX_DMA_Init();
+      MX_TIM8_Init();
+      WS2812::Init(&htim8, TIM_CHANNEL_2, Device::LED::count);
     }
 
     void Start() {

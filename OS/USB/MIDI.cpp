@@ -9,41 +9,43 @@ namespace MatrixOS::MIDI
 
 namespace MatrixOS::USB::MIDI
 {
-  std::vector<MidiPort*> ports;
+  std::vector<MidiPort> ports;
   std::vector<TaskHandle_t> portTasks;
   std::vector<string> portTaskNames;
-  
+
   std::vector<uint8_t> sysex_buffer;
 
   void portTask(void* param) {
-    uint8_t itf = ports.size();
-    string portname = "USB MIDI " + std::to_string(itf + 1);
-    MidiPort port = MidiPort(portname, MIDI_PORT_USB + itf);
-    ports.push_back(&port);
+    uint8_t itf = (uint8_t)(uintptr_t)param;
     MidiPacket packet;
     while (true)
     {
-      if (port.Get(&packet, portMAX_DELAY))
-      { tud_midi_stream_write(port.id % 0x100, packet.data, packet.Length()); }
+      if (ports[itf].Get(&packet, portMAX_DELAY))
+      { tud_midi_stream_write(ports[itf].id % 0x100, packet.data, packet.Length()); }
     }
   }
 
   void Init() {
-    ports.clear();
-    
     for (TaskHandle_t portTask : portTasks)
     {
       vTaskDelete(portTask);
     }
+    portTasks.clear();
+    portTaskNames.clear();
+    ports.clear();
 
+    // Create ports and tasks
     ports.reserve(USB_MIDI_COUNT);
     portTasks.reserve(USB_MIDI_COUNT);
-    
+
     for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
     {
+      string portname = "USB MIDI " + std::to_string(i + 1);
+      ports.emplace_back(portname, MIDI_PORT_USB + i);
+
       portTasks.push_back(NULL);
-      portTaskNames.push_back("USB MIDI " + std::to_string(i + 1));
-      xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
+      portTaskNames.push_back(portname);
+      xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, (void*)(uintptr_t)i, configMAX_PRIORITIES - 2,
                   &portTasks.back());
     }
   }

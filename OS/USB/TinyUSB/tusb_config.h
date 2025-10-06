@@ -121,8 +121,10 @@ extern "C" {
 
 #define CFG_TUD_HID_EP_BUFSIZE  64
 
-// MSC Buffer size of Device Mass storage
+// MSC Buffer size of Device Mass storage (only if enabled)
+#if DEVICE_STORAGE
 #define CFG_TUD_MSC_EP_BUFSIZE 512
+#endif
 
 enum
 {

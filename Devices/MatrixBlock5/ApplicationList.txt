@@ -35,7 +35,7 @@ Performance
 #[System]Python
 
 # Boot animation
-{FAMILY_PATH}/Applications/BootAnimation
+{FAMILY_PATH}/Applications/MystrixBoot
 
 # Device-specific applications (if any)
 # {FAMILY_PATH}/Applications/FactoryMenu

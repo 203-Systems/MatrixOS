@@ -185,7 +185,7 @@ void NMI_Handler(void) {
 }
 
 void HardFault_Handler(void) {
-  MatrixOS::SYS::ErrorHandler("Hard Fault");
+  //MatrixOS::SYS::ErrorHandler("Hard Fault");
   while (true)
   {}
 }
