@@ -28,9 +28,15 @@ namespace Device::KeyPad
     // TODO: Initialize touch bar for STM32F103
   }
 
+  // Timer callback wrapper with correct signature
+  static void KeypadTimerCallback(TimerHandle_t xTimer) {
+    (void)xTimer;
+    Scan();
+  }
+
   void StartKeyPad() {
     // Create FreeRTOS timer for keypad scanning
-    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / keypad_scanrate, true, NULL, reinterpret_cast<TimerCallbackFunction_t>(Scan), &keypad_timer_def);
+    keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / keypad_scanrate, true, NULL, KeypadTimerCallback, &keypad_timer_def);
     xTimerStart(keypad_timer, 0);
   }
 
