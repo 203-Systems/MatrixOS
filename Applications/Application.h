@@ -62,20 +62,27 @@ inline std::map<uint32_t, uint32_t>& GetApplicationIDs() {
 template <typename APPLICATION_CLASS>
 static inline void register_application(uint32_t order, bool is_system) {
     APPLICATION_CLASS::info.is_system = is_system;  // Set system flag
-    APPLICATION_CLASS::info.factory = []() -> Application* {                                       \
-      return new APPLICATION_CLASS();                                                              \
-    };                                                                                             \
-    APPLICATION_CLASS::info.destructor = [](Application* app) {                                 \
-      delete (APPLICATION_CLASS*)app;                                                                   \
-    };                                                                                             \
-    MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), is_system ? " (system)" : "");  \
-    uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name); \
-    auto& applications = GetApplications(); \
-    if (applications.find(app_id) != applications.end()) { \
-      return; \
-    } \
-    applications.insert({app_id, &APPLICATION_CLASS::info}); \
-    GetApplicationIDs()[order] = app_id; \
+    APPLICATION_CLASS::info.factory = []() -> Application* {
+      void* mem = pvPortMalloc(sizeof(APPLICATION_CLASS));
+      if (mem == nullptr) {
+        return nullptr;
+      }
+      return new(mem) APPLICATION_CLASS();  // Placement new
+    };
+    APPLICATION_CLASS::info.destructor = [](Application* app) {
+      if (app != nullptr) {
+        app->~Application();  // Call destructor
+        vPortFree(app);       // Free memory
+      }
+    };
+    MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), is_system ? " (system)" : "");
+    uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name);
+    auto& applications = GetApplications();
+    if (applications.find(app_id) != applications.end()) {
+      return;
+    }
+    applications.insert({app_id, &APPLICATION_CLASS::info});
+    GetApplicationIDs()[order] = app_id;
 }
 
 
