@@ -13,7 +13,7 @@ inline uint16_t MAX(uint16_t a, uint16_t b) {
 // Constructor is defined in the header file
 
 bool KeyInfo::Active() {
-  return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBUNCING;
+  return (state >= ACTIVATED && state <= AFTERTOUCH) || state == RELEASE_DEBOUNCING;
 }
 
 KeyInfo::operator bool() { 
@@ -80,8 +80,8 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
       {
         if(config.debounce > 0)
         {
-          // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> DEBUNCING");
-          state = DEBUNCING;
+          // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> DEBOUNCING");
+          state = DEBOUNCING;
           lastEventTime = timeNow;
           return false;
         }
@@ -95,10 +95,10 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
         }
       }
       break;
-    case DEBUNCING:
+    case DEBOUNCING:
       if (new_value <= config.low_threshold + config.activation_offset)
       {
-        // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> IDLE");
+        // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBOUNCING -> IDLE");
         state = IDLE;
         lastEventTime = timeNow;
         return false;
@@ -106,24 +106,24 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
       else if (timeNow - lastEventTime > config.debounce)
       {
         state = PRESSED;
-        // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBUNCING -> PRESSED");
+        // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBOUNCING -> PRESSED");
         lastEventTime = timeNow;
         values[0] = config.apply_curve ? ApplyForceCurve(config, new_value) : new_value;
         return true & !cleared; // I know just return "!cleared" works but I want to make it clear this is suppose to return true
       }
       return false;
-    case RELEASE_DEBUNCING:
+    case RELEASE_DEBOUNCING:
       if (BELOW_VALUE_THRESHOLD)
       {
         state = RELEASED;
-        // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBUNCING -> RELEASED");
+        // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBOUNCING -> RELEASED");
         lastEventTime = timeNow;
         return true & !cleared;
       }
       else if (ABOVE_THRESHOLD && timeNow - lastEventTime > config.debounce)
       {
         state = ACTIVATED;
-        // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBUNCING -> ACTIVATED");
+        // MatrixOS::Logging::LogVerbose("KeyInfo", "RELEASE_DEBOUNCING -> ACTIVATED");
         lastEventTime = timeNow;
       }
       [[fallthrough]];
@@ -139,8 +139,8 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
       {
         if(config.debounce > 0)
         {
-          state = RELEASE_DEBUNCING;
-          // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> RELEASE_DEBUNCING");
+          state = RELEASE_DEBOUNCING;
+          // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> RELEASE_DEBOUNCING");
           lastEventTime = timeNow;
           return false;
         }

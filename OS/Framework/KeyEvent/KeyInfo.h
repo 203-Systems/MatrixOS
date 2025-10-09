@@ -20,13 +20,13 @@ enum KeyState : uint8_t {
     AFTERTOUCH,
     RELEASED,
     /*Special*/
-    DEBUNCING = 240u,
-    RELEASE_DEBUNCING = 241u,
+    DEBOUNCING = 240u,
+    RELEASE_DEBOUNCING = 241u,
     /*Placeholder Keys*/
     INVALID = 255u
 };
 
-  
+
 struct KeyInfo {
   // Bit-packed structure for state and flags
   uint32_t lastEventTime = 0;
