@@ -1,10 +1,6 @@
 #pragma once
 #include "Framework.h"
 
-// Device feature configuration
-#define DEVICE_STORAGE 1
-#define DEVICE_BATTERY 0
-
 #define FUNCTION_KEY 0  // Keypad Code for main function key
 
 #define X_SIZE 8

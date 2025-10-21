@@ -10,6 +10,11 @@ enum USB_MODE {
   USB_MODE_MSC = 1      // MSC only
 };
 
+// Undefine STM32 peripheral macros that conflict with C++ namespace names
+#ifdef USB
+#undef USB
+#endif
+
 namespace MatrixOS::USB
 {
   void Init(USB_MODE mode = USB_MODE_NORMAL);

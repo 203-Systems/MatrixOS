@@ -18,7 +18,7 @@ void Reversi::Loop()
 
 uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
 {
-  uint8_t opponentPlayer = currentPlayer == 1 ? 2 : 1;
+  uint8_t opponentPlayer = (1 == currentPlayer) ? 2 : 1;
   uint8_t flipped = 0;
 
     // Check all 8 directions
@@ -548,7 +548,7 @@ bool Reversi::ResetGame(bool confirmed)
 
   firstPlayer.Load(); // For some reason, the firstPlayer is not auto loaded correctly
 
-  uint8_t secondPlayer = (firstPlayer == 1) ? 2 : 1;
+  uint8_t secondPlayer = (1 == firstPlayer) ? 2 : 1;
 
   board[3][3].player = firstPlayer;
   board[3][3].wasPlayer = firstPlayer;
@@ -637,14 +637,14 @@ void Reversi::Settings() {
 
   UIButton player1FirstHand;
   player1FirstHand.SetName("Player 1 First Hand");
-  player1FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(firstPlayer == 1); });
-  player1FirstHand.OnPress([&]() -> void { if(firstPlayer == 1) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
+  player1FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(1 == firstPlayer); });
+  player1FirstHand.OnPress([&]() -> void { if(1 == firstPlayer) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
   settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
   UIButton player2FirstHand;
   player2FirstHand.SetName("Player 2 First Hand");
-  player2FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(firstPlayer == 2); });
-  player2FirstHand.OnPress([&]() -> void { if(firstPlayer == 2) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
+  player2FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(2 == firstPlayer); });
+  player2FirstHand.OnPress([&]() -> void { if(2 == firstPlayer) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
   settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
   UIToggle hintToggle;

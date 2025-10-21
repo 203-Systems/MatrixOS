@@ -7,7 +7,9 @@
 #include "../LED/LED.h"
 #include "../KeyPad/KeyPad.h"
 #include "../FileSystem/File.h"
+#include "../FileSystem/FileSystem.h"
 #include "../MIDI/MIDI.h"
+#include "task.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
 
@@ -29,6 +31,7 @@ namespace MatrixOS::SYS
 
     if (next_app_id != 0)
     {
+      auto& applications = GetApplications();
       auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
@@ -36,6 +39,10 @@ namespace MatrixOS::SYS
                                     application->second->name.c_str());
         active_app_id = next_app_id;
         active_app = application->second->factory();
+        if (active_app == NULL) {
+          MLOGE("Application Factory", "Factory returned NULL - allocation failed!");
+          ErrorHandler("App allocation failed");
+        }
         active_app_info = application->second;
       }
     } 
@@ -47,13 +54,19 @@ namespace MatrixOS::SYS
         MLOGD("Application Factory", "Can't find target app.");
       }
       MLOGD("Application Factory", "Launching Shell");
+      MLOGD("Application Factory", "Free heap before Shell factory: %d bytes", xPortGetFreeHeapSize());
       next_app_id = OS_SHELL;
+      auto& applications = GetApplications();
       auto application = applications.find(next_app_id);
       if (application != applications.end())
       {
         MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(),
                                     application->second->name.c_str());
         active_app = application->second->factory();
+        if (active_app == NULL) {
+          MLOGE("Application Factory", "Shell factory returned NULL - allocation failed!");
+          ErrorHandler("Shell allocation failed");
+        }
         active_app_id = next_app_id;
         active_app_info = application->second;
       }
@@ -78,7 +91,7 @@ namespace MatrixOS::SYS
 
   void Supervisor(void* param) {
 
-    MLOGD("Supervisor", "%d Apps registered", applications.size());
+    MLOGD("Supervisor", "%d Apps registered", GetApplications().size());
 
     active_app_task = xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1,
                                         application_stack, &application_taskdef);
@@ -111,6 +124,9 @@ namespace MatrixOS::SYS
   void Begin(void) {
     Device::DeviceInit();
 
+    // Initialize MIDI system before USB to ensure osPort exists
+    MatrixOS::MIDI::Init();
+
     MatrixOS::USB::Init();
 
     InitSysModules();
@@ -141,7 +157,9 @@ namespace MatrixOS::SYS
   {
     MatrixOS::KeyPad::Init();
     MatrixOS::LED::Init();
+#if DEVICE_STORAGE
     MatrixOS::FileSystem::Init();
+#endif
     MatrixOS::USB::SetMode(USB_MODE_NORMAL);
     MatrixOS::MIDI::Init();
     MatrixOS::HID::Init();
@@ -271,7 +289,7 @@ namespace MatrixOS::SYS
 
   uint16_t GetApplicationCount()  // Used by shell, for some reason shell can not access app_count
   {
-    return applications.size();
+    return GetApplications().size();
   }
 
   #define SYSTEM_VERSION_ID(major, minor, patch) ((major << 16) | (minor << 8) | patch)

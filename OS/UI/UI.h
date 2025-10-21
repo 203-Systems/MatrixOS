@@ -5,6 +5,7 @@
 #include <functional>
 #include <list>
 #include <map>
+#include <algorithm>
 #include <stdarg.h>
 #include "UIComponents.h"
 #include "UIUtilities.h"

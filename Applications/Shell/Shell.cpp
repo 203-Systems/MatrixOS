@@ -61,12 +61,15 @@ void Shell::InitializeFolderSystem() {
   }
 
   // First, add all native apps to all_applications
+  auto& applications = GetApplications();
   for (const auto& [app_id, app_info] : applications) {
     all_applications.emplace(app_id, ApplicationEntry(app_info));
   }
 
   // Then discover and add Python applications
+#if DEVICE_STORAGE
   DiscoverPythonApps();
+#endif
 
   // Try to load existing folder vectors from NVS
   bool folders_loaded = false;
@@ -94,6 +97,7 @@ void Shell::InitializeFolderSystem() {
   bool missing_apps_found = false;
 
   // First, check native apps in registration order
+  auto& application_ids = GetApplicationIDs();
   for (const auto& [order_id, app_id] : application_ids) {
     // If app is not in any folder, add it
     if (apps_in_folders.find(app_id) == apps_in_folders.end()) {
@@ -359,6 +363,7 @@ uint8_t Shell::GetAppFolder(uint32_t app_id, const ApplicationEntry& app_entry) 
   return 0;
 }
 
+#if DEVICE_STORAGE
 void Shell::DiscoverPythonApps() {
   MLOGI("Shell", "Starting Python application discovery");
 
@@ -385,6 +390,7 @@ void Shell::DiscoverPythonApps() {
 
   MLOGI("Shell", "Python application discovery completed: %d apps added", python_app_infos.size());
 }
+#endif
 
 void Shell::ApplicationLauncher() {
   uint8_t tap_counter = 0;

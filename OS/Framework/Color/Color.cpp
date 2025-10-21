@@ -1,5 +1,6 @@
 #include "Color.h"
 #include <cmath>
+#include <algorithm>
 
 float fract(float x) { return x - int(x); }
 

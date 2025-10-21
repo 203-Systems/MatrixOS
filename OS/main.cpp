@@ -8,7 +8,14 @@ namespace MatrixOS::SYS
 int main()
 {
     MatrixOS::SYS::Begin();
-    vTaskDelete(NULL);
 
-    return 0;             
+    if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED) {
+        vTaskStartScheduler();
+        while(1);
+    } else {
+        // ESP32: Scheduler already running, delete this task
+        vTaskDelete(NULL);
+    }
+
+    return 0;
 }

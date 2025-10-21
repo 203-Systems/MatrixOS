@@ -84,8 +84,10 @@ class Shell : public Application {
   void MoveAppToFolder(uint32_t app_id, uint8_t folder_id);
 
   // Python application discovery
+#if DEVICE_STORAGE
   void DiscoverPythonApps();
-  
+#endif
+
   // Helper functions for NVS
   void SaveFolderVector(uint8_t folder_id);
   void LoadFolderVector(uint8_t folder_id);

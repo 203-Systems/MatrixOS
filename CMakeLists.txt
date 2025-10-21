@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
+if(NOT DEFINED DEVICE)
+  message(FATAL_ERROR "You must specify -DDEVICE=<device>")
+endif()
+
+if(NOT DEFINED FAMILY)
+  set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${DEVICE})
+else()
+  set(FAMILY_PATH ${CMAKE_SOURCE_DIR}/Devices/${FAMILY})
+endif()
+
 project(MatrixOS-${DEVICE})
 
 # # Global C flags
@@ -83,7 +93,26 @@ else()
     message( FATAL_ERROR "MODE is not defined" )
 endif()
 
+# Load device feature flags before processing subdirectories
+if(NOT EXISTS ${FAMILY_PATH}/Config.cmake)
+    message(FATAL_ERROR "Config.cmake not found in ${FAMILY_PATH}. Please create this file to define DEVICE_STORAGE and DEVICE_BATTERY.")
+endif()
+include(${FAMILY_PATH}/Config.cmake)
+
+# Pass device feature flags as compile definitions to all targets
+add_compile_definitions(
+    DEVICE_STORAGE=${DEVICE_STORAGE}
+    DEVICE_BATTERY=${DEVICE_BATTERY}
+)
+
+# Set debug flags globally for all targets before adding subdirectories
+if(MODE STREQUAL "DEVELOPMENT" OR MODE STREQUAL "UNDEFINED")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -Og")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Og")
+    message(STATUS "Building with debug symbols: -g3 -Og")
+endif()
+
+add_subdirectory(${FAMILY_PATH})
 add_subdirectory(Devices)
 add_subdirectory(OS)
-add_subdirectory(${FAMILY_PATH})
 add_subdirectory(Applications)

@@ -89,7 +89,10 @@ namespace MatrixOS::LED
       }
 
       UpdateBrightness();
+    }
 
+    if (activeBufferSemaphore == nullptr)
+    {
       activeBufferSemaphore = xSemaphoreCreateMutex();
     }
 

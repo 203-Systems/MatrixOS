@@ -11,14 +11,15 @@ namespace MatrixOS::MIDI
     if (!osPort) {
       osPort = new MidiPort("MatrixOS", MIDI_PORT_OS, MIDI_QUEUE_SIZE);
     }
-    
+
     // Create the application queue if it doesn't exist
     if (!appQueue) {
       appQueue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
     }
-    
+
     // Create the receive task if it doesn't exist
-    if (!receiveTask) {
+    // Only create task if scheduler is already running (ESP32) or will be started later
+    if (!receiveTask && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
       xTaskCreate(ReceiveTask, "MIDI_Receive", 2048, NULL, tskIDLE_PRIORITY + 2, &receiveTask);
     }
   }
