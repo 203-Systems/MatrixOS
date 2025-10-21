@@ -2,14 +2,13 @@
 #include "MatrixOS.h"
 #include "UI/UI.h"
 #include "MatrixOSConfig.h"
+#include "Variants/MatrixFounderEdition/Config.h"
 
 #include "timers.h"
 
 // Forward declare TinyUSB interrupt handler
 extern "C" void dcd_int_handler(uint8_t rhport);
 
-// Variant loader function
-void LoadFounderEdition();
 
 
 namespace Device

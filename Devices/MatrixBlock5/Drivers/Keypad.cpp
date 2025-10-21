@@ -64,7 +64,6 @@ namespace Device::KeyPad
       for (uint8_t y = 0; y < Y_SIZE; y++)
       {
         // Read row
-        Fract16 read = HAL_GPIO_ReadPin(keypad_read_ports[y], keypad_read_pins[y]) * UINT16_MAX;
         if (keypadState[x][y].Update(keypad_config, read))
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
@@ -91,7 +90,7 @@ namespace Device::KeyPad
     Fract16 read = HAL_GPIO_ReadPin(fn_port, fn_pin) * UINT16_MAX;
     if (fn_active_low)
     { read = UINT16_MAX - (uint16_t)read; }
-    if (fnState.Update(binary_config, read))
+    if (fnState.Update(keypad_config, read))
     {
       if (NotifyOS(0, &fnState))
       { return true; }

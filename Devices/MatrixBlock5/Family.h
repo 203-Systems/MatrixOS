@@ -71,20 +71,12 @@ namespace Device
     inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
-    inline KeyConfig binary_config = {
+    inline KeyConfig keypad_config = {
         .apply_curve = false,
         .low_threshold = 0,
         .high_threshold = 65535,
         .activation_offset = 0,
         .debounce = 3,
-    };
-
-    inline KeyConfig keypad_config = {
-        .apply_curve = true,
-        .low_threshold = 1536,
-        .high_threshold = 32767,
-        .activation_offset = 256,
-        .debounce = 10,
     };
 
     inline GPIO_TypeDef* keypad_write_ports[X_SIZE];
