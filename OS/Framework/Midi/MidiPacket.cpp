@@ -56,9 +56,13 @@ MidiPacket::MidiPacket(EMidiStatus status, ...) {
     case EMidiStatus::Stop:
     case EMidiStatus::ActiveSense:
     case EMidiStatus::Reset:
+      data[0] = status;
+      break;
     case EMidiStatus::SysExData:
     case EMidiStatus::SysExEnd:
-      data[0] = status;
+      data[0] = (uint8_t)va_arg(valst, int);
+      data[1] = (uint8_t)va_arg(valst, int);
+      data[2] = (uint8_t)va_arg(valst, int);
       break;
     default:
       data[0] = status;
