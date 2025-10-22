@@ -11,3 +11,21 @@
 	path = Library/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson.git
 	branch = 7.x
+[submodule "Library/FreeRTOS-Kernel"]
+	path = Library/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule "Library/cmsis_device_f1"]
+	path = Library/cmsis_device_f1
+	url = https://github.com/STMicroelectronics/cmsis_device_f1.git
+[submodule "Library/stm32f1xx_hal_driver"]
+	path = Library/stm32f1xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32f1xx_hal_driver.git
+[submodule "Library/CMSIS_5"]
+	path = Library/CMSIS_5
+	url = https://github.com/ARM-software/CMSIS_5.git
+[submodule "Platform/STM32F1/cmsis_device_f1"]
+	path = Platform/STM32F1/cmsis_device_f1
+	url = https://github.com/STMicroelectronics/cmsis_device_f1.git
+[submodule "Platform/STM32F1/stm32f1xx_hal_driver"]
+	path = Platform/STM32F1/stm32f1xx_hal_driver
+	url = https://github.com/STMicroelectronics/stm32f1xx_hal_driver.git
