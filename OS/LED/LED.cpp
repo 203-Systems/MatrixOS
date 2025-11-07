@@ -105,7 +105,7 @@ namespace MatrixOS::LED
     }
 
     frameBuffers.clear();
-    
+
 
     CreateLayer(0); //Create Layer 0 - The active layer
     CreateLayer(0); //Create Layer 1 - The base layer
