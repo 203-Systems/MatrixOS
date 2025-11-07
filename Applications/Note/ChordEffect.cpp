@@ -139,6 +139,21 @@ void ChordEffect::SetEnabled(bool state) {
     }
 }
 
+void ChordEffect::ClearChord() {
+    chordCombo = {
+        .dim = false,
+        .min = false,
+        .maj = false,
+        .sus = false,
+        .ext6 = false,
+        .extMin7 = false,
+        .extMaj7 = false,
+        .ext9 = false
+    };
+    chordChanged = true;
+}
+
+
 void ChordEffect::SetChordCombo(ChordCombo combo) {
     if (chordCombo != combo) {
         chordCombo = combo;

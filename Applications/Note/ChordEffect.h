@@ -53,6 +53,7 @@ public:
     void Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) override;
     void Reset() override;
     void SetEnabled(bool state) override;
+    void ClearChord();
     void SetChordCombo(ChordCombo combo);
     void ReleaseAllChords(deque<MidiPacket>& output);
     void UpdateChords(deque<MidiPacket>& output);
