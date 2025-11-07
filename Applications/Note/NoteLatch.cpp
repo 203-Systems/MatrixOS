@@ -76,10 +76,15 @@ void NoteLatch::ProcessNoteMessage(const MidiPacket& packet, deque<MidiPacket>& 
     }
     else if (packet.status == NoteOff || (packet.status == NoteOn && packet.Velocity() == 0)) {
         // Note Off
+        auto latchedIt = std::find(latchedNotes.begin(), latchedNotes.end(), note);
         auto holdingIt = std::find(stillHoldingNotes.begin(), stillHoldingNotes.end(), note);
 
-        if (holdingIt != stillHoldingNotes.end()) {
+        if (holdingIt != stillHoldingNotes.end()) { // If it was holding then we remove it from active keys
             stillHoldingNotes.erase(holdingIt);
+        }
+        else if(latchedIt == latchedNotes.end()) // If it was, then note latch is enabled after the key is held. Add this entry
+        {
+            latchedNotes.push_back(note);
         }
     }
 }
