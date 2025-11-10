@@ -1066,7 +1066,7 @@ void Note::ArpConfigMenu() {
       clockMode = CLOCK_INTERNAL;
     }
   });
-  arpConfigMenu.AddUIComponent(clockOutBtn, Point(7, 6));
+  arpConfigMenu.AddUIComponent(clockOutBtn, Point(0, 6));
 
   // Swing selector
   TimedDisplay swingTextDisplay(500);
@@ -1634,7 +1634,7 @@ void Note::ArpConfigMenu() {
         break;
     }
   });
-  arpConfigMenu.AddUIComponent(resetBtn, Point(0, 6));
+  arpConfigMenu.AddUIComponent(resetBtn, Point(7, 6));
 
   // Infinity button (for Gate and Repeat)
   UIButton infBtn;
@@ -1661,7 +1661,7 @@ void Note::ArpConfigMenu() {
       runtimes[activeConfig].arpeggiator.UpdateConfig();
     }
   });
-  arpConfigMenu.AddUIComponent(infBtn, Point(7, 6));
+  arpConfigMenu.AddUIComponent(infBtn, Point(0, 6));
 
   arpConfigMenu.Start();
 
