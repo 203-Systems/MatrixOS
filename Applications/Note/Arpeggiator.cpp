@@ -2,8 +2,11 @@
 #include <algorithm>
 #include <cstdlib>
 
-Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) : config(cfg) {
-    CalculateTicksPerStep();
+Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) {
+    if(cfg != nullptr)
+    {
+        UpdateConfig(cfg);
+    }
 }
 
 void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
@@ -56,25 +59,24 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
 
         // If notePool was empty but now has notes, force start
         if (wasEmpty && !notePool.empty()) {
-            currentIndex = 0;
+            nextIndex = 0;
             currentRepeat = 0;  // Reset repeat counter when starting fresh
             lastSequenceIndex = 0;
-            euclideanIndex = 0;
-            if (config->repeat == 0 || currentRepeat < config->repeat) {
-                StepArpeggiator(output);
-                nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
-            }
+            nextStepTick = 0;
+            euclideanIndex = -1;
         }
+
         // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
-        else if (!notePool.empty() && tickCounter >= nextStepTick &&
+        if (!notePool.empty() && tickCounter >= nextStepTick &&
             (config->repeat == 0 || currentRepeat < config->repeat)) {
+    
             euclideanIndex = (euclideanIndex + 1) % config->euclideanLengths;
 
             if ((euclideanMap >> euclideanIndex) & 1) {
                 StepArpeggiator(output);
             }
 
-            nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
+            nextStepTick = tickCounter + ticksPerStep[nextIndex % 2];
         }
         // If notePool becomes empty, turn off any sustained notes (for inf gate mode)
         else if (!wasEmpty && notePool.empty()) {
@@ -130,8 +132,8 @@ void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& ou
     UpdateSequence();
 
     // Reset index if we've gone beyond the sequence
-    if (currentIndex >= arpSequence.size() && !arpSequence.empty()) {
-        currentIndex = 0;
+    if (nextIndex >= arpSequence.size() && !arpSequence.empty()) {
+        nextIndex = 0;
     }
 }
 
@@ -516,8 +518,8 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
         return;
     }
 
-    // Check if currentIndex is out of bounds (sequence changed) or needs wrapping
-    if (currentIndex >= arpSequence.size()) {
+    // Check if nextIndex is out of bounds (sequence changed) or needs wrapping
+    if (nextIndex >= arpSequence.size()) {
         // Detect sequence completion when wrapping
         // lastSequenceIndex holds the last valid index we played
         if (config->repeat != 0 && lastSequenceIndex < arpSequence.size()) {
@@ -534,16 +536,16 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
             }
         }
 
-        currentIndex = 0;
+        nextIndex = 0;
     }
 
     // For random mode, pick a random note from the sequence
     if (config->direction == ARP_RANDOM) {
-        currentIndex = rand() % arpSequence.size();
+        nextIndex = rand() % arpSequence.size();
     }
 
     // Play current note
-    const ArpNote& currentNote = arpSequence[currentIndex];
+    const ArpNote& currentNote = arpSequence[nextIndex];
     output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
 
@@ -562,10 +564,10 @@ void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     }
 
     // Store last index before advancing
-    lastSequenceIndex = currentIndex;
+    lastSequenceIndex = nextIndex;
 
     // Advance to next note (just increment, will wrap on next call if needed)
-    currentIndex++;
+    nextIndex++;
 }
 
 void Arpeggiator::CalculateTicksPerStep() {
@@ -690,7 +692,7 @@ void Arpeggiator::GenerateEuclideanMap()
 void Arpeggiator::Reset() {
     notePool.clear();
     arpSequence.clear();
-    currentIndex = 0;
+    nextIndex = 0;
     tickCounter = 0;
     nextStepTick = ticksPerStep[0];  // Initialize to first step duration, not 0
     gateOffQueue.clear(); // Clear all gate timers
@@ -728,7 +730,7 @@ void Arpeggiator::SetDivision(ArpDivision div) {
 
     // If turning on arpeggiator with notes already held, start immediately
     if (oldDivision == DIV_OFF && div != DIV_OFF && !notePool.empty()) {
-        currentIndex = 0;
+        nextIndex = 0;
         currentRepeat = 0;  // Reset repeat counter when restarting
         lastSequenceIndex = 0;
         nextStepTick = tickCounter;

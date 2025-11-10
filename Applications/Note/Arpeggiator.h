@@ -86,7 +86,7 @@ class Arpeggiator : public MidiEffect {
 private:
     vector<ArpNote> notePool;        // All active notes
     vector<ArpNote> arpSequence;     // Current arp sequence
-    uint8_t currentIndex = 0;        // Current position in sequence
+    uint8_t nextIndex = 0;        // Current position in sequence
 
     // TPQN-based timing (Tick() is called on each clock pulse)
     uint32_t tickCounter = 0;        // Count ticks from clock
@@ -123,7 +123,7 @@ public:
     ArpDivision division = DIV_OFF;  // Note division (internal control)
 
     // Euclidean sequencing
-    uint16_t euclideanIndex = 0;
+    int16_t euclideanIndex = 0;
     uint32_t euclideanMap = 0xFFFFFFFF;
 
     
