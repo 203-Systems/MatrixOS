@@ -603,6 +603,7 @@ void Arpeggiator::GenerateEuclideanMap()
     uint32_t steps = config->euclideanLengths;
     uint32_t offset = config->euclideanOffset;
 
+    // Handle edge cases
     if (steps > 32) {
         euclideanMap = 0;
         MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d > 32", steps);
@@ -620,70 +621,66 @@ void Arpeggiator::GenerateEuclideanMap()
         return;
     }
 
-    // --- Bjorklund algorithm (build counts/remainders) ---
-    std::vector<int> counts;
-    std::vector<int> remainders;
-    remainders.push_back(static_cast<int>(pulses));
-    int divisor = static_cast<int>(steps - pulses);
-    int level = 0;
+    // Simplified Bjorklund algorithm
+    std::vector<std::vector<int>> seq;
 
-    while (true) {
-        counts.push_back(divisor / remainders[level]);
-        remainders.push_back(divisor % remainders[level]);
-        divisor = remainders[level];
-        level++;
-        if (remainders[level] <= 1) break;
+    // Initialize sequence with pulses and rests
+    for (uint32_t i = 0; i < pulses; i++) {
+        seq.push_back({1});
     }
-    counts.push_back(divisor);
+    for (uint32_t i = 0; i < steps - pulses; i++) {
+        seq.push_back({0});
+    }
 
-    // --- Iterative build of pattern ---
-    struct Frame {
-        int level;
-        int state;
-        int repeat;
-    };
-
-    std::vector<int> pattern;
-    std::vector<Frame> stack;
-    stack.push_back({level, 0, 0});
-
-    while (!stack.empty()) {
-        Frame &f = stack.back();
-
-        if (f.level == -1) {
-            pattern.push_back(0);
-            stack.pop_back();
-        } else if (f.level == -2) {
-            pattern.push_back(1);
-            stack.pop_back();
-        } else {
-            if (f.state < counts[f.level]) {
-                // simulate "for (i...)" loop calling build(level-1)
-                f.state++;
-                stack.push_back({f.level - 1, 0, 0});
-            } else if (remainders[f.level] != 0 && f.state == counts[f.level]) {
-                f.state++;
-                stack.push_back({f.level - 2, 0, 0});
-            } else {
-                stack.pop_back();
+    // Bjorklund algorithm
+    while (true) {
+        // Find first element that's different from the first
+        size_t remainder_start = 1;
+        for (; remainder_start < seq.size(); remainder_start++) {
+            if (seq[remainder_start] != seq[0]) {
+                break;
             }
+        }
+
+        // If remainder is too small, we're done
+        if (remainder_start >= seq.size() - 1) {
+            break;
+        }
+
+        // Split into head and remainder
+        std::vector<std::vector<int>> head(seq.begin(), seq.begin() + remainder_start);
+        std::vector<std::vector<int>> remainder(seq.begin() + remainder_start, seq.end());
+
+        // Distribute remainder elements to head
+        size_t distribute_count = std::min(head.size(), remainder.size());
+        for (size_t i = 0; i < distribute_count; i++) {
+            head[i].insert(head[i].end(), remainder[i].begin(), remainder[i].end());
+        }
+
+        // Update sequence
+        seq = head;
+        if (distribute_count < remainder.size()) {
+            seq.insert(seq.end(), remainder.begin() + distribute_count, remainder.end());
         }
     }
 
-    // --- Pack into uint32_t (LSB = first step) ---
-    uint32_t bitmap = 0u;
-    for (size_t i = 0; i < pattern.size() && i < 32; ++i)
-        if (pattern[i]) bitmap |= (1u << (31 - i));
-
-    // --- Circular left rotation by offset ---
-    if (steps < 32) {
-        uint32_t mask = (1u << steps) - 1u;
-        offset %= steps;
-        bitmap = ((bitmap << offset) | (bitmap >> (steps - offset))) & mask;
-    } else {
-        offset %= 32;
-        bitmap = (bitmap << offset) | (bitmap >> (32 - offset));
+    // Flatten the sequence
+    std::vector<int> pattern;
+    for (const auto& group : seq) {
+        pattern.insert(pattern.end(), group.begin(), group.end());
     }
+
+    // Pack into uint32_t (LSB = first step)
+    uint32_t bitmap = 0u;
+    for (size_t i = 0; i < pattern.size() && i < 32; ++i) {
+        if (pattern[i]) {
+            bitmap |= (1u << i);
+        }
+    }
+
+    // Apply offset (circular left rotation)
+    offset %= steps;
+    bitmap = (bitmap << offset) | (bitmap >> (steps - offset));
 
     euclideanMap = bitmap;
     MLOGD("Arpeggiator", "Euclidean map generated: steps=%d, length=%d, offset=%d, map=0x%08X",
