@@ -138,4 +138,6 @@ public:
 
     // Division control
     void SetDivision(ArpDivision div);
+
+    bool Active();
 };

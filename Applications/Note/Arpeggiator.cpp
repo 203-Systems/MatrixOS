@@ -738,3 +738,7 @@ void Arpeggiator::SetDivision(ArpDivision div) {
         // The force start will happen on the next Tick()
     }
 }
+
+bool Arpeggiator::Active(){
+    return enabled && division != DIV_OFF && !notePool.empty();
+}

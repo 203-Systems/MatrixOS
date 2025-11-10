@@ -24,7 +24,7 @@ class RhythmVisualizer : public UIComponent {
         uint8_t x = i % 8;
         uint8_t y = i / 8;
 
-        if(arp-> division != DIV_OFF && arp->euclideanIndex == i)
+        if(arp->Active() && arp->euclideanIndex == i)
         {
             MatrixOS::LED::SetColor(origin + Point(x, y), Color::White);
         }
