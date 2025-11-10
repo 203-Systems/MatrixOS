@@ -550,8 +550,11 @@ void NoteControlBar::RenderArpControl(Point origin) {
             // DIV_SIXTYFOURTH, // 64
     };
 
-    // Render slider
-    for (uint8_t x = 0; x < 8; x++) {
+    // Render off button
+    MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 2), Color(0xFF0010).DimIfNot(notePad[0]->rt->arpeggiator.division > DIV_OFF));
+
+    // Render slider;
+    for (uint8_t x = 1; x < 8; x++) {
         Color color;
         if (notePad[0]->rt->arpeggiator.division >= divisions[x]) {
             color = Color(0x80FF00);
