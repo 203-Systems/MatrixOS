@@ -4,6 +4,7 @@
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
 #include "ArpDirVisualizer.h"
+#include "RhythmVisualizer.h"
 #include "TimedDisplay.h"
 #include "InfDisplay.h"
 
@@ -929,9 +930,10 @@ void Note::ArpConfigMenu() {
     ARP_STEP,
     ARP_STEP_OFFSET,
     ARP_REPEAT,
+    ARP_RHYTHM
   };
 
-  Color arpConfigColor[7]
+  Color arpConfigColor[8]
   {
     Color(0xFF0000), // Red - BPM
     Color(0xFF8000), // Orange - Swing
@@ -940,9 +942,10 @@ void Note::ArpConfigMenu() {
     Color(0x00FFFF), // Cyan - Step
     Color(0x4000FF), // Blue - Step Offset
     Color(0xFF00FF), // Magenta - Repeat
+    Color(0xFF0040) // Hot Pink - Rhythm
   };
 
-  string arpConfigName[7]
+  string arpConfigName[8]
   {
     "BPM",
     "Swing",
@@ -951,6 +954,7 @@ void Note::ArpConfigMenu() {
     "Step",
     "Step Offset",
     "Repeat",
+    "Rhythm",
   };
 
   // Shared arrays for all number modifiers
@@ -959,8 +963,8 @@ void Note::ArpConfigMenu() {
   uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
 
   UISelector arpConfigSelector;
-  arpConfigSelector.SetCount(7);
-  arpConfigSelector.SetDimension(Dimension(7, 1));
+  arpConfigSelector.SetCount(8);
+  arpConfigSelector.SetDimension(Dimension(8, 1));
   arpConfigSelector.SetIndividualColorFunc([&](uint16_t index) -> Color { return arpConfigColor[index]; });
   arpConfigSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpConfigName[index]; });
   arpConfigSelector.SetValuePointer((uint16_t*)&arpMenuPage);
@@ -1465,6 +1469,116 @@ void Note::ArpConfigMenu() {
   repeatNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_REPEAT; });
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
 
+  // Rhythm Page
+  TimedDisplay rhythmTextDisplay(500);
+  rhythmTextDisplay.SetDimension(Dimension(8, 4));
+  rhythmTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    Color color = arpConfigColor[ARP_RHYTHM];
+
+    // r
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 1), color);
+
+    // H
+    MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+    // Y
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+  });
+  rhythmTextDisplay.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
+  arpConfigMenu.AddUIComponent(rhythmTextDisplay, Point(0, 2));
+
+  RhythmVisualizer rhythmVisualizer(arpConfigColor[ARP_RHYTHM], Color(0x8000FF), &runtimes[activeConfig].arpeggiator);
+  rhythmVisualizer.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_RHYTHM) && !rhythmTextDisplay.IsEnabled(); });
+  arpConfigMenu.AddUIComponent(rhythmVisualizer, Point(0, 2));
+
+  // Euclidean Lengths Decrease Button
+  UIButton euclideanLengthsDecreaseBtn;
+  euclideanLengthsDecreaseBtn.SetName("Rhythm Lengths -1");
+  euclideanLengthsDecreaseBtn.SetSize(Dimension(1, 1));
+  euclideanLengthsDecreaseBtn.SetColorFunc([&]() -> Color {
+    return Color(0xFF0000).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1);
+  });
+  euclideanLengthsDecreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
+  euclideanLengthsDecreaseBtn.OnPress([&]() -> void {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1) {
+      notePadConfigs[activeConfig].arpConfig.euclideanLengths--;
+      // Cap euclideanSteps to new length if needed
+      if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > notePadConfigs[activeConfig].arpConfig.euclideanLengths) {
+        notePadConfigs[activeConfig].arpConfig.euclideanSteps = notePadConfigs[activeConfig].arpConfig.euclideanLengths;
+      }
+      configModified = true;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+    }
+  });
+  arpConfigMenu.AddUIComponent(euclideanLengthsDecreaseBtn, Point(0, 7));
+
+  // Euclidean Lengths Increase Button
+  UIButton euclideanLengthsIncreaseBtn;
+  euclideanLengthsIncreaseBtn.SetName("Rhythm Lengths +1");
+  euclideanLengthsIncreaseBtn.SetSize(Dimension(1, 1));
+  euclideanLengthsIncreaseBtn.SetColorFunc([&]() -> Color {
+    return Color(0x00FF00).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32);
+  });
+  euclideanLengthsIncreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
+  euclideanLengthsIncreaseBtn.OnPress([&]() -> void {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32) {
+      notePadConfigs[activeConfig].arpConfig.euclideanLengths++;
+      configModified = true;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+    }
+  });
+  arpConfigMenu.AddUIComponent(euclideanLengthsIncreaseBtn, Point(1, 7));
+
+  // Euclidean Steps Decrease Button
+  UIButton euclideanStepsDecreaseBtn;
+  euclideanStepsDecreaseBtn.SetName("Rhythm Steps -1");
+  euclideanStepsDecreaseBtn.SetSize(Dimension(1, 1));
+  euclideanStepsDecreaseBtn.SetColorFunc([&]() -> Color {
+    return Color(0xFF00FF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1);
+  });
+  euclideanStepsDecreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
+  euclideanStepsDecreaseBtn.OnPress([&]() -> void {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1) {
+      notePadConfigs[activeConfig].arpConfig.euclideanSteps--;
+      configModified = true;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+    }
+  });
+  arpConfigMenu.AddUIComponent(euclideanStepsDecreaseBtn, Point(6, 7));
+
+  // Euclidean Steps Increase Button
+  UIButton euclideanStepsIncreaseBtn;
+  euclideanStepsIncreaseBtn.SetName("Rhythm Steps +1");
+  euclideanStepsIncreaseBtn.SetSize(Dimension(1, 1));
+  euclideanStepsIncreaseBtn.SetColorFunc([&]() -> Color {
+    return Color(0x00FFFF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps < notePadConfigs[activeConfig].arpConfig.euclideanLengths);
+  });
+  euclideanStepsIncreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
+  euclideanStepsIncreaseBtn.OnPress([&]() -> void {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps < notePadConfigs[activeConfig].arpConfig.euclideanLengths) {
+      notePadConfigs[activeConfig].arpConfig.euclideanSteps++;
+      configModified = true;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+    }
+  });
+  arpConfigMenu.AddUIComponent(euclideanStepsIncreaseBtn, Point(7, 7));
+  
+
   // Reset button
   UIButton resetBtn;
   resetBtn.SetName("Reset");
@@ -1509,6 +1623,13 @@ void Note::ArpConfigMenu() {
         repeatValue = 0;
         configModified = true;
         notePadConfigs[activeConfig].arpConfig.repeat = 0;
+        runtimes[activeConfig].arpeggiator.UpdateConfig();
+        break;
+      case ARP_RHYTHM:
+        configModified = true;
+        notePadConfigs[activeConfig].arpConfig.euclideanLengths = 16;
+        notePadConfigs[activeConfig].arpConfig.euclideanSteps = 16;
+        notePadConfigs[activeConfig].arpConfig.euclideanOffset = 0;
         runtimes[activeConfig].arpeggiator.UpdateConfig();
         break;
     }

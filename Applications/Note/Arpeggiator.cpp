@@ -54,26 +54,30 @@ void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
             gateOffQueue.pop_front();
         }
 
-        // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
-        if (!notePool.empty() && tickCounter >= nextStepTick &&
-            (config->repeat == 0 || currentRepeat < config->repeat)) {
-            StepArpeggiator(output);
-            nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
-        }
-
         // If notePool was empty but now has notes, force start
         if (wasEmpty && !notePool.empty()) {
             currentIndex = 0;
             currentRepeat = 0;  // Reset repeat counter when starting fresh
             lastSequenceIndex = 0;
+            euclideanIndex = 0;
             if (config->repeat == 0 || currentRepeat < config->repeat) {
                 StepArpeggiator(output);
                 nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
             }
         }
+        // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
+        else if (!notePool.empty() && tickCounter >= nextStepTick &&
+            (config->repeat == 0 || currentRepeat < config->repeat)) {
+            euclideanIndex = (euclideanIndex + 1) % config->euclideanLengths;
 
+            if ((euclideanMap >> euclideanIndex) & 1) {
+                StepArpeggiator(output);
+            }
+
+            nextStepTick = tickCounter + ticksPerStep[currentIndex % 2];
+        }
         // If notePool becomes empty, turn off any sustained notes (for inf gate mode)
-        if (!wasEmpty && notePool.empty()) {
+        else if (!wasEmpty && notePool.empty()) {
             for (const auto& event : gateOffQueue) {
                 output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0)); // Turn off all sustained notes
             }
@@ -150,6 +154,7 @@ void Arpeggiator::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>&
         }
     }
 }
+
 
 void Arpeggiator::UpdateSequence() {
     arpSequence.clear();
@@ -505,6 +510,7 @@ void Arpeggiator::UpdateSequence() {
     }
 }
 
+
 void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
     if (arpSequence.empty()) {
         return;
@@ -587,8 +593,101 @@ void Arpeggiator::CalculateTicksPerStep() {
     ticksPerStep[0] = baseTicksPerStep + swingTicks;  // On-beat (longer with positive swing)
     ticksPerStep[1] = baseTicksPerStep - swingTicks;  // Off-beat (shorter with positive swing)
 
-    MLOGI("Arp", "CalculateTicksPerStep: baseTicksPerStep=%u, swing=%u, swingRatio=%.2f, swingTicks=%u, ticksPerStep[0]=%u, ticksPerStep[1]=%u",
+    MLOGD("Arp", "CalculateTicksPerStep: baseTicksPerStep=%u, swing=%u, swingRatio=%.2f, swingTicks=%u, ticksPerStep[0]=%u, ticksPerStep[1]=%u",
           baseTicksPerStep, config->swing, swingRatio, swingTicks, ticksPerStep[0], ticksPerStep[1]);
+}
+
+void Arpeggiator::GenerateEuclideanMap()
+{
+    uint32_t pulses = config->euclideanSteps;
+    uint32_t steps = config->euclideanLengths;
+    uint32_t offset = config->euclideanOffset;
+
+    if (steps > 32) {
+        euclideanMap = 0;
+        MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d > 32", steps);
+        return;
+    }
+    if (steps == 0 || pulses == 0) {
+        euclideanMap = 0;
+        MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d, pulses=%d", steps, pulses);
+        return;
+    }
+    if (pulses >= steps) {
+        euclideanMap = (steps == 32) ? 0xFFFFFFFF : ((1 << steps) - 1);
+        MLOGD("Arpeggiator", "Euclidean map generated (full pattern): steps=%d, length=%d, offset=%d, map=0x%08X",
+              pulses, steps, offset, euclideanMap);
+        return;
+    }
+
+    // --- Bjorklund algorithm (build counts/remainders) ---
+    std::vector<int> counts;
+    std::vector<int> remainders;
+    remainders.push_back(static_cast<int>(pulses));
+    int divisor = static_cast<int>(steps - pulses);
+    int level = 0;
+
+    while (true) {
+        counts.push_back(divisor / remainders[level]);
+        remainders.push_back(divisor % remainders[level]);
+        divisor = remainders[level];
+        level++;
+        if (remainders[level] <= 1) break;
+    }
+    counts.push_back(divisor);
+
+    // --- Iterative build of pattern ---
+    struct Frame {
+        int level;
+        int state;
+        int repeat;
+    };
+
+    std::vector<int> pattern;
+    std::vector<Frame> stack;
+    stack.push_back({level, 0, 0});
+
+    while (!stack.empty()) {
+        Frame &f = stack.back();
+
+        if (f.level == -1) {
+            pattern.push_back(0);
+            stack.pop_back();
+        } else if (f.level == -2) {
+            pattern.push_back(1);
+            stack.pop_back();
+        } else {
+            if (f.state < counts[f.level]) {
+                // simulate "for (i...)" loop calling build(level-1)
+                f.state++;
+                stack.push_back({f.level - 1, 0, 0});
+            } else if (remainders[f.level] != 0 && f.state == counts[f.level]) {
+                f.state++;
+                stack.push_back({f.level - 2, 0, 0});
+            } else {
+                stack.pop_back();
+            }
+        }
+    }
+
+    // --- Pack into uint32_t (LSB = first step) ---
+    uint32_t bitmap = 0u;
+    for (size_t i = 0; i < pattern.size() && i < 32; ++i)
+        if (pattern[i]) bitmap |= (1u << (31 - i));
+
+    // --- Circular left rotation by offset ---
+    if (steps < 32) {
+        uint32_t mask = (1u << steps) - 1u;
+        offset %= steps;
+        bitmap = ((bitmap << offset) | (bitmap >> (steps - offset))) & mask;
+    } else {
+        offset %= 32;
+        bitmap = (bitmap << offset) | (bitmap >> (32 - offset));
+    }
+
+    euclideanMap = bitmap;
+    MLOGD("Arpeggiator", "Euclidean map generated: steps=%d, length=%d, offset=%d, map=0x%08X",
+          pulses, steps, offset, euclideanMap);
 }
 
 void Arpeggiator::Reset() {
@@ -619,7 +718,9 @@ void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
     {
         config = cfg;
     }
+    GenerateEuclideanMap();
     CalculateTicksPerStep(); // Recalculate timings when config changes
+    
     UpdateSequence();
 }
 

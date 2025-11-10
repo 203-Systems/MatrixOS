@@ -69,6 +69,10 @@ struct ArpeggiatorConfig {
     uint8_t step = 1;                      // Step (1 to 16)
     int8_t stepOffset = 12;                // Step offset (-48 to 48 semitones)
     uint8_t repeat = 0;               // Repeat the the sequence # times before stopping (0 to 100) (0 will be inf)
+
+    uint8_t euclideanLengths = 16;
+    uint8_t euclideanSteps = 16;
+    uint8_t euclideanOffset = 0;
 };
 
 struct ArpNote {
@@ -80,7 +84,6 @@ struct ArpNote {
 
 class Arpeggiator : public MidiEffect {
 private:
-    ArpeggiatorConfig* config;       // Configuration pointer
     vector<ArpNote> notePool;        // All active notes
     vector<ArpNote> arpSequence;     // Current arp sequence
     uint8_t currentIndex = 0;        // Current position in sequence
@@ -96,6 +99,7 @@ private:
         uint8_t note;
         uint8_t channel;
     };
+
     deque<GateOffEvent> gateOffQueue; // Chronologically ordered queue of gate-off events
 
     bool disableOnNextTick = false;
@@ -111,9 +115,17 @@ private:
     void UpdateSequence();
     void StepArpeggiator(deque<MidiPacket>& output);
     void CalculateTicksPerStep();
+    void GenerateEuclideanMap();
 
 public:
+    ArpeggiatorConfig* config;       // Configuration pointer
+    
     ArpDivision division = DIV_OFF;  // Note division (internal control)
+
+    // Euclidean sequencing
+    uint16_t euclideanIndex = 0;
+    uint32_t euclideanMap = 0xFFFFFFFF;
+
     
     Arpeggiator(ArpeggiatorConfig* cfg);
 
