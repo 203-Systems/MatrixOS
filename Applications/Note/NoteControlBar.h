@@ -28,6 +28,7 @@ class NoteControlBar : public UIComponent {
     uint32_t pitch_down = 0;
     uint32_t pitch_up = 0;
     bool chordExtKeyOn[4] = {false, false, false, false}; // Track which extension keys are pressed
+    uint32_t latchToggleModeOnTime = 0;
 
     void SwapActiveConfig();
     bool ShiftActive();

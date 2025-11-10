@@ -129,6 +129,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
        if(keyInfo->State() == PRESSED) {
             if(ShiftActive()) {
                 notePad[0]->rt->noteLatch.SetToggleMode(!notePad[0]->rt->noteLatch.IsToggleMode());
+                latchToggleModeOnTime = MatrixOS::SYS::Millis();
                 ShiftEventOccured();
             }
             else
@@ -445,7 +446,8 @@ bool NoteControlBar::Render(Point origin) {
     MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1), MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color::White : Color(0x00FF00));
     Color latchColor;
     if (notePad[0]->rt->noteLatch.IsToggleMode()) {
-        latchColor = Color(0x6060FF);
+        uint8_t strobe = ColorEffects::Strobe(1000, latchToggleModeOnTime);
+        latchColor = strobe ? Color(0x6060FF) : Color::White;
     } else if(notePad[0]->rt->noteLatch.IsEnabled()) {
         latchColor = Color::White; // White when enabled
     } else {
