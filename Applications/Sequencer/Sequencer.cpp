@@ -31,33 +31,6 @@ void Sequencer::SequencerMenu()
 {
     UI sequencerMenu("Sequencer Menu", Color(0x00FFFF), true);
 
-    // UISelector trackSelector;
-    // trackSelector.SetCount(8);
-    // trackSelector.SetDimension(Dimension(8, 1));
-    // trackSelector.SetIndividualColorFunc([&](uint16_t index) -> Color {
-    //     if(index >= meta.tracks.size()) {return Color::Black;}
-    //     return meta.tracks[index].color;
-    // });
-    // trackSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return "Track " + std::to_string(index + 1); });
-    // trackSelector.SetValuePointer((uint16_t*)&track);
-    // trackSelector.OnChange([&](uint16_t val) -> void {track = val;});
-    // sequencerMenu.AddUIComponent(&trackSelector, Point(0, 0));
-
-    // UIButton colorSelectorBtn;
-    // colorSelectorBtn.SetName("Color Selector");
-    // colorSelectorBtn.SetColorFunc([&]() -> Color {
-    //     if(track < meta.tracks.size()) {
-    //         return meta.tracks[track].color;
-    //     }
-    //     return Color::White;
-    // });
-    // colorSelectorBtn.OnPress([&]() -> void {
-    //     if(track < meta.tracks.size() && MatrixOS::UIUtility::ColorPicker(meta.tracks[track].color)) {
-    //         sequence.SetDirty();
-    //     }
-    // });
-    // sequencerMenu.AddUIComponent(&colorSelectorBtn, Point(7, 2));
-
     TrackSelector trackSelector(&sequence, &meta, &track);
     sequencerMenu.AddUIComponent(&trackSelector, Point(0, 0));
 
