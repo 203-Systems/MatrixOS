@@ -8,7 +8,7 @@ void SequenceEvent::ExecuteEvent(SequenceData& sequenceData, uint8_t track)
         case SequenceEventType::NoteEvent:
         {
             SequenceEventNote noteEvent = std::get<SequenceEventNote>(data);
-            uint8_t channel = sequenceData.trackList[track].channel;
+            uint8_t channel = sequenceData.tracks[track].channel;
             if(noteEvent.aftertouch)
             {
                 MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, noteEvent.note, noteEvent.velocity), MIDI_PORT_ALL);
@@ -22,7 +22,7 @@ void SequenceEvent::ExecuteEvent(SequenceData& sequenceData, uint8_t track)
         case SequenceEventType::ControlChangeEvent:
         {
             SequenceEventCC ccEvent = std::get<SequenceEventCC>(data);
-            uint8_t channel = sequenceData.trackList[track].channel;
+            uint8_t channel = sequenceData.tracks[track].channel;
             MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, ccEvent.param, ccEvent.value), MIDI_PORT_ALL);
             break;
         }

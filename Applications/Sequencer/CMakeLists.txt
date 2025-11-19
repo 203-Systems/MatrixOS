@@ -1,5 +1,6 @@
 add_library(Sequencer
     Sequencer.cpp
+    Sequence.cpp
     SequenceEvent.cpp
 )
 

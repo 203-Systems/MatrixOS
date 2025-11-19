@@ -3,7 +3,11 @@
 #include "MatrixOS.h"
 #include "Application.h"
 
-#include "SequenceData.h"
+#include "Sequence.h"
+#include "SequenceMeta.h"
+
+#define SEQUENCE_VERSION 1
+
 
 class Sequencer : public Application {
  public:
@@ -16,10 +20,19 @@ class Sequencer : public Application {
   };
 
   void Setup(const vector<string>& args) override;
-  void Loop() override;
 
+  CreateSavedVar("Sequencer", lastSequence, string, "");
+  
   SequenceMeta meta;
-  SequenceData data;
+  Sequence sequence;
 
   uint8_t track = 0;
+
+  void ColorSelector();
+  void LayoutSelector();
+  void ChannelSelector();
+  void BPMSelector();
+
+  void SequencerUI();
+  void SequencerMenu();
 };
