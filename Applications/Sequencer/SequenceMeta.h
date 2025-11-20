@@ -32,6 +32,7 @@ struct SequenceTrackModeConfig {
 
 struct SequenceMetaTrack {
     Color color;
+    bool velocitySensitive = true;
     SequenceTrackMode mode;
     SequenceTrackModeConfig config;
 };

@@ -109,6 +109,21 @@ void Sequencer::SequencerMenu()
     channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
     sequencerMenu.AddUIComponent(&channelSelectorBtn, Point(7, 4));
 
+    UIButton forceSensitiveToggle;
+    forceSensitiveToggle.SetName("Velocity Sensitive");
+    if(Device::KeyPad::velocity_sensitivity)
+    {
+        forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
+        forceSensitiveToggle.OnPress([&]() -> void { meta.tracks[track].velocitySensitive = !meta.tracks[track].velocitySensitive; sequence.SetDirty(); });
+        forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (meta.tracks[track].velocitySensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
+    }
+    else
+    {
+        forceSensitiveToggle.SetColor(Color(0x00FFB0).Dim());
+        forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
+    }
+    sequencerMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
+
     // Left side, Sequencer Global settings
     UIButton bpmSelectorBtn;
     bpmSelectorBtn.SetName("BPM Selector");
