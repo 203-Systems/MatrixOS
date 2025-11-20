@@ -37,26 +37,33 @@ void Sequencer::SequencerUI()
 
     SequencePattern* pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
 
-    vector<uint8_t> stepSelected;
-    std::unordered_map<uint8_t, uint8_t> noteSelected;
-    std::unordered_multiset<uint8_t> noteActive;
-
-    SequenceVisualizer sequenceVisualizer(this, &stepSelected, &noteSelected, &noteActive);
+    SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
     sequenceVisualizer.OnSelect([&](uint8_t step) -> void
     {
-        if(pattern != nullptr && !noteSelected.empty())
+        if(pattern == nullptr)
+        {
+            return;
+        }
+
+        if(ClearActive())
+        {
+            ClearStep(pattern, step);
+        }
+        else if(CopyActive() && stepSelected.size() >= 2) // Self is included
+        {
+            CopyStep(pattern, stepSelected[0], step);
+        }
+        else if(!noteSelected.empty())
         {
             for (const auto& [note, velocity] : noteSelected)
             {
-                SequenceEvent event = SequenceEvent::Note(note, velocity, false);
-                pattern->AddEvent(step * Sequence::PPQN, event);
-                noteActive.insert(note);
+                StepAddNote(pattern, step, note, velocity);
             }
         }
     });
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
-    SequencerNotePad notePad(this, &noteSelected, &noteActive);
+    SequencerNotePad notePad(this, &this->noteSelected, &this->noteActive);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
     {
         if(pattern != nullptr && noteOn)
@@ -86,12 +93,19 @@ void Sequencer::SequencerUI()
             }
         }
 
-        // TODO: Pass into Sequence for record
+        // TODO: Pass into Sequence to record
 
     });
     sequencerUI.AddUIComponent(&notePad, Point(0, 3));
 
     ControlBar controlBar(this, &notePad);
+    controlBar.OnClear([&]() -> void
+    {
+        for (const auto& step : stepSelected)
+        {
+            ClearStep(pattern, step);
+        }
+    });
     sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
 
     TrackSelector trackSelector(this);
@@ -127,6 +141,19 @@ void Sequencer::SequencerUI()
     {
       if (keyEvent->info.state == RELEASED)
       {
+        // Clean up the state
+        clear = false;
+        copy = false;
+        shift = 0;
+        shiftEventOccured = false;
+
+        // Release all note in noteSelected
+        uint8_t channel = sequence.GetChannel(track);
+        for (const auto& [note, velocity] : noteSelected)
+        {
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+        }
+
         SequencerMenu();
       }
       return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
@@ -367,4 +394,81 @@ void Sequencer::ChannelSelector()
 
 void Sequencer::BPMSelector()
 {
+}
+
+bool Sequencer::ClearActive()
+{
+    return clear;
+}
+
+bool Sequencer::CopyActive()
+{
+    return copy;
+}
+
+bool Sequencer::ShiftActive()
+{
+    return shift > 0;
+}
+
+void Sequencer::ShiftEventOccured()
+{
+    shiftEventOccured = true;
+}
+
+void Sequencer::ClearStep(SequencePattern* pattern, uint8_t step)
+{
+    uint16_t startTime = step * Sequence::PPQN;
+    uint16_t endTime = startTime + Sequence::PPQN - 1;
+    uint8_t channel = sequence.GetChannel(track);
+
+    // Remove notes from noteActive and send noteOff
+    auto it = pattern->events.lower_bound(startTime);
+    while (it != pattern->events.end() && it->first <= endTime)
+    {
+        if (it->second.eventType == SequenceEventType::NoteEvent)
+        {
+            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+            auto activeIt = noteActive.find(noteData.note);
+            if(activeIt != noteActive.end())
+            {
+                MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+                noteActive.erase(activeIt);
+            }
+        }
+        ++it;
+    }
+
+    pattern->RemoveAllEventsInRange(startTime, endTime);
+}
+
+void Sequencer::CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest)
+{
+    // Clear destination first
+    ClearStep(pattern, dest);
+
+    // Copy events
+    uint16_t sourceStartTime = src * Sequence::PPQN;
+    uint16_t destStartTime = dest * Sequence::PPQN;
+    pattern->CopyEventsInRange(sourceStartTime, destStartTime, Sequence::PPQN);
+
+    // Add copied notes to noteActive
+    uint16_t destEndTime = destStartTime + Sequence::PPQN - 1;
+    auto it = pattern->events.lower_bound(destStartTime);
+    while (it != pattern->events.end() && it->first <= destEndTime)
+    {
+        if (it->second.eventType == SequenceEventType::NoteEvent)
+        {
+            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+            noteActive.insert(noteData.note);
+        }
+        ++it;
+    }
+}
+
+void Sequencer::StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch)
+{
+    SequenceEvent event = SequenceEvent::Note(note, velocity, aftertouch);
+    pattern->AddEvent(step * Sequence::PPQN, event);
+    noteActive.insert(note);
 }

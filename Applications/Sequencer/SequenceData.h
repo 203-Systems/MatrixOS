@@ -53,6 +53,41 @@ struct SequencePattern {
         }
         return removed;
     }
+
+    bool RemoveAllEventsInRange(uint16_t startTime, uint16_t endTime)
+    {
+        bool removed = false;
+        auto it = events.lower_bound(startTime);
+        while (it != events.end() && it->first <= endTime)
+        {
+            it = events.erase(it);
+            removed = true;
+        }
+        return removed;
+    }
+
+    void CopyEventsInRange(uint16_t sourceStart, uint16_t destStart, uint16_t length)
+    {
+        vector<std::pair<uint16_t, SequenceEvent>> eventsToCopy;
+
+        uint16_t sourceEnd = sourceStart + length - 1;
+
+        // Collect events in source range
+        auto it = events.lower_bound(sourceStart);
+        while (it != events.end() && it->first <= sourceEnd)
+        {
+            uint16_t offset = it->first - sourceStart;
+            uint16_t newTimestamp = destStart + offset;
+            eventsToCopy.push_back({newTimestamp, it->second});
+            ++it;
+        }
+
+        // Add copied events to destination
+        for (const auto& [timestamp, event] : eventsToCopy)
+        {
+            events.insert({timestamp, event});
+        }
+    }
 };
 
 #define SEQUENCE_MAX_PATTERN_COUNT 8

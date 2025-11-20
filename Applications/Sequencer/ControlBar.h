@@ -8,6 +8,7 @@ class SequencerNotePad; // Forward declaration
 class ControlBar : public UIComponent {
     Sequencer* sequencer;
     SequencerNotePad* notePad;
+    std::function<void()> clearCallback;
 
     public:
     ControlBar(Sequencer* sequencer, SequencerNotePad* notePad)
@@ -16,30 +17,112 @@ class ControlBar : public UIComponent {
         this->notePad = notePad;
     }
 
+    void OnClear(std::function<void()> callback)
+    {
+        clearCallback = callback;
+    }
+
     Dimension GetSize() { return Dimension(8, 1); }
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
-        if(keyInfo->state == PRESSED)
-        {
-            uint8_t track = sequencer->track;
+        uint8_t track = sequencer->track;
 
-            // Octave Down (x=6)
-            if(xy.x == 6)
+        // Play (x=0)
+        if(xy.x == 0)
+        {
+            if(keyInfo->state == PRESSED)
             {
+              if(sequencer->sequence.Playing())
+              {
+                sequencer->sequence.Stop();
+              }
+              else
+              {
+                sequencer->sequence.Play();
+              }
+            }
+            return true;
+        }
+        // Record (x=1)
+        else if(xy.x == 1)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
+            }
+            return true;
+        }
+        // Clear (x=4)
+        else if(xy.x == 4)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+                sequencer->clear = true;
+            }
+            else if(keyInfo->state == RELEASED)
+            {
+                sequencer->clear = false;
+                if(clearCallback != nullptr)
+                {
+                    clearCallback();
+                }
+            }
+            return true;
+        }
+        // Copy (x=5)
+        else if(xy.x == 5)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+                sequencer->copy = true;
+            }
+            else if(keyInfo->state == RELEASED)
+            {
+                sequencer->copy = false;
+            }
+            return true;
+        }
+        // Octave Down (x=6)
+        else if(xy.x == 6)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              sequencer->shift++;
+            }
+            else if(keyInfo->state == RELEASED)
+            {
+              if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
+              {
                 if(sequencer->meta.tracks[track].config.note.octave > 0)
                 {
-                    sequencer->meta.tracks[track].config.note.octave--;
-                    sequencer->sequence.SetDirty();
-                    if(notePad != nullptr)
-                    {
-                        notePad->GenerateKeymap();
-                    }
+                  sequencer->meta.tracks[track].config.note.octave--;
+                  sequencer->sequence.SetDirty();
+                  if(notePad != nullptr)
+                  {
+                      notePad->GenerateKeymap();
+                  }
                 }
-                return true;
+              }
             }
-            // Octave Up (x=7)
-            else if(xy.x == 7)
+            sequencer->shift--;
+
+            if(sequencer->shift == 0)
             {
+              sequencer->shiftEventOccured = false;
+            }
+            return true;
+        }
+        // Octave Up (x=7)
+        else if(xy.x == 7)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              sequencer->shift++;
+            }
+            else if(keyInfo->state == RELEASED)
+            {
+              if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
+              {
                 if(sequencer->meta.tracks[track].config.note.octave < 9)
                 {
                     sequencer->meta.tracks[track].config.note.octave++;
@@ -49,8 +132,15 @@ class ControlBar : public UIComponent {
                         notePad->GenerateKeymap();
                     }
                 }
-                return true;
+              }
+              sequencer->shift--;
+
+              if(sequencer->shift == 0)
+              {
+                sequencer->shiftEventOccured = false;
+              }
             }
+            return true;
         }
         return true;
     }

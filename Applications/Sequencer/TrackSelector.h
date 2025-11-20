@@ -28,9 +28,12 @@ class TrackSelector : public UIComponent {
     { 
         if(keyInfo->State() == PRESSED)
         {
-            sequencer->track = xy.x;
-            if (changeCallback != nullptr) {
-                (changeCallback)(xy.x);
+            if(xy.x != sequencer->track)
+            {
+                sequencer->track = xy.x;
+                if (changeCallback != nullptr) {
+                    (changeCallback)(xy.x);
+                }
             }
         }
         else if(keyInfo->State() == HOLD)
