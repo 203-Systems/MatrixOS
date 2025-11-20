@@ -4,6 +4,7 @@
 #include "Scales.h"
 #include "PatternSelector.h"
 #include "TrackSelector.h"
+#include "ClipLauncher.h"
 #include "SequenceVisualizer.h"
 #include "NotePad.h"
 #include "ControlBar.h"
@@ -21,9 +22,11 @@ void Sequencer::Setup(const vector<string> &args)
         // Load sequence
     }
 
+    trackClipIdx.resize(sequence.GetTrackCount());
     trackPatternIdx.resize(sequence.GetTrackCount());
     for (uint8_t i = 0; i < sequence.GetTrackCount(); i++)
     {
+        trackClipIdx[i] = 0;
         trackPatternIdx[i] = 0;
     }
 
@@ -36,7 +39,7 @@ void Sequencer::SequencerUI()
 
     uint8_t track = this->track;
 
-    SequencePattern* pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
+    SequencePattern* pattern = &sequence.GetPattern(track, trackClipIdx[track], trackPatternIdx[track]);
 
     SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
     sequenceVisualizer.OnSelect([&](uint8_t step) -> void
@@ -105,15 +108,28 @@ void Sequencer::SequencerUI()
     patternSelector.OnChange([&](uint8_t patternIdx) -> void
     {
         ClearActiveNotes();
-        pattern = &sequence.GetPattern(track, patternIdx);
+        pattern = &sequence.GetPattern(track, trackClipIdx[track], patternIdx);
     });
     patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && (ShiftActive() || patternView); });
     sequencerUI.AddUIComponent(&patternSelector, Point(0, 3));
 
+    // Session View
+    ClipLauncher clipLauncher(this);
+    clipLauncher.OnChange([&](uint8_t track, uint8_t clip) -> void
+    {
+        stepSelected.clear();
 
+        ClearActiveNotes();
+        ClearSelectedNotes();
 
-    // MixerView
+        notePad.GenerateKeymap();
 
+        pattern = &sequence.GetPattern(track, clip, trackPatternIdx[track]);
+    });
+    clipLauncher.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Session; });
+    sequencerUI.AddUIComponent(&clipLauncher, Point(0, 0));
+    
+    // Mixer View
 
     // Global
     TrackSelector trackSelector(this);
@@ -128,8 +144,9 @@ void Sequencer::SequencerUI()
 
         track = this->track;
 
-        pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
+        pattern = &sequence.GetPattern(track, trackClipIdx[track], trackPatternIdx[track]);
     });
+    trackSelector.SetEnableFunc([&]() -> bool { return currentView != ViewMode::Session; });
     sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
 
     ControlBar controlBar(this, &notePad);

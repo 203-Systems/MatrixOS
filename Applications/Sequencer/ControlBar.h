@@ -52,28 +52,8 @@ class ControlBar : public UIComponent {
             }
             return true;
         }
-        // Mixer (x=2)
+        // Session (x=2)
         else if(xy.x == 2)
-        {
-            if(keyInfo->state == PRESSED)
-            {
-              if(sequencer->currentView == Sequencer::ViewMode::Mixer)
-              {
-                sequencer->SetView(Sequencer::ViewMode::Sequencer);
-              }
-              else
-              {
-                sequencer->SetView(Sequencer::ViewMode::Mixer);
-              }
-            }
-            else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
-            {
-              sequencer->SetView(Sequencer::ViewMode::Sequencer);
-            }
-            return true;
-        }
-        // Session (x=3)
-        else if(xy.x == 3)
         {
             if(keyInfo->state == PRESSED)
             {
@@ -87,6 +67,26 @@ class ControlBar : public UIComponent {
               }
             }
             else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Session)
+            {
+              sequencer->SetView(Sequencer::ViewMode::Sequencer);
+            }
+            return true;
+        }
+        // Mixer (x=3)
+        else if(xy.x == 3)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+              {
+                sequencer->SetView(Sequencer::ViewMode::Sequencer);
+              }
+              else
+              {
+                sequencer->SetView(Sequencer::ViewMode::Mixer);
+              }
+            }
+            else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
             {
               sequencer->SetView(Sequencer::ViewMode::Sequencer);
             }
@@ -248,7 +248,7 @@ class ControlBar : public UIComponent {
         MatrixOS::LED::SetColor(point, color);
       }
 
-      // Mixer View
+      // Session View
       {
         Point point = origin + Point(2, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
@@ -257,7 +257,7 @@ class ControlBar : public UIComponent {
         MatrixOS::LED::SetColor(point, color);
       }
 
-      // Session View
+      // Mixer View
       {
         Point point = origin + Point(3, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Session ?
@@ -280,7 +280,7 @@ class ControlBar : public UIComponent {
         Point point = origin + Point(5, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
                 Color::White :
-                Color(0x00C0FF);
+                Color(0x00A0FF);
         MatrixOS::LED::SetColor(point, color);
       }
 

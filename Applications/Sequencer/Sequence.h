@@ -5,8 +5,9 @@
 
 struct SequencePosition
 {
-    uint8_t pattern;
-    uint8_t quarterNote;
+    uint8_t clip = 0;
+    uint8_t pattern = 0;
+    uint8_t quarterNote = 0;
 };
 
 class Sequence
@@ -50,13 +51,22 @@ public:
 
     uint8_t GetTrackCount();
 
-    uint8_t GetPatternCount(uint8_t track);
+    // Clip management
+    uint8_t GetClipCount(uint8_t track);
+    bool ClipExists(uint8_t track, uint8_t clip);
+    bool GetClipEnabled(uint8_t track, uint8_t clip);
+    void SetClipEnabled(uint8_t track, uint8_t clip, bool enabled);
+    bool NewClip(uint8_t track, uint8_t clipId);
+    void DeleteClip(uint8_t track, uint8_t clip);
+    void CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTrack, uint8_t destClip);
 
-    SequencePattern& GetPattern(uint8_t track, uint8_t pattern);
-    int8_t NewPattern(uint8_t track, uint8_t quarterNotes = 16);
-    void ClearPattern(uint8_t track, uint8_t pattern);
-    void DeletePattern(uint8_t track, uint8_t pattern);
-    void CopyPattern(uint8_t sourceTrack, uint8_t sourcePattern, uint8_t destTrack, uint8_t destPattern = 255); // if destPattern is 255, then will create new pattern
+    // Pattern management (now with clip parameter)
+    uint8_t GetPatternCount(uint8_t track, uint8_t clip);
+    SequencePattern& GetPattern(uint8_t track, uint8_t clip, uint8_t pattern);
+    int8_t NewPattern(uint8_t track, uint8_t clip, uint8_t quarterNotes = 16);
+    void ClearPattern(uint8_t track, uint8_t clip, uint8_t pattern);
+    void DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern);
+    void CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sourcePattern, uint8_t destTrack, uint8_t destClip, uint8_t destPattern = 255); // if destPattern is 255, then will create new pattern
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);

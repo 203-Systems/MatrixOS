@@ -92,9 +92,15 @@ struct SequencePattern {
 
 #define SEQUENCE_MAX_PATTERN_COUNT 16
 
+
+struct SequenceClip {
+    bool enabled = true;
+    vector<SequencePattern> patterns;
+};
+
 struct SequenceTrack {
     uint8_t channel = 0;
-    vector<SequencePattern> patterns;
+    std::unordered_map<uint8_t, SequenceClip> clips;
 };
 
 struct SequenceData {
