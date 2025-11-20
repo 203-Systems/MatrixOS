@@ -39,14 +39,14 @@ class ClipLauncher : public UIComponent {
             if(sequencer->CopyActive())
             {
                 uint8_t sourceTrack = sequencer->track;
-                uint8_t sourceClip = sequencer->trackClipIdx[sourceTrack];
+                uint8_t sourceClip = sequencer->sequence.GetPosition(sourceTrack).clip;
 
                 // Copy clip (includes all patterns and enabled state)
                 sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
 
                 // Select the newly copied clip
                 sequencer->track = track;
-                sequencer->trackClipIdx[track] = clip;
+                sequencer->sequence.SetClip(track, clip);
 
                 if (changeCallback != nullptr)
                 {
@@ -66,7 +66,7 @@ class ClipLauncher : public UIComponent {
 
                 // Select the newly created clip
                 sequencer->track = track;
-                sequencer->trackClipIdx[track] = clip;
+                sequencer->sequence.SetClip(track, clip);
 
                 if (changeCallback != nullptr)
                 {
@@ -79,17 +79,17 @@ class ClipLauncher : public UIComponent {
                 sequencer->sequence.DeleteClip(track, clip);
 
                 // Update selection if we deleted the current clip
-                if(sequencer->trackClipIdx[track] == clip)
+                if(sequencer->sequence.GetPosition(track).clip == clip)
                 {
                     // Find first available clip or default to 0
-                    sequencer->trackClipIdx[track] = 0;
+                    sequencer->sequence.SetClip(track, 0);
                 }
             }
             // Select clip
             else
             {
                 sequencer->track = track;
-                sequencer->trackClipIdx[track] = clip;
+                sequencer->sequence.SetClip(track, clip);
 
                 if (changeCallback != nullptr)
                 {
@@ -125,7 +125,7 @@ class ClipLauncher : public UIComponent {
                 else
                 {
                     Color trackColor = sequencer->meta.tracks[track].color;
-                    bool isSelected = (sequencer->track == track && sequencer->trackClipIdx[track] == clip);
+                    bool isSelected = (sequencer->track == track && sequencer->sequence.GetPosition(track).clip == clip);
                     bool isPlaying = sequencer->sequence.Playing() && sequencer->sequence.GetPosition(track).clip == clip;
 
                     if(isPlaying)

@@ -42,6 +42,9 @@ void Sequence::New(uint8_t tracks)
         position[i].quarterNote = 0;
     }
 
+    nextClip.clear();
+    nextClip.resize(tracks, 255);
+
     data.solo = 0;
     data.mute = 0;
     data.record = 0xFFFFFFFF;
@@ -77,6 +80,57 @@ void Sequence::UpdateTiming()
     usPerQuarterNote[1] = usPerTick[1] * PPQN;
 }
 
+uint8_t Sequence::FindNextClip(uint8_t track, int8_t clip)
+{
+    if(data.tracks[track].clips.empty())
+    {
+        return 255;
+    }
+
+    // If clip is -1, find the lowest clip index
+    if(clip == -1)
+    {
+        uint8_t lowestClip = 255;
+        for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
+        {
+            if(clipIdx < lowestClip)
+            {
+                lowestClip = clipIdx;
+            }
+        }
+        return lowestClip;
+    }
+    // Otherwise, find the next clip after the given clip index
+    else
+    {
+        uint8_t nextClipIdx = 255;
+        uint8_t lowestClip = 255;
+
+        for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
+        {
+            // Track the lowest clip for wrap-around
+            if(clipIdx < lowestClip)
+            {
+                lowestClip = clipIdx;
+            }
+
+            // Find next clip higher than current
+            if(clipIdx > clip && clipIdx < nextClipIdx)
+            {
+                nextClipIdx = clipIdx;
+            }
+        }
+
+        // If no higher clip found, wrap around to lowest clip
+        if(nextClipIdx == 255)
+        {
+            return lowestClip;
+        }
+
+        return nextClipIdx;
+    }
+}
+
 // Playback control
 void Sequence::Play()
 {
@@ -87,6 +141,9 @@ void Sequence::Play()
         position[i].clip = 0;
         position[i].pattern = 0;
         position[i].quarterNote = 0;
+
+        // Set nextClip to the lowest clip index for this track
+        nextClip[i] = FindNextClip(i, -1);
     }
 }
 
@@ -98,6 +155,11 @@ bool Sequence::Playing()
 void Sequence::Stop()
 {
     playing = false;
+
+    // Reset nextClip to 255 for all tracks
+    for (uint8_t i = 0; i < nextClip.size(); i++) {
+        nextClip[i] = 255;
+    }
 }
 
 // Recording
@@ -164,12 +226,16 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
     // Update position if pointing to deleted clip
     if(position[track].clip == clip)
     {
-        // Find first available clip or create clip 0
+        // Find lowest available clip or create clip 0
         if(data.tracks[track].clips.empty())
         {
             NewClip(track, 0);
+            position[track].clip = 0;
         }
-        position[track].clip = data.tracks[track].clips.begin()->first;
+        else
+        {
+            position[track].clip = FindNextClip(track, -1);
+        }
         position[track].pattern = 0;
         position[track].quarterNote = 0;
     }
@@ -432,6 +498,36 @@ bool Sequence::GetEnabled(uint8_t track)
 SequencePosition& Sequence::GetPosition(uint8_t track)
 {
     return position[track];
+}
+
+void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t quarterNote)
+{
+    position[track].clip = clip;
+    position[track].pattern = pattern;
+    position[track].quarterNote = quarterNote;
+}
+
+void Sequence::SetClip(uint8_t track, uint8_t clip)
+{
+    position[track].clip = clip;
+    position[track].pattern = 0;
+    position[track].quarterNote = 0;
+}
+
+void Sequence::SetPattern(uint8_t track, uint8_t pattern)
+{
+    position[track].pattern = pattern;
+    position[track].quarterNote = 0;
+}
+
+uint8_t Sequence::GetNextClip(uint8_t track)
+{
+    return nextClip[track];
+}
+
+void Sequence::SetNextClip(uint8_t track, uint8_t clip)
+{
+    nextClip[track] = clip;
 }
 
 // Current pulse

@@ -25,7 +25,7 @@ class PatternSelector : public UIComponent {
         if(keyInfo->State() == PRESSED)
         {
             uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->trackClipIdx[track];
+            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
             uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
             uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
 
@@ -35,15 +35,16 @@ class PatternSelector : public UIComponent {
                 // Copy current pattern to new pattern if CopyActive
                 if(sequencer->CopyActive())
                 {
-                    uint8_t sourcePattern = sequencer->trackPatternIdx[track];
+                    uint8_t sourcePattern = sequencer->sequence.GetPosition(track).pattern;
                     sequencer->sequence.CopyPattern(track, clip, sourcePattern, track, clip, 255);
 
                     // Select the newly created pattern
-                    sequencer->trackPatternIdx[track] = sequencer->sequence.GetPatternCount(track, clip) - 1;
+                    uint8_t newPattern = sequencer->sequence.GetPatternCount(track, clip) - 1;
+                    sequencer->sequence.SetPattern(track, newPattern);
 
                     if (changeCallback != nullptr)
                     {
-                        changeCallback(sequencer->trackPatternIdx[track]);
+                        changeCallback(newPattern);
                     }
                 }
                 // Add new empty pattern
@@ -52,7 +53,7 @@ class PatternSelector : public UIComponent {
                     int8_t newPatternIdx = sequencer->sequence.NewPattern(track, clip, 16);
                     if(newPatternIdx >= 0)
                     {
-                        sequencer->trackPatternIdx[track] = newPatternIdx;
+                        sequencer->sequence.SetPattern(track, newPatternIdx);
                         if (changeCallback != nullptr)
                         {
                             changeCallback(newPatternIdx);
@@ -69,36 +70,41 @@ class PatternSelector : public UIComponent {
                     sequencer->sequence.DeletePattern(track, clip, patternIdx);
 
                     // Update selected pattern index if needed
-                    if(sequencer->trackPatternIdx[track] >= sequencer->sequence.GetPatternCount(track, clip))
+                    uint8_t currentPattern = sequencer->sequence.GetPosition(track).pattern;
+                    if(currentPattern >= sequencer->sequence.GetPatternCount(track, clip))
                     {
-                        sequencer->trackPatternIdx[track] = sequencer->sequence.GetPatternCount(track, clip) - 1;
+                        currentPattern = sequencer->sequence.GetPatternCount(track, clip) - 1;
+                        sequencer->sequence.SetPattern(track, currentPattern);
                     }
 
                     if (changeCallback != nullptr)
                     {
-                        changeCallback(sequencer->trackPatternIdx[track]);
+                        changeCallback(currentPattern);
                     }
                 }
                 // Copy pattern if CopyActive
                 else if(sequencer->CopyActive()) //Take a short cut here and not check if current pattern is held
                 {
-                    uint8_t sourcePattern = sequencer->trackPatternIdx[track];
+                    uint8_t sourcePattern = sequencer->sequence.GetPosition(track).pattern;
                     uint8_t destPattern = patternIdx;
 
                     sequencer->sequence.CopyPattern(track, clip, sourcePattern, track, clip, destPattern);
 
                     if (changeCallback != nullptr)
                     {
-                        changeCallback(sequencer->trackPatternIdx[track]);
+                        changeCallback(sequencer->sequence.GetPosition(track).pattern);
                     }
                 }
                 // Select pattern
-                else if(patternIdx != sequencer->trackPatternIdx[track])
+                else if(patternIdx != sequencer->sequence.GetPosition(track).pattern)
                 {
-                    sequencer->trackPatternIdx[track] = patternIdx;
-                    if (changeCallback != nullptr)
+                    if(sequencer->sequence.Playing() == false) // Disable pattern switching if playing
                     {
-                        changeCallback(patternIdx);
+                        sequencer->sequence.SetPattern(track, patternIdx);
+                        if (changeCallback != nullptr)
+                        {
+                            changeCallback(patternIdx);
+                        }
                     }
                 }
             }
@@ -109,9 +115,9 @@ class PatternSelector : public UIComponent {
     virtual bool Render(Point origin)
     {
         uint8_t track = sequencer->track;
-        uint8_t clip = sequencer->trackClipIdx[track];
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
         uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
-        uint8_t selectedPattern = sequencer->trackPatternIdx[track];
+        uint8_t selectedPattern = sequencer->sequence.GetPosition(track).pattern;
         Color trackColor = sequencer->meta.tracks[track].color;
 
         // Render all 16 pattern slots

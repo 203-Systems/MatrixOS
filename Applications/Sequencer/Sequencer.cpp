@@ -23,14 +23,6 @@ void Sequencer::Setup(const vector<string> &args)
         // Load sequence
     }
 
-    trackClipIdx.resize(sequence.GetTrackCount());
-    trackPatternIdx.resize(sequence.GetTrackCount());
-    for (uint8_t i = 0; i < sequence.GetTrackCount(); i++)
-    {
-        trackClipIdx[i] = 0;
-        trackPatternIdx[i] = 0;
-    }
-
     SequencerUI();
 }
 
@@ -40,7 +32,7 @@ void Sequencer::SequencerUI()
 
     uint8_t track = this->track;
 
-    SequencePattern* pattern = &sequence.GetPattern(track, trackClipIdx[track], trackPatternIdx[track]);
+    SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
 
     SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
     sequenceVisualizer.OnSelect([&](uint8_t step) -> void
@@ -109,7 +101,7 @@ void Sequencer::SequencerUI()
     patternSelector.OnChange([&](uint8_t patternIdx) -> void
     {
         ClearActiveNotes();
-        pattern = &sequence.GetPattern(track, trackClipIdx[track], patternIdx);
+        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx);
     });
     patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && (ShiftActive() || patternView); });
     sequencerUI.AddUIComponent(&patternSelector, Point(0, 3));
@@ -125,7 +117,7 @@ void Sequencer::SequencerUI()
 
         notePad.GenerateKeymap();
 
-        pattern = &sequence.GetPattern(track, clip, trackPatternIdx[track]);
+        pattern = &sequence.GetPattern(track, clip, sequence.GetPosition(track).pattern);
     });
     clipLauncher.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Session; });
     sequencerUI.AddUIComponent(&clipLauncher, Point(0, 0));
@@ -148,7 +140,7 @@ void Sequencer::SequencerUI()
 
         track = this->track;
 
-        pattern = &sequence.GetPattern(track, trackClipIdx[track], trackPatternIdx[track]);
+        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
     });
     trackSelector.SetEnableFunc([&]() -> bool { return currentView != ViewMode::Session && currentView != ViewMode::Mixer; });
     sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));

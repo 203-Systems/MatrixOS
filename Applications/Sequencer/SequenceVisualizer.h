@@ -31,7 +31,8 @@ class SequenceVisualizer : public UIComponent {
     {
         uint8_t step = xy.x + xy.y * width;
         uint8_t track = sequencer->track;
-        uint8_t patternIdx = sequencer->trackPatternIdx[track];
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
         uint8_t channel = sequencer->sequence.GetChannel(track);
 
         if(keyInfo->state == PRESSED)
@@ -43,7 +44,6 @@ class SequenceVisualizer : public UIComponent {
             }
 
             // Populate noteActive with notes from this step and send MIDI NoteOn
-            uint8_t clip = sequencer->trackClipIdx[track];
             if(patternIdx < sequencer->sequence.GetPatternCount(track, clip))
             {
                 SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
@@ -78,7 +78,6 @@ class SequenceVisualizer : public UIComponent {
             }
 
             // Clear noteActive from notes in this step and send MIDI NoteOff
-            uint8_t clip = sequencer->trackClipIdx[track];
             if(patternIdx < sequencer->sequence.GetPatternCount(track, clip))
             {
                 SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
@@ -110,13 +109,14 @@ class SequenceVisualizer : public UIComponent {
     virtual bool Render(Point origin)
     {
         uint8_t track = sequencer->track;
-        uint8_t clip = sequencer->trackClipIdx[track];
-        uint8_t patternIdx = sequencer->trackPatternIdx[track];
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
 
         // Check if pattern is selected
         if(patternIdx >= sequencer->sequence.GetPatternCount(track, clip))
         {
-            sequencer->trackPatternIdx[track] = 0;
+            sequencer->sequence.SetPattern(track, 0);
+            patternIdx = 0;
         }
 
         SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, (uint8_t)patternIdx);

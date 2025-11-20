@@ -27,8 +27,6 @@ class Sequencer : public Application {
   Sequence sequence;
 
   uint8_t track = 0;
-  vector<uint8_t> trackClipIdx;    // Which clip is active on UI per track
-  vector<uint8_t> trackPatternIdx; // Which pattern is active on UI per track
 
   // UI state
   bool patternView = false;

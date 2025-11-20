@@ -28,11 +28,13 @@ private:
     uint32_t usPerQuarterNote[2];
 
     vector<SequencePosition> position;
+    vector<uint8_t> nextClip;
 
     vector<uint32_t> lastEvent;
     vector<unordered_set<uint8_t>> activeNotes;
 
     void UpdateTiming();
+    uint8_t FindNextClip(uint8_t track, int8_t clip);
 public:
     const static uint16_t PPQN = 96;
 
@@ -92,6 +94,12 @@ public:
     bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
 
     SequencePosition& GetPosition(uint8_t track);
+    void SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t quarterNote = 0);
+    void SetClip(uint8_t track, uint8_t clip);
+    void SetPattern(uint8_t track, uint8_t pattern);
+
+    uint8_t GetNextClip(uint8_t track);
+    void SetNextClip(uint8_t track, uint8_t clip);
 
     uint16_t getCurrentPulse();
 
