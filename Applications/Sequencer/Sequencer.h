@@ -30,10 +30,22 @@ class Sequencer : public Application {
   vector<uint8_t> trackPatternIdx; // Which pattern is active on UI
 
   // UI state
+  bool patternView = false;
   bool clear = false;
   bool copy = false;
   uint8_t shift = 0;
   bool shiftEventOccured = false;
+
+  enum class ViewMode
+  {
+    Sequencer,
+    PatternSetting,
+    StepSetting,
+    Mixer,
+    Session
+  };
+
+  ViewMode currentView = ViewMode::Sequencer;
 
   vector<uint8_t> stepSelected;
   std::unordered_map<uint8_t, uint8_t> noteSelected;
@@ -53,7 +65,11 @@ class Sequencer : public Application {
   bool ShiftActive();
   void ShiftEventOccured();
 
+  void ClearActiveNotes();
+  void ClearSelectedNotes();
   void ClearStep(SequencePattern* pattern, uint8_t step);
   void CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest);
   void StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch = false);
+
+  void SetView(ViewMode view);
 };

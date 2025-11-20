@@ -40,6 +40,7 @@ struct SequenceMetaTrack {
 struct SequenceMeta {
     std::string name;
     Color color;
+    bool clockOutput;
     vector<SequenceMetaTrack> tracks;
     
     void New(uint8_t tracks)
@@ -59,6 +60,7 @@ struct SequenceMeta {
 
         this->tracks.reserve(tracks);
         color = Color(0xFF00FF); // TODO: Random Color
+        clockOutput = true;
         for(uint8_t i = 0; i < tracks; i++)
         {
             SequenceMetaTrack track;

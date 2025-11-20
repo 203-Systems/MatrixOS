@@ -52,6 +52,46 @@ class ControlBar : public UIComponent {
             }
             return true;
         }
+        // Mixer (x=2)
+        else if(xy.x == 2)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+              {
+                sequencer->SetView(Sequencer::ViewMode::Sequencer);
+              }
+              else
+              {
+                sequencer->SetView(Sequencer::ViewMode::Mixer);
+              }
+            }
+            else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
+            {
+              sequencer->SetView(Sequencer::ViewMode::Sequencer);
+            }
+            return true;
+        }
+        // Session (x=3)
+        else if(xy.x == 3)
+        {
+            if(keyInfo->state == PRESSED)
+            {
+              if(sequencer->currentView == Sequencer::ViewMode::Session)
+              {
+                sequencer->SetView(Sequencer::ViewMode::Sequencer);
+              }
+              else
+              {
+                sequencer->SetView(Sequencer::ViewMode::Session);
+              }
+            }
+            else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Session)
+            {
+              sequencer->SetView(Sequencer::ViewMode::Sequencer);
+            }
+            return true;
+        }
         // Clear (x=4)
         else if(xy.x == 4)
         {
@@ -87,6 +127,11 @@ class ControlBar : public UIComponent {
         {
             if(keyInfo->state == PRESSED)
             {
+              if(sequencer->shift)
+              {
+                sequencer->patternView = !sequencer->patternView;
+                sequencer->shiftEventOccured = true;
+              }
               sequencer->shift++;
             }
             else if(keyInfo->state == RELEASED)
@@ -103,12 +148,12 @@ class ControlBar : public UIComponent {
                   }
                 }
               }
-            }
-            sequencer->shift--;
+              sequencer->shift--;
 
-            if(sequencer->shift == 0)
-            {
-              sequencer->shiftEventOccured = false;
+              if(sequencer->shift == 0)
+              {
+                sequencer->shiftEventOccured = false;
+              }
             }
             return true;
         }
@@ -117,6 +162,11 @@ class ControlBar : public UIComponent {
         {
             if(keyInfo->state == PRESSED)
             {
+              if(sequencer->shift)
+              {
+                sequencer->patternView = !sequencer->patternView;
+                sequencer->shiftEventOccured = true;
+              }
               sequencer->shift++;
             }
             else if(keyInfo->state == RELEASED)
@@ -201,16 +251,16 @@ class ControlBar : public UIComponent {
       // Mixer View
       {
         Point point = origin + Point(2, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
+        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
                 Color::White :
                 Color(0xFFFF00);
         MatrixOS::LED::SetColor(point, color);
       }
 
-      // ???
+      // Session View
       {
         Point point = origin + Point(3, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
+        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Session ?
                 Color::White :
                 Color(0x00FF40);
         MatrixOS::LED::SetColor(point, color);

@@ -2,6 +2,7 @@
 #include "UI/UI.h"
 
 #include "Scales.h"
+#include "PatternSelector.h"
 #include "TrackSelector.h"
 #include "SequenceVisualizer.h"
 #include "NotePad.h"
@@ -61,6 +62,7 @@ void Sequencer::SequencerUI()
             }
         }
     });
+    sequenceVisualizer.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer; });
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
     SequencerNotePad notePad(this, &this->noteSelected, &this->noteActive);
@@ -96,7 +98,39 @@ void Sequencer::SequencerUI()
         // TODO: Pass into Sequence to record
 
     });
+    notePad.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer; });
     sequencerUI.AddUIComponent(&notePad, Point(0, 3));
+
+    PatternSelector patternSelector(this);
+    patternSelector.OnChange([&](uint8_t patternIdx) -> void
+    {
+        ClearActiveNotes();
+        pattern = &sequence.GetPattern(track, patternIdx);
+    });
+    patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && (ShiftActive() || patternView); });
+    sequencerUI.AddUIComponent(&patternSelector, Point(0, 3));
+
+
+
+    // MixerView
+
+
+    // Global
+    TrackSelector trackSelector(this);
+    trackSelector.OnChange([&](uint8_t val) -> void
+    {
+        stepSelected.clear();
+
+        ClearActiveNotes();
+        ClearSelectedNotes();
+
+        notePad.GenerateKeymap();
+
+        track = this->track;
+
+        pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
+    });
+    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
 
     ControlBar controlBar(this, &notePad);
     controlBar.OnClear([&]() -> void
@@ -108,31 +142,8 @@ void Sequencer::SequencerUI()
     });
     sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
 
-    TrackSelector trackSelector(this);
-    trackSelector.OnChange([&](uint8_t val) -> void
-    {
-        stepSelected.clear();
-        noteActive.clear();
-
-        uint8_t channel = sequence.GetChannel(track);
-
-        for (const auto& [note, velocity] : noteSelected)
-        {
-            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
-        }
-        noteSelected.clear();
-
-        notePad.GenerateKeymap();
-
-        track = this->track;
-
-        pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
-    });
-    
-    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
-
     sequencerUI.SetGlobalLoopFunc([&]() -> void
-                                  { sequence.Tick(); });
+                                { sequence.Tick(); });
 
     sequencerUI.AllowExit(false);
     sequencerUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
@@ -147,12 +158,8 @@ void Sequencer::SequencerUI()
         shift = 0;
         shiftEventOccured = false;
 
-        // Release all note in noteSelected
-        uint8_t channel = sequence.GetChannel(track);
-        for (const auto& [note, velocity] : noteSelected)
-        {
-            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
-        }
+        ClearActiveNotes();
+        ClearSelectedNotes();
 
         SequencerMenu();
       }
@@ -167,7 +174,7 @@ void Sequencer::SequencerMenu()
 {
     UI sequencerMenu("Sequencer Menu", Color(0x00FFFF), true);
 
-    TrackSelector trackSelector(this);
+    TrackSelector trackSelector(this, true);
     sequencerMenu.AddUIComponent(&trackSelector, Point(0, 0));
 
     // Right side, Track specific settings
@@ -223,6 +230,20 @@ void Sequencer::SequencerMenu()
                            { BPMSelector(); });
     sequencerMenu.AddUIComponent(&bpmSelectorBtn, Point(0, 2));
 
+    UIButton swingSelectorBtn;
+    swingSelectorBtn.SetName("Swing Selector");
+    swingSelectorBtn.SetColor(Color(0xFFA000));
+    swingSelectorBtn.OnPress([&]() -> void
+                           { SwingSelector(); });
+    sequencerMenu.AddUIComponent(&swingSelectorBtn, Point(0, 3));
+
+    UIToggle clockOutputToggle;
+    clockOutputToggle.SetName("Clock Output");
+    clockOutputToggle.SetColor(Color(0x00A0FF));
+    clockOutputToggle.SetValuePointer(&meta.clockOutput);
+    clockOutputToggle.OnPress([&]() -> void { sequence.SetDirty(); });
+    sequencerMenu.AddUIComponent(&clockOutputToggle, Point(0, 5));
+
     UIButton systemSettingBtn;
     systemSettingBtn.SetName("System Setting");
     systemSettingBtn.SetColor(Color::White);
@@ -252,73 +273,7 @@ void Sequencer::SequencerMenu()
 
 void Sequencer::LayoutSelector()
 {
-    Color color = Color(0x60FF00);
-    uint8_t track = this->track;
-    UI channelSelector("Channel Selector", color, false);
-    uint16_t channel = sequence.GetChannel(track);
-    int32_t offsettedChannel = channel + 1;
-
-    TrackSelector trackSelector(this);
-    trackSelector.OnChange([&](uint8_t val) -> void
-                           {
-        if (sequence.GetChannel(track) != channel) {
-            sequence.SetChannel(track, channel);
-        }
-
-        track = this->track;
-        channel = sequence.GetChannel(track);
-        offsettedChannel = channel + 1; });
-    channelSelector.AddUIComponent(&trackSelector, Point(0, 0));
-
-    UI4pxNumber numDisplay;
-    numDisplay.SetColor(color);
-    numDisplay.SetDigits(2);
-    numDisplay.SetValuePointer(&offsettedChannel);
-    numDisplay.SetAlternativeColor(Color::White);
-    numDisplay.SetSpacing(1);
-    channelSelector.AddUIComponent(numDisplay, Point(1, 1));
-
-    UISelector channelInput;
-    channelInput.SetDimension(Dimension(8, 2));
-    channelInput.SetName("Channel");
-    channelInput.SetColor(color);
-    channelInput.SetCount(16);
-    channelInput.SetValuePointer((uint16_t *)&channel);
-    channelInput.OnChange([&](uint16_t val) -> void
-                          { offsettedChannel = val + 1; });
-
-    channelSelector.AddUIComponent(channelInput, Point(0, 6));
-
-    channelSelector.SetPostRenderFunc([&]() -> void
-                                      {
-    // C
-    MatrixOS::LED::SetColor(Point(0, 1), color);
-    MatrixOS::LED::SetColor(Point(0, 2), color);
-    MatrixOS::LED::SetColor(Point(0, 3), color);
-    MatrixOS::LED::SetColor(Point(0, 4), color);
-    MatrixOS::LED::SetColor(Point(1, 1), color);
-    MatrixOS::LED::SetColor(Point(1, 4), color);
-
-    if(channel < 9)
-    {
-      //h
-      MatrixOS::LED::SetColor(Point(2, 1), Color::White);
-      MatrixOS::LED::SetColor(Point(2, 2), Color::White);
-      MatrixOS::LED::SetColor(Point(2, 3), Color::White);
-      MatrixOS::LED::SetColor(Point(2, 4), Color::White);
-      MatrixOS::LED::SetColor(Point(3, 2), Color::White);
-      MatrixOS::LED::SetColor(Point(4, 1), Color::White);
-      MatrixOS::LED::SetColor(Point(4, 2), Color::White);
-      MatrixOS::LED::SetColor(Point(4, 3), Color::White);
-      MatrixOS::LED::SetColor(Point(4, 4), Color::White);
-    } });
-
-    channelSelector.Start();
-
-    if (sequence.GetChannel(track) != channel)
-    {
-        sequence.SetChannel(track, channel);
-    }
+   
 }
 
 void Sequencer::ChannelSelector()
@@ -396,6 +351,10 @@ void Sequencer::BPMSelector()
 {
 }
 
+void Sequencer::SwingSelector()
+{
+}
+
 bool Sequencer::ClearActive()
 {
     return clear;
@@ -414,6 +373,26 @@ bool Sequencer::ShiftActive()
 void Sequencer::ShiftEventOccured()
 {
     shiftEventOccured = true;
+}
+
+void Sequencer::ClearActiveNotes()
+{
+    uint8_t channel = sequence.GetChannel(track);
+    for (const auto& note : noteActive)
+    {
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+    }
+    noteActive.clear();
+}
+
+void Sequencer::ClearSelectedNotes()
+{
+    uint8_t channel = sequence.GetChannel(track);
+    for (const auto& [note, velocity] : noteSelected)
+    {
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+    }
+    noteSelected.clear();
 }
 
 void Sequencer::ClearStep(SequencePattern* pattern, uint8_t step)
@@ -471,4 +450,20 @@ void Sequencer::StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note
     SequenceEvent event = SequenceEvent::Note(note, velocity, aftertouch);
     pattern->AddEvent(step * Sequence::PPQN, event);
     noteActive.insert(note);
+}
+
+void Sequencer::SetView(ViewMode view)
+{
+    if(currentView == view)
+    {
+        return;
+    }
+
+    if(currentView == ViewMode::Sequencer)
+    {
+        ClearSelectedNotes();
+        ClearActiveNotes();
+    }
+
+    currentView = view;
 }

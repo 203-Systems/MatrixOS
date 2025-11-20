@@ -6,12 +6,14 @@
 class TrackSelector : public UIComponent {
     Sequencer* sequencer;
     uint8_t width = 8;
+    bool textScroll = false;
     std::function<void(uint8_t)> changeCallback;
 
     public:
-    TrackSelector(Sequencer* sequence)
+    TrackSelector(Sequencer* sequence, bool textScroll = false)
     {
         this->sequencer = sequence;
+        this->textScroll = textScroll;
     
         width = sequencer->sequence.GetTrackCount();
     }
@@ -36,7 +38,7 @@ class TrackSelector : public UIComponent {
                 }
             }
         }
-        else if(keyInfo->State() == HOLD)
+        else if(textScroll && keyInfo->State() == HOLD)
         {
             Color color = sequencer->meta.tracks[xy.x].color;
             MatrixOS::UIUtility::TextScroll("Track " + std::to_string(xy.x + 1), color);

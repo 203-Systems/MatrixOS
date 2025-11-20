@@ -90,7 +90,7 @@ struct SequencePattern {
     }
 };
 
-#define SEQUENCE_MAX_PATTERN_COUNT 8
+#define SEQUENCE_MAX_PATTERN_COUNT 16
 
 struct SequenceTrack {
     uint8_t channel = 0;
