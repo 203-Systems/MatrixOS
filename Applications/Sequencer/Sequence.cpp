@@ -139,12 +139,20 @@ void Sequence::ClearPattern(uint8_t track, uint8_t pattern)
 
 void Sequence::DeletePattern(uint8_t track, uint8_t pattern)
 {
-    data.tracks[track].patterns.erase(data.tracks[track].patterns.begin() + pattern);
-    if(position[track].pattern >= pattern)
+    if(data.tracks[track].patterns.size() == 1)
     {
-        position[track].pattern--;
+        data.tracks[track].patterns[0].Clear();
+    }
+    else
+    {
+        data.tracks[track].patterns.erase(data.tracks[track].patterns.begin() + pattern);
+        if(position[track].pattern >= pattern)
+        {
+            position[track].pattern--;
+        }
     }
 }
+
 void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourcePattern, uint8_t destTrack, uint8_t destPattern)
 {
     SequencePattern& source = data.tracks[sourceTrack].patterns[sourcePattern];

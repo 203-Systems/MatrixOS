@@ -23,7 +23,7 @@ void Sequencer::Setup(const vector<string> &args)
     trackPatternIdx.resize(sequence.GetTrackCount());
     for (uint8_t i = 0; i < sequence.GetTrackCount(); i++)
     {
-        trackPatternIdx[i] = -1;
+        trackPatternIdx[i] = 0;
     }
 
     SequencerUI();
@@ -33,24 +33,15 @@ void Sequencer::SequencerUI()
 {
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
 
+    uint8_t track = this->track;
+
+    SequencePattern& pattern = sequence.GetPattern(track, trackPatternIdx[track]);
+
     vector<uint8_t> stepSelected;
     std::unordered_map<uint8_t, uint8_t> noteSelected;
     std::unordered_set<uint8_t> noteActive;
 
-    SequencePattern& pattern = sequence.GetPattern(track, trackPatternIdx[track]);
-
-    sequencerUI.SetPreRenderFunc([&]() -> void
-        {
-        if(trackPatternIdx[track] < 0)
-        {
-            SequencePosition& position = sequence.GetPosition(track);
-            trackPatternIdx[track] = position.pattern;
-        } });
-
-    TrackSelector trackSelector(this);
-    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
-
-    SequenceVisualizer sequenceVisualizer(this, &stepSelected);
+    SequenceVisualizer sequenceVisualizer(this, &stepSelected, &noteActive);
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
     SequencerNotePad notePad(this, &noteSelected, &noteActive);
@@ -77,10 +68,11 @@ void Sequencer::SequencerUI()
                 for (const auto& step : stepSelected)
                 {
                     pattern.AddEvent(step * Sequence::PPQN, event);
+                    noteActive.insert(note);
                 }
             }
         }
-        
+
         // TODO: Pass into Sequence for record
 
     });
@@ -88,6 +80,27 @@ void Sequencer::SequencerUI()
 
     ControlBar controlBar(this);
     sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
+
+    TrackSelector trackSelector(this);
+    trackSelector.OnChange([&](uint8_t val) -> void
+    {
+        stepSelected.clear();
+        noteActive.clear();
+
+        uint8_t channel = sequence.GetChannel(track);
+
+        for (const auto& [note, velocity] : noteSelected)
+        {
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+        }
+        noteSelected.clear();
+
+        notePad.GenerateKeymap();
+
+        track = this->track;
+    });
+    
+    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
 
     sequencerUI.SetGlobalLoopFunc([&]() -> void
                                   { sequence.Tick(); });

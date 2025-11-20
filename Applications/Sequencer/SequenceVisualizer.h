@@ -6,14 +6,16 @@
 class SequenceVisualizer : public UIComponent {
     Sequencer* sequencer;
     vector<uint8_t>* stepSelected;
+    std::unordered_set<uint8_t>* noteActive;
     uint8_t width = 8;
     std::function<void(uint8_t)> selectCallback;
 
     public:
-    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected)
+    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_set<uint8_t>* noteActive)
     {
         this->sequencer = sequencer;
         this->stepSelected = stepSelected;
+        this->noteActive = noteActive;
         width = sequencer->sequence.GetTrackCount();
     }
 
@@ -26,6 +28,8 @@ class SequenceVisualizer : public UIComponent {
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
         uint8_t step = xy.x + xy.y * width;
+        uint8_t track = sequencer->track;
+        uint8_t patternIdx = sequencer->trackPatternIdx[track];
 
         if(keyInfo->state == PRESSED)
         {
@@ -38,6 +42,25 @@ class SequenceVisualizer : public UIComponent {
                     selectCallback(step);
                 }
             }
+
+            // Populate noteActive with notes from this step
+            if(patternIdx < sequencer->sequence.GetPatternCount(track))
+            {
+                SequencePattern& pattern = sequencer->sequence.GetPattern(track, patternIdx);
+                uint16_t startTime = step * Sequence::PPQN;
+                uint16_t endTime = startTime + Sequence::PPQN - 1;
+
+                auto it = pattern.events.lower_bound(startTime);
+                while (it != pattern.events.end() && it->first <= endTime)
+                {
+                    if (it->second.eventType == SequenceEventType::NoteEvent)
+                    {
+                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                        noteActive->insert(noteData.note);
+                    }
+                    ++it;
+                }
+            }
         }
         else if(keyInfo->state == RELEASED)
         {
@@ -46,6 +69,25 @@ class SequenceVisualizer : public UIComponent {
             if(it != stepSelected->end())
             {
                 stepSelected->erase(it);
+            }
+
+            // Clear noteActive from notes in this step
+            if(patternIdx < sequencer->sequence.GetPatternCount(track))
+            {
+                SequencePattern& pattern = sequencer->sequence.GetPattern(track, patternIdx);
+                uint16_t startTime = step * Sequence::PPQN;
+                uint16_t endTime = startTime + Sequence::PPQN - 1;
+
+                auto it = pattern.events.lower_bound(startTime);
+                while (it != pattern.events.end() && it->first <= endTime)
+                {
+                    if (it->second.eventType == SequenceEventType::NoteEvent)
+                    {
+                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                        noteActive->erase(noteData.note);
+                    }
+                    ++it;
+                }
             }
         }
 
@@ -56,12 +98,12 @@ class SequenceVisualizer : public UIComponent {
     {
         uint8_t track = sequencer->track;
 
-        int8_t patternIdx = (uint8_t)sequencer->trackPatternIdx[track];
+        uint8_t patternIdx = sequencer->trackPatternIdx[track];
 
         // Check if pattern is selected
-        if(patternIdx < 0 && patternIdx >= (int8_t)sequencer->sequence.GetPatternCount(track))
+        if(patternIdx >= sequencer->sequence.GetPatternCount(track))
         {
-            return true;
+            sequencer->trackPatternIdx[track] = 0;
         }
 
         SequencePattern& pattern = sequencer->sequence.GetPattern(track, (uint8_t)patternIdx);
