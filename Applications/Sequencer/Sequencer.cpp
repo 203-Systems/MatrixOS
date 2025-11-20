@@ -4,6 +4,7 @@
 #include "Scales.h"
 #include "TrackSelector.h"
 #include "SequenceVisualizer.h"
+#include "ControlBar.h"
 
 
 void Sequencer::Setup(const vector<string>& args)
@@ -35,7 +36,6 @@ void Sequencer::SequencerUI()
     vector<uint8_t> stepSelected;
     vector<uint8_t> noteSelected;
 
-
     sequencerUI.SetPreRenderFunc([&]() -> void {
         if(trackPatternIdx[track] < 0)
         {
@@ -50,6 +50,12 @@ void Sequencer::SequencerUI()
     SequenceVisualizer sequenceVisualizer(this, &stepSelected);
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
+    ControlBar controlBar(this);
+    sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
+
+    sequencerUI.SetGlobalLoopFunc([&]() -> void {
+        sequence.Tick();
+    });
 
     sequencerUI.AllowExit(false);
     sequencerUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
