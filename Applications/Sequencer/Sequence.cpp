@@ -26,9 +26,8 @@ void Sequence::New(uint8_t tracks)
         data.tracks.emplace_back();
         data.tracks[i].channel = i;
 
-        SequencePattern pattern;
-        pattern.quarterNotes = 16;
-        data.tracks[i].patterns.push_back(pattern);
+        data.tracks[i].patterns.emplace_back();
+        data.tracks[i].patterns[0].quarterNotes = 16;
     }
 
     position.clear();
@@ -53,7 +52,7 @@ void Sequence::Tick()
 
 void Sequence::UpdateTiming()
 {
-    uint32_t pulseUs = 60000000UL / (data.bpm * ppqn);
+    uint32_t pulseUs = 60000000UL / (data.bpm * PPQN);
 
     // Apply swing based on 20-80 range with 50 as center (no swing)
     // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
@@ -67,8 +66,8 @@ void Sequence::UpdateTiming()
     usPerTick[0] = pulseUs + swingUs;  // On-beat (longer with positive swing)
     usPerTick[1] = pulseUs - swingUs;  // Off-beat (shorter with positive swing)
 
-    usPerQuarterNote[0] = usPerTick[0] * ppqn;
-    usPerQuarterNote[1] = usPerTick[1] * ppqn;
+    usPerQuarterNote[0] = usPerTick[0] * PPQN;
+    usPerQuarterNote[1] = usPerTick[1] * PPQN;
 }
 
 // Playback control
@@ -110,10 +109,57 @@ uint8_t Sequence::GetTrackCount()
     return data.tracks.size();
 }
 
+uint8_t Sequence::GetPatternCount(uint8_t track)
+{
+    return data.tracks[track].patterns.size();
+}
+
 // Pattern access
 SequencePattern& Sequence::GetPattern(uint8_t track, uint8_t pattern)
 {
     return data.tracks[track].patterns[pattern];
+}
+
+int8_t Sequence::NewPattern(uint8_t track, uint8_t quarterNotes)
+{
+    if(data.tracks[track].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return -1;}
+
+    data.tracks[track].patterns.emplace_back();
+    data.tracks[track].patterns.back().quarterNotes = quarterNotes;
+    return data.tracks[track].patterns.size() - 1;
+}
+
+void Sequence::ClearPattern(uint8_t track, uint8_t pattern)
+{
+    data.tracks[track].patterns[pattern].events.clear();
+}
+
+void Sequence::DeletePattern(uint8_t track, uint8_t pattern)
+{
+    data.tracks[track].patterns.erase(data.tracks[track].patterns.begin() + pattern);
+    if(position[track].pattern >= pattern)
+    {
+        position[track].pattern--;
+    }
+}
+void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourcePattern, uint8_t destTrack, uint8_t destPattern)
+{
+    SequencePattern& source = data.tracks[sourceTrack].patterns[sourcePattern];
+    
+    if(destPattern == 255)
+    {
+        if(data.tracks[destTrack].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return;}
+        data.tracks[destTrack].patterns.emplace_back();
+        SequencePattern& dest = data.tracks[destTrack].patterns.back();
+        dest.quarterNotes = source.quarterNotes;
+        dest.events = source.events;
+    }
+    else
+    {
+        SequencePattern& dest = data.tracks[destTrack].patterns[destPattern];
+        dest.quarterNotes = source.quarterNotes;
+        dest.events = source.events;
+    }   
 }
 
 // Track channel

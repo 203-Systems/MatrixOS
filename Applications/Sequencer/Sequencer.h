@@ -27,6 +27,7 @@ class Sequencer : public Application {
   Sequence sequence;
 
   uint8_t track = 0;
+  vector<int8_t> trackPatternIdx; // Which pattern is active on UI
 
   void ColorSelector();
   void LayoutSelector();

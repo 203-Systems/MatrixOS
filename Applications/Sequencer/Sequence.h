@@ -18,8 +18,7 @@ private:
 
     bool playing = false;
     bool record = false;
-    
-    const static uint16_t ppqn = 96;
+
 
     uint16_t currentPulse;
     uint16_t quarterNoteSinceStart;
@@ -32,6 +31,8 @@ private:
 
     void UpdateTiming();
 public:
+    const static uint16_t PPQN = 96;
+
     Sequence(uint8_t tracks = 8);
     void New(uint8_t tracks = 8);
 
@@ -45,9 +46,15 @@ public:
     void EnableRecord(bool val);
     bool RecordEnabled();
 
-    SequencePattern& GetPattern(uint8_t track, uint8_t pattern);
-
     uint8_t GetTrackCount();
+
+    uint8_t GetPatternCount(uint8_t track);
+
+    SequencePattern& GetPattern(uint8_t track, uint8_t pattern);
+    int8_t NewPattern(uint8_t track, uint8_t quarterNotes = 16);
+    void ClearPattern(uint8_t track, uint8_t pattern);
+    void DeletePattern(uint8_t track, uint8_t pattern);
+    void CopyPattern(uint8_t sourceTrack, uint8_t sourcePattern, uint8_t destTrack, uint8_t destPattern = 255); // if destPattern is 255, then will create new pattern
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);
