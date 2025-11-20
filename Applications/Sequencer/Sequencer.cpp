@@ -41,13 +41,25 @@ void Sequencer::SequencerUI()
     std::unordered_map<uint8_t, uint8_t> noteSelected;
     std::unordered_multiset<uint8_t> noteActive;
 
-    SequenceVisualizer sequenceVisualizer(this, &stepSelected, &noteActive);
+    SequenceVisualizer sequenceVisualizer(this, &stepSelected, &noteSelected, &noteActive);
+    sequenceVisualizer.OnSelect([&](uint8_t step) -> void
+    {
+        if(pattern != nullptr && !noteSelected.empty())
+        {
+            for (const auto& [note, velocity] : noteSelected)
+            {
+                SequenceEvent event = SequenceEvent::Note(note, velocity, false);
+                pattern->AddEvent(step * Sequence::PPQN, event);
+                noteActive.insert(note);
+            }
+        }
+    });
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
     SequencerNotePad notePad(this, &noteSelected, &noteActive);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
     {
-        if(noteOn && pattern != nullptr)
+        if(pattern != nullptr && noteOn)
         {
             bool existAlready = false;
 

@@ -6,15 +6,17 @@
 class SequenceVisualizer : public UIComponent {
     Sequencer* sequencer;
     vector<uint8_t>* stepSelected;
+    std::unordered_map<uint8_t, uint8_t>* noteSelected;
     std::unordered_multiset<uint8_t>* noteActive;
     uint8_t width = 8;
     std::function<void(uint8_t)> selectCallback;
 
     public:
-    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_multiset<uint8_t>* noteActive)
+    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
     {
         this->sequencer = sequencer;
         this->stepSelected = stepSelected;
+        this->noteSelected = noteSelected;
         this->noteActive = noteActive;
         width = sequencer->sequence.GetTrackCount();
     }
@@ -38,10 +40,6 @@ class SequenceVisualizer : public UIComponent {
             if(std::find(stepSelected->begin(), stepSelected->end(), step) == stepSelected->end())
             {
                 stepSelected->push_back(step);
-                if(selectCallback != nullptr)
-                {
-                    selectCallback(step);
-                }
             }
 
             // Populate noteActive with notes from this step and send MIDI NoteOn
@@ -62,6 +60,11 @@ class SequenceVisualizer : public UIComponent {
                     }
                     ++it;
                 }
+            }
+
+            if(selectCallback != nullptr)
+            {
+                selectCallback(step);
             }
         }
         else if(keyInfo->state == RELEASED)
@@ -87,7 +90,12 @@ class SequenceVisualizer : public UIComponent {
                     {
                         const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
                         noteActive->erase(noteActive->find(noteData.note));
-                        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+
+                        // Only send NoteOff if note is not currently selected on NotePad
+                        if(noteSelected->find(noteData.note) == noteSelected->end())
+                        {
+                            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+                        }
                     }
                     ++it;
                 }
