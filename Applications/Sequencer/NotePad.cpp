@@ -1,28 +1,372 @@
 #include "NotePad.h"
+#include <algorithm>
 
-NotePad::NotePad(Sequencer* sequencer, vector<uint8_t>* noteSelected)
+SequencerNotePad::SequencerNotePad(Sequencer* sequencer, vector<uint8_t>* noteSelected)
 {
     this->sequencer = sequencer;
     this->noteSelected = noteSelected;
-    width = sequencer->sequence.GetTrackCount();
+    GenerateKeymap();
 }
 
-void NotePad::OnSelect(std::function<void(uint8_t)> callback)
+void SequencerNotePad::OnSelect(std::function<void(uint8_t)> callback)
 {
     selectCallback = callback;
 }
 
-Dimension NotePad::GetSize()
+Dimension SequencerNotePad::GetSize()
 {
     return Dimension(8, 4);
 }
 
-bool NotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
+NoteType SequencerNotePad::InScale(int16_t note)
 {
-    return false;
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+
+    note += 120; // add a big pos offset to make sure we don't get negative after mod
+    note %= 12;
+
+    if (note == (metaTrack.config.note.root % 12))
+        return NoteType::ROOT_NOTE;  // It is a root key
+    return bitRead(c_aligned_scale_map, note) ? NoteType::SCALE_NOTE : NoteType::OFF_SCALE_NOTE;
 }
 
-bool NotePad::Render(Point origin)
+int16_t SequencerNotePad::NoteFromRoot(int16_t note)
 {
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    return (note - metaTrack.config.note.root + 24) % 12;
+}
 
+int16_t SequencerNotePad::GetNextInScaleNote(int16_t note)
+{
+    for (int8_t i = 0; i < 12; i++) {
+        note++;
+        if (InScale(note) == NoteType::SCALE_NOTE || InScale(note) == NoteType::ROOT_NOTE) {
+            return note;
+        }
+    }
+    return INT16_MAX;
+}
+
+void SequencerNotePad::GenerateOctaveKeymap()
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+
+    noteMap.clear();
+    noteMap.reserve(dimension.Area());
+
+    int16_t root = 12 * metaTrack.config.note.octave + metaTrack.config.note.root;
+    int16_t nextNote = root;
+    uint8_t rootCount = 0;
+
+    for (int8_t y = 0; y < dimension.y; y++) {
+        int8_t ui_y = dimension.y - y - 1;
+
+        if (rootCount >= 2) {
+            root += 12;
+            rootCount = 0;
+            nextNote = root;
+        }
+
+        for (int8_t x = 0; x < dimension.x; x++) {
+            uint8_t id = ui_y * dimension.x + x;
+            if (nextNote > 127) { // If next note is out of range, fill with 255
+                noteMap[id] = 255;
+            }
+            else { // Find the next note that is in scale
+                while (true) { // Find next key that we should put in
+                    NoteType inScale = InScale(nextNote);
+                    if (inScale == NoteType::ROOT_NOTE) { rootCount++; }
+                    if (inScale == NoteType::SCALE_NOTE || inScale == NoteType::ROOT_NOTE) {
+                        noteMap[id] = nextNote < 0 ? 255 : (uint8_t)nextNote;  // Add to map
+                        nextNote++;
+                        break;  // Break from inf loop
+                    }
+                    else if (inScale == NoteType::OFF_SCALE_NOTE) {
+                        nextNote++;
+                        continue;  // Check next note
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SequencerNotePad::GenerateChromaticKeymap()
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+
+    noteMap.clear();
+    noteMap.reserve(dimension.Area());
+
+    int16_t note = (12 * metaTrack.config.note.octave) + metaTrack.config.note.root;
+    for(uint8_t i = 0; i < dimension.Area(); i++) {
+        uint8_t x = i % dimension.x;
+        uint8_t y = i / dimension.x;
+        int8_t ui_y = dimension.y - y - 1;
+        if (note > 127 || note < 0) {
+            noteMap[ui_y * dimension.x + x] = 255;
+        } else {
+            noteMap[ui_y * dimension.x + x] = note;
+        }
+        note++;
+    }
+}
+
+void SequencerNotePad::GeneratePianoKeymap()
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+
+    noteMap.clear();
+    noteMap.reserve(dimension.Area());
+
+    const int8_t blackKeys[7] = {-1, 1,  3, -1, 6, 8, 10};
+    const int8_t whiteKeys[7] = {0,  2,  4,  5, 7, 9, 11};
+
+    for (int8_t y = 0; y < dimension.y; y++) {
+        int8_t ui_y = dimension.y - y - 1;
+        int16_t octave = metaTrack.config.note.octave + (y / 2);
+
+        if(y % 2 == 0) { // Bottom row
+            for (int8_t x = 0; x < dimension.x; x++) {
+                uint8_t id = ui_y * dimension.x + x;
+                int16_t note = (octave + (x / 7)) * 12 + whiteKeys[x % 7];
+                if (note > 127 || note < 0) {
+                    noteMap[id] = 255;
+                } else {
+                    noteMap[id] = note;
+                }
+            }
+        }
+        else { // Top row
+            for (int8_t x = 0; x < dimension.x; x++) {
+                uint8_t id = ui_y * dimension.x + x;
+                int8_t offset = blackKeys[x % 7];
+                if(offset == -1) {
+                    noteMap[id] = 255;
+                }
+                else {
+                    int16_t note = (octave + (x / 7)) * 12 + offset;
+                    if (note > 127 || note < 0) {
+                        noteMap[id] = 255;
+                    } else {
+                        noteMap[id] = note;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SequencerNotePad::GenerateDrumKeymap()
+{
+    // TODO: Implement drum layout
+    Dimension dimension = GetSize();
+    noteMap.clear();
+    noteMap.reserve(dimension.Area());
+
+    // Placeholder: Fill with 255
+    for(uint8_t i = 0; i < dimension.Area(); i++) {
+        noteMap.push_back(255);
+    }
+}
+
+void SequencerNotePad::GenerateKeymap()
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+
+    c_aligned_scale_map = (((uint16_t)metaTrack.config.note.scale << metaTrack.config.note.root) +
+                           (((uint16_t)metaTrack.config.note.scale & 0xFFF) >> (12 - metaTrack.config.note.root % 12))) & 0xFFF;
+
+    switch (metaTrack.config.note.type) {
+        case SequenceNoteType::Scale:
+            GenerateOctaveKeymap();
+            break;
+        case SequenceNoteType::Chromatic:
+            GenerateChromaticKeymap();
+            break;
+        case SequenceNoteType::Piano:
+            GeneratePianoKeymap();
+            break;
+        case SequenceNoteType::Drum:
+            GenerateDrumKeymap();
+            break;
+    }
+}
+
+bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
+{
+    uint8_t note = noteMap[xy.y * 8 + xy.x];
+    if (note == 255) {
+        return true;
+    }
+
+    if(keyInfo->state == PRESSED)
+    {
+        // Check if note already exists in selection
+        if(std::find(noteSelected->begin(), noteSelected->end(), note) == noteSelected->end())
+        {
+            noteSelected->push_back(note);
+            if(selectCallback != nullptr)
+            {
+                selectCallback(note);
+            }
+        }
+    }
+    else if(keyInfo->state == RELEASED)
+    {
+        // Remove note from selection
+        auto it = std::find(noteSelected->begin(), noteSelected->end(), note);
+        if(it != noteSelected->end())
+        {
+            noteSelected->erase(it);
+        }
+    }
+
+    return true;
+}
+
+bool SequencerNotePad::RenderRootNScale(Point origin)
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+    Color rootColor = metaTrack.color;
+    Color scaleColor = Color(0x606060);
+    Color offScaleColor = Color(0x000000);
+
+    uint8_t index = 0;
+    for (int8_t y = 0; y < dimension.y; y++) {
+        for (int8_t x = 0; x < dimension.x; x++) {
+            uint8_t note = noteMap[index];
+            Point globalPos = origin + Point(x, y);
+
+            if (note == 255) {
+                MatrixOS::LED::SetColor(globalPos, Color(0));
+            }
+            else {
+                // Check if note is selected
+                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
+
+                if (isSelected) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else {
+                    NoteType inScale = InScale(note);
+                    if (inScale == NoteType::OFF_SCALE_NOTE) {
+                        MatrixOS::LED::SetColor(globalPos, offScaleColor);
+                    }
+                    else if (inScale == NoteType::SCALE_NOTE) {
+                        MatrixOS::LED::SetColor(globalPos, scaleColor);
+                    }
+                    else if (inScale == NoteType::ROOT_NOTE) {
+                        MatrixOS::LED::SetColor(globalPos, rootColor);
+                    }
+                }
+            }
+            index++;
+        }
+    }
+    return true;
+}
+
+bool SequencerNotePad::RenderPiano(Point origin)
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+
+    uint8_t index = 0;
+    for (int8_t y = 0; y < dimension.y; y++) {
+        int8_t ui_y = dimension.y - y - 1;
+        bool isBlackKeyRow = (ui_y % 2 == 1);
+
+        for (int8_t x = 0; x < dimension.x; x++) {
+            uint8_t note = noteMap[index];
+            Point globalPos = origin + Point(x, y);
+
+            if (note == 255) {
+                MatrixOS::LED::SetColor(globalPos, Color(0));
+            }
+            else {
+                // Check if note is selected
+                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
+
+                if (isSelected) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else {
+                    if (isBlackKeyRow) {
+                        // Black keys: track color
+                        MatrixOS::LED::SetColor(globalPos, metaTrack.color);
+                    }
+                    else {
+                        // White keys: gray
+                        MatrixOS::LED::SetColor(globalPos, Color(0x808080));
+                    }
+                }
+            }
+            index++;
+        }
+    }
+    return true;
+}
+
+bool SequencerNotePad::RenderDrum(Point origin)
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    Dimension dimension = GetSize();
+    Color drumColor = metaTrack.color;
+
+    uint8_t index = 0;
+    for (int8_t y = 0; y < dimension.y; y++) {
+        for (int8_t x = 0; x < dimension.x; x++) {
+            uint8_t note = noteMap[index];
+            Point globalPos = origin + Point(x, y);
+
+            if (note == 255) {
+                MatrixOS::LED::SetColor(globalPos, Color(0));
+            }
+            else {
+                // Check if note is selected
+                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
+
+                if (isSelected) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else {
+                    MatrixOS::LED::SetColor(globalPos, drumColor);
+                }
+            }
+            index++;
+        }
+    }
+    return true;
+}
+
+bool SequencerNotePad::Render(Point origin)
+{
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+
+    switch (metaTrack.config.note.type) {
+        case SequenceNoteType::Scale:
+        case SequenceNoteType::Chromatic:
+            return RenderRootNScale(origin);
+        case SequenceNoteType::Piano:
+            return RenderPiano(origin);
+        case SequenceNoteType::Drum:
+            return RenderDrum(origin);
+        default:
+            return false;
+    }
 }
