@@ -42,6 +42,9 @@ void Sequence::New(uint8_t tracks)
     data.mute = 0;
     data.record = 0xFFFFFFFF;
 
+    lastEvent.resize(tracks, 0);
+    activeNotes.resize(tracks);
+
     UpdateTiming();
 }
 

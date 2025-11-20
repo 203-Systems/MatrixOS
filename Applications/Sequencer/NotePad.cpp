@@ -1,10 +1,10 @@
 #include "NotePad.h"
-#include <algorithm>
 
-SequencerNotePad::SequencerNotePad(Sequencer* sequencer, vector<uint8_t>* noteSelected)
+SequencerNotePad::SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_set<uint8_t>* noteActive)
 {
     this->sequencer = sequencer;
     this->noteSelected = noteSelected;
+    this->noteActive = noteActive;
     GenerateKeymap();
 }
 
@@ -200,6 +200,16 @@ void SequencerNotePad::GenerateKeymap()
             GenerateDrumKeymap();
             break;
     }
+
+    // Turn off all active keys
+    uint8_t channel = sequencer->sequence.GetChannel(track);
+    for (const auto& [note, velocity] : *noteSelected) {
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+    }
+
+    noteSelected->clear();
+
+    rescanNeeded = true;
 }
 
 bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
@@ -209,26 +219,37 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         return true;
     }
 
+    uint8_t track = sequencer->track;
+    uint8_t channel = sequencer->sequence.GetChannel(track);
+
     if(keyInfo->state == PRESSED)
     {
-        // Check if note already exists in selection
-        if(std::find(noteSelected->begin(), noteSelected->end(), note) == noteSelected->end())
+        uint8_t velocity = 127;
+        if(sequencer->meta.tracks[track].velocitySensitive)
         {
-            noteSelected->push_back(note);
-            if(selectCallback != nullptr)
-            {
-                selectCallback(note);
-            }
+            velocity = keyInfo->Value().to7bits();
+        }
+        (*noteSelected)[note] = velocity;
+        if(selectCallback != nullptr)
+        {
+            selectCallback(note);
+        }
+        MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
+    }
+    else if(keyInfo->state == AFTERTOUCH && sequencer->meta.tracks[track].velocitySensitive)
+    {
+        if(noteSelected->count(note) != 0) // Incase we need to do first scan first
+        {
+            uint8_t velocity = keyInfo->Value().to7bits();
+            (*noteSelected)[note] = velocity;
+            MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, velocity));
         }
     }
     else if(keyInfo->state == RELEASED)
     {
         // Remove note from selection
-        auto it = std::find(noteSelected->begin(), noteSelected->end(), note);
-        if(it != noteSelected->end())
-        {
-            noteSelected->erase(it);
-        }
+        noteSelected->erase(note);
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
     }
 
     return true;
@@ -253,11 +274,15 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
             else {
-                // Check if note is selected
-                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
+                // Check if note is selected or active
+                bool isSelected = noteSelected->count(note) > 0;
+                bool isActive = noteActive->count(note) > 0;
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else if (isActive) {
+                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
                     NoteType inScale = InScale(note);
@@ -297,11 +322,15 @@ bool SequencerNotePad::RenderPiano(Point origin)
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
             else {
-                // Check if note is selected
-                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
+                // Check if note is selected or active
+                bool isSelected = noteSelected->count(note) > 0;
+                bool isActive = noteActive->count(note) > 0;
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else if (isActive) {
+                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
                     if (isBlackKeyRow) {
@@ -337,11 +366,15 @@ bool SequencerNotePad::RenderDrum(Point origin)
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
             else {
-                // Check if note is selected
-                bool isSelected = std::find(noteSelected->begin(), noteSelected->end(), note) != noteSelected->end();
-
+                // Check if note is selected or active
+                bool isSelected = noteSelected->count(note) > 0;
+                bool isActive = noteActive->count(note) > 0;
+                
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else if (isActive) {
+                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
                     MatrixOS::LED::SetColor(globalPos, drumColor);
@@ -353,8 +386,48 @@ bool SequencerNotePad::RenderDrum(Point origin)
     return true;
 }
 
+void SequencerNotePad::Rescan(Point origin)
+{
+    uint8_t track = sequencer->track;
+    uint8_t channel = sequencer->sequence.GetChannel(track);
+
+    for(uint8_t y = 0; y < GetSize().y; y++)
+    {
+        for(uint8_t x = 0; x < GetSize().x; x++)
+        {
+            Point pos = origin + Point(x, y);
+            KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(pos);
+
+            if(keyInfo->Active())
+            {
+                uint8_t note = noteMap[y * 8 + x];
+                if(note != 255)
+                {
+                    uint8_t velocity = 127;
+                    if(sequencer->meta.tracks[track].velocitySensitive)
+                    {
+                        velocity = keyInfo->Value().to7bits();
+                    }
+                    (*noteSelected)[note] = velocity;
+                    if(selectCallback != nullptr)
+                    {
+                        selectCallback(note);
+                    }
+                    MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
+                }
+            }
+        }
+    }
+    rescanNeeded = false;
+}
+
 bool SequencerNotePad::Render(Point origin)
 {
+    if(rescanNeeded)
+    {
+        Rescan(origin);
+    }
+
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 

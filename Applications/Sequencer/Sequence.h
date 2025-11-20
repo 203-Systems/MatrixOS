@@ -27,7 +27,9 @@ private:
     uint32_t usPerQuarterNote[2];
 
     vector<SequencePosition> position;
+
     vector<uint32_t> lastEvent;
+    vector<unordered_set<uint8_t>> activeNotes;
 
     void UpdateTiming();
 public:

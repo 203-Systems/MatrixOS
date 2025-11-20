@@ -34,7 +34,8 @@ void Sequencer::SequencerUI()
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
 
     vector<uint8_t> stepSelected;
-    vector<uint8_t> noteSelected;
+    std::unordered_map<uint8_t, uint8_t> noteSelected;
+    std::unordered_set<uint8_t> noteActive;
 
     sequencerUI.SetPreRenderFunc([&]() -> void
                                  {
@@ -50,7 +51,7 @@ void Sequencer::SequencerUI()
     SequenceVisualizer sequenceVisualizer(this, &stepSelected);
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
-    SequencerNotePad notePad(this, &noteSelected);
+    SequencerNotePad notePad(this, &noteSelected, &noteActive);
     sequencerUI.AddUIComponent(&notePad, Point(0, 3));
 
     ControlBar controlBar(this);
