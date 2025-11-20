@@ -15,7 +15,7 @@ class ControlBar : public UIComponent {
     Dimension GetSize() { return Dimension(8, 1); }
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
-        return false;
+        return true;
     }
 
     const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};

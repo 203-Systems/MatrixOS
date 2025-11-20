@@ -75,23 +75,15 @@ class SequenceVisualizer : public UIComponent {
         }
 
         // Render Note
-        int8_t lastRenderedSlot = -1;
-        for(const auto& [time, event] : pattern.events)
+        for(uint8_t slot = 0; slot < pattern.quarterNotes; slot++)
         {
-            // Check if this is a note event
-            if(event.eventType == SequenceEventType::NoteEvent)
-            {
-                // Get the note data
-                const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
-                uint8_t note = noteData.note;
+            uint16_t startTime = slot * Sequence::PPQN;
+            uint16_t endTime = startTime + Sequence::PPQN - 1;
 
-                uint8_t slot = time / Sequence::PPQN;
-                if(slot != lastRenderedSlot)
-                {
-                    lastRenderedSlot = slot;
-                    Point point = Point(slot % width, slot / width);
-                    MatrixOS::LED::SetColor(origin + point, sequencer->meta.tracks[track].color);
-                }
+            if(pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent))
+            {
+                Point point = Point(slot % width, slot / width);
+                MatrixOS::LED::SetColor(origin + point, sequencer->meta.tracks[track].color);
             }
         }
 

@@ -8,7 +8,7 @@ SequencerNotePad::SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint
     GenerateKeymap();
 }
 
-void SequencerNotePad::OnSelect(std::function<void(uint8_t)> callback)
+void SequencerNotePad::OnSelect(std::function<void(bool, uint8_t, uint8_t)> callback)
 {
     selectCallback = callback;
 }
@@ -232,7 +232,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         (*noteSelected)[note] = velocity;
         if(selectCallback != nullptr)
         {
-            selectCallback(note);
+            selectCallback(true, note, velocity);
         }
         MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
     }
@@ -242,6 +242,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             uint8_t velocity = keyInfo->Value().to7bits();
             (*noteSelected)[note] = velocity;
+            selectCallback(false, note, velocity);
             MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, velocity));
         }
     }
@@ -250,6 +251,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         // Remove note from selection
         noteSelected->erase(note);
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+        selectCallback(false, note, 0);
     }
 
     return true;
@@ -411,7 +413,7 @@ void SequencerNotePad::Rescan(Point origin)
                     (*noteSelected)[note] = velocity;
                     if(selectCallback != nullptr)
                     {
-                        selectCallback(note);
+                        selectCallback(true, note, velocity);
                     }
                     MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
                 }

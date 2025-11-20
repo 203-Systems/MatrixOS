@@ -7,11 +7,51 @@
 
 struct SequencePattern {
     uint8_t quarterNotes = 16;
-    std::map<uint16_t, SequenceEvent> events;
+    std::multimap<uint16_t, SequenceEvent> events;
 
     void Clear()
     {
         events.clear();
+    }
+
+    void AddEvent(uint16_t timestamp, const SequenceEvent& event)
+    {
+        events.insert({timestamp, event});
+    }
+
+    bool HasEventInRange(uint16_t startTime, uint16_t endTime, SequenceEventType eventType = SequenceEventType::Invalid)
+    {
+        auto it = events.lower_bound(startTime);
+        while (it != events.end() && it->first <= endTime)
+        {
+            if (eventType == SequenceEventType::Invalid || it->second.eventType == eventType)
+            {
+                return true;
+            }
+            ++it;
+        }
+        return false;
+    }
+
+    bool RemoveNoteEventsInRange(uint16_t startTime, uint16_t endTime, uint8_t note)
+    {
+        bool removed = false;
+        auto it = events.lower_bound(startTime);
+        while (it != events.end() && it->first <= endTime)
+        {
+            if (it->second.eventType == SequenceEventType::NoteEvent)
+            {
+                const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                if (noteData.note == note)
+                {
+                    it = events.erase(it);
+                    removed = true;
+                    continue;
+                }
+            }
+            ++it;
+        }
+        return removed;
     }
 };
 

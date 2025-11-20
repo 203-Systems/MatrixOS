@@ -22,6 +22,7 @@ struct SequenceEventNote {
     bool aftertouch:1;
     uint8_t note:7;
     uint8_t velocity;
+    uint16_t length;
 };
 
 struct SequenceEventCC {
@@ -58,8 +59,8 @@ struct SequenceEvent {
         : eventType(type), data(eventData) {}
 
     // Static factory methods
-    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch) {
-        return {SequenceEventType::NoteEvent, SequenceEventNote{aftertouch, note, velocity}};
+    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = 96 /*PPQN*/) {
+        return {SequenceEventType::NoteEvent, SequenceEventNote{aftertouch, note, velocity, length}};
     }
 
     static SequenceEvent ControlChange(const uint8_t param, const uint8_t value) {

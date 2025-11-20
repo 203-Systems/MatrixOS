@@ -37,8 +37,10 @@ void Sequencer::SequencerUI()
     std::unordered_map<uint8_t, uint8_t> noteSelected;
     std::unordered_set<uint8_t> noteActive;
 
+    SequencePattern& pattern = sequence.GetPattern(track, trackPatternIdx[track]);
+
     sequencerUI.SetPreRenderFunc([&]() -> void
-                                 {
+        {
         if(trackPatternIdx[track] < 0)
         {
             SequencePosition& position = sequence.GetPosition(track);
@@ -52,6 +54,36 @@ void Sequencer::SequencerUI()
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
 
     SequencerNotePad notePad(this, &noteSelected, &noteActive);
+    notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
+    {
+        if(noteOn)
+        {
+            bool existAlready = false;
+
+            for (const auto& step : stepSelected)
+            {
+                uint16_t startTime = step * Sequence::PPQN;
+                uint16_t endTime = startTime + Sequence::PPQN - 1;
+
+                if (pattern.RemoveNoteEventsInRange(startTime, endTime, note))
+                {
+                    existAlready = true;
+                }
+            }
+
+            if(existAlready == false)
+            {
+                SequenceEvent event = SequenceEvent::Note(note, velocity, false);
+                for (const auto& step : stepSelected)
+                {
+                    pattern.AddEvent(step * Sequence::PPQN, event);
+                }
+            }
+        }
+        
+        // TODO: Pass into Sequence for record
+
+    });
     sequencerUI.AddUIComponent(&notePad, Point(0, 3));
 
     ControlBar controlBar(this);
