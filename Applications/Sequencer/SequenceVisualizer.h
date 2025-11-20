@@ -110,7 +110,7 @@ class SequenceVisualizer : public UIComponent {
             {
                 uint8_t slot = position.quarterNote;
                 Point point = Point(slot % width, slot / width);
-                MatrixOS::LED::SetColor(origin + point, Color::White);
+                MatrixOS::LED::SetColor(origin + point, sequencer->sequence.GetRecord() ? Color::Red : Color::White);
             }
         }
 
