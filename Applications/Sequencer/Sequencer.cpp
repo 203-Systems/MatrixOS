@@ -10,7 +10,8 @@ void Sequencer::Setup(const vector<string>& args)
     // Application initialization code here
     if(lastSequence.Get().empty())
     {
-        sequence = Sequence(8);
+        sequence.New(8);
+        meta.New(8);
     }
     else
     {
@@ -23,7 +24,24 @@ void Sequencer::Setup(const vector<string>& args)
 void Sequencer::SequencerUI()
 {
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
-    
+
+    TrackSelector trackSelector(&sequence, &meta, &track);
+    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
+
+    sequencerUI.AllowExit(false);
+    sequencerUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+    if (keyEvent->id == FUNCTION_KEY)
+    {
+      if (keyEvent->info.state == RELEASED)
+      {
+        SequencerMenu();
+      }
+      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+    }
+    return false;
+  });
+
+  sequencerUI.Start();
 }
 
 
@@ -66,6 +84,11 @@ void Sequencer::SequencerMenu()
             {
                 Exit();
             }
+            else if (keyEvent->info.state == RELEASED)
+            {
+                sequencerMenu.Exit();
+            }
+            return true;
         }
         return false;
     });

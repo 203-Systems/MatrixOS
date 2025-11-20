@@ -3,29 +3,22 @@
 
 Sequence::Sequence(uint8_t tracks)
 {
+    New(tracks);
+}
 
+void Sequence::New(uint8_t tracks)
+{
     if(tracks > 32)
     {
         // Don't support 32+ tracks
         MatrixOS::SYS::ErrorHandler("Too Many Tracks");
     }
 
-    const Color colors[8]
-    {
-        Color(0x00FFFF),
-        Color(0x0000FF),
-        Color(0x8000FF),
-        Color(0xFF00FF),
-        Color(0xFF0080),
-        Color(0xFF4000),
-        Color(0xFFFF00),
-        Color(0x00FF40)
-    };
-
     // Initialize sequence data
     data.bpm = 120;
     data.swing = 50;
     data.version = SEQUENCE_VERSION;
+    data.tracks.clear();
     data.tracks.reserve(tracks);
 
     for (uint8_t i = 0; i < tracks; i++) {
@@ -38,6 +31,7 @@ Sequence::Sequence(uint8_t tracks)
         data.tracks[i].patterns.push_back(pattern);
     }
 
+    position.clear();
     position.reserve(tracks);
     for (uint8_t i = 0; i < tracks; i++) {
         position.emplace_back();

@@ -1,7 +1,7 @@
 #pragma once
 
 // Bit map for scales, LSB(Bit0) is C and Bit11 is B. First 4 bits are reserved
-enum Scale : uint16_t {
+enum class Scale : uint16_t {
   MINOR = 0b010110101101,
   MAJOR = 0b101010110101,
   DORIAN = 0b011010101101,

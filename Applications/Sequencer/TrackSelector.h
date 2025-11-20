@@ -22,14 +22,14 @@ class TrackSelector : public UIComponent {
     Dimension GetSize() { return Dimension(8, 1); }
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) 
     { 
-        if(keyInfo->State() == HOLD)
+        if(keyInfo->State() == PRESSED)
+        {
+            *track = xy.x;
+        }
+        else if(keyInfo->State() == HOLD)
         {
             Color color = sequenceMeta->tracks[xy.x].color;
             MatrixOS::UIUtility::TextScroll("Track " + std::to_string(xy.x + 1), color);
-        }
-        else if(keyInfo->State() == RELEASED && keyInfo->hold == false)
-        {
-            *track = xy.x;
         }
         return true;
     }

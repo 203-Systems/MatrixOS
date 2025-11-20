@@ -7,7 +7,7 @@
 // Forward declaration
 struct SequenceData;
 
-enum SequenceEventType {
+enum class SequenceEventType {
     Invalid = 0x00,
     NoteEvent = 0x10,
     ControlChangeEvent = 0x20,

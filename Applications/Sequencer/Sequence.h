@@ -33,6 +33,7 @@ private:
     void UpdateTiming();
 public:
     Sequence(uint8_t tracks = 8);
+    void New(uint8_t tracks = 8);
 
     void Tick();
 
