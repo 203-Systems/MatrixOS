@@ -18,7 +18,7 @@ extern const Color sequencerRainbowNoteColor[12];
 class SequencerNotePad : public UIComponent {
     Sequencer* sequencer;
     std::unordered_map<uint8_t, uint8_t>* noteSelected;
-    std::unordered_set<uint8_t>* noteActive;
+    std::unordered_multiset<uint8_t>* noteActive;
     std::function<void(bool, uint8_t, uint8_t)> selectCallback; //NoteOn, note, velocity
 
     bool rescanNeeded = false;
@@ -27,7 +27,7 @@ class SequencerNotePad : public UIComponent {
     uint16_t c_aligned_scale_map;
 
     public:
-    SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_set<uint8_t>* noteActive);
+    SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive);
 
     void OnSelect(std::function<void(bool, uint8_t, uint8_t)> callback);
 

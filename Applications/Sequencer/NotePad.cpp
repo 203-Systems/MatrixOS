@@ -1,6 +1,6 @@
 #include "NotePad.h"
 
-SequencerNotePad::SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_set<uint8_t>* noteActive)
+SequencerNotePad::SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
 {
     this->sequencer = sequencer;
     this->noteSelected = noteSelected;

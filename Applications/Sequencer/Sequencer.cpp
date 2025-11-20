@@ -35,11 +35,11 @@ void Sequencer::SequencerUI()
 
     uint8_t track = this->track;
 
-    SequencePattern& pattern = sequence.GetPattern(track, trackPatternIdx[track]);
+    SequencePattern* pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
 
     vector<uint8_t> stepSelected;
     std::unordered_map<uint8_t, uint8_t> noteSelected;
-    std::unordered_set<uint8_t> noteActive;
+    std::unordered_multiset<uint8_t> noteActive;
 
     SequenceVisualizer sequenceVisualizer(this, &stepSelected, &noteActive);
     sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
@@ -47,7 +47,7 @@ void Sequencer::SequencerUI()
     SequencerNotePad notePad(this, &noteSelected, &noteActive);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
     {
-        if(noteOn)
+        if(noteOn && pattern != nullptr)
         {
             bool existAlready = false;
 
@@ -56,9 +56,10 @@ void Sequencer::SequencerUI()
                 uint16_t startTime = step * Sequence::PPQN;
                 uint16_t endTime = startTime + Sequence::PPQN - 1;
 
-                if (pattern.RemoveNoteEventsInRange(startTime, endTime, note))
+                if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
                 {
                     existAlready = true;
+                    noteActive.erase(noteActive.find(note));
                 }
             }
 
@@ -67,7 +68,7 @@ void Sequencer::SequencerUI()
                 SequenceEvent event = SequenceEvent::Note(note, velocity, false);
                 for (const auto& step : stepSelected)
                 {
-                    pattern.AddEvent(step * Sequence::PPQN, event);
+                    pattern->AddEvent(step * Sequence::PPQN, event);
                     noteActive.insert(note);
                 }
             }
@@ -78,7 +79,7 @@ void Sequencer::SequencerUI()
     });
     sequencerUI.AddUIComponent(&notePad, Point(0, 3));
 
-    ControlBar controlBar(this);
+    ControlBar controlBar(this, &notePad);
     sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
 
     TrackSelector trackSelector(this);
@@ -98,6 +99,8 @@ void Sequencer::SequencerUI()
         notePad.GenerateKeymap();
 
         track = this->track;
+
+        pattern = &sequence.GetPattern(track, trackPatternIdx[track]);
     });
     
     sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));

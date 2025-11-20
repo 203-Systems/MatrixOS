@@ -6,12 +6,12 @@
 class SequenceVisualizer : public UIComponent {
     Sequencer* sequencer;
     vector<uint8_t>* stepSelected;
-    std::unordered_set<uint8_t>* noteActive;
+    std::unordered_multiset<uint8_t>* noteActive;
     uint8_t width = 8;
     std::function<void(uint8_t)> selectCallback;
 
     public:
-    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_set<uint8_t>* noteActive)
+    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_multiset<uint8_t>* noteActive)
     {
         this->sequencer = sequencer;
         this->stepSelected = stepSelected;
@@ -30,6 +30,7 @@ class SequenceVisualizer : public UIComponent {
         uint8_t step = xy.x + xy.y * width;
         uint8_t track = sequencer->track;
         uint8_t patternIdx = sequencer->trackPatternIdx[track];
+        uint8_t channel = sequencer->sequence.GetChannel(track);
 
         if(keyInfo->state == PRESSED)
         {
@@ -43,7 +44,7 @@ class SequenceVisualizer : public UIComponent {
                 }
             }
 
-            // Populate noteActive with notes from this step
+            // Populate noteActive with notes from this step and send MIDI NoteOn
             if(patternIdx < sequencer->sequence.GetPatternCount(track))
             {
                 SequencePattern& pattern = sequencer->sequence.GetPattern(track, patternIdx);
@@ -57,6 +58,7 @@ class SequenceVisualizer : public UIComponent {
                     {
                         const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
                         noteActive->insert(noteData.note);
+                        MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity));
                     }
                     ++it;
                 }
@@ -71,7 +73,7 @@ class SequenceVisualizer : public UIComponent {
                 stepSelected->erase(it);
             }
 
-            // Clear noteActive from notes in this step
+            // Clear noteActive from notes in this step and send MIDI NoteOff
             if(patternIdx < sequencer->sequence.GetPatternCount(track))
             {
                 SequencePattern& pattern = sequencer->sequence.GetPattern(track, patternIdx);
@@ -84,7 +86,8 @@ class SequenceVisualizer : public UIComponent {
                     if (it->second.eventType == SequenceEventType::NoteEvent)
                     {
                         const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
-                        noteActive->erase(noteData.note);
+                        noteActive->erase(noteActive->find(noteData.note));
+                        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
                     }
                     ++it;
                 }

@@ -3,18 +3,55 @@
 
 #include "Sequencer.h"
 
+class SequencerNotePad; // Forward declaration
+
 class ControlBar : public UIComponent {
     Sequencer* sequencer;
+    SequencerNotePad* notePad;
 
     public:
-    ControlBar(Sequencer* sequencer)
+    ControlBar(Sequencer* sequencer, SequencerNotePad* notePad)
     {
         this->sequencer = sequencer;
+        this->notePad = notePad;
     }
 
     Dimension GetSize() { return Dimension(8, 1); }
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
+        if(keyInfo->state == PRESSED)
+        {
+            uint8_t track = sequencer->track;
+
+            // Octave Down (x=6)
+            if(xy.x == 6)
+            {
+                if(sequencer->meta.tracks[track].config.note.octave > 0)
+                {
+                    sequencer->meta.tracks[track].config.note.octave--;
+                    sequencer->sequence.SetDirty();
+                    if(notePad != nullptr)
+                    {
+                        notePad->GenerateKeymap();
+                    }
+                }
+                return true;
+            }
+            // Octave Up (x=7)
+            else if(xy.x == 7)
+            {
+                if(sequencer->meta.tracks[track].config.note.octave < 9)
+                {
+                    sequencer->meta.tracks[track].config.note.octave++;
+                    sequencer->sequence.SetDirty();
+                    if(notePad != nullptr)
+                    {
+                        notePad->GenerateKeymap();
+                    }
+                }
+                return true;
+            }
+        }
         return true;
     }
 
@@ -71,22 +108,22 @@ class ControlBar : public UIComponent {
         MatrixOS::LED::SetColor(point, color); 
       }
 
-      // Octave +
+      // Octave -
       {
         Point point = origin + Point(6, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
                 Color::White :
-                GetOctavePlusColor().DimIfNot(sequencer->sequence.Playing());
-        MatrixOS::LED::SetColor(point, color); 
+                GetOctaveMinusColor().DimIfNot(sequencer->sequence.Playing());
+        MatrixOS::LED::SetColor(point, color);
       }
 
-      // Octave -
+      // Octave +
       {
         Point point = origin + Point(7, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
                 Color::White :
-                GetOctaveMinusColor().DimIfNot(sequencer->sequence.Playing());
-        MatrixOS::LED::SetColor(point, color); 
+                GetOctavePlusColor().DimIfNot(sequencer->sequence.Playing());
+        MatrixOS::LED::SetColor(point, color);
       }
       return true;
     }
