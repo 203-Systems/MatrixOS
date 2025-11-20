@@ -251,7 +251,7 @@ class ControlBar : public UIComponent {
       // Session View
       {
         Point point = origin + Point(2, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
+        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Session ?
                 Color::White :
                 Color(0xFFFF00);
         MatrixOS::LED::SetColor(point, color);
@@ -260,7 +260,7 @@ class ControlBar : public UIComponent {
       // Mixer View
       {
         Point point = origin + Point(3, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Session ?
+        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
                 Color::White :
                 Color(0x00FF40);
         MatrixOS::LED::SetColor(point, color);

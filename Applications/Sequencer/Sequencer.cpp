@@ -5,6 +5,7 @@
 #include "PatternSelector.h"
 #include "TrackSelector.h"
 #include "ClipLauncher.h"
+#include "MixerControl.h"
 #include "SequenceVisualizer.h"
 #include "NotePad.h"
 #include "ControlBar.h"
@@ -128,8 +129,11 @@ void Sequencer::SequencerUI()
     });
     clipLauncher.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Session; });
     sequencerUI.AddUIComponent(&clipLauncher, Point(0, 0));
-    
+
     // Mixer View
+    MixerControl mixerControl(this);
+    mixerControl.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Mixer; });
+    sequencerUI.AddUIComponent(&mixerControl, Point(0, 0));
 
     // Global
     TrackSelector trackSelector(this);
@@ -146,7 +150,7 @@ void Sequencer::SequencerUI()
 
         pattern = &sequence.GetPattern(track, trackClipIdx[track], trackPatternIdx[track]);
     });
-    trackSelector.SetEnableFunc([&]() -> bool { return currentView != ViewMode::Session; });
+    trackSelector.SetEnableFunc([&]() -> bool { return currentView != ViewMode::Session && currentView != ViewMode::Mixer; });
     sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
 
     ControlBar controlBar(this, &notePad);
