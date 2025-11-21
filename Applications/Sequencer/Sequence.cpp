@@ -208,6 +208,33 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
     trackPlayback[track].nextClip = clip;
 }
 
+void Sequence::PlayClipForAllTracks(uint8_t clip)
+{
+    // Initialize timing if not already playing
+    if (!playing) {
+        playing = true;
+        clocksTillStart = record ? 24 * 4 + 1 : 1;
+        currentPulse = 0;
+        currentQuarterNote = 0;
+        pulseSinceStart = 0;
+    }
+
+    // For each track, check if clip exists
+    for (uint8_t track = 0; track < data.tracks.size(); track++)
+    {
+        if (ClipExists(track, clip))
+        {
+            // Track has this clip, queue it to play
+            trackPlayback[track].nextClip = clip;
+        }
+        else
+        {
+            // Track doesn't have this clip, queue stop
+            trackPlayback[track].nextClip = 254;
+        }
+    }
+}
+
 bool Sequence::Playing()
 {
     return playing;

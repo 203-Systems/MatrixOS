@@ -62,6 +62,7 @@ public:
     void Play();
     void Play(uint8_t track);
     void PlayClip(uint8_t track, uint8_t clip);
+    void PlayClipForAllTracks(uint8_t clip);
     bool Playing();
     bool Playing(uint8_t track);
 

@@ -99,7 +99,14 @@ class ClipLauncher : public UIComponent {
                 sequencer->track = track;
                 if(sequencer->sequence.Playing())
                 {
-                    sequencer->sequence.PlayClip(track, clip);
+                    if(clip == sequencer->sequence.GetNextClip(track))
+                    {
+                        sequencer->sequence.PlayClipForAllTracks(clip);
+                    }
+                    else
+                    {
+                        sequencer->sequence.PlayClip(track, clip);
+                    }
                 }
                 else
                 {
@@ -119,6 +126,7 @@ class ClipLauncher : public UIComponent {
     {
         uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
+        Fract16 quarterNoteProgress = sequencer->sequence.GetClockQuarterNoteProgress();
         uint8_t breathingScale = sequencer->sequence.ClockQuarterNoteProgressBreath();
 
         // Render all clip slots
@@ -143,7 +151,8 @@ class ClipLauncher : public UIComponent {
                     {
                         if(nextClip == 254) // About to stop
                         {
-                            color = Color(0x100000);
+                            // color = Color(0x100000);
+                            color = (quarterNoteProgress < 0x8000) ? Color(0x600000) : Color::Black;
                         }
                         else
                         {
@@ -170,7 +179,7 @@ class ClipLauncher : public UIComponent {
                     }
                     else if(isNextClip)
                     {
-                        color = Color::Green;
+                        color = (quarterNoteProgress < 0x8000) ? Color(0x00FF00) : trackColor;
                     }
                     else if(isCurrentTrack && isSelectedInTrack)
                     {
