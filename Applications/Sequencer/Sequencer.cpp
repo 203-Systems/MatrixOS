@@ -177,6 +177,8 @@ void Sequencer::SequencerUI()
         ClearSelectedNotes();
 
         SequencerMenu();
+
+        notePad.GenerateKeymap();
       }
       return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
@@ -292,6 +294,30 @@ void Sequencer::SequencerMenu()
 
 void Sequencer::LayoutSelector()
 {
+    Color color = Color(0xFFFF00);
+    UI layoutSelector("Layout Selector", color, false);
+
+    const char* layoutNames[] = {"Scale", "Chromatic", "Piano", "Drum"};
+    const SequenceNoteType layoutTypes[] = {
+        SequenceNoteType::Scale,
+        SequenceNoteType::Chromatic,
+        SequenceNoteType::Piano,
+        SequenceNoteType::Drum
+    };
+
+    UIItemSelector layoutItemSelector;
+    layoutItemSelector.SetName("Layout");
+    layoutItemSelector.SetColor(color);
+    layoutItemSelector.SetItems(layoutNames, 4);
+    layoutItemSelector.SetValue((uint16_t)meta.tracks[track].config.note.type);
+    layoutItemSelector.OnConfirm([&](uint16_t index) -> void
+                                 {
+        meta.tracks[track].config.note.type = layoutTypes[index];
+        sequence.SetDirty();
+    });
+
+    layoutSelector.AddUIComponent(layoutItemSelector, Point(0, 0));
+    layoutSelector.Start();
 }
 
 void Sequencer::ChannelSelector()

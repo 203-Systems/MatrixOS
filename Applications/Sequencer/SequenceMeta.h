@@ -19,8 +19,10 @@ struct SequenceTrackModeConfig {
     union {
         struct {
             SequenceNoteType type:3;
-            uint16_t scale:13;
+            bool customScale:1;
+            uint16_t scale:12;
             uint8_t root;
+            uint8_t rootOffset;
             uint8_t octave; // For UI
         } note;
 
@@ -67,8 +69,10 @@ struct SequenceMeta {
             track.color = colors[i];
             track.mode = SequenceTrackMode::NoteTrack;
             track.config.note.type = SequenceNoteType::Scale;
+            track.config.note.customScale = false;
             track.config.note.scale = (uint16_t)Scale::MINOR;
             track.config.note.root = 0;
+            track.config.note.rootOffset = 0;
             track.config.note.octave = 0;
             this->tracks.push_back(track);
         }

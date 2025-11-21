@@ -182,6 +182,12 @@ void SequencerNotePad::GenerateKeymap()
 {
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+    
+    if(track.mode != SequenceTrackMode::NoteTrack)
+    {
+        noteMap.resize(dimension.Area(), 255);
+        return;
+    }
 
     c_aligned_scale_map = (((uint16_t)metaTrack.config.note.scale << metaTrack.config.note.root) +
                            (((uint16_t)metaTrack.config.note.scale & 0xFFF) >> (12 - metaTrack.config.note.root % 12))) & 0xFFF;
@@ -425,13 +431,19 @@ void SequencerNotePad::Rescan(Point origin)
 
 bool SequencerNotePad::Render(Point origin)
 {
+    uint8_t track = sequencer->track;
+    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
+
+    if(track.mode != SequenceTrackMode::NoteTrack)
+    {
+        noteMap.resize(dimension.Area(), 255);
+        return;
+    }
+
     if(rescanNeeded)
     {
         Rescan(origin);
     }
-
-    uint8_t track = sequencer->track;
-    SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
     switch (metaTrack.config.note.type) {
         case SequenceNoteType::Scale:
