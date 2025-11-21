@@ -23,6 +23,8 @@ void Sequencer::Setup(const vector<string> &args)
         // Load sequence
     }
 
+    sequence.EnableClockOutput(meta.clockOutput);
+
     SequencerUI();
 }
 
@@ -254,7 +256,7 @@ void Sequencer::SequencerMenu()
     clockOutputToggle.SetName("Clock Output");
     clockOutputToggle.SetColor(Color(0x00A0FF));
     clockOutputToggle.SetValuePointer(&meta.clockOutput);
-    clockOutputToggle.OnPress([&]() -> void { sequence.SetDirty(); });
+    clockOutputToggle.OnPress([&]() -> void { sequence.EnableClockOutput(meta.clockOutput); sequence.SetDirty(); });
     sequencerMenu.AddUIComponent(&clockOutputToggle, Point(0, 5));
 
     UIButton systemSettingBtn;

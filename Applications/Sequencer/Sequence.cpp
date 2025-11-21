@@ -1,5 +1,6 @@
 #include "Sequence.h"
 #include "Scales.h"
+#include <cmath>
 
 Sequence::Sequence(uint8_t tracks)
 {
@@ -47,25 +48,43 @@ void Sequence::New(uint8_t tracks)
 
 void Sequence::Tick()
 {
-    if (!playing) return;
-
     uint32_t currentTime = MatrixOS::SYS::Micros();
+
+    // Handle MIDI clock output (independent of playback state)
+    if ((currentTime - lastClockTime) >= usPerClock) {
+
+        if(clockOutput)
+        {
+            MatrixOS::MIDI::Send(MidiPacket::Clock(), MIDI_PORT_ALL);  // MIDI Clock message
+        }
+
+        lastClockTime = currentTime;
+
+        // Update MIDI clock counter and quarter note timestamp (24 PPQN)
+        clockCounter++;
+
+        if (clockCounter >= 24) {
+            clockCounter = 0;
+            lastQuarterNoteTime = currentTime;
+        }
+
+        // Decrement countdown if scheduled to start
+        if (clocksTillStart > 0) {
+            clocksTillStart--;
+            if (clocksTillStart == 0) {
+                // Initialize timing on this clock edge
+                lastPulseTime = currentTime;
+            }
+        }
+    }
+
+    if (!playing || clocksTillStart > 0) return;
+
     uint32_t elapsed = currentTime - lastPulseTime;
 
     // Check if enough time for a tick (using swing timing)
     if (elapsed >= usPerPulse[currentPulse % 2]) {
         lastPulseTime = currentTime;
-
-        // Send MIDI clock pulse if enabled (24 PPQN, unswung)
-        if (clockOutput && (currentTime - lastMidiClockTime) >= usPerMidiClockPulse) {
-            MatrixOS::MIDI::Send(MidiPacket(0xF8), MIDI_PORT_ALL);  // MIDI Clock message
-            lastMidiClockTime = currentTime;
-        }
-
-        // Update quarter note timestamp for LED animation (at quarter note boundaries)
-        if (pulseCounter % PPQN == 0) {
-            lastQuarterNoteTime = currentTime;
-        }
 
         // Process each track independently BEFORE incrementing tick counter
         // This ensures events at tick 0 (quarter note 0) fire immediately on first tick
@@ -82,11 +101,11 @@ void Sequence::UpdateTiming()
 {
     uint32_t pulseUs = 60000000UL / (data.bpm * PPQN);
 
-    // Calculate unswung timing for LED animation
-    usPerQuarterNoteUnswung = pulseUs * PPQN;
+    // Calculate clock timing (24 PPQN standard)
+    usPerClock = 60000000UL / (data.bpm * 24);
 
-    // Calculate MIDI clock timing (24 PPQN standard)
-    usPerMidiClockPulse = 60000000UL / (data.bpm * 24);
+    // Calculate quarter note timing for LED animation
+    usPerQuarterNote = 60000000UL / (data.bpm);
 
     // Apply swing based on 20-80 range with 50 as center (no swing)
     // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
@@ -99,28 +118,27 @@ void Sequence::UpdateTiming()
 
     usPerPulse[0] = pulseUs + swingUs;  // On-beat (longer with positive swing)
     usPerPulse[1] = pulseUs - swingUs;  // Off-beat (shorter with positive swing)
-
-    usPerQuarterNote[0] = usPerPulse[0] * PPQN;
-    usPerQuarterNote[1] = usPerPulse[1] * PPQN;
 }
 
 // Playback control
 void Sequence::Play()
 {
-    playing = true;
+    playing = true;  // Set immediately for UI feedback
+
+    // Schedule playback to start at next MIDI clock edge (24 PPQN)
+    // Can be increased for count-in: 96 = 1 bar at 4/4
+    clocksTillStart = 1;
+
     currentPulse = 0;
-    uint32_t currentTime = MatrixOS::SYS::Micros();
-    lastPulseTime = currentTime;
-    lastQuarterNoteTime = currentTime;
     pulseCounter = 0;
 
     for (uint8_t i = 0; i < trackPlayback.size(); i++) {
-        // Play all tracks at their current clip position
+        // Reset positions and prepare for playback
         trackPlayback[i].position.pattern = 0;
         trackPlayback[i].position.quarterNote = 0;
         trackPlayback[i].position.pulse = 0;
 
-        // Clear playback state and start all tracks
+        // Clear playback state
         trackPlayback[i].noteOffMap.clear();
         trackPlayback[i].noteOffQueue.clear();
         trackPlayback[i].playing = true;
@@ -600,11 +618,31 @@ void Sequence::SetNextClip(uint8_t track, uint8_t clip)
     trackPlayback[track].nextClip = clip;
 }
 
-// Current pulse
-uint16_t Sequence::getCurrentPulse()
+Fract16 Sequence::GetQuarterNoteProgress()
 {
-    return currentPulse;
+    uint32_t timeElapsedSinceQuarterNote = MatrixOS::SYS::Micros() - lastQuarterNoteTime;
+    // Use 64-bit arithmetic to avoid overflow when multiplying
+    uint64_t progress = ((uint64_t)timeElapsedSinceQuarterNote * UINT16_MAX) / usPerQuarterNote;
+    // Clamp to UINT16_MAX in case we're past the quarter note boundary
+    if (progress > UINT16_MAX) {
+        progress = UINT16_MAX;
+    }
+    return (Fract16)progress;
 }
+
+uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
+{
+    // Get progress through quarter note (0-65535)
+    Fract16 progress = GetQuarterNoteProgress();
+
+    // Convert to breathing effect using cosine wave
+    // Map 0-65535 to 0-2π for full cosine cycle
+    float phase = (float)progress * 2.0f * M_PI;
+    float brightness = ((std::cos(phase - M_PI) + 1.0f) / 2.0f) * (255.0f - lowBound) + lowBound;
+
+    return (uint8_t)brightness;
+}
+
 
 void Sequence::RecordEvent(MidiPacket packet)
 {

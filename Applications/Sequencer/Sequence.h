@@ -19,24 +19,25 @@ private:
     bool dirty = false;
 
     bool playing = false;
+    int16_t clocksTillStart = 0;            // MIDI clocks until playback starts (24 PPQN, 0 = not scheduled, negative = count-in)
     bool record = false;
 
     bool clockOutput = false;
 
-    // Internal sequencer timing
+    // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
     uint32_t pulseCounter = 0;              // Global tick counter for note-off scheduling (96 PPQN)
     uint8_t currentPulse = 0;               // Current pulse for swing timing (alternates 0/1 for on/off beat)
     uint32_t usPerPulse[2];                 // Microseconds per pulse with swing (on-beat/off-beat)
-    uint32_t usPerQuarterNote[2];           // Microseconds per quarter note with swing
 
-    // MIDI clock output timing (24 PPQN, unswung)
-    uint32_t lastMidiClockTime = 0;         // Last time a MIDI clock pulse was sent (microseconds)
-    uint32_t usPerMidiClockPulse;            // Microseconds per MIDI clock pulse (24 PPQN)
+    // Unswung Clock timing (24 PPQN) - For MIDI Clock
+    uint32_t lastClockTime = 0;             // Last time a MIDI clock pulse was sent (microseconds)
+    uint8_t  clockCounter = 0;              // Counter for clocks (0-23, wraps at 24)
+    uint32_t usPerClock;                    // Microseconds per clock pulse (24 PPQN)
 
-    // Quarter note timing (for LED animation)
+    // Unswung LED animation timing (1 PPQN) - For LED animation
     uint32_t lastQuarterNoteTime = 0;       // Last time a quarter note boundary was crossed (microseconds)
-    uint32_t usPerQuarterNoteUnswung;       // Microseconds per quarter note without swing
+    uint32_t usPerQuarterNote;              // Microseconds per quarterNote (usPerClock * 24) - Just a helper variable
 
     // Playback state per track
     struct TrackPlayback {
@@ -126,7 +127,8 @@ public:
     uint8_t GetNextClip(uint8_t track);
     void SetNextClip(uint8_t track, uint8_t clip);
 
-    uint16_t getCurrentPulse();
+    Fract16 GetQuarterNoteProgress();
+    uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0); // LED Helper 
 
     void RecordEvent(MidiPacket packet);
 };
