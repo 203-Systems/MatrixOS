@@ -20,7 +20,8 @@ struct SequenceTrackModeConfig {
         struct {
             SequenceNoteType type:3;
             bool customScale:1;
-            uint16_t scale:12;
+            bool enforceScale:1;
+            uint16_t scale;
             uint8_t root;
             uint8_t rootOffset;
             uint8_t octave; // For UI
@@ -70,6 +71,7 @@ struct SequenceMeta {
             track.mode = SequenceTrackMode::NoteTrack;
             track.config.note.type = SequenceNoteType::Scale;
             track.config.note.customScale = false;
+            track.config.note.enforceScale = true;
             track.config.note.scale = (uint16_t)Scale::MINOR;
             track.config.note.root = 0;
             track.config.note.rootOffset = 0;

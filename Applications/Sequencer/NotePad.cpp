@@ -76,6 +76,10 @@ void SequencerNotePad::GenerateOctaveKeymap()
             if (nextNote > 127) { // If next note is out of range, fill with 255
                 noteMap[id] = 255;
             }
+            else if(!metaTrack.config.note.enforceScale) { // If enforce scale is false, just add the next note
+                noteMap[id] = nextNote;  // Add to map
+                nextNote++;
+            }
             else { // Find the next note that is in scale
                 while (true) { // Find next key that we should put in
                     NoteType inScale = InScale(nextNote);
@@ -114,7 +118,17 @@ void SequencerNotePad::GenerateChromaticKeymap()
         } else {
             noteMap[ui_y * dimension.x + x] = note;
         }
-        note++;
+        if(!metaTrack.config.note.enforceScale) {
+            note++;
+        }
+        else {
+            int16_t nextNote = GetNextInScaleNote(note);
+            if (nextNote == INT16_MAX) {
+                note = INT16_MAX; // Mark as invalid, subsequent notes will be 255
+            } else {
+                note = nextNote;
+            }
+        }
     }
 }
 
@@ -182,10 +196,10 @@ void SequencerNotePad::GenerateKeymap()
 {
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
-    
-    if(track.mode != SequenceTrackMode::NoteTrack)
+
+    if(metaTrack.mode != SequenceTrackMode::NoteTrack)
     {
-        noteMap.resize(dimension.Area(), 255);
+        noteMap.resize(GetSize().Area(), 255);
         return;
     }
 
@@ -269,8 +283,8 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
     Dimension dimension = GetSize();
     Color rootColor = metaTrack.color;
-    Color scaleColor = Color(0x606060);
-    Color offScaleColor = Color(0x000000);
+    Color scaleColor = Color(0x808080);
+    Color offScaleColor = Color(0x202020);
 
     uint8_t index = 0;
     for (int8_t y = 0; y < dimension.y; y++) {
@@ -341,13 +355,19 @@ bool SequencerNotePad::RenderPiano(Point origin)
                     MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
-                    if (isBlackKeyRow) {
-                        // Black keys: track color
+                    // Check if note is root, in scale, or out of scale
+                    NoteType inScale = InScale(note);
+                    if (inScale == NoteType::ROOT_NOTE) {
+                        // Root key: track color
                         MatrixOS::LED::SetColor(globalPos, metaTrack.color);
                     }
-                    else {
-                        // White keys: gray
+                    else if (inScale == NoteType::SCALE_NOTE) {
+                        // In scale key: gray
                         MatrixOS::LED::SetColor(globalPos, Color(0x808080));
+                    }
+                    else {
+                        // Out of scale key: darker gray
+                        MatrixOS::LED::SetColor(globalPos, Color(0x202020));
                     }
                 }
             }
@@ -434,10 +454,10 @@ bool SequencerNotePad::Render(Point origin)
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
-    if(track.mode != SequenceTrackMode::NoteTrack)
+    if(metaTrack.mode != SequenceTrackMode::NoteTrack)
     {
-        noteMap.resize(dimension.Area(), 255);
-        return;
+        noteMap.resize(GetSize().Area(), 255);
+        return true;
     }
 
     if(rescanNeeded)

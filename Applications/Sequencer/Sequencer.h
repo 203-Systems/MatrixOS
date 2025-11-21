@@ -21,7 +21,7 @@ class Sequencer : public Application {
 
   void Setup(const vector<string>& args) override;
 
-  CreateSavedVar("Sequencer", lastSequence, string, "");
+  // CreateSavedVar("Sequencer", lastSequence, string, "");
   
   SequenceMeta meta;
   Sequence sequence;

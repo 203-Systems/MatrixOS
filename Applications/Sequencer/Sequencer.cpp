@@ -13,15 +13,15 @@
 void Sequencer::Setup(const vector<string> &args)
 {
     // Application initialization code here
-    if (lastSequence.Get().empty())
+    // if (lastSequence.Get().empty())
     {
         sequence.New(8);
         meta.New(8);
     }
-    else
-    {
-        // Load sequence
-    }
+    // else
+    // {
+    //     // Load sequence
+    // }
 
     sequence.EnableClockOutput(meta.clockOutput);
 
@@ -297,26 +297,53 @@ void Sequencer::LayoutSelector()
     Color color = Color(0xFFFF00);
     UI layoutSelector("Layout Selector", color, false);
 
-    const char* layoutNames[] = {"Scale", "Chromatic", "Piano", "Drum"};
-    const SequenceNoteType layoutTypes[] = {
-        SequenceNoteType::Scale,
-        SequenceNoteType::Chromatic,
-        SequenceNoteType::Piano,
-        SequenceNoteType::Drum
-    };
+    TrackSelector trackSelector(this, true);
+    layoutSelector.AddUIComponent(trackSelector, Point(0, 0));
 
-    UIItemSelector layoutItemSelector;
-    layoutItemSelector.SetName("Layout");
-    layoutItemSelector.SetColor(color);
-    layoutItemSelector.SetItems(layoutNames, 4);
-    layoutItemSelector.SetValue((uint16_t)meta.tracks[track].config.note.type);
-    layoutItemSelector.OnConfirm([&](uint16_t index) -> void
-                                 {
-        meta.tracks[track].config.note.type = layoutTypes[index];
+    UIButton scaleModeBtn;
+    scaleModeBtn.SetName("Scale Mode");
+    scaleModeBtn.SetColorFunc([&]() -> Color {
+        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Scale);
+    });
+    scaleModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].config.note.type = SequenceNoteType::Scale;
         sequence.SetDirty();
     });
+    layoutSelector.AddUIComponent(scaleModeBtn, Point(0, 1));
 
-    layoutSelector.AddUIComponent(layoutItemSelector, Point(0, 0));
+    UIButton chromaticModeBtn;
+    chromaticModeBtn.SetName("Chromatic Mode");
+    chromaticModeBtn.SetColorFunc([&]() -> Color {
+        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Chromatic);
+    });
+    chromaticModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].config.note.type = SequenceNoteType::Chromatic;
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(chromaticModeBtn, Point(1, 1));
+
+    UIButton pianoModeBtn;
+    pianoModeBtn.SetName("Piano Mode");
+    pianoModeBtn.SetColorFunc([&]() -> Color {
+        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Piano);
+    });
+    pianoModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].config.note.type = SequenceNoteType::Piano;
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(pianoModeBtn, Point(2, 1));
+
+    UIButton drumModeBtn;
+    drumModeBtn.SetName("Drum Mode");
+    drumModeBtn.SetColorFunc([&]() -> Color {
+        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Drum);
+    });
+    drumModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].config.note.type = SequenceNoteType::Drum;
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(drumModeBtn, Point(3, 1));
+
     layoutSelector.Start();
 }
 
