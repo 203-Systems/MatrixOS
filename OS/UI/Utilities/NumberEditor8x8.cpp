@@ -17,8 +17,8 @@ namespace MatrixOS::UIUtility
     numberDisplay.SetAlternativeColor(Color::White);
     numberSelector.AddUIComponent(numberDisplay, origin + Point(-4, -3));
 
-    int32_t modifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};
-    uint8_t gradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+    const int32_t modifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};
+    const uint8_t gradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
     UINumberModifier numberModifier;
     numberModifier.SetColor(color);
     numberModifier.SetLength(8);

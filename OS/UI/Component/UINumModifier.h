@@ -10,8 +10,8 @@ class UINumberModifier : public UIComponent {
   Color color;
   uint8_t length;
   int32_t* valuePtr;
-  int32_t* modifiers;
-  uint8_t* controlGradient;
+  const int32_t* modifiers;
+  const uint8_t* controlGradient;
   int32_t lowerLimit;
   int32_t upperLimit;
   std::unique_ptr<std::function<void(int32_t)>> changeCallback;
@@ -33,8 +33,8 @@ class UINumberModifier : public UIComponent {
   void SetColor(Color color) { this->color = color; }
   void SetLength(uint8_t length) { this->length = length; }
   void SetValuePointer(int32_t* valuePtr) { this->valuePtr = valuePtr; }
-  void SetModifiers(int32_t* modifiers) { this->modifiers = modifiers; }
-  void SetControlGradient(uint8_t* controlGradient) { this->controlGradient = controlGradient; }
+  void SetModifiers(const int32_t* modifiers) { this->modifiers = modifiers; }
+  void SetControlGradient(const uint8_t* controlGradient) { this->controlGradient = controlGradient; }
   void SetLowerLimit(int32_t lowerLimit) { this->lowerLimit = lowerLimit; }
   void SetUpperLimit(int32_t upperLimit) { this->upperLimit = upperLimit; }
 

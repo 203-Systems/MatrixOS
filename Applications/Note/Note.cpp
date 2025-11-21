@@ -958,9 +958,9 @@ void Note::ArpConfigMenu() {
   };
 
   // Shared arrays for all number modifiers
-  int32_t coarseModifier[8] = {-25, -10, -5, -1, 1, 5, 10, 25};
-  int32_t fineModifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
-  uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+  const int32_t coarseModifier[8] = {-25, -10, -5, -1, 1, 5, 10, 25};
+  const int32_t fineModifier[8] = {-10, -5, -2, -1, 1, 2, 5, 10};
+  const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
 
   UISelector arpConfigSelector;
   arpConfigSelector.SetCount(8);
