@@ -38,13 +38,16 @@ class PatternSelector : public UIComponent {
                     uint8_t sourcePattern = sequencer->sequence.GetPosition(track).pattern;
                     sequencer->sequence.CopyPattern(track, clip, sourcePattern, track, clip, 255);
 
-                    // Select the newly created pattern
-                    uint8_t newPattern = sequencer->sequence.GetPatternCount(track, clip) - 1;
-                    sequencer->sequence.SetPattern(track, newPattern);
-
-                    if (changeCallback != nullptr)
+                    // Select the newly created pattern only if not playing
+                    if(!sequencer->sequence.Playing(track))
                     {
-                        changeCallback(newPattern);
+                        uint8_t newPattern = sequencer->sequence.GetPatternCount(track, clip) - 1;
+                        sequencer->sequence.SetPattern(track, newPattern);
+
+                        if (changeCallback != nullptr)
+                        {
+                            changeCallback(newPattern);
+                        }
                     }
                 }
                 // Add new empty pattern
@@ -53,10 +56,14 @@ class PatternSelector : public UIComponent {
                     int8_t newPatternIdx = sequencer->sequence.NewPattern(track, clip, 16);
                     if(newPatternIdx >= 0)
                     {
-                        sequencer->sequence.SetPattern(track, newPatternIdx);
-                        if (changeCallback != nullptr)
+                        // Select the newly created pattern only if not playing
+                        if(!sequencer->sequence.Playing(track))
                         {
-                            changeCallback(newPatternIdx);
+                            sequencer->sequence.SetPattern(track, newPatternIdx);
+                            if (changeCallback != nullptr)
+                            {
+                                changeCallback(newPatternIdx);
+                            }
                         }
                     }
                 }

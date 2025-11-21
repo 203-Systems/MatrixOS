@@ -33,36 +33,60 @@ void Sequence::New(uint8_t tracks)
         data.tracks[i].clips[0].patterns[0].quarterNotes = 16;
     }
 
-    position.clear();
-    position.reserve(tracks);
-    for (uint8_t i = 0; i < tracks; i++) {
-        position.emplace_back();
-        position[i].clip = 0;
-        position[i].pattern = 0;
-        position[i].quarterNote = 0;
-    }
-
-    nextClip.clear();
-    nextClip.resize(tracks, 255);
+    trackPlayback.clear();
+    trackPlayback.resize(tracks);
+    pulseCounter = 0;
+    lastPulseTime = 0;
 
     data.solo = 0;
     data.mute = 0;
     data.record = 0xFFFFFFFF;
-
-    lastEvent.resize(tracks, 0);
-    activeNotes.resize(tracks);
 
     UpdateTiming();
 }
 
 void Sequence::Tick()
 {
-    // TODO: Implement tick logic for sequencer playback
+    if (!playing) return;
+
+    uint32_t currentTime = MatrixOS::SYS::Micros();
+    uint32_t elapsed = currentTime - lastPulseTime;
+
+    // Check if enough time for a tick (using swing timing)
+    if (elapsed >= usPerPulse[currentPulse % 2]) {
+        lastPulseTime = currentTime;
+
+        // Send MIDI clock pulse if enabled (24 PPQN, unswung)
+        if (clockOutput && (currentTime - lastMidiClockTime) >= usPerMidiClockPulse) {
+            MatrixOS::MIDI::Send(MidiPacket(0xF8), MIDI_PORT_ALL);  // MIDI Clock message
+            lastMidiClockTime = currentTime;
+        }
+
+        // Update quarter note timestamp for LED animation (at quarter note boundaries)
+        if (pulseCounter % PPQN == 0) {
+            lastQuarterNoteTime = currentTime;
+        }
+
+        // Process each track independently BEFORE incrementing tick counter
+        // This ensures events at tick 0 (quarter note 0) fire immediately on first tick
+        for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+            ProcessTrack(track);
+        }
+
+        currentPulse++;
+        pulseCounter++;
+    }
 }
 
 void Sequence::UpdateTiming()
 {
     uint32_t pulseUs = 60000000UL / (data.bpm * PPQN);
+
+    // Calculate unswung timing for LED animation
+    usPerQuarterNoteUnswung = pulseUs * PPQN;
+
+    // Calculate MIDI clock timing (24 PPQN standard)
+    usPerMidiClockPulse = 60000000UL / (data.bpm * 24);
 
     // Apply swing based on 20-80 range with 50 as center (no swing)
     // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
@@ -73,62 +97,11 @@ void Sequence::UpdateTiming()
     // This maintains total duration: ticksPerStep[0] + ticksPerStep[1] = 2 * baseTicksPerStep
     uint32_t swingUs = (uint32_t)(pulseUs * swingRatio);
 
-    usPerTick[0] = pulseUs + swingUs;  // On-beat (longer with positive swing)
-    usPerTick[1] = pulseUs - swingUs;  // Off-beat (shorter with positive swing)
+    usPerPulse[0] = pulseUs + swingUs;  // On-beat (longer with positive swing)
+    usPerPulse[1] = pulseUs - swingUs;  // Off-beat (shorter with positive swing)
 
-    usPerQuarterNote[0] = usPerTick[0] * PPQN;
-    usPerQuarterNote[1] = usPerTick[1] * PPQN;
-}
-
-uint8_t Sequence::FindNextClip(uint8_t track, int8_t clip)
-{
-    if(data.tracks[track].clips.empty())
-    {
-        return 255;
-    }
-
-    // If clip is -1, find the lowest clip index
-    if(clip == -1)
-    {
-        uint8_t lowestClip = 255;
-        for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
-        {
-            if(clipIdx < lowestClip)
-            {
-                lowestClip = clipIdx;
-            }
-        }
-        return lowestClip;
-    }
-    // Otherwise, find the next clip after the given clip index
-    else
-    {
-        uint8_t nextClipIdx = 255;
-        uint8_t lowestClip = 255;
-
-        for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
-        {
-            // Track the lowest clip for wrap-around
-            if(clipIdx < lowestClip)
-            {
-                lowestClip = clipIdx;
-            }
-
-            // Find next clip higher than current
-            if(clipIdx > clip && clipIdx < nextClipIdx)
-            {
-                nextClipIdx = clipIdx;
-            }
-        }
-
-        // If no higher clip found, wrap around to lowest clip
-        if(nextClipIdx == 255)
-        {
-            return lowestClip;
-        }
-
-        return nextClipIdx;
-    }
+    usPerQuarterNote[0] = usPerPulse[0] * PPQN;
+    usPerQuarterNote[1] = usPerPulse[1] * PPQN;
 }
 
 // Playback control
@@ -136,15 +109,55 @@ void Sequence::Play()
 {
     playing = true;
     currentPulse = 0;
-    quarterNoteSinceStart = 0;
-    for (uint8_t i = 0; i < position.size(); i++) {
-        position[i].clip = 0;
-        position[i].pattern = 0;
-        position[i].quarterNote = 0;
+    uint32_t currentTime = MatrixOS::SYS::Micros();
+    lastPulseTime = currentTime;
+    lastQuarterNoteTime = currentTime;
+    pulseCounter = 0;
 
-        // Set nextClip to the lowest clip index for this track
-        nextClip[i] = FindNextClip(i, -1);
+    for (uint8_t i = 0; i < trackPlayback.size(); i++) {
+        // Play all tracks at their current clip position
+        trackPlayback[i].position.pattern = 0;
+        trackPlayback[i].position.quarterNote = 0;
+        trackPlayback[i].position.pulse = 0;
+
+        // Clear playback state and start all tracks
+        trackPlayback[i].noteOffMap.clear();
+        trackPlayback[i].noteOffQueue.clear();
+        trackPlayback[i].playing = true;
     }
+}
+
+void Sequence::Play(uint8_t track)
+{
+    // Initialize timing if not already playing
+    if (!playing) {
+        playing = true;
+        lastPulseTime = MatrixOS::SYS::Micros();
+        pulseCounter = 0;
+    }
+
+    // Play the track at its current clip position
+    trackPlayback[track].position.pattern = 0;
+    trackPlayback[track].position.quarterNote = 0;
+    trackPlayback[track].position.pulse = 0;
+
+    // Clear playback state and start track
+    trackPlayback[track].noteOffMap.clear();
+    trackPlayback[track].noteOffQueue.clear();
+    trackPlayback[track].playing = true;
+}
+
+void Sequence::PlayClip(uint8_t track, uint8_t clip)
+{
+    // Initialize timing if not already playing
+    if (!playing) {
+        playing = true;
+        lastPulseTime = MatrixOS::SYS::Micros();
+        pulseCounter = 0;
+    }
+
+    // Queue this clip to play after current patterns finish
+    trackPlayback[track].nextClip = clip;
 }
 
 bool Sequence::Playing()
@@ -152,13 +165,50 @@ bool Sequence::Playing()
     return playing;
 }
 
+bool Sequence::Playing(uint8_t track)
+{
+    return trackPlayback[track].playing;
+}
+
 void Sequence::Stop()
 {
     playing = false;
 
-    // Reset nextClip to 255 for all tracks
-    for (uint8_t i = 0; i < nextClip.size(); i++) {
-        nextClip[i] = 255;
+    // Send note-off for all queued notes before clearing
+    for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+        uint8_t channel = GetChannel(track);
+        for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+        }
+        trackPlayback[track].noteOffMap.clear();
+        trackPlayback[track].noteOffQueue.clear();
+        trackPlayback[track].nextClip = 255;
+        trackPlayback[track].playing = false;
+    }
+}
+
+void Sequence::Stop(uint8_t track)
+{
+    // Send note-off for all queued notes on this track before clearing
+    uint8_t channel = GetChannel(track);
+    for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+    }
+    trackPlayback[track].noteOffMap.clear();
+    trackPlayback[track].noteOffQueue.clear();
+    trackPlayback[track].nextClip = 255;
+    trackPlayback[track].playing = false;
+
+    // If no tracks are playing, stop global playback
+    bool anyPlaying = false;
+    for (uint8_t i = 0; i < trackPlayback.size(); i++) {
+        if (trackPlayback[i].playing) {
+            anyPlaying = true;
+            break;
+        }
+    }
+    if (!anyPlaying) {
+        playing = false;
     }
 }
 
@@ -171,6 +221,17 @@ void Sequence::EnableRecord(bool val)
 bool Sequence::RecordEnabled()
 {
     return record;
+}
+
+// Clock Output
+void Sequence::EnableClockOutput(bool val)
+{
+    clockOutput = val;
+}
+
+bool Sequence::ClockOutputEnabled()
+{
+    return clockOutput;
 }
 
 // Track count
@@ -224,20 +285,29 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
     data.tracks[track].clips.erase(clip);
 
     // Update position if pointing to deleted clip
-    if(position[track].clip == clip)
+    if(trackPlayback[track].position.clip == clip)
     {
         // Find lowest available clip or create clip 0
         if(data.tracks[track].clips.empty())
         {
             NewClip(track, 0);
-            position[track].clip = 0;
+            trackPlayback[track].position.clip = 0;
         }
         else
         {
-            position[track].clip = FindNextClip(track, -1);
+            // Find the lowest clip index
+            uint8_t lowestClip = 255;
+            for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
+            {
+                if(clipIdx < lowestClip)
+                {
+                    lowestClip = clipIdx;
+                }
+            }
+            trackPlayback[track].position.clip = lowestClip;
         }
-        position[track].pattern = 0;
-        position[track].quarterNote = 0;
+        trackPlayback[track].position.pattern = 0;
+        trackPlayback[track].position.quarterNote = 0;
     }
     dirty = true;
 }
@@ -320,11 +390,11 @@ void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)
         patterns.erase(patterns.begin() + pattern);
 
         // Update position if pointing to this clip and pattern
-        if(position[track].clip == clip && position[track].pattern >= pattern)
+        if(trackPlayback[track].position.clip == clip && trackPlayback[track].position.pattern >= pattern)
         {
-            if(position[track].pattern > 0)
+            if(trackPlayback[track].position.pattern > 0)
             {
-                position[track].pattern--;
+                trackPlayback[track].position.pattern--;
             }
         }
     }
@@ -497,37 +567,37 @@ bool Sequence::GetEnabled(uint8_t track)
 
 SequencePosition& Sequence::GetPosition(uint8_t track)
 {
-    return position[track];
+    return trackPlayback[track].position;
 }
 
 void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t quarterNote)
 {
-    position[track].clip = clip;
-    position[track].pattern = pattern;
-    position[track].quarterNote = quarterNote;
+    trackPlayback[track].position.clip = clip;
+    trackPlayback[track].position.pattern = pattern;
+    trackPlayback[track].position.quarterNote = quarterNote;
 }
 
 void Sequence::SetClip(uint8_t track, uint8_t clip)
 {
-    position[track].clip = clip;
-    position[track].pattern = 0;
-    position[track].quarterNote = 0;
+    trackPlayback[track].position.clip = clip;
+    trackPlayback[track].position.pattern = 0;
+    trackPlayback[track].position.quarterNote = 0;
 }
 
 void Sequence::SetPattern(uint8_t track, uint8_t pattern)
 {
-    position[track].pattern = pattern;
-    position[track].quarterNote = 0;
+    trackPlayback[track].position.pattern = pattern;
+    trackPlayback[track].position.quarterNote = 0;
 }
 
 uint8_t Sequence::GetNextClip(uint8_t track)
 {
-    return nextClip[track];
+    return trackPlayback[track].nextClip;
 }
 
 void Sequence::SetNextClip(uint8_t track, uint8_t clip)
 {
-    nextClip[track] = clip;
+    trackPlayback[track].nextClip = clip;
 }
 
 // Current pulse
@@ -539,4 +609,115 @@ uint16_t Sequence::getCurrentPulse()
 void Sequence::RecordEvent(MidiPacket packet)
 {
 
+}
+
+void Sequence::ProcessTrack(uint8_t track)
+{
+    // Only process tracks that are currently playing
+    if (!trackPlayback[track].playing) return;
+
+    bool trackEnabled = GetEnabled(track);
+
+    // 1. Process note-offs that have reached their time
+    //    Only check the earliest entries (efficient with multimap)
+    while (!trackPlayback[track].noteOffQueue.empty() &&
+           trackPlayback[track].noteOffQueue.begin()->first <= pulseCounter) {
+
+        uint8_t note = trackPlayback[track].noteOffQueue.begin()->second;
+
+        if (trackEnabled) {
+            uint8_t channel = GetChannel(track);
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+        }
+
+        // Remove from both structures
+        trackPlayback[track].noteOffMap.erase(note);
+        trackPlayback[track].noteOffQueue.erase(trackPlayback[track].noteOffQueue.begin());
+    }
+
+    // 2. Fire events at current tick position
+    uint8_t clip = trackPlayback[track].position.clip;
+    uint8_t pattern = trackPlayback[track].position.pattern;
+
+    if (trackEnabled && ClipExists(track, clip)) {
+        SequencePattern& currentPattern = GetPattern(track, clip, pattern);
+
+        // Calculate the absolute tick position within the pattern
+        uint16_t currentTick = trackPlayback[track].position.quarterNote * PPQN + trackPlayback[track].position.pulse;
+
+        // Fire all events at exactly this tick
+        auto eventIt = currentPattern.events.find(currentTick);
+        if (eventIt != currentPattern.events.end()) {
+            // Execute event (sends MIDI)
+            eventIt->second.ExecuteEvent(data, track);
+
+            // If it's a note event, schedule note-off with overwrite and update lastEvent
+            if (eventIt->second.eventType == SequenceEventType::NoteEvent) {
+                const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventIt->second.data);
+                uint8_t note = noteData.note;
+                uint32_t noteOffTick = pulseCounter + noteData.length;
+
+                // Update lastEvent timestamp for recording purposes
+                trackPlayback[track].lastEvent = MatrixOS::SYS::Millis();
+
+                // Check if this note already has a pending note-off (overwrite case)
+                if (trackPlayback[track].noteOffMap.count(note)) {
+                    // Remove old note-off from queue
+                    uint32_t oldTick = trackPlayback[track].noteOffMap[note];
+
+                    // Find and remove from multimap
+                    auto range = trackPlayback[track].noteOffQueue.equal_range(oldTick);
+                    for (auto it = range.first; it != range.second; ++it) {
+                        if (it->second == note) {
+                            trackPlayback[track].noteOffQueue.erase(it);
+                            break;
+                        }
+                    }
+                }
+
+                // Add new note-off
+                trackPlayback[track].noteOffMap[note] = noteOffTick;
+                trackPlayback[track].noteOffQueue.insert({noteOffTick, note});
+            }
+        }
+    }
+
+    // 3. Advance pulse position
+    trackPlayback[track].position.pulse++;
+
+    // 4. Check if we've completed a quarter note
+    if (trackPlayback[track].position.pulse >= PPQN) {
+        trackPlayback[track].position.pulse = 0;
+        trackPlayback[track].position.quarterNote++;
+
+        // Check if pattern ended
+        if (ClipExists(track, clip)) {
+            SequencePattern& currentPattern = GetPattern(track, clip, pattern);
+
+            if (trackPlayback[track].position.quarterNote >= currentPattern.quarterNotes) {
+                trackPlayback[track].position.quarterNote = 0;
+                trackPlayback[track].position.pulse = 0;
+                trackPlayback[track].position.pattern++;
+
+                // Check if all patterns in clip ended
+                if (trackPlayback[track].position.pattern >= GetPatternCount(track, clip)) {
+                    // Check if there's a nextClip queued
+                    if (trackPlayback[track].nextClip != 255) {
+                        // Transition to the queued clip
+                        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
+                        trackPlayback[track].position.pattern = 0;
+                        trackPlayback[track].position.quarterNote = 0;
+                        trackPlayback[track].position.pulse = 0;
+                        // Clear nextClip after transitioning
+                        trackPlayback[track].nextClip = 255;
+                    } else {
+                        // No nextClip, just loop the patterns
+                        trackPlayback[track].position.pattern = 0;
+                        trackPlayback[track].position.quarterNote = 0;
+                        trackPlayback[track].position.pulse = 0;
+                    }
+                }
+            }
+        }
+    }
 }

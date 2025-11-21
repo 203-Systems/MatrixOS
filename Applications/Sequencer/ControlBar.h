@@ -38,7 +38,15 @@ class ControlBar : public UIComponent {
               }
               else
               {
-                sequencer->sequence.Play();
+                if(sequencer->ShiftActive())
+                {
+                  sequencer->ShiftEventOccured();
+                  sequencer->sequence.Play(sequencer->track);
+                }
+                else
+                {
+                  sequencer->sequence.Play();
+                }
               }
             }
             return true;
@@ -132,6 +140,7 @@ class ControlBar : public UIComponent {
                 sequencer->patternView = !sequencer->patternView;
                 sequencer->shiftEventOccured = true;
               }
+              sequencer->shiftOnTime = MatrixOS::SYS::Millis();
               sequencer->shift++;
             }
             else if(keyInfo->state == RELEASED)
@@ -167,6 +176,7 @@ class ControlBar : public UIComponent {
                 sequencer->patternView = !sequencer->patternView;
                 sequencer->shiftEventOccured = true;
               }
+              sequencer->shiftOnTime = MatrixOS::SYS::Millis();
               sequencer->shift++;
             }
             else if(keyInfo->state == RELEASED)

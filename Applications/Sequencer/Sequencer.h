@@ -33,6 +33,7 @@ class Sequencer : public Application {
   bool clear = false;
   bool copy = false;
   uint8_t shift = 0;
+  uint32_t shiftOnTime = 0;
   bool shiftEventOccured = false;
 
   enum class ViewMode

@@ -53,7 +53,7 @@ class ClipLauncher : public UIComponent {
                     changeCallback(track, clip);
                 }
             }
-            // If clip doesn't exist, create it
+            // If clip doesn't exist, create it or stop track
             else if(!sequencer->sequence.ClipExists(track, clip))
             {
                 if(sequencer->ClearActive())
@@ -62,15 +62,23 @@ class ClipLauncher : public UIComponent {
                     return true;
                 }
 
-                sequencer->sequence.NewClip(track, clip);
-
-                // Select the newly created clip
-                sequencer->track = track;
-                sequencer->sequence.SetClip(track, clip);
-
-                if (changeCallback != nullptr)
+                // If track is playing, stop it when clicking empty slot
+                if(sequencer->sequence.Playing(track))
                 {
-                    changeCallback(track, clip);
+                    sequencer->sequence.Stop(track);
+                }
+                else
+                {
+                    sequencer->sequence.NewClip(track, clip);
+
+                    // Select the newly created clip
+                    sequencer->track = track;
+                    sequencer->sequence.SetClip(track, clip);
+
+                    if (changeCallback != nullptr)
+                    {
+                        changeCallback(track, clip);
+                    }
                 }
             }
             // If clip exists and Clear is active, delete it
@@ -119,14 +127,21 @@ class ClipLauncher : public UIComponent {
                 }
                 else if(!sequencer->sequence.ClipExists(track, clip))
                 {
-                    // Clip doesn't exist
-                    color = Color(0x404040);
+                    // Clip doesn't exist - show black if track is playing, otherwise dim gray
+                    if(sequencer->sequence.Playing(track))
+                    {
+                        color = Color::Black;
+                    }
+                    else
+                    {
+                        color = Color(0x202020);
+                    }
                 }
                 else
                 {
                     Color trackColor = sequencer->meta.tracks[track].color;
                     bool isSelected = (sequencer->track == track && sequencer->sequence.GetPosition(track).clip == clip);
-                    bool isPlaying = sequencer->sequence.Playing() && sequencer->sequence.GetPosition(track).clip == clip;
+                    bool isPlaying = sequencer->sequence.Playing(track) && sequencer->sequence.GetPosition(track).clip == clip;
 
                     if(isPlaying)
                     {

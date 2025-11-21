@@ -103,7 +103,7 @@ void Sequencer::SequencerUI()
         ClearActiveNotes();
         pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx);
     });
-    patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && (ShiftActive() || patternView); });
+    patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); });
     sequencerUI.AddUIComponent(&patternSelector, Point(0, 3));
 
     // Session View
@@ -386,6 +386,7 @@ bool Sequencer::ShiftActive()
 void Sequencer::ShiftEventOccured()
 {
     shiftEventOccured = true;
+    shiftOnTime = MatrixOS::SYS::Millis();
 }
 
 void Sequencer::ClearActiveNotes()
