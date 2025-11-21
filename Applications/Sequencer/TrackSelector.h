@@ -50,18 +50,18 @@ class TrackSelector : public UIComponent {
     { 
         for(uint8_t i = 0; i < width; i++)
         {
+            Color color = sequencer->meta.tracks[i].color;
             if(i == sequencer->track)
             {
-                MatrixOS::LED::SetColor(origin + Point(i, 0), Color::White);
+                MatrixOS::LED::SetColor(origin + Point(i, 0), Color::Crossfade(color, Color::White, Fract16(0xA000)));
             }
             else if(sequencer->sequence.GetEnabled(i) == false)
             {
-                Color color = sequencer->meta.tracks[i].color;
+                
                 MatrixOS::LED::SetColor(origin + Point(i, 0), color.Dim());
             }
             else
             {
-                Color color = sequencer->meta.tracks[i].color;
                 uint32_t timeSinceLastEvent = MatrixOS::SYS::Millis() - sequencer->sequence.GetLastEventTime(i);
 
                 const uint16_t fadeLengthMs = 500;

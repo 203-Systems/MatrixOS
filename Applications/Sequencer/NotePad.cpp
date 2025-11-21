@@ -302,7 +302,8 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
     Dimension dimension = GetSize();
     Color rootColor = metaTrack.color;
-    Color scaleColor = Color(0x808080);
+    // Color scaleColor = Color(0x808080);
+    Color scaleColor = Color::Crossfade(rootColor, Color::White, Fract16(0xC000)).Dim(96);
     Color offScaleColor = Color(0x202020);
 
     uint8_t index = 0;

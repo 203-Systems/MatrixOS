@@ -104,6 +104,7 @@ public:
 
     uint8_t GetBarLength();
     void SetBarLength(uint8_t barLength);
+    void UpdateEmptyPatternsWithBarLength();
 
     bool GetDirty();
     void SetDirty(bool val = true);

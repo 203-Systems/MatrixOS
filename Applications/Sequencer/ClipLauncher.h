@@ -136,7 +136,7 @@ class ClipLauncher : public UIComponent {
                     }
                     else
                     {
-                        color = Color(0x202020);
+                        color = Color(0x101010);
                     }
                 }
                 else

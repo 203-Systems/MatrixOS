@@ -625,6 +625,8 @@ void Sequencer::SwingSelector()
 void Sequencer::BarLengthSelector()
 {
     Color color = Color(0x00A0FF);
+    Color updateColor = Color(0x80FF00);
+    uint32_t updateTime = 0;
     UI barLengthSelector("Bar Length Selector", color, false);
     int32_t barLength = sequence.GetBarLength();
     int32_t offsettedBarLength = barLength - 1;
@@ -663,10 +665,19 @@ void Sequencer::BarLengthSelector()
     barLengthSelector.AddUIComponent(barLengthTextDisplay, Point(0, 0));
 
     UI4pxNumber numDisplay;
-    numDisplay.SetColor(color);
+    numDisplay.SetColorFunc([&](uint16_t digit) -> Color
+    {
+        if(digit % 2 == 0)
+        {
+            return (MatrixOS::SYS::Millis() - updateTime < 1000) ?  updateColor : color;
+        }
+        else
+        {
+            return Color::White;
+        }
+    });
     numDisplay.SetDigits(2);
     numDisplay.SetValuePointer(&barLength);
-    numDisplay.SetAlternativeColor(Color::White);
     numDisplay.SetSpacing(1);
     numDisplay.SetEnableFunc([&]() -> bool
                              { return !barLengthTextDisplay.IsEnabled(); });
@@ -675,7 +686,8 @@ void Sequencer::BarLengthSelector()
     UISelector barLengthInput;
     barLengthInput.SetDimension(Dimension(8, 2));
     barLengthInput.SetName("Bar Length");
-    barLengthInput.SetColor(color);
+    barLengthInput.SetColorFunc([&]() -> Color
+                           {return (MatrixOS::SYS::Millis() - updateTime < 1000) ?  updateColor : color;});
     barLengthInput.SetCount(64);
     barLengthInput.SetValuePointer((uint16_t *)&offsettedBarLength);
     barLengthInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
@@ -683,9 +695,20 @@ void Sequencer::BarLengthSelector()
                             {
                                 barLength = val + 1;
                                 barLengthTextDisplay.Disable();
+                                updateTime = 0;
                             });
 
     barLengthSelector.AddUIComponent(barLengthInput, Point(0, 6));
+
+    UIButton updatePatternsBtn;
+    updatePatternsBtn.SetName("Update Empty Patterns");
+    updatePatternsBtn.SetColor(updateColor);
+    updatePatternsBtn.OnPress([&]() -> void {
+        sequence.SetBarLength(barLength);
+        sequence.UpdateEmptyPatternsWithBarLength();
+        updateTime = MatrixOS::SYS::Millis();
+    });
+    barLengthSelector.AddUIComponent(updatePatternsBtn, Point(7, 5));
 
     barLengthSelector.Start();
 

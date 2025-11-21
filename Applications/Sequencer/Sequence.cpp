@@ -532,6 +532,28 @@ void Sequence::SetBarLength(uint8_t barLength)
     }
 }
 
+void Sequence::UpdateEmptyPatternsWithBarLength()
+{
+    // Iterate through all tracks
+    for (uint8_t track = 0; track < data.tracks.size(); track++)
+    {
+        // Iterate through all clips
+        for (auto& [clipId, clip] : data.tracks[track].clips)
+        {
+            // Iterate through all patterns in this clip
+            for (auto& pattern : clip.patterns)
+            {
+                // Only update patterns that are empty (no events)
+                if (pattern.events.empty())
+                {
+                    pattern.quarterNotes = data.barLength;
+                }
+            }
+        }
+    }
+    dirty = true;
+}
+
 // Dirty flag
 bool Sequence::GetDirty()
 {

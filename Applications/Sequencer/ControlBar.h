@@ -140,6 +140,7 @@ class ControlBar : public UIComponent {
                 sequencer->patternView = !sequencer->patternView;
                 sequencer->shiftEventOccured = true;
               }
+
               sequencer->shiftOnTime = MatrixOS::SYS::Millis();
               sequencer->shift++;
             }
@@ -151,6 +152,14 @@ class ControlBar : public UIComponent {
               }
               else if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
               {
+                if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
+                {
+                  sequencer->currentView = Sequencer::ViewMode::Sequencer;
+                }
+                else if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
+                {
+                  // No octave
+                }
                 if(sequencer->meta.tracks[track].config.note.octave > 0)
                 {
                   sequencer->meta.tracks[track].config.note.octave--;
@@ -180,6 +189,7 @@ class ControlBar : public UIComponent {
                 sequencer->patternView = !sequencer->patternView;
                 sequencer->shiftEventOccured = true;
               }
+
               sequencer->shiftOnTime = MatrixOS::SYS::Millis();
               sequencer->shift++;
             }
@@ -187,7 +197,11 @@ class ControlBar : public UIComponent {
             {
               if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
               {
-                if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
+                if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
+                {
+                  sequencer->currentView = Sequencer::ViewMode::Sequencer;
+                }
+                else if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
                 {
                   // No octave
                 }
@@ -217,6 +231,12 @@ class ControlBar : public UIComponent {
     Color GetOctavePlusColor() {
       Color color = sequencer->meta.tracks[sequencer->track].color;
 
+      if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
+      {
+        return color;
+      }
+
+
       if(sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
       {
         return color;
@@ -238,6 +258,11 @@ class ControlBar : public UIComponent {
 
   Color GetOctaveMinusColor() {
       Color color = sequencer->meta.tracks[sequencer->track].color;
+
+      if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
+      {
+        return color;
+      }
 
       if(sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
       {
