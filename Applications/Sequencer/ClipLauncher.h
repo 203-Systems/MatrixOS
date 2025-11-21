@@ -153,8 +153,7 @@ class ClipLauncher : public UIComponent {
                     }
                     else if(isCurrentTrack && isSelectedInTrack)
                     {
-                        // Selected clip in current editing track shows white
-                        color = Color::White;
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
                     }
                     else if(isSelectedInTrack)
                     {
