@@ -11,3 +11,5 @@
 
 #include "Component/UISelector.h"
 #include "Component/UIItemSelector.h"
+
+#include "Component/UITimedDisplay.h"
