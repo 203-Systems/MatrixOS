@@ -190,18 +190,22 @@ class SequenceVisualizer : public UIComponent {
                 uint8_t slot = position.quarterNote;
                 Point point = Point(slot % width, slot / width);
 
-                uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath(64);
+                uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
                 if(sequencer->sequence.RecordEnabled() == false)
                 {
                     Color baseColor = trackColor.DimIfNot(hasNote & (1 << slot));
-                    Color color = Color::Crossfade(baseColor, Color::White, Fract16(255 - breathingScale + 64, 8));
+                    uint16_t scale = (255 - breathingScale + 64);
+                    if(scale > 255) { scale = 255; }
+                    Color color = Color::Crossfade(baseColor, Color::White, Fract16(scale, 8));
                     MatrixOS::LED::SetColor(origin + point, color);
                 }
                 else
                 {
                     Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
-                    MatrixOS::LED::SetColor(origin + point, baseColor.Scale(255 - breathingScale + 64));
+                    uint16_t scale = 255 - breathingScale / 4;
+                    if(scale > 255) { scale = 255; }
+                    MatrixOS::LED::SetColor(origin + point, baseColor.Scale(scale));
                 }
             }
         }
