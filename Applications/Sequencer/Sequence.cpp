@@ -227,11 +227,12 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
             // Track has this clip, queue it to play
             trackPlayback[track].nextClip = clip;
         }
-        else
+        else if (trackPlayback[track].playing)
         {
-            // Track doesn't have this clip, queue stop
+            // Track doesn't have this clip but is playing, queue stop
             trackPlayback[track].nextClip = 254;
         }
+        // If track is not playing and has no clip, do nothing (don't update nextClip)
     }
 }
 
@@ -289,8 +290,12 @@ void Sequence::Stop(uint8_t track)
 
 void Sequence::StopAfter(uint8_t track)
 {
-    // Set nextClip to 254 to signal stop at next bar boundary
-    trackPlayback[track].nextClip = 254;
+    // Only queue stop if track is currently playing
+    if (trackPlayback[track].playing)
+    {
+        // Set nextClip to 254 to signal stop at next bar boundary
+        trackPlayback[track].nextClip = 254;
+    }
 }
 
 // Recording

@@ -44,14 +44,14 @@ class ClipLauncher : public UIComponent {
                 // Copy clip (includes all patterns and enabled state)
                 sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
 
-                // Select the newly copied clip
-                sequencer->track = track;
-                sequencer->sequence.SetClip(track, clip);
+                // // Select the newly copied clip
+                // sequencer->track = track;
+                // sequencer->sequence.SetClip(track, clip);
 
-                if (changeCallback != nullptr)
-                {
-                    changeCallback(track, clip);
-                }
+                // if (changeCallback != nullptr)
+                // {
+                //     changeCallback(track, clip);
+                // }
             }
             // If clip doesn't exist, create it or stop track
             else if(!sequencer->sequence.ClipExists(track, clip))
@@ -67,7 +67,7 @@ class ClipLauncher : public UIComponent {
                 {
                     sequencer->sequence.StopAfter(track);
                 }
-                else
+                else if(sequencer->sequence.Playing() == false)
                 {
                     sequencer->sequence.NewClip(track, clip);
 
@@ -143,6 +143,21 @@ class ClipLauncher : public UIComponent {
                 {
                     // No track at this position
                     color = Color::Black;
+                }
+                else if(sequencer->CopyActive())
+                {   
+                    if(sequencer->track == track && activeClip == clip)
+                    {
+                        color = sequencer->meta.tracks[track].color;
+                    }
+                    else if(sequencer->sequence.ClipExists(track, clip))
+                    {
+                        color = sequencer->meta.tracks[track].color.Dim(32);
+                    }
+                    else
+                    {
+                        color = Color(0x101010);
+                    }
                 }
                 else if(!sequencer->sequence.ClipExists(track, clip))
                 {
