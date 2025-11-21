@@ -139,11 +139,39 @@ class SequenceVisualizer : public UIComponent {
             uint16_t startTime = slot * Sequence::PPQN;
             uint16_t endTime = startTime + Sequence::PPQN - 1;
 
-            if(pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent))
+            bool shouldRender = false;
+
+            // If notes are selected, only render events with matching notes
+            bool noteFilter = !noteSelected->empty();
+            if(noteFilter)
+            {
+                // Check if any event in this slot has a note that's selected
+                auto it = pattern.events.lower_bound(startTime);
+                while (it != pattern.events.end() && it->first <= endTime)
+                {
+                    if (it->second.eventType == SequenceEventType::NoteEvent)
+                    {
+                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                        if(noteSelected->find(noteData.note) != noteSelected->end())
+                        {
+                            shouldRender = true;
+                            break;
+                        }
+                    }
+                    ++it;
+                }
+            }
+            else
+            {
+                // No notes selected, render all note events
+                shouldRender = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+            }
+
+            if(shouldRender)
             {
                 Point point = Point(slot % width, slot / width);
-                MatrixOS::LED::SetColor(origin + point, trackColor);
                 hasNote |= 1 << slot;
+                MatrixOS::LED::SetColor(origin + point, noteFilter ? Color::Green : trackColor);
             }
         }
 
@@ -155,7 +183,7 @@ class SequenceVisualizer : public UIComponent {
         }
 
         // Render Cursor
-        if(sequencer->sequence.Playing())
+        if(sequencer->sequence.Playing(track))
         {
             SequencePosition& position = sequencer->sequence.GetPosition(track);
             if(patternIdx == position.pattern)
