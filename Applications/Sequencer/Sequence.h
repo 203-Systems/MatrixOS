@@ -41,7 +41,7 @@ private:
         bool playing = false;                     // Is this track playing
         SequencePosition position;                // Current playback position
         uint8_t nextClip = 255;                   // Next clip to play (255 = none)
-        uint32_t lastEvent = 0;                   // Last event time (for animation)
+        uint32_t lastEventTime = 0;               // Last event time (for animation)
         unordered_set<uint8_t> activeNotes;       // Currently active notes
         map<uint8_t, uint32_t> noteOffMap;        // note -> tick time (for overwrite lookup)
         multimap<uint32_t, uint8_t> noteOffQueue; // tick -> note (for efficient processing)
@@ -126,6 +126,8 @@ public:
 
     uint8_t GetNextClip(uint8_t track);
     void SetNextClip(uint8_t track, uint8_t clip);
+
+    uint32_t GetLastEventTime(uint8_t track);
 
     Fract16 GetQuarterNoteProgress(); // Swing Applied
     uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0);  // LED Helper

@@ -62,11 +62,19 @@ class TrackSelector : public UIComponent {
             else
             {
                 Color color = sequencer->meta.tracks[i].color;
+                uint32_t timeSinceLastEvent = MatrixOS::SYS::Millis() - sequencer->sequence.GetLastEventTime(i);
 
-                // TODO: Add white fading based on lastEvent 
+                const uint16_t fadeLengthMs = 500;
+                if(timeSinceLastEvent < fadeLengthMs)
+                {
+                    float ratio = (float)timeSinceLastEvent / fadeLengthMs;
+                    color = Color::Crossfade(Color::White, color, Fract16(ratio * UINT16_MAX));
+                }
+
                 MatrixOS::LED::SetColor(origin + Point(i, 0), color);
             }
         }
+
         return true;
     }
 };

@@ -657,6 +657,11 @@ void Sequence::SetNextClip(uint8_t track, uint8_t clip)
     trackPlayback[track].nextClip = clip;
 }
 
+uint32_t Sequence::GetLastEventTime(uint8_t track)
+{
+    return trackPlayback[track].lastEventTime;
+}
+
 Fract16 Sequence::GetQuarterNoteProgress()
 {
     if (!playing) {
@@ -767,8 +772,8 @@ void Sequence::ProcessTrack(uint8_t track)
                 uint8_t note = noteData.note;
                 uint32_t noteOffTick = pulseSinceStart + noteData.length;
 
-                // Update lastEvent timestamp for recording purposes
-                trackPlayback[track].lastEvent = MatrixOS::SYS::Millis();
+                // Update lastEventTime timestamp for recording purposes
+                trackPlayback[track].lastEventTime = MatrixOS::SYS::Millis();
 
                 // Check if this note already has a pending note-off (overwrite case)
                 if (trackPlayback[track].noteOffMap.count(note)) {

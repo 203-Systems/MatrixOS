@@ -195,16 +195,15 @@ class SequenceVisualizer : public UIComponent {
                 if(sequencer->sequence.RecordEnabled() == false)
                 {
                     Color baseColor = trackColor.DimIfNot(hasNote & (1 << slot));
-                    uint16_t scale = (255 - breathingScale + 64);
-                    if(scale > 255) { scale = 255; }
+                    uint16_t scale = breathingScale / 4 * 3;
+                    if(hasNote & (1 << slot)) { scale += 64; }
                     Color color = Color::Crossfade(baseColor, Color::White, Fract16(scale, 8));
                     MatrixOS::LED::SetColor(origin + point, color);
                 }
                 else
                 {
                     Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
-                    uint16_t scale = 255 - breathingScale / 4;
-                    if(scale > 255) { scale = 255; }
+                    uint16_t scale = breathingScale / 4 * 3 + 64;
                     MatrixOS::LED::SetColor(origin + point, baseColor.Scale(scale));
                 }
             }

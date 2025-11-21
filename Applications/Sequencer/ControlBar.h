@@ -260,22 +260,42 @@ class ControlBar : public UIComponent {
 
     virtual bool Render(Point origin)
     {
+      uint8_t breathingScale = sequencer->sequence.ClockQuarterNoteProgressBreath();
+      
       // Play
       {
         Point point = origin + Point(0, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
-                Color::White :
-                Color::Green;//.DimIfNot(sequencer->sequence.Playing());
-        MatrixOS::LED::SetColor(point, color); 
+        if(MatrixOS::KeyPad::GetKey(point)->Active())
+        {
+          MatrixOS::LED::SetColor(point, Color::White);
+        }
+        else if(sequencer->sequence.Playing())
+        {
+          uint8_t scale = breathingScale / 4 * 3;
+          MatrixOS::LED::SetColor(point, Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8)));
+        }
+        else
+        {
+          MatrixOS::LED::SetColor(point, Color::Green);
+        }
       }
 
       // Record
       {
         Point point = origin + Point(1, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
-                Color::White :
-                Color::Red; // .DimIfNot(sequencer->sequence.Playing());
-        MatrixOS::LED::SetColor(point, color);
+        if(MatrixOS::KeyPad::GetKey(point)->Active())
+        {
+          MatrixOS::LED::SetColor(point, Color::White);
+        }
+        else if(sequencer->sequence.RecordEnabled())
+        {
+          uint8_t scale = breathingScale / 4 * 3 + 64;
+          MatrixOS::LED::SetColor(point, Color::Red.Scale(scale));
+        }
+        else
+        {
+          MatrixOS::LED::SetColor(point, Color::Red);
+        }
       }
 
       // Session View
@@ -292,7 +312,7 @@ class ControlBar : public UIComponent {
         Point point = origin + Point(3, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
                 Color::White :
-                Color(0x00FF40);
+                Color(0x00FF60);
         MatrixOS::LED::SetColor(point, color);
       }
 
@@ -310,7 +330,7 @@ class ControlBar : public UIComponent {
         Point point = origin + Point(5, 0);
         Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
                 Color::White :
-                Color(0x00A0FF);
+                Color(0x0080FF);
         MatrixOS::LED::SetColor(point, color);
       }
 
