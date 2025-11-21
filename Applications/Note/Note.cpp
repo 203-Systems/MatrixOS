@@ -5,7 +5,6 @@
 #include "NoteControlBar.h"
 #include "ArpDirVisualizer.h"
 #include "RhythmVisualizer.h"
-#include "TimedDisplay.h"
 #include "InfDisplay.h"
 
 void Note::Setup(const vector<string>& args) {
@@ -659,7 +658,7 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(pianoModeBtn, Point(5, 0));
 
   // Octave mode
-  TimedDisplay octTextDisplay(UINT32_MAX);
+  UITimedDisplay octTextDisplay(UINT32_MAX);
   octTextDisplay.SetDimension(Dimension(8, 4));
   octTextDisplay.SetRenderFunc([&](Point origin) -> void {
     // O
@@ -714,7 +713,7 @@ void Note::LayoutSelector() {
   xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
 
-  TimedDisplay ofsTextDisplay(500);
+  UITimedDisplay ofsTextDisplay(500);
   ofsTextDisplay.SetDimension(Dimension(6, 4));
   ofsTextDisplay.SetRenderFunc([&](Point origin) -> void {
     // Y
@@ -766,7 +765,7 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));
 
   // Chromatic
-  TimedDisplay chmTextDisplay(UINT32_MAX);
+  UITimedDisplay chmTextDisplay(UINT32_MAX);
   chmTextDisplay.SetDimension(Dimension(8, 4));
   chmTextDisplay.SetRenderFunc([&](Point origin) -> void {
     // C
@@ -804,7 +803,7 @@ void Note::LayoutSelector() {
   layoutSelector.AddUIComponent(chmTextDisplay, Point(0, 2));
 
   // Piano
-  TimedDisplay pioTextDisplay(UINT32_MAX);
+  UITimedDisplay pioTextDisplay(UINT32_MAX);
   pioTextDisplay.SetDimension(Dimension(8, 4));
   pioTextDisplay.SetRenderFunc([&](Point origin) -> void {
     // P
@@ -977,7 +976,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(arpConfigSelector, Point(0, 0));
 
   // BPM selector
-  TimedDisplay bpmTextDisplay(500);
+  UITimedDisplay bpmTextDisplay(500);
   bpmTextDisplay.SetDimension(Dimension(8, 4));
   bpmTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_BPM];
@@ -1069,7 +1068,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(clockOutBtn, Point(0, 6));
 
   // Swing selector
-  TimedDisplay swingTextDisplay(500);
+  UITimedDisplay swingTextDisplay(500);
   swingTextDisplay.SetDimension(Dimension(8, 4));
   swingTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_SWING];
@@ -1135,7 +1134,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(swingNumberModifier, Point(0, 7));
 
   // Gate selector
-  TimedDisplay gateTextDisplay(500);
+  UITimedDisplay gateTextDisplay(500);
   gateTextDisplay.SetDimension(Dimension(8, 4));
   gateTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_GATE];
@@ -1206,7 +1205,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(gateNumberModifier, Point(0, 7));
 
   // Direction Selector
-  TimedDisplay directionTextDisplay(500);
+  UITimedDisplay directionTextDisplay(500);
   directionTextDisplay.SetDimension(Dimension(8, 4));
   directionTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_DIRECTION];
@@ -1261,7 +1260,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(directionSelector, Point(0, 6));
 
   // Step selector
-  TimedDisplay stepTextDisplay(500);
+  UITimedDisplay stepTextDisplay(500);
   stepTextDisplay.SetDimension(Dimension(8, 4));
   stepTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_STEP];
@@ -1324,7 +1323,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(stepNumberModifier, Point(0, 7));
 
   // Step Offset selector (with minus sign support)
-  TimedDisplay offsetTextDisplay(500);
+  UITimedDisplay offsetTextDisplay(500);
   offsetTextDisplay.SetDimension(Dimension(8, 4));
   offsetTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_STEP_OFFSET];
@@ -1399,7 +1398,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(stepOffsetNumberModifier, Point(0, 7));
 
   // Repeat selector
-  TimedDisplay repeatTextDisplay(500);
+  UITimedDisplay repeatTextDisplay(500);
   repeatTextDisplay.SetDimension(Dimension(8, 4));
   repeatTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_REPEAT];
@@ -1470,7 +1469,7 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(repeatNumberModifier, Point(0, 7));
 
   // Rhythm Page
-  TimedDisplay rhythmTextDisplay(500);
+  UITimedDisplay rhythmTextDisplay(500);
   rhythmTextDisplay.SetDimension(Dimension(8, 4));
   rhythmTextDisplay.SetRenderFunc([&](Point origin) -> void {
     Color color = arpConfigColor[ARP_RHYTHM];
