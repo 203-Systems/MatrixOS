@@ -1096,6 +1096,7 @@ void Note::ArpConfigMenu() {
     // G
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
     MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
     MatrixOS::LED::SetColor(origin + Point(5, 1), color);
     MatrixOS::LED::SetColor(origin + Point(5, 2), color);
     MatrixOS::LED::SetColor(origin + Point(7, 2), color);
