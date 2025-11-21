@@ -256,6 +256,13 @@ void Sequencer::SequencerMenu()
                              { SwingSelector(); });
     sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 3));
 
+    UIButton barLengthSelectorBtn;
+    barLengthSelectorBtn.SetName("Bar Length Selector");
+    barLengthSelectorBtn.SetColor(Color(0x00A0FF));
+    barLengthSelectorBtn.OnPress([&]() -> void
+                                 { BarLengthSelector(); });
+    sequencerMenu.AddUIComponent(barLengthSelectorBtn, Point(0, 4));
+
     UIButton systemSettingBtn;
     systemSettingBtn.SetName("System Setting");
     systemSettingBtn.SetColor(Color::White);
@@ -543,6 +550,79 @@ void Sequencer::SwingSelector()
     if (sequence.GetSwing() != (uint8_t)swingValue)
     {
         sequence.SetSwing((uint8_t)swingValue);
+    }
+}
+
+void Sequencer::BarLengthSelector()
+{
+    Color color = Color(0x00A0FF);
+    UI barLengthSelector("Bar Length Selector", color, false);
+    int32_t barLength = sequence.GetBarLength();
+    int32_t offsettedBarLength = barLength - 1;
+
+    // Bar Length text display
+    UITimedDisplay barLengthTextDisplay(500);
+    barLengthTextDisplay.SetDimension(Dimension(8, 4));
+    barLengthTextDisplay.SetRenderFunc([&](Point origin) -> void
+                                       {
+        // L
+        MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+
+        // E
+        MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+        // n
+        MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+    });
+    barLengthSelector.AddUIComponent(barLengthTextDisplay, Point(0, 0));
+
+    UI4pxNumber numDisplay;
+    numDisplay.SetColor(color);
+    numDisplay.SetDigits(2);
+    numDisplay.SetValuePointer(&barLength);
+    numDisplay.SetAlternativeColor(Color::White);
+    numDisplay.SetSpacing(1);
+    numDisplay.SetEnableFunc([&]() -> bool
+                             { return !barLengthTextDisplay.IsEnabled(); });
+    barLengthSelector.AddUIComponent(numDisplay, Point(1, 0));
+
+    UISelector barLengthInput;
+    barLengthInput.SetDimension(Dimension(8, 2));
+    barLengthInput.SetName("Bar Length");
+    barLengthInput.SetColor(color);
+    barLengthInput.SetCount(64);
+    barLengthInput.SetValuePointer((uint16_t *)&offsettedBarLength);
+    barLengthInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
+    barLengthInput.OnChange([&](uint16_t val) -> void
+                            {
+                                barLength = val + 1;
+                                barLengthTextDisplay.Disable();
+                            });
+
+    barLengthSelector.AddUIComponent(barLengthInput, Point(0, 6));
+
+    barLengthSelector.Start();
+
+    if (sequence.GetBarLength() != barLength)
+    {
+        sequence.SetBarLength(barLength);
     }
 }
 

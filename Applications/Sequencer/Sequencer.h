@@ -56,6 +56,7 @@ class Sequencer : public Application {
   void ChannelSelector();
   void BPMSelector();
   void SwingSelector();
+  void BarLengthSelector();
 
   void SequencerUI();
   void SequencerMenu();
