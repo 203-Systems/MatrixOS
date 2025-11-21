@@ -34,11 +34,11 @@ void Sequencer::SequencerUI()
 
     uint8_t track = this->track;
 
-    SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
+    SequencePattern *pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
 
     SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
     sequenceVisualizer.OnSelect([&](uint8_t step) -> void
-    {
+                                {
         if(pattern == nullptr)
         {
             return;
@@ -58,60 +58,60 @@ void Sequencer::SequencerUI()
             {
                 StepAddNote(pattern, step, note, velocity);
             }
-        }
-    });
-    sequenceVisualizer.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer; });
-    sequencerUI.AddUIComponent(&sequenceVisualizer, Point(0, 1));
+        } });
+    sequenceVisualizer.SetEnableFunc([&]() -> bool
+                                     { return currentView == ViewMode::Sequencer; });
+    sequencerUI.AddUIComponent(sequenceVisualizer, Point(0, 1));
 
     SequencerNotePad notePad(this, &this->noteSelected, &this->noteActive);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
-    {
-        if(pattern != nullptr && noteOn)
-        {
-            bool existAlready = false;
+                     {
+                         if (pattern != nullptr && noteOn)
+                         {
+                             bool existAlready = false;
 
-            for (const auto& step : stepSelected)
-            {
-                uint16_t startTime = step * Sequence::PPQN;
-                uint16_t endTime = startTime + Sequence::PPQN - 1;
+                             for (const auto &step : stepSelected)
+                             {
+                                 uint16_t startTime = step * Sequence::PPQN;
+                                 uint16_t endTime = startTime + Sequence::PPQN - 1;
 
-                if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
-                {
-                    existAlready = true;
-                    noteActive.erase(noteActive.find(note));
-                }
-            }
+                                 if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
+                                 {
+                                     existAlready = true;
+                                     noteActive.erase(noteActive.find(note));
+                                 }
+                             }
 
-            if(existAlready == false)
-            {
-                SequenceEvent event = SequenceEvent::Note(note, velocity, false);
-                for (const auto& step : stepSelected)
-                {
-                    pattern->AddEvent(step * Sequence::PPQN, event);
-                    noteActive.insert(note);
-                }
-            }
-        }
+                             if (existAlready == false)
+                             {
+                                 SequenceEvent event = SequenceEvent::Note(note, velocity, false);
+                                 for (const auto &step : stepSelected)
+                                 {
+                                     pattern->AddEvent(step * Sequence::PPQN, event);
+                                     noteActive.insert(note);
+                                 }
+                             }
+                         }
 
-        // TODO: Pass into Sequence to record
-
-    });
-    notePad.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer; });
-    sequencerUI.AddUIComponent(&notePad, Point(0, 3));
+                         // TODO: Pass into Sequence to record
+                     });
+    notePad.SetEnableFunc([&]() -> bool
+                          { return currentView == ViewMode::Sequencer; });
+    sequencerUI.AddUIComponent(notePad, Point(0, 3));
 
     PatternSelector patternSelector(this);
     patternSelector.OnChange([&](uint8_t patternIdx) -> void
-    {
+                             {
         ClearActiveNotes();
-        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx);
-    });
-    patternSelector.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); });
-    sequencerUI.AddUIComponent(&patternSelector, Point(0, 3));
+        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx); });
+    patternSelector.SetEnableFunc([&]() -> bool
+                                  { return currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); });
+    sequencerUI.AddUIComponent(patternSelector, Point(0, 3));
 
     // Session View
     ClipLauncher clipLauncher(this);
     clipLauncher.OnChange([&](uint8_t track, uint8_t clip) -> void
-    {
+                          {
         stepSelected.clear();
 
         ClearActiveNotes();
@@ -119,20 +119,21 @@ void Sequencer::SequencerUI()
 
         notePad.GenerateKeymap();
 
-        pattern = &sequence.GetPattern(track, clip, sequence.GetPosition(track).pattern);
-    });
-    clipLauncher.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Session; });
-    sequencerUI.AddUIComponent(&clipLauncher, Point(0, 0));
+        pattern = &sequence.GetPattern(track, clip, sequence.GetPosition(track).pattern); });
+    clipLauncher.SetEnableFunc([&]() -> bool
+                               { return currentView == ViewMode::Session; });
+    sequencerUI.AddUIComponent(clipLauncher, Point(0, 0));
 
     // Mixer View
     MixerControl mixerControl(this);
-    mixerControl.SetEnableFunc([&]() -> bool { return currentView == ViewMode::Mixer; });
-    sequencerUI.AddUIComponent(&mixerControl, Point(0, 0));
+    mixerControl.SetEnableFunc([&]() -> bool
+                               { return currentView == ViewMode::Mixer; });
+    sequencerUI.AddUIComponent(mixerControl, Point(0, 0));
 
     // Global
     TrackSelector trackSelector(this);
     trackSelector.OnChange([&](uint8_t val) -> void
-    {
+                           {
         stepSelected.clear();
 
         ClearActiveNotes();
@@ -142,23 +143,22 @@ void Sequencer::SequencerUI()
 
         track = this->track;
 
-        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
-    });
-    trackSelector.SetEnableFunc([&]() -> bool { return currentView != ViewMode::Session && currentView != ViewMode::Mixer; });
-    sequencerUI.AddUIComponent(&trackSelector, Point(0, 0));
+        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern); });
+    trackSelector.SetEnableFunc([&]() -> bool
+                                { return currentView != ViewMode::Session && currentView != ViewMode::Mixer; });
+    sequencerUI.AddUIComponent(trackSelector, Point(0, 0));
 
     ControlBar controlBar(this, &notePad);
     controlBar.OnClear([&]() -> void
-    {
+                       {
         for (const auto& step : stepSelected)
         {
             ClearStep(pattern, step);
-        }
-    });
-    sequencerUI.AddUIComponent(&controlBar, Point(0, 7));
+        } });
+    sequencerUI.AddUIComponent(controlBar, Point(0, 7));
 
     sequencerUI.SetGlobalLoopFunc([&]() -> void
-                                { sequence.Tick(); });
+                                  { sequence.Tick(); });
 
     sequencerUI.AllowExit(false);
     sequencerUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
@@ -190,7 +190,7 @@ void Sequencer::SequencerMenu()
     UI sequencerMenu("Sequencer Menu", Color(0x00FFFF), true);
 
     TrackSelector trackSelector(this, true);
-    sequencerMenu.AddUIComponent(&trackSelector, Point(0, 0));
+    sequencerMenu.AddUIComponent(trackSelector, Point(0, 0));
 
     // Right side, Track specific settings
     UIButton colorSelectorBtn;
@@ -206,34 +206,38 @@ void Sequencer::SequencerMenu()
         if(track < meta.tracks.size() && MatrixOS::UIUtility::ColorPicker(meta.tracks[track].color)) {
             sequence.SetDirty();
         } });
-    sequencerMenu.AddUIComponent(&colorSelectorBtn, Point(7, 2));
+    sequencerMenu.AddUIComponent(colorSelectorBtn, Point(7, 2));
 
     UIButton layoutSelectorBtn;
     layoutSelectorBtn.SetName("Layout Selector");
     layoutSelectorBtn.SetColor(Color(0xFFFF00));
     layoutSelectorBtn.OnPress([&]() -> void
                               { LayoutSelector(); });
-    sequencerMenu.AddUIComponent(&layoutSelectorBtn, Point(7, 3));
+    sequencerMenu.AddUIComponent(layoutSelectorBtn, Point(7, 3));
 
     UIButton channelSelectorBtn;
     channelSelectorBtn.SetName("Channel Selector");
     channelSelectorBtn.SetColor(Color(0x60FF00));
     channelSelectorBtn.OnPress([&]() -> void
                                { ChannelSelector(); });
-    sequencerMenu.AddUIComponent(&channelSelectorBtn, Point(7, 4));
+    sequencerMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
     UIButton forceSensitiveToggle;
     forceSensitiveToggle.SetName("Velocity Sensitive");
-    if(Device::KeyPad::velocity_sensitivity)
+    if (Device::KeyPad::velocity_sensitivity)
     {
-        forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
-        forceSensitiveToggle.OnPress([&]() -> void { meta.tracks[track].velocitySensitive = !meta.tracks[track].velocitySensitive; sequence.SetDirty(); });
-        forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (meta.tracks[track].velocitySensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
+        forceSensitiveToggle.SetColorFunc([&]() -> Color
+                                          { return Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
+        forceSensitiveToggle.OnPress([&]() -> void
+                                     { meta.tracks[track].velocitySensitive = !meta.tracks[track].velocitySensitive; sequence.SetDirty(); });
+        forceSensitiveToggle.OnHold([&]() -> void
+                                    { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (meta.tracks[track].velocitySensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
     }
     else
     {
         forceSensitiveToggle.SetColor(Color(0x00FFB0).Dim());
-        forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
+        forceSensitiveToggle.OnHold([&]() -> void
+                                    { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
     }
     sequencerMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
@@ -243,21 +247,14 @@ void Sequencer::SequencerMenu()
     bpmSelectorBtn.SetColor(Color(0xFF0080));
     bpmSelectorBtn.OnPress([&]() -> void
                            { BPMSelector(); });
-    sequencerMenu.AddUIComponent(&bpmSelectorBtn, Point(0, 2));
+    sequencerMenu.AddUIComponent(bpmSelectorBtn, Point(0, 2));
 
     UIButton swingSelectorBtn;
     swingSelectorBtn.SetName("Swing Selector");
     swingSelectorBtn.SetColor(Color(0xFFA000));
     swingSelectorBtn.OnPress([&]() -> void
-                           { SwingSelector(); });
-    sequencerMenu.AddUIComponent(&swingSelectorBtn, Point(0, 3));
-
-    UIToggle clockOutputToggle;
-    clockOutputToggle.SetName("Clock Output");
-    clockOutputToggle.SetColor(Color(0x00A0FF));
-    clockOutputToggle.SetValuePointer(&meta.clockOutput);
-    clockOutputToggle.OnPress([&]() -> void { sequence.EnableClockOutput(meta.clockOutput); sequence.SetDirty(); });
-    sequencerMenu.AddUIComponent(&clockOutputToggle, Point(0, 5));
+                             { SwingSelector(); });
+    sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 3));
 
     UIButton systemSettingBtn;
     systemSettingBtn.SetName("System Setting");
@@ -288,7 +285,6 @@ void Sequencer::SequencerMenu()
 
 void Sequencer::LayoutSelector()
 {
-   
 }
 
 void Sequencer::ChannelSelector()
@@ -309,7 +305,7 @@ void Sequencer::ChannelSelector()
         track = this->track;
         channel = sequence.GetChannel(track);
         offsettedChannel = channel + 1; });
-    channelSelector.AddUIComponent(&trackSelector, Point(0, 0));
+    channelSelector.AddUIComponent(trackSelector, Point(0, 0));
 
     UI4pxNumber numDisplay;
     numDisplay.SetColor(color);
@@ -364,10 +360,190 @@ void Sequencer::ChannelSelector()
 
 void Sequencer::BPMSelector()
 {
+    Color color = 0xFF0080;
+    UI bpmUI("BPM Selector", color, false);
+
+    int32_t bpmValue = sequence.GetBPM();
+
+    // BPM text display
+    UITimedDisplay bpmTextDisplay(500);
+    bpmTextDisplay.SetDimension(Dimension(8, 4));
+    bpmTextDisplay.SetRenderFunc([&](Point origin) -> void
+                                 {
+    // B
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), color);
+
+    // P
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+
+    // M
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color); });
+    bpmUI.AddUIComponent(bpmTextDisplay, Point(0, 0));
+
+    UI4pxNumber bpmDisplay;
+    bpmDisplay.SetColor(color);
+    bpmDisplay.SetDigits(3);
+    bpmDisplay.SetValuePointer(&bpmValue);
+    bpmDisplay.SetAlternativeColor(Color::White);
+    bpmDisplay.SetEnableFunc([&]() -> bool
+                             { return !bpmTextDisplay.IsEnabled(); });
+    bpmUI.AddUIComponent(bpmDisplay, Point(-1, 0));
+
+    const int32_t coarseModifier[8] = {-25, -10, -5, -1, 1, 5, 10, 25};
+    const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+  
+    UINumberModifier bpmNumberModifier;
+    bpmNumberModifier.SetColor(color);
+    bpmNumberModifier.SetLength(8);
+    bpmNumberModifier.SetValuePointer(&bpmValue);
+    bpmNumberModifier.SetModifiers(coarseModifier);
+    bpmNumberModifier.SetControlGradient(modifierGradient);
+    bpmNumberModifier.SetLowerLimit(20);
+    bpmNumberModifier.SetUpperLimit(299);
+    bpmNumberModifier.OnChange([&](int32_t val) -> void
+    {
+        bpmValue = val;
+        sequence.SetBPM((uint16_t)val);
+        bpmTextDisplay.Disable();
+    });
+    bpmUI.AddUIComponent(bpmNumberModifier, Point(0, 7));
+
+    UIToggle clockOutputToggle;
+    clockOutputToggle.SetName("Clock Output");
+    clockOutputToggle.SetColor(Color(0x80FF00));
+    clockOutputToggle.SetValuePointer(&meta.clockOutput);
+    clockOutputToggle.OnPress([&]() -> void
+                              { sequence.EnableClockOutput(meta.clockOutput); sequence.SetDirty(); });
+    bpmUI.AddUIComponent(clockOutputToggle, Point(0, 6));
+
+    UIButton resetButton;
+    resetButton.SetName("Reset BPM");
+    resetButton.SetColor(Color::Red);
+    resetButton.OnPress([&]() -> void
+    {
+        bpmValue = 120;
+        sequence.SetBPM(120);
+        bpmTextDisplay.Disable();
+    });
+    bpmUI.AddUIComponent(resetButton, Point(7, 6));
+
+    bpmUI.Start();
+
+    if (sequence.GetBPM() != (uint16_t)bpmValue)
+    {
+        sequence.SetBPM((uint16_t)bpmValue);
+    }
 }
 
 void Sequencer::SwingSelector()
 {
+    Color color = 0xFFA000;
+    UI swingUI("Swing Selector", color, false);
+
+    int32_t swingValue = sequence.GetSwing();
+
+    // Swing text display
+    UITimedDisplay swingTextDisplay(500);
+    swingTextDisplay.SetDimension(Dimension(8, 4));
+    swingTextDisplay.SetRenderFunc([&](Point origin) -> void
+                                   {
+    // S
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+
+    // W
+    MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+    // G
+    MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+});
+    swingUI.AddUIComponent(swingTextDisplay, Point(0, 0));
+
+    UI4pxNumber swingDisplay;
+    swingDisplay.SetColor(color);
+    swingDisplay.SetDigits(3);
+    swingDisplay.SetValuePointer(&swingValue);
+    swingDisplay.SetAlternativeColor(Color::White);
+    swingDisplay.SetEnableFunc([&]() -> bool
+                               { return !swingTextDisplay.IsEnabled(); });
+    swingUI.AddUIComponent(swingDisplay, Point(-1, 0));
+
+    const int32_t fineModifier[8] {-10, -5, -2, -1, 1, 2, 5, 10};
+    const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+
+    UINumberModifier swingNumberModifier;
+    swingNumberModifier.SetColor(color);
+    swingNumberModifier.SetLength(8);
+    swingNumberModifier.SetValuePointer(&swingValue);
+    swingNumberModifier.SetModifiers(fineModifier);
+    swingNumberModifier.SetControlGradient(modifierGradient);
+    swingNumberModifier.SetLowerLimit(20);
+    swingNumberModifier.SetUpperLimit(80);
+    swingNumberModifier.OnChange([&](int32_t val) -> void
+    {
+        swingValue = val;
+        sequence.SetSwing((uint8_t)val);
+        swingTextDisplay.Disable();
+    });
+    swingUI.AddUIComponent(swingNumberModifier, Point(0, 7));
+
+    UIButton resetButton;
+    resetButton.SetName("Reset Swing");
+    resetButton.SetColor(Color::Red);
+    resetButton.OnPress([&]() -> void
+    {
+        swingValue = 50;
+        sequence.SetSwing(50);
+        swingTextDisplay.Disable();
+    });
+    swingUI.AddUIComponent(resetButton, Point(7, 6));
+
+    swingUI.Start();
+
+    if (sequence.GetSwing() != (uint8_t)swingValue)
+    {
+        sequence.SetSwing((uint8_t)swingValue);
+    }
 }
 
 bool Sequencer::ClearActive()
@@ -394,7 +570,7 @@ void Sequencer::ShiftEventOccured()
 void Sequencer::ClearActiveNotes()
 {
     uint8_t channel = sequence.GetChannel(track);
-    for (const auto& note : noteActive)
+    for (const auto &note : noteActive)
     {
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
     }
@@ -404,14 +580,14 @@ void Sequencer::ClearActiveNotes()
 void Sequencer::ClearSelectedNotes()
 {
     uint8_t channel = sequence.GetChannel(track);
-    for (const auto& [note, velocity] : noteSelected)
+    for (const auto &[note, velocity] : noteSelected)
     {
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
     }
     noteSelected.clear();
 }
 
-void Sequencer::ClearStep(SequencePattern* pattern, uint8_t step)
+void Sequencer::ClearStep(SequencePattern *pattern, uint8_t step)
 {
     uint16_t startTime = step * Sequence::PPQN;
     uint16_t endTime = startTime + Sequence::PPQN - 1;
@@ -423,9 +599,9 @@ void Sequencer::ClearStep(SequencePattern* pattern, uint8_t step)
     {
         if (it->second.eventType == SequenceEventType::NoteEvent)
         {
-            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+            const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
             auto activeIt = noteActive.find(noteData.note);
-            if(activeIt != noteActive.end())
+            if (activeIt != noteActive.end())
             {
                 MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
                 noteActive.erase(activeIt);
@@ -437,7 +613,7 @@ void Sequencer::ClearStep(SequencePattern* pattern, uint8_t step)
     pattern->RemoveAllEventsInRange(startTime, endTime);
 }
 
-void Sequencer::CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest)
+void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
 {
     // Clear destination first
     ClearStep(pattern, dest);
@@ -454,14 +630,14 @@ void Sequencer::CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest)
     {
         if (it->second.eventType == SequenceEventType::NoteEvent)
         {
-            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+            const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
             noteActive.insert(noteData.note);
         }
         ++it;
     }
 }
 
-void Sequencer::StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch)
+void Sequencer::StepAddNote(SequencePattern *pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch)
 {
     SequenceEvent event = SequenceEvent::Note(note, velocity, aftertouch);
     pattern->AddEvent(step * Sequence::PPQN, event);
@@ -470,12 +646,12 @@ void Sequencer::StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note
 
 void Sequencer::SetView(ViewMode view)
 {
-    if(currentView == view)
+    if (currentView == view)
     {
         return;
     }
 
-    if(currentView == ViewMode::Sequencer)
+    if (currentView == ViewMode::Sequencer)
     {
         ClearSelectedNotes();
         ClearActiveNotes();
