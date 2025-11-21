@@ -54,6 +54,13 @@ void Sequence::Tick()
 {
     uint32_t currentTime = MatrixOS::SYS::Micros();
 
+    // Flag to skip increment on the first tick after Play()
+    // This ensures timing counters match the actual tick being processed:
+    // - First tick: Process at (0,0) without increment
+    // - Subsequent ticks: Increment first, then process at the correct position
+    // Without this, clip transitions would check against stale timing values
+    bool firstTick = false; 
+
     // Handle MIDI clock output (independent of playback state)
     if ((currentTime - lastClockTime) >= usPerClock) {
 
@@ -77,6 +84,10 @@ void Sequence::Tick()
             if (clocksTillStart == 0) {
                 // Initialize timing on this clock edge
                 lastPulseTime = 0;
+                currentPulse = 0;
+                currentQuarterNote = 0;
+                pulseSinceStart = 0;
+                firstTick = true;
             }
         }
     }
@@ -89,14 +100,12 @@ void Sequence::Tick()
     if (elapsed >= usPerPulse[currentQuarterNote % 2] || lastPulseTime == 0) {
         lastPulseTime = currentTime;
 
-        // Process each track independently BEFORE incrementing tick counter
-        // This ensures events at tick 0 (quarter note 0) fire immediately on first tick
-        for (uint8_t track = 0; track < trackPlayback.size(); track++) {
-            ProcessTrack(track);
-        }
-
         // Increment pulse counter
-        currentPulse++;
+        if(firstTick == false)
+        {
+            currentPulse++;
+            pulseSinceStart++;
+        }
 
         // When pulse reaches PPQN, move to next quarter note
         if (currentPulse >= PPQN) {
@@ -109,7 +118,11 @@ void Sequence::Tick()
             }
         }
 
-        pulseSinceStart++;
+        // Process each track
+        for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+            ProcessTrack(track);
+        }
+
     }
 }
 
@@ -245,6 +258,12 @@ void Sequence::Stop(uint8_t track)
     if (!anyPlaying) {
         playing = false;
     }
+}
+
+void Sequence::StopAfter(uint8_t track)
+{
+    // Set nextClip to 254 to signal stop at next bar boundary
+    trackPlayback[track].nextClip = 254;
 }
 
 // Recording
@@ -819,10 +838,31 @@ void Sequence::ProcessTrack(uint8_t track)
         }
     }
 
-    // 3. Advance pulse position
+    // 3. Check for clip transition or stop at start of bar (when nextClip is queued)
+    if (trackPlayback[track].nextClip != 255 &&
+        currentQuarterNote == 0 &&
+        currentPulse == 0) {
+
+        // Special case: 254 means stop after current bar
+        if (trackPlayback[track].nextClip == 254) {
+            Stop(track);
+            return;
+        }
+
+        // Transition to the queued clip at bar boundary
+        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
+        trackPlayback[track].position.pattern = 0;
+        trackPlayback[track].position.quarterNote = 0;
+        trackPlayback[track].position.pulse = 0;
+        // Clear nextClip after transitioning
+        trackPlayback[track].nextClip = 255;
+        return; // Skip further processing this tick to start fresh on next tick
+    }
+
+    // 4. Advance pulse position
     trackPlayback[track].position.pulse++;
 
-    // 4. Check if we've completed a quarter note
+    // 5. Check if we've completed a quarter note
     if (trackPlayback[track].position.pulse >= PPQN) {
         trackPlayback[track].position.pulse = 0;
         trackPlayback[track].position.quarterNote++;
@@ -838,21 +878,10 @@ void Sequence::ProcessTrack(uint8_t track)
 
                 // Check if all patterns in clip ended
                 if (trackPlayback[track].position.pattern >= GetPatternCount(track, clip)) {
-                    // Check if there's a nextClip queued
-                    if (trackPlayback[track].nextClip != 255) {
-                        // Transition to the queued clip
-                        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
-                        trackPlayback[track].position.pattern = 0;
-                        trackPlayback[track].position.quarterNote = 0;
-                        trackPlayback[track].position.pulse = 0;
-                        // Clear nextClip after transitioning
-                        trackPlayback[track].nextClip = 255;
-                    } else {
-                        // No nextClip, just loop the patterns
-                        trackPlayback[track].position.pattern = 0;
-                        trackPlayback[track].position.quarterNote = 0;
-                        trackPlayback[track].position.pulse = 0;
-                    }
+                    // No nextClip, just loop the patterns
+                    trackPlayback[track].position.pattern = 0;
+                    trackPlayback[track].position.quarterNote = 0;
+                    trackPlayback[track].position.pulse = 0;
                 }
             }
         }

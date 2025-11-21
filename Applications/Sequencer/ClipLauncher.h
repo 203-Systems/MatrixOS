@@ -65,7 +65,7 @@ class ClipLauncher : public UIComponent {
                 // If track is playing, stop it when clicking empty slot
                 if(sequencer->sequence.Playing(track))
                 {
-                    sequencer->sequence.Stop(track);
+                    sequencer->sequence.StopAfter(track);
                 }
                 else
                 {
@@ -97,7 +97,14 @@ class ClipLauncher : public UIComponent {
             else
             {
                 sequencer->track = track;
-                sequencer->sequence.SetClip(track, clip);
+                if(sequencer->sequence.Playing())
+                {
+                    sequencer->sequence.PlayClip(track, clip);
+                }
+                else
+                {
+                    sequencer->sequence.SetClip(track, clip);
+                }
 
                 if (changeCallback != nullptr)
                 {
@@ -116,7 +123,9 @@ class ClipLauncher : public UIComponent {
 
         // Render all clip slots
         for(uint8_t track = 0; track < 8; track++)
-        {
+        {   
+            uint8_t activeClip = sequencer->sequence.GetPosition(track).clip;
+            uint8_t nextClip = sequencer->sequence.GetNextClip(track);
             for(uint8_t clip = 0; clip < 7; clip++)
             {
                 Point point = origin + Point(track, clip);
@@ -130,9 +139,16 @@ class ClipLauncher : public UIComponent {
                 else if(!sequencer->sequence.ClipExists(track, clip))
                 {
                     // Clip doesn't exist - show black if track is playing, otherwise dim gray
-                    if(sequencer->sequence.Playing(track))
+                    if(sequencer->sequence.Playing())
                     {
-                        color = Color::Black;
+                        if(nextClip == 254) // About to stop
+                        {
+                            color = Color(0x100000);
+                        }
+                        else
+                        {
+                            color = Color::Black;
+                        }
                     }
                     else
                     {
@@ -143,13 +159,18 @@ class ClipLauncher : public UIComponent {
                 {
                     Color trackColor = sequencer->meta.tracks[track].color;
                     bool isCurrentTrack = (sequencer->track == track);
-                    bool isSelectedInTrack = (sequencer->sequence.GetPosition(track).clip == clip);
+                    bool isSelectedInTrack = (activeClip == clip);
                     bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
+                    bool isNextClip = (nextClip == clip);
 
                     if(isPlaying)
                     {
                         // Playing clip pulse toward white
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4, 8));
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 2, 8));
+                    }
+                    else if(isNextClip)
+                    {
+                        color = Color::Green;
                     }
                     else if(isCurrentTrack && isSelectedInTrack)
                     {

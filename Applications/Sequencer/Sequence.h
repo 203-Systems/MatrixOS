@@ -27,7 +27,7 @@ private:
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
     uint32_t pulseSinceStart = 0;           // Global tick counter for note-off scheduling (96 PPQN)
-    uint8_t currentQuarterNote = 0;
+    uint8_t  currentQuarterNote = 0;
     uint8_t  currentPulse = 0;              // Current pulse for swing timing (alternates 0/1 for on/off beat)
     uint32_t usPerPulse[2];                 // Microseconds per pulse with swing (on-beat/off-beat)
 
@@ -67,6 +67,7 @@ public:
 
     void Stop();
     void Stop(uint8_t track);
+    void StopAfter(uint8_t track);
 
     void EnableRecord(bool val);
     bool RecordEnabled();
