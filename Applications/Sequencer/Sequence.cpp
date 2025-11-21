@@ -73,7 +73,7 @@ void Sequence::Tick()
             clocksTillStart--;
             if (clocksTillStart == 0) {
                 // Initialize timing on this clock edge
-                lastPulseTime = currentTime;
+                lastPulseTime = 0;
             }
         }
     }
@@ -83,7 +83,7 @@ void Sequence::Tick()
     uint32_t elapsed = currentTime - lastPulseTime;
 
     // Check if enough time for a tick (using swing timing)
-    if (elapsed >= usPerPulse[currentPulse % 2]) {
+    if (elapsed >= usPerPulse[currentPulse % 2] || lastPulseTime == 0) {
         lastPulseTime = currentTime;
 
         // Process each track independently BEFORE incrementing tick counter
@@ -127,8 +127,7 @@ void Sequence::Play()
 
     // Schedule playback to start at next MIDI clock edge (24 PPQN)
     // Can be increased for count-in: 96 = 1 bar at 4/4
-    clocksTillStart = 1;
-
+    clocksTillStart = record ? 24 * 4 + 1 : 1;
     currentPulse = 0;
     pulseCounter = 0;
 
@@ -150,7 +149,8 @@ void Sequence::Play(uint8_t track)
     // Initialize timing if not already playing
     if (!playing) {
         playing = true;
-        lastPulseTime = MatrixOS::SYS::Micros();
+        clocksTillStart = record ? 24 * 4 + 1 : 1;
+        currentPulse = 0;
         pulseCounter = 0;
     }
 
@@ -170,8 +170,9 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
     // Initialize timing if not already playing
     if (!playing) {
         playing = true;
-        lastPulseTime = MatrixOS::SYS::Micros();
-        pulseCounter = 0;
+        clocksTillStart = record ? 24 * 4 + 1 : 1;
+        currentPulse = 0;
+        pulseCounter = 0;    
     }
 
     // Queue this clip to play after current patterns finish
