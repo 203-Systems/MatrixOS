@@ -112,7 +112,7 @@ class ClipLauncher : public UIComponent {
     {
         uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
-        uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath(64);
+        uint8_t breathingScale = sequencer->sequence.ClockQuarterNoteProgressBreath();
 
         // Render all clip slots
         for(uint8_t track = 0; track < 8; track++)
@@ -148,8 +148,8 @@ class ClipLauncher : public UIComponent {
 
                     if(isPlaying)
                     {
-                        // Playing clip shows green
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale - 64, 8));
+                        // Playing clip pulse toward white
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4, 8));
                     }
                     else if(isCurrentTrack && isSelectedInTrack)
                     {
@@ -159,8 +159,9 @@ class ClipLauncher : public UIComponent {
                     else if(isSelectedInTrack)
                     {
                         // Selected clip in other tracks shows red
-                        color = trackColor.Scale(breathingScale);
-                        // color = Color::Crossfade(trackColor, Color::White, breathingScale);
+                        uint16_t brightness = breathingScale / 2 + 128;
+                        if(brightness > 255) { brightness = 255; }
+                        color = trackColor.Scale(brightness);
                     }
                     else
                     {

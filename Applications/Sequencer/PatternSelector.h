@@ -53,7 +53,7 @@ class PatternSelector : public UIComponent {
                 // Add new empty pattern
                 else
                 {
-                    int8_t newPatternIdx = sequencer->sequence.NewPattern(track, clip, 16);
+                    int8_t newPatternIdx = sequencer->sequence.NewPattern(track, clip);
                     if(newPatternIdx >= 0)
                     {
                         // Select the newly created pattern only if not playing

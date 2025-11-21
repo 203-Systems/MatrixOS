@@ -113,7 +113,6 @@ class SequenceVisualizer : public UIComponent {
         uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
 
         Color trackColor = sequencer->meta.tracks[track].color;
-        uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath(64);
 
         // Check if pattern is selected
         if(patternIdx >= sequencer->sequence.GetPatternCount(track, clip))
@@ -190,6 +189,7 @@ class SequenceVisualizer : public UIComponent {
             {
                 uint8_t slot = position.quarterNote;
                 Point point = Point(slot % width, slot / width);
+
                 uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath(64);
 
                 if(sequencer->sequence.RecordEnabled() == false)

@@ -58,27 +58,13 @@ struct SequenceEvent {
     SequenceEvent(SequenceEventType type, const SequenceEventData& eventData)
         : eventType(type), data(eventData) {}
 
-    // Static factory methods
-    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = 96 /*PPQN*/) {
-        return {SequenceEventType::NoteEvent, SequenceEventNote{aftertouch, note, velocity, length}};
-    }
+    // Static factory methods - defined in SequenceEvent.cpp
+    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = UINT16_MAX /*UINT16_MAX = auto-set to PPQN*/);
+    static SequenceEvent ControlChange(const uint8_t param, const uint8_t value);
+    // static SequenceEvent ProgramChange(const uint8_t program);
+    // static SequenceEvent BPMChange(const uint16_t bpm);
+    // static SequenceEvent SwingChange(const uint8_t swing);
 
-    static SequenceEvent ControlChange(const uint8_t param, const uint8_t value) {
-        return {SequenceEventType::ControlChangeEvent, SequenceEventCC{param, value}};
-    }
-
-    // static SequenceEvent ProgramChange(const uint8_t program) {
-    //     return {SequenceEventType::ProgramControl, SequenceEventPC{program}};
-    // }
-
-    // static SequenceEvent BPMChange(const uint16_t bpm) {
-    //     return {SequenceEventType::BPMChange, SequenceEventBPMChange{bpm}};
-    // }
-
-    // static SequenceEvent SwingChange(const uint8_t swing) {
-    //     return {SequenceEventType::SwingChange, SequenceEventSwingChange{swing}};
-    // }
-
-    // Declaration only - defined in SequenceEvent.cpp
+    // Defined in SequenceEvent.cpp
     void ExecuteEvent(SequenceData& sequenceData, uint8_t track);
 };
