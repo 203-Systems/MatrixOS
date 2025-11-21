@@ -145,7 +145,11 @@ class ControlBar : public UIComponent {
             }
             else if(keyInfo->state == RELEASED)
             {
-              if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
+              if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
+              {
+                // No octave
+              }
+              else if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
               {
                 if(sequencer->meta.tracks[track].config.note.octave > 0)
                 {
@@ -183,7 +187,11 @@ class ControlBar : public UIComponent {
             {
               if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
               {
-                if(sequencer->meta.tracks[track].config.note.octave < 9)
+                if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
+                {
+                  // No octave
+                }
+                else if(sequencer->meta.tracks[track].config.note.octave < 9)
                 {
                     sequencer->meta.tracks[track].config.note.octave++;
                     sequencer->sequence.SetDirty();
@@ -207,8 +215,14 @@ class ControlBar : public UIComponent {
 
     const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};
     Color GetOctavePlusColor() {
-      int8_t octave = sequencer->meta.tracks[sequencer->track].config.note.octave;
       Color color = sequencer->meta.tracks[sequencer->track].color;
+
+      if(sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
+      {
+        return color;
+      }
+
+      int8_t octave = sequencer->meta.tracks[sequencer->track].config.note.octave;
       uint8_t brightness;
 
       if (octave >= 4) {
@@ -223,8 +237,14 @@ class ControlBar : public UIComponent {
 }
 
   Color GetOctaveMinusColor() {
-      int8_t octave = sequencer->meta.tracks[sequencer->track].config.note.octave;
       Color color = sequencer->meta.tracks[sequencer->track].color;
+
+      if(sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
+      {
+        return color;
+      }
+
+      int8_t octave = sequencer->meta.tracks[sequencer->track].config.note.octave;
       uint8_t brightness;
 
       if (octave <= 4) {

@@ -36,6 +36,9 @@ class Sequencer : public Application {
   uint32_t shiftOnTime = 0;
   bool shiftEventOccured = false;
 
+  // Helper Var
+  bool patternViewActive = false; // True if the patternView is on, even if unlatched, shift hold
+
   enum class ViewMode
   {
     Sequencer,

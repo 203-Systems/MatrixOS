@@ -1,10 +1,9 @@
 #include "NotePad.h"
 
-SequencerNotePad::SequencerNotePad(Sequencer* sequencer, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
+SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
 {
     this->sequencer = sequencer;
-    this->noteSelected = noteSelected;
-    this->noteActive = noteActive;
+    prevPatternView = sequencer->patternViewActive;
     GenerateKeymap();
 }
 
@@ -181,14 +180,29 @@ void SequencerNotePad::GeneratePianoKeymap()
 
 void SequencerNotePad::GenerateDrumKeymap()
 {
-    // TODO: Implement drum layout
     Dimension dimension = GetSize();
     noteMap.clear();
     noteMap.reserve(dimension.Area());
 
     // Placeholder: Fill with 255
     for(uint8_t i = 0; i < dimension.Area(); i++) {
-        noteMap.push_back(255);
+        uint8_t x = i % dimension.x;
+        uint8_t y = i / dimension.x;
+        uint8_t ui_y = dimension.y - y - 1;
+
+        uint8_t note = 0;
+        if(sequencer->patternViewActive)
+        {   
+            note = (x % 4) + ui_y * 4;
+            if(x >= 4) {note += 8;}
+            if(ui_y >= 2) {note = 255;}
+        }
+        else
+        {
+            note = (x % 4) + ui_y * 4;
+            if(x >= 4) {note += 16;}
+        }
+        noteMap[i] = note;
     }
 }
 
@@ -197,37 +211,42 @@ void SequencerNotePad::GenerateKeymap()
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
-    if(metaTrack.mode != SequenceTrackMode::NoteTrack)
+    if(metaTrack.mode != SequenceTrackMode::NoteTrack && metaTrack.mode != SequenceTrackMode::DrumTrack)
     {
         noteMap.resize(GetSize().Area(), 255);
         return;
     }
 
-    c_aligned_scale_map = (((uint16_t)metaTrack.config.note.scale << metaTrack.config.note.root) +
-                           (((uint16_t)metaTrack.config.note.scale & 0xFFF) >> (12 - metaTrack.config.note.root % 12))) & 0xFFF;
+    if(metaTrack.mode == SequenceTrackMode::NoteTrack)
+    {
+        c_aligned_scale_map = (((uint16_t)metaTrack.config.note.scale << metaTrack.config.note.root) +
+                        (((uint16_t)metaTrack.config.note.scale & 0xFFF) >> (12 - metaTrack.config.note.root % 12))) & 0xFFF;
 
-    switch (metaTrack.config.note.type) {
-        case SequenceNoteType::Scale:
-            GenerateOctaveKeymap();
-            break;
-        case SequenceNoteType::Chromatic:
-            GenerateChromaticKeymap();
-            break;
-        case SequenceNoteType::Piano:
-            GeneratePianoKeymap();
-            break;
-        case SequenceNoteType::Drum:
-            GenerateDrumKeymap();
-            break;
+        switch (metaTrack.config.note.type) {
+            case SequenceNoteType::Scale:
+                GenerateOctaveKeymap();
+                break;
+            case SequenceNoteType::Chromatic:
+                GenerateChromaticKeymap();
+                break;
+            case SequenceNoteType::Piano:
+                GeneratePianoKeymap();
+                break;
+        }
+    }
+    else if(metaTrack.mode == SequenceTrackMode::DrumTrack)
+    {
+        GenerateDrumKeymap();
+        return;
     }
 
     // Turn off all active keys
     uint8_t channel = sequencer->sequence.GetChannel(track);
-    for (const auto& [note, velocity] : *noteSelected) {
+    for (const auto& [note, velocity] : sequencer->noteSelected) {
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
     }
 
-    noteSelected->clear();
+    sequencer->noteSelected.clear();
 
     rescanNeeded = true;
 }
@@ -249,7 +268,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             velocity = keyInfo->Value().to7bits();
         }
-        (*noteSelected)[note] = velocity;
+        sequencer->noteSelected[note] = velocity;
         if(selectCallback != nullptr)
         {
             selectCallback(true, note, velocity);
@@ -258,10 +277,10 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
     }
     else if(keyInfo->state == AFTERTOUCH && sequencer->meta.tracks[track].velocitySensitive)
     {
-        if(noteSelected->count(note) != 0) // Incase we need to do first scan first
+        if(sequencer->noteSelected.count(note) != 0) // Incase we need to do first scan first
         {
             uint8_t velocity = keyInfo->Value().to7bits();
-            (*noteSelected)[note] = velocity;
+            sequencer->noteSelected[note] = velocity;
             selectCallback(false, note, velocity);
             MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, velocity));
         }
@@ -269,7 +288,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
     else if(keyInfo->state == RELEASED)
     {
         // Remove note from selection
-        noteSelected->erase(note);
+        sequencer->noteSelected.erase(note);
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
         selectCallback(false, note, 0);
     }
@@ -297,8 +316,8 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = noteSelected->count(note) > 0;
-                bool isActive = noteActive->count(note) > 0;
+                bool isSelected = sequencer->noteSelected.count(note) > 0;
+                bool isActive = sequencer->noteActive.count(note) > 0;
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
@@ -345,8 +364,8 @@ bool SequencerNotePad::RenderPiano(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = noteSelected->count(note) > 0;
-                bool isActive = noteActive->count(note) > 0;
+                bool isSelected = sequencer->noteSelected.count(note) > 0;
+                bool isActive = sequencer->noteActive.count(note) > 0;
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
@@ -384,9 +403,9 @@ bool SequencerNotePad::RenderDrum(Point origin)
     Dimension dimension = GetSize();
     Color drumColor = metaTrack.color;
 
-    uint8_t index = 0;
-    for (int8_t y = 0; y < dimension.y; y++) {
-        for (int8_t x = 0; x < dimension.x; x++) {
+    uint8_t index = sequencer->patternViewActive ? 16 : 0;
+    for (int8_t y = sequencer->patternViewActive ? 2 : 0; y < dimension.y; y++) {
+        for (int8_t x =  0; x < dimension.x; x++) {
             uint8_t note = noteMap[index];
             Point globalPos = origin + Point(x, y);
 
@@ -395,8 +414,8 @@ bool SequencerNotePad::RenderDrum(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = noteSelected->count(note) > 0;
-                bool isActive = noteActive->count(note) > 0;
+                bool isSelected = sequencer->noteSelected.count(note) > 0;
+                bool isActive = sequencer->noteActive.count(note) > 0;
                 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
@@ -405,7 +424,7 @@ bool SequencerNotePad::RenderDrum(Point origin)
                     MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
-                    MatrixOS::LED::SetColor(globalPos, drumColor);
+                    MatrixOS::LED::SetColor(globalPos, note < 16 ? drumColor : Color(0x808080));
                 }
             }
             index++;
@@ -436,7 +455,7 @@ void SequencerNotePad::Rescan(Point origin)
                     {
                         velocity = keyInfo->Value().to7bits();
                     }
-                    (*noteSelected)[note] = velocity;
+                    sequencer->noteSelected[note] = velocity;
                     if(selectCallback != nullptr)
                     {
                         selectCallback(true, note, velocity);
@@ -454,10 +473,15 @@ bool SequencerNotePad::Render(Point origin)
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
-    if(metaTrack.mode != SequenceTrackMode::NoteTrack)
+    if(sequencer->patternViewActive != prevPatternView)
     {
-        noteMap.resize(GetSize().Area(), 255);
-        return true;
+        prevPatternView = sequencer->patternViewActive;
+        GenerateKeymap();
+    }
+
+    if(metaTrack.mode != SequenceTrackMode::NoteTrack && metaTrack.mode != SequenceTrackMode::DrumTrack)
+    {
+        return false;
     }
 
     if(rescanNeeded)
@@ -465,15 +489,21 @@ bool SequencerNotePad::Render(Point origin)
         Rescan(origin);
     }
 
-    switch (metaTrack.config.note.type) {
-        case SequenceNoteType::Scale:
-        case SequenceNoteType::Chromatic:
-            return RenderRootNScale(origin);
-        case SequenceNoteType::Piano:
-            return RenderPiano(origin);
-        case SequenceNoteType::Drum:
-            return RenderDrum(origin);
-        default:
-            return false;
+    if(metaTrack.mode == SequenceTrackMode::NoteTrack)
+    {
+        switch (metaTrack.config.note.type) {
+            case SequenceNoteType::Scale:
+            case SequenceNoteType::Chromatic:
+                return RenderRootNScale(origin);
+            case SequenceNoteType::Piano:
+                return RenderPiano(origin);
+            default:
+                return false;
+        }
     }
+    else if(metaTrack.mode == SequenceTrackMode::DrumTrack)
+    {
+        return RenderDrum(origin);
+    }
+    return false;
 }

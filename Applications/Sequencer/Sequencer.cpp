@@ -63,7 +63,7 @@ void Sequencer::SequencerUI()
                                      { return currentView == ViewMode::Sequencer; });
     sequencerUI.AddUIComponent(sequenceVisualizer, Point(0, 1));
 
-    SequencerNotePad notePad(this, &this->noteSelected, &this->noteActive);
+    SequencerNotePad notePad(this);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void
                      {
                          if (pattern != nullptr && noteOn)
@@ -105,7 +105,11 @@ void Sequencer::SequencerUI()
         ClearActiveNotes();
         pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx); });
     patternSelector.SetEnableFunc([&]() -> bool
-                                  { return currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); });
+                                  { 
+                                    bool enable = currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); 
+                                    patternViewActive = enable;
+                                    return enable; 
+                                });
     sequencerUI.AddUIComponent(patternSelector, Point(0, 3));
 
     // Session View
@@ -303,9 +307,13 @@ void Sequencer::LayoutSelector()
     UIButton scaleModeBtn;
     scaleModeBtn.SetName("Scale Mode");
     scaleModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Scale);
+        return color.DimIfNot(
+            meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+            meta.tracks[track].config.note.type == SequenceNoteType::Scale
+        );
     });
     scaleModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Scale;
         sequence.SetDirty();
     });
@@ -314,9 +322,13 @@ void Sequencer::LayoutSelector()
     UIButton chromaticModeBtn;
     chromaticModeBtn.SetName("Chromatic Mode");
     chromaticModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Chromatic);
+        return color.DimIfNot(
+            meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+            meta.tracks[track].config.note.type == SequenceNoteType::Chromatic
+        );
     });
     chromaticModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Chromatic;
         sequence.SetDirty();
     });
@@ -325,9 +337,13 @@ void Sequencer::LayoutSelector()
     UIButton pianoModeBtn;
     pianoModeBtn.SetName("Piano Mode");
     pianoModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Piano);
+        return color.DimIfNot(
+            meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+            meta.tracks[track].config.note.type == SequenceNoteType::Piano
+        );
     });
     pianoModeBtn.OnPress([&]() -> void {
+        meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Piano;
         sequence.SetDirty();
     });
@@ -336,10 +352,10 @@ void Sequencer::LayoutSelector()
     UIButton drumModeBtn;
     drumModeBtn.SetName("Drum Mode");
     drumModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(meta.tracks[track].config.note.type == SequenceNoteType::Drum);
+        return color.DimIfNot(meta.tracks[track].mode == SequenceTrackMode::DrumTrack);
     });
     drumModeBtn.OnPress([&]() -> void {
-        meta.tracks[track].config.note.type = SequenceNoteType::Drum;
+        meta.tracks[track].mode = SequenceTrackMode::DrumTrack;
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(drumModeBtn, Point(3, 1));
