@@ -9,11 +9,6 @@ SequenceVisualizer::SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* st
     width = sequencer->sequence.GetTrackCount();
 }
 
-// void SequenceVisualizer::OnSelect(std::function<void(uint8_t)> callback)
-// {
-//     selectCallback = callback;
-// }
-
 Dimension SequenceVisualizer::GetSize() { return Dimension(8, 2); }
 
 bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
@@ -76,7 +71,6 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
                 if (pattern.RemoveNoteEventsInRange(startTime, endTime, note))
                 {
                     existAlready = true;
-                    sequencer->noteActive.erase(sequencer->noteActive.find(note));
                 }
             }
 
@@ -88,7 +82,6 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
                     pattern.AddEvent(step * Sequence::PPQN, event);
                 }
             }
-
         }
         
         // Populate noteActive with notes from this step and send MIDI NoteOn
@@ -121,7 +114,11 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
             if (eventIt->second.eventType == SequenceEventType::NoteEvent)
             {
                 const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventIt->second.data);
-                sequencer->noteActive.erase(sequencer->noteActive.find(noteData.note));
+                auto noteIt = sequencer->noteActive.find(noteData.note);
+                if (noteIt != sequencer->noteActive.end())
+                {
+                    sequencer->noteActive.erase(noteIt);
+                }
 
                 // Only send NoteOff if note is not currently selected on NotePad
                 if(noteSelected->find(noteData.note) == noteSelected->end())
