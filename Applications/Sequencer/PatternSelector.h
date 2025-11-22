@@ -137,8 +137,18 @@ class PatternSelector : public UIComponent {
             {
                 // Pattern exists
                 if(i == selectedPattern)
-                {
-                    MatrixOS::LED::SetColor(origin + Point(x, y), Color::White);
+                {   
+                    if(sequencer->sequence.Playing(track))
+                    {
+                        uint8_t breathingScale = sequencer->sequence.ClockQuarterNoteProgressBreath();
+                        Color color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4 * 3 + 64, 8));
+                        MatrixOS::LED::SetColor(origin + Point(x, y), color);
+                    }
+                    else
+                    {
+                        Color color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
+                        MatrixOS::LED::SetColor(origin + Point(x, y), color);
+                    }
                 }
                 else
                 {
@@ -148,7 +158,7 @@ class PatternSelector : public UIComponent {
             else if(i == patternCount)
             {
                 // Add button at next available slot
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color(0x404040));
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color(0x202020));
             }
             else
             {

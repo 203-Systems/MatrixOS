@@ -198,7 +198,7 @@ class ClipLauncher : public UIComponent {
                     }
                     else if(isCurrentTrack && isSelectedInTrack)
                     {
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
                     }
                     else if(isSelectedInTrack)
                     {
