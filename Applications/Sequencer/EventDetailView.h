@@ -12,8 +12,8 @@ class EventDetailView : public UIComponent {
 
     bool wasEnabled = false;
 
-    uint8_t eventIndex;
     vector<std::multimap<uint16_t, SequenceEvent>::iterator> eventRefs;
+    std::multimap<uint16_t, SequenceEvent>::iterator selectedEventIter;
 
     // UI parameters for displaying/editing event properties
     uint8_t selectedField = 0; // Which field is being edited
@@ -39,6 +39,7 @@ private:
     // Micro step selector (Y=1 row)
     void RenderMicroStepSelector(Point origin);
     bool MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+    bool DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo);
 
     // Note event configuration (Y >= 2)
     void RenderNoteConfig(Point origin);

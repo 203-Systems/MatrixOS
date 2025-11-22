@@ -4,7 +4,6 @@
 EventDetailView::EventDetailView(Sequencer* sequencer)
 {
     this->sequencer = sequencer;
-    this->eventIndex = 0;
 }
 
 bool EventDetailView::IsEnabled() {
@@ -13,10 +12,13 @@ bool EventDetailView::IsEnabled() {
         enabled = (*enableFunc)();
     }
 
+    if (!enabled && wasEnabled == true)
+    {
+        sequencer->ClearActiveNotes();
+    }
+
     if(enabled && wasEnabled == false)
     {
-        MLOGD("EventDetailView", "View became enabled, rebuilding event list");
-        eventIndex = 0;
         RebuildEventList();
     }
 
@@ -43,27 +45,22 @@ void EventDetailView::RebuildEventList()
     uint16_t startTime = step * Sequence::PPQN;
     uint16_t endTime = startTime + Sequence::PPQN - 1;
 
-    MLOGD("EventDetailView", "RebuildEventList: track=%d, clip=%d, pattern=%d, step=%d", track, clip, patternIdx, step);
-    MLOGD("EventDetailView", "Time range: %d - %d", startTime, endTime);
+    bool matchedSelection = false;
 
     auto it = pattern.events.lower_bound(startTime);
     while (it != pattern.events.end() && it->first <= endTime)
     {
         eventRefs.push_back(it);
-        MLOGD("EventDetailView", "Found event at time %d, type %d", it->first, (int)it->second.eventType);
+        if(it == selectedEventIter)
+        {
+            matchedSelection = true;
+        }
         ++it;
     }
 
-    MLOGD("EventDetailView", "Total events found: %d, eventIndex: %d", eventRefs.size(), eventIndex);
-
-    // Validate eventIndex is within bounds
-    if (eventIndex >= eventRefs.size() && eventRefs.size() > 0)
+    if(!matchedSelection)
     {
-        eventIndex = eventRefs.size() - 1;
-    }
-    else if (eventRefs.size() == 0)
-    {
-        eventIndex = 0;
+        selectedEventIter = eventRefs.front();
     }
 }
 
@@ -74,24 +71,27 @@ bool EventDetailView::KeyEvent(Point xy, KeyInfo* keyInfo)
     {
         return EventSelectorKeyHandler(xy, keyInfo);
     }
-    else if (xy.y == 1 && xy.x < 6)
+    else if (xy.y == 1)
     {
-        return MicroStepSelectorKeyHandler(xy, keyInfo);
+        if (xy.x < 6)
+        {
+            return MicroStepSelectorKeyHandler(xy, keyInfo);
+        }
+        else if (xy.x == 7)
+        {
+            return DeleteEventKeyHandler(xy, keyInfo);
+        }
     }
 
-    // Route to event type specific handlers for Y >= 2
-    if (eventIndex < eventRefs.size())
+    auto& event = selectedEventIter->second;
+    switch (event.eventType)
     {
-        auto& event = eventRefs[eventIndex]->second;
-        switch(event.eventType)
-        {
-            case SequenceEventType::NoteEvent:
-                return NoteConfigKeyHandler(xy, keyInfo);
-            case SequenceEventType::ControlChangeEvent:
-                return CCConfigKeyHandler(xy, keyInfo);
-            default:
-                break;
-        }
+        case SequenceEventType::NoteEvent:
+            return NoteConfigKeyHandler(xy, keyInfo);
+        case SequenceEventType::ControlChangeEvent:
+            return CCConfigKeyHandler(xy, keyInfo);
+        default:
+            break;
     }
 
     return true;
@@ -99,26 +99,20 @@ bool EventDetailView::KeyEvent(Point xy, KeyInfo* keyInfo)
 
 bool EventDetailView::Render(Point origin)
 {
-    MLOGD("EventDetailView", "Render called, origin=(%d,%d), eventRefs.size=%d", origin.x, origin.y, eventRefs.size());
-
     RenderEventSelector(origin);
     RenderMicroStepSelector(origin + Point(0, 1));
 
-    // Render event type specific content for Y >= 2
-    if (eventIndex < eventRefs.size())
+    auto& event = selectedEventIter->second;
+    switch(event.eventType)
     {
-        auto& event = eventRefs[eventIndex]->second;
-        switch(event.eventType)
-        {
-            case SequenceEventType::NoteEvent:
-                RenderNoteConfig(origin);
-                break;
-            case SequenceEventType::ControlChangeEvent:
-                RenderCCConfig(origin);
-                break;
-            default:
-                break;
-        }
+        case SequenceEventType::NoteEvent:
+            RenderNoteConfig(origin);
+            break;
+        case SequenceEventType::ControlChangeEvent:
+            RenderCCConfig(origin);
+            break;
+        default:
+            break;
     }
 
     return true;
@@ -160,12 +154,11 @@ void EventDetailView::RenderEventSelector(Point origin)
             }
 
             // Highlight selected event
-            if (x == eventIndex)
+            if (selectedEventIter == eventRefs[x])
             {
                 color = Color::Crossfade(color, Color::White, Fract16(0x9000));
             }
 
-            MLOGD("EventDetailView", "Rendering event at X=%d, point=(%d,%d), color=0x%06X", x, point.x, point.y, color.RGB());
             MatrixOS::LED::SetColor(point, color);
         }
         else
@@ -186,10 +179,10 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
         // Clicking on row Y=0 selects an event
         if (xy.x < eventRefs.size())
         {
-            eventIndex = xy.x;
+            selectedEventIter = eventRefs[xy.x];
 
             // If it's a note event, send note on
-            auto& event = eventRefs[eventIndex]->second;
+            auto& event = eventRefs[xy.x]->second;
             if (event.eventType == SequenceEventType::NoteEvent)
             {
                 const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
@@ -200,12 +193,11 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
             return true;
         }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keyInfo->State() == RELEASED || keyInfo->State() == HOLD)
     {
-        // Send note off for the selected event if it's a note event
-        if (eventIndex < eventRefs.size())
+        if (xy.x < eventRefs.size())
         {
-            auto& event = eventRefs[eventIndex]->second;
+            auto& event = eventRefs[xy.x]->second;
             if (event.eventType == SequenceEventType::NoteEvent)
             {
                 const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
@@ -215,10 +207,16 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
                     sequencer->noteActive.erase(noteIt);
                     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note));
                 }
+
+                if (keyInfo->State() == HOLD)
+                {
+                    MatrixOS::UIUtility::TextScroll("Note Event", Color(0xFFFF00));
+                }
             }
         }
+        return true;
     }
-    return true;
+    return false;
 }
 
 void EventDetailView::RenderMicroStepSelector(Point origin)
@@ -236,10 +234,9 @@ void EventDetailView::RenderMicroStepSelector(Point origin)
         Color color = Color(0x404040); // Default: dark gray (empty)
 
         // Check if selected event is in this micro step slot
-        if (eventIndex < eventRefs.size())
+        if (selectedEventIter != std::multimap<uint16_t, SequenceEvent>::iterator())
         {
-            auto& eventIter = eventRefs[eventIndex];
-            uint16_t eventTime = eventIter->first;
+            uint16_t eventTime = selectedEventIter->first;
             uint16_t relativeTime = eventTime - stepStartTime; // Time within the current step
 
             uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
@@ -262,47 +259,93 @@ void EventDetailView::RenderMicroStepSelector(Point origin)
 
         MatrixOS::LED::SetColor(point, color);
     }
+
+    // Delete button at X=7 (global), render bright red (or white when pressed)
+    Point deletePoint = origin + Point(7, 0);
+    bool deleteActive = MatrixOS::KeyPad::GetKey(deletePoint)->Active();
+    Color deleteColor = deleteActive ? Color::White : Color::Red;
+    MatrixOS::LED::SetColor(deletePoint, deleteColor);
 }
 
 bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 {
+    uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
+    uint8_t step = sequencer->sequence.GetPosition(sequencer->track).quarterNote;
+    uint16_t stepStartTime = step * Sequence::PPQN;
+    uint16_t targetTime = stepStartTime + (xy.x * slotSize);
+
     if (keyInfo->State() == PRESSED)
     {
-        if (eventIndex < eventRefs.size())
+        uint8_t track = sequencer->track;
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+        SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+
+        auto eventIter = selectedEventIter;
+        uint16_t oldTime = eventIter->first;
+
+        if (oldTime != targetTime)
         {
-            uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+            // Copy the event data
+            SequenceEvent eventData = eventIter->second;
 
-            auto& eventIter = eventRefs[eventIndex];
-            uint16_t oldTime = eventIter->first;
+            // Remove old event
+            pattern.events.erase(eventIter);
 
-            uint8_t step = sequencer->sequence.GetPosition(track).quarterNote;
-            uint16_t stepStartTime = step * Sequence::PPQN;
+            // Insert event at new time
+            auto insertedIter = pattern.events.insert({targetTime, eventData});
+            selectedEventIter = insertedIter;
 
-            uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
-            uint16_t newTime = stepStartTime + (xy.x * slotSize);
-
-            // Check if time actually changed
-            if (oldTime != newTime)
-            {
-                // Copy the event data
-                SequenceEvent eventData = eventIter->second;
-
-                // Remove old event
-                pattern.events.erase(eventIter);
-
-                // Insert event at new time
-                pattern.events.insert({newTime, eventData});
-
-                // Rebuild event list to update iterators
-                RebuildEventList();
-            }
+            // Rebuild event list to update iterators
+            RebuildEventList();
         }
+    }
+    else if (keyInfo->State() == HOLD)
+    {
+        MatrixOS::UIUtility::TextScroll("Microstep " + std::to_string(xy.x + 1), Color::White);
     }
 
     return true;
+}
+
+bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
+{
+    if (keyInfo->State() == HOLD)
+    {
+        MatrixOS::UIUtility::TextScroll("Delete Event", Color(0xFF0000));
+        return true;
+    }
+    else if (keyInfo->State() == RELEASED)
+    {
+        uint8_t track = sequencer->track;
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+        uint8_t channel = sequencer->sequence.GetChannel(track);
+        SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+
+        auto eventIter = selectedEventIter;
+        SequenceEvent eventData = eventIter->second;
+
+        if (eventData.eventType == SequenceEventType::NoteEvent)
+        {
+            const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventData.data);
+            auto noteIt = sequencer->noteActive.find(noteData.note);
+            if (noteIt != sequencer->noteActive.end())
+            {
+                sequencer->noteActive.erase(noteIt);
+                MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note));
+            }
+        }
+
+        pattern.events.erase(eventIter);
+
+        RebuildEventList();
+        selectedEventIter = eventRefs.front();
+
+        return true;
+    }
+
+    return false;
 }
 
 void EventDetailView::RenderNoteConfig(Point origin)
