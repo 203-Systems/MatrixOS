@@ -33,12 +33,14 @@ class PatternSelector : public UIComponent {
 
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo)
     {
-        if(xy.y < 2)
-        {
+        if(xy.y < 2) // Selector part
+        {   
             if(keyInfo->State() == PRESSED)
             {
                 uint8_t track = sequencer->track;
-                uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+                SequencePosition position = sequencer->sequence.GetPosition(track);
+                uint8_t clip = position.clip;
+                uint8_t pattern = position.pattern;
                 uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
                 uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
                 uint8_t newPatternIdx = 0;
@@ -55,6 +57,7 @@ class PatternSelector : public UIComponent {
                     {
                         uint8_t sourcePattern = sequencer->sequence.GetPosition(track).pattern;
                         sequencer->sequence.CopyPattern(track, clip, sourcePattern, track, clip, 255);
+                        newPatternIdx = clip;
                     }
                     // Add new empty pattern
                     else
@@ -62,7 +65,7 @@ class PatternSelector : public UIComponent {
                         newPatternIdx = sequencer->sequence.NewPattern(track, clip);
                     }
 
-                    if(newPatternIdx >= 0)
+                    if(newPatternIdx > 0)
                     {
                         // Select the newly created pattern only if not playing
                         if(!sequencer->sequence.Playing(track))
@@ -78,31 +81,27 @@ class PatternSelector : public UIComponent {
                 // Check if clicking on existing pattern
                 else if(patternIdx < patternCount)
                 {
-                    // Delete pattern if ClearActive
-                    // Copy current pattern to new pattern if CopyActive
+                    // Toggle Length Adjustment based on shift
                     if(sequencer->ShiftActive() && sequencer->patternView)
                     {
-                        if(patternIdx == clip && lengthAdjustmentMode)
+                        if(patternIdx == pattern && lengthAdjustmentMode)
                         {
                             lengthAdjustmentMode = false;
                         }
                         else
                         {
+                            lengthAdjustmentMode = true;
                             if(sequencer->sequence.Playing(track) == false)
                             {
-                                lengthAdjustmentMode = true;
                                 sequencer->sequence.SetPattern(track, patternIdx);
                                 if (changeCallback != nullptr)
                                 {
                                     changeCallback(patternIdx);
                                 }
                             }
-                            else if(patternIdx == clip)
-                            {
-                                lengthAdjustmentMode = true;
-                            }
                         }
                     }
+                    // Delete pattern if ClearActive
                     else if(sequencer->ClearActive())
                     {
                         sequencer->sequence.DeletePattern(track, clip, patternIdx);
@@ -147,10 +146,38 @@ class PatternSelector : public UIComponent {
                     }
                 }
             }
+            else if(keyInfo->State() == HOLD)
+            {
+                uint8_t track = sequencer->track;
+                uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+                uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
+                uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
+
+                // Enable length adjustment mode if holding on an existing pattern
+                if(patternIdx < patternCount)
+                {
+                    lengthAdjustmentMode = !lengthAdjustmentMode;
+                }
+            }
         }
         else // Length Adjustment Mode
         {
+            if(keyInfo->State() == PRESSED)
+            {
+                uint8_t track = sequencer->track;
+                uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+                uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+                SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
 
+                uint8_t lengthIdx = xy.x + (xy.y - 2) * 8; // Convert 2D coordinates to length index (offset by 2 rows)
+                uint8_t newLength = lengthIdx + 1; // Length is 1-indexed (1-16)
+
+                if(newLength >= 1 && newLength <= 16)
+                {
+                    pattern.quarterNotes = newLength;
+                    sequencer->sequence.SetDirty();
+                }
+            }
         }
         return true;
     }
@@ -217,7 +244,7 @@ class PatternSelector : public UIComponent {
                 }
                 else
                 {
-                    MatrixOS::LED::SetColor(point, Color::Black);
+                    MatrixOS::LED::SetColor(point, Color(0x202020));
                 }
             }
         }

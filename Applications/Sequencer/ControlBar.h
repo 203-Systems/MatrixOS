@@ -333,7 +333,7 @@ class ControlBar : public UIComponent {
         }
         else if(sequencer->currentView == Sequencer::ViewMode::Session)
         {
-          color = Color(0xFFFF90);
+          color = Color(0xFFFFA0);
         }
         else
         {
@@ -352,7 +352,7 @@ class ControlBar : public UIComponent {
         }
         else if(sequencer->currentView == Sequencer::ViewMode::Mixer)
         {
-          color = Color(0x90FFC0);
+          color = Color(0xA0FFC0);
         }
         else
         {
