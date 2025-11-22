@@ -326,36 +326,72 @@ class ControlBar : public UIComponent {
       // Session View
       {
         Point point = origin + Point(2, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Session ?
-                Color::White :
-                Color(0xFFFF00);
+        Color color;
+        if(MatrixOS::KeyPad::GetKey(point)->Active())
+        {
+          color = Color::White;
+        }
+        else if(sequencer->currentView == Sequencer::ViewMode::Session)
+        {
+          color = Color(0xFFFF90);
+        }
+        else
+        {
+          color = Color(0xFFFF00);
+        }
         MatrixOS::LED::SetColor(point, color);
       }
 
       // Mixer View
       {
         Point point = origin + Point(3, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() || sequencer->currentView == Sequencer::ViewMode::Mixer ?
-                Color::White :
-                Color(0x00FF60);
+        Color color;
+        if(MatrixOS::KeyPad::GetKey(point)->Active())
+        {
+          color = Color::White;
+        }
+        else if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+        {
+          color = Color(0x90FFC0);
+        }
+        else
+        {
+          color = Color(0x00FF60);
+        }
         MatrixOS::LED::SetColor(point, color);
       }
 
       // Clear
       {
         Point point = origin + Point(4, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
-                Color::White :
-                Color(0xFF0080);
+        Color color;
+        if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+        {
+          color = Color(0xFF0080).Dim();
+        }
+        else
+        {
+          color = MatrixOS::KeyPad::GetKey(point)->Active() ?
+                  Color::White :
+                  Color(0xFF0080);
+        }
         MatrixOS::LED::SetColor(point, color);
       }
 
       // Copy
       {
         Point point = origin + Point(5, 0);
-        Color color =  MatrixOS::KeyPad::GetKey(point)->Active() ?
-                Color::White :
-                Color(0x0080FF);
+        Color color;
+        if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+        {
+          color = Color(0x0080FF).Dim();
+        }
+        else
+        {
+          color = MatrixOS::KeyPad::GetKey(point)->Active() ?
+                  Color::White :
+                  Color(0x0080FF);
+        }
         MatrixOS::LED::SetColor(point, color);
       }
 

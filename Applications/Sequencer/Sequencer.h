@@ -43,7 +43,7 @@ class Sequencer : public Application {
   {
     Sequencer,
     PatternSetting,
-    StepSetting,
+    StepDetail,
     Mixer,
     Session
   };

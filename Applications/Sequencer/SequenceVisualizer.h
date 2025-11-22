@@ -37,6 +37,16 @@ class SequenceVisualizer : public UIComponent {
 
         if(keyInfo->state == PRESSED)
         {
+            // Check for shift-click to enter StepDetail view (only when not playing locally)
+            if(sequencer->ShiftActive() && !sequencer->sequence.Playing(track))
+            {
+                sequencer->ShiftEventOccured();
+                sequencer->stepDetailed = step;
+                sequencer->stepDetailEventIndex = 0;
+                sequencer->SetView(Sequencer::ViewMode::StepDetail);
+                return true;
+            }
+
             // Check if step already exists in selection
             if(std::find(stepSelected->begin(), stepSelected->end(), step) == stepSelected->end())
             {

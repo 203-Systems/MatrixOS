@@ -151,7 +151,7 @@ void Sequencer::SequencerUI()
 
         pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern); });
     trackSelector.SetEnableFunc([&]() -> bool
-                                { return currentView != ViewMode::Session && currentView != ViewMode::Mixer; });
+                                { return currentView != ViewMode::Session && currentView != ViewMode::Mixer && currentView != ViewMode::StepDetail; });
     sequencerUI.AddUIComponent(trackSelector, Point(0, 0));
 
     ControlBar controlBar(this, &notePad);

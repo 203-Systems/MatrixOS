@@ -53,6 +53,18 @@ class ClipLauncher : public UIComponent {
                 //     changeCallback(track, clip);
                 // }
             }
+            // If clip exists and Clear is active, delete it
+            else if(sequencer->ClearActive())
+            {
+                sequencer->sequence.DeleteClip(track, clip);
+
+                // Update selection if we deleted the current clip
+                if(sequencer->sequence.GetPosition(track).clip == clip)
+                {
+                    // Find first available clip or default to 0
+                    sequencer->sequence.SetClip(track, 0);
+                }
+            }
             // If clip doesn't exist, create it or stop track
             else if(!sequencer->sequence.ClipExists(track, clip))
             {
@@ -79,18 +91,6 @@ class ClipLauncher : public UIComponent {
                     {
                         changeCallback(track, clip);
                     }
-                }
-            }
-            // If clip exists and Clear is active, delete it
-            else if(sequencer->ClearActive())
-            {
-                sequencer->sequence.DeleteClip(track, clip);
-
-                // Update selection if we deleted the current clip
-                if(sequencer->sequence.GetPosition(track).clip == clip)
-                {
-                    // Find first available clip or default to 0
-                    sequencer->sequence.SetClip(track, 0);
                 }
             }
             // Select clip
@@ -173,6 +173,10 @@ class ClipLauncher : public UIComponent {
                         {
                             color = Color::Black;
                         }
+                    }
+                    else if(sequencer->ClearActive())
+                    {
+                        color = Color::Black;
                     }
                     else
                     {
