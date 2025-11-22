@@ -11,6 +11,7 @@
 #include "ControlBar.h"
 #include "ScaleVisualizer.h"
 #include "ScaleModifier.h"
+#include "EventDetailView.h"
 
 void Sequencer::Setup(const vector<string> &args)
 {
@@ -39,28 +40,6 @@ void Sequencer::SequencerUI()
     SequencePattern *pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
 
     SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
-    sequenceVisualizer.OnSelect([&](uint8_t step) -> void
-                                {
-        if(pattern == nullptr)
-        {
-            return;
-        }
-
-        if(ClearActive())
-        {
-            ClearStep(pattern, step);
-        }
-        else if(CopyActive() && stepSelected.size() >= 2) // Self is included
-        {
-            CopyStep(pattern, stepSelected[0], step);
-        }
-        else if(!noteSelected.empty())
-        {
-            for (const auto& [note, velocity] : noteSelected)
-            {
-                StepAddNote(pattern, step, note, velocity);
-            }
-        } });
     sequenceVisualizer.SetEnableFunc([&]() -> bool
                                      { return currentView == ViewMode::Sequencer; });
     sequencerUI.AddUIComponent(sequenceVisualizer, Point(0, 1));
@@ -136,6 +115,12 @@ void Sequencer::SequencerUI()
                                { return currentView == ViewMode::Mixer; });
     sequencerUI.AddUIComponent(mixerControl, Point(0, 0));
 
+    // Step Detail View
+    EventDetailView eventDetailView(this);
+    eventDetailView.SetEnableFunc([&]() -> bool
+                                  { return currentView == ViewMode::StepDetail; });
+    sequencerUI.AddUIComponent(eventDetailView, Point(0, 0));
+
     // Global
     TrackSelector trackSelector(this);
     trackSelector.OnChange([&](uint8_t val) -> void
@@ -171,20 +156,27 @@ void Sequencer::SequencerUI()
                                    {
     if (keyEvent->id == FUNCTION_KEY)
     {
-      if (keyEvent->info.state == RELEASED)
+      if (keyEvent->info.state == PRESSED)
       {
-        // Clean up the state
-        clear = false;
-        copy = false;
-        shift = 0;
-        shiftEventOccured = false;
+        if(currentView != ViewMode::Sequencer)
+        {
+            currentView = ViewMode::Sequencer;
+        }
+        else
+        {
+            // Clean up the state
+            clear = false;
+            copy = false;
+            shift = 0;
+            shiftEventOccured = false;
 
-        ClearActiveNotes();
-        ClearSelectedNotes();
+            ClearActiveNotes();
+            ClearSelectedNotes();
 
-        SequencerMenu();
+            SequencerMenu();
 
-        notePad.GenerateKeymap();
+            notePad.GenerateKeymap();
+        }
       }
       return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
@@ -929,26 +921,6 @@ void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
     uint16_t sourceStartTime = src * Sequence::PPQN;
     uint16_t destStartTime = dest * Sequence::PPQN;
     pattern->CopyEventsInRange(sourceStartTime, destStartTime, Sequence::PPQN);
-
-    // Add copied notes to noteActive
-    uint16_t destEndTime = destStartTime + Sequence::PPQN - 1;
-    auto it = pattern->events.lower_bound(destStartTime);
-    while (it != pattern->events.end() && it->first <= destEndTime)
-    {
-        if (it->second.eventType == SequenceEventType::NoteEvent)
-        {
-            const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
-            noteActive.insert(noteData.note);
-        }
-        ++it;
-    }
-}
-
-void Sequencer::StepAddNote(SequencePattern *pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch)
-{
-    SequenceEvent event = SequenceEvent::Note(note, velocity, aftertouch);
-    pattern->AddEvent(step * Sequence::PPQN, event);
-    noteActive.insert(note);
 }
 
 void Sequencer::SetView(ViewMode view)

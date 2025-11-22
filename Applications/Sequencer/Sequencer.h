@@ -50,7 +50,7 @@ class Sequencer : public Application {
 
   ViewMode currentView = ViewMode::Sequencer;
 
-  vector<uint8_t> stepSelected;
+  vector<uint8_t> stepSelected; // TODO: this should be a set
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;
@@ -72,10 +72,10 @@ class Sequencer : public Application {
 
   void ClearActiveNotes();
   void ClearSelectedNotes();
+
+  // TODO: Move those under SequencePattern function
   void ClearStep(SequencePattern* pattern, uint8_t step);
   void CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest);
-  void StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch = false);
-
+  
   void SetView(ViewMode view);
-  // void SetDetailStepView(uint8_t step);
 };

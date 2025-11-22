@@ -38,6 +38,12 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
             {
               sequencer->sequence.Play();
             }
+
+            if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
+            {
+              sequencer->SetView(Sequencer::ViewMode::Sequencer);
+            }
+            
           }
         }
         return true;

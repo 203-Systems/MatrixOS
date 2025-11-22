@@ -12,12 +12,9 @@ class SequenceVisualizer : public UIComponent {
     std::unordered_map<uint8_t, uint8_t>* noteSelected;
     std::unordered_multiset<uint8_t>* noteActive;
     uint8_t width = 8;
-    std::function<void(uint8_t)> selectCallback;
 
     public:
     SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive);
-
-    void OnSelect(std::function<void(uint8_t)> callback);
 
     Dimension GetSize();
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
