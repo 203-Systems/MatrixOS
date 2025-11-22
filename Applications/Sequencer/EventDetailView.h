@@ -32,9 +32,19 @@ public:
 private:
     void RebuildEventList();
 
-    void RenderNoteEvent(Point origin);
-    bool NoteEventKeyHandler(Point xy, KeyInfo* keyInfo);
+    // Event selector (Y=0 row)
+    void RenderEventSelector(Point origin);
+    bool EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
 
-    void RenderCCEvent(Point origin);
-    void CCEventHandler(Point xy, KeyInfo* keyInfo);
+    // Micro step selector (Y=1 row)
+    void RenderMicroStepSelector(Point origin);
+    bool MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+
+    // Note event configuration (Y >= 2)
+    void RenderNoteConfig(Point origin);
+    bool NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo);
+
+    // CC event configuration (Y >= 2)
+    void RenderCCConfig(Point origin);
+    bool CCConfigKeyHandler(Point xy, KeyInfo* keyInfo);
 };
