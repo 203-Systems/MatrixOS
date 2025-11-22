@@ -1,13 +1,13 @@
 #include "MatrixOS.h"
 
-class ScaleModifier : public UIComponent {
+class SequenceScaleModifier : public UIComponent {
  public:
   uint16_t* scale;
   std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
   Color color;
   Color rootColor;
 
-  ScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
+  SequenceScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
     this->scale = scale;
     this->changeCallback = nullptr;
     this->color = color;
@@ -30,7 +30,7 @@ class ScaleModifier : public UIComponent {
   }
 
   virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(7, 2); }
+  virtual Dimension GetSize() { return Dimension(8, 2); }
 
   virtual bool Render(Point origin) {
     // Root is always 0, so we just use the scale directly
@@ -46,13 +46,11 @@ class ScaleModifier : public UIComponent {
       else
       { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
     }
+    MatrixOS::LED::SetColor(origin + Point(7, 1), rootColor);
     return true;
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (xy == Point(0, 0) || xy == Point(3, 0))
-      return false;
-
     if(keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll("Custom Scale Modifier", color);

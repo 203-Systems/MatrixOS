@@ -9,6 +9,8 @@
 #include "SequenceVisualizer.h"
 #include "NotePad.h"
 #include "ControlBar.h"
+#include "ScaleVisualizer.h"
+#include "ScaleModifier.h"
 
 void Sequencer::Setup(const vector<string> &args)
 {
@@ -298,8 +300,47 @@ void Sequencer::SequencerMenu()
 
 void Sequencer::LayoutSelector()
 {
-    Color color = Color(0xFFFF00);
-    UI layoutSelector("Layout Selector", color, false);
+    uint16_t scales[16] = {
+                        (uint16_t)Scale::MINOR,
+                        (uint16_t)Scale::MAJOR,
+                        (uint16_t)Scale::DORIAN,
+                        (uint16_t)Scale::PHRYGIAN,
+                        (uint16_t)Scale::MIXOLYDIAN,
+                        (uint16_t)Scale::MELODIC_MINOR_ASCENDING,
+                        (uint16_t)Scale::HARMONIC_MINOR,
+                        (uint16_t)Scale::BEBOP_DORIAN,
+                        (uint16_t)Scale::BLUES,
+                        (uint16_t)Scale::MINOR_PENTATONIC,
+                        (uint16_t)Scale::HUNGARIAN_MINOR,
+                        (uint16_t)Scale::UKRAINIAN_DORIAN,
+                        (uint16_t)Scale::MARVA,
+                        (uint16_t)Scale::TODI,
+                        (uint16_t)Scale::WHOLE_TONE,
+                        (uint16_t)Scale::CHROMATIC};
+
+  const string scale_names[16] = {"Minor",
+                            "Major",
+                            "Dorian",
+                            "Phrygian",
+                            "Mixolydian",
+                            "Melodic Minor Ascending",
+                            "Harmonic Minor",
+                            "Bebop Dorian",
+                            "Blues",
+                            "Minor Pentatonic",
+                            "Hungarian Minor",
+                            "Ukrainian Dorian",
+                            "Marva",
+                            "Todi",
+                            "Whole Tone",
+                            "Chromatic"};
+
+    Color noteColor = Color(0xFFFF00);
+    Color drumColor = Color(0xFF8000);
+    Color ccColor = Color(0x0080FF);
+    Color pcColor = Color(0x00FF80);
+    
+    UI layoutSelector("Layout Selector", noteColor, false);
 
     TrackSelector trackSelector(this, true);
     layoutSelector.AddUIComponent(trackSelector, Point(0, 0));
@@ -307,7 +348,7 @@ void Sequencer::LayoutSelector()
     UIButton scaleModeBtn;
     scaleModeBtn.SetName("Scale Mode");
     scaleModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(
+        return noteColor.DimIfNot(
             meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
             meta.tracks[track].config.note.type == SequenceNoteType::Scale
         );
@@ -322,7 +363,7 @@ void Sequencer::LayoutSelector()
     UIButton chromaticModeBtn;
     chromaticModeBtn.SetName("Chromatic Mode");
     chromaticModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(
+        return noteColor.DimIfNot(
             meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
             meta.tracks[track].config.note.type == SequenceNoteType::Chromatic
         );
@@ -337,7 +378,7 @@ void Sequencer::LayoutSelector()
     UIButton pianoModeBtn;
     pianoModeBtn.SetName("Piano Mode");
     pianoModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(
+        return noteColor.DimIfNot(
             meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
             meta.tracks[track].config.note.type == SequenceNoteType::Piano
         );
@@ -352,13 +393,107 @@ void Sequencer::LayoutSelector()
     UIButton drumModeBtn;
     drumModeBtn.SetName("Drum Mode");
     drumModeBtn.SetColorFunc([&]() -> Color {
-        return color.DimIfNot(meta.tracks[track].mode == SequenceTrackMode::DrumTrack);
+        return drumColor.DimIfNot(meta.tracks[track].mode == SequenceTrackMode::DrumTrack);
     });
     drumModeBtn.OnPress([&]() -> void {
         meta.tracks[track].mode = SequenceTrackMode::DrumTrack;
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(drumModeBtn, Point(3, 1));
+
+    // Enforce Scale Toggle at X6 Y1
+    UIButton enforceScaleBtn;
+    enforceScaleBtn.SetName("Enforce Scale");
+    enforceScaleBtn.SetColorFunc([&]() -> Color {
+        return Color(0xFFFFFF).DimIfNot(meta.tracks[track].config.note.enforceScale);
+    });
+    enforceScaleBtn.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               (meta.tracks[track].config.note.type == SequenceNoteType::Scale ||
+                meta.tracks[track].config.note.type == SequenceNoteType::Chromatic);
+    });
+    enforceScaleBtn.OnPress([&]() -> void {
+        meta.tracks[track].config.note.enforceScale = !meta.tracks[track].config.note.enforceScale;
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(enforceScaleBtn, Point(1, 2));
+
+    // Custom Scale Toggle at X7 Y1
+    UIButton customScaleEnableBtn;
+    customScaleEnableBtn.SetName("Custom Scale");
+    customScaleEnableBtn.SetColorFunc([&]() -> Color {
+        return Color(0x00FFFF).DimIfNot(meta.tracks[track].config.note.customScale);
+    });
+    customScaleEnableBtn.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+    });
+    customScaleEnableBtn.OnPress([&]() -> void {
+        if (!meta.tracks[track].config.note.customScale) {
+            // Enable custom scale - initialize to default major scale
+            meta.tracks[track].config.note.scale = (uint16_t)Scale::MAJOR;
+            meta.tracks[track].config.note.customScale = true;
+            sequence.SetDirty();
+        } else {
+            // Disable custom scale - reset to minor
+            meta.tracks[track].config.note.scale = (uint16_t)Scale::MINOR;
+            meta.tracks[track].config.note.customScale = false;
+            sequence.SetDirty();
+        }
+    });
+    layoutSelector.AddUIComponent(customScaleEnableBtn, Point(0, 2));
+
+    // Scale Visualizer at Y4
+    ScaleVisualizer scaleVisualizer(&meta.tracks[track].config.note.root,
+                                     &meta.tracks[track].config.note.rootOffset,
+                                     &meta.tracks[track].config.note.scale);
+    scaleVisualizer.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+    });
+    scaleVisualizer.OnChange([&]() -> void { sequence.SetDirty(); });
+    layoutSelector.AddUIComponent(scaleVisualizer, Point(0, 4));
+
+    UIButton offsetModeBtn;
+    offsetModeBtn.SetName("Modern Diatonic");
+    offsetModeBtn.SetColorFunc([&]() -> Color {
+        return scaleVisualizer.offsetMode ? Color(0xFF0080) : Color(0x8000FF);
+    });
+    offsetModeBtn.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+    });
+    offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
+    layoutSelector.AddUIComponent(offsetModeBtn, Point(7, 5));
+
+    // Scale Selector at Y6
+    UIItemSelector<uint16_t> scaleSelectorBar;
+    scaleSelectorBar.SetDimension(Dimension(8, 2));
+    scaleSelectorBar.SetColor(Color(0xFF0090));
+    scaleSelectorBar.SetItemPointer(&meta.tracks[track].config.note.scale);
+    scaleSelectorBar.SetCount(16);
+    scaleSelectorBar.SetItems(scales);
+    scaleSelectorBar.SetIndividualNameFunc([&](uint16_t index) -> string { return scale_names[index]; });
+    scaleSelectorBar.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               !meta.tracks[track].config.note.customScale;
+    });
+    scaleSelectorBar.OnChange([&](const uint16_t& scale) -> void {
+        sequence.SetDirty();
+        meta.tracks[track].config.note.rootOffset = 0;
+        meta.tracks[track].config.note.customScale = false;
+    });
+    layoutSelector.AddUIComponent(scaleSelectorBar, Point(0, 6));
+
+    // Custom Scale Modifier at Y2 (remains same position for editing)
+    SequenceScaleModifier scaleModifier(&meta.tracks[track].config.note.scale);
+    scaleModifier.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               meta.tracks[track].config.note.customScale;
+    });
+    scaleModifier.OnChange([&](uint16_t newScale) -> void {
+        meta.tracks[track].config.note.scale = newScale;
+        meta.tracks[track].config.note.customScale = true;
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(scaleModifier, Point(0, 6));
 
     layoutSelector.Start();
 }
