@@ -51,8 +51,6 @@ class Sequencer : public Application {
   ViewMode currentView = ViewMode::Sequencer;
 
   vector<uint8_t> stepSelected;
-  uint8_t stepDetailed;
-  uint8_t stepDetailEventIndex;
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;
@@ -79,5 +77,5 @@ class Sequencer : public Application {
   void StepAddNote(SequencePattern* pattern, uint8_t step, uint8_t note, uint8_t velocity, bool aftertouch = false);
 
   void SetView(ViewMode view);
-  void SetDetailStepView(uint8_t step);
+  // void SetDetailStepView(uint8_t step);
 };
