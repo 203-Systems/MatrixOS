@@ -97,7 +97,7 @@ class UIShadeSelector : public UIComponent {
 
 namespace MatrixOS::UIUtility
 {
-  bool ColorPicker(Color& color) {
+  bool ColorPicker(Color& color, bool shade) {
     float hue = 0;
     bool aborted = false;
     
@@ -131,9 +131,18 @@ namespace MatrixOS::UIUtility
     // Phase 1 - Hue selection
     UIHueSelector hueSelector(Dimension(8, 8), [&](float selected_hue) -> void {
       hue = selected_hue;
-      MatrixOS::LED::Fade();
-      shadeSelector.SetEnabled(true);
-      hueSelector.SetEnabled(false);
+
+      if(shade == false)
+      {
+        color = Color::HsvToRgb(hue, 1.0f, 1.0f);
+        colorPicker.Exit();
+      }
+      else
+      {
+        MatrixOS::LED::Fade();
+        shadeSelector.SetEnabled(true);
+        hueSelector.SetEnabled(false);
+      }
     });
     colorPicker.AddUIComponent(hueSelector, Point(0, 0));
 
