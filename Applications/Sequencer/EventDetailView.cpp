@@ -28,8 +28,8 @@ bool EventDetailView::IsEnabled() {
 
     if(enabled && wasEnabled == false)
     {
-        MatrixOS::KeyPad::Clear(); // Prevent triggering hold text scroll
         RebuildEventList();
+        lastOnTime = MatrixOS::SYS::Millis();
     }
 
     wasEnabled = enabled;
@@ -79,6 +79,12 @@ void EventDetailView::RebuildEventList()
 bool EventDetailView::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     bool handled = false;
+
+    if(keyInfo->state == HOLD && MatrixOS::SYS::Millis() - lastOnTime < 500)
+    {
+        // Skip unintented text scroll
+        return true;
+    }
 
     // Route to appropriate handler based on Y position
     if (xy.y == 0)

@@ -17,6 +17,8 @@ class EventDetailView : public UIComponent {
     SequencePosition position;
     SequencePattern* pattern = nullptr;
 
+    uint32_t lastOnTime = 0;
+
     // UI parameters for displaying/editing event properties
     uint8_t selectedField = 0; // Which field is being edited
     uint8_t numFields = 0;     // Total editable fields (depends on event type)
