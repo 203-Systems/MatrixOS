@@ -318,14 +318,18 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->IsNoteActive(note);
+                bool isSelected = sequencer->noteSelected.count(note) > 0;          // NotePad
+                bool isPressed = sequencer->noteActive.count(note) > 0;             // PatternPad preview
+                bool isPlaying = sequencer->sequence.IsNoteActive(track, note);     // Sequence playback
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
-                else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
+                else if (isPressed) {
+                    MatrixOS::LED::SetColor(globalPos, Color::Green);
+                }
+                else if (isPlaying) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else {
                     NoteType inScale = InScale(note);
@@ -366,10 +370,17 @@ bool SequencerNotePad::RenderPiano(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->IsNoteActive(note);
+                bool isSelected = sequencer->noteSelected.count(note) > 0;          // NotePad
+                bool isPressed = sequencer->noteActive.count(note) > 0;             // PatternPad preview
+                bool isPlaying = sequencer->sequence.IsNoteActive(track, note);     // Sequence playback
 
-                if (isSelected || isActive) {
+                if (isSelected) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
+                }
+                else if (isPressed) {
+                    MatrixOS::LED::SetColor(globalPos, Color::Green);
+                }
+                else if (isPlaying) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else {
@@ -413,14 +424,18 @@ bool SequencerNotePad::RenderDrum(Point origin)
             }
             else {
                 // Check if note is selected or active
-                bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->IsNoteActive(note);
+                bool isSelected = sequencer->noteSelected.count(note) > 0;          // NotePad
+                bool isPressed = sequencer->noteActive.count(note) > 0;             // PatternPad preview
+                bool isPlaying = sequencer->sequence.IsNoteActive(track, note);     // Sequence playback
                 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
-                else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
+                else if (isPressed) {
+                    MatrixOS::LED::SetColor(globalPos, Color::Green);
+                }
+                else if (isPlaying) {
+                    MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else {
                     MatrixOS::LED::SetColor(globalPos, (note - 36 ) < 16 ? drumColor : Color(0x808080));

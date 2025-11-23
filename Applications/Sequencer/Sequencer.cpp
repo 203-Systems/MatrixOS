@@ -1,4 +1,4 @@
-#include "Sequencer.h"
+﻿#include "Sequencer.h"
 #include "UI/UI.h"
 
 #include "Scales.h"
@@ -1084,11 +1084,7 @@ void Sequencer::ClearSelectedNotes()
 
 bool Sequencer::IsNoteActive(uint8_t note) const
 {
-    if (noteActive.count(note) > 0)
-    {
-        return true;
-    }
-    return sequence.IsNoteActive(track, note);
+    return noteActive.count(note) > 0;
 }
 
 
