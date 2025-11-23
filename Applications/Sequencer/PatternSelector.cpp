@@ -135,6 +135,11 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                         }
                     }
                 }
+                else if(patternIdx == pattern && lengthAdjustmentMode)
+                {
+                    // Clicking current pattern toggles length mode off
+                    lengthAdjustmentMode = false;
+                }
             }
         }
         else if(keyInfo->State() == HOLD)

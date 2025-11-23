@@ -320,6 +320,7 @@ void Sequencer::SequencerMenu()
         {
             if (keyEvent->info.state == HOLD)
             {
+                sequence.Stop();
                 Exit();
             }
             else if (keyEvent->info.state == RELEASED)
