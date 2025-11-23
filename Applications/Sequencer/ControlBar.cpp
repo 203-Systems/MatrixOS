@@ -132,10 +132,10 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
     {
         if(keyInfo->state == PRESSED)
         {
-          if(sequencer->shift)
+          if(sequencer->ShiftActive())
           {
             sequencer->patternView = !sequencer->patternView;
-            sequencer->shiftEventOccured = true;
+            sequencer->ShiftEventOccured();
           }
 
           if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
@@ -154,7 +154,7 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
           }
 
           sequencer->shiftOnTime = MatrixOS::SYS::Millis();
-          sequencer->shift++;
+          sequencer->shift[0] = true;
         }
         else if(keyInfo->state == RELEASED)
         {
@@ -162,7 +162,7 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
           {
             // No octave
           }
-          else if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
+          else if(keyInfo->hold == false && !sequencer->shiftEventOccured[0] && !sequencer->shiftEventOccured[1])
           {
             if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
             {
@@ -182,12 +182,8 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
               }
             }
           }
-          sequencer->shift--;
-
-          if(sequencer->shift == 0)
-          {
-            sequencer->shiftEventOccured = false;
-          }
+          sequencer->shift[0] = false;
+          sequencer->shiftEventOccured[0] = false;
         }
         return true;
     }
@@ -196,10 +192,10 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
     {
         if(keyInfo->state == PRESSED)
         {
-          if(sequencer->shift)
+          if(sequencer->ShiftActive())
           {
             sequencer->patternView = !sequencer->patternView;
-            sequencer->shiftEventOccured = true;
+            sequencer->ShiftEventOccured();
           }
 
           if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
@@ -218,11 +214,11 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
           }
 
           sequencer->shiftOnTime = MatrixOS::SYS::Millis();
-          sequencer->shift++;
+          sequencer->shift[1] = true;
         }
         else if(keyInfo->state == RELEASED)
         {
-          if(keyInfo->hold == false && sequencer->shiftEventOccured == false)
+          if(keyInfo->hold == false && !sequencer->shiftEventOccured[0] && !sequencer->shiftEventOccured[1])
           {
             if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
             {
@@ -242,12 +238,8 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
                 }
             }
           }
-          sequencer->shift--;
-
-          if(sequencer->shift == 0)
-          {
-            sequencer->shiftEventOccured = false;
-          }
+          sequencer->shift[1] = false;
+          sequencer->shiftEventOccured[1] = false;
         }
         return true;
     }

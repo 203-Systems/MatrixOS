@@ -169,8 +169,8 @@ void Sequencer::SequencerUI()
             // Clean up the state
             clear = false;
             copy = false;
-            shift = 0;
-            shiftEventOccured = false;
+            shift[0] = shift[1] = false;
+            shiftEventOccured[0] = shiftEventOccured[1] = false;
 
             ClearActiveNotes();
             ClearSelectedNotes();
@@ -1053,12 +1053,13 @@ bool Sequencer::CopyActive()
 
 bool Sequencer::ShiftActive()
 {
-    return shift > 0;
+    return shift[0] || shift[1];
 }
 
 void Sequencer::ShiftEventOccured()
 {
-    shiftEventOccured = true;
+    if (shift[0]) { shiftEventOccured[0] = true; }
+    else if (shift[1]) { shiftEventOccured[1] = true; }
     shiftOnTime = MatrixOS::SYS::Millis();
 }
 
