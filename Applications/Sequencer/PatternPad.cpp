@@ -1,6 +1,6 @@
 #include "PatternPad.h"
 
-PatternPad::PatternPad(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
+PatternPad::PatternPad(Sequencer* sequencer, std::set<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
 {
     this->sequencer = sequencer;
     this->stepSelected = stepSelected;
@@ -45,9 +45,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         }
 
         // Check if step already exists in selection
-        if(std::find(stepSelected->begin(), stepSelected->end(), step) == stepSelected->end())
+        if(stepSelected->find(step) == stepSelected->end())
         {
-            stepSelected->push_back(step);
+            stepSelected->insert(step);
         }
 
         bool playAllNotes = false;
@@ -58,7 +58,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         }
         else if(sequencer->CopyActive() && sequencer->stepSelected.size() >= 2) // Self is included
         {
-            sequencer->CopyStep(&pattern, sequencer->stepSelected[0], step);
+            uint8_t srcStep = *sequencer->stepSelected.begin();
+            sequencer->CopyStep(&pattern, srcStep, step);
         }
         else if(!noteSelected->empty())
         {
@@ -104,8 +105,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     else if(keyInfo->state == RELEASED)
     {
         // Remove step from selection
-        
-        auto stepIt = std::find(stepSelected->begin(), stepSelected->end(), step);
+        auto stepIt = stepSelected->find(step);
         if(stepIt != stepSelected->end())
         {
             stepSelected->erase(stepIt);

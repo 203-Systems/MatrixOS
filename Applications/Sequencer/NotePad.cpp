@@ -319,7 +319,7 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->sequence.IsNoteActive(track, note);
+                bool isActive = sequencer->IsNoteActive(note);
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
@@ -367,7 +367,7 @@ bool SequencerNotePad::RenderPiano(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->sequence.IsNoteActive(track, note);
+                bool isActive = sequencer->IsNoteActive(note);
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
@@ -417,7 +417,7 @@ bool SequencerNotePad::RenderDrum(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->sequence.IsNoteActive(track, note);
+                bool isActive = sequencer->IsNoteActive(note);
                 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);

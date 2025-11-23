@@ -2,6 +2,7 @@
 
 #include "MatrixOS.h"
 #include "Application.h"
+#include <set>
 
 #include "Sequence.h"
 #include "SequenceMeta.h"
@@ -50,7 +51,7 @@ class Sequencer : public Application {
 
   ViewMode currentView = ViewMode::Sequencer;
 
-  vector<uint8_t> stepSelected; // TODO: this should be a set
+  std::set<uint8_t> stepSelected;
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;
@@ -72,6 +73,8 @@ class Sequencer : public Application {
 
   void ClearActiveNotes();
   void ClearSelectedNotes();
+
+  bool IsNoteActive(uint8_t note) const;
 
   // TODO: Move those under SequencePattern function
   void ClearStep(SequencePattern* pattern, uint8_t step);

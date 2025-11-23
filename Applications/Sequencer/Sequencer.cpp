@@ -1081,6 +1081,15 @@ void Sequencer::ClearSelectedNotes()
     noteSelected.clear();
 }
 
+bool Sequencer::IsNoteActive(uint8_t note) const
+{
+    if (noteActive.count(note) > 0)
+    {
+        return true;
+    }
+    return sequence.IsNoteActive(track, note);
+}
+
 void Sequencer::ClearStep(SequencePattern *pattern, uint8_t step)
 {
     uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
