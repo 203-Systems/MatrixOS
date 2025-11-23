@@ -60,7 +60,10 @@ struct SequenceMeta {
 
 
         this->tracks.reserve(tracks);
-        color = Color(0xFF00FF); // TODO: Random Color
+        constexpr float hueStep = 1.0f / 16.0f;
+        uint8_t hueIndex = MatrixOS::SYS::Millis() % 16;
+        float hue = hueIndex * hueStep;
+        color = Color::HsvToRgb(hue, 1.0f, 1.0f);
         clockOutput = true;
         for(uint8_t i = 0; i < tracks; i++)
         {

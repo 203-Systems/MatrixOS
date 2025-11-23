@@ -193,20 +193,20 @@ void Sequencer::SequencerMenu()
     sequencerMenu.AddUIComponent(trackSelector, Point(0, 0));
 
     // Right side, Track specific settings
-    UIButton colorSelectorBtn;
-    colorSelectorBtn.SetName("Color Selector");
-    colorSelectorBtn.SetColorFunc([&]() -> Color
+    UIButton trackColorSelectorBtn;
+    trackColorSelectorBtn.SetName("Track Color Selector");
+    trackColorSelectorBtn.SetColorFunc([&]() -> Color
                                   {
         if(track < meta.tracks.size()) {
             return meta.tracks[track].color;
         }
         return Color::White; });
-    colorSelectorBtn.OnPress([&]() -> void
+    trackColorSelectorBtn.OnPress([&]() -> void
                              {
-        if(track < meta.tracks.size() && MatrixOS::UIUtility::ColorPicker(meta.tracks[track].color)) {
+        if(track < meta.tracks.size() && MatrixOS::UIUtility::ColorPicker(meta.tracks[track].color, false)) {
             sequence.SetDirty();
         } });
-    sequencerMenu.AddUIComponent(colorSelectorBtn, Point(7, 2));
+    sequencerMenu.AddUIComponent(trackColorSelectorBtn, Point(7, 2));
 
     UIButton layoutSelectorBtn;
     layoutSelectorBtn.SetName("Layout Selector");
@@ -242,26 +242,66 @@ void Sequencer::SequencerMenu()
     sequencerMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
     // Left side, Sequencer Global settings
+    UIButton sequenceColorSelectorBtn;
+    sequenceColorSelectorBtn.SetName("Project Color Selector");
+    sequenceColorSelectorBtn.SetColorFunc([&]() -> Color
+        {
+            return meta.color;
+        });
+    sequenceColorSelectorBtn.OnPress([&]() -> void
+                             {
+        if(MatrixOS::UIUtility::ColorPicker(meta.color, false)) {
+            sequence.SetDirty();
+        } });
+    sequencerMenu.AddUIComponent(sequenceColorSelectorBtn, Point(0, 2));
+
     UIButton bpmSelectorBtn;
     bpmSelectorBtn.SetName("BPM Selector");
     bpmSelectorBtn.SetColor(Color(0xFF0080));
     bpmSelectorBtn.OnPress([&]() -> void
                            { BPMSelector(); });
-    sequencerMenu.AddUIComponent(bpmSelectorBtn, Point(0, 2));
+    sequencerMenu.AddUIComponent(bpmSelectorBtn, Point(0, 3));
 
     UIButton swingSelectorBtn;
     swingSelectorBtn.SetName("Swing Selector");
     swingSelectorBtn.SetColor(Color(0xFFA000));
     swingSelectorBtn.OnPress([&]() -> void
                              { SwingSelector(); });
-    sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 3));
+    sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 4));
 
     UIButton barLengthSelectorBtn;
     barLengthSelectorBtn.SetName("Bar Length Selector");
     barLengthSelectorBtn.SetColor(Color(0x00A0FF));
     barLengthSelectorBtn.OnPress([&]() -> void
                                  { BarLengthSelector(); });
-    sequencerMenu.AddUIComponent(barLengthSelectorBtn, Point(0, 4));
+    sequencerMenu.AddUIComponent(barLengthSelectorBtn, Point(0, 5));
+
+    UIButton saveBtn;
+    saveBtn.SetName("Save Sequence");
+    saveBtn.SetColorFunc([&]() -> Color
+                         { 
+                            return sequence.GetDirty() ? 
+                            ColorEffects::ColorBreathLowBound(Color::Red) : 
+                            meta.color; 
+                        });
+    saveBtn.SetSize(Dimension(2, 2));
+    saveBtn.OnPress([&]() -> void
+                    {
+            sequence.SetDirty(false);
+            // Save();
+            });
+    sequencerMenu.AddUIComponent(saveBtn, Point(3, 3));
+
+    UIButton sequenceBrowserBtn;
+    sequenceBrowserBtn.SetName("Sequence Browser");
+    sequenceBrowserBtn.SetColorFunc([&]() -> Color
+                                    { return ColorEffects::Rainbow(3000); });
+    sequenceBrowserBtn.SetSize(Dimension(4, 1));
+    sequenceBrowserBtn.OnPress([&]() -> void
+                               { 
+                                // SequenceBrowser(); 
+                            });
+    sequencerMenu.AddUIComponent(sequenceBrowserBtn, Point(2, 7));
 
     UIButton systemSettingBtn;
     systemSettingBtn.SetName("System Setting");
