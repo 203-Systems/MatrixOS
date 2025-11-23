@@ -1,5 +1,6 @@
 #include "SequenceData.h"
 #include "cb0r.h"
+#include "cb0rHelper.h"
 #include <string>
 
 using std::vector;
@@ -99,68 +100,43 @@ void SequencePattern::CopyStepEvents(uint8_t src, uint8_t dest, uint16_t pulsesP
     CopyEventsInRange(sourceStartTime, destStartTime, pulsesPerStep);
 }
 
-// --- CBOR serialization helpers ---
-static void write_uint(vector<uint8_t>& out, cb0r_e type, uint64_t value)
-{
-    uint8_t buf[9];
-    uint8_t len = cb0r_write(buf, type, value);
-    out.insert(out.end(), buf, buf + len);
-}
-
-static void write_bytes(vector<uint8_t>& out, const uint8_t* data, size_t len)
-{
-    write_uint(out, CB0R_BYTE, len);
-    out.insert(out.end(), data, data + len);
-}
-
-static void write_text(vector<uint8_t>& out, const std::string& s)
-{
-    write_uint(out, CB0R_UTF8, s.size());
-    out.insert(out.end(), s.begin(), s.end());
-}
-
-static void write_bool(vector<uint8_t>& out, bool v)
-{
-    out.push_back(v ? 0xF5 : 0xF4); // CBOR true/false
-}
-
 static void serialize_event(vector<uint8_t>& out, const std::pair<uint16_t, SequenceEvent>& evPair)
 {
     const SequenceEvent& ev = evPair.second;
     // map with 3 keys: "t","type","data"
-    write_uint(out, CB0R_MAP, 3);
-    write_text(out, "t"); write_uint(out, CB0R_INT, evPair.first);
-    write_text(out, "type"); write_uint(out, CB0R_INT, static_cast<uint8_t>(ev.eventType));
-    write_text(out, "data");
+    cb_write_uint(out, CB0R_MAP, 3);
+    cb_write_text(out, "t"); cb_write_uint(out, CB0R_INT, evPair.first);
+    cb_write_text(out, "type"); cb_write_uint(out, CB0R_INT, static_cast<uint8_t>(ev.eventType));
+    cb_write_text(out, "data");
     if (ev.eventType == SequenceEventType::NoteEvent)
     {
         const SequenceEventNote& n = std::get<SequenceEventNote>(ev.data);
-        write_uint(out, CB0R_MAP, 4);
-        write_text(out, "note"); write_uint(out, CB0R_INT, n.note);
-        write_text(out, "vel"); write_uint(out, CB0R_INT, n.velocity);
-        write_text(out, "len"); write_uint(out, CB0R_INT, n.length);
-        write_text(out, "aft"); write_bool(out, n.aftertouch);
+        cb_write_uint(out, CB0R_MAP, 4);
+        cb_write_text(out, "note"); cb_write_uint(out, CB0R_INT, n.note);
+        cb_write_text(out, "vel"); cb_write_uint(out, CB0R_INT, n.velocity);
+        cb_write_text(out, "len"); cb_write_uint(out, CB0R_INT, n.length);
+        cb_write_text(out, "aft"); cb_write_bool(out, n.aftertouch);
     }
     else if (ev.eventType == SequenceEventType::ControlChangeEvent)
     {
         const SequenceEventCC& cc = std::get<SequenceEventCC>(ev.data);
-        write_uint(out, CB0R_MAP, 2);
-        write_text(out, "param"); write_uint(out, CB0R_INT, cc.param);
-        write_text(out, "val"); write_uint(out, CB0R_INT, cc.value);
+        cb_write_uint(out, CB0R_MAP, 2);
+        cb_write_text(out, "param"); cb_write_uint(out, CB0R_INT, cc.param);
+        cb_write_text(out, "val"); cb_write_uint(out, CB0R_INT, cc.value);
     }
     else
     {
-        write_uint(out, CB0R_MAP, 0);
+        cb_write_uint(out, CB0R_MAP, 0);
     }
 }
 
 static void serialize_pattern(vector<uint8_t>& out, const SequencePattern& pat)
 {
     // map with 2 keys: "steps","events"
-    write_uint(out, CB0R_MAP, 2);
-    write_text(out, "steps"); write_uint(out, CB0R_INT, pat.steps);
-    write_text(out, "events");
-    write_uint(out, CB0R_ARRAY, pat.events.size());
+    cb_write_uint(out, CB0R_MAP, 2);
+    cb_write_text(out, "steps"); cb_write_uint(out, CB0R_INT, pat.steps);
+    cb_write_text(out, "events");
+    cb_write_uint(out, CB0R_ARRAY, pat.events.size());
     for (const auto& ev : pat.events)
     {
         serialize_event(out, ev);
@@ -170,10 +146,10 @@ static void serialize_pattern(vector<uint8_t>& out, const SequencePattern& pat)
 static void serialize_clip(vector<uint8_t>& out, const SequenceClip& clip)
 {
     // map with 2 keys: "en","patterns"
-    write_uint(out, CB0R_MAP, 2);
-    write_text(out, "en"); write_bool(out, clip.enabled);
-    write_text(out, "patterns");
-    write_uint(out, CB0R_ARRAY, clip.patterns.size());
+    cb_write_uint(out, CB0R_MAP, 2);
+    cb_write_text(out, "en"); cb_write_bool(out, clip.enabled);
+    cb_write_text(out, "patterns");
+    cb_write_uint(out, CB0R_ARRAY, clip.patterns.size());
     for (const auto& pat : clip.patterns)
     {
         serialize_pattern(out, pat);
@@ -183,14 +159,14 @@ static void serialize_clip(vector<uint8_t>& out, const SequenceClip& clip)
 static void serialize_track(vector<uint8_t>& out, const SequenceTrack& track)
 {
     // map with 3 keys: "ch","clip","clips"
-    write_uint(out, CB0R_MAP, 3);
-    write_text(out, "ch"); write_uint(out, CB0R_INT, track.channel);
-    write_text(out, "clip"); write_uint(out, CB0R_INT, track.activeClip);
-    write_text(out, "clips");
-    write_uint(out, CB0R_MAP, track.clips.size());
+    cb_write_uint(out, CB0R_MAP, 3);
+    cb_write_text(out, "ch"); cb_write_uint(out, CB0R_INT, track.channel);
+    cb_write_text(out, "clip"); cb_write_uint(out, CB0R_INT, track.activeClip);
+    cb_write_text(out, "clips");
+    cb_write_uint(out, CB0R_MAP, track.clips.size());
     for (const auto& [clipId, clip] : track.clips)
     {
-        write_uint(out, CB0R_INT, clipId);
+        cb_write_uint(out, CB0R_INT, clipId);
         serialize_clip(out, clip);
     }
 }
@@ -199,16 +175,16 @@ bool SerializeSequenceData(const SequenceData& data, std::vector<uint8_t>& out)
 {
     out.clear();
     // Top-level map with 8 entries
-    write_uint(out, CB0R_MAP, 8);
-    write_text(out, "ver"); write_uint(out, CB0R_INT, data.version);
-    write_text(out, "bpm"); write_uint(out, CB0R_INT, data.bpm);
-    write_text(out, "swing"); write_uint(out, CB0R_INT, data.swing);
-    write_text(out, "bar"); write_uint(out, CB0R_INT, data.barLength);
-    write_text(out, "solo"); write_uint(out, CB0R_INT, data.solo);
-    write_text(out, "mute"); write_uint(out, CB0R_INT, data.mute);
-    write_text(out, "rec"); write_uint(out, CB0R_INT, data.record);
-    write_text(out, "tracks");
-    write_uint(out, CB0R_ARRAY, data.tracks.size());
+    cb_write_uint(out, CB0R_MAP, 8);
+    cb_write_text(out, "ver"); cb_write_uint(out, CB0R_INT, data.version);
+    cb_write_text(out, "bpm"); cb_write_uint(out, CB0R_INT, data.bpm);
+    cb_write_text(out, "swing"); cb_write_uint(out, CB0R_INT, data.swing);
+    cb_write_text(out, "bar"); cb_write_uint(out, CB0R_INT, data.barLength);
+    cb_write_text(out, "solo"); cb_write_uint(out, CB0R_INT, data.solo);
+    cb_write_text(out, "mute"); cb_write_uint(out, CB0R_INT, data.mute);
+    cb_write_text(out, "rec"); cb_write_uint(out, CB0R_INT, data.record);
+    cb_write_text(out, "tracks");
+    cb_write_uint(out, CB0R_ARRAY, data.tracks.size());
     for (const auto& track : data.tracks)
     {
         serialize_track(out, track);

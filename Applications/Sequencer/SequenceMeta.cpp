@@ -1,5 +1,6 @@
 #include "SequenceMeta.h"
 #include "cb0r.h"
+#include "cb0rHelper.h"
 #include <string>
 
 using std::vector;
@@ -41,50 +42,31 @@ void SequenceMeta::New(uint8_t tracks)
     }
 }
 
-// --- CBOR serialization helpers ---
-static void write_uint(vector<uint8_t>& out, cb0r_e type, uint64_t value)
-{
-    uint8_t buf[9];
-    uint8_t len = cb0r_write(buf, type, value);
-    out.insert(out.end(), buf, buf + len);
-}
-
-static void write_text(vector<uint8_t>& out, const std::string& s)
-{
-    write_uint(out, CB0R_UTF8, s.size());
-    out.insert(out.end(), s.begin(), s.end());
-}
-
-static void write_bool(vector<uint8_t>& out, bool v)
-{
-    out.push_back(v ? 0xF5 : 0xF4); // CBOR true/false
-}
-
 static void serialize_track_meta(vector<uint8_t>& out, const SequenceMetaTrack& t)
 {
     // map with 4 keys: color, vel, mode, note/cc
-    write_uint(out, CB0R_MAP, 4);
-    write_text(out, "color"); write_uint(out, CB0R_INT, t.color.RGB());
-    write_text(out, "vel"); write_bool(out, t.velocitySensitive);
-    write_text(out, "mode"); write_uint(out, CB0R_INT, static_cast<uint8_t>(t.mode));
-    write_text(out, "cfg");
+    cb_write_uint(out, CB0R_MAP, 4);
+    cb_write_text(out, "color"); cb_write_uint(out, CB0R_INT, t.color.RGB());
+    cb_write_text(out, "vel"); cb_write_bool(out, t.velocitySensitive);
+    cb_write_text(out, "mode"); cb_write_uint(out, CB0R_INT, static_cast<uint8_t>(t.mode));
+    cb_write_text(out, "cfg");
     if (t.mode == SequenceTrackMode::NoteTrack || t.mode == SequenceTrackMode::DrumTrack)
     {
         const auto& n = t.config.note;
-        write_uint(out, CB0R_MAP, 7);
-        write_text(out, "type"); write_uint(out, CB0R_INT, static_cast<uint8_t>(n.type));
-        write_text(out, "cscale"); write_bool(out, n.customScale);
-        write_text(out, "enforce"); write_bool(out, n.enforceScale);
-        write_text(out, "scale"); write_uint(out, CB0R_INT, n.scale);
-        write_text(out, "root"); write_uint(out, CB0R_INT, n.root);
-        write_text(out, "offset"); write_uint(out, CB0R_INT, n.rootOffset);
-        write_text(out, "oct"); write_uint(out, CB0R_INT, n.octave);
+        cb_write_uint(out, CB0R_MAP, 7);
+        cb_write_text(out, "type"); cb_write_uint(out, CB0R_INT, static_cast<uint8_t>(n.type));
+        cb_write_text(out, "cscale"); cb_write_bool(out, n.customScale);
+        cb_write_text(out, "enforce"); cb_write_bool(out, n.enforceScale);
+        cb_write_text(out, "scale"); cb_write_uint(out, CB0R_INT, n.scale);
+        cb_write_text(out, "root"); cb_write_uint(out, CB0R_INT, n.root);
+        cb_write_text(out, "offset"); cb_write_uint(out, CB0R_INT, n.rootOffset);
+        cb_write_text(out, "oct"); cb_write_uint(out, CB0R_INT, n.octave);
     }
     else // CC track
     {
         const auto& c = t.config.cc;
-        write_uint(out, CB0R_MAP, 1);
-        write_text(out, "param"); write_uint(out, CB0R_INT, c.parameter);
+        cb_write_uint(out, CB0R_MAP, 1);
+        cb_write_text(out, "param"); cb_write_uint(out, CB0R_INT, c.parameter);
     }
 }
 
@@ -92,12 +74,12 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, std::vector<uint8_t>& out)
 {
     out.clear();
     // map with 4 keys: name,color,clock,trks
-    write_uint(out, CB0R_MAP, 4);
-    write_text(out, "name"); write_text(out, meta.name);
-    write_text(out, "color"); write_uint(out, CB0R_INT, meta.color.RGB());
-    write_text(out, "clock"); write_bool(out, meta.clockOutput);
-    write_text(out, "trks");
-    write_uint(out, CB0R_ARRAY, meta.tracks.size());
+    cb_write_uint(out, CB0R_MAP, 4);
+    cb_write_text(out, "name"); cb_write_text(out, meta.name);
+    cb_write_text(out, "color"); cb_write_uint(out, CB0R_INT, meta.color.RGB());
+    cb_write_text(out, "clock"); cb_write_bool(out, meta.clockOutput);
+    cb_write_text(out, "trks");
+    cb_write_uint(out, CB0R_ARRAY, meta.tracks.size());
     for (const auto& t : meta.tracks)
     {
         serialize_track_meta(out, t);
