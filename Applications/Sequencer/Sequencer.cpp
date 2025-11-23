@@ -1075,6 +1075,7 @@ void Sequencer::SetView(ViewMode view)
 
 bool Sequencer::Save(uint16_t slot)
 {
+    sequence.Stop();
     saveSlotType type = static_cast<saveSlotType>(slot >> 10);
     uint16_t idx = slot & 0x03FF;
     if (type == saveSlotType::OnBoard)
