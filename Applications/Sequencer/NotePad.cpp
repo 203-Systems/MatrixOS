@@ -191,15 +191,16 @@ void SequencerNotePad::GenerateDrumKeymap()
         uint8_t ui_y = dimension.y - y - 1;
 
         uint8_t note = 0;
+        uint8_t offset = 36;
         if(sequencer->patternViewActive)
         {   
-            note = (x % 4) + ui_y * 4;
+            note = (x % 4) + ui_y * 4 + offset;
             if(x >= 4) {note += 8;}
             if(ui_y >= 2) {note = 255;}
         }
         else
         {
-            note = (x % 4) + ui_y * 4;
+            note = (x % 4) + ui_y * 4 + offset;
             if(x >= 4) {note += 16;}
         }
         noteMap[i] = note;
@@ -425,7 +426,7 @@ bool SequencerNotePad::RenderDrum(Point origin)
                     MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
                 }
                 else {
-                    MatrixOS::LED::SetColor(globalPos, note < 16 ? drumColor : Color(0x808080));
+                    MatrixOS::LED::SetColor(globalPos, (note % 32) < 16 ? drumColor : Color(0x808080));
                 }
             }
             index++;
