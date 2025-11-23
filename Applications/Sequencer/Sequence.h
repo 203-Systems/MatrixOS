@@ -44,7 +44,6 @@ private:
         SequencePosition position;                // Current playback position
         uint8_t nextClip = 255;                   // Next clip to play (255 = none)
         uint32_t lastEventTime = 0;               // Last event time (for animation)
-        unordered_set<uint8_t> activeNotes;       // Currently active notes
         map<uint8_t, uint32_t> noteOffMap;        // note -> tick time (for overwrite lookup)
         multimap<uint32_t, uint8_t> noteOffQueue; // tick -> note (for efficient processing)
     };
@@ -127,6 +126,8 @@ public:
     void SetRecord(uint8_t track, bool val);
 
     bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
+
+    bool IsNoteActive(uint8_t track, uint8_t note) const;
 
     SequencePosition& GetPosition(uint8_t track);
     void SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step = 0);

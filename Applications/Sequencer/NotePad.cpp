@@ -319,13 +319,13 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->noteActive.count(note) > 0;
+                bool isActive = sequencer->sequence.IsNoteActive(track, note);
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
+                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
                 }
                 else {
                     NoteType inScale = InScale(note);
@@ -367,13 +367,13 @@ bool SequencerNotePad::RenderPiano(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->noteActive.count(note) > 0;
+                bool isActive = sequencer->sequence.IsNoteActive(track, note);
 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
+                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
                 }
                 else {
                     // Check if note is root, in scale, or out of scale
@@ -417,16 +417,16 @@ bool SequencerNotePad::RenderDrum(Point origin)
             else {
                 // Check if note is selected or active
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
-                bool isActive = sequencer->noteActive.count(note) > 0;
+                bool isActive = sequencer->sequence.IsNoteActive(track, note);
                 
                 if (isSelected) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
                 }
                 else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color(0x00FF00)); // Green
+                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
                 }
                 else {
-                    MatrixOS::LED::SetColor(globalPos, (note % 32) < 16 ? drumColor : Color(0x808080));
+                    MatrixOS::LED::SetColor(globalPos, (note - 36 ) < 16 ? drumColor : Color(0x808080));
                 }
             }
             index++;

@@ -711,6 +711,13 @@ bool Sequence::GetEnabled(uint8_t track)
     return true;
 }
 
+bool Sequence::IsNoteActive(uint8_t track, uint8_t note) const
+{
+    if (track >= trackPlayback.size()) return false;
+    auto it = trackPlayback[track].noteOffMap.find(note);
+    return it != trackPlayback[track].noteOffMap.end();
+}
+
 SequencePosition& Sequence::GetPosition(uint8_t track)
 {
     return trackPlayback[track].position;
@@ -854,9 +861,9 @@ void Sequence::ProcessTrack(uint8_t track)
         // Calculate the absolute tick position within the pattern
         uint16_t currentTick = trackPlayback[track].position.step * pulsesPerStep + trackPlayback[track].position.pulse;
 
-        // Fire all events at exactly this tick
-        auto eventIt = currentPattern.events.find(currentTick);
-        if (eventIt != currentPattern.events.end()) {
+        // Fire all events at exactly this tick (there can be multiple at the same timestamp)
+        auto range = currentPattern.events.equal_range(currentTick);
+        for (auto eventIt = range.first; eventIt != range.second; ++eventIt) {
             // Execute event (sends MIDI)
             eventIt->second.ExecuteEvent(data, track);
 
@@ -875,8 +882,8 @@ void Sequence::ProcessTrack(uint8_t track)
                     uint32_t oldTick = trackPlayback[track].noteOffMap[note];
 
                     // Find and remove from multimap
-                    auto range = trackPlayback[track].noteOffQueue.equal_range(oldTick);
-                    for (auto it = range.first; it != range.second; ++it) {
+                    auto existingRange = trackPlayback[track].noteOffQueue.equal_range(oldTick);
+                    for (auto it = existingRange.first; it != existingRange.second; ++it) {
                         if (it->second == note) {
                             trackPlayback[track].noteOffQueue.erase(it);
                             break;
