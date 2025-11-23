@@ -256,9 +256,11 @@ void Sequence::Stop()
     // Send note-off for all queued notes before clearing
     for (uint8_t track = 0; track < trackPlayback.size(); track++) {
         uint8_t channel = GetChannel(track);
-        for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
-            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
-        }
+        // for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+        //     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+        // }
+        MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL); // All notes off per channel
+    
         trackPlayback[track].noteOffMap.clear();
         trackPlayback[track].noteOffQueue.clear();
         trackPlayback[track].nextClip = 255;
@@ -270,9 +272,11 @@ void Sequence::Stop(uint8_t track)
 {
     // Send note-off for all queued notes on this track before clearing
     uint8_t channel = GetChannel(track);
-    for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
-        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
-    }
+    // for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+    //     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+    // }
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL); // All notes off
+
     trackPlayback[track].noteOffMap.clear();
     trackPlayback[track].noteOffQueue.clear();
     trackPlayback[track].nextClip = 255;
