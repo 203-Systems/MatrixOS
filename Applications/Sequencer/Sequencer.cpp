@@ -433,7 +433,7 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(drumModeBtn, Point(3, 1));
 
-    // Enforce Scale Toggle at X6 Y1
+    // Enforce Scale Toggle
     UIButton enforceScaleBtn;
     enforceScaleBtn.SetName("Enforce Scale");
     enforceScaleBtn.SetColorFunc([&]() -> Color {
@@ -450,7 +450,7 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(enforceScaleBtn, Point(1, 2));
 
-    // Custom Scale Toggle at X7 Y1
+    // Custom Scale Toggle
     UIButton customScaleEnableBtn;
     customScaleEnableBtn.SetName("Custom Scale");
     customScaleEnableBtn.SetColorFunc([&]() -> Color {
@@ -474,7 +474,6 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(customScaleEnableBtn, Point(0, 2));
 
-    // Scale Visualizer at Y4
     ScaleVisualizer scaleVisualizer(&meta.tracks[track].config.note.root,
                                      &meta.tracks[track].config.note.rootOffset,
                                      &meta.tracks[track].config.note.scale);
@@ -495,7 +494,7 @@ void Sequencer::LayoutSelector()
     offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
     layoutSelector.AddUIComponent(offsetModeBtn, Point(7, 5));
 
-    // Scale Selector at Y6
+    // Scale Selector
     UIItemSelector<uint16_t> scaleSelectorBar;
     scaleSelectorBar.SetDimension(Dimension(8, 2));
     scaleSelectorBar.SetColor(Color(0xFF0090));
@@ -514,7 +513,7 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(scaleSelectorBar, Point(0, 6));
 
-    // Custom Scale Modifier at Y2 (remains same position for editing)
+    // Custom Scale Modifier (remains same position for editing)
     SequenceScaleModifier scaleModifier(&meta.tracks[track].config.note.scale);
     scaleModifier.SetEnableFunc([&]() -> bool {
         return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
@@ -526,6 +525,161 @@ void Sequencer::LayoutSelector()
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(scaleModifier, Point(0, 6));
+
+    // Octave display
+    UITimedDisplay octTextDisplay(500);
+    octTextDisplay.SetDimension(Dimension(8, 4));
+    octTextDisplay.SetRenderFunc([&](Point origin) -> void {
+        // O
+        MatrixOS::LED::SetColor(origin + Point(0, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 3), noteColor);
+
+        // C
+        MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+        // T
+        MatrixOS::LED::SetColor(origin + Point(5, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 0), noteColor);
+    });
+    octTextDisplay.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               meta.tracks[track].config.note.type == SequenceNoteType::Scale;
+    });
+    layoutSelector.AddUIComponent(octTextDisplay, Point(0, 4));
+
+    // Chromatic display
+    UITimedDisplay chmTextDisplay(500);
+    chmTextDisplay.SetDimension(Dimension(8, 4));
+    chmTextDisplay.SetRenderFunc([&](Point origin) -> void {
+        // C
+        MatrixOS::LED::SetColor(origin + Point(0, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), noteColor);
+
+        // H
+        MatrixOS::LED::SetColor(origin + Point(2, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(2, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+        // M
+        MatrixOS::LED::SetColor(origin + Point(5, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 3), noteColor);
+    });
+    chmTextDisplay.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               meta.tracks[track].config.note.type == SequenceNoteType::Chromatic;
+    });
+    layoutSelector.AddUIComponent(chmTextDisplay, Point(0, 4));
+
+    // Piano display
+    UITimedDisplay pioTextDisplay(500);
+    pioTextDisplay.SetDimension(Dimension(8, 4));
+    pioTextDisplay.SetRenderFunc([&](Point origin) -> void {
+        // P
+        MatrixOS::LED::SetColor(origin + Point(0, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), noteColor);
+
+        // I
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+
+        // O
+        MatrixOS::LED::SetColor(origin + Point(5, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 3), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 0), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), noteColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 3), noteColor);
+    });
+    pioTextDisplay.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               meta.tracks[track].config.note.type == SequenceNoteType::Piano;
+    });
+    layoutSelector.AddUIComponent(pioTextDisplay, Point(0, 4));
+
+    // Drum display
+    UITimedDisplay drmTextDisplay(UINT32_MAX);
+    drmTextDisplay.SetDimension(Dimension(8, 4));
+    drmTextDisplay.SetRenderFunc([&](Point origin) -> void {
+        // D
+        MatrixOS::LED::SetColor(origin + Point(0, 0), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 0), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), drumColor);
+
+        // r
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+
+
+        // m
+        MatrixOS::LED::SetColor(origin + Point(5, 1), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 2), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), drumColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 3), drumColor);
+    });
+    drmTextDisplay.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::DrumTrack;
+    });
+    layoutSelector.AddUIComponent(drmTextDisplay, Point(0, 4));
 
     layoutSelector.Start();
 }
