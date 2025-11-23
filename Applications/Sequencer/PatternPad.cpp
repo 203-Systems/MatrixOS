@@ -170,6 +170,7 @@ bool PatternPad::Render(Point origin)
         uint16_t startTime = slot * pulsesPerStep;
         uint16_t endTime = startTime + pulsesPerStep - 1;
 
+        bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
         bool shouldRender = false;
 
         // If notes are selected, only render events with matching notes
@@ -195,14 +196,21 @@ bool PatternPad::Render(Point origin)
         else
         {
             // No notes selected, render all note events
-            shouldRender = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+            shouldRender = hasEventInSlot;
         }
 
         if(shouldRender)
         {
             Point point = Point(slot % width, slot / width);
             hasNote |= 1 << slot;
-            MatrixOS::LED::SetColor(origin + point, noteFilter ? Color::Green : trackColor);
+            Color color = noteFilter ? Color::Green : trackColor;
+            MatrixOS::LED::SetColor(origin + point, color);
+        }
+        else if(noteFilter && hasEventInSlot)
+        {
+            // Event exists but not in current filter; dim the track color
+            Point point = Point(slot % width, slot / width);
+            MatrixOS::LED::SetColor(origin + point, Color::Crossfade(trackColor, Color::White, Fract16(0xA000)).Scale(127));
         }
     }
 
@@ -222,21 +230,15 @@ bool PatternPad::Render(Point origin)
             uint8_t slot = position.step;
             Point point = Point(slot % width, slot / width);
 
-            uint8_t breathingScale = sequencer->sequence.StepProgressBreath();
-
             if(sequencer->sequence.RecordEnabled() == false)
             {
-                Color baseColor = trackColor.DimIfNot(hasNote & (1 << slot));
-                uint16_t scale = breathingScale / 4 * 3;
-                if(hasNote & (1 << slot)) { scale += 64; }
-                Color color = Color::Crossfade(baseColor, Color::White, Fract16(scale, 8));
+                Color color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
                 MatrixOS::LED::SetColor(origin + point, color);
             }
             else
             {
                 Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
-                uint16_t scale = breathingScale / 4 * 3 + 64;
-                MatrixOS::LED::SetColor(origin + point, baseColor.Scale(scale));
+                MatrixOS::LED::SetColor(origin + point, baseColor);
             }
         }
     }
