@@ -28,6 +28,7 @@ bool EventDetailView::IsEnabled() {
 
     if(enabled && wasEnabled == false)
     {
+        MatrixOS::KeyPad::Clear(); // Prevent triggering hold text scroll
         RebuildEventList();
     }
 
