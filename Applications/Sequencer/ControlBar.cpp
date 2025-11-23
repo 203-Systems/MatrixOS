@@ -16,232 +16,193 @@ Dimension ControlBar::GetSize() { return Dimension(8, 1); }
 
 bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
+    switch (xy.x)
+    {
+    case 0: return HandlePlayKey(keyInfo);
+    case 1: return HandleRecordKey(keyInfo);
+    case 2: return HandleSessionKey(keyInfo);
+    case 3: return HandleMixerKey(keyInfo);
+    case 4: return HandleClearKey(keyInfo);
+    case 5: return HandleCopyKey(keyInfo);
+    case 6: return HandleOctaveKey(0, /*up*/false, keyInfo);
+    case 7: return HandleOctaveKey(1, /*up*/true, keyInfo);
+    default: return true;
+    }
+}
+
+bool ControlBar::HandlePlayKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+      if(sequencer->sequence.Playing())
+      {
+        sequencer->sequence.Stop();
+      }
+      else
+      {
+        if(sequencer->ShiftActive())
+        {
+          sequencer->ShiftEventOccured();
+          sequencer->sequence.Play(sequencer->track);
+        }
+        else
+        {
+          sequencer->sequence.Play();
+        }
+
+        if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
+        {
+          sequencer->SetView(Sequencer::ViewMode::Sequencer);
+        }
+        
+      }
+    }
+    return true;
+}
+
+bool ControlBar::HandleRecordKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+      sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
+    }
+    return true;
+}
+
+bool ControlBar::HandleSessionKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+      if(sequencer->currentView == Sequencer::ViewMode::Session)
+      {
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
+      }
+      else
+      {
+        sequencer->SetView(Sequencer::ViewMode::Session);
+      }
+    }
+    else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Session)
+    {
+      sequencer->SetView(Sequencer::ViewMode::Sequencer);
+    }
+    return true;
+}
+
+bool ControlBar::HandleMixerKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+      if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+      {
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
+      }
+      else
+      {
+        sequencer->SetView(Sequencer::ViewMode::Mixer);
+      }
+    }
+    else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
+    {
+      sequencer->SetView(Sequencer::ViewMode::Sequencer);
+    }
+    return true;
+}
+
+bool ControlBar::HandleClearKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+        sequencer->clear = true;
+    }
+    else if(keyInfo->state == RELEASED)
+    {
+        sequencer->clear = false;
+        if(clearCallback != nullptr)
+        {
+            clearCallback();
+        }
+    }
+    return true;
+}
+
+bool ControlBar::HandleCopyKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+        sequencer->copy = true;
+    }
+    else if(keyInfo->state == RELEASED)
+    {
+        sequencer->copy = false;
+    }
+    return true;
+}
+
+bool ControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
+{
     uint8_t track = sequencer->track;
+    uint8_t shiftIndex = up ? 1 : 0;
 
-    // Play (x=0)
-    if(xy.x == 0)
+    if(keyInfo->state == PRESSED)
     {
-        if(keyInfo->state == PRESSED)
-        {
-          if(sequencer->sequence.Playing())
-          {
-            sequencer->sequence.Stop();
-          }
-          else
-          {
-            if(sequencer->ShiftActive())
-            {
-              sequencer->ShiftEventOccured();
-              sequencer->sequence.Play(sequencer->track);
-            }
-            else
-            {
-              sequencer->sequence.Play();
-            }
+      if(sequencer->ShiftActive())
+      {
+        sequencer->patternView = !sequencer->patternView;
+        sequencer->ShiftEventOccured();
+      }
 
-            if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
-            {
-              sequencer->SetView(Sequencer::ViewMode::Sequencer);
-            }
-            
-          }
-        }
-        return true;
+      if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
+      {
+        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+        uint8_t step = *sequencer->stepSelected.begin();
+
+        sequencer->ShiftEventOccured();
+        sequencer->sequence.SetPosition(track, clip, patternIdx, step);
+        sequencer->SetView(Sequencer::ViewMode::StepDetail);
+        sequencer->ClearActiveNotes();
+        sequencer->ClearSelectedNotes();
+        sequencer->stepSelected.clear();
+      }
+
+      sequencer->shiftOnTime = MatrixOS::SYS::Millis();
+      sequencer->shift[shiftIndex] = true;
     }
-    // Record (x=1)
-    else if(xy.x == 1)
+    else if(keyInfo->state == RELEASED)
     {
-        if(keyInfo->state == PRESSED)
+      bool shiftEvent = sequencer->shiftEventOccured[0] || sequencer->shiftEventOccured[1];
+      if(keyInfo->hold == false && !shiftEvent)
+      {
+        if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
         {
-          sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
+          sequencer->currentView = Sequencer::ViewMode::Sequencer;
         }
-        return true;
-    }
-    // Session (x=2)
-    else if(xy.x == 2)
-    {
-        if(keyInfo->state == PRESSED)
+        else if(sequencer->meta.tracks[track].mode == SequenceTrackMode::NoteTrack)
         {
-          if(sequencer->currentView == Sequencer::ViewMode::Session)
+          auto& noteCfg = sequencer->meta.tracks[track].config.note;
+          if(up)
           {
-            sequencer->SetView(Sequencer::ViewMode::Sequencer);
-          }
-          else
-          {
-            sequencer->SetView(Sequencer::ViewMode::Session);
-          }
-        }
-        else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Session)
-        {
-          sequencer->SetView(Sequencer::ViewMode::Sequencer);
-        }
-        return true;
-    }
-    // Mixer (x=3)
-    else if(xy.x == 3)
-    {
-        if(keyInfo->state == PRESSED)
-        {
-          if(sequencer->currentView == Sequencer::ViewMode::Mixer)
-          {
-            sequencer->SetView(Sequencer::ViewMode::Sequencer);
-          }
-          else
-          {
-            sequencer->SetView(Sequencer::ViewMode::Mixer);
-          }
-        }
-        else if(keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
-        {
-          sequencer->SetView(Sequencer::ViewMode::Sequencer);
-        }
-        return true;
-    }
-    // Clear (x=4)
-    else if(xy.x == 4)
-    {
-        if(keyInfo->state == PRESSED)
-        {
-            sequencer->clear = true;
-        }
-        else if(keyInfo->state == RELEASED)
-        {
-            sequencer->clear = false;
-            if(clearCallback != nullptr)
+            if(noteCfg.octave < 9)
             {
-                clearCallback();
-            }
-        }
-        return true;
-    }
-    // Copy (x=5)
-    else if(xy.x == 5)
-    {
-        if(keyInfo->state == PRESSED)
-        {
-            sequencer->copy = true;
-        }
-        else if(keyInfo->state == RELEASED)
-        {
-            sequencer->copy = false;
-        }
-        return true;
-    }
-    // Octave Down (x=6)
-    else if(xy.x == 6)
-    {
-        if(keyInfo->state == PRESSED)
-        {
-          if(sequencer->ShiftActive())
-          {
-            sequencer->patternView = !sequencer->patternView;
-            sequencer->ShiftEventOccured();
-          }
-
-          if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
-          {
-            uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            uint8_t step = *sequencer->stepSelected.begin();
-
-            sequencer->ShiftEventOccured();
-            sequencer->sequence.SetPosition(track, clip, patternIdx, step);
-            sequencer->SetView(Sequencer::ViewMode::StepDetail);
-            sequencer->ClearActiveNotes();
-            sequencer->ClearSelectedNotes();
-            sequencer->stepSelected.clear();
-          }
-
-          sequencer->shiftOnTime = MatrixOS::SYS::Millis();
-          sequencer->shift[0] = true;
-        }
-        else if(keyInfo->state == RELEASED)
-        {
-          if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
-          {
-            // No octave
-          }
-          else if(keyInfo->hold == false && !sequencer->shiftEventOccured[0] && !sequencer->shiftEventOccured[1])
-          {
-            if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
-            {
-              sequencer->currentView = Sequencer::ViewMode::Sequencer;
-            }
-            else if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
-            {
-              // No octave
-            }
-            if(sequencer->meta.tracks[track].config.note.octave > 0)
-            {
-              sequencer->meta.tracks[track].config.note.octave--;
-              sequencer->sequence.SetDirty();
-              if(notePad != nullptr)
-              {
-                  notePad->GenerateKeymap();
-              }
-            }
-          }
-          sequencer->shift[0] = false;
-          sequencer->shiftEventOccured[0] = false;
-        }
-        return true;
-    }
-    // Octave Up (x=7)
-    else if(xy.x == 7)
-    {
-        if(keyInfo->state == PRESSED)
-        {
-          if(sequencer->ShiftActive())
-          {
-            sequencer->patternView = !sequencer->patternView;
-            sequencer->ShiftEventOccured();
-          }
-
-          if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
-          {
-            uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            uint8_t step = *sequencer->stepSelected.begin();
-
-            sequencer->ShiftEventOccured();
-            sequencer->sequence.SetPosition(track, clip, patternIdx, step);
-            sequencer->SetView(Sequencer::ViewMode::StepDetail);
-            sequencer->ClearActiveNotes();
-            sequencer->ClearSelectedNotes();
-            sequencer->stepSelected.clear();
-          }
-
-          sequencer->shiftOnTime = MatrixOS::SYS::Millis();
-          sequencer->shift[1] = true;
-        }
-        else if(keyInfo->state == RELEASED)
-        {
-          if(keyInfo->hold == false && !sequencer->shiftEventOccured[0] && !sequencer->shiftEventOccured[1])
-          {
-            if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
-            {
-              sequencer->currentView = Sequencer::ViewMode::Sequencer;
-            }
-            else if(sequencer->meta.tracks[track].mode != SequenceTrackMode::NoteTrack)
-            {
-              // No octave
-            }
-            else if(sequencer->meta.tracks[track].config.note.octave < 9)
-            {
-                sequencer->meta.tracks[track].config.note.octave++;
+                noteCfg.octave++;
                 sequencer->sequence.SetDirty();
-                if(notePad != nullptr)
-                {
-                    notePad->GenerateKeymap();
-                }
+                if(notePad != nullptr) { notePad->GenerateKeymap(); }
             }
           }
-          sequencer->shift[1] = false;
-          sequencer->shiftEventOccured[1] = false;
+          else
+          {
+            if(noteCfg.octave > 0)
+            {
+              noteCfg.octave--;
+              sequencer->sequence.SetDirty();
+              if(notePad != nullptr) { notePad->GenerateKeymap(); }
+            }
+          }
         }
-        return true;
+      }
+      sequencer->shift[shiftIndex] = false;
+      sequencer->shiftEventOccured[shiftIndex] = false;
     }
     return true;
 }

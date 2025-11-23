@@ -15,6 +15,14 @@ class ControlBar : public UIComponent {
 
     const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};
 
+    bool HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo);
+    bool HandlePlayKey(KeyInfo* keyInfo);
+    bool HandleRecordKey(KeyInfo* keyInfo);
+    bool HandleSessionKey(KeyInfo* keyInfo);
+    bool HandleMixerKey(KeyInfo* keyInfo);
+    bool HandleClearKey(KeyInfo* keyInfo);
+    bool HandleCopyKey(KeyInfo* keyInfo);
+
     public:
     ControlBar(Sequencer* sequencer, SequencerNotePad* notePad);
 
