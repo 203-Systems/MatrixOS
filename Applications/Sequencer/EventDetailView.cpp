@@ -5,9 +5,9 @@
 
 const Color noteColor = Color(0xFFFF00);
 const Color aftertouchColor = Color(0x00FF80);
-const Color drumColor = Color(0xFF8000);
+const Color drumColor = Color(0xFF6000);
 const Color ccColor = Color(0x0080FF);
-const Color pcColor = Color(0x00FF80);
+const Color pcColor = Color(0x6000FF);
 const Color unknownColor = Color(0xFF0000);
 
 EventDetailView::EventDetailView(Sequencer* sequencer)

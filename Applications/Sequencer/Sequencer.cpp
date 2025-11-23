@@ -24,7 +24,8 @@ void Sequencer::Setup(const vector<string> &args)
         Save(saveSlot);
     }
 
-    sequence.EnableClockOutput(meta.clockOutput);
+    sequence.EnableClockOutput(meta.clockOutput);\
+    sequence.SetDirty(false);
 
     SequencerUI();
 }
