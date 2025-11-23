@@ -416,21 +416,8 @@ void Sequence::CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTra
         data.tracks[destTrack].clips.erase(destClip);
     }
 
-    // Create new clip at destination
-    data.tracks[destTrack].clips[destClip] = SequenceClip();
-
-    // Copy enabled state
-    data.tracks[destTrack].clips[destClip].enabled = data.tracks[sourceTrack].clips[sourceClip].enabled;
-
-    // Copy all patterns
-    auto& sourcePatterns = data.tracks[sourceTrack].clips[sourceClip].patterns;
-    auto& destPatterns = data.tracks[destTrack].clips[destClip].patterns;
-
-    destPatterns.clear();
-    for (const auto& pattern : sourcePatterns)
-    {
-        destPatterns.push_back(pattern);
-    }
+    // Copy entire clip
+    data.tracks[destTrack].clips[destClip] = data.tracks[sourceTrack].clips[sourceClip];
 
     dirty = true;
 }
