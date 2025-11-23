@@ -145,7 +145,8 @@ void Sequencer::SequencerUI()
                        {
         for (const auto& step : stepSelected)
         {
-            ClearStep(pattern, step);
+            uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
+            pattern->ClearStepEvents(step, pulsesPerStep);
         } });
     sequencerUI.AddUIComponent(controlBar, Point(0, 7));
 
@@ -1090,46 +1091,9 @@ bool Sequencer::IsNoteActive(uint8_t note) const
     return sequence.IsNoteActive(track, note);
 }
 
-void Sequencer::ClearStep(SequencePattern *pattern, uint8_t step)
-{
-    uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
-    uint16_t startTime = step * pulsesPerStep;
-    uint16_t endTime = startTime + pulsesPerStep - 1;
-    uint8_t channel = sequence.GetChannel(track);
 
-    // Remove notes from noteActive and send noteOff
-    auto it = pattern->events.lower_bound(startTime);
-    while (it != pattern->events.end() && it->first <= endTime)
-    {
-        if (it->second.eventType == SequenceEventType::NoteEvent)
-        {
-            const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
-            auto activeIt = noteActive.find(noteData.note);
-            if (activeIt != noteActive.end())
-            {
-                MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
-                noteActive.erase(activeIt);
-            }
-        }
-        ++it;
-    }
 
-    pattern->RemoveAllEventsInRange(startTime, endTime);
-    sequence.SetDirty();
-}
 
-void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
-{
-    // Clear destination first
-    ClearStep(pattern, dest);
-
-    // Copy events
-    uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
-    uint16_t sourceStartTime = src * pulsesPerStep;
-    uint16_t destStartTime = dest * pulsesPerStep;
-    pattern->CopyEventsInRange(sourceStartTime, destStartTime, pulsesPerStep);
-    sequence.SetDirty();
-}
 
 void Sequencer::SetView(ViewMode view)
 {

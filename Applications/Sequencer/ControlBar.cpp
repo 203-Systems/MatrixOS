@@ -281,7 +281,7 @@ Color ControlBar::GetOctaveMinusColor() {
 
 bool ControlBar::Render(Point origin)
 {
-  uint8_t breathingScale = sequencer->sequence.ClockStepProgressBreath();
+  uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
   // Play
   {

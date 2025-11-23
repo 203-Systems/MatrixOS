@@ -116,8 +116,8 @@ bool ClipLauncher::Render(Point origin)
 {
     uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
-    Fract16 quarterNoteProgress = sequencer->sequence.GetClockStepProgress();
-    uint8_t breathingScale = sequencer->sequence.ClockStepProgressBreath();
+    Fract16 quarterNoteProgress = sequencer->sequence.GetQuarterNoteProgress();
+    uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
     // Render all clip slots
     for(uint8_t track = 0; track < 8; track++)

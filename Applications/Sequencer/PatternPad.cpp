@@ -54,12 +54,35 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         
         if(sequencer->ClearActive())
         {
-            sequencer->ClearStep(&pattern, step);
+            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+            uint16_t startTime = step * pulsesPerStep;
+            uint16_t endTime = startTime + pulsesPerStep - 1;
+            uint8_t channel = sequencer->sequence.GetChannel(track);
+
+            // Remove notes from noteActive and send noteOff
+            auto it = pattern.events.lower_bound(startTime);
+            while (it != pattern.events.end() && it->first <= endTime)
+            {
+                if (it->second.eventType == SequenceEventType::NoteEvent)
+                {
+                    const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
+                    auto activeIt = sequencer->noteActive.find(noteData.note);
+                    if (activeIt != sequencer->noteActive.end())
+                    {
+                        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+                        sequencer->noteActive.erase(activeIt);
+                    }
+                }
+                ++it;
+            }
+
+            pattern.ClearStepEvents(step, pulsesPerStep);
         }
         else if(sequencer->CopyActive() && sequencer->stepSelected.size() >= 2) // Self is included
         {
             uint8_t srcStep = *sequencer->stepSelected.begin();
-            sequencer->CopyStep(&pattern, srcStep, step);
+            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+            pattern.CopyStepEvents(srcStep, step, pulsesPerStep);
         }
         else if(!noteSelected->empty())
         {

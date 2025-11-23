@@ -142,8 +142,8 @@ public:
     Fract16 GetStepProgress(); // Swing Applied
     uint8_t StepProgressBreath(uint8_t lowBound = 0);  // LED Helper
 
-    Fract16 GetClockStepProgress();
-    uint8_t ClockStepProgressBreath(uint8_t lowBound = 0); // LED Helper
+    Fract16 GetQuarterNoteProgress();
+    uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0); // LED Helper
 
     void RecordEvent(MidiPacket packet);
 };

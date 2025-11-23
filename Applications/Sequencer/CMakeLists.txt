@@ -2,6 +2,8 @@ add_library(Sequencer
     Sequencer.cpp
     Sequence.cpp
     SequenceEvent.cpp
+    SequenceData.cpp
+    SequenceMeta.cpp
     NotePad.cpp
     ControlBar.cpp
     MixerControl.cpp

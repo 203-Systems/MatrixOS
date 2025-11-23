@@ -76,9 +76,5 @@ class Sequencer : public Application {
 
   bool IsNoteActive(uint8_t note) const;
 
-  // TODO: Move those under SequencePattern function
-  void ClearStep(SequencePattern* pattern, uint8_t step);
-  void CopyStep(SequencePattern* pattern, uint8_t src, uint8_t dest);
-  
   void SetView(ViewMode view);
 };

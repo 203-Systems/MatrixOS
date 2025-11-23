@@ -814,25 +814,24 @@ uint8_t Sequence::StepProgressBreath(uint8_t lowBound)
     return (uint8_t)brightness;
 }
 
-Fract16 Sequence::GetClockStepProgress()
+Fract16 Sequence::GetQuarterNoteProgress()
 {
 
-    uint32_t clocksPerStep = (24 * 4) / stepDivision;
-    uint32_t usPerStep = usPerClock * clocksPerStep;
-    uint32_t timeElapsedSinceStep = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
+    uint32_t usPerQuarterNote = usPerClock * 24; // Clock is 24PPQN
+    uint32_t timeElapsedSinceQuarterNote = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
     // Use 64-bit arithmetic to avoid overflow when multiplying
-    uint64_t progress = ((uint64_t)timeElapsedSinceStep * UINT16_MAX) / usPerStep;
-    // Clamp to UINT16_MAX in case we're past the step boundary
+    uint64_t progress = ((uint64_t)timeElapsedSinceQuarterNote * UINT16_MAX) / usPerQuarterNote;
+    // Clamp to UINT16_MAX in case we're past the quarter note boundary
     if (progress > UINT16_MAX) {
         progress = UINT16_MAX;
     }
     return (Fract16)progress;
 }
 
-uint8_t Sequence::ClockStepProgressBreath(uint8_t lowBound)
+uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
 {
-    // Get progress through step (0-65535)
-    Fract16 progress = GetClockStepProgress();
+    // Get progress through quarter note (0-65535)
+    Fract16 progress = GetQuarterNoteProgress();
 
     // Convert to breathing effect using cosine wave
     // Map 0-65535 to 0-2π for full cosine cycle

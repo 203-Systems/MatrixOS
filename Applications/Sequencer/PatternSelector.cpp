@@ -200,7 +200,7 @@ bool PatternSelector::Render(Point origin)
             {
                 if(sequencer->sequence.Playing(track))
                 {
-                    uint8_t breathingScale = sequencer->sequence.ClockStepProgressBreath();
+                    uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
                     Color color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4 * 3 + 64, 8));
                     MatrixOS::LED::SetColor(origin + Point(x, y), color);
                 }
