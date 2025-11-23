@@ -48,8 +48,9 @@ void EventDetailView::RebuildEventList()
     position = sequencer->sequence.GetPosition(sequencer->track);
     pattern = &sequencer->sequence.GetPattern(sequencer->track, position.clip, position.pattern);
     
-    uint16_t startTime = position.quarterNote * Sequence::PPQN;
-    uint16_t endTime = startTime + Sequence::PPQN - 1;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+    uint16_t startTime = position.step * pulsesPerStep;
+    uint16_t endTime = startTime + pulsesPerStep - 1;
 
     bool matchedSelection = false;
 
@@ -242,8 +243,9 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 void EventDetailView::RenderMicroStepSelector(Point origin)
 {
     // Render micro step positions on Y=1 row (only 6 positions)
-    // PPQN = 96, divided into 6 slots = 16 ticks per slot
-    uint16_t stepStartTime = position.quarterNote * Sequence::PPQN;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+    // divided into 6 slots
+    uint16_t stepStartTime = position.step * pulsesPerStep;
 
     for (uint8_t x = 0; x < 6; x++)
     {
@@ -256,7 +258,7 @@ void EventDetailView::RenderMicroStepSelector(Point origin)
             uint16_t eventTime = selectedEventIter->first;
             uint16_t relativeTime = eventTime - stepStartTime; // Time within the current step
 
-            uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
+            uint16_t slotSize = pulsesPerStep / 6;
             uint8_t eventSlot = relativeTime / slotSize;
             uint16_t expectedTime = eventSlot * slotSize;
 
@@ -288,8 +290,9 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 {
     if (keyInfo->State() == PRESSED)
     {
-        uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
-        uint16_t stepStartTime = position.quarterNote * Sequence::PPQN;
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        uint16_t slotSize = pulsesPerStep / 6;
+        uint16_t stepStartTime = position.step * pulsesPerStep;
         uint16_t targetTime = stepStartTime + (xy.x * slotSize);
 
         auto eventIter = selectedEventIter;
@@ -395,8 +398,9 @@ bool EventDetailView::NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo)
 void EventDetailView::RenderLengthSelector(Point origin)
 {
     const SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
-    uint8_t fullSlots = noteData.length / Sequence::PPQN;
-    uint16_t partial = noteData.length % Sequence::PPQN;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+    uint8_t fullSlots = noteData.length / pulsesPerStep;
+    uint16_t partial = noteData.length % pulsesPerStep;
 
     for (uint8_t idx = 0; idx < 16; ++idx)
     {
@@ -409,7 +413,7 @@ void EventDetailView::RenderLengthSelector(Point origin)
         }
         else if (idx == fullSlots && partial > 0)
         {
-            uint16_t scale = static_cast<uint16_t>(partial) * 192 / Sequence::PPQN; // Add negative offset (255 to 192) to make small difference more obvious
+            uint16_t scale = static_cast<uint16_t>(partial) * 192 / pulsesPerStep; // Add negative offset (255 to 192) to make small difference more obvious
             color = Color(0xA000FF).Dim(std::min<uint16_t>(255, scale));
         }
 
@@ -426,19 +430,20 @@ bool EventDetailView::LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
     if (keyInfo->State() == PRESSED)
     {
         uint16_t currentLength = noteData.length;
-        uint16_t slotStart = lengthIdx * Sequence::PPQN;
-        uint16_t slotEnd = slotStart + Sequence::PPQN;
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        uint16_t slotStart = lengthIdx * pulsesPerStep;
+        uint16_t slotEnd = slotStart + pulsesPerStep;
 
         if (currentLength > slotStart && currentLength <= slotEnd)
         {
             static const uint16_t fractionTicks[] = {
-                Sequence::PPQN * 3 / 4, // 75%
-                Sequence::PPQN / 2,     // 50%
-                Sequence::PPQN / 4      // 25%
+                static_cast<uint16_t>(pulsesPerStep * 3 / 4), // 75%
+                static_cast<uint16_t>(pulsesPerStep / 2),     // 50%
+                static_cast<uint16_t>(pulsesPerStep / 4)      // 25%
             };
 
             uint16_t coverage = currentLength - slotStart;
-            uint16_t nextCoverage = Sequence::PPQN; // default back to 100%
+            uint16_t nextCoverage = pulsesPerStep; // default back to 100%
 
             for (uint16_t fraction : fractionTicks)
             {
@@ -453,7 +458,7 @@ bool EventDetailView::LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
         }
         else
         {
-            noteData.length = std::min<uint16_t>(16, lengthPulses) * Sequence::PPQN;
+            noteData.length = std::min<uint16_t>(16, lengthPulses) * pulsesPerStep;
         }
 
         sequencer->sequence.SetDirty();

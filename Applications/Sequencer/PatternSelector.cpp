@@ -165,7 +165,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
             if(newLength >= 1 && newLength <= 16)
             {
-                pattern.quarterNotes = newLength;
+                pattern.steps = newLength;
                 sequencer->sequence.SetDirty();
             }
         }
@@ -200,7 +200,7 @@ bool PatternSelector::Render(Point origin)
             {
                 if(sequencer->sequence.Playing(track))
                 {
-                    uint8_t breathingScale = sequencer->sequence.ClockQuarterNoteProgressBreath();
+                    uint8_t breathingScale = sequencer->sequence.ClockStepProgressBreath();
                     Color color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4 * 3 + 64, 8));
                     MatrixOS::LED::SetColor(origin + Point(x, y), color);
                 }
@@ -235,7 +235,7 @@ bool PatternSelector::Render(Point origin)
         for(uint8_t i = 0; i < 16; i++)
         {
             Point point = origin + Point(i % 8, i / 8 + 2);
-            if((i + 1) <= pattern.quarterNotes)
+            if((i + 1) <= pattern.steps)
             {
                 MatrixOS::LED::SetColor(point, Color::White);
             }

@@ -59,7 +59,7 @@ struct SequenceEvent {
         : eventType(type), data(eventData) {}
 
     // Static factory methods - defined in SequenceEvent.cpp
-    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = UINT16_MAX /*UINT16_MAX = auto-set to PPQN*/);
+    static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = UINT16_MAX /*UINT16_MAX = auto-set to default step length*/);
     static SequenceEvent ControlChange(const uint8_t param, const uint8_t value);
     // static SequenceEvent ProgramChange(const uint8_t program);
     // static SequenceEvent BPMChange(const uint16_t bpm);

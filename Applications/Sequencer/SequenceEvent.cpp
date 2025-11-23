@@ -4,9 +4,9 @@
 
 SequenceEvent SequenceEvent::Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length)
 {
-    // Auto-set length to PPQN if UINT16_MAX is passed
+    // Auto-set length to default step (PPQN/4) if UINT16_MAX is passed
     uint16_t actualLength = length;
-    if (length == UINT16_MAX) { actualLength = Sequence::PPQN;}
+    if (length == UINT16_MAX) { actualLength = Sequence::PPQN / 4;}
     return {SequenceEventType::NoteEvent, SequenceEventNote{aftertouch, note, velocity, actualLength}};
 }
 

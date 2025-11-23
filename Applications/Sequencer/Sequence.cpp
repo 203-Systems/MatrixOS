@@ -33,14 +33,14 @@ void Sequence::New(uint8_t tracks)
         data.tracks[i].clips[0] = SequenceClip();
         data.tracks[i].clips[0].enabled = true;
         data.tracks[i].clips[0].patterns.emplace_back();
-        data.tracks[i].clips[0].patterns[0].quarterNotes = 16;
+        data.tracks[i].clips[0].patterns[0].steps = 16;
     }
 
     trackPlayback.clear();
     trackPlayback.resize(tracks);
     pulseSinceStart = 0;
     currentPulse = 0;
-    currentQuarterNote = 0;
+    currentStep = 0;
     lastPulseTime = 0;
 
     data.solo = 0;
@@ -85,7 +85,7 @@ void Sequence::Tick()
                 // Initialize timing on this clock edge
                 lastPulseTime = 0;
                 currentPulse = 0;
-                currentQuarterNote = 0;
+                currentStep = 0;
                 pulseSinceStart = 0;
                 firstTick = true;
             }
@@ -96,8 +96,8 @@ void Sequence::Tick()
 
     uint32_t elapsed = currentTime - lastPulseTime;
 
-    // Check if enough time for a tick (using swing timing based on quarter note position)
-    if (elapsed >= usPerPulse[currentQuarterNote % 2] || lastPulseTime == 0) {
+    // Check if enough time for a tick (using swing timing based on step position)
+    if (elapsed >= usPerPulse[currentStep % 2] || lastPulseTime == 0) {
         lastPulseTime = currentTime;
 
         // Increment pulse counter
@@ -107,14 +107,14 @@ void Sequence::Tick()
             pulseSinceStart++;
         }
 
-        // When pulse reaches PPQN, move to next quarter note
-        if (currentPulse >= PPQN) {
+        // When pulse reaches pulsesPerStep, move to next step
+        if (currentPulse >= pulsesPerStep) {
             currentPulse = 0;
-            currentQuarterNote++;
+            currentStep++;
 
-            // Wrap quarter note around bar length
-            if (currentQuarterNote >= data.barLength) {
-                currentQuarterNote = 0;
+            // Wrap step around bar length
+            if (currentStep >= data.barLength) {
+                currentStep = 0;
             }
         }
 
@@ -128,6 +128,9 @@ void Sequence::Tick()
 
 void Sequence::UpdateTiming()
 {
+    pulsesPerStep = (PPQN * 4) / stepDivision; // stepDivision: 4=quarter, 8=eighth, 16=sixteenth
+
+    // Base pulse timing stays tied to PPQN; pulsesPerStep only controls when we advance a step
     uint32_t pulseUs = 60000000UL / (data.bpm * PPQN);
 
     // Calculate clock timing (24 PPQN standard)
@@ -155,13 +158,13 @@ void Sequence::Play()
     // Can be increased for count-in: 96 = 1 bar at 4/4
     clocksTillStart = record ? 24 * 4 + 1 : 1;
     currentPulse = 0;
-    currentQuarterNote = 0;
+    currentStep = 0;
     pulseSinceStart = 0;
 
     for (uint8_t i = 0; i < trackPlayback.size(); i++) {
         // Reset positions and prepare for playback
         trackPlayback[i].position.pattern = 0;
-        trackPlayback[i].position.quarterNote = 0;
+        trackPlayback[i].position.step = 0;
         trackPlayback[i].position.pulse = 0;
 
         // Clear playback state
@@ -178,13 +181,13 @@ void Sequence::Play(uint8_t track)
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
         currentPulse = 0;
-        currentQuarterNote = 0;
+        currentStep = 0;
         pulseSinceStart = 0;
     }
 
     // Play the track at its current clip position
     trackPlayback[track].position.pattern = 0;
-    trackPlayback[track].position.quarterNote = 0;
+    trackPlayback[track].position.step = 0;
     trackPlayback[track].position.pulse = 0;
 
     // Clear playback state and start track
@@ -200,7 +203,7 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
         currentPulse = 0;
-        currentQuarterNote = 0;
+        currentStep = 0;
         pulseSinceStart = 0;
     }
 
@@ -215,7 +218,7 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
         currentPulse = 0;
-        currentQuarterNote = 0;
+        currentStep = 0;
         pulseSinceStart = 0;
     }
 
@@ -360,7 +363,7 @@ bool Sequence::NewClip(uint8_t track, uint8_t clipId)
     data.tracks[track].clips[clipId] = SequenceClip();
     data.tracks[track].clips[clipId].enabled = true;
     data.tracks[track].clips[clipId].patterns.emplace_back();
-    data.tracks[track].clips[clipId].patterns[0].quarterNotes = 16;
+    data.tracks[track].clips[clipId].patterns[0].steps = 16;
     dirty = true;
     return true;
 }
@@ -393,7 +396,7 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
             trackPlayback[track].position.clip = lowestClip;
         }
         trackPlayback[track].position.pattern = 0;
-        trackPlayback[track].position.quarterNote = 0;
+        trackPlayback[track].position.step = 0;
     }
     dirty = true;
 }
@@ -440,16 +443,16 @@ SequencePattern& Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t patte
     return data.tracks[track].clips[clip].patterns[pattern];
 }
 
-int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t quarterNotes)
+int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps)
 {
     if (!ClipExists(track, clip)) return -1;
     if(data.tracks[track].clips[clip].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return -1;}
 
-    // If quarterNotes is 0, use barLength as default
-    uint8_t actualLength = (quarterNotes == 0) ? data.barLength : quarterNotes;
+    // If length is 0, use barLength as default
+    uint8_t actualLength = (steps == 0) ? data.barLength : steps;
 
     data.tracks[track].clips[clip].patterns.emplace_back();
-    data.tracks[track].clips[clip].patterns.back().quarterNotes = actualLength;
+    data.tracks[track].clips[clip].patterns.back().steps = actualLength;
     dirty = true;
     return data.tracks[track].clips[clip].patterns.size() - 1;
 }
@@ -506,7 +509,7 @@ void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sour
         if(destPatterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return;}
         destPatterns.emplace_back();
         SequencePattern& dest = destPatterns.back();
-        dest.quarterNotes = source.quarterNotes;
+        dest.steps = source.steps;
         dest.events = source.events;
     }
     else
@@ -515,7 +518,7 @@ void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sour
         auto& destPatterns = data.tracks[destTrack].clips[destClip].patterns;
         if(destPattern >= destPatterns.size()) return;
         SequencePattern& dest = destPatterns[destPattern];
-        dest.quarterNotes = source.quarterNotes;
+        dest.steps = source.steps;
         dest.events = source.events;
     }
     dirty = true;
@@ -568,6 +571,23 @@ void Sequence::SetSwing(uint8_t swing)
     }
 }
 
+// Step length (division)
+uint8_t Sequence::GetStepDivision()
+{
+    return stepDivision;
+}
+
+void Sequence::SetStepDivision(uint8_t stepLen)
+{
+    if(stepLen == 0) { return; }
+    if(stepLen != stepDivision)
+    {
+        stepDivision = stepLen;
+        UpdateTiming();
+        dirty = true;
+    }
+}
+
 // Bar Length
 uint8_t Sequence::GetBarLength()
 {
@@ -597,7 +617,7 @@ void Sequence::UpdateEmptyPatternsWithBarLength()
                 // Only update patterns that are empty (no events)
                 if (pattern.events.empty())
                 {
-                    pattern.quarterNotes = data.barLength;
+                    pattern.steps = data.barLength;
                 }
             }
         }
@@ -696,11 +716,11 @@ SequencePosition& Sequence::GetPosition(uint8_t track)
     return trackPlayback[track].position;
 }
 
-void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t quarterNote)
+void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step)
 {
     trackPlayback[track].position.clip = clip;
     trackPlayback[track].position.pattern = pattern;
-    trackPlayback[track].position.quarterNote = quarterNote;
+    trackPlayback[track].position.step = step;
     // data.tracks[track].activeClip = clip;
     // dirty = true;
 }
@@ -709,7 +729,7 @@ void Sequence::SetClip(uint8_t track, uint8_t clip)
 {
     trackPlayback[track].position.clip = clip;
     trackPlayback[track].position.pattern = 0;
-    trackPlayback[track].position.quarterNote = 0;
+    trackPlayback[track].position.step = 0;
     data.tracks[track].activeClip = clip;
     dirty = true;
 }
@@ -717,7 +737,7 @@ void Sequence::SetClip(uint8_t track, uint8_t clip)
 void Sequence::SetPattern(uint8_t track, uint8_t pattern)
 {
     trackPlayback[track].position.pattern = pattern;
-    trackPlayback[track].position.quarterNote = 0;
+    trackPlayback[track].position.step = 0;
 }
 
 uint8_t Sequence::GetNextClip(uint8_t track)
@@ -735,29 +755,29 @@ uint32_t Sequence::GetLastEventTime(uint8_t track)
     return trackPlayback[track].lastEventTime;
 }
 
-Fract16 Sequence::GetQuarterNoteProgress()
+Fract16 Sequence::GetStepProgress()
 {
     if (!playing) {
         return 0;
     }
 
     uint32_t currentTime = MatrixOS::SYS::Micros();
-    uint32_t usPerCurrentPulse = usPerPulse[currentQuarterNote % 2];
-    uint32_t timeElapsedSinceQuarterNote = (currentTime - lastPulseTime) + (currentPulse * usPerCurrentPulse);
-    uint32_t usPerCurrentQuarterNote = usPerCurrentPulse * PPQN;
+    uint32_t usPerCurrentPulse = usPerPulse[currentStep % 2];
+    uint32_t timeElapsedSinceStep = (currentTime - lastPulseTime) + (currentPulse * usPerCurrentPulse);
+    uint32_t usPerCurrentStep = usPerCurrentPulse * pulsesPerStep;
 
-    uint64_t progress = ((uint64_t)timeElapsedSinceQuarterNote * UINT16_MAX) / usPerCurrentQuarterNote;
-    // Clamp to UINT16_MAX in case we're past the quarter note boundary
+    uint64_t progress = ((uint64_t)timeElapsedSinceStep * UINT16_MAX) / usPerCurrentStep;
+    // Clamp to UINT16_MAX in case we're past the step boundary
     if (progress > UINT16_MAX) {
         progress = UINT16_MAX;
     }
     return (Fract16)progress;
 }
 
-uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
+uint8_t Sequence::StepProgressBreath(uint8_t lowBound)
 {
-    // Get progress through quarter note (0-65535) with swing
-    Fract16 progress = GetQuarterNoteProgress();
+    // Get progress through step (0-65535) with swing
+    Fract16 progress = GetStepProgress();
 
     // Convert to breathing effect using cosine wave
     // Map 0-65535 to 0-2π for full cosine cycle
@@ -767,24 +787,25 @@ uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
     return (uint8_t)brightness;
 }
 
-Fract16 Sequence::GetClockQuarterNoteProgress()
+Fract16 Sequence::GetClockStepProgress()
 {
 
-    uint32_t usPerQuarterNote = usPerClock * 24;
-    uint32_t timeElapsedSinceQuarterNote = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
+    uint32_t clocksPerStep = (24 * 4) / stepDivision;
+    uint32_t usPerStep = usPerClock * clocksPerStep;
+    uint32_t timeElapsedSinceStep = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
     // Use 64-bit arithmetic to avoid overflow when multiplying
-    uint64_t progress = ((uint64_t)timeElapsedSinceQuarterNote * UINT16_MAX) / usPerQuarterNote;
-    // Clamp to UINT16_MAX in case we're past the quarter note boundary
+    uint64_t progress = ((uint64_t)timeElapsedSinceStep * UINT16_MAX) / usPerStep;
+    // Clamp to UINT16_MAX in case we're past the step boundary
     if (progress > UINT16_MAX) {
         progress = UINT16_MAX;
     }
     return (Fract16)progress;
 }
 
-uint8_t Sequence::ClockQuarterNoteProgressBreath(uint8_t lowBound)
+uint8_t Sequence::ClockStepProgressBreath(uint8_t lowBound)
 {
-    // Get progress through quarter note (0-65535)
-    Fract16 progress = GetClockQuarterNoteProgress();
+    // Get progress through step (0-65535)
+    Fract16 progress = GetClockStepProgress();
 
     // Convert to breathing effect using cosine wave
     // Map 0-65535 to 0-2π for full cosine cycle
@@ -831,7 +852,7 @@ void Sequence::ProcessTrack(uint8_t track)
         SequencePattern& currentPattern = GetPattern(track, clip, pattern);
 
         // Calculate the absolute tick position within the pattern
-        uint16_t currentTick = trackPlayback[track].position.quarterNote * PPQN + trackPlayback[track].position.pulse;
+        uint16_t currentTick = trackPlayback[track].position.step * pulsesPerStep + trackPlayback[track].position.pulse;
 
         // Fire all events at exactly this tick
         auto eventIt = currentPattern.events.find(currentTick);
@@ -872,7 +893,7 @@ void Sequence::ProcessTrack(uint8_t track)
 
     // 3. Check for clip transition or stop at start of bar (when nextClip is queued)
     if (trackPlayback[track].nextClip != 255 &&
-        currentQuarterNote == 0 &&
+        currentStep == 0 &&
         currentPulse == 0) {
 
         // Special case: 254 means stop after current bar
@@ -884,7 +905,7 @@ void Sequence::ProcessTrack(uint8_t track)
         // Transition to the queued clip at bar boundary
         trackPlayback[track].position.clip = trackPlayback[track].nextClip;
         trackPlayback[track].position.pattern = 0;
-        trackPlayback[track].position.quarterNote = 0;
+        trackPlayback[track].position.step = 0;
         trackPlayback[track].position.pulse = 0;
         // Clear nextClip after transitioning
         trackPlayback[track].nextClip = 255;
@@ -894,17 +915,17 @@ void Sequence::ProcessTrack(uint8_t track)
     // 4. Advance pulse position
     trackPlayback[track].position.pulse++;
 
-    // 5. Check if we've completed a quarter note
-    if (trackPlayback[track].position.pulse >= PPQN) {
+    // 5. Check if we've completed a step
+    if (trackPlayback[track].position.pulse >= pulsesPerStep) {
         trackPlayback[track].position.pulse = 0;
-        trackPlayback[track].position.quarterNote++;
+        trackPlayback[track].position.step++;
 
         // Check if pattern ended
         if (ClipExists(track, clip)) {
             SequencePattern& currentPattern = GetPattern(track, clip, pattern);
 
-            if (trackPlayback[track].position.quarterNote >= currentPattern.quarterNotes) {
-                trackPlayback[track].position.quarterNote = 0;
+            if (trackPlayback[track].position.step >= currentPattern.steps) {
+                trackPlayback[track].position.step = 0;
                 trackPlayback[track].position.pulse = 0;
                 trackPlayback[track].position.pattern++;
 
@@ -912,7 +933,7 @@ void Sequence::ProcessTrack(uint8_t track)
                 if (trackPlayback[track].position.pattern >= GetPatternCount(track, clip)) {
                     // No nextClip, just loop the patterns
                     trackPlayback[track].position.pattern = 0;
-                    trackPlayback[track].position.quarterNote = 0;
+                    trackPlayback[track].position.step = 0;
                     trackPlayback[track].position.pulse = 0;
                 }
             }

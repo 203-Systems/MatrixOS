@@ -6,7 +6,7 @@
 #define SEQUENCE_VERSION 1
 
 struct SequencePattern {
-    uint8_t quarterNotes = 16;
+    uint8_t steps = 16;
     std::multimap<uint16_t, SequenceEvent> events;
 
     void Clear()

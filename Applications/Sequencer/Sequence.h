@@ -7,8 +7,8 @@ struct SequencePosition
 {
     uint8_t clip = 0;
     uint8_t pattern = 0;
-    uint8_t quarterNote = 0;
-    uint8_t pulse = 0; // Pulse within the current quarter note (0-95 for PPQN=96)
+    uint8_t step = 0;
+    uint8_t pulse = 0; // Pulse within the current step
 };
 
 class Sequence
@@ -27,9 +27,11 @@ private:
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
     uint32_t pulseSinceStart = 0;           // Global tick counter for note-off scheduling (96 PPQN)
-    uint8_t  currentQuarterNote = 0;
+    uint8_t  currentStep = 0;
     uint8_t  currentPulse = 0;              // Current pulse for swing timing (alternates 0/1 for on/off beat)
     uint32_t usPerPulse[2];                 // Microseconds per pulse with swing (on-beat/off-beat)
+    uint8_t stepDivision = 16;                // division: 4=quarter,8=8th,16=16th per step
+    uint16_t pulsesPerStep = (PPQN * 4) / 16;      // will be updated with stepDivision
 
     // Unswung Clock timing (24 PPQN) - For MIDI Clock & LED Animation
     uint32_t lastClockTime = 0;             // Last time a MIDI clock pulse was sent (microseconds)
@@ -104,6 +106,10 @@ public:
     uint8_t GetSwing();
     void SetSwing(uint8_t swing);
 
+    uint8_t GetStepDivision();
+    void SetStepDivision(uint8_t stepLen);
+    uint16_t GetPulsesPerStep() const { return pulsesPerStep; }
+
     uint8_t GetBarLength();
     void SetBarLength(uint8_t barLength);
     void UpdateEmptyPatternsWithBarLength();
@@ -123,7 +129,7 @@ public:
     bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
 
     SequencePosition& GetPosition(uint8_t track);
-    void SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t quarterNote = 0);
+    void SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step = 0);
     void SetClip(uint8_t track, uint8_t clip);
     void SetPattern(uint8_t track, uint8_t pattern);
 
@@ -132,11 +138,11 @@ public:
 
     uint32_t GetLastEventTime(uint8_t track);
 
-    Fract16 GetQuarterNoteProgress(); // Swing Applied
-    uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0);  // LED Helper
+    Fract16 GetStepProgress(); // Swing Applied
+    uint8_t StepProgressBreath(uint8_t lowBound = 0);  // LED Helper
 
-    Fract16 GetClockQuarterNoteProgress();
-    uint8_t ClockQuarterNoteProgressBreath(uint8_t lowBound = 0); // LED Helper
+    Fract16 GetClockStepProgress();
+    uint8_t ClockStepProgressBreath(uint8_t lowBound = 0); // LED Helper
 
     void RecordEvent(MidiPacket packet);
 };

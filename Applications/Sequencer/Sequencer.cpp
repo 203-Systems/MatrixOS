@@ -53,8 +53,9 @@ void Sequencer::SequencerUI()
 
                              for (const auto &step : stepSelected)
                              {
-                                 uint16_t startTime = step * Sequence::PPQN;
-                                 uint16_t endTime = startTime + Sequence::PPQN - 1;
+                                 uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
+                                 uint16_t startTime = step * pulsesPerStep;
+                                 uint16_t endTime = startTime + pulsesPerStep - 1;
 
                                  if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
                                  {
@@ -68,7 +69,7 @@ void Sequencer::SequencerUI()
                                  SequenceEvent event = SequenceEvent::Note(note, velocity, false);
                                  for (const auto &step : stepSelected)
                                  {
-                                     pattern->AddEvent(step * Sequence::PPQN, event);
+                                      pattern->AddEvent(step * sequence.GetPulsesPerStep(), event);
                                      noteActive.insert(note);
                                  }
                              }
@@ -1082,8 +1083,9 @@ void Sequencer::ClearSelectedNotes()
 
 void Sequencer::ClearStep(SequencePattern *pattern, uint8_t step)
 {
-    uint16_t startTime = step * Sequence::PPQN;
-    uint16_t endTime = startTime + Sequence::PPQN - 1;
+    uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
+    uint16_t startTime = step * pulsesPerStep;
+    uint16_t endTime = startTime + pulsesPerStep - 1;
     uint8_t channel = sequence.GetChannel(track);
 
     // Remove notes from noteActive and send noteOff
@@ -1113,9 +1115,10 @@ void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
     ClearStep(pattern, dest);
 
     // Copy events
-    uint16_t sourceStartTime = src * Sequence::PPQN;
-    uint16_t destStartTime = dest * Sequence::PPQN;
-    pattern->CopyEventsInRange(sourceStartTime, destStartTime, Sequence::PPQN);
+    uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
+    uint16_t sourceStartTime = src * pulsesPerStep;
+    uint16_t destStartTime = dest * pulsesPerStep;
+    pattern->CopyEventsInRange(sourceStartTime, destStartTime, pulsesPerStep);
     sequence.SetDirty();
 }
 

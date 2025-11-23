@@ -25,8 +25,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     uint8_t channel = sequencer->sequence.GetChannel(track);
     SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
 
-    uint16_t startTime = step * Sequence::PPQN;
-    uint16_t endTime = startTime + Sequence::PPQN - 1;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+    uint16_t startTime = step * pulsesPerStep;
+    uint16_t endTime = startTime + pulsesPerStep - 1;
 
     if(keyInfo->state == PRESSED)
     {
@@ -63,8 +64,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             bool existAlready = false;
 
-            uint16_t startTime = step * Sequence::PPQN;
-            uint16_t endTime = startTime + Sequence::PPQN - 1;
+            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+            uint16_t startTime = step * pulsesPerStep;
+            uint16_t endTime = startTime + pulsesPerStep - 1;
 
             for (const auto& [note, velocity] : sequencer->noteSelected)
             {
@@ -80,7 +82,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 for (const auto& [note, velocity] : sequencer->noteSelected)
                 {
                     SequenceEvent event = SequenceEvent::Note(note, velocity, false);
-                    pattern.AddEvent(step * Sequence::PPQN, event);
+                    pattern.AddEvent(step * sequencer->sequence.GetPulsesPerStep(), event);
                     sequencer->sequence.SetDirty();
                 }
             }
@@ -154,7 +156,7 @@ bool PatternPad::Render(Point origin)
 
 
     // Render base
-    for(uint8_t step = 0; step < pattern.quarterNotes; step++)
+    for(uint8_t step = 0; step < pattern.steps; step++)
     {
         Point point = Point(step % width, step / width);
         MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
@@ -162,10 +164,11 @@ bool PatternPad::Render(Point origin)
 
     // Render Note
     uint16_t hasNote = 0;
-    for(uint8_t slot = 0; slot < pattern.quarterNotes; slot++)
+    for(uint8_t slot = 0; slot < pattern.steps; slot++)
     {
-        uint16_t startTime = slot * Sequence::PPQN;
-        uint16_t endTime = startTime + Sequence::PPQN - 1;
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        uint16_t startTime = slot * pulsesPerStep;
+        uint16_t endTime = startTime + pulsesPerStep - 1;
 
         bool shouldRender = false;
 
@@ -216,10 +219,10 @@ bool PatternPad::Render(Point origin)
         SequencePosition& position = sequencer->sequence.GetPosition(track);
         if(patternIdx == position.pattern)
         {
-            uint8_t slot = position.quarterNote;
+            uint8_t slot = position.step;
             Point point = Point(slot % width, slot / width);
 
-            uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
+            uint8_t breathingScale = sequencer->sequence.StepProgressBreath();
 
             if(sequencer->sequence.RecordEnabled() == false)
             {
