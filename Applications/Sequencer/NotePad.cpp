@@ -369,11 +369,8 @@ bool SequencerNotePad::RenderPiano(Point origin)
                 bool isSelected = sequencer->noteSelected.count(note) > 0;
                 bool isActive = sequencer->IsNoteActive(note);
 
-                if (isSelected) {
+                if (isSelected || isActive) {
                     MatrixOS::LED::SetColor(globalPos, Color::White);
-                }
-                else if (isActive) {
-                    MatrixOS::LED::SetColor(globalPos, Color::Crossfade(metaTrack.color, Color::White, Fract16(0xA000)));
                 }
                 else {
                     // Check if note is root, in scale, or out of scale
