@@ -71,6 +71,7 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
                 if (pattern.RemoveNoteEventsInRange(startTime, endTime, note))
                 {
                     existAlready = true;
+                    sequencer->sequence.SetDirty();
                 }
             }
 
@@ -80,6 +81,7 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
                 {
                     SequenceEvent event = SequenceEvent::Note(note, velocity, false);
                     pattern.AddEvent(step * Sequence::PPQN, event);
+                    sequencer->sequence.SetDirty();
                 }
             }
         }

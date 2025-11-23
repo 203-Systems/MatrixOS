@@ -910,6 +910,7 @@ void Sequencer::ClearStep(SequencePattern *pattern, uint8_t step)
     }
 
     pattern->RemoveAllEventsInRange(startTime, endTime);
+    sequence.SetDirty();
 }
 
 void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
@@ -921,6 +922,7 @@ void Sequencer::CopyStep(SequencePattern *pattern, uint8_t src, uint8_t dest)
     uint16_t sourceStartTime = src * Sequence::PPQN;
     uint16_t destStartTime = dest * Sequence::PPQN;
     pattern->CopyEventsInRange(sourceStartTime, destStartTime, Sequence::PPQN);
+    sequence.SetDirty();
 }
 
 void Sequencer::SetView(ViewMode view)

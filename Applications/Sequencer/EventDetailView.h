@@ -41,11 +41,16 @@ private:
     bool MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
     bool DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo);
 
-    // Note event configuration (Y >= 2)
+    // Note event configuration
     void RenderNoteConfig(Point origin);
     bool NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo);
 
-    // CC event configuration (Y >= 2)
+    void RenderLengthSelector(Point origin);
+    bool LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+    void RenderVelocitySelector(Point origin);
+    bool VelocitySelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+
+    // CC event configuration
     void RenderCCConfig(Point origin);
     bool CCConfigKeyHandler(Point xy, KeyInfo* keyInfo);
 };

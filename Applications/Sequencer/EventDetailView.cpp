@@ -1,5 +1,14 @@
 #include "EventDetailView.h"
 #include "Sequence.h"
+#include <algorithm>
+
+
+const Color noteColor = Color(0xFFFF00);
+const Color aftertouchColor = Color(0x00FF80);
+const Color drumColor = Color(0xFF8000);
+const Color ccColor = Color(0x0080FF);
+const Color pcColor = Color(0x00FF80);
+const Color unknownColor = Color(0xFF0000);
 
 EventDetailView::EventDetailView(Sequencer* sequencer)
 {
@@ -66,35 +75,44 @@ void EventDetailView::RebuildEventList()
 
 bool EventDetailView::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
+    bool handled = false;
+
     // Route to appropriate handler based on Y position
     if (xy.y == 0)
     {
-        return EventSelectorKeyHandler(xy, keyInfo);
+        handled = EventSelectorKeyHandler(xy, keyInfo);
     }
     else if (xy.y == 1)
     {
         if (xy.x < 6)
         {
-            return MicroStepSelectorKeyHandler(xy, keyInfo);
+            handled = MicroStepSelectorKeyHandler(xy, keyInfo);
         }
         else if (xy.x == 7)
         {
-            return DeleteEventKeyHandler(xy, keyInfo);
+            handled = DeleteEventKeyHandler(xy, keyInfo);
+        }
+    }
+    else
+    {
+        auto& event = selectedEventIter->second;
+        if (event.eventType == SequenceEventType::NoteEvent)
+        {
+            handled = NoteConfigKeyHandler(xy - Point(0, 2), keyInfo);
+        }
+        else if (event.eventType == SequenceEventType::ControlChangeEvent)
+        {
+            handled = CCConfigKeyHandler(xy, keyInfo);
         }
     }
 
-    auto& event = selectedEventIter->second;
-    switch (event.eventType)
+    if (!handled && keyInfo->State() == HOLD)
     {
-        case SequenceEventType::NoteEvent:
-            return NoteConfigKeyHandler(xy, keyInfo);
-        case SequenceEventType::ControlChangeEvent:
-            return CCConfigKeyHandler(xy, keyInfo);
-        default:
-            break;
+        MatrixOS::UIUtility::TextScroll("Event Config", Color::White);
+        return true;
     }
 
-    return true;
+    return handled;
 }
 
 bool EventDetailView::Render(Point origin)
@@ -106,7 +124,7 @@ bool EventDetailView::Render(Point origin)
     switch(event.eventType)
     {
         case SequenceEventType::NoteEvent:
-            RenderNoteConfig(origin);
+            RenderNoteConfig(origin + Point(0, 2));
             break;
         case SequenceEventType::ControlChangeEvent:
             RenderCCConfig(origin);
@@ -123,12 +141,6 @@ void EventDetailView::RenderEventSelector(Point origin)
     uint8_t track = sequencer->track;
     Color trackColor = sequencer->meta.tracks[track].color;
 
-    const Color noteColor = Color(0xFFFF00);
-    const Color drumColor = Color(0xFF8000);
-    const Color ccColor = Color(0x0080FF);
-    const Color pcColor = Color(0x00FF80);
-    const Color unknownColor = Color(0xFF0000);
-
     // Render events in row Y=0, horizontally from X=0 to X=7
     for (uint8_t x = 0; x < 8; x++)
     {
@@ -143,8 +155,11 @@ void EventDetailView::RenderEventSelector(Point origin)
             switch (event.eventType)
             {
                 case SequenceEventType::NoteEvent:
-                    color = noteColor;
+                {
+                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
+                    color = noteData.aftertouch ? aftertouchColor : noteColor;
                     break;
+                }
                 case SequenceEventType::ControlChangeEvent:
                     color = ccColor;
                     break;
@@ -210,7 +225,15 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 
                 if (keyInfo->State() == HOLD)
                 {
-                    MatrixOS::UIUtility::TextScroll("Note Event", Color(0xFFFF00));
+                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
+                    if (noteData.aftertouch)
+                    {
+                        MatrixOS::UIUtility::TextScroll("Aftertouch Event", aftertouchColor);
+                    }
+                    else
+                    {
+                        MatrixOS::UIUtility::TextScroll("Note Event", noteColor);
+                    }
                 }
             }
         }
@@ -269,13 +292,13 @@ void EventDetailView::RenderMicroStepSelector(Point origin)
 
 bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 {
-    uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
-    uint8_t step = sequencer->sequence.GetPosition(sequencer->track).quarterNote;
-    uint16_t stepStartTime = step * Sequence::PPQN;
-    uint16_t targetTime = stepStartTime + (xy.x * slotSize);
-
     if (keyInfo->State() == PRESSED)
     {
+        uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
+        uint8_t step = sequencer->sequence.GetPosition(sequencer->track).quarterNote;
+        uint16_t stepStartTime = step * Sequence::PPQN;
+        uint16_t targetTime = stepStartTime + (xy.x * slotSize);
+
         uint8_t track = sequencer->track;
         uint8_t clip = sequencer->sequence.GetPosition(track).clip;
         uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
@@ -286,26 +309,22 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 
         if (oldTime != targetTime)
         {
-            // Copy the event data
             SequenceEvent eventData = eventIter->second;
-
-            // Remove old event
             pattern.events.erase(eventIter);
-
-            // Insert event at new time
             auto insertedIter = pattern.events.insert({targetTime, eventData});
+            sequencer->sequence.SetDirty();
             selectedEventIter = insertedIter;
-
-            // Rebuild event list to update iterators
             RebuildEventList();
         }
+        return true;
     }
     else if (keyInfo->State() == HOLD)
     {
-        MatrixOS::UIUtility::TextScroll("Microstep " + std::to_string(xy.x + 1), Color::White);
+        MatrixOS::UIUtility::TextScroll("Microstep " + std::to_string(xy.x), Color::White);
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
@@ -338,6 +357,7 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
         }
 
         pattern.events.erase(eventIter);
+        sequencer->sequence.SetDirty();
 
         RebuildEventList();
         selectedEventIter = eventRefs.front();
@@ -350,10 +370,113 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
 
 void EventDetailView::RenderNoteConfig(Point origin)
 {
+    SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+    Color modeColor = noteData.aftertouch ? aftertouchColor : noteColor;
+    MatrixOS::LED::SetColor(origin + Point(7, 0), modeColor);
+
+    RenderLengthSelector(origin + Point(0, 1));
+    RenderVelocitySelector(origin + Point(0, 3));
 }
 
 bool EventDetailView::NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo)
 {
+    SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+
+    if (xy == Point(7, 0))
+    {
+        if (keyInfo->State() == HOLD)
+        {
+            Color modeColor = noteData.aftertouch ? aftertouchColor : noteColor;
+            MatrixOS::UIUtility::TextScroll(noteData.aftertouch ? "Aftertouch Event" : "Note On Event", modeColor);
+            return true;
+        }
+        else if (keyInfo->State() == RELEASED)
+        {
+            noteData.aftertouch = !noteData.aftertouch;
+            sequencer->sequence.SetDirty();
+            return true;
+        }
+    }
+    else if (xy.y >= 1 && xy.y < 3)
+    {
+        return LengthSelectorKeyHandler(Point(xy.x, xy.y - 1), keyInfo);
+    }
+    else if (xy.y >= 3 && xy.y < 5)
+    {
+        return VelocitySelectorKeyHandler(Point(xy.x, xy.y - 3), keyInfo);
+    }
+
+    return false;
+}
+
+void EventDetailView::RenderLengthSelector(Point origin)
+{
+    const SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+    uint8_t filledSlots = std::min<uint8_t>(16, std::max<uint8_t>(1, (noteData.length + Sequence::PPQN - 1) / Sequence::PPQN));
+
+    for (uint8_t idx = 0; idx < 16; ++idx)
+    {
+        Point point = origin + Point(idx % 8, idx / 8);
+        MatrixOS::LED::SetColor(point, idx < filledSlots ? Color::White : Color(0x202020));
+    }
+}
+
+bool EventDetailView::LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
+{
+    SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+    uint8_t lengthIdx = xy.x + xy.y * 8;
+    uint8_t lengthPulses = std::clamp<uint8_t>(lengthIdx + 1, 1, 16);
+
+    if (keyInfo->State() == PRESSED)
+    {
+        noteData.length = lengthPulses * Sequence::PPQN;
+        sequencer->sequence.SetDirty();
+        return true;
+    }
+    else if (keyInfo->State() == HOLD)
+    {
+        MatrixOS::UIUtility::TextScroll("Length " + std::to_string(lengthPulses), Color::White);
+        return true;
+    }
+
+    return false;
+}
+
+void EventDetailView::RenderVelocitySelector(Point origin)
+{
+    const SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+    uint8_t currentVelocity = noteData.velocity;
+
+    for (uint8_t idx = 0; idx < 16; ++idx)
+    {
+        uint8_t x = idx % 8;
+        uint8_t y = idx / 8;
+        uint8_t slotMin = idx * 8;
+        bool highlight = currentVelocity >= slotMin;
+        Color color = highlight ? (noteData.aftertouch ? aftertouchColor : noteColor) : Color(0x202020);
+        MatrixOS::LED::SetColor(origin + Point(x, y), color);
+    }
+}
+
+bool EventDetailView::VelocitySelectorKeyHandler(Point xy, KeyInfo* keyInfo)
+{
+    SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
+    uint8_t velocityIdx = xy.x + xy.y * 8;
+    uint8_t velocity = std::clamp<uint8_t>(velocityIdx * 8 + 1, 1, 127);
+
+    if (keyInfo->State() == PRESSED)
+    {
+        noteData.velocity = velocity;
+        sequencer->sequence.SetDirty();
+        return true;
+    }
+    else if (keyInfo->State() == HOLD)
+    {
+        Color velocityColor = noteData.aftertouch ? aftertouchColor : noteColor;
+        MatrixOS::UIUtility::TextScroll("Velocity " + std::to_string(velocity), velocityColor);
+        return true;
+    }
+
     return false;
 }
 

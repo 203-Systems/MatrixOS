@@ -169,6 +169,12 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 sequencer->sequence.SetDirty();
             }
         }
+        else if(keyInfo->State() == HOLD)
+        {
+            uint8_t lengthIdx = xy.x + (xy.y - 2) * 8;
+            uint8_t newLength = lengthIdx + 1;
+            MatrixOS::UIUtility::TextScroll("Pattern Length " + std::to_string(newLength), Color::White);
+        }
     }
     return true;
 }
