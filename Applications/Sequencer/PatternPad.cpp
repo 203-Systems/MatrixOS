@@ -1,6 +1,6 @@
-#include "SequenceVisualizer.h"
+#include "PatternPad.h"
 
-SequenceVisualizer::SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
+PatternPad::PatternPad(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
 {
     this->sequencer = sequencer;
     this->stepSelected = stepSelected;
@@ -9,9 +9,9 @@ SequenceVisualizer::SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* st
     width = sequencer->sequence.GetTrackCount();
 }
 
-Dimension SequenceVisualizer::GetSize() { return Dimension(8, 2); }
+Dimension PatternPad::GetSize() { return Dimension(8, 2); }
 
-bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
+bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     if(keyInfo->state != PRESSED && keyInfo->state != RELEASED)
     {
@@ -36,7 +36,7 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(HasEvent && sequencer->ShiftActive() && !sequencer->sequence.Playing(track))
         {
             sequencer->ShiftEventOccured();
-            sequencer->sequence.SetPosition(track, clip, step);
+            sequencer->sequence.SetPosition(track, clip, patternIdx, step);
             sequencer->SetView(Sequencer::ViewMode::StepDetail);
             sequencer->ClearActiveNotes();
             sequencer->ClearSelectedNotes();
@@ -135,7 +135,7 @@ bool SequenceVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo)
     return true;
 }
 
-bool SequenceVisualizer::Render(Point origin)
+bool PatternPad::Render(Point origin)
 {
     uint8_t track = sequencer->track;
     uint8_t clip = sequencer->sequence.GetPosition(track).clip;

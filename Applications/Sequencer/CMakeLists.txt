@@ -7,7 +7,7 @@ add_library(Sequencer
     MixerControl.cpp
     PatternSelector.cpp
     TrackSelector.cpp
-    SequenceVisualizer.cpp
+    PatternPad.cpp
     ScaleVisualizer.cpp
     ScaleModifier.cpp
     EventDetailView.cpp

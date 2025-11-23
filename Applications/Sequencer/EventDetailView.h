@@ -14,6 +14,8 @@ class EventDetailView : public UIComponent {
 
     vector<std::multimap<uint16_t, SequenceEvent>::iterator> eventRefs;
     std::multimap<uint16_t, SequenceEvent>::iterator selectedEventIter;
+    SequencePosition position;
+    SequencePattern* pattern = nullptr;
 
     // UI parameters for displaying/editing event properties
     uint8_t selectedField = 0; // Which field is being edited

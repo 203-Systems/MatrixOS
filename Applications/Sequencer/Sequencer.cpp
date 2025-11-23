@@ -6,7 +6,7 @@
 #include "TrackSelector.h"
 #include "ClipLauncher.h"
 #include "MixerControl.h"
-#include "SequenceVisualizer.h"
+#include "PatternPad.h"
 #include "NotePad.h"
 #include "ControlBar.h"
 #include "ScaleVisualizer.h"
@@ -39,10 +39,10 @@ void Sequencer::SequencerUI()
 
     SequencePattern *pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
 
-    SequenceVisualizer sequenceVisualizer(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
-    sequenceVisualizer.SetEnableFunc([&]() -> bool
+    PatternPad patternPad(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
+    patternPad.SetEnableFunc([&]() -> bool
                                      { return currentView == ViewMode::Sequencer; });
-    sequencerUI.AddUIComponent(sequenceVisualizer, Point(0, 1));
+    sequencerUI.AddUIComponent(patternPad, Point(0, 1));
 
     SequencerNotePad notePad(this);
     notePad.OnSelect([&](bool noteOn, uint8_t note, uint8_t velocity) -> void

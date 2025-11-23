@@ -64,7 +64,7 @@ struct SequenceMeta {
         uint8_t hueIndex = MatrixOS::SYS::Millis() % 16;
         float hue = hueIndex * hueStep;
         color = Color::HsvToRgb(hue, 1.0f, 1.0f);
-        clockOutput = true;
+        clockOutput = false;
         for(uint8_t i = 0; i < tracks; i++)
         {
             SequenceMetaTrack track;

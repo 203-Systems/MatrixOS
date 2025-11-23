@@ -6,7 +6,7 @@
 
 #include "Sequencer.h"
 
-class SequenceVisualizer : public UIComponent {
+class PatternPad : public UIComponent {
     Sequencer* sequencer;
     vector<uint8_t>* stepSelected;
     std::unordered_map<uint8_t, uint8_t>* noteSelected;
@@ -14,7 +14,7 @@ class SequenceVisualizer : public UIComponent {
     uint8_t width = 8;
 
     public:
-    SequenceVisualizer(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive);
+    PatternPad(Sequencer* sequencer, vector<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive);
 
     Dimension GetSize();
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);

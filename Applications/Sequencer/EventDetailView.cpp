@@ -45,19 +45,16 @@ void EventDetailView::RebuildEventList()
 {
     eventRefs.clear();
 
-    uint8_t track = sequencer->track;
-    uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-    uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-    SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
-
-    uint8_t step = sequencer->sequence.GetPosition(track).quarterNote;
-    uint16_t startTime = step * Sequence::PPQN;
+    position = sequencer->sequence.GetPosition(sequencer->track);
+    pattern = &sequencer->sequence.GetPattern(sequencer->track, position.clip, position.pattern);
+    
+    uint16_t startTime = position.quarterNote * Sequence::PPQN;
     uint16_t endTime = startTime + Sequence::PPQN - 1;
 
     bool matchedSelection = false;
 
-    auto it = pattern.events.lower_bound(startTime);
-    while (it != pattern.events.end() && it->first <= endTime)
+    auto it = pattern->events.lower_bound(startTime);
+    while (it != pattern->events.end() && it->first <= endTime)
     {
         eventRefs.push_back(it);
         if(it == selectedEventIter)
@@ -67,7 +64,11 @@ void EventDetailView::RebuildEventList()
         ++it;
     }
 
-    if(!matchedSelection)
+    if (eventRefs.empty())
+    {
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
+    }
+    else if(!matchedSelection)
     {
         selectedEventIter = eventRefs.front();
     }
@@ -138,9 +139,6 @@ bool EventDetailView::Render(Point origin)
 
 void EventDetailView::RenderEventSelector(Point origin)
 {
-    uint8_t track = sequencer->track;
-    Color trackColor = sequencer->meta.tracks[track].color;
-
     // Render events in row Y=0, horizontally from X=0 to X=7
     for (uint8_t x = 0; x < 8; x++)
     {
@@ -186,8 +184,7 @@ void EventDetailView::RenderEventSelector(Point origin)
 
 bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 {
-    uint8_t track = sequencer->track;
-    uint8_t channel = sequencer->sequence.GetChannel(track);
+    uint8_t channel = sequencer->sequence.GetChannel(sequencer->track);
 
     if (keyInfo->State() == PRESSED)
     {
@@ -244,12 +241,9 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 
 void EventDetailView::RenderMicroStepSelector(Point origin)
 {
-    uint8_t track = sequencer->track;
-
     // Render micro step positions on Y=1 row (only 6 positions)
     // PPQN = 96, divided into 6 slots = 16 ticks per slot
-    uint8_t step = sequencer->sequence.GetPosition(track).quarterNote;
-    uint16_t stepStartTime = step * Sequence::PPQN;
+    uint16_t stepStartTime = position.quarterNote * Sequence::PPQN;
 
     for (uint8_t x = 0; x < 6; x++)
     {
@@ -295,14 +289,8 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
     if (keyInfo->State() == PRESSED)
     {
         uint16_t slotSize = Sequence::PPQN / 6; // 96 / 6 = 16
-        uint8_t step = sequencer->sequence.GetPosition(sequencer->track).quarterNote;
-        uint16_t stepStartTime = step * Sequence::PPQN;
+        uint16_t stepStartTime = position.quarterNote * Sequence::PPQN;
         uint16_t targetTime = stepStartTime + (xy.x * slotSize);
-
-        uint8_t track = sequencer->track;
-        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-        SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
 
         auto eventIter = selectedEventIter;
         uint16_t oldTime = eventIter->first;
@@ -310,8 +298,8 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
         if (oldTime != targetTime)
         {
             SequenceEvent eventData = eventIter->second;
-            pattern.events.erase(eventIter);
-            auto insertedIter = pattern.events.insert({targetTime, eventData});
+            pattern->events.erase(eventIter);
+            auto insertedIter = pattern->events.insert({targetTime, eventData});
             sequencer->sequence.SetDirty();
             selectedEventIter = insertedIter;
             RebuildEventList();
@@ -336,11 +324,7 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
     }
     else if (keyInfo->State() == RELEASED)
     {
-        uint8_t track = sequencer->track;
-        uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-        uint8_t channel = sequencer->sequence.GetChannel(track);
-        SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+        uint8_t channel = sequencer->sequence.GetChannel(sequencer->track);
 
         auto eventIter = selectedEventIter;
         SequenceEvent eventData = eventIter->second;
@@ -356,11 +340,10 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
             }
         }
 
-        pattern.events.erase(eventIter);
+        pattern->events.erase(eventIter);
         sequencer->sequence.SetDirty();
 
         RebuildEventList();
-        selectedEventIter = eventRefs.front();
 
         return true;
     }
