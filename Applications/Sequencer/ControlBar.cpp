@@ -138,6 +138,21 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
             sequencer->shiftEventOccured = true;
           }
 
+          if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
+          {
+            uint8_t track = sequencer->track;
+            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+            uint8_t step = *sequencer->stepSelected.begin();
+
+            sequencer->ShiftEventOccured();
+            sequencer->sequence.SetPosition(track, clip, patternIdx, step);
+            sequencer->SetView(Sequencer::ViewMode::StepDetail);
+            sequencer->ClearActiveNotes();
+            sequencer->ClearSelectedNotes();
+            sequencer->stepSelected.clear();
+          }
+
           sequencer->shiftOnTime = MatrixOS::SYS::Millis();
           sequencer->shift++;
         }
@@ -185,6 +200,21 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
           {
             sequencer->patternView = !sequencer->patternView;
             sequencer->shiftEventOccured = true;
+          }
+
+          if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
+          {
+            uint8_t track = sequencer->track;
+            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+            uint8_t step = *sequencer->stepSelected.begin();
+
+            sequencer->ShiftEventOccured();
+            sequencer->sequence.SetPosition(track, clip, patternIdx, step);
+            sequencer->SetView(Sequencer::ViewMode::StepDetail);
+            sequencer->ClearActiveNotes();
+            sequencer->ClearSelectedNotes();
+            sequencer->stepSelected.clear();
           }
 
           sequencer->shiftOnTime = MatrixOS::SYS::Millis();
