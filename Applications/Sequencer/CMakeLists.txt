@@ -19,5 +19,8 @@ add_library(Sequencer
 target_link_libraries(Sequencer PUBLIC
     MatrixOSAPPInterface
 )
+target_include_directories(Sequencer PUBLIC
+    ${CMAKE_SOURCE_DIR}/Library/cb0r/include
+)
 
 RegisterApplicationClass(Sequencer)

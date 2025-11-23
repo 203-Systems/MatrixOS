@@ -146,4 +146,8 @@ public:
     uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0); // LED Helper
 
     void RecordEvent(MidiPacket packet);
+
+    // Data accessors (for serialization)
+    const SequenceData& GetData() const { return data; }
+    void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithBarLength(); UpdateTiming(); dirty = true; }
 };

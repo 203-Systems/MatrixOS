@@ -2,6 +2,8 @@
 
 #include "MatrixOS.h"
 #include "Scales.h"
+#include <vector>
+#include <cstdint>
 
 enum class SequenceTrackMode {
    NoteTrack = 0x00,
@@ -46,3 +48,7 @@ struct SequenceMeta {
 
     void New(uint8_t tracks);
 };
+
+// CBOR serialization helpers
+bool SerializeSequenceMeta(const SequenceMeta& meta, std::vector<uint8_t>& out);
+bool DeserializeSequenceMeta(const uint8_t* in, size_t len, SequenceMeta& out);

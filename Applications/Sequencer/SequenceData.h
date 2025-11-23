@@ -2,6 +2,9 @@
 
 #include "MatrixOS.h"
 #include "SequenceEvent.h"
+#include <vector>
+#include <cstdint>
+#include <unordered_map>
 
 #define SEQUENCE_VERSION 1
 
@@ -43,3 +46,7 @@ struct SequenceData {
     uint32_t record = 0xFFFFFFFF;
     vector<SequenceTrack> tracks;
 };
+
+// CBOR serialization helpers
+bool SerializeSequenceData(const SequenceData& data, std::vector<uint8_t>& out);
+bool DeserializeSequenceData(const uint8_t* in, size_t len, SequenceData& out);

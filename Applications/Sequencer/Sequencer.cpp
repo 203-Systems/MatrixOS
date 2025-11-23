@@ -15,16 +15,13 @@
 
 void Sequencer::Setup(const vector<string> &args)
 {
-    // Application initialization code here
-    // if (lastSequence.Get().empty())
+    if (!Load(saveSlot))
     {
+        saveSlot = 0;
         sequence.New(8);
         meta.New(8);
+        Save(saveSlot);
     }
-    // else
-    // {
-    //     // Load sequence
-    // }
 
     sequence.EnableClockOutput(meta.clockOutput);
 
@@ -289,8 +286,10 @@ void Sequencer::SequencerMenu()
     saveBtn.SetSize(Dimension(2, 2));
     saveBtn.OnPress([&]() -> void
                     {
-            sequence.SetDirty(false);
-            // Save();
+            if(Save(saveSlot))
+            {
+                sequence.SetDirty(false);
+            }
             });
     sequencerMenu.AddUIComponent(saveBtn, Point(3, 3));
 
@@ -1088,10 +1087,6 @@ bool Sequencer::IsNoteActive(uint8_t note) const
     return noteActive.count(note) > 0;
 }
 
-
-
-
-
 void Sequencer::SetView(ViewMode view)
 {
     if (currentView == view)
@@ -1106,4 +1101,131 @@ void Sequencer::SetView(ViewMode view)
     }
 
     currentView = view;
+}
+
+bool Sequencer::Save(uint16_t slot)
+{
+    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
+    uint16_t idx = slot & 0x03FF;
+    if (type == saveSlotType::OnBoard)
+    {
+        MLOGD("Sequencer", "Save on-board slot %u", idx);
+        return SaveOnBoard(idx);
+    }
+    else if (type == saveSlotType::SDCard)
+    {
+        MLOGD("Sequencer", "Save SD slot %u", idx);
+        return SaveSD(idx);
+    }
+    MLOGD("Sequencer", "Save failed: unknown slot type %u", static_cast<uint16_t>(type));
+    return false;
+}
+
+bool Sequencer::SaveOnBoard(uint16_t slot)
+{
+    if (slot >= ONBOARD_SLOT_MAX) { return false; }
+    uint16_t encodedSlot = (static_cast<uint16_t>(saveSlotType::OnBoard) << 10) | slot;
+    saveSlot = encodedSlot;
+    std::vector<uint8_t> seqBuf;
+    std::vector<uint8_t> metaBuf;
+    if (!SerializeSequenceData(sequence.GetData(), seqBuf)) { MLOGE("Sequencer", "SerializeSequenceData failed"); return false; }
+    if (!SerializeSequenceMeta(meta, metaBuf)) { MLOGE("Sequencer", "SerializeSequenceMeta failed"); return false; }
+    MLOGD("Sequencer", "SaveOnBoard slot %u sizes seq=%u meta=%u", slot, (unsigned)seqBuf.size(), (unsigned)metaBuf.size());
+    if (!MatrixOS::NVS::SetVariable(SEQUENCER_DATA_HASH, seqBuf.data(), seqBuf.size()))
+    {
+        MLOGE("Sequencer", "SaveOnBoard failed writing sequence data");
+        return false;
+    }
+    if (!MatrixOS::NVS::SetVariable(SEQUENCER_META_HASH, metaBuf.data(), metaBuf.size()))
+    {
+        MLOGE("Sequencer", "SaveOnBoard failed writing sequence meta");
+        return false;
+    }
+    MLOGD("Sequencer", "Sequence saved to on board slot %d", slot);
+    return true;
+}
+
+bool Sequencer::SaveSD(uint16_t slot)
+{
+    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SaveSD slot out of range %u", slot); return false; }
+    // TODO Implmentation
+    return false;
+}
+
+bool Sequencer::Load(uint16_t slot)
+{
+    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
+    uint16_t idx = slot & 0x03FF;
+
+    if (type == saveSlotType::OnBoard)
+    {
+        MLOGD("Sequencer", "Load on-board slot %u", idx);
+        return LoadOnBoard(idx);
+    }
+    else if (type == saveSlotType::SDCard)
+    {
+        MLOGD("Sequencer", "Load SD slot %u", idx);
+        return LoadSD(idx);
+    }
+    MLOGD("Sequencer", "Load failed: unknown slot type %u", static_cast<uint16_t>(type));
+    return false;
+}
+
+bool Sequencer::LoadOnBoard(uint16_t slot)
+{
+    if (slot >= ONBOARD_SLOT_MAX) { MLOGD("Sequencer", "LoadOnBoard slot out of range %u", slot); return false; }
+    size_t seqSize = MatrixOS::NVS::GetSize(SEQUENCER_DATA_HASH);
+    size_t metaSize = MatrixOS::NVS::GetSize(SEQUENCER_META_HASH);
+    constexpr size_t kMaxBlobSize = 64 * 1024;
+    MLOGD("Sequencer", "LoadOnBoard sizes seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize);
+    if (seqSize == 0 || metaSize == 0) { MLOGE("Sequencer", "LoadOnBoard empty blobs seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize); return false; }
+    if (seqSize > kMaxBlobSize || metaSize > kMaxBlobSize) { MLOGE("Sequencer", "LoadOnBoard blob too large seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize); return false; } // Prevent absurd allocations (e.g. storage not ready)
+    std::vector<uint8_t> seqBuf(seqSize);
+    std::vector<uint8_t> metaBuf(metaSize);
+    MatrixOS::NVS::GetVariable(SEQUENCER_DATA_HASH, seqBuf.data(), seqBuf.size());
+    MatrixOS::NVS::GetVariable(SEQUENCER_META_HASH, metaBuf.data(), metaBuf.size());
+    SequenceData dataCopy = sequence.GetData();
+    if (!DeserializeSequenceData(seqBuf.data(), seqBuf.size(), dataCopy)) { MLOGE("Sequencer", "DeserializeSequenceData failed"); return false; }
+    SequenceMeta metaCopy = meta;
+    if (!DeserializeSequenceMeta(metaBuf.data(), metaBuf.size(), metaCopy)) { MLOGE("Sequencer", "DeserializeSequenceMeta failed"); return false; }
+    sequence.SetData(dataCopy);
+    meta = metaCopy;
+    MLOGD("Sequencer", "Sequence from On board slot %d loaded", slot);
+    return true;
+}
+
+bool Sequencer::LoadSD(uint16_t slot)
+{
+    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "LoadSD slot out of range %u", slot); return false; }
+    // TODO implmentation
+    return false;
+}
+
+bool Sequencer::Saved(uint16_t slot)
+{
+    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
+    if (type == saveSlotType::OnBoard)
+    {
+        return SavedOnBoard(slot & 0x03FF);
+    }
+    else if (type == saveSlotType::SDCard)
+    {
+        return SavedSD(slot & 0x03FF);
+    }
+    return false;
+}
+
+bool Sequencer::SavedOnBoard(uint16_t slot)
+{
+    if (slot >= ONBOARD_SLOT_MAX) { MLOGD("Sequencer", "SavedOnBoard slot out of range %u", slot); return false; }
+    size_t seqSize = MatrixOS::NVS::GetSize(SEQUENCER_DATA_HASH);
+    size_t metaSize = MatrixOS::NVS::GetSize(SEQUENCER_META_HASH);
+    return seqSize > 0 && metaSize > 0;
+}
+
+bool Sequencer::SavedSD(uint16_t slot)
+{
+    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SavedSD slot out of range %u", slot); return false; }
+    // TODO implementation
+    return false;
 }
