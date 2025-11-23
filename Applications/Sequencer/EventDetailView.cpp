@@ -412,12 +412,25 @@ bool EventDetailView::NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo)
 void EventDetailView::RenderLengthSelector(Point origin)
 {
     const SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
-    uint8_t filledSlots = std::min<uint8_t>(16, std::max<uint8_t>(1, (noteData.length + Sequence::PPQN - 1) / Sequence::PPQN));
+    uint8_t fullSlots = noteData.length / Sequence::PPQN;
+    uint16_t partial = noteData.length % Sequence::PPQN;
 
     for (uint8_t idx = 0; idx < 16; ++idx)
     {
         Point point = origin + Point(idx % 8, idx / 8);
-        MatrixOS::LED::SetColor(point, idx < filledSlots ? Color::White : Color(0x202020));
+        Color color = Color(0x202020);
+
+        if (idx < fullSlots)
+        {
+            color = Color(0xA000FF);
+        }
+        else if (idx == fullSlots && partial > 0)
+        {
+            uint16_t scale = static_cast<uint16_t>(partial) * 192 / Sequence::PPQN; // Add negative offset (255 to 192) to make small difference more obvious
+            color = Color(0xA000FF).Dim(std::min<uint16_t>(255, scale));
+        }
+
+        MatrixOS::LED::SetColor(point, color);
     }
 }
 
@@ -429,13 +442,43 @@ bool EventDetailView::LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 
     if (keyInfo->State() == PRESSED)
     {
-        noteData.length = lengthPulses * Sequence::PPQN;
+        uint16_t currentLength = noteData.length;
+        uint16_t slotStart = lengthIdx * Sequence::PPQN;
+        uint16_t slotEnd = slotStart + Sequence::PPQN;
+
+        if (currentLength > slotStart && currentLength <= slotEnd)
+        {
+            static const uint16_t fractionTicks[] = {
+                Sequence::PPQN * 3 / 4, // 75%
+                Sequence::PPQN / 2,     // 50%
+                Sequence::PPQN / 4      // 25%
+            };
+
+            uint16_t coverage = currentLength - slotStart;
+            uint16_t nextCoverage = Sequence::PPQN; // default back to 100%
+
+            for (uint16_t fraction : fractionTicks)
+            {
+                if (coverage > fraction)
+                {
+                    nextCoverage = fraction;
+                    break;
+                }
+            }
+
+            noteData.length = slotStart + nextCoverage;
+        }
+        else
+        {
+            noteData.length = std::min<uint16_t>(16, lengthPulses) * Sequence::PPQN;
+        }
+
         sequencer->sequence.SetDirty();
         return true;
     }
     else if (keyInfo->State() == HOLD)
     {
-        MatrixOS::UIUtility::TextScroll("Length " + std::to_string(lengthPulses), Color::White);
+        MatrixOS::UIUtility::TextScroll("Length " + std::to_string(lengthPulses), Color(0xA000FF));
         return true;
     }
 
@@ -451,9 +494,20 @@ void EventDetailView::RenderVelocitySelector(Point origin)
     {
         uint8_t x = idx % 8;
         uint8_t y = idx / 8;
-        uint8_t slotMin = idx * 8;
-        bool highlight = currentVelocity >= slotMin;
-        Color color = highlight ? (noteData.aftertouch ? aftertouchColor : noteColor) : Color(0x202020);
+        uint8_t slotMin = idx * 8 + 1;
+        uint8_t slotMax = idx == 15 ? 127 : (slotMin + 7);
+        Color color = Color(0x202020);
+
+        if (currentVelocity > slotMin && currentVelocity < slotMax)
+        {
+            uint16_t fraction = (currentVelocity - slotMin) * 192 / 8;
+            color = (noteData.aftertouch ? aftertouchColor : noteColor).Dim(std::min<uint16_t>(255, fraction));
+        }
+        else if (currentVelocity >= slotMax)
+        {
+            color = noteData.aftertouch ? aftertouchColor : noteColor;
+        }
+
         MatrixOS::LED::SetColor(origin + Point(x, y), color);
     }
 }
@@ -462,18 +516,41 @@ bool EventDetailView::VelocitySelectorKeyHandler(Point xy, KeyInfo* keyInfo)
 {
     SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
     uint8_t velocityIdx = xy.x + xy.y * 8;
-    uint8_t velocity = std::clamp<uint8_t>(velocityIdx * 8 + 1, 1, 127);
+    uint8_t slotMin = velocityIdx * 8 + 1;
+    uint8_t slotMax = velocityIdx == 15 ? 127 : slotMin + 7;
 
     if (keyInfo->State() == PRESSED)
     {
-        noteData.velocity = velocity;
+        uint8_t currentVelocity = noteData.velocity;
+        if (currentVelocity >= slotMin && currentVelocity <= slotMax)
+        {
+            static const uint8_t fractionSteps[] = { 5, 3, 1, 7 }; // ~75%, 50%, 25%, 100%
+            uint8_t coverage = currentVelocity - slotMin; // 0-7
+            uint8_t nextCoverage = 7; // default to full
+
+            for (uint8_t fraction : fractionSteps)
+            {
+                if (coverage > fraction)
+                {
+                    nextCoverage = fraction;
+                    break;
+                }
+            }
+
+            noteData.velocity = std::clamp<uint8_t>(slotMin + nextCoverage, 1, 127);
+        }
+        else
+        {
+            noteData.velocity = std::clamp<uint8_t>(slotMin + 7, 1, 127);
+        }
+
         sequencer->sequence.SetDirty();
         return true;
     }
     else if (keyInfo->State() == HOLD)
     {
         Color velocityColor = noteData.aftertouch ? aftertouchColor : noteColor;
-        MatrixOS::UIUtility::TextScroll("Velocity " + std::to_string(velocity), velocityColor);
+        MatrixOS::UIUtility::TextScroll("Velocity " + std::to_string(noteData.velocity), velocityColor);
         return true;
     }
 
