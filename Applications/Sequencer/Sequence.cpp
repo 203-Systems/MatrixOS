@@ -657,6 +657,18 @@ void Sequence::SetSolo(uint8_t track, bool val)
             data.solo |= mask;
         else
             data.solo &= ~mask;
+
+        // Send all-notes-off on this track's channel when solo state changes
+        uint8_t channel = GetChannel(track);
+        MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL);
+        // Also send all-notes-off to other channels when soloing to avoid stuck notes
+        if (val) {
+            for (uint8_t i = 0; i < trackPlayback.size(); i++) {
+                uint8_t ch = GetChannel(i);
+                if (ch == channel) continue;
+                MatrixOS::MIDI::Send(MidiPacket::ControlChange(ch, 123, 0), MIDI_PORT_ALL);
+            }
+        }
         dirty = true;
     }
 }
@@ -677,6 +689,10 @@ void Sequence::SetMute(uint8_t track, bool val)
             data.mute |= mask;
         else
             data.mute &= ~mask;
+
+        // Send all-notes-off on this track's channel when mute state changes
+        uint8_t channel = GetChannel(track);
+        MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL);
         dirty = true;
     }
 }
