@@ -76,7 +76,7 @@ struct SequenceMeta {
             track.config.note.scale = (uint16_t)Scale::MINOR;
             track.config.note.root = 0;
             track.config.note.rootOffset = 0;
-            track.config.note.octave = 0;
+            track.config.note.octave = 3;
             this->tracks.push_back(track);
         }
     }
