@@ -42,7 +42,7 @@ bool TrackSelector::Render(Point origin)
         Color color = sequencer->meta.tracks[i].color;
         if(i == sequencer->track)
         {
-            MatrixOS::LED::SetColor(origin + Point(i, 0), Color::Crossfade(color, Color::White, Fract16(0xA000)));
+            MatrixOS::LED::SetColor(origin + Point(i, 0), Color::Crossfade(color, Color::White, Fract16(0xB000)));
         }
         else if(sequencer->sequence.GetEnabled(i) == false)
         {
