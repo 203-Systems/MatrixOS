@@ -1,15 +1,14 @@
 #include "ScaleModifier.h"
 
-SequenceScaleModifier::SequenceScaleModifier(uint16_t* scale, Color color, Color rootColor) {
-  this->scale = scale;
+SequenceScaleModifier::SequenceScaleModifier(Color color, Color rootColor) {
   this->changeCallback = nullptr;
   this->color = color;
   this->rootColor = rootColor;
 }
 
-void SequenceScaleModifier::ChangeScalePtr(uint16_t* scale)
+void SequenceScaleModifier::SetScaleFunc(std::function<uint16_t()> getScale)
 {
-  this->scale = scale;
+  this->getScale = std::move(getScale);
 }
 
 void SequenceScaleModifier::OnChange(std::function<void(uint16_t)> changeCallback) {
@@ -32,7 +31,7 @@ Dimension SequenceScaleModifier::GetSize() {
 
 bool SequenceScaleModifier::Render(Point origin) {
   // Root is always 0, so we just use the scale directly
-  uint16_t scale_map = *scale & 0xFFF;
+  uint16_t scale_map = getScale() & 0xFFF;
 
   for (uint8_t note = 0; note < 12; note++)
   {
@@ -58,8 +57,8 @@ bool SequenceScaleModifier::KeyEvent(Point xy, KeyInfo* keyInfo) {
     uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
 
     // Flip the bit for the selected note
-    *scale ^= (1 << note);
-    OnChangeCallback(*scale);
+    uint16_t newScale = getScale() ^ (1 << note);
+    OnChangeCallback(newScale);
   }
 
   return true;

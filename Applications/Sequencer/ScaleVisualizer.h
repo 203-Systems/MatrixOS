@@ -6,20 +6,24 @@
 
 class ScaleVisualizer : public UIComponent {
  public:
-  uint8_t* rootKey;
-  uint8_t* rootOffset;
-  uint16_t* scale;
+  std::function<uint8_t()> getRootKey;
+  std::function<uint8_t()> getRootOffset;
+  std::function<uint16_t()> getScale;
   Color color;
   Color rootColor;
   Color rootOffsetColor;
   bool offsetMode = false;
 
-  ScaleVisualizer(uint8_t* rootKey, uint8_t* rootOffset, uint16_t* scale, Color color = Color(0xFF00FF), Color rootColor = Color(0x8000FF), Color rootOffsetColor = Color(0xFF0080));
+  ScaleVisualizer(Color color, Color rootColor, Color rootOffsetColor);
 
-  void OnChange(std::function<void()> callback);
+  void SetGetRootKeyFunc(std::function<uint8_t()> func);
+  void SetGetRootOffsetFunc(std::function<uint8_t()> func);
+  void SetGetScaleFunc(std::function<uint16_t()> func);
+
+  void OnChange(std::function<void(uint8_t root, uint8_t offset, uint16_t scale)> callback);
 
  private:
-  std::function<void()> onChange;
+  std::function<void(uint8_t, uint8_t, uint16_t)> onChange;
 
   virtual Color GetColor();
   virtual Dimension GetSize();

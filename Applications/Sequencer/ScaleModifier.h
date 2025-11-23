@@ -7,14 +7,14 @@
 
 class SequenceScaleModifier : public UIComponent {
  public:
-  uint16_t* scale;
+  std::function<uint16_t()> getScale;
   std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
   Color color;
   Color rootColor;
 
-  SequenceScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF));
+  SequenceScaleModifier(Color color, Color rootColor);
 
-  void ChangeScalePtr(uint16_t* scale);
+  void SetScaleFunc(std::function<uint16_t()> getScale);
   void OnChange(std::function<void(uint16_t)> changeCallback);
   virtual void OnChangeCallback(uint16_t newScale);
 

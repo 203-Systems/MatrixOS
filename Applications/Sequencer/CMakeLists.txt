@@ -12,6 +12,7 @@ add_library(Sequencer
     PatternPad.cpp
     ScaleVisualizer.cpp
     ScaleModifier.cpp
+    ScaleSelector.cpp
     EventDetailView.cpp
     ClipLauncher.cpp
 )
