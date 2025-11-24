@@ -76,6 +76,7 @@ public:
 
     void EnableClockOutput(bool val);
     bool ClockOutputEnabled();
+    int16_t GetClocksTillStart();
 
     uint8_t GetTrackCount();
 

@@ -334,6 +334,11 @@ bool Sequence::ClockOutputEnabled()
     return clockOutput;
 }
 
+int16_t Sequence::GetClocksTillStart()
+{
+    return clocksTillStart;
+}
+
 // Track count
 uint8_t Sequence::GetTrackCount()
 {

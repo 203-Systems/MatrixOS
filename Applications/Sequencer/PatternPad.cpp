@@ -25,6 +25,12 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     uint8_t channel = sequencer->sequence.GetChannel(track);
     SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
 
+    int16_t clockToStart = sequencer->sequence.GetClocksTillStart();
+    if(sequencer->sequence.RecordEnabled() && sequencer->sequence.Playing(track) && (clockToStart > 0))
+    {
+        return true;
+    }
+
     uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
     uint16_t startTime = step * pulsesPerStep;
     uint16_t endTime = startTime + pulsesPerStep - 1;
@@ -166,6 +172,17 @@ bool PatternPad::Render(Point origin)
     uint8_t track = sequencer->track;
     uint8_t clip = sequencer->sequence.GetPosition(track).clip;
     uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+
+    int16_t clockToStart = sequencer->sequence.GetClocksTillStart();
+    if(sequencer->sequence.RecordEnabled() && sequencer->sequence.Playing(track) && (clockToStart > 0))
+    {
+        for(uint8_t step = 0; step < 16; step++)
+        {
+            Point xy = Point(step % width, step / width);
+            MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(clockToStart <= 6 * (16 - step)));
+        }
+        return true;
+    }
 
     Color trackColor = sequencer->meta.tracks[track].color;
 
