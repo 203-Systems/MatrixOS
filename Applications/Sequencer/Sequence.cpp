@@ -124,7 +124,7 @@ void Sequence::Tick()
                 currentStep++;
             }
 
-            MLOGD("Sequence", "Pulse: %u\tStep: %u\tPulseSinceStart: %lu", currentPulse, currentStep, (unsigned long)pulseSinceStart);
+            // MLOGD("Sequence", "Pulse: %u\tStep: %u\tPulseSinceStart: %lu", currentPulse, currentStep, (unsigned long)pulseSinceStart);
 
             for (uint8_t track = 0; track < trackPlayback.size(); track++) {
                 ProcessTrack(track);
