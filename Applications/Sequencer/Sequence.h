@@ -30,8 +30,8 @@ private:
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
     uint32_t pulseSinceStart = 0;           // Global tick counter for note-off scheduling (96 PPQN)
-    uint8_t  currentStep = 0;
-    uint8_t  currentPulse = 0;              // Current pulse for swing timing (alternates 0/1 for on/off beat)
+    uint16_t  currentStep = 0;
+    uint16_t  currentPulse = 0;              // Current pulse for swing timing (alternates 0/1 for on/off beat)
     uint32_t usPerPulse[2];                 // Microseconds per pulse with swing (on-beat/off-beat)
     uint8_t stepDivision = 16;                // division: 4=quarter,8=8th,16=16th per step
     uint16_t pulsesPerStep = (PPQN * 4) / 16;      // will be updated with stepDivision

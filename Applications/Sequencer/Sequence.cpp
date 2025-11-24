@@ -913,10 +913,7 @@ void Sequence::ProcessTrack(uint8_t track)
     bool trackEnabled = GetEnabled(track);
 
     // 1. Check for clip transition or stop at start of bar (when nextClip is queued)
-    if (trackPlayback[track].nextClip != 255 &&
-        trackPlayback[track].position.step == 0 &&
-        trackPlayback[track].position.pulse == 0) {
-
+    if (trackPlayback[track].nextClip != 255 &&  currentStep == 0) {
         // Special case: 254 means stop after current bar
         if (trackPlayback[track].nextClip == 254) {
             Stop(track);
