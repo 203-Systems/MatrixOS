@@ -14,6 +14,16 @@
 #include "ScaleSelector.h"
 #include "EventDetailView.h"
 
+void Sequencer::SequenceTask(void* ctx)
+{
+    Sequencer* self = static_cast<Sequencer*>(ctx);
+    for (;;)
+    {
+        self->sequence.Tick();
+        taskYIELD(); // yield immediately, keep highest-rate scheduling
+    }
+}
+
 void Sequencer::Setup(const vector<string> &args)
 {
     if (!Load(saveSlot))
@@ -27,7 +37,22 @@ void Sequencer::Setup(const vector<string> &args)
     sequence.EnableClockOutput(meta.clockOutput);\
     sequence.SetDirty(false);
 
+    if (tickTaskHandle == nullptr)
+    {
+        xTaskCreate(SequenceTask, "SeqTick", configMINIMAL_STACK_SIZE * 2, this, 1, &tickTaskHandle);
+    }
+
     SequencerUI();
+}
+
+void Sequencer::End()
+{
+    sequence.Stop();
+    if (tickTaskHandle)
+    {
+        vTaskDelete(tickTaskHandle);
+        tickTaskHandle = nullptr;
+    }
 }
 
 void Sequencer::SequencerUI()
@@ -148,9 +173,6 @@ void Sequencer::SequencerUI()
             pattern->ClearStepEvents(step, pulsesPerStep);
         } });
     sequencerUI.AddUIComponent(controlBar, Point(0, 7));
-
-    sequencerUI.SetGlobalLoopFunc([&]() -> void
-                                  { sequence.Tick(); });
 
     sequencerUI.AllowExit(false);
     sequencerUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
@@ -320,7 +342,6 @@ void Sequencer::SequencerMenu()
         {
             if (keyEvent->info.state == HOLD)
             {
-                sequence.Stop();
                 Exit();
             }
             else if (keyEvent->info.state == RELEASED)

@@ -29,11 +29,13 @@ class Sequencer : public Application {
   };
 
   void Setup(const vector<string>& args) override;
+  void End();
 
   // CreateSavedVar("Sequencer", lastSequence, string, "");
   
   SequenceMeta meta;
   Sequence sequence;
+  TaskHandle_t tickTaskHandle = nullptr;
 
   uint8_t track = 0;
 
@@ -99,4 +101,6 @@ class Sequencer : public Application {
   bool SavedOnBoard(uint16_t slot);
   bool SavedSD(uint16_t slot);
   SavedVar<uint16_t> saveSlot = SavedVar<uint16_t>(SEQUENCER_SLOT_HASH, 0);
+
+  static void SequenceTask(void* ctx);
 };
