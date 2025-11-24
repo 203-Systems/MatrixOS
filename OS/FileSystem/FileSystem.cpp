@@ -174,6 +174,15 @@ namespace MatrixOS::FileSystem
     return (result == FR_OK);
   }
 
+  bool Rename(const string& from, const string& to) {
+    string translated_from = TranslatePath(from);
+    string translated_to = TranslatePath(to);
+    if (translated_from.empty() || translated_to.empty()) return false;
+    EnsureAppDirectory();
+    FRESULT result = f_rename(translated_from.c_str(), translated_to.c_str());
+    return (result == FR_OK);
+  }
+
   vector<string> ListDir(const string& path) {
     vector<string> files;
     string translated_path = TranslatePath(path);

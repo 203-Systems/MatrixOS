@@ -15,5 +15,6 @@ namespace MatrixOS::FileSystem
   File Open(const string& path, const string& mode);
   bool Remove(const string& path);
   bool RemoveDir(const string& path);
+  bool Rename(const string& from, const string& to);
   vector<string> ListDir(const string& path);
 }
