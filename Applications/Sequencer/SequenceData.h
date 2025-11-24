@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <unordered_map>
 
-#define SEQUENCE_VERSION 2
-#define MIN_SUPPORTED_SEQUENCE_VERSION 2
+#define SEQUENCE_VERSION 3
+#define MIN_SUPPORTED_SEQUENCE_VERSION 3
 
 struct SequencePattern {
     uint8_t steps = 16;
@@ -51,6 +51,6 @@ struct SequenceData {
     vector<SequenceTrack> tracks;
 };
 
-// CBOR serialization helpers
-bool SerializeSequenceData(const SequenceData& data, std::vector<uint8_t>& out);
-bool DeserializeSequenceData(const uint8_t* in, size_t len, SequenceData& out);
+// Stream-based encoding (CBOR sequence) using File.
+bool SerializeSequenceData(const SequenceData& data, File& file);
+bool DeserializeSequenceData(File& file, SequenceData& out);

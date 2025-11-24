@@ -7,17 +7,6 @@
 #include "Sequence.h"
 #include "SequenceMeta.h"
 
-#define SEQUENCE_VERSION 1
-#define SEQUENCER_SLOT_HASH StaticHash("203 Systems-Sequencer-saveSlot")
-#define SEQUENCER_DATA_HASH StaticHash("203 Systems-Sequencer-SequenceData")
-#define SEQUENCER_META_HASH StaticHash("203 Systems-Sequencer-SequenceMeta")
-
-enum class saveSlotType : uint16_t
-{
-  OnBoard = 0,
-  SDCard = 1,
-};
-
 class Sequencer : public Application {
  public:
   inline static Application_Info info = {
@@ -90,18 +79,11 @@ class Sequencer : public Application {
   void SetView(ViewMode view);
 
   // Persistence
-  static constexpr uint8_t ONBOARD_SLOT_MAX = 1;
   static constexpr uint8_t SD_SLOT_MAX = 32;
   bool Load(uint16_t slot);
   bool Save(uint16_t slot);
-  bool LoadOnBoard(uint16_t slot);
-  bool LoadSD(uint16_t slot);
-  bool SaveOnBoard(uint16_t slot);
-  bool SaveSD(uint16_t slot);
   bool Saved(uint16_t slot);
-  bool SavedOnBoard(uint16_t slot);
-  bool SavedSD(uint16_t slot);
-  SavedVar<uint16_t> saveSlot = SavedVar<uint16_t>(SEQUENCER_SLOT_HASH, 0);
-
+  CreateSavedVar("Sequencer", saveSlot, uint16_t, 0xFFFF);
+  
   static void SequenceTask(void* ctx);
 };

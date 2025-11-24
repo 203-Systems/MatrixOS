@@ -25,13 +25,12 @@ void Sequencer::SequenceTask(void* ctx)
 }
 
 void Sequencer::Setup(const vector<string> &args)
-{
+{   
     if (!Load(saveSlot))
     {
-        saveSlot = 0;
         sequence.New(8);
         meta.New(8);
-        Save(saveSlot);
+        saveSlot = 0xFFFF;
     }
 
     sequence.EnableClockOutput(meta.clockOutput);\
@@ -1224,127 +1223,160 @@ void Sequencer::SetView(ViewMode view)
 bool Sequencer::Save(uint16_t slot)
 {
     sequence.Stop();
-    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
-    uint16_t idx = slot & 0x03FF;
-    if (type == saveSlotType::OnBoard)
-    {
-        MLOGD("Sequencer", "Save on-board slot %u", idx);
-        return SaveOnBoard(idx);
-    }
-    else if (type == saveSlotType::SDCard)
-    {
-        MLOGD("Sequencer", "Save SD slot %u", idx);
-        return SaveSD(idx);
-    }
-    MLOGD("Sequencer", "Save failed: unknown slot type %u", static_cast<uint16_t>(type));
-    return false;
-}
 
-bool Sequencer::SaveOnBoard(uint16_t slot)
-{
-    if (slot >= ONBOARD_SLOT_MAX) { return false; }
-    uint16_t encodedSlot = (static_cast<uint16_t>(saveSlotType::OnBoard) << 10) | slot;
-    saveSlot = encodedSlot;
-    std::vector<uint8_t> seqBuf;
-    std::vector<uint8_t> metaBuf;
-    if (!SerializeSequenceData(sequence.GetData(), seqBuf)) { MLOGE("Sequencer", "SerializeSequenceData failed"); return false; }
-    if (!SerializeSequenceMeta(meta, metaBuf)) { MLOGE("Sequencer", "SerializeSequenceMeta failed"); return false; }
-    MLOGD("Sequencer", "SaveOnBoard slot %u sizes seq=%u meta=%u", slot, (unsigned)seqBuf.size(), (unsigned)metaBuf.size());
-    if (!MatrixOS::NVS::SetVariable(SEQUENCER_DATA_HASH, seqBuf.data(), seqBuf.size()))
+    if (slot == 0xFFFF) { 
+        MLOGD("Sequencer", "Load - No Previous Assigned Slot"); 
+        // TODO open picker to save to
+        slot = 0; // Set to 0 for now
+    } 
+
+    if (slot >= SD_SLOT_MAX) { MLOGE("Sequencer", "Save - slot out of range %u", slot); return false; }
+    if (!MatrixOS::FileSystem::Available()) { MLOGE("Sequencer", "Save - filesystem not available"); return false; }
+
+    if (!MatrixOS::FileSystem::Exists("/sequences") && !MatrixOS::FileSystem::MakeDir("/sequences"))
     {
-        MLOGE("Sequencer", "SaveOnBoard failed writing sequence data");
+        MLOGE("Sequencer", "Save - failed to create /sequences");
         return false;
     }
-    if (!MatrixOS::NVS::SetVariable(SEQUENCER_META_HASH, metaBuf.data(), metaBuf.size()))
+    else if (!MatrixOS::FileSystem::Exists("/sequences"))
     {
-        MLOGE("Sequencer", "SaveOnBoard failed writing sequence meta");
-        return false;
+        MLOGD("Sequencer", "Save - created /sequences");
     }
-    MLOGD("Sequencer", "Sequence saved to on board slot %d", slot);
+
+    string slotDir = "/sequences/" + std::to_string(slot);
+    if (!MatrixOS::FileSystem::Exists(slotDir))
+    {
+        if (!MatrixOS::FileSystem::MakeDir(slotDir))
+        {
+            MLOGE("Sequencer", "Save - failed to create %s", slotDir.c_str());
+            return false;
+        }
+        MLOGD("Sequencer", "Save - created slot dir %s", slotDir.c_str());
+    }
+
+    // Sequence file paths
+    string dataPath = slotDir + "/sequence.data";
+    string metaPath = slotDir + "/sequence.meta";
+
+    // Backup file paths
+    string prevDir = slotDir + "/prev";
+    string prevData = prevDir + "/sequence.data";
+    string prevMeta = prevDir + "/sequence.meta";
+
+    if (!MatrixOS::FileSystem::Exists(prevDir))
+    {
+        if (!MatrixOS::FileSystem::MakeDir(prevDir))
+        {
+            MLOGE("Sequencer", "Save - failed to create %s", prevDir.c_str());
+            return false;
+        }
+        MLOGD("Sequencer", "Save - created backup dir %s", prevDir.c_str());
+    }
+
+    // Backup existing files if present
+    if (MatrixOS::FileSystem::Exists(dataPath))
+    {
+        MatrixOS::FileSystem::Remove(prevData);
+        if (!MatrixOS::FileSystem::Rename(dataPath, prevData))
+        {
+            MLOGE("Sequencer", "Save - failed to backup data to %s", prevData.c_str());
+        }
+        else
+        {
+            MLOGD("Sequencer", "Save - backed up data to %s", prevData.c_str());
+        }
+    }
+
+    if (MatrixOS::FileSystem::Exists(metaPath))
+    {
+        MatrixOS::FileSystem::Remove(prevMeta);
+        if (!MatrixOS::FileSystem::Rename(metaPath, prevMeta))
+        {
+            MLOGE("Sequencer", "Save - failed to backup meta to %s", prevMeta.c_str());
+        }
+        else
+        {
+            MLOGD("Sequencer", "Save - backed up meta to %s", prevMeta.c_str());
+        }
+    }
+
+    // Write meta first
+    File metaFile = MatrixOS::FileSystem::Open(metaPath, "wb");
+    if (metaFile.Name().empty()) { MLOGE("Sequencer", "Save - open meta fail %s", metaPath.c_str()); return false; }
+    bool metaOk = SerializeSequenceMeta(meta, metaFile);
+    size_t metaFileSize = metaFile.Size();
+    metaFile.Close();
+    if (!metaOk) { MLOGE("Sequencer", "Save - write meta failed"); return false; }
+    MLOGD("Sequencer", "Save - sequence meta written to %s, size=%u", metaPath.c_str(), (unsigned)metaFileSize);
+
+    // Write sequence data
+    File dataFile = MatrixOS::FileSystem::Open(dataPath, "wb");
+    if (dataFile.Name().empty()) { MLOGE("Sequencer", "Save - open fail %s", dataPath.c_str()); return false; }
+    bool dataOk = SerializeSequenceData(sequence.GetData(), dataFile);
+    size_t dataFileSize = dataFile.Size();
+    dataFile.Close();
+    if (!dataOk) { MLOGE("Sequencer", "Save - serialize stream failed"); return false; }
+    MLOGD("Sequencer", "Save - sequence data written to %s size=%u", dataPath.c_str(), (unsigned)dataFileSize);
+
+    saveSlot = slot;
     return true;
-}
-
-bool Sequencer::SaveSD(uint16_t slot)
-{
-    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SaveSD slot out of range %u", slot); return false; }
-    // TODO Implmentation
-    return false;
 }
 
 bool Sequencer::Load(uint16_t slot)
 {
-    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
-    uint16_t idx = slot & 0x03FF;
+    sequence.Stop();
 
-    if (type == saveSlotType::OnBoard)
-    {
-        MLOGD("Sequencer", "Load on-board slot %u", idx);
-        return LoadOnBoard(idx);
-    }
-    else if (type == saveSlotType::SDCard)
-    {
-        MLOGD("Sequencer", "Load SD slot %u", idx);
-        return LoadSD(idx);
-    }
-    MLOGD("Sequencer", "Load failed: unknown slot type %u", static_cast<uint16_t>(type));
-    return false;
-}
+    if (slot == 0xFFFF) { MLOGD("Sequencer", "Load - No Previous Assigned Slot"); return false; }
+    if (slot >= SD_SLOT_MAX) { MLOGE("Sequencer", "Load - slot out of range %u", slot); return false; }
+    if (!MatrixOS::FileSystem::Available()) { MLOGE("Sequencer", "Load - filesystem not available"); return false; }
 
-bool Sequencer::LoadOnBoard(uint16_t slot)
-{
-    if (slot >= ONBOARD_SLOT_MAX) { MLOGD("Sequencer", "LoadOnBoard slot out of range %u", slot); return false; }
-    size_t seqSize = MatrixOS::NVS::GetSize(SEQUENCER_DATA_HASH);
-    size_t metaSize = MatrixOS::NVS::GetSize(SEQUENCER_META_HASH);
-    constexpr size_t kMaxBlobSize = 64 * 1024;
-    MLOGD("Sequencer", "LoadOnBoard sizes seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize);
-    if (seqSize == 0 || metaSize == 0) { MLOGE("Sequencer", "LoadOnBoard empty blobs seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize); return false; }
-    if (seqSize > kMaxBlobSize || metaSize > kMaxBlobSize) { MLOGE("Sequencer", "LoadOnBoard blob too large seq=%u meta=%u", (unsigned)seqSize, (unsigned)metaSize); return false; } // Prevent absurd allocations (e.g. storage not ready)
-    std::vector<uint8_t> seqBuf(seqSize);
-    std::vector<uint8_t> metaBuf(metaSize);
-    MatrixOS::NVS::GetVariable(SEQUENCER_DATA_HASH, seqBuf.data(), seqBuf.size());
-    MatrixOS::NVS::GetVariable(SEQUENCER_META_HASH, metaBuf.data(), metaBuf.size());
-    SequenceData dataCopy = sequence.GetData();
-    if (!DeserializeSequenceData(seqBuf.data(), seqBuf.size(), dataCopy)) { MLOGE("Sequencer", "DeserializeSequenceData failed"); return false; }
+    string slotDir = "/sequences/" + std::to_string(slot);
+    string dataPath = slotDir + "/sequence.data";
+    string metaPath = slotDir + "/sequence.meta";
+
+    // Ensure slot and prev directories exist
+    if (!MatrixOS::FileSystem::Exists("/sequences"))
+    {
+        MLOGE("Sequencer", "Save - /sequences does not exist");
+        return false;
+    }
+    if (!MatrixOS::FileSystem::Exists(slotDir))
+    {
+        MLOGE("Sequencer", "Save - slot dir %s does not exist", slotDir.c_str());
+        return false;
+    }
+
+    // Read meta first
+    File metaFile = MatrixOS::FileSystem::Open(metaPath, "rb");
+    if (metaFile.Name().empty()) { MLOGE("Sequencer", "Load - open meta fail %s", metaPath.c_str()); return false; }
     SequenceMeta metaCopy = meta;
-    if (!DeserializeSequenceMeta(metaBuf.data(), metaBuf.size(), metaCopy)) { MLOGE("Sequencer", "DeserializeSequenceMeta failed"); return false; }
+    bool metaOk = DeserializeSequenceMeta(metaFile, metaCopy);
+    metaFile.Close();
+    if (!metaOk) { MLOGE("Sequencer", "Load - deserialize meta failed"); return false; }
+    MLOGD("Sequencer", "Loaded sequence meta from %s", metaPath.c_str());
+
+    // Read sequence data
+    File dataFile = MatrixOS::FileSystem::Open(dataPath, "rb");
+    if (dataFile.Name().empty()) { MLOGE("Sequencer", "Load - open fail %s", dataPath.c_str()); return false; }
+    SequenceData dataCopy = sequence.GetData();
+    bool dataOk = DeserializeSequenceData(dataFile, dataCopy);
+    dataFile.Close();
+    if (!dataOk) { MLOGE("Sequencer", "Load - deserialize data failed"); return false; }
+    MLOGD("Sequencer", "Loaded sequence data from %s", dataPath.c_str());
+
+
     sequence.SetData(dataCopy);
     meta = metaCopy;
-    MLOGD("Sequencer", "Sequence from On board slot %d loaded", slot);
+    MLOGD("Sequencer", "Loaded SD slot %u", slot);
     return true;
-}
-
-bool Sequencer::LoadSD(uint16_t slot)
-{
-    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "LoadSD slot out of range %u", slot); return false; }
-    // TODO implmentation
-    return false;
 }
 
 bool Sequencer::Saved(uint16_t slot)
 {
-    saveSlotType type = static_cast<saveSlotType>(slot >> 10);
-    if (type == saveSlotType::OnBoard)
-    {
-        return SavedOnBoard(slot & 0x03FF);
-    }
-    else if (type == saveSlotType::SDCard)
-    {
-        return SavedSD(slot & 0x03FF);
-    }
-    return false;
-}
-
-bool Sequencer::SavedOnBoard(uint16_t slot)
-{
-    if (slot >= ONBOARD_SLOT_MAX) { MLOGD("Sequencer", "SavedOnBoard slot out of range %u", slot); return false; }
-    size_t seqSize = MatrixOS::NVS::GetSize(SEQUENCER_DATA_HASH);
-    size_t metaSize = MatrixOS::NVS::GetSize(SEQUENCER_META_HASH);
-    return seqSize > 0 && metaSize > 0;
-}
-
-bool Sequencer::SavedSD(uint16_t slot)
-{
     if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SavedSD slot out of range %u", slot); return false; }
-    // TODO implementation
-    return false;
+    if (!MatrixOS::FileSystem::Available()) { return false; }
+    string base = "/sequences/" + std::to_string(slot) + "/";
+    string dataPath = base + "sequence.data";
+    string metaPath = base + "sequence.meta";
+    return MatrixOS::FileSystem::Exists(dataPath) && MatrixOS::FileSystem::Exists(metaPath);
 }

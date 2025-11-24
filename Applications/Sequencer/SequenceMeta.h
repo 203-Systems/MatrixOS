@@ -41,7 +41,6 @@ struct SequenceMetaTrack {
 };
 
 struct SequenceMeta {
-    std::string name;
     Color color;
     bool clockOutput;
     vector<SequenceMetaTrack> tracks;
@@ -49,6 +48,6 @@ struct SequenceMeta {
     void New(uint8_t tracks);
 };
 
-// CBOR serialization helpers
-bool SerializeSequenceMeta(const SequenceMeta& meta, std::vector<uint8_t>& out);
-bool DeserializeSequenceMeta(const uint8_t* in, size_t len, SequenceMeta& out);
+// CBOR serialization helpers (streaming sequence)
+bool SerializeSequenceMeta(const SequenceMeta& meta, File& file);
+bool DeserializeSequenceMeta(File& file, SequenceMeta& out);
