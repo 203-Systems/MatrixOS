@@ -76,6 +76,7 @@ void UI::RenderUI() {
       Point xy = uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       uiComponent->Render(xy);
+      taskYIELD();
     }
     PostRender();
     MatrixOS::LED::Update();
