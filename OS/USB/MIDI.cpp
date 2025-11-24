@@ -12,6 +12,7 @@ namespace MatrixOS::USB::MIDI
   std::vector<MidiPort> ports;
   std::vector<TaskHandle_t> portTasks;
   std::vector<string> portTaskNames;
+  SemaphoreHandle_t usbMidiMutex;
 
   std::vector<uint8_t> sysex_buffer;
 
@@ -21,7 +22,11 @@ namespace MatrixOS::USB::MIDI
     while (true)
     {
       if (ports[itf].Get(&packet, portMAX_DELAY))
-      { tud_midi_stream_write(ports[itf].id % 0x100, packet.data, packet.Length()); }
+      { 
+        if (usbMidiMutex) { xSemaphoreTake(usbMidiMutex, portMAX_DELAY); }
+        tud_midi_stream_write(ports[itf].id % 0x100, packet.data, packet.Length()); 
+        if (usbMidiMutex) { xSemaphoreGive(usbMidiMutex); }
+      }
     }
   }
 
@@ -33,10 +38,15 @@ namespace MatrixOS::USB::MIDI
     portTasks.clear();
     portTaskNames.clear();
     ports.clear();
+    if (usbMidiMutex) {
+      vSemaphoreDelete(usbMidiMutex);
+      usbMidiMutex = nullptr;
+    }
 
     // Create ports and tasks
     ports.reserve(USB_MIDI_COUNT);
     portTasks.reserve(USB_MIDI_COUNT);
+    usbMidiMutex = xSemaphoreCreateMutex();
 
     for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
     {
