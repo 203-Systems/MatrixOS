@@ -912,7 +912,28 @@ void Sequence::ProcessTrack(uint8_t track)
 
     bool trackEnabled = GetEnabled(track);
 
-    // 1. Fire events at current tick position
+    // 1. Check for clip transition or stop at start of bar (when nextClip is queued)
+    if (trackPlayback[track].nextClip != 255 &&
+        trackPlayback[track].position.step == 0 &&
+        trackPlayback[track].position.pulse == 0) {
+
+        // Special case: 254 means stop after current bar
+        if (trackPlayback[track].nextClip == 254) {
+            Stop(track);
+            return;
+        }
+
+        // Transition to the queued clip at bar boundary
+        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
+        trackPlayback[track].position.pattern = 0;
+        trackPlayback[track].position.step = 0;
+        trackPlayback[track].position.pulse = 0;
+        // Clear nextClip after transitioning
+        trackPlayback[track].nextClip = 255;
+        // continue processing events in new clip this tick
+    }
+
+    // 2. Fire events at current tick position
     uint8_t clip = trackPlayback[track].position.clip;
     uint8_t pattern = trackPlayback[track].position.pattern;
 
@@ -980,7 +1001,7 @@ void Sequence::ProcessTrack(uint8_t track)
         }
     }
 
-    // 2. Process note-offs that have reached their time
+    // 3. Process note-offs that have reached their time
     //    Only check the earliest entries (efficient with multimap)
     while (!trackPlayback[track].noteOffQueue.empty() &&
            trackPlayback[track].noteOffQueue.begin()->first <= pulseSinceStart) {
@@ -994,27 +1015,6 @@ void Sequence::ProcessTrack(uint8_t track)
 
         trackPlayback[track].noteOffMap.erase(note);
         trackPlayback[track].noteOffQueue.erase(trackPlayback[track].noteOffQueue.begin());
-    }
-
-    // 3. Check for clip transition or stop at start of bar (when nextClip is queued)
-    if (trackPlayback[track].nextClip != 255 &&
-        currentStep == 0 &&
-        currentPulse == 0) {
-
-        // Special case: 254 means stop after current bar
-        if (trackPlayback[track].nextClip == 254) {
-            Stop(track);
-            return;
-        }
-
-        // Transition to the queued clip at bar boundary
-        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
-        trackPlayback[track].position.pattern = 0;
-        trackPlayback[track].position.step = 0;
-        trackPlayback[track].position.pulse = 0;
-        // Clear nextClip after transitioning
-        trackPlayback[track].nextClip = 255;
-        return; // Skip further processing this tick to start fresh on next tick
     }
 
     // 4. Advance pulse position
