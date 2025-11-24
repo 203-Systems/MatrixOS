@@ -175,11 +175,13 @@ bool SerializeSequenceData(const SequenceData& data, std::vector<uint8_t>& out)
 {
     out.clear();
     // Top-level map with 8 entries
-    cb_write_uint(out, CB0R_MAP, 8);
+    cb_write_uint(out, CB0R_MAP, 10);
     cb_write_text(out, "ver"); cb_write_uint(out, CB0R_INT, data.version);
     cb_write_text(out, "bpm"); cb_write_uint(out, CB0R_INT, data.bpm);
     cb_write_text(out, "swing"); cb_write_uint(out, CB0R_INT, data.swing);
     cb_write_text(out, "plen"); cb_write_uint(out, CB0R_INT, data.patternLength);
+    cb_write_text(out, "beats"); cb_write_uint(out, CB0R_INT, data.beatsPerBar);
+    cb_write_text(out, "beatUnit"); cb_write_uint(out, CB0R_INT, data.beatUnit);
     cb_write_text(out, "solo"); cb_write_uint(out, CB0R_INT, data.solo);
     cb_write_text(out, "mute"); cb_write_uint(out, CB0R_INT, data.mute);
     cb_write_text(out, "rec"); cb_write_uint(out, CB0R_INT, data.record);
@@ -315,6 +317,8 @@ bool DeserializeSequenceData(const uint8_t* in, size_t len, SequenceData& out)
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item)) out.bpm = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item)) out.swing = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"plen", &item)) out.patternLength = item.value;
+    if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"beats", &item)) out.beatsPerBar = item.value;
+    if (cb0r_find(&root, CB0R_UTF8, 8, (uint8_t*)"beatUnit", &item)) out.beatUnit = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"solo", &item)) out.solo = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"mute", &item)) out.mute = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"rec", &item)) out.record = item.value;
