@@ -205,9 +205,9 @@ bool PatternPad::Render(Point origin)
 
     // Render Note
     uint16_t hasNote = 0;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
     for(uint8_t slot = 0; slot < pattern.steps; slot++)
     {
-        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
         uint16_t startTime = slot * pulsesPerStep;
         uint16_t endTime = startTime + pulsesPerStep - 1;
 
