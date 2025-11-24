@@ -292,12 +292,12 @@ void Sequencer::SequencerMenu()
                              { SwingSelector(); });
     sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 4));
 
-    UIButton barLengthSelectorBtn;
-    barLengthSelectorBtn.SetName("Bar Length Selector");
-    barLengthSelectorBtn.SetColor(Color(0x00A0FF));
-    barLengthSelectorBtn.OnPress([&]() -> void
-                                 { BarLengthSelector(); });
-    sequencerMenu.AddUIComponent(barLengthSelectorBtn, Point(0, 5));
+    UIButton patternLengthSelectorBtn;
+    patternLengthSelectorBtn.SetName("Pattern Length Selector");
+    patternLengthSelectorBtn.SetColor(Color(0x00A0FF));
+    patternLengthSelectorBtn.OnPress([&]() -> void
+                                 { PatternLengthSelector(); });
+    sequencerMenu.AddUIComponent(patternLengthSelectorBtn, Point(0, 5));
 
     UIButton saveBtn;
     saveBtn.SetName("Save Sequence");
@@ -935,19 +935,19 @@ void Sequencer::SwingSelector()
     }
 }
 
-void Sequencer::BarLengthSelector()
+void Sequencer::PatternLengthSelector()
 {
     Color color = Color(0x00A0FF);
     Color updateColor = Color(0x80FF00);
     uint32_t updateTime = 0;
-    UI barLengthSelector("Bar Length Selector", color, false);
-    int32_t barLength = sequence.GetBarLength();
-    int32_t offsettedBarLength = barLength - 1;
+    UI patternLengthSelector("Pattern Length Selector", color, false);
+    int32_t patternLength = sequence.GetPatternLength();
+    int32_t offsettedPatternLength = patternLength - 1;
 
-    // Bar Length text display
-    UITimedDisplay barLengthTextDisplay(500);
-    barLengthTextDisplay.SetDimension(Dimension(8, 4));
-    barLengthTextDisplay.SetRenderFunc([&](Point origin) -> void
+    // Pattern Length text display
+    UITimedDisplay patternLengthTextDisplay(500);
+    patternLengthTextDisplay.SetDimension(Dimension(8, 4));
+    patternLengthTextDisplay.SetRenderFunc([&](Point origin) -> void
                                        {
         // L
         MatrixOS::LED::SetColor(origin + Point(0, 0), color);
@@ -975,7 +975,7 @@ void Sequencer::BarLengthSelector()
         MatrixOS::LED::SetColor(origin + Point(7, 2), color);
         MatrixOS::LED::SetColor(origin + Point(7, 3), color);
     });
-    barLengthSelector.AddUIComponent(barLengthTextDisplay, Point(0, 0));
+    patternLengthSelector.AddUIComponent(patternLengthTextDisplay, Point(0, 0));
 
     UI4pxNumber numDisplay;
     numDisplay.SetColorFunc([&](uint16_t digit) -> Color
@@ -990,44 +990,44 @@ void Sequencer::BarLengthSelector()
         }
     });
     numDisplay.SetDigits(2);
-    numDisplay.SetValuePointer(&barLength);
+    numDisplay.SetValuePointer(&patternLength);
     numDisplay.SetSpacing(1);
     numDisplay.SetEnableFunc([&]() -> bool
-                             { return !barLengthTextDisplay.IsEnabled(); });
-    barLengthSelector.AddUIComponent(numDisplay, Point(1, 0));
+                             { return !patternLengthTextDisplay.IsEnabled(); });
+    patternLengthSelector.AddUIComponent(numDisplay, Point(1, 0));
 
-    UISelector barLengthInput;
-    barLengthInput.SetDimension(Dimension(8, 2));
-    barLengthInput.SetName("Bar Length");
-    barLengthInput.SetColorFunc([&]() -> Color
+    UISelector patternLengthInput;
+    patternLengthInput.SetDimension(Dimension(8, 2));
+    patternLengthInput.SetName("Pattern Length");
+    patternLengthInput.SetColorFunc([&]() -> Color
                            {return (MatrixOS::SYS::Millis() - updateTime < 1000) ?  updateColor : color;});
-    barLengthInput.SetCount(64);
-    barLengthInput.SetValuePointer((uint16_t *)&offsettedBarLength);
-    barLengthInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
-    barLengthInput.OnChange([&](uint16_t val) -> void
+    patternLengthInput.SetCount(64);
+    patternLengthInput.SetValuePointer((uint16_t *)&offsettedPatternLength);
+    patternLengthInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
+    patternLengthInput.OnChange([&](uint16_t val) -> void
                             {
-                                barLength = val + 1;
-                                barLengthTextDisplay.Disable();
+                                patternLength = val + 1;
+                                patternLengthTextDisplay.Disable();
                                 updateTime = 0;
                             });
 
-    barLengthSelector.AddUIComponent(barLengthInput, Point(0, 6));
+    patternLengthSelector.AddUIComponent(patternLengthInput, Point(0, 6));
 
     UIButton updatePatternsBtn;
     updatePatternsBtn.SetName("Update Empty Patterns");
     updatePatternsBtn.SetColor(updateColor);
     updatePatternsBtn.OnPress([&]() -> void {
-        sequence.SetBarLength(barLength);
-        sequence.UpdateEmptyPatternsWithBarLength();
+        sequence.SetPatternLength(patternLength);
+        sequence.UpdateEmptyPatternsWithPatternLength();
         updateTime = MatrixOS::SYS::Millis();
     });
-    barLengthSelector.AddUIComponent(updatePatternsBtn, Point(7, 5));
+    patternLengthSelector.AddUIComponent(updatePatternsBtn, Point(7, 5));
 
-    barLengthSelector.Start();
+    patternLengthSelector.Start();
 
-    if (sequence.GetBarLength() != barLength)
+    if (sequence.GetPatternLength() != patternLength)
     {
-        sequence.SetBarLength(barLength);
+        sequence.SetPatternLength(patternLength);
     }
 }
 

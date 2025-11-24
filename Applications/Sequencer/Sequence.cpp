@@ -18,7 +18,7 @@ void Sequence::New(uint8_t tracks)
     // Initialize sequence data
     data.bpm = 120;
     data.swing = 50;
-    data.barLength = 16;
+    data.patternLength = 16;
     data.version = SEQUENCE_VERSION;
     data.tracks.clear();
     data.tracks.reserve(tracks);
@@ -115,7 +115,7 @@ void Sequence::Tick()
             if (currentPulse >= pulsesPerStep) {
                 currentPulse = 0;
                 currentStep++;
-                if (currentStep >= data.barLength) {
+                if (currentStep >= data.patternLength) {
                     currentStep = 0;
                 }
             }
@@ -451,8 +451,8 @@ int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps)
     if (!ClipExists(track, clip)) return -1;
     if(data.tracks[track].clips[clip].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return -1;}
 
-    // If length is 0, use barLength as default
-    uint8_t actualLength = (steps == 0) ? data.barLength : steps;
+    // If length is 0, use patternLength as default
+    uint8_t actualLength = (steps == 0) ? data.patternLength : steps;
 
     data.tracks[track].clips[clip].patterns.emplace_back();
     data.tracks[track].clips[clip].patterns.back().steps = actualLength;
@@ -591,22 +591,22 @@ void Sequence::SetStepDivision(uint8_t stepLen)
     }
 }
 
-// Bar Length
-uint8_t Sequence::GetBarLength()
+// Pattern Length
+uint8_t Sequence::GetPatternLength()
 {
-    return data.barLength;
+    return data.patternLength;
 }
 
-void Sequence::SetBarLength(uint8_t barLength)
+void Sequence::SetPatternLength(uint8_t patternLength)
 {
-    if(barLength != data.barLength)
+    if(patternLength != data.patternLength)
     {
-        data.barLength = barLength;
+        data.patternLength = patternLength;
         dirty = true;
     }
 }
 
-void Sequence::UpdateEmptyPatternsWithBarLength()
+void Sequence::UpdateEmptyPatternsWithPatternLength()
 {
     // Iterate through all tracks
     for (uint8_t track = 0; track < data.tracks.size(); track++)
@@ -620,7 +620,7 @@ void Sequence::UpdateEmptyPatternsWithBarLength()
                 // Only update patterns that are empty (no events)
                 if (pattern.events.empty())
                 {
-                    pattern.steps = data.barLength;
+                    pattern.steps = data.patternLength;
                 }
             }
         }

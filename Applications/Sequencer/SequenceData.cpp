@@ -179,7 +179,7 @@ bool SerializeSequenceData(const SequenceData& data, std::vector<uint8_t>& out)
     cb_write_text(out, "ver"); cb_write_uint(out, CB0R_INT, data.version);
     cb_write_text(out, "bpm"); cb_write_uint(out, CB0R_INT, data.bpm);
     cb_write_text(out, "swing"); cb_write_uint(out, CB0R_INT, data.swing);
-    cb_write_text(out, "bar"); cb_write_uint(out, CB0R_INT, data.barLength);
+    cb_write_text(out, "plen"); cb_write_uint(out, CB0R_INT, data.patternLength);
     cb_write_text(out, "solo"); cb_write_uint(out, CB0R_INT, data.solo);
     cb_write_text(out, "mute"); cb_write_uint(out, CB0R_INT, data.mute);
     cb_write_text(out, "rec"); cb_write_uint(out, CB0R_INT, data.record);
@@ -311,7 +311,7 @@ bool DeserializeSequenceData(const uint8_t* in, size_t len, SequenceData& out)
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"ver", &item)) out.version = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item)) out.bpm = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item)) out.swing = item.value;
-    if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bar", &item)) out.barLength = item.value;
+    if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"plen", &item)) out.patternLength = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"solo", &item)) out.solo = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"mute", &item)) out.mute = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"rec", &item)) out.record = item.value;

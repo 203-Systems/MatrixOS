@@ -92,7 +92,7 @@ public:
     // Pattern management (now with clip parameter)
     uint8_t GetPatternCount(uint8_t track, uint8_t clip);
     SequencePattern& GetPattern(uint8_t track, uint8_t clip, uint8_t pattern);
-    int8_t NewPattern(uint8_t track, uint8_t clip, uint8_t length = 0); // if length is 0. Then use data.barLength
+    int8_t NewPattern(uint8_t track, uint8_t clip, uint8_t length = 0); // if length is 0. Then use data.patternLength
     void ClearPattern(uint8_t track, uint8_t clip, uint8_t pattern);
     void DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern);
     void CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sourcePattern, uint8_t destTrack, uint8_t destClip, uint8_t destPattern = 255); // if destPattern is 255, then will create new pattern
@@ -110,9 +110,9 @@ public:
     void SetStepDivision(uint8_t stepLen);
     uint16_t GetPulsesPerStep() const { return pulsesPerStep; }
 
-    uint8_t GetBarLength();
-    void SetBarLength(uint8_t barLength);
-    void UpdateEmptyPatternsWithBarLength();
+    uint8_t GetPatternLength();
+    void SetPatternLength(uint8_t patternLength);
+    void UpdateEmptyPatternsWithPatternLength();
 
     bool GetDirty();
     void SetDirty(bool val = true);
@@ -150,5 +150,5 @@ public:
 
     // Data accessors (for serialization)
     const SequenceData& GetData() const { return data; }
-    void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithBarLength(); UpdateTiming(); dirty = true; }
+    void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithPatternLength(); UpdateTiming(); dirty = true; }
 };
