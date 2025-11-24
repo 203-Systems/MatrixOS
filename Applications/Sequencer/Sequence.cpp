@@ -52,77 +52,84 @@ void Sequence::New(uint8_t tracks)
 
 void Sequence::Tick()
 {
-    uint32_t currentTime = MatrixOS::SYS::Micros();
+    uint32_t now = MatrixOS::SYS::Micros();
 
-    // Flag to skip increment on the first tick after Play()
-    // This ensures timing counters match the actual tick being processed:
-    // - First tick: Process at (0,0) without increment
-    // - Subsequent ticks: Increment first, then process at the correct position
-    // Without this, clip transitions would check against stale timing values
-    bool firstTick = false; 
-
-    // Handle MIDI clock output (independent of playback state)
-    if ((currentTime - lastClockTime) >= usPerClock) {
-
-        if(clockOutput)
-        {
-            MatrixOS::MIDI::Send(MidiPacket::Clock(), MIDI_PORT_ALL);  // MIDI Clock message
-        }
-
-        lastClockTime = currentTime;
-
-        // Update MIDI clock counter and quarter note timestamp (24 PPQN)
-        currentClock++;
-
-        if (currentClock >= 24) {
-            currentClock = 0;
-        }
-
-        // Decrement countdown if scheduled to start
-        if (clocksTillStart > 0) {
-            clocksTillStart--;
-            if (clocksTillStart == 0) {
-                // Initialize timing on this clock edge
-                lastPulseTime = 0;
-                currentPulse = 0;
-                currentStep = 0;
-                pulseSinceStart = 0;
-                firstTick = true;
-            }
-        }
+    // Anchor clock on first tick
+    if (lastClockTime == 0) {
+        lastClockTime = now;
     }
 
-    if (!playing || clocksTillStart > 0) return;
+    bool skipIncrement = false; // skip the first increment immediately after start/pulse anchor
 
-    uint32_t elapsed = currentTime - lastPulseTime;
+    // Single loop: advance clock and pulses until nothing is due
+    while (true) {
+        now = MatrixOS::SYS::Micros();
+        bool progressed = false;
 
-    // Check if enough time for a tick (using swing timing based on step position)
-    if (elapsed >= usPerPulse[currentStep % 2] || lastPulseTime == 0) {
-        lastPulseTime = currentTime;
-
-        // Increment pulse counter
-        if(firstTick == false)
-        {
-            currentPulse++;
-            pulseSinceStart++;
-        }
-
-        // When pulse reaches pulsesPerStep, move to next step
-        if (currentPulse >= pulsesPerStep) {
-            currentPulse = 0;
-            currentStep++;
-
-            // Wrap step around bar length
-            if (currentStep >= data.barLength) {
-                currentStep = 0;
+        // Handle MIDI clock output and start countdown
+        if ((now - lastClockTime) >= usPerClock) {
+            if (clockOutput) {
+                MatrixOS::MIDI::Send(MidiPacket::Clock(), MIDI_PORT_ALL);  // MIDI Clock message
             }
+
+            lastClockTime += usPerClock; // advance by period to maintain phase
+
+            // Update MIDI clock counter (24 PPQN)
+            currentClock = (currentClock + 1) % 24;
+
+            if (clocksTillStart > 0) {
+                clocksTillStart--;
+                if (clocksTillStart == 0) {
+                    // Initialize timing at this clock edge
+                    lastPulseTime = lastClockTime;
+                    currentPulse = 0;
+                    currentStep = 0;
+                    pulseSinceStart = 0;
+                    skipIncrement = true;
+                }
+            }
+            progressed = true;
         }
 
-        // Process each track
-        for (uint8_t track = 0; track < trackPlayback.size(); track++) {
-            ProcessTrack(track);
+        if (!playing || clocksTillStart > 0) {
+            break;
         }
 
+        // Anchor pulse timer if uninitialized
+        if (lastPulseTime == 0) {
+            lastPulseTime = now;
+            skipIncrement = true;
+        }
+
+        // Handle pulse advance
+        uint16_t period = usPerPulse[currentStep % 2];
+        if ((now - lastPulseTime) >= period) {
+            lastPulseTime += period; // advance by exact period
+
+            if (!skipIncrement) {
+                currentPulse++;
+                pulseSinceStart++;
+            }
+            skipIncrement = false;
+
+            if (currentPulse >= pulsesPerStep) {
+                currentPulse = 0;
+                currentStep++;
+                if (currentStep >= data.barLength) {
+                    currentStep = 0;
+                }
+            }
+
+            for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+                ProcessTrack(track);
+            }
+
+            progressed = true;
+        }
+
+        if (!progressed) {
+            break; // nothing due right now
+        }
     }
 }
 
