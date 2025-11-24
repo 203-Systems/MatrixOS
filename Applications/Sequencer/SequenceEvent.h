@@ -65,6 +65,4 @@ struct SequenceEvent {
     // static SequenceEvent BPMChange(const uint16_t bpm);
     // static SequenceEvent SwingChange(const uint8_t swing);
 
-    // Defined in SequenceEvent.cpp
-    void ExecuteEvent(SequenceData& sequenceData, uint8_t track);
 };

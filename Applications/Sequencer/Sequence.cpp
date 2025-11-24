@@ -256,10 +256,10 @@ void Sequence::Stop()
     // Send note-off for all queued notes before clearing
     for (uint8_t track = 0; track < trackPlayback.size(); track++) {
         uint8_t channel = GetChannel(track);
-        // for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
-        //     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
-        // }
-        MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL); // All notes off per channel
+        for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+        }
+        MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 120, 0), MIDI_PORT_ALL); // All sound off per channel
     
         trackPlayback[track].noteOffMap.clear();
         trackPlayback[track].noteOffQueue.clear();
@@ -272,10 +272,10 @@ void Sequence::Stop(uint8_t track)
 {
     // Send note-off for all queued notes on this track before clearing
     uint8_t channel = GetChannel(track);
-    // for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
-    //     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
-    // }
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL); // All notes off
+    for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+    }
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 120, 0), MIDI_PORT_ALL); // All sound off
 
     trackPlayback[track].noteOffMap.clear();
     trackPlayback[track].noteOffQueue.clear();
@@ -840,24 +840,7 @@ void Sequence::ProcessTrack(uint8_t track)
 
     bool trackEnabled = GetEnabled(track);
 
-    // 1. Process note-offs that have reached their time
-    //    Only check the earliest entries (efficient with multimap)
-    while (!trackPlayback[track].noteOffQueue.empty() &&
-           trackPlayback[track].noteOffQueue.begin()->first <= pulseSinceStart) {
-
-        uint8_t note = trackPlayback[track].noteOffQueue.begin()->second;
-
-        if (trackEnabled) {
-            uint8_t channel = GetChannel(track);
-            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
-        }
-
-        // Remove from both structures
-        trackPlayback[track].noteOffMap.erase(note);
-        trackPlayback[track].noteOffQueue.erase(trackPlayback[track].noteOffQueue.begin());
-    }
-
-    // 2. Fire events at current tick position
+    // 1. Fire events at current tick position
     uint8_t clip = trackPlayback[track].position.clip;
     uint8_t pattern = trackPlayback[track].position.pattern;
 
@@ -870,38 +853,75 @@ void Sequence::ProcessTrack(uint8_t track)
         // Fire all events at exactly this tick (there can be multiple at the same timestamp)
         auto range = currentPattern.events.equal_range(currentTick);
         for (auto eventIt = range.first; eventIt != range.second; ++eventIt) {
-            // Execute event (sends MIDI)
-            eventIt->second.ExecuteEvent(data, track);
-
-            // If it's a note event, schedule note-off with overwrite and update lastEvent
-            if (eventIt->second.eventType == SequenceEventType::NoteEvent) {
-                const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventIt->second.data);
-                uint8_t note = noteData.note;
-                uint32_t noteOffTick = pulseSinceStart + noteData.length;
-
-                // Update lastEventTime timestamp for recording purposes
-                trackPlayback[track].lastEventTime = MatrixOS::SYS::Millis();
-
-                // Check if this note already has a pending note-off (overwrite case)
-                if (trackPlayback[track].noteOffMap.count(note)) {
-                    // Remove old note-off from queue
-                    uint32_t oldTick = trackPlayback[track].noteOffMap[note];
-
-                    // Find and remove from multimap
-                    auto existingRange = trackPlayback[track].noteOffQueue.equal_range(oldTick);
-                    for (auto it = existingRange.first; it != existingRange.second; ++it) {
-                        if (it->second == note) {
-                            trackPlayback[track].noteOffQueue.erase(it);
-                            break;
-                        }
+            const auto& ev = eventIt->second;
+            switch (ev.eventType)
+            {
+                case SequenceEventType::NoteEvent:
+                {
+                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(ev.data);
+                    uint8_t channel = data.tracks[track].channel;
+                    if (noteData.aftertouch)
+                    {
+                        MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
                     }
-                }
+                    else
+                    {
+                        MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
+                    }
 
-                // Add new note-off
-                trackPlayback[track].noteOffMap[note] = noteOffTick;
-                trackPlayback[track].noteOffQueue.insert({noteOffTick, note});
+                    uint8_t note = noteData.note;
+                    uint32_t noteOffTick = pulseSinceStart + noteData.length;
+
+                    // Update lastEventTime timestamp for led purposes
+                    trackPlayback[track].lastEventTime = MatrixOS::SYS::Millis();
+
+                    // Remove any pending note-off for this note (overwrite case)
+                    auto mapIt = trackPlayback[track].noteOffMap.find(note);
+                    if (mapIt != trackPlayback[track].noteOffMap.end()) {
+                        uint32_t oldTick = mapIt->second;
+                        for (auto qIt = trackPlayback[track].noteOffQueue.begin();
+                             qIt != trackPlayback[track].noteOffQueue.end(); ) {
+                            if (qIt->second == note) {
+                                qIt = trackPlayback[track].noteOffQueue.erase(qIt);
+                            } else {
+                                ++qIt;
+                            }
+                        }
+                        trackPlayback[track].noteOffMap.erase(mapIt);
+                    }
+
+                    // Add new note-off
+                    trackPlayback[track].noteOffMap[note] = noteOffTick;
+                    trackPlayback[track].noteOffQueue.insert({noteOffTick, note});
+                    break;
+                }
+                case SequenceEventType::ControlChangeEvent:
+                {
+                    const SequenceEventCC& ccEvent = std::get<SequenceEventCC>(ev.data);
+                    uint8_t channel = data.tracks[track].channel;
+                    MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, ccEvent.param, ccEvent.value), MIDI_PORT_ALL);
+                    break;
+                }
+                default:
+                    break;
             }
         }
+    }
+
+    // 2. Process note-offs that have reached their time
+    //    Only check the earliest entries (efficient with multimap)
+    while (!trackPlayback[track].noteOffQueue.empty() &&
+           trackPlayback[track].noteOffQueue.begin()->first <= pulseSinceStart) {
+
+        uint8_t note = trackPlayback[track].noteOffQueue.begin()->second;
+
+        if (trackEnabled) {
+            uint8_t channel = GetChannel(track);
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
+        }
+
+        trackPlayback[track].noteOffMap.erase(note);
+        trackPlayback[track].noteOffQueue.erase(trackPlayback[track].noteOffQueue.begin());
     }
 
     // 3. Check for clip transition or stop at start of bar (when nextClip is queued)
