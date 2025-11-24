@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #define SEQUENCE_VERSION 1
+#define MIN_SUPPORTED_SEQUENCE_VERSION 1
 
 struct SequencePattern {
     uint8_t steps = 16;

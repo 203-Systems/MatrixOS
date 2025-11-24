@@ -309,6 +309,9 @@ bool DeserializeSequenceData(const uint8_t* in, size_t len, SequenceData& out)
 
     cb0r_s item;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"ver", &item)) out.version = item.value;
+
+    if (out.version > SEQUENCE_VERSION || out.version < MIN_SUPPORTED_SEQUENCE_VERSION) return false;
+
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item)) out.bpm = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item)) out.swing = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"plen", &item)) out.patternLength = item.value;
