@@ -265,32 +265,26 @@ void Sequencer::SequencerMenu()
     sequencerMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
     // Left side, Sequencer Global settings
-    UIButton sequenceColorSelectorBtn;
-    sequenceColorSelectorBtn.SetName("Project Color Selector");
-    sequenceColorSelectorBtn.SetColorFunc([&]() -> Color
-        {
-            return meta.color;
-        });
-    sequenceColorSelectorBtn.OnPress([&]() -> void
-                             {
-        if(MatrixOS::UIUtility::ColorPicker(meta.color, false)) {
-            sequence.SetDirty();
-        } });
-    sequencerMenu.AddUIComponent(sequenceColorSelectorBtn, Point(0, 2));
-
     UIButton bpmSelectorBtn;
     bpmSelectorBtn.SetName("BPM Selector");
     bpmSelectorBtn.SetColor(Color(0xFF0080));
     bpmSelectorBtn.OnPress([&]() -> void
                            { BPMSelector(); });
-    sequencerMenu.AddUIComponent(bpmSelectorBtn, Point(0, 3));
+    sequencerMenu.AddUIComponent(bpmSelectorBtn, Point(0, 2));
 
     UIButton swingSelectorBtn;
     swingSelectorBtn.SetName("Swing Selector");
     swingSelectorBtn.SetColor(Color(0xFFA000));
     swingSelectorBtn.OnPress([&]() -> void
                              { SwingSelector(); });
-    sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 4));
+    sequencerMenu.AddUIComponent(swingSelectorBtn, Point(0, 3));
+
+    UIButton timeSignatureSelector;
+    timeSignatureSelector.SetName("Time Signature Selector");
+    timeSignatureSelector.SetColor(Color(0x8000FF));
+    timeSignatureSelector.OnPress([&]() -> void
+                                 { TimeSignatureSelector(); });
+    sequencerMenu.AddUIComponent(timeSignatureSelector, Point(0, 4));
 
     UIButton patternLengthSelectorBtn;
     patternLengthSelectorBtn.SetName("Pattern Length Selector");
@@ -932,6 +926,139 @@ void Sequencer::SwingSelector()
     if (sequence.GetSwing() != (uint8_t)swingValue)
     {
         sequence.SetSwing((uint8_t)swingValue);
+    }
+}
+
+void Sequencer::TimeSignatureSelector()
+{
+    Color color = Color(0x8000FF);
+    Color color2 = Color(0xFF0080);
+    UI timeSignatureSelector("Time Signature Selector", color, false);
+
+    int32_t beatsPerBar = sequence.GetBeatsPerBar();
+    int32_t beatUnit = sequence.GetBeatUnit();
+    bool modified = false;
+
+    // Pattern Length text display
+    UITimedDisplay textDisplay(500);
+    textDisplay.SetDimension(Dimension(8, 4));
+    textDisplay.SetRenderFunc([&](Point origin) -> void
+                                       {
+        // T
+        MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(1, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(1, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+        MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+
+        // I
+        MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+
+        // M
+        MatrixOS::LED::SetColor(origin + Point(5, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(5, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+    });
+    timeSignatureSelector.AddUIComponent(textDisplay, Point(0, 0));
+
+    UI4pxNumber beatUnitDisplay;
+    beatUnitDisplay.SetColor(color2);
+    beatUnitDisplay.SetAlternativeColor(Color::White);
+    beatUnitDisplay.SetDigits(2);
+    beatUnitDisplay.SetValuePointer(&beatUnit);
+    beatUnitDisplay.SetSpacing(0);
+    beatUnitDisplay.SetEnableFunc([&]() -> bool { return !textDisplay.IsEnabled(); });
+    timeSignatureSelector.AddUIComponent(beatUnitDisplay, Point(2, 0));
+    
+    UI4pxNumber beatsDisplay;
+    beatsDisplay.SetColor(color);
+    beatsDisplay.SetAlternativeColor(Color::White);
+    beatsDisplay.SetDigits(2);
+    beatsDisplay.SetValuePointer(&beatsPerBar);
+    beatsDisplay.SetSpacing(0);
+    beatsDisplay.SetEnableFunc([&]() -> bool { return !textDisplay.IsEnabled(); });
+    timeSignatureSelector.AddUIComponent(beatsDisplay, Point(-2, 0));
+
+    UIButton beatsDecreaseBtn;
+    beatsDecreaseBtn.SetName("Beats -1");
+    beatsDecreaseBtn.SetSize(Dimension(1, 1));
+    beatsDecreaseBtn.SetColorFunc([&]() -> Color {
+        return Color(0xFF00FF).DimIfNot(beatsPerBar > 1);
+    });
+    beatsDecreaseBtn.OnPress([&]() -> void {
+        if (beatsPerBar > 1) {
+            beatsPerBar--;
+            modified = true;
+            textDisplay.Disable();
+        }
+    });
+    timeSignatureSelector.AddUIComponent(beatsDecreaseBtn, Point(1, 7));
+
+    UIButton beatsIncreaseBtn;
+    beatsIncreaseBtn.SetName("Beats +1");
+    beatsIncreaseBtn.SetSize(Dimension(1, 1));
+    beatsIncreaseBtn.SetColorFunc([&]() -> Color {
+        return Color(0x00FFFF).DimIfNot(beatsPerBar < 16);
+    });
+    beatsIncreaseBtn.OnPress([&]() -> void {
+        if (beatsPerBar < 16) {
+            beatsPerBar++;
+            modified = true;
+            textDisplay.Disable();
+        }
+    });
+    timeSignatureSelector.AddUIComponent(beatsIncreaseBtn, Point(2, 7));
+
+    UIButton beatUnitDecreaseBtn;
+    beatUnitDecreaseBtn.SetName("Beat Unit -1");
+    beatUnitDecreaseBtn.SetSize(Dimension(1, 1));
+    beatUnitDecreaseBtn.SetColorFunc([&]() -> Color {
+        return Color(0xFF00FF).DimIfNot(beatUnit > 1);
+    });
+    beatUnitDecreaseBtn.OnPress([&]() -> void {
+        if (beatUnit == 2) { beatUnit = 1; }
+        else if (beatUnit == 4) { beatUnit = 2; }
+        else if (beatUnit == 8) { beatUnit = 4; }
+        else if (beatUnit == 16) { beatUnit = 8; }
+        else { return; }
+        modified = true;
+        textDisplay.Disable();
+    });
+    timeSignatureSelector.AddUIComponent(beatUnitDecreaseBtn, Point(5, 7));
+
+    UIButton beatUnitIncreaseBtn;
+    beatUnitIncreaseBtn.SetName("Beat Unit +1");
+    beatUnitIncreaseBtn.SetSize(Dimension(1, 1));
+    beatUnitIncreaseBtn.SetColorFunc([&]() -> Color {
+        return Color(0x00FFFF).DimIfNot(beatUnit < 16);
+    });
+    beatUnitIncreaseBtn.OnPress([&]() -> void {
+        if (beatUnit == 1) { beatUnit = 2; }
+        else if (beatUnit == 2) { beatUnit = 4; }
+        else if (beatUnit == 4) { beatUnit = 8; }
+        else if (beatUnit == 8) { beatUnit = 16; }
+        else { return; }
+        modified = true;
+        textDisplay.Disable();
+    });
+    timeSignatureSelector.AddUIComponent(beatUnitIncreaseBtn, Point(6, 7));
+
+    timeSignatureSelector.Start();
+
+    if (modified)
+    {
+        sequence.SetTimeSignature(beatsPerBar, beatUnit);
     }
 }
 

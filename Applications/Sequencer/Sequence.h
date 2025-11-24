@@ -80,6 +80,8 @@ public:
     void EnableClockOutput(bool val);
     bool ClockOutputEnabled();
     int16_t GetClocksTillStart();
+    uint8_t GetBeatsPerBar() const { return data.beatsPerBar; }
+    uint8_t GetBeatUnit() const { return data.beatUnit; }
 
     uint8_t GetTrackCount();
 
