@@ -907,9 +907,6 @@ void Sequence::RecordEvent(MidiPacket packet)
 
 void Sequence::ProcessTrack(uint8_t track)
 {
-    // Only process tracks that are currently playing
-    if (!trackPlayback[track].playing) return;
-
     bool trackEnabled = GetEnabled(track);
 
     // 1. Check for clip transition or stop at start of bar (when nextClip is queued)
@@ -928,7 +925,12 @@ void Sequence::ProcessTrack(uint8_t track)
         // Clear nextClip after transitioning
         trackPlayback[track].nextClip = 255;
         // continue processing events in new clip this tick
+
+        trackPlayback[track].playing = true;
     }
+
+    // Only process tracks that are currently playing
+    if (!trackPlayback[track].playing) return;
 
     // 2. Fire events at current tick position
     uint8_t clip = trackPlayback[track].position.clip;
