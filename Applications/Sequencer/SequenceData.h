@@ -40,6 +40,9 @@ struct SequenceData {
     uint8_t version = SEQUENCE_VERSION;
     uint16_t bpm = 120;
     uint8_t swing = 50;
+    uint8_t beatsPerBar = 4;  // Time signature top number
+    uint8_t beatUnit = 4;   // Time signature bottom number
+    uint8_t stepDivision = 16;
     uint8_t patternLength = 16;
     uint32_t solo = 0;
     uint32_t mute = 0;

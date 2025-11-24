@@ -24,6 +24,9 @@ private:
 
     bool clockOutput = false;
 
+    // Clip switching timing
+    uint16_t barLength = 16; // Length of each bay in steps 
+
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
     uint32_t pulseSinceStart = 0;           // Global tick counter for note-off scheduling (96 PPQN)
@@ -113,6 +116,7 @@ public:
     uint8_t GetPatternLength();
     void SetPatternLength(uint8_t patternLength);
     void UpdateEmptyPatternsWithPatternLength();
+    void SetTimeSignature(uint8_t beatsPerBar, uint8_t beatUnit);
 
     bool GetDirty();
     void SetDirty(bool val = true);

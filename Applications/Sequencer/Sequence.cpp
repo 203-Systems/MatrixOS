@@ -110,15 +110,21 @@ void Sequence::Tick()
                 currentPulse++;
                 pulseSinceStart++;
             }
-            skipIncrement = false;
+            else
+            {
+                skipIncrement = false;
+            }
 
-            if (currentPulse >= pulsesPerStep) {
+            if (currentStep >= barLength) {
+                currentPulse = 0;
+                currentStep = 0;
+            }
+            else if (currentPulse >= pulsesPerStep) {
                 currentPulse = 0;
                 currentStep++;
-                if (currentStep >= data.patternLength) {
-                    currentStep = 0;
-                }
             }
+
+            MLOGD("Sequence", "Pulse: %u\tStep: %u\tPulseSinceStart: %lu", currentPulse, currentStep, (unsigned long)pulseSinceStart);
 
             for (uint8_t track = 0; track < trackPlayback.size(); track++) {
                 ProcessTrack(track);
@@ -135,8 +141,12 @@ void Sequence::Tick()
 
 void Sequence::UpdateTiming()
 {
+    // Update Step Division
     pulsesPerStep = (PPQN * 4) / stepDivision; // stepDivision: 4=quarter, 8=eighth, 16=sixteenth
 
+    // Update barLength (in steps) from timeSignature
+    barLength = data.beatsPerBar * (PPQN * 4 / data.beatUnit) / pulsesPerStep;
+    
     // Base pulse timing stays tied to PPQN; pulsesPerStep only controls when we advance a step
     uint32_t pulseUs = 60000000UL / (data.bpm * PPQN);
 
@@ -154,6 +164,20 @@ void Sequence::UpdateTiming()
 
     usPerPulse[0] = pulseUs + swingUs;  // On-beat (longer with positive swing)
     usPerPulse[1] = pulseUs - swingUs;  // Off-beat (shorter with positive swing)
+
+    MLOGD("Sequence",
+          "Timing Updated - BPM:%u Swing:%u StepDiv:%u PatternLen:%u BarLen:%u Beats:%u/%u pulses/step:%u usPerPulse[%lu,%lu] usPerClock:%lu",
+          data.bpm,
+          data.swing,
+          stepDivision,
+          data.patternLength,
+          barLength,
+          data.beatsPerBar,
+          data.beatUnit,
+          pulsesPerStep,
+          (unsigned long)usPerPulse[0],
+          (unsigned long)usPerPulse[1],
+          (unsigned long)usPerClock);
 }
 
 // Playback control
@@ -626,6 +650,42 @@ void Sequence::UpdateEmptyPatternsWithPatternLength()
         }
     }
     dirty = true;
+}
+
+void Sequence::SetTimeSignature(uint8_t beatsPerBar, uint8_t beatUnit)
+{
+    if (beatsPerBar == 0 || beatUnit == 0)
+    {
+        return;
+    }
+
+    if(beatsPerBar > 16)
+    {
+        return;
+    }
+
+    if (!(beatUnit == 1 || beatUnit == 2 || beatUnit == 4 || beatUnit == 8 || beatUnit == 16))
+    {
+        return;
+    }
+
+    bool changed = false;
+    if (data.beatsPerBar != beatsPerBar)
+    {
+        data.beatsPerBar = beatsPerBar;
+        changed = true;
+    }
+    if (data.beatUnit != beatUnit)
+    {
+         data.beatUnit = beatUnit;
+         changed = true;
+    }
+
+    if (changed)
+    {
+        UpdateTiming();
+        dirty = true;
+    }
 }
 
 // Dirty flag
