@@ -292,6 +292,20 @@ void Sequencer::SequencerMenu()
                                  { PatternLengthSelector(); });
     sequencerMenu.AddUIComponent(patternLengthSelectorBtn, Point(0, 5));
 
+    UIButton playBtn;
+    playBtn.SetName("Play");
+    playBtn.SetColorFunc([&]() -> Color
+                         {
+                            if(sequence.Playing())
+                            {
+                                uint8_t scale = sequence.QuarterNoteProgressBreath() / 4 * 3;
+                                return Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8));
+                            }
+                            return Color::Green;
+                         });
+    playBtn.OnPress([&]() -> void { sequence.Playing() ? sequence.Stop() : sequence.Play(); });
+    sequencerMenu.AddUIComponent(playBtn, Point(0, 7));
+
     UIButton saveBtn;
     saveBtn.SetName("Save Sequence");
     saveBtn.SetColorFunc([&]() -> Color
