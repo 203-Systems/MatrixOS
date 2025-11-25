@@ -38,8 +38,14 @@ void Sequence::New(uint8_t tracks)
 
     trackPlayback.clear();
     trackPlayback.resize(tracks);
+    for (auto& tp : trackPlayback) {
+        tp.position.pulse = UINT16_MAX;
+        tp.position.step = 0;
+        tp.position.pattern = 0;
+        tp.position.clip = 0;
+    }
     pulseSinceStart = 0;
-    currentPulse = 0;
+    currentPulse = UINT16_MAX; // so first increment lands on pulse 0
     currentStep = 0;
     lastPulseTime = 0;
 
@@ -60,8 +66,6 @@ void Sequence::Tick()
     if (lastClockTime == 0) {
         lastClockTime = now;
     }
-
-    bool skipIncrement = false; // skip the first increment immediately after start/pulse anchor
 
     // Single loop: advance clock and pulses until nothing is due
     while (true) {
@@ -84,10 +88,9 @@ void Sequence::Tick()
                 if (clocksTillStart == 0) {
                     // Initialize timing at this clock edge
                     lastPulseTime = lastClockTime;
-                    currentPulse = 0;
+                    currentPulse = UINT16_MAX; // next advance produces pulse 0
                     currentStep = 0;
                     pulseSinceStart = 0;
-                    skipIncrement = true;
                 }
             }
             progressed = true;
@@ -100,7 +103,7 @@ void Sequence::Tick()
         // Anchor pulse timer if uninitialized
         if (lastPulseTime == 0) {
             lastPulseTime = now;
-            skipIncrement = true;
+            currentPulse = UINT16_MAX; // so first increment hits 0
         }
 
         // Handle pulse advance
@@ -108,25 +111,21 @@ void Sequence::Tick()
         if ((now - lastPulseTime) >= period) {
             lastPulseTime += period; // advance by exact period
 
-            if (!skipIncrement) {
+            if (currentPulse == UINT16_MAX) {
+                currentPulse = 0; // first usable pulse
+            } else {
                 currentPulse++;
                 pulseSinceStart++;
             }
-            else
-            {
-                skipIncrement = false;
-            }
 
-            if (currentStep >= barLength) {
-                currentPulse = 0;
-                currentStep = 0;
-            }
-            else if (currentPulse >= pulsesPerStep) {
+            if (currentPulse >= pulsesPerStep) {
                 currentPulse = 0;
                 currentStep++;
             }
 
-            // MLOGD("Sequence", "Pulse: %u\tStep: %u\tPulseSinceStart: %lu", currentPulse, currentStep, (unsigned long)pulseSinceStart);
+            if (currentStep >= barLength) {
+                currentStep = 0;
+            }
 
             for (uint8_t track = 0; track < trackPlayback.size(); track++) {
                 ProcessTrack(track);
@@ -190,7 +189,7 @@ void Sequence::Play()
     // Schedule playback to start at next MIDI clock edge (24 PPQN)
     // Can be increased for count-in: 96 = 1 bar at 4/4
     clocksTillStart = record ? 24 * 4 + 1 : 1;
-    currentPulse = 0;
+    currentPulse = UINT16_MAX;
     currentStep = 0;
     pulseSinceStart = 0;
 
@@ -198,7 +197,7 @@ void Sequence::Play()
         // Reset positions and prepare for playback
         trackPlayback[i].position.pattern = 0;
         trackPlayback[i].position.step = 0;
-        trackPlayback[i].position.pulse = 0;
+        trackPlayback[i].position.pulse = UINT16_MAX; // so first advance lands on 0
 
         // Clear playback state
         trackPlayback[i].noteOffMap.clear();
@@ -213,7 +212,7 @@ void Sequence::Play(uint8_t track)
     if (!playing) {
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = 0;
+        currentPulse = UINT16_MAX;
         currentStep = 0;
         pulseSinceStart = 0;
     }
@@ -221,7 +220,7 @@ void Sequence::Play(uint8_t track)
     // Play the track at its current clip position
     trackPlayback[track].position.pattern = 0;
     trackPlayback[track].position.step = 0;
-    trackPlayback[track].position.pulse = 0;
+    trackPlayback[track].position.pulse = UINT16_MAX;
 
     // Clear playback state and start track
     trackPlayback[track].noteOffMap.clear();
@@ -235,7 +234,7 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
     if (!playing) {
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = 0;
+        currentPulse = UINT16_MAX;
         currentStep = 0;
         pulseSinceStart = 0;
     }
@@ -253,7 +252,7 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
     if (!playing) {
         playing = true;
         clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = 0;
+        currentPulse = UINT16_MAX;
         currentStep = 0;
         pulseSinceStart = 0;
     }
@@ -929,6 +928,12 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
     // if track is 0xff, determine based on the packet channel.
     if (!record) return;
 
+    EMidiStatus status = packet.Status();
+    if (status != EMidiStatus::NoteOn && status != EMidiStatus::NoteOff)
+    {
+        return;
+    }
+
     std::vector<uint8_t> targets;
     if (track == 0xFF)
     {
@@ -946,10 +951,9 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
         targets.push_back(track);
     }
 
-    EMidiStatus status = packet.Status();
     uint8_t note = packet.Note();
     uint8_t velocity = packet.Velocity();
-
+    
     for (uint8_t t : targets)
     {
         if (!ClipExists(t, trackPlayback[t].position.clip)) continue;
@@ -972,7 +976,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
                 pending.erase(prevIt);
                 if (prev.eventPtr != nullptr)
                 {
-                    uint32_t prevLen = (currentTick > prev.startTick) ? (currentTick - prev.startTick) : 1;
+                    uint32_t prevLen = (pulseSinceStart > prev.startPulse) ? (pulseSinceStart - prev.startPulse) : 1;
                     if (prevLen == 0) prevLen = 1;
                     SequenceEventNote& prevNoteData = std::get<SequenceEventNote>(prev.eventPtr->data);
                     if (prevLen > UINT16_MAX) prevLen = UINT16_MAX;
@@ -984,7 +988,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
             auto evIt = pattern.events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
             SequenceEvent& evRef = evIt->second;
             Sequence::TrackPlayback::RecordedNote info;
-            info.startTick = currentTick;
+            info.startPulse = pulseSinceStart;
             info.eventPtr = &evRef;
             pending[note] = info;
             dirty = true;
@@ -999,7 +1003,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 
             if (info.eventPtr == nullptr) continue;
 
-            uint32_t length = (currentTick > info.startTick) ? (currentTick - info.startTick) : 1;
+            uint32_t length = (pulseSinceStart > info.startPulse) ? (pulseSinceStart - info.startPulse) : 1;
             if (length > UINT16_MAX) length = UINT16_MAX;
             if (length == 0) length = 1;
 
@@ -1021,16 +1025,17 @@ void Sequence::TerminateRecordedNotes(uint8_t track)
     if (recordedNotes.empty()) return;
 
     bool updated = false;
-    // Use the track's current position for a stop-time reference
-    uint32_t currentTick = trackPlayback[track].position.step * pulsesPerStep + trackPlayback[track].position.pulse;
+    // Use global pulse counter for a stop-time reference
+    uint32_t currentPulseGlobal = pulseSinceStart;
 
     for (auto& entry : recordedNotes)
     {
         const auto& info = entry.second;
         if (info.eventPtr == nullptr) continue;
 
-        uint32_t length = (currentTick > info.startTick) ? (currentTick - info.startTick) : 1;
+        uint32_t length = (currentPulseGlobal > info.startPulse) ? (currentPulseGlobal - info.startPulse) : 1;
         if (length == 0) length = 1;
+        if (length > UINT16_MAX) length = UINT16_MAX;
 
         SequenceEventNote& noteData = std::get<SequenceEventNote>(info.eventPtr->data);
         noteData.length = (uint16_t)length;
@@ -1045,38 +1050,61 @@ void Sequence::ProcessTrack(uint8_t track)
 {
     bool trackEnabled = GetEnabled(track);
 
-    // 1. Check for clip transition or stop at start of bar (when nextClip is queued)
-    if (trackPlayback[track].nextClip != 255 &&  currentStep == 0) {
-        // Special case: 254 means stop after current bar
+    SequencePosition& pos = trackPlayback[track].position;
+
+    // Advance to the pulse being processed
+    if (pos.pulse == UINT16_MAX) {
+        pos.pulse = 0;
+    }
+    else {
+        pos.pulse++;
+        if (pos.pulse >= pulsesPerStep) {
+            pos.pulse = 0;
+            pos.step++;
+        }
+    }
+
+    // Wrap step/pattern based on active pattern length
+    uint8_t clip = pos.clip;
+    uint8_t pattern = pos.pattern;
+    uint8_t patternSteps = data.patternLength;
+    if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
+        patternSteps = GetPattern(track, clip, pattern).steps;
+    }
+    if (pos.step >= patternSteps) {
+        pos.step = 0;
+        pos.pattern++;
+        if (ClipExists(track, clip) && pos.pattern >= GetPatternCount(track, clip)) {
+            pos.pattern = 0;
+        }
+    }
+
+    // Check for queued clip change at bar boundary (step 0, pulse 0)
+    if (trackPlayback[track].nextClip != 255 && pos.step == 0 && pos.pulse == 0) {
         if (trackPlayback[track].nextClip == 254) {
             Stop(track);
             return;
         }
 
-        // Transition to the queued clip at bar boundary
-        trackPlayback[track].position.clip = trackPlayback[track].nextClip;
-        trackPlayback[track].position.pattern = 0;
-        trackPlayback[track].position.step = 0;
-        trackPlayback[track].position.pulse = 0;
-        // Clear nextClip after transitioning
+        pos.clip = trackPlayback[track].nextClip;
+        pos.pattern = 0;
+        pos.step = 0;
+        pos.pulse = 0;
         trackPlayback[track].nextClip = 255;
-        // continue processing events in new clip this tick
-
         trackPlayback[track].playing = true;
+        clip = pos.clip;
+        pattern = pos.pattern;
     }
 
     // Only process tracks that are currently playing
     if (!trackPlayback[track].playing) return;
 
     // 2. Fire events at current tick position
-    uint8_t clip = trackPlayback[track].position.clip;
-    uint8_t pattern = trackPlayback[track].position.pattern;
-
     if (trackEnabled && ClipExists(track, clip)) {
         SequencePattern& currentPattern = GetPattern(track, clip, pattern);
 
         // Calculate the absolute tick position within the pattern
-        uint16_t currentTick = trackPlayback[track].position.step * pulsesPerStep + trackPlayback[track].position.pulse;
+        uint16_t currentTick = pos.step * pulsesPerStep + pos.pulse;
 
         // Fire all events at exactly this tick (there can be multiple at the same timestamp)
         auto range = currentPattern.events.equal_range(currentTick);
@@ -1150,33 +1178,5 @@ void Sequence::ProcessTrack(uint8_t track)
 
         trackPlayback[track].noteOffMap.erase(note);
         trackPlayback[track].noteOffQueue.erase(trackPlayback[track].noteOffQueue.begin());
-    }
-
-    // 4. Advance pulse position
-    trackPlayback[track].position.pulse++;
-
-    // 5. Check if we've completed a step
-    if (trackPlayback[track].position.pulse >= pulsesPerStep) {
-        trackPlayback[track].position.pulse = 0;
-        trackPlayback[track].position.step++;
-
-        // Check if pattern ended
-        if (ClipExists(track, clip)) {
-            SequencePattern& currentPattern = GetPattern(track, clip, pattern);
-
-            if (trackPlayback[track].position.step >= currentPattern.steps) {
-                trackPlayback[track].position.step = 0;
-                trackPlayback[track].position.pulse = 0;
-                trackPlayback[track].position.pattern++;
-
-                // Check if all patterns in clip ended
-                if (trackPlayback[track].position.pattern >= GetPatternCount(track, clip)) {
-                    // No nextClip, just loop the patterns
-                    trackPlayback[track].position.pattern = 0;
-                    trackPlayback[track].position.step = 0;
-                    trackPlayback[track].position.pulse = 0;
-                }
-            }
-        }
     }
 }

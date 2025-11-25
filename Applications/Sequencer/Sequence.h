@@ -9,7 +9,7 @@ struct SequencePosition
     uint8_t clip = 0;
     uint8_t pattern = 0;
     uint8_t step = 0;
-    uint8_t pulse = 0; // Pulse within the current step
+    uint16_t pulse = 0; // Pulse within the current step
 };
 
 class Sequence
@@ -52,7 +52,7 @@ private:
         multimap<uint32_t, uint8_t> noteOffQueue; // tick -> note (for efficient processing)
         struct RecordedNote
         {
-            uint32_t startTick = 0;
+            uint32_t startPulse = 0;
             SequenceEvent* eventPtr = nullptr;
         };
         std::unordered_map<uint8_t, RecordedNote> recordedNotes; // note -> pending event info

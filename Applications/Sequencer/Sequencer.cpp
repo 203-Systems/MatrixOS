@@ -66,16 +66,16 @@ void Sequencer::SequencerUI()
 
     SequencerNotePad notePad(this);
     notePad.OnEvent([&](MidiPacket packet) -> void
-                    {
-                        uint8_t note = packet.Note();
-                        uint8_t velocity = packet.Velocity();
-                        bool isNoteOn = packet.Status() == EMidiStatus::NoteOn && velocity > 0;
-
+                    {   
                         if(sequence.Playing(track) && sequence.ShouldRecord(track))
                         {
                             sequence.RecordEvent(packet, track);
                             return;
                         }
+
+                        uint8_t note = packet.Note();
+                        uint8_t velocity = packet.Velocity();
+                        bool isNoteOn = packet.Status() == EMidiStatus::NoteOn && velocity > 0;
                         
                         SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
                         if (pattern != nullptr && isNoteOn)
