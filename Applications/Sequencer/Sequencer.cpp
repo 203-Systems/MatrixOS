@@ -164,7 +164,7 @@ void Sequencer::SequencerUI()
                                 { return currentView != ViewMode::Session && currentView != ViewMode::Mixer && currentView != ViewMode::StepDetail; });
     sequencerUI.AddUIComponent(trackSelector, Point(0, 0));
 
-    ControlBar controlBar(this, &notePad);
+    SequencerControlBar controlBar(this, &notePad);
     controlBar.OnClear([&]() -> void
                        {
         for (const auto& step : stepSelected)
@@ -460,7 +460,7 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(customScaleEnableBtn, Point(0, 2));
 
-    ScaleVisualizer scaleVisualizer(Color(0x8000FF), Color(0xFF0080),  Color(0xFF0080));
+    SequencerScaleVisualizer scaleVisualizer(Color(0x8000FF), Color(0xFF0080),  Color(0xFF0080));
     scaleVisualizer.SetGetRootKeyFunc([&]() -> uint8_t { return meta.tracks[track].config.note.root; });
     scaleVisualizer.SetGetRootOffsetFunc([&]() -> uint8_t { return meta.tracks[track].config.note.rootOffset; });
     scaleVisualizer.SetGetScaleFunc([&]() -> uint16_t { return meta.tracks[track].config.note.scale; });

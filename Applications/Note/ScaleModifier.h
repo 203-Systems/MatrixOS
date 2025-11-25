@@ -1,13 +1,13 @@
 #include "MatrixOS.h"
 
-class ScaleModifier : public UIComponent {
+class NoteScaleModifier : public UIComponent {
  public:
   uint16_t* scale;
   std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
   Color color;
   Color rootColor;
 
-  ScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
+  NoteScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
     this->scale = scale;
     this->changeCallback = nullptr;
     this->color = color;

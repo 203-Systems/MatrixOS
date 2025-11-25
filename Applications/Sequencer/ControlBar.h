@@ -8,7 +8,7 @@
 
 class SequencerNotePad; // Forward declaration
 
-class ControlBar : public UIComponent {
+class SequencerControlBar : public UIComponent {
     Sequencer* sequencer;
     SequencerNotePad* notePad;
     std::function<void()> clearCallback;
@@ -24,7 +24,7 @@ class ControlBar : public UIComponent {
     bool HandleCopyKey(KeyInfo* keyInfo);
 
     public:
-    ControlBar(Sequencer* sequencer, SequencerNotePad* notePad);
+    SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad);
 
     void OnClear(std::function<void()> callback);
 

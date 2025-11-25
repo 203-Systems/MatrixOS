@@ -4,7 +4,7 @@
 #include "UI/UI.h"
 #include <functional>
 
-class ScaleVisualizer : public UIComponent {
+class SequencerScaleVisualizer : public UIComponent {
  public:
   std::function<uint8_t()> getRootKey;
   std::function<uint8_t()> getRootOffset;
@@ -14,7 +14,7 @@ class ScaleVisualizer : public UIComponent {
   Color rootOffsetColor;
   bool offsetMode = false;
 
-  ScaleVisualizer(Color color, Color rootColor, Color rootOffsetColor);
+  SequencerScaleVisualizer(Color color, Color rootColor, Color rootOffsetColor);
 
   void SetGetRootKeyFunc(std::function<uint8_t()> func);
   void SetGetRootOffsetFunc(std::function<uint8_t()> func);

@@ -1,29 +1,29 @@
 #include "ScaleVisualizer.h"
 
-ScaleVisualizer::ScaleVisualizer(Color color, Color rootColor, Color rootOffsetColor)
+SequencerScaleVisualizer::SequencerScaleVisualizer(Color color, Color rootColor, Color rootOffsetColor)
 {
   this->color = color;
   this->rootColor = rootColor;
   this->rootOffsetColor = rootOffsetColor;
 }
 
-void ScaleVisualizer::SetGetRootKeyFunc(std::function<uint8_t()> func) { getRootKey = func; }
-void ScaleVisualizer::SetGetRootOffsetFunc(std::function<uint8_t()> func) { getRootOffset = func; }
-void ScaleVisualizer::SetGetScaleFunc(std::function<uint16_t()> func) { getScale = func; }
+void SequencerScaleVisualizer::SetGetRootKeyFunc(std::function<uint8_t()> func) { getRootKey = func; }
+void SequencerScaleVisualizer::SetGetRootOffsetFunc(std::function<uint8_t()> func) { getRootOffset = func; }
+void SequencerScaleVisualizer::SetGetScaleFunc(std::function<uint16_t()> func) { getScale = func; }
 
-void ScaleVisualizer::OnChange(std::function<void(uint8_t, uint8_t, uint16_t)> callback) {
+void SequencerScaleVisualizer::OnChange(std::function<void(uint8_t, uint8_t, uint16_t)> callback) {
   onChange = callback;
 }
 
-Color ScaleVisualizer::GetColor() {
+Color SequencerScaleVisualizer::GetColor() {
   return color;
 }
 
-Dimension ScaleVisualizer::GetSize() {
+Dimension SequencerScaleVisualizer::GetSize() {
   return Dimension(7, 2);
 }
 
-bool ScaleVisualizer::Render(Point origin) {
+bool SequencerScaleVisualizer::Render(Point origin) {
   uint16_t c_aligned_scale_map =
       ((getScale() << getRootKey()) + ((getScale() & 0xFFF) >> (12 - getRootKey() % 12))) & 0xFFF;  // Root key should always < 12,
                                                                                     // might add an assert later
@@ -42,7 +42,7 @@ bool ScaleVisualizer::Render(Point origin) {
   return true;
 }
 
-bool ScaleVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool SequencerScaleVisualizer::KeyEvent(Point xy, KeyInfo* keyInfo) {
   if (xy == Point(0, 0) || xy == Point(3, 0))
     return false;
 

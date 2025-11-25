@@ -311,7 +311,7 @@ void Note::ScaleSelector() {
   bool configModified = false;
   uint8_t customScaleSlotSelected = 255;
 
-  ScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset, &notePadConfigs[activeConfig].scale);
+  NoteScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset, &notePadConfigs[activeConfig].scale);
   scaleVisualizer.OnChange([&]() -> void { configModified = true; });
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
@@ -321,7 +321,7 @@ void Note::ScaleSelector() {
   offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
   scaleSelector.AddUIComponent(offsetModeBtn, Point(7, 1));
 
-  ScaleModifier scaleModifier(&custom_scales[customScaleSlotSelected]);
+  NoteScaleModifier scaleModifier(&custom_scales[customScaleSlotSelected]);
   scaleModifier.SetEnableFunc([&]() -> bool { return customScaleSlotSelected != 255; });
   scaleModifier.OnChange([&](uint16_t newScale) -> void {
     customScaleModified = true;

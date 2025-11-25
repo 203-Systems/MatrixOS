@@ -1,20 +1,20 @@
 #include "ControlBar.h"
 #include "NotePad.h"
 
-ControlBar::ControlBar(Sequencer* sequencer, SequencerNotePad* notePad)
+SequencerControlBar::SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad)
 {
     this->sequencer = sequencer;
     this->notePad = notePad;
 }
 
-void ControlBar::OnClear(std::function<void()> callback)
+void SequencerControlBar::OnClear(std::function<void()> callback)
 {
     clearCallback = callback;
 }
 
-Dimension ControlBar::GetSize() { return Dimension(8, 1); }
+Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 
-bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
+bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     switch (xy.x)
     {
@@ -30,7 +30,7 @@ bool ControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
     }
 }
 
-bool ControlBar::HandlePlayKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -60,7 +60,7 @@ bool ControlBar::HandlePlayKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleRecordKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandleRecordKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -69,7 +69,7 @@ bool ControlBar::HandleRecordKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleSessionKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandleSessionKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -89,7 +89,7 @@ bool ControlBar::HandleSessionKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleMixerKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandleMixerKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -109,7 +109,7 @@ bool ControlBar::HandleMixerKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleClearKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -126,7 +126,7 @@ bool ControlBar::HandleClearKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleCopyKey(KeyInfo* keyInfo)
+bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
@@ -139,7 +139,7 @@ bool ControlBar::HandleCopyKey(KeyInfo* keyInfo)
     return true;
 }
 
-bool ControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
+bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
 {
     uint8_t track = sequencer->track;
     uint8_t shiftIndex = up ? 1 : 0;
@@ -207,7 +207,7 @@ bool ControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
     return true;
 }
 
-Color ControlBar::GetOctavePlusColor() {
+Color SequencerControlBar::GetOctavePlusColor() {
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
   if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
@@ -235,7 +235,7 @@ Color ControlBar::GetOctavePlusColor() {
   return color.Scale(brightness);
 }
 
-Color ControlBar::GetOctaveMinusColor() {
+Color SequencerControlBar::GetOctaveMinusColor() {
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
   if(sequencer->currentView != Sequencer::ViewMode::Sequencer)
@@ -262,7 +262,7 @@ Color ControlBar::GetOctaveMinusColor() {
   return color.Scale(brightness);
 }
 
-bool ControlBar::Render(Point origin)
+bool SequencerControlBar::Render(Point origin)
 {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
