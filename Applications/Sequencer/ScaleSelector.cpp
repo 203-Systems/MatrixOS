@@ -39,9 +39,9 @@ constexpr const char* scaleNames[16] = {
 
 ScaleSelector::ScaleSelector(Color color) : color(color) {}
 
-void ScaleSelector::SetScaleFunc(std::function<uint16_t()> getter)
+void ScaleSelector::SetScaleFunc(std::function<uint16_t()> func)
 {
-  getScale = std::move(getter);
+  getScale = func;
 }
 
 void ScaleSelector::OnChange(std::function<void(uint16_t)> callback)
