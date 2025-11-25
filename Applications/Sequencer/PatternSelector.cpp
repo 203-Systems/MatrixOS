@@ -141,6 +141,10 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     lengthAdjustmentMode = false;
                 }
             }
+            else // empty spot
+            {
+                lengthAdjustmentMode = false; // Just turn off Length Adjustment Mode
+            }
         }
         else if(keyInfo->State() == HOLD)
         {
