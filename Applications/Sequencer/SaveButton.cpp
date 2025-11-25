@@ -10,19 +10,20 @@ Dimension SaveButton::GetSize() { return Dimension(4, 4); }
 
 bool SaveButton::Render(Point origin)
 {
-    bool dirty = sequencer->sequence.GetDirty();
-    Color color = dirty ? ColorEffects::ColorBreathLowBound(sequencer->meta.color)
-                        : sequencer->meta.color;
-
     if (!MatrixOS::FileSystem::Available())
     {
+        Color color = Color::Red.Dim();
         for (uint8_t i = 0; i < 4; ++i)
         {
-            MatrixOS::LED::SetColor(origin + Point(i, i), Color::Red);
-            MatrixOS::LED::SetColor(origin + Point(3 - i, i), Color::Red);
+            MatrixOS::LED::SetColor(origin + Point(i, i), color);
+            MatrixOS::LED::SetColor(origin + Point(3 - i, i), color);
         }
         return true;
     }
+
+    bool dirty = sequencer->sequence.GetDirty();
+    Color color = dirty ? ColorEffects::ColorBreathLowBound(sequencer->meta.color)
+                        : sequencer->meta.color;
 
     if (dirty)
     {

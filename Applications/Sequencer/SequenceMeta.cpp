@@ -224,3 +224,24 @@ bool DeserializeSequenceMeta(File& file, SequenceMeta& out)
 
     return true;
 }
+
+bool GetColorFromSequenceMetaFile(File& file, Color& outColor)
+{
+    size_t fileSize = file.Size();
+    if (fileSize == 0 || fileSize > 2048) return false;
+
+    vector<uint8_t> buffer(fileSize);
+    size_t readBytes = file.Read(buffer.data(), buffer.size());
+    if (readBytes != buffer.size()) return false;
+
+    cb0r_s root{};
+    if (!cb0r_read(buffer.data(), buffer.size(), &root) || root.type != CB0R_MAP) return false;
+
+    cb0r_s item;
+    if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"color", &item))
+    {
+        outColor = Color(item.value);
+        return true;
+    }
+    return false;
+}

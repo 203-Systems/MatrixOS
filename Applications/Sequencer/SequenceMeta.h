@@ -51,3 +51,4 @@ struct SequenceMeta {
 // CBOR serialization helpers (streaming sequence)
 bool SerializeSequenceMeta(const SequenceMeta& meta, File& file);
 bool DeserializeSequenceMeta(File& file, SequenceMeta& out);
+bool GetColorFromSequenceMetaFile(File& file, Color& outColor);

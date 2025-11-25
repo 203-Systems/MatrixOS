@@ -14,6 +14,7 @@
 #include "ScaleSelector.h"
 #include "EventDetailView.h"
 #include "SaveButton.h"
+#include "cb0r.h"
 
 void Sequencer::SequenceTask(void* ctx)
 {
@@ -1261,47 +1262,7 @@ bool Sequencer::Save(uint16_t slot)
     string dataPath = slotDir + "/sequence.data";
     string metaPath = slotDir + "/sequence.meta";
 
-    // Backup file paths
-    string prevDir = slotDir + "/prev";
-    string prevData = prevDir + "/sequence.data";
-    string prevMeta = prevDir + "/sequence.meta";
-
-    if (!MatrixOS::FileSystem::Exists(prevDir))
-    {
-        if (!MatrixOS::FileSystem::MakeDir(prevDir))
-        {
-            MLOGE("Sequencer", "Save - failed to create %s", prevDir.c_str());
-            return false;
-        }
-        MLOGD("Sequencer", "Save - created backup dir %s", prevDir.c_str());
-    }
-
-    // Backup existing files if present
-    if (MatrixOS::FileSystem::Exists(dataPath))
-    {
-        MatrixOS::FileSystem::Remove(prevData);
-        if (!MatrixOS::FileSystem::Rename(dataPath, prevData))
-        {
-            MLOGE("Sequencer", "Save - failed to backup data to %s", prevData.c_str());
-        }
-        else
-        {
-            MLOGD("Sequencer", "Save - backed up data to %s", prevData.c_str());
-        }
-    }
-
-    if (MatrixOS::FileSystem::Exists(metaPath))
-    {
-        MatrixOS::FileSystem::Remove(prevMeta);
-        if (!MatrixOS::FileSystem::Rename(metaPath, prevMeta))
-        {
-            MLOGE("Sequencer", "Save - failed to backup meta to %s", prevMeta.c_str());
-        }
-        else
-        {
-            MLOGD("Sequencer", "Save - backed up meta to %s", prevMeta.c_str());
-        }
-    }
+    if (!BackupSlot(slot)) return false;
 
     // Write meta first
     File metaFile = MatrixOS::FileSystem::Open(metaPath, "wb");
@@ -1367,10 +1328,11 @@ bool Sequencer::Load(uint16_t slot)
     dataFile.Close();
     if (!dataOk) { MLOGE("Sequencer", "Load - deserialize data failed"); return false; }
     MLOGD("Sequencer", "Loaded sequence data from %s", dataPath.c_str());
-
-
+    
     sequence.SetData(dataCopy);
     meta = metaCopy;
+    saveSlot = slot;
+    sequence.SetDirty(false);
     MLOGD("Sequencer", "Loaded SD slot %u", slot);
     return true;
 }
@@ -1385,6 +1347,78 @@ bool Sequencer::Saved(uint16_t slot)
     return MatrixOS::FileSystem::Exists(dataPath) && MatrixOS::FileSystem::Exists(metaPath);
 }
 
+static void RenderUpArrow(Point origin, Color color)
+{
+    for (uint8_t x = 0; x < 4; ++x)
+    {
+        for (uint8_t y = 0; y < 4; ++y)
+        {
+            if (x == 1 || x == 2 || y == 1)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);    
+            }
+        }
+    }
+}
+
+static void RenderDownArrow(Point origin, Color color)
+{
+    for (uint8_t x = 0; x < 4; ++x)
+    {
+        for (uint8_t y = 0; y < 4; ++y)
+        {
+            if (x == 1 || x == 2 || y == 2)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);    
+            }
+        }
+    }
+}
+
+static void RenderRing(Point origin, Color color)
+{
+    for (uint8_t x = 0; x < 4; ++x)
+    {
+        for (uint8_t y = 0; y < 4; ++y)
+        {
+            if (x == 0 || x == 3 || y == 0 || y == 3)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+            }
+        }
+    }
+}
+
+static void RenderCross(Point origin, Color color)
+{
+    for (uint8_t x = 0; x < 4; ++x)
+    {
+        for (uint8_t y = 0; y < 4; ++y)
+        {
+            if (x == y || x == 3 - y) 
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+            }
+        }
+    }
+}
+
 void Sequencer::ConfirmSaveUI()
 {
     UI confirmSaveUI("Confirm Save", meta.color, false);
@@ -1393,57 +1427,20 @@ void Sequencer::ConfirmSaveUI()
     uint32_t openTime = MatrixOS::SYS::Millis();
     uint32_t savedTime = 0;
 
-    auto RenderArrow = [&]( Color color) -> void
-    {
-        for (uint8_t x = 2; x < 6; ++x)
-        {
-            for (uint8_t y = 2; y < 6; ++y)
-            {
-                if (x == 3 || x == 4 || y == 4)
-                {
-                    MatrixOS::LED::SetColor(Point(x, y), color);
-                }
-            }
-        }
-    };
-
-    auto RenderRing = [&]( Color color) -> void
-    {
-        for (uint8_t x = 2; x < 6; ++x)
-        {
-            for (uint8_t y = 2; y < 6; ++y)
-            {
-                if (x == 2 || x == 5 || y == 2 || y == 5)
-                {
-                    MatrixOS::LED::SetColor(Point(x, y), color);
-                }
-            }
-        }
-    };
-
-    auto RenderCross = [&](Color color) -> void
-    {
-        for (uint8_t i = 0; i < 4; ++i)
-        {
-            MatrixOS::LED::SetColor(Point(i + 2, i + 2), Color::Red);
-            MatrixOS::LED::SetColor(Point(i + 2, 5 - i), Color::Red);
-        }
-    };
-
     confirmSaveUI.SetPostRenderFunc([&]() -> void
                                     {
                                         if(saved == false)
                                         {
-                                            uint8_t scale = ColorEffects::Strobe(200, openTime);
-                                            RenderArrow(scale ? Color::White : meta.color);
+                                            uint8_t scale = ColorEffects::Strobe(500, openTime);
+                                            RenderDownArrow(Point(2,2), scale ? Color::White : meta.color);
                                         }
                                         else if(saved == true)
                                         {
-                                            RenderRing(meta.color);
+                                            RenderRing(Point(2,2), meta.color);
                                         }
                                         else if(failed == true)
                                         {
-                                            RenderCross(Color::Red);
+                                            RenderCross(Point(2,2), Color::Red);
                                         }   
 
                                         if(saved || failed)
@@ -1454,12 +1451,23 @@ void Sequencer::ConfirmSaveUI()
     
     confirmSaveUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
                                      {
+            if((saved || failed))
+            {
+                if(keyEvent->info.state == PRESSED)
+                {
+                    confirmSaveUI.Exit();
+                    KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(keyEvent->id);
+                    if(keyInfo) {keyInfo->Clear();}
+                }
+                return true;
+            }
+
             Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
             if(xy && (xy.x == 3 || xy.x == 4 || xy.y == 5))
             {
                 if (keyEvent->info.state == RELEASED && keyEvent->Hold() == false)
                 {
-                    RenderArrow(Color::White);
+                    RenderDownArrow(Point(2,2), Color::White);
                     bool success = Save(saveSlot);
                     savedTime = MatrixOS::SYS::Millis();
                     if(success)
@@ -1480,5 +1488,315 @@ void Sequencer::ConfirmSaveUI()
 
 void Sequencer::SequenceBrowser()
 {
+    UI browser("Sequence Browser", meta.color, true);
 
+    bool clear = false;
+    bool copy = false;
+
+    bool loaded = false;
+    bool saved = false;
+    bool failed = false;
+    uint32_t eventTime = 0;
+
+    // collect slot colors (8x6 grid), sparse map
+    std::map<uint16_t, Color> slotColors;
+
+    for (uint16_t slot = 0; slot < SD_SLOT_MAX && slot < 48; ++slot)
+    {
+        if (Saved(slot))
+        {
+            Color c = meta.color;
+            std::string path = "/sequences/" + std::to_string(slot) + "/sequence.meta";
+            File f = MatrixOS::FileSystem::Open(path, "rb");
+            if (GetColorFromSequenceMetaFile(f, c)) slotColors[slot] = c;
+        }
+    }
+
+    browser.SetPostRenderFunc([&]() -> void
+    {
+        if(eventTime != 0 && MatrixOS::SYS::Millis() - eventTime < 500)
+        {
+            if(loaded)
+            {
+                RenderRing(Point(2,2), meta.color);
+            }
+            else if(saved)
+            {
+                RenderRing(Point(2,2), meta.color);
+            }
+            else if(failed)
+            {
+                RenderCross(Point(2,2), Color::Red);
+            }
+            return;
+        }
+        else if (eventTime != 0)
+        {
+            eventTime = 0;
+            MatrixOS::LED::Fade();
+        }
+
+        for (uint8_t y = 0; y < 6; ++y)
+        {
+            for (uint8_t x = 0; x < 8; ++x)
+            {
+                uint16_t idx = y * 8 + x;
+                Color color = Color(0x101010);
+                auto it = slotColors.find(idx);
+                if (it != slotColors.end()) 
+                {
+                    color = it->second;
+                    if (idx == saveSlot)
+                    {
+                        color = Color::Crossfade(color, Color::White, Fract16(ColorEffects::Breath(500) / 4 * 3, 8));
+                    }
+                }
+                MatrixOS::LED::SetColor(Point(x, y), color);
+            }
+        }
+
+        // Color picker strip (x 2..5, y 7)
+        for (uint8_t x = 2; x < 6; ++x)
+        {
+            MatrixOS::LED::SetColor(Point(x, 7), meta.color);
+        }
+
+        // Clear button (0,7)
+        MatrixOS::LED::SetColor(Point(0, 7), clear ? Color::White : Color(0xFF0080));
+
+        // Copy button (7,7)
+        MatrixOS::LED::SetColor(Point(7, 7), copy ? Color::White : Color(0x0080FF));
+    });
+
+    browser.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool
+    {
+        if(eventTime != 0 && MatrixOS::SYS::Millis() - eventTime < 500)
+        {
+            if(keyEvent->State() == PRESSED)
+            {
+                eventTime = 0;
+                MatrixOS::LED::Fade();
+                KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(keyEvent->id);
+                if(keyInfo) {keyInfo->Clear();}
+            }
+            return true;
+        }
+
+        Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+        if(!xy) {return false;}
+        if (xy.y < 6)
+        {
+            if (keyEvent->info.state == HOLD)
+            {
+                uint16_t slot = xy.y * 8 + xy.x;
+                auto it = slotColors.find(slot);
+                bool hasSequence = (it != slotColors.end());
+                if (hasSequence)
+                {
+                    MatrixOS::UIUtility::TextScroll("Sequence #" + std::to_string(slot + 1), it->second);
+                }
+                else
+                {
+                    MatrixOS::UIUtility::TextScroll("Empty Slot", Color::White);
+                }
+                clear = false;
+                copy = false;
+            }
+            else if (keyEvent->info.state == RELEASED && keyEvent->info.Hold() == false)
+            {
+                uint16_t slot = xy.y * 8 + xy.x;
+                auto it = slotColors.find(slot);
+                bool hasSequence = (it != slotColors.end());
+                if (hasSequence && slot != saveSlot)
+                {
+                    MatrixOS::LED::Fill(Color::Black);
+                    RenderUpArrow(Point(2, 2), Color::White);
+                    MatrixOS::LED::Update();
+                    loaded = false;
+                    saved = false;
+                    failed = false;
+                    if (Load(slot)) {
+                         loaded = true;
+        
+                    }
+                    else { 
+                         failed = true;
+                    }
+                    eventTime = MatrixOS::SYS::Millis();
+                }
+                else
+                {
+                    MatrixOS::LED::Fill(Color::Black);
+                    RenderDownArrow(Point(2, 2), Color::White);
+                    MatrixOS::LED::Update();
+                    loaded = false;
+                    saved = false;
+                    failed = false;
+                    if (Save(slot))
+                    {
+                        slotColors[slot] = meta.color;
+                        saved = true;
+                    }
+                    else
+                    {   
+                        failed = true;
+                    }
+                    eventTime = MatrixOS::SYS::Millis();
+                }
+            }
+            return true;
+        }
+        else if (xy.x > 1 && xy.x < 6 && xy.y == 7) // Color Picker
+        {
+            if (keyEvent->info.state == HOLD)
+            {
+                MatrixOS::UIUtility::TextScroll("Sequence Color", meta.color);
+                clear = false;
+                copy = false;
+            }
+            else if (keyEvent->info.state == RELEASED && keyEvent->info.Hold() == false)
+            {
+                Color newColor = meta.color;
+                if (MatrixOS::UIUtility::ColorPicker(newColor, false))
+                {
+                    meta.color = newColor;
+                    sequence.SetDirty();
+                }
+                return true;
+            }
+            return true;
+        }
+        else if (xy.x == 0 && xy.y == 7) // Clear
+        {
+            if (keyEvent->info.state == PRESSED)
+            {
+                clear = true;
+                copy = false;
+            }
+            else if (keyEvent->info.state == RELEASED)
+            {
+                clear = false;
+            }
+            return true;
+        }
+        else if (xy.x == 7 && xy.y == 7) // Copy
+        {
+            if (keyEvent->info.state == PRESSED)
+            {
+                copy = true;
+                clear = false;
+            }
+            else if (keyEvent->info.state == RELEASED)
+            {
+                copy = false;
+            }
+            return true;
+        }
+
+        return false;
+    });
+
+    browser.Start();
+}
+
+bool Sequencer::ClearSlot(uint16_t slot)
+{
+    if (!MatrixOS::FileSystem::Available()) return false;
+    std::string base = "/sequences/" + std::to_string(slot) + "/";
+    bool ok1 = MatrixOS::FileSystem::Remove(base + "sequence.data");
+    bool ok2 = MatrixOS::FileSystem::Remove(base + "sequence.meta");
+    return ok1 || ok2;
+}
+
+bool Sequencer::CopySlot(uint16_t from, uint16_t to)
+{
+    if (!MatrixOS::FileSystem::Available()) return false;
+    if (!Saved(from)) return false;
+
+    std::string fromBase = "/sequences/" + std::to_string(from) + "/";
+    std::string toBase   = "/sequences/" + std::to_string(to) + "/";
+
+    std::string fromData = fromBase + "sequence.data";
+    std::string fromMeta = fromBase + "sequence.meta";
+
+    std::string toData   = toBase + "sequence.data";
+    std::string toMeta   = toBase + "sequence.meta";
+
+    MatrixOS::FileSystem::MakeDir("/sequences");
+    MatrixOS::FileSystem::MakeDir(toBase);
+
+    // backup existing dest
+    if (!BackupSlot(to))
+    {
+        MLOGE("Sequencer", "CopySlot - backup dest slot %u failed", to);
+        return false;
+    }
+
+    auto copyFile = [](const std::string& src, const std::string& dst) -> bool
+    {
+        File in = MatrixOS::FileSystem::Open(src, "rb");
+        if (in.Name().empty()) return false;
+        File out = MatrixOS::FileSystem::Open(dst, "wb");
+        if (out.Name().empty()) return false;
+        uint8_t buf[512];
+        size_t n;
+        while ((n = in.Read(buf, sizeof(buf))) > 0)
+        {
+            if (out.Write(buf, n) != n) return false;
+        }
+        in.Close();
+        out.Close();
+        return true;
+    };
+
+    bool ok1 = copyFile(fromData, toData);
+    bool ok2 = copyFile(fromMeta, toMeta);
+
+    // TOOD: If failed, restore from the back up
+    
+    return ok1 && ok2;
+}
+
+bool Sequencer::BackupSlot(uint16_t slot)
+{
+    std::string slotDir = "/sequences/" + std::to_string(slot);
+    std::string dataPath = slotDir + "/sequence.data";
+    std::string metaPath = slotDir + "/sequence.meta";
+    std::string prevDir = slotDir + "/prev";
+    std::string prevData = prevDir + "/sequence.data";
+    std::string prevMeta = prevDir + "/sequence.meta";
+
+    if (!MatrixOS::FileSystem::Exists(prevDir))
+    {
+        if (!MatrixOS::FileSystem::MakeDir(prevDir))
+        {
+            MLOGE("Sequencer", "BackupSlot - failed to create %s", prevDir.c_str());
+            return false;
+        }
+        MLOGD("Sequencer", "BackupSlot - created %s", prevDir.c_str());
+    }
+
+    if (MatrixOS::FileSystem::Exists(dataPath))
+    {
+        MatrixOS::FileSystem::Remove(prevData);
+        if (!MatrixOS::FileSystem::Rename(dataPath, prevData))
+        {
+            MLOGE("Sequencer", "BackupSlot - failed to backup data to %s", prevData.c_str());
+            return false;
+        }
+        MLOGD("Sequencer", "BackupSlot - backed up data to %s", prevData.c_str());
+    }
+
+    if (MatrixOS::FileSystem::Exists(metaPath))
+    {
+        MatrixOS::FileSystem::Remove(prevMeta);
+        if (!MatrixOS::FileSystem::Rename(metaPath, prevMeta))
+        {
+            MLOGE("Sequencer", "BackupSlot - failed to backup meta to %s", prevMeta.c_str());
+            return false;
+        }
+        MLOGD("Sequencer", "BackupSlot - backed up meta to %s", prevMeta.c_str());
+    }
+
+    return true;
 }

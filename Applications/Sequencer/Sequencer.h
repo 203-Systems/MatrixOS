@@ -79,7 +79,7 @@ class Sequencer : public Application {
   void SetView(ViewMode view);
 
   // Persistence
-  static constexpr uint8_t SD_SLOT_MAX = 32;
+  static constexpr uint8_t SD_SLOT_MAX = 48;
   bool Load(uint16_t slot);
   bool Save(uint16_t slot);
   bool Saved(uint16_t slot);
@@ -87,6 +87,9 @@ class Sequencer : public Application {
 
   void ConfirmSaveUI();
   void SequenceBrowser();
+  bool ClearSlot(uint16_t slot);
+  bool CopySlot(uint16_t from, uint16_t to);
+  bool BackupSlot(uint16_t slot);
   
   static void SequenceTask(void* ctx);
 };
