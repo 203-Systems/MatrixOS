@@ -168,7 +168,7 @@ MidiPacket MidiPacket::Reset()
 EMidiStatus MidiPacket::Status() const {
   if((uint8_t)status < EMidiStatus::SysExData)
   {
-    return (EMidiStatus)data[0];
+    return (EMidiStatus)(data[0] & 0xF0);
   }
   else
   {
