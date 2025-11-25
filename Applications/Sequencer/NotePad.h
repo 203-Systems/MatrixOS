@@ -18,7 +18,7 @@ extern const Color sequencerRainbowNoteColor[12];
 
 class SequencerNotePad : public UIComponent {
     Sequencer* sequencer;
-    std::function<void(bool, uint8_t, uint8_t)> selectCallback; //NoteOn, note, velocity
+    std::function<void(MidiPacket)> eventCallback; // full MIDI packet
 
     bool rescanNeeded = false;
     bool prevPatternView = false;
@@ -29,7 +29,7 @@ class SequencerNotePad : public UIComponent {
     public:
     SequencerNotePad(Sequencer* sequencer);
 
-    void OnSelect(std::function<void(bool, uint8_t, uint8_t)> callback);
+    void OnEvent(std::function<void(MidiPacket)> callback);
     void EnableTwoRowMode(std::function<bool()> callback);
 
     Dimension GetSize();

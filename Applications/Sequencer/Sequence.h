@@ -129,6 +129,7 @@ public:
     bool GetMute(uint8_t track);
     void SetMute(uint8_t track, bool val);
 
+    bool ShouldRecord(uint8_t track); // Factors in solo & mute
     bool GetRecord(uint8_t track);
     void SetRecord(uint8_t track, bool val);
 
@@ -152,7 +153,7 @@ public:
     Fract16 GetQuarterNoteProgress();
     uint8_t QuarterNoteProgressBreath(uint8_t lowBound = 0); // LED Helper
 
-    void RecordEvent(MidiPacket packet);
+    void RecordEvent(MidiPacket packet, uint8_t track = 0xFF); // if track is 0xff, will determain based on the packet channel. 
 
     // Data accessors (for serialization)
     const SequenceData& GetData() const { return data; }

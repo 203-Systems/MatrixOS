@@ -271,7 +271,7 @@ bool PatternPad::Render(Point origin)
             uint8_t slot = position.step;
             Point point = Point(slot % width, slot / width);
 
-            if(sequencer->sequence.RecordEnabled() == false)
+            if(sequencer->sequence.ShouldRecord(track) == false)
             {
                 Color color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
                 MatrixOS::LED::SetColor(origin + point, color);

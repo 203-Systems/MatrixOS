@@ -768,6 +768,11 @@ void Sequence::SetMute(uint8_t track, bool val)
     }
 }
 
+bool Sequence::ShouldRecord(uint8_t track)
+{
+    return GetEnabled(track) && GetRecord(track);
+}
+
 bool Sequence::GetRecord(uint8_t track)
 {
     return (data.record >> track) & 1;
@@ -912,9 +917,9 @@ uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
     return (uint8_t)brightness;
 }
 
-void Sequence::RecordEvent(MidiPacket packet)
+void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 {
-
+    // if track is 0xff, will determain based on the packet channel. 
 }
 
 void Sequence::ProcessTrack(uint8_t track)

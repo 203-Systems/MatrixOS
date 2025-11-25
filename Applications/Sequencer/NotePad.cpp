@@ -7,9 +7,9 @@ SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
     GenerateKeymap();
 }
 
-void SequencerNotePad::OnSelect(std::function<void(bool, uint8_t, uint8_t)> callback)
+void SequencerNotePad::OnEvent(std::function<void(MidiPacket)> callback)
 {
-    selectCallback = callback;
+    eventCallback = callback;
 }
 
 Dimension SequencerNotePad::GetSize()
@@ -270,9 +270,9 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
             velocity = keyInfo->Value().to7bits();
         }
         sequencer->noteSelected[note] = velocity;
-        if(selectCallback != nullptr)
+        if(eventCallback != nullptr)
         {
-            selectCallback(true, note, velocity);
+            eventCallback(MidiPacket::NoteOn(channel, note, velocity));
         }
         MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
     }
@@ -282,7 +282,10 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             uint8_t velocity = keyInfo->Value().to7bits();
             sequencer->noteSelected[note] = velocity;
-            selectCallback(false, note, velocity);
+            if(eventCallback != nullptr)
+            {
+                eventCallback(MidiPacket::AfterTouch(channel, note, velocity));
+            }
             MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, velocity));
         }
     }
@@ -291,7 +294,10 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         // Remove note from selection
         sequencer->noteSelected.erase(note);
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
-        selectCallback(false, note, 0);
+        if(eventCallback != nullptr)
+        {
+            eventCallback(MidiPacket::NoteOff(channel, note));
+        }
     }
 
     return true;
@@ -470,11 +476,12 @@ void SequencerNotePad::Rescan(Point origin)
                         velocity = keyInfo->Value().to7bits();
                     }
                     sequencer->noteSelected[note] = velocity;
-                    if(selectCallback != nullptr)
+                    MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);
+                    if(eventCallback != nullptr)
                     {
-                        selectCallback(true, note, velocity);
+                        eventCallback(packet);
                     }
-                    MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
+                    MatrixOS::MIDI::Send(packet);
                 }
             }
         }
