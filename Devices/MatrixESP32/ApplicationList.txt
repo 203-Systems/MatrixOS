@@ -33,7 +33,7 @@ Dice
 Reversi
 # PolyPlayground
 Strum
-Sequencer
+# Sequencer
 [System]Python
 
 # Boot animation
