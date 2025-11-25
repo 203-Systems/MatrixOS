@@ -14,6 +14,16 @@ bool SaveButton::Render(Point origin)
     Color color = dirty ? ColorEffects::ColorBreathLowBound(sequencer->meta.color)
                         : sequencer->meta.color;
 
+    if (!MatrixOS::FileSystem::Available())
+    {
+        for (uint8_t i = 0; i < 4; ++i)
+        {
+            MatrixOS::LED::SetColor(origin + Point(i, i), Color::Red);
+            MatrixOS::LED::SetColor(origin + Point(3 - i, i), Color::Red);
+        }
+        return true;
+    }
+
     if (dirty)
     {
         // Dirty: Down arrow
@@ -44,23 +54,32 @@ bool SaveButton::Render(Point origin)
 
 bool SaveButton::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
-    if (sequencer->sequence.GetDirty())
+    if(!MatrixOS::FileSystem::Available())
     {
-        bool arrow = (xy.x == 1 || xy.x == 2 || xy.y == 2);
-        if (!arrow) return false;
-    }
-
-    if (keyInfo->state == HOLD)
-    {
-        MatrixOS::UIUtility::TextScroll("Save", sequencer->meta.color);
-        return true;
-    }
-
-    if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
-    {
-        if(sequencer->sequence.GetDirty())
+      if (keyInfo->state == PRESSED)
         {
-            sequencer->ConfirmSaveUI();
+            MatrixOS::UIUtility::TextScroll("No SD Card", Color::Red);
+        }
+    }
+    else
+    {
+        if (sequencer->sequence.GetDirty())
+        {
+            bool arrow = (xy.x == 1 || xy.x == 2 || xy.y == 2);
+            if (!arrow) return false;
+        }
+
+        if (keyInfo->state == HOLD)
+        {
+            MatrixOS::UIUtility::TextScroll("Save", sequencer->meta.color);
+        }
+
+        if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+        {
+            if(sequencer->sequence.GetDirty())
+            {
+                sequencer->ConfirmSaveUI();
+            }
         }
     }
 

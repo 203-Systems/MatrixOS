@@ -86,6 +86,7 @@ class Sequencer : public Application {
   CreateSavedVar("Sequencer", saveSlot, uint16_t, 0xFFFF);
 
   void ConfirmSaveUI();
+  void SequenceBrowser();
   
   static void SequenceTask(void* ctx);
 };
