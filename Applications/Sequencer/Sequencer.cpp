@@ -357,6 +357,8 @@ void Sequencer::LayoutSelector()
     Color drumColor = Color(0xFF8000);
     Color ccColor = Color(0x0080FF);
     Color pcColor = Color(0x00FF80);
+
+    Color updateColor = Color(0x80FF00);
     
     UI layoutSelector("Layout Selector", noteColor, false);
 
@@ -669,6 +671,72 @@ void Sequencer::LayoutSelector()
     });
     layoutSelector.AddUIComponent(drmTextDisplay, Point(0, 4));
 
+    // Update  text display
+    UITimedDisplay updateTextDisplay(1000);
+    updateTextDisplay.SetDimension(Dimension(8, 4));
+    updateTextDisplay.SetRenderFunc([&](Point origin) -> void
+                                       {
+        // U
+        MatrixOS::LED::SetColor(origin + Point(0, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 3), updateColor);
+
+        // P
+        MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+
+        // D
+        MatrixOS::LED::SetColor(origin + Point(5, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), updateColor);
+    });
+    layoutSelector.AddUIComponent(updateTextDisplay, Point(0, 4));
+    updateTextDisplay.Disable();
+
+    // Apply to other note tracks
+    UIButton applyNoteBtn;
+    applyNoteBtn.SetName("Apply to other note track");
+    applyNoteBtn.SetColorFunc([&]() -> Color {
+        return updateTextDisplay.IsEnabled() ? Color::White : updateColor;
+    });
+    applyNoteBtn.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+    });
+    applyNoteBtn.OnPress([&]() -> void {
+        const auto& src = meta.tracks[track].config.note;
+        for (size_t i = 0; i < meta.tracks.size(); ++i)
+        {
+            if (i == track) continue;
+            if (meta.tracks[i].mode != SequenceTrackMode::NoteTrack) continue;
+            auto& dst = meta.tracks[i].config.note;
+            dst.type = src.type;
+            dst.customScale = src.customScale;
+            dst.enforceScale = src.enforceScale;
+            dst.scale = src.scale;
+            dst.root = src.root;
+            dst.rootOffset = src.rootOffset;
+            dst.octave = src.octave;
+        }
+        updateTextDisplay.Enable();
+        sequence.SetDirty();
+    });
+    layoutSelector.AddUIComponent(applyNoteBtn, Point(7, 2));
+
     layoutSelector.Start();
 }
 
@@ -941,7 +1009,7 @@ void Sequencer::TimeSignatureSelector()
     int32_t beatUnit = sequence.GetBeatUnit();
     bool modified = false;
 
-    // Pattern Length text display
+    // Time text display
     UITimedDisplay textDisplay(500);
     textDisplay.SetDimension(Dimension(8, 4));
     textDisplay.SetRenderFunc([&](Point origin) -> void
@@ -1106,6 +1174,43 @@ void Sequencer::PatternLengthSelector()
     });
     patternLengthSelector.AddUIComponent(patternLengthTextDisplay, Point(0, 0));
 
+    // Update  text display
+    UITimedDisplay updateTextDisplay(1000);
+    updateTextDisplay.SetDimension(Dimension(8, 4));
+    updateTextDisplay.SetRenderFunc([&](Point origin) -> void
+                                       {
+        // U
+        MatrixOS::LED::SetColor(origin + Point(0, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(0, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(1, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(2, 3), updateColor);
+
+        // P
+        MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+        MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+
+        // D
+        MatrixOS::LED::SetColor(origin + Point(5, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 2), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(5, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 0), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(6, 3), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 1), updateColor);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), updateColor);
+    });
+    patternLengthSelector.AddUIComponent(updateTextDisplay, Point(0, 0));
+    updateTextDisplay.Disable();
+
     UI4pxNumber numDisplay;
     numDisplay.SetColorFunc([&](uint16_t digit) -> Color
     {
@@ -1122,7 +1227,9 @@ void Sequencer::PatternLengthSelector()
     numDisplay.SetValuePointer(&patternLength);
     numDisplay.SetSpacing(1);
     numDisplay.SetEnableFunc([&]() -> bool
-                             { return !patternLengthTextDisplay.IsEnabled(); });
+    {
+        return !patternLengthTextDisplay.IsEnabled() && !updateTextDisplay.IsEnabled();
+    });
     patternLengthSelector.AddUIComponent(numDisplay, Point(1, 0));
 
     UISelector patternLengthInput;
@@ -1137,6 +1244,7 @@ void Sequencer::PatternLengthSelector()
                             {
                                 patternLength = val + 1;
                                 patternLengthTextDisplay.Disable();
+                                updateTextDisplay.Disable();
                                 updateTime = 0;
                             });
 
@@ -1144,10 +1252,13 @@ void Sequencer::PatternLengthSelector()
 
     UIButton updatePatternsBtn;
     updatePatternsBtn.SetName("Update Empty Patterns");
-    updatePatternsBtn.SetColor(updateColor);
+    updatePatternsBtn.SetColorFunc([&]() -> Color
+    {return updateTextDisplay.IsEnabled() ? Color::White : updateColor;});
     updatePatternsBtn.OnPress([&]() -> void {
         sequence.SetPatternLength(patternLength);
         sequence.UpdateEmptyPatternsWithPatternLength();
+        patternLengthTextDisplay.Disable();
+        updateTextDisplay.Enable();
         updateTime = MatrixOS::SYS::Millis();
     });
     patternLengthSelector.AddUIComponent(updatePatternsBtn, Point(7, 5));

@@ -63,6 +63,12 @@ class UITimedDisplay : public UIComponent {
     return enabled;
   }
 
+  void Enable()
+  {
+    lastEnabledTime = 0;
+    enabled = true;
+  }
+
   void Disable()
   {
     lastEnabledTime = UINT32_MAX;
