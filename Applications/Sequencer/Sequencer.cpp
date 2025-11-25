@@ -13,6 +13,7 @@
 #include "ScaleModifier.h"
 #include "ScaleSelector.h"
 #include "EventDetailView.h"
+#include "SaveButton.h"
 
 void Sequencer::SequenceTask(void* ctx)
 {
@@ -53,6 +54,102 @@ void Sequencer::End()
         tickTaskHandle = nullptr;
     }
 }
+
+void Sequencer::ConfirmSaveUI()
+{
+    UI confirmSaveUI("Confirm Save", meta.color, false);
+    bool saved = false;
+    bool failed = false;
+    uint32_t openTime = MatrixOS::SYS::Millis();
+    uint32_t savedTime = 0;
+
+    auto RenderArrow = [&]( Color color) -> void
+    {
+        for (uint8_t x = 2; x < 6; ++x)
+        {
+            for (uint8_t y = 2; y < 6; ++y)
+            {
+                if (x == 3 || x == 4 || y == 4)
+                {
+                    MatrixOS::LED::SetColor(Point(x, y), color);
+                }
+            }
+        }
+    };
+
+    auto RenderRing = [&]( Color color) -> void
+    {
+        for (uint8_t x = 2; x < 6; ++x)
+        {
+            for (uint8_t y = 2; y < 6; ++y)
+            {
+                if (x == 2 || x == 5 || y == 2 || y == 5)
+                {
+                    MatrixOS::LED::SetColor(Point(x, y), color);
+                }
+            }
+        }
+    };
+
+    auto RenderCross = [&](Color color) -> void
+    {
+            MatrixOS::LED::SetColor(Point(2, 2), color);
+            MatrixOS::LED::SetColor(Point(2, 5), color);
+            MatrixOS::LED::SetColor(Point(3, 3), color);
+            MatrixOS::LED::SetColor(Point(3, 4), color);
+            MatrixOS::LED::SetColor(Point(4, 3), color);
+            MatrixOS::LED::SetColor(Point(4, 4), color);
+            MatrixOS::LED::SetColor(Point(5, 2), color);
+            MatrixOS::LED::SetColor(Point(5, 5), color);
+    };
+
+    confirmSaveUI.SetPostRenderFunc([&]() -> void
+                                    {
+                                        if(saved == false)
+                                        {
+                                            uint8_t scale = ColorEffects::Strobe(200, openTime);
+                                            RenderArrow(scale ? Color::White : meta.color);
+                                        }
+                                        else if(saved == true)
+                                        {
+                                            RenderRing(meta.color);
+                                        }
+                                        else if(failed == true)
+                                        {
+                                            RenderCross(Color::Red);
+                                        }   
+
+                                        if(saved || failed)
+                                        {
+                                            if(MatrixOS::SYS::Millis() - savedTime > 500) {confirmSaveUI.Exit();}
+                                        }
+                                    });
+    
+    confirmSaveUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
+                                     {
+            Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+            if(xy && (xy.x == 3 || xy.x == 4 || xy.y == 5))
+            {
+                if (keyEvent->info.state == RELEASED && keyEvent->Hold() == false)
+                {
+                    RenderArrow(Color::White);
+                    bool success = Save(saveSlot);
+                    savedTime = MatrixOS::SYS::Millis();
+                    if(success)
+                    {
+                        saved = true;
+                    }
+                    else
+                    {
+                        failed = true;
+                    }
+                    return true;
+                }
+            }
+            return false; });
+
+    confirmSaveUI.Start();
+}   
 
 void Sequencer::SequencerUI()
 {
@@ -306,23 +403,8 @@ void Sequencer::SequencerMenu()
     playBtn.OnPress([&]() -> void { sequence.Playing() ? sequence.Stop() : sequence.Play(); });
     sequencerMenu.AddUIComponent(playBtn, Point(0, 7));
 
-    UIButton saveBtn;
-    saveBtn.SetName("Save Sequence");
-    saveBtn.SetColorFunc([&]() -> Color
-                         { 
-                            return sequence.GetDirty() ? 
-                            ColorEffects::ColorBreathLowBound(Color::Red) : 
-                            meta.color; 
-                        });
-    saveBtn.SetSize(Dimension(2, 2));
-    saveBtn.OnPress([&]() -> void
-                    {
-            if(Save(saveSlot))
-            {
-                sequence.SetDirty(false);
-            }
-            });
-    sequencerMenu.AddUIComponent(saveBtn, Point(3, 3));
+    SaveButton saveBtn(this);
+    sequencerMenu.AddUIComponent(saveBtn, Point(2, 2));
 
     UIButton sequenceBrowserBtn;
     sequenceBrowserBtn.SetName("Sequence Browser");
@@ -1333,6 +1415,7 @@ bool Sequencer::Save(uint16_t slot)
     MLOGD("Sequencer", "Save - sequence data written to %s size=%u", dataPath.c_str(), (unsigned)dataFileSize);
 
     saveSlot = slot;
+    sequence.SetDirty(false);
     return true;
 }
 
