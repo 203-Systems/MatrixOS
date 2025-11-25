@@ -445,6 +445,11 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
 
 void Sequence::CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTrack, uint8_t destClip)
 {
+    if (sourceTrack == destTrack && sourceClip == destClip)
+    {
+        return;
+    }
+
     // Check if source clip exists
     if (!ClipExists(sourceTrack, sourceClip)) return;
 
@@ -524,6 +529,11 @@ void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)
 
 void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sourcePattern, uint8_t destTrack, uint8_t destClip, uint8_t destPattern)
 {
+    if (sourceTrack == destTrack && sourceClip == destClip && sourcePattern == destPattern)
+    {
+        return;
+    }
+
     if (!ClipExists(sourceTrack, sourceClip) || !ClipExists(destTrack, destClip)) return;
 
     auto& sourcePatterns = data.tracks[sourceTrack].clips[sourceClip].patterns;

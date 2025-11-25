@@ -1907,6 +1907,7 @@ bool Sequencer::ClearSlot(uint16_t slot)
 
 bool Sequencer::CopySlot(uint16_t from, uint16_t to)
 {
+    if (from == to) return false;
     if (!MatrixOS::FileSystem::Available()) return false;
     if (!Saved(from)) return false;
 

@@ -96,6 +96,11 @@ void SequencePattern::ClearStepEvents(uint8_t step, uint16_t pulsesPerStep)
 
 void SequencePattern::CopyStepEvents(uint8_t src, uint8_t dest, uint16_t pulsesPerStep)
 {
+    if (src == dest)
+    {
+        return;
+    }
+
     uint16_t sourceStartTime = src * pulsesPerStep;
     uint16_t destStartTime = dest * pulsesPerStep;
     CopyEventsInRange(sourceStartTime, destStartTime, pulsesPerStep);
