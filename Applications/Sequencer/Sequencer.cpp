@@ -36,7 +36,6 @@ void Sequencer::Setup(const vector<string> &args)
     }
 
     sequence.EnableClockOutput(meta.clockOutput);\
-    sequence.SetDirty(false);
 
     if (tickTaskHandle == nullptr)
     {
@@ -1229,9 +1228,23 @@ bool Sequencer::Save(uint16_t slot)
     sequence.Stop();
 
     if (slot == 0xFFFF) { 
-        MLOGD("Sequencer", "Load - No Previous Assigned Slot"); 
-        // TODO open picker to save to
-        slot = 0; // Set to 0 for now
+        MLOGD("Sequencer", "Load - No Previous Assigned Slot - Finding the next available slot"); 
+        uint16_t freeSlot = 0xFFFF;
+        for (uint16_t i = 0; i < SD_SLOT_MAX; ++i)
+        {
+            if (!Saved(i))
+            {
+                freeSlot = i;
+                break;
+            }
+        }
+        if (freeSlot == 0xFFFF)
+        {
+            MLOGE("Sequencer", "Save - no free slot available");
+            return false;
+        }
+        slot = freeSlot;
+        MLOGD("Sequencer", "Save - using free slot %u", slot);
     } 
 
     if (slot >= SD_SLOT_MAX) { MLOGE("Sequencer", "Save - slot out of range %u", slot); return false; }
@@ -1492,6 +1505,8 @@ void Sequencer::SequenceBrowser()
 
     bool clear = false;
     bool copy = false;
+    int8_t copySrc = -1;
+    uint32_t modifierTime = 0;
 
     bool loaded = false;
     bool saved = false;
@@ -1536,22 +1551,131 @@ void Sequencer::SequenceBrowser()
             MatrixOS::LED::Fade();
         }
 
-        for (uint8_t y = 0; y < 6; ++y)
+        if(modifierTime != 0 && MatrixOS::SYS::Millis() - modifierTime < 500)
         {
-            for (uint8_t x = 0; x < 8; ++x)
+            if(clear)
             {
-                uint16_t idx = y * 8 + x;
-                Color color = Color(0x101010);
-                auto it = slotColors.find(idx);
-                if (it != slotColors.end()) 
+                Color color = Color(0xFF0080);
+
+                // C
+                MatrixOS::LED::SetColor(Point(0, 1), color);
+                MatrixOS::LED::SetColor(Point(0, 2), color);
+                MatrixOS::LED::SetColor(Point(0, 3), color);
+                MatrixOS::LED::SetColor(Point(0, 4), color);
+                MatrixOS::LED::SetColor(Point(1, 1), color);
+                MatrixOS::LED::SetColor(Point(1, 4), color);
+                MatrixOS::LED::SetColor(Point(2, 1), color);
+                MatrixOS::LED::SetColor(Point(2, 4), color);
+                
+                // L
+                MatrixOS::LED::SetColor(Point(3, 1), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 2), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 3), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 4), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 4), Color::White);
+
+                // R
+                MatrixOS::LED::SetColor(Point(5, 1), color);
+                MatrixOS::LED::SetColor(Point(5, 2), color);
+                MatrixOS::LED::SetColor(Point(5, 3), color);
+                MatrixOS::LED::SetColor(Point(5, 4), color);
+                MatrixOS::LED::SetColor(Point(6, 1), color);
+                MatrixOS::LED::SetColor(Point(6, 3), color);
+                MatrixOS::LED::SetColor(Point(7, 1), color);
+                MatrixOS::LED::SetColor(Point(7, 2), color);
+                MatrixOS::LED::SetColor(Point(7, 4), color);
+            }
+            else if(copy)
+            {
+                Color color = Color(0x8000FF);
+
+                // C
+                MatrixOS::LED::SetColor(Point(0, 1), color);
+                MatrixOS::LED::SetColor(Point(0, 2), color);
+                MatrixOS::LED::SetColor(Point(0, 3), color);
+                MatrixOS::LED::SetColor(Point(0, 4), color);
+                MatrixOS::LED::SetColor(Point(1, 1), color);
+                MatrixOS::LED::SetColor(Point(1, 4), color);
+                MatrixOS::LED::SetColor(Point(2, 1), color);
+                MatrixOS::LED::SetColor(Point(2, 4), color);
+
+                // P
+                MatrixOS::LED::SetColor(Point(3, 1), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 2), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 3), Color::White);
+                MatrixOS::LED::SetColor(Point(3, 4), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 1), Color::White);
+                MatrixOS::LED::SetColor(Point(4, 2), Color::White);
+
+                // Y
+                MatrixOS::LED::SetColor(Point(5, 1), color);
+                MatrixOS::LED::SetColor(Point(5, 2), color);
+                MatrixOS::LED::SetColor(Point(6, 3), color);
+                MatrixOS::LED::SetColor(Point(6, 4), color);
+                MatrixOS::LED::SetColor(Point(7, 1), color);
+                MatrixOS::LED::SetColor(Point(7, 2), color);
+            }
+        }
+        else
+        {
+            for (uint8_t y = 0; y < 6; ++y)
+            {
+                for (uint8_t x = 0; x < 8; ++x)
                 {
-                    color = it->second;
-                    if (idx == saveSlot)
+                    uint16_t idx = y * 8 + x;
+                    Color color;
+                    auto it = slotColors.find(idx);
+                    bool slotPopulated = (it != slotColors.end());
+                        
+                    if(clear)
                     {
-                        color = Color::Crossfade(color, Color::White, Fract16(ColorEffects::Breath(500) / 4 * 3, 8));
+                        color = slotPopulated ? it->second : Color::Black;
                     }
+                    else if (copy)
+                    {
+                        if(copySrc > 0)
+                        {
+                            if(idx == copySrc)
+                            {
+                                color = Color::White;
+                            }
+                            else
+                            {
+                                color = slotPopulated ? it->second : Color(0x101010);
+                            }
+                        }
+                        else
+                        {
+                            color = slotPopulated ? it->second : Color::Black;
+                        }
+                    }
+                    else
+                    {
+                        if(slotPopulated)
+                        {
+                            if (idx == saveSlot)
+                            {
+                                if(sequence.GetDirty())
+                                {
+                                    color = Color::Crossfade(it->second, Color::Red.Dim(), Fract16(ColorEffects::Breath(500), 8));
+                                }
+                                else
+                                {
+                                    color = Color::Crossfade(it->second, Color::White, Fract16(ColorEffects::Breath(500) / 4 * 3, 8));
+                                }
+                            }
+                            else
+                            {
+                                color = it->second;
+                            }
+                        }
+                        else
+                        {
+                            color = Color(0x101010);
+                        }
+                    }
+                    MatrixOS::LED::SetColor(Point(x, y), color);
                 }
-                MatrixOS::LED::SetColor(Point(x, y), color);
             }
         }
 
@@ -1586,6 +1710,11 @@ void Sequencer::SequenceBrowser()
         if(!xy) {return false;}
         if (xy.y < 6)
         {
+            if(modifierTime != 0 && MatrixOS::SYS::Millis() - modifierTime < 500)
+            {
+                return true;
+            }
+
             if (keyEvent->info.state == HOLD)
             {
                 uint16_t slot = xy.y * 8 + xy.x;
@@ -1607,42 +1736,85 @@ void Sequencer::SequenceBrowser()
                 uint16_t slot = xy.y * 8 + xy.x;
                 auto it = slotColors.find(slot);
                 bool hasSequence = (it != slotColors.end());
-                if (hasSequence && slot != saveSlot)
+                if(clear)
                 {
-                    MatrixOS::LED::Fill(Color::Black);
-                    RenderUpArrow(Point(2, 2), Color::White);
-                    MatrixOS::LED::Update();
-                    loaded = false;
-                    saved = false;
-                    failed = false;
-                    if (Load(slot)) {
-                         loaded = true;
-        
+                    if (hasSequence)
+                    {
+                        if(ClearSlot(slot))
+                        {
+                            slotColors.erase(slot);
+                        }
+                        else
+                        {
+                            failed = true;
+                            eventTime = MatrixOS::SYS::Millis();
+                            clear = false;
+                            modifierTime = 0;
+                        }
                     }
-                    else { 
-                         failed = true;
+                }
+                else if(copy)
+                {
+                    if(copySrc < 0)
+                    {
+                        if (hasSequence)
+                        {
+                            copySrc = slot;
+                        }
                     }
-                    eventTime = MatrixOS::SYS::Millis();
+                    else
+                    {
+                        if(CopySlot(copySrc, slot))
+                        {
+                            slotColors[slot] = slotColors[copySrc];
+                        }
+                        else
+                        {
+                            failed = true;
+                            eventTime = MatrixOS::SYS::Millis();
+                        }
+                        copy = false;
+                        copySrc = -1;
+                    }
                 }
                 else
                 {
-                    MatrixOS::LED::Fill(Color::Black);
-                    RenderDownArrow(Point(2, 2), Color::White);
-                    MatrixOS::LED::Update();
-                    loaded = false;
-                    saved = false;
-                    failed = false;
-                    if (Save(slot))
+                    if (hasSequence && slot != saveSlot)
                     {
-                        slotColors[slot] = meta.color;
-                        saved = true;
+                        MatrixOS::LED::Fill(Color::Black);
+                        RenderUpArrow(Point(2, 2), Color::White);
+                        MatrixOS::LED::Update();
+                        loaded = false;
+                        saved = false;
+                        failed = false;
+                        if (Load(slot)) {
+                            loaded = true;
+                        }
+                        else { 
+                            failed = true;
+                        }
+                        eventTime = MatrixOS::SYS::Millis();
                     }
                     else
-                    {   
-                        failed = true;
+                    {
+                        MatrixOS::LED::Fill(Color::Black);
+                        RenderDownArrow(Point(2, 2), Color::White);
+                        MatrixOS::LED::Update();
+                        loaded = false;
+                        saved = false;
+                        failed = false;
+                        if (Save(slot))
+                        {
+                            slotColors[slot] = meta.color;
+                            saved = true;
+                        }
+                        else
+                        {   
+                            failed = true;
+                        }
+                        eventTime = MatrixOS::SYS::Millis();
                     }
-                    eventTime = MatrixOS::SYS::Millis();
-                }
+            }
             }
             return true;
         }
@@ -1672,10 +1844,15 @@ void Sequencer::SequenceBrowser()
             {
                 clear = true;
                 copy = false;
+                modifierTime = MatrixOS::SYS::Millis();
             }
             else if (keyEvent->info.state == RELEASED)
             {
-                clear = false;
+                if(clear)
+                {
+                    clear = false;
+                    modifierTime = 0;
+                }
             }
             return true;
         }
@@ -1685,12 +1862,28 @@ void Sequencer::SequenceBrowser()
             {
                 copy = true;
                 clear = false;
+                copySrc = -1;
+                modifierTime = MatrixOS::SYS::Millis();
             }
             else if (keyEvent->info.state == RELEASED)
             {
-                copy = false;
+                if(copy)
+                {
+                    copy = false;
+                    copySrc = -1;
+                    modifierTime = 0;
+                }
             }
             return true;
+        }
+        else
+        {
+            if(keyEvent->info.state == HOLD)
+            {
+                copy = false;
+                clear = false;
+                MatrixOS::UIUtility::TextScroll(browser.name, Color::White);
+            }
         }
 
         return false;
@@ -1703,6 +1896,10 @@ bool Sequencer::ClearSlot(uint16_t slot)
 {
     if (!MatrixOS::FileSystem::Available()) return false;
     std::string base = "/sequences/" + std::to_string(slot) + "/";
+    if(slot == saveSlot) {
+        saveSlot = 0xFFFF;
+        sequence.SetDirty();
+    }
     bool ok1 = MatrixOS::FileSystem::Remove(base + "sequence.data");
     bool ok2 = MatrixOS::FileSystem::Remove(base + "sequence.meta");
     return ok1 || ok2;
@@ -1730,6 +1927,12 @@ bool Sequencer::CopySlot(uint16_t from, uint16_t to)
     {
         MLOGE("Sequencer", "CopySlot - backup dest slot %u failed", to);
         return false;
+    }
+
+    if(to == saveSlot)
+    {
+        saveSlot = 0xFFFF;
+        sequence.SetDirty();
     }
 
     auto copyFile = [](const std::string& src, const std::string& dst) -> bool

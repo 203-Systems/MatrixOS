@@ -47,6 +47,8 @@ void Sequence::New(uint8_t tracks)
     data.mute = 0;
     data.record = 0xFFFFFFFF;
 
+    dirty = true;
+
     UpdateTiming();
 }
 
