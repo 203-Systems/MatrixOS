@@ -2,6 +2,7 @@
 
 #include "SequenceData.h"
 #include "SequenceMeta.h"
+#include <unordered_map>
 
 struct SequencePosition
 {
@@ -49,6 +50,12 @@ private:
         uint32_t lastEventTime = 0;               // Last event time (for animation)
         map<uint8_t, uint32_t> noteOffMap;        // note -> tick time (for overwrite lookup)
         multimap<uint32_t, uint8_t> noteOffQueue; // tick -> note (for efficient processing)
+        struct RecordedNote
+        {
+            uint32_t startTick = 0;
+            SequenceEvent* eventPtr = nullptr;
+        };
+        std::unordered_map<uint8_t, RecordedNote> recordedNotes; // note -> pending event info
     };
 
     vector<TrackPlayback> trackPlayback;
@@ -158,4 +165,7 @@ public:
     // Data accessors (for serialization)
     const SequenceData& GetData() const { return data; }
     void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithPatternLength(); UpdateTiming(); dirty = true; }
+
+private:
+    void TerminateRecordedNotes(uint8_t track);
 };

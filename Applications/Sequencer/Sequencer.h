@@ -20,8 +20,6 @@ class Sequencer : public Application {
   void Setup(const vector<string>& args) override;
   void End();
 
-  // CreateSavedVar("Sequencer", lastSequence, string, "");
-  
   SequenceMeta meta;
   Sequence sequence;
   TaskHandle_t tickTaskHandle = nullptr;

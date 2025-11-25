@@ -59,10 +59,6 @@ void Sequencer::SequencerUI()
 {
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
 
-    uint8_t track = this->track;
-
-    SequencePattern *pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
-
     PatternPad patternPad(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
     patternPad.SetEnableFunc([&]() -> bool
                                      { return currentView == ViewMode::Sequencer; });
@@ -78,8 +74,11 @@ void Sequencer::SequencerUI()
                         if(sequence.Playing(track) && sequence.ShouldRecord(track))
                         {
                             sequence.RecordEvent(packet, track);
+                            return;
                         }
-                        else if (pattern != nullptr && isNoteOn)
+                        
+                        SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
+                        if (pattern != nullptr && isNoteOn)
                         {
                             bool existAlready = false;
 
@@ -113,9 +112,10 @@ void Sequencer::SequencerUI()
 
     PatternSelector patternSelector(this);
     patternSelector.OnChange([&](uint8_t patternIdx) -> void
-                             {
+    {
         ClearActiveNotes();
-        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, patternIdx); });
+        stepSelected.clear();
+    });
     patternSelector.SetEnableFunc([&]() -> bool
                                   { 
                                     bool enable = currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); 
@@ -135,7 +135,7 @@ void Sequencer::SequencerUI()
 
         notePad.GenerateKeymap();
 
-        pattern = &sequence.GetPattern(track, clip, sequence.GetPosition(track).pattern); });
+    });
     clipLauncher.SetEnableFunc([&]() -> bool
                                { return currentView == ViewMode::Session; });
     sequencerUI.AddUIComponent(clipLauncher, Point(0, 0));
@@ -162,10 +162,7 @@ void Sequencer::SequencerUI()
         ClearSelectedNotes();
 
         notePad.GenerateKeymap();
-
-        track = this->track;
-
-        pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern); });
+    });    
     trackSelector.SetEnableFunc([&]() -> bool
                                 { return currentView != ViewMode::Session && currentView != ViewMode::Mixer && currentView != ViewMode::StepDetail; });
     sequencerUI.AddUIComponent(trackSelector, Point(0, 0));
@@ -176,6 +173,7 @@ void Sequencer::SequencerUI()
         for (const auto& step : stepSelected)
         {
             uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
+            SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
             pattern->ClearStepEvents(step, pulsesPerStep);
         } });
     sequencerUI.AddUIComponent(controlBar, Point(0, 7));

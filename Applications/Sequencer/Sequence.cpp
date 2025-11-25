@@ -240,6 +240,9 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
         pulseSinceStart = 0;
     }
 
+    // Terminate recorded notes on this track before switching
+    TerminateRecordedNotes(track);
+
     // Queue this clip to play after current patterns finish
     trackPlayback[track].nextClip = clip;
 }
@@ -258,6 +261,7 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
     // For each track, check if clip exists
     for (uint8_t track = 0; track < data.tracks.size(); track++)
     {
+        TerminateRecordedNotes(track);
         if (ClipExists(track, clip))
         {
             // Track has this clip, queue it to play
@@ -285,10 +289,12 @@ bool Sequence::Playing(uint8_t track)
 void Sequence::Stop()
 {
     playing = false;
+    record = false;
 
     // Send note-off for all queued notes before clearing
     for (uint8_t track = 0; track < trackPlayback.size(); track++) {
         uint8_t channel = GetChannel(track);
+        TerminateRecordedNotes(track);
         for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
             MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
         }
@@ -305,6 +311,7 @@ void Sequence::Stop(uint8_t track)
 {
     // Send note-off for all queued notes on this track before clearing
     uint8_t channel = GetChannel(track);
+    TerminateRecordedNotes(track);
     for (const auto& [note, tick] : trackPlayback[track].noteOffMap) {
         MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
     }
@@ -919,7 +926,119 @@ uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound)
 
 void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 {
-    // if track is 0xff, will determain based on the packet channel. 
+    // if track is 0xff, determine based on the packet channel.
+    if (!record) return;
+
+    std::vector<uint8_t> targets;
+    if (track == 0xFF)
+    {
+        for (uint8_t i = 0; i < data.tracks.size(); ++i)
+        {
+            if (data.tracks[i].channel != packet.Channel()) continue;
+            if (!GetEnabled(i)) continue;
+            targets.push_back(i);
+        }
+        if (targets.empty()) return;
+    }
+    else
+    {
+        if (track >= data.tracks.size()) return;
+        targets.push_back(track);
+    }
+
+    EMidiStatus status = packet.Status();
+    uint8_t note = packet.Note();
+    uint8_t velocity = packet.Velocity();
+
+    for (uint8_t t : targets)
+    {
+        if (!ClipExists(t, trackPlayback[t].position.clip)) continue;
+
+        uint8_t clipIdx = trackPlayback[t].position.clip;
+        uint8_t patIdx = trackPlayback[t].position.pattern;
+        if (patIdx >= GetPatternCount(t, clipIdx)) continue;
+
+        SequencePattern& pattern = GetPattern(t, clipIdx, patIdx);
+        uint32_t currentTick = trackPlayback[t].position.step * pulsesPerStep + trackPlayback[t].position.pulse;
+        auto& pending = trackPlayback[t].recordedNotes;
+
+        if (status == EMidiStatus::NoteOn && velocity > 0)
+        {
+            // If a note is already pending, finalize its length to this tick
+            auto prevIt = pending.find(note);
+            if (prevIt != pending.end())
+            {
+                Sequence::TrackPlayback::RecordedNote prev = prevIt->second;
+                pending.erase(prevIt);
+                if (prev.eventPtr != nullptr)
+                {
+                    uint32_t prevLen = (currentTick > prev.startTick) ? (currentTick - prev.startTick) : 1;
+                    if (prevLen == 0) prevLen = 1;
+                    SequenceEventNote& prevNoteData = std::get<SequenceEventNote>(prev.eventPtr->data);
+                    if (prevLen > UINT16_MAX) prevLen = UINT16_MAX;
+                    prevNoteData.length = (uint16_t)prevLen;
+                    dirty = true;
+                }
+            }
+
+            auto evIt = pattern.events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
+            SequenceEvent& evRef = evIt->second;
+            Sequence::TrackPlayback::RecordedNote info;
+            info.startTick = currentTick;
+            info.eventPtr = &evRef;
+            pending[note] = info;
+            dirty = true;
+        }
+        else if (status == EMidiStatus::NoteOff || (status == EMidiStatus::NoteOn && velocity == 0))
+        {
+            auto itPending = pending.find(note);
+            if (itPending == pending.end()) continue;
+
+            Sequence::TrackPlayback::RecordedNote info = itPending->second;
+            pending.erase(itPending);
+
+            if (info.eventPtr == nullptr) continue;
+
+            uint32_t length = (currentTick > info.startTick) ? (currentTick - info.startTick) : 1;
+            if (length > UINT16_MAX) length = UINT16_MAX;
+            if (length == 0) length = 1;
+
+            SequenceEventNote& noteData = std::get<SequenceEventNote>(info.eventPtr->data);
+            noteData.length = (uint16_t)length;
+            dirty = true;
+        }
+        else
+        {
+            // Ignore other statuses for now
+        }
+    }
+}
+
+void Sequence::TerminateRecordedNotes(uint8_t track)
+{
+    if (track >= trackPlayback.size()) return;
+    auto& recordedNotes = trackPlayback[track].recordedNotes;
+    if (recordedNotes.empty()) return;
+
+    bool updated = false;
+    // Use the track's current position for a stop-time reference
+    uint32_t currentTick = trackPlayback[track].position.step * pulsesPerStep + trackPlayback[track].position.pulse;
+
+    for (auto& entry : recordedNotes)
+    {
+        const auto& info = entry.second;
+        if (info.eventPtr == nullptr) continue;
+
+        uint32_t length = (currentTick > info.startTick) ? (currentTick - info.startTick) : 1;
+        if (length == 0) length = 1;
+
+        SequenceEventNote& noteData = std::get<SequenceEventNote>(info.eventPtr->data);
+        noteData.length = (uint16_t)length;
+        updated = true;
+    }
+
+    recordedNotes.clear();
+    if (updated) dirty = true;
 }
 
 void Sequence::ProcessTrack(uint8_t track)
