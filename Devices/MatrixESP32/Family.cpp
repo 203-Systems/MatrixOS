@@ -3,6 +3,7 @@
 #include "UI/UI.h"
 
 #include "esp_private/system_internal.h"  // For esp_reset_reason_set_hint
+#include "esp_timer.h"  // esp_timer_get_time
 
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
@@ -164,9 +165,7 @@ namespace Device
   void ErrorHandler() {}
 
   uint64_t Micros() {
-    struct timeval tv_now;
-    gettimeofday(&tv_now, NULL);
-    return (int64_t)tv_now.tv_sec * 1000000L + (int64_t)tv_now.tv_usec;
+    return (uint64_t)esp_timer_get_time();
   }
 }
 
