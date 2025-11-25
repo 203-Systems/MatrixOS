@@ -1065,17 +1065,19 @@ void Sequence::ProcessTrack(uint8_t track)
     }
 
     // Wrap step/pattern based on active pattern length
-    uint8_t clip = pos.clip;
-    uint8_t pattern = pos.pattern;
-    uint8_t patternSteps = data.patternLength;
-    if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
-        patternSteps = GetPattern(track, clip, pattern).steps;
-    }
-    if (pos.step >= patternSteps) {
-        pos.step = 0;
-        pos.pattern++;
-        if (ClipExists(track, clip) && pos.pattern >= GetPatternCount(track, clip)) {
-            pos.pattern = 0;
+    {
+        uint8_t clip = pos.clip;
+        uint8_t pattern = pos.pattern;
+        uint8_t patternSteps = data.patternLength;
+        if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
+            patternSteps = GetPattern(track, clip, pattern).steps;
+        }
+        if (pos.step >= patternSteps) {
+            pos.step = 0;
+            pos.pattern++;
+            if (ClipExists(track, clip) && pos.pattern >= GetPatternCount(track, clip)) {
+                pos.pattern = 0;
+            }
         }
     }
 
@@ -1092,14 +1094,14 @@ void Sequence::ProcessTrack(uint8_t track)
         pos.pulse = 0;
         trackPlayback[track].nextClip = 255;
         trackPlayback[track].playing = true;
-        clip = pos.clip;
-        pattern = pos.pattern;
     }
 
     // Only process tracks that are currently playing
     if (!trackPlayback[track].playing) return;
 
     // 2. Fire events at current tick position
+    uint8_t clip = pos.clip;
+    uint8_t pattern = pos.pattern;
     if (trackEnabled && ClipExists(track, clip)) {
         SequencePattern& currentPattern = GetPattern(track, clip, pattern);
 
