@@ -99,8 +99,15 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
                 }
             }
             else
-            {
-                sequencer->sequence.SetClip(track, clip);
+            {   
+                if(sequencer->ShiftActive())
+                {
+                    sequencer->sequence.PlayClip(track, clip);
+                }
+                else
+                {
+                    sequencer->sequence.SetClip(track, clip);
+                }   
             }
 
             if (changeCallback != nullptr)
