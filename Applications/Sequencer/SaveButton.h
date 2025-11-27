@@ -12,6 +12,10 @@ public:
     Dimension GetSize() override;
     bool Render(Point origin) override;
     bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
+    bool IsEnabled() override;
+    uint32_t LastEnableTime() const { return lastEnableTime; }
 private:
     Sequencer* sequencer;
+    uint32_t createTime = 0;
+    uint32_t lastEnableTime = 0;
 };

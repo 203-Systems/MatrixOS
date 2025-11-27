@@ -4,9 +4,25 @@
 SaveButton::SaveButton(Sequencer* sequencer)
 {
     this->sequencer = sequencer;
+    createTime = MatrixOS::SYS::Millis();
 }
 
 Dimension SaveButton::GetSize() { return Dimension(4, 4); }
+
+bool SaveButton::IsEnabled()
+{
+    bool enabled = UIComponent::IsEnabled();
+    if (enabled)
+    {
+        uint32_t now = MatrixOS::SYS::Millis();
+        if ((now - lastEnableTime) > 100)
+        {
+            createTime = now;
+        }
+        lastEnableTime = now;
+    }
+    return enabled;
+}
 
 bool SaveButton::Render(Point origin)
 {
@@ -55,6 +71,11 @@ bool SaveButton::Render(Point origin)
 
 bool SaveButton::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
+    if((MatrixOS::SYS::Millis() - createTime) < 300) // Add dead frame to prevent accidential click
+    {
+        return true;
+    }
+
     if(!MatrixOS::FileSystem::Available())
     {
       if (keyInfo->state == PRESSED)
