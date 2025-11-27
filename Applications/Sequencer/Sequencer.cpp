@@ -83,12 +83,7 @@ void Sequencer::SequencerUI()
     // Global
     TrackSelector trackSelector(this);
     trackSelector.OnChange([&](uint8_t val) -> void
-                           {
-        stepSelected.clear();
-
-        ClearActiveNotes();
-        ClearSelectedNotes();
-
+    {
         notePad.GenerateKeymap();
     });    
     trackSelector.SetEnableFunc([&]() -> bool
