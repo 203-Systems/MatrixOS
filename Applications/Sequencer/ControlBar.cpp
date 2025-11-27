@@ -34,7 +34,11 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
-      if(sequencer->ShiftActive())
+      if((sequencer->CopyActive() || sequencer->ClearActive()) && sequencer->sequence.Playing() == false)
+      {
+        return true; // Disable play if we have copy or clear active
+      }
+      else if(sequencer->ShiftActive())
       {
         sequencer->ShiftEventOccured();
         bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
@@ -145,6 +149,18 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
     if(keyInfo->state == PRESSED)
     {
         sequencer->copy = true;
+        if(sequencer->sequence.Playing(sequencer->track) == false)
+        {
+          if(sequencer->stepSelected.size() == 1)
+          {
+            sequencer->copySourceStep = *sequencer->stepSelected.begin();
+          }
+          else
+          {
+            sequencer->copySourceStep = -1;
+          }
+          sequencer->stepSelected.clear();
+        }
     }
     else if(keyInfo->state == RELEASED)
     {

@@ -37,10 +37,32 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 
     if(keyInfo->state == PRESSED)
     {
-        bool HasEvent = pattern.HasEventInRange(startTime, endTime);
+        bool hasEvent = pattern.HasEventInRange(startTime, endTime);
+        if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+        {
+            // Source selection if none yet
+            if(sequencer->copySourceStep < 0)
+            {
+                if(hasEvent == false)
+                {
+                    return true; // only allow selecting source with events
+                }
+                sequencer->copySourceStep = step;
+                return true;
+            }
+            else
+            {
+                // Copy from existing source to this step
+                uint8_t srcStep = sequencer->copySourceStep;
+                pattern.ClearStepEvents(step, pulsesPerStep);
+                pattern.CopyStepEvents(srcStep, step, pulsesPerStep);
+                sequencer->sequence.SetDirty();
+                return true;
+            }
+        }
 
         // Check for shift-click to enter StepDetail view (only when not playing locally)
-        if(HasEvent && sequencer->ShiftActive() && !sequencer->sequence.Playing(track))
+        if(hasEvent && sequencer->ShiftActive() && !sequencer->sequence.Playing(track))
         {
             sequencer->ShiftEventOccured();
             sequencer->sequence.SetPosition(track, clip, patternIdx, step);
@@ -84,12 +106,6 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             }
 
             pattern.ClearStepEvents(step, pulsesPerStep);
-        }
-        else if(sequencer->CopyActive() && sequencer->stepSelected.size() >= 2) // Self is included
-        {
-            uint8_t srcStep = *sequencer->stepSelected.begin();
-            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-            pattern.CopyStepEvents(srcStep, step, pulsesPerStep);
         }
         else if(!noteSelected->empty())
         {
@@ -185,101 +201,129 @@ bool PatternPad::Render(Point origin)
     }
 
     Color trackColor = sequencer->meta.tracks[track].color;
-
-    // Check if pattern is selected
-    if(patternIdx >= sequencer->sequence.GetPatternCount(track, clip))
-    {
-        sequencer->sequence.SetPattern(track, 0);
-        patternIdx = 0;
-    }
-
     SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, (uint8_t)patternIdx);
 
-
-    // Render base
-    for(uint8_t step = 0; step < pattern.steps; step++)
+    if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
     {
-        Point point = Point(step % width, step / width);
-        MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
-    }
-
-    // Render Note
-    uint16_t hasNote = 0;
-    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-    for(uint8_t slot = 0; slot < pattern.steps; slot++)
-    {
-        uint16_t startTime = slot * pulsesPerStep;
-        uint16_t endTime = startTime + pulsesPerStep - 1;
-
-        bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
-        bool shouldRender = false;
-
-        // If notes are selected, only render events with matching notes
-        bool noteFilter = !noteSelected->empty();
-        if(noteFilter)
+        // Render Base
+        if(sequencer->copySourceStep >= 0)
         {
-            // Check if any event in this slot has a note that's selected
-            auto it = pattern.events.lower_bound(startTime);
-            while (it != pattern.events.end() && it->first <= endTime)
+            for(uint8_t step = 0; step < pattern.steps; step++)
             {
-                if (it->second.eventType == SequenceEventType::NoteEvent)
-                {
-                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
-                    if(noteSelected->find(noteData.note) != noteSelected->end())
-                    {
-                        shouldRender = true;
-                        break;
-                    }
-                }
-                ++it;
+                Point point = Point(step % width, step / width);
+                MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
             }
         }
-        else
-        {
-            // No notes selected, render all note events
-            shouldRender = hasEventInSlot;
-        }
 
-        if(shouldRender)
+        // Render Step
+        uint16_t hasNote = 0;
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        for(uint8_t slot = 0; slot < pattern.steps; slot++)
         {
-            Point point = Point(slot % width, slot / width);
-            hasNote |= 1 << slot;
-            Color color = noteFilter ? Color::Green : trackColor;
-            MatrixOS::LED::SetColor(origin + point, color);
-        }
-        else if(noteFilter && hasEventInSlot)
-        {
-            // Event exists but not in current filter; dim the track color
-            Point point = Point(slot % width, slot / width);
-            MatrixOS::LED::SetColor(origin + point, Color::Crossfade(trackColor, Color::White, Fract16(0xA000)).Scale(127));
-        }
-    }
+            uint16_t startTime = slot * pulsesPerStep;
+            uint16_t endTime = startTime + pulsesPerStep - 1;
 
-    // Render Selected
-    for(uint8_t selectedStep : *stepSelected)
-    {
-        Point point = Point(selectedStep % width, selectedStep / width);
-        MatrixOS::LED::SetColor(origin + point, Color::White);
-    }
-
-    // Render Cursor
-    if(sequencer->sequence.Playing(track))
-    {
-        SequencePosition& position = sequencer->sequence.GetPosition(track);
-        if(patternIdx == position.pattern)
-        {
-            uint8_t slot = position.step;
-            Point point = Point(slot % width, slot / width);
-
-            if(sequencer->sequence.RecordEnabled() && sequencer->sequence.ShouldRecord(track))
+            bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+            if(hasEventInSlot)
             {
-                Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
-                MatrixOS::LED::SetColor(origin + point, baseColor);
+                MatrixOS::LED::SetColor(origin + Point(slot % width, slot / width), trackColor);
+            }
+        }
+
+        // Render Selected
+        if(sequencer->copySourceStep >= 0)
+        {
+            Point point = Point(sequencer->copySourceStep % width, sequencer->copySourceStep / width);
+            MatrixOS::LED::SetColor(origin + point, Color::White);
+        }
+    }
+    else // Normal mode
+    {
+        // Render Base
+        for(uint8_t step = 0; step < pattern.steps; step++)
+        {
+            Point point = Point(step % width, step / width);
+            MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
+        }
+
+        // Render Step
+        uint16_t hasNote = 0;
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        for(uint8_t slot = 0; slot < pattern.steps; slot++)
+        {
+            uint16_t startTime = slot * pulsesPerStep;
+            uint16_t endTime = startTime + pulsesPerStep - 1;
+
+            bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+            bool shouldRender = false;
+
+            // If notes are selected, only render events with matching notes
+            bool noteFilter = !noteSelected->empty();
+            if(noteFilter)
+            {
+                // Check if any event in this slot has a note that's selected
+                auto it = pattern.events.lower_bound(startTime);
+                while (it != pattern.events.end() && it->first <= endTime)
+                {
+                    if (it->second.eventType == SequenceEventType::NoteEvent)
+                    {
+                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                        if(noteSelected->find(noteData.note) != noteSelected->end())
+                        {
+                            shouldRender = true;
+                            break;
+                        }
+                    }
+                    ++it;
+                }
             }
             else
             {
-                Color color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
+                // No notes selected, render all note events
+                shouldRender = hasEventInSlot;
+            }
+            
+            if(shouldRender)
+            {
+                hasNote |= 1 << slot;
+                Color color = noteFilter ? Color::Green : trackColor;
+                Point point = Point(slot % width, slot / width);
                 MatrixOS::LED::SetColor(origin + point, color);
+            }
+            else if(noteFilter && hasEventInSlot)
+            {
+                // Event exists but not in current filter; dim the track color
+                Point point = Point(slot % width, slot / width);
+                MatrixOS::LED::SetColor(origin + point, Color::Crossfade(trackColor, Color::White, Fract16(0xA000)).Scale(127));
+            }
+        }
+
+        // Render Selected
+        for(uint8_t selectedStep : *stepSelected)
+        {
+            Point point = Point(selectedStep % width, selectedStep / width);
+            MatrixOS::LED::SetColor(origin + point, Color::White);
+        }
+
+        // Render Cursor
+        if(sequencer->sequence.Playing(track))
+        {
+            SequencePosition& position = sequencer->sequence.GetPosition(track);
+            if(patternIdx == position.pattern)
+            {
+                uint8_t slot = position.step;
+                Point point = Point(slot % width, slot / width);
+
+                if(sequencer->sequence.RecordEnabled() && sequencer->sequence.ShouldRecord(track))
+                {
+                    Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
+                    MatrixOS::LED::SetColor(origin + point, baseColor);
+                }
+                else
+                {
+                    Color color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
+                    MatrixOS::LED::SetColor(origin + point, color);
+                }
             }
         }
     }
