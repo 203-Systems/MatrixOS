@@ -65,6 +65,7 @@ class Sequencer : public Application {
 
   void SequencerUI();
   void SequencerMenu();
+  void ClearState();
 
   bool ClearActive();
   bool CopyActive();

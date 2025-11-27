@@ -22,10 +22,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(xy.x != sequencer->track)
         {
             sequencer->track = xy.x;
-            sequencer->ClearActiveNotes();
-            sequencer->ClearSelectedNotes();
-            sequencer->stepSelected.clear();
-            sequencer->copySourceStep = -1;
+            sequencer->ClearState();
             if (changeCallback != nullptr) {
                 (changeCallback)(xy.x);
             }

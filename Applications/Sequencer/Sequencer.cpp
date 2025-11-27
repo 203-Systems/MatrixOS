@@ -35,13 +35,14 @@ void Sequencer::Setup(const vector<string> &args)
         saveSlot = 0xFFFF;
     }
 
-    sequence.EnableClockOutput(meta.clockOutput);\
+    sequence.EnableClockOutput(meta.clockOutput);
 
     if (tickTaskHandle == nullptr)
     {
         xTaskCreate(SequenceTask, "SeqTick", configMINIMAL_STACK_SIZE * 2, this, 1, &tickTaskHandle);
     }
 
+    ClearState();
     SequencerUI();
 }
 
@@ -112,8 +113,7 @@ void Sequencer::SequencerUI()
             shift[0] = shift[1] = false;
             shiftEventOccured[0] = shiftEventOccured[1] = false;
 
-            ClearActiveNotes();
-            ClearSelectedNotes();
+            ClearState();
 
             SequencerMenu();
 
@@ -268,6 +268,15 @@ void Sequencer::SequencerMenu()
         return false; });
 
     sequencerMenu.Start();
+}
+
+void Sequencer::ClearState()
+{
+    ClearSelectedNotes();
+    ClearActiveNotes();
+    stepSelected.clear();
+    copySourceStep = -1;
+    trackSelected = false;
 }
 
 void Sequencer::LayoutSelector()
@@ -1246,8 +1255,7 @@ void Sequencer::SetView(ViewMode view)
 
     if (currentView == ViewMode::Sequencer)
     {
-        ClearSelectedNotes();
-        ClearActiveNotes();
+        ClearState();
     }
 
     currentView = view;
