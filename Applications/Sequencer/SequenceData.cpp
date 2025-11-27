@@ -158,7 +158,7 @@ bool SerializeSequenceData(const SequenceData& data, File& file)
     uint8_t trackId = 0;
     for (const auto& track : data.tracks)
     {
-        MLOGD("SequenceData", "Serialize track %u ch=%u activeClip=%u clips=%zu", trackId, track.channel, track.activeClip, track.clips.size());
+        MLOGD("SequenceData", "Serializing track %u ch=%u activeClip=%u clips=%zu", trackId, track.channel, track.activeClip, track.clips.size());
         // Track item: ["t", channel, activeClip]
         buffer.clear();
         cb_write_uint(buffer, CB0R_ARRAY, 3);
@@ -173,10 +173,10 @@ bool SerializeSequenceData(const SequenceData& data, File& file)
             uint8_t clipId = clipPair.first;
             const SequenceClip& clip = clipPair.second;
 
-            MLOGD("SequenceData", "Serialize clip t=%u id=%u patterns=%zu", trackId, clipId, clip.patterns.size());
+            MLOGD("SequenceData", "Serializing clip t=%u id=%u patterns=%zu", trackId, clipId, clip.patterns.size());
             // Clip item: ["c", clipId]
             buffer.clear();
-            cb_write_uint(buffer, CB0R_ARRAY, 3);
+            cb_write_uint(buffer, CB0R_ARRAY, 2);
             cb_write_text(buffer, "c");
             cb_write_uint(buffer, CB0R_INT, clipId);
             if (file.Write(buffer.data(), buffer.size()) != buffer.size()) return false;
@@ -191,7 +191,7 @@ bool SerializeSequenceData(const SequenceData& data, File& file)
                 cb_write_text(buffer, "p");
                 cb_write_uint(buffer, CB0R_INT, pat.steps);
                 cb_write_uint(buffer, CB0R_ARRAY, pat.events.size());
-                MLOGD("SequenceData", "Serialize pattern t=%u c=%u p=%zu steps=%u events=%zu", trackId, clipId, patIdx, pat.steps, pat.events.size());
+                MLOGD("SequenceData", "Serializing pattern t=%u c=%u p=%zu steps=%u events=%zu", trackId, clipId, patIdx, pat.steps, pat.events.size());
                 for (const auto& ev : pat.events)
                 {
                     SerializeEvent(buffer, ev);
@@ -206,12 +206,12 @@ bool SerializeSequenceData(const SequenceData& data, File& file)
 }
 
 // --- Deserialization helpers ---
-static bool ParseHeaderMap(cb0r_s root, SequenceData& out)
+static bool ParseHeader(cb0r_s root, SequenceData& out)
 {
     cb0r_s item;
-    if (!cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"ver", &item)) return false;
+    if (!cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"ver", &item)) { MLOGW("SequenceData", "Header missing 'ver'"); return false; }
     out.version = item.value;
-    if (out.version < MIN_SUPPORTED_SEQUENCE_VERSION || out.version > SEQUENCE_VERSION) return false;
+    if (out.version < MIN_SUPPORTED_SEQUENCE_VERSION || out.version > SEQUENCE_VERSION) { MLOGW("SequenceData", "Unsupported version %u", out.version); return false; }
     if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item)) out.bpm = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item)) out.swing = item.value;
     if (cb0r_find(&root, CB0R_UTF8, 10, (uint8_t*)"patternLen", &item)) out.patternLength = item.value;
@@ -227,25 +227,26 @@ static bool ParseHeaderMap(cb0r_s root, SequenceData& out)
 
 static bool ParseTrack(cb0r_s node, uint8_t& channel, uint8_t& activeClip)
 {
-    if (node.type != CB0R_ARRAY || node.length < 3) return false;
+    if (node.type != CB0R_ARRAY || node.length < 3) { MLOGW("SequenceData", "Track parse failed - invalid node"); return false; }
     cb0r_s item;
     // ["t", channel, activeClip]
-    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Track parse failed - channel missing"); return false; }
     channel = item.value;
-    if (!cb0r_get(&node, 2, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 2, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Track parse failed - activeClip missing"); return false; }
     activeClip = item.value;
-    MLOGD("SequenceData", "ParseTrack ch=%u activeClip=%u", channel, activeClip);
+    MLOGD("SequenceData", "Parsed Track ch=%u activeClip=%u", channel, activeClip);
     return true;
 }
 
 static bool ParseClip(cb0r_s node, uint8_t& clipId)
 {
-    if (node.type != CB0R_ARRAY || node.length < 3) return false;
+    // Accept legacy 3-element clips but only require 2 (["c", clipId, <enabled>])
+    if (node.type != CB0R_ARRAY || node.length < 2) { MLOGW("SequenceData", "Clip parse failed - invalid node"); return false; }
     cb0r_s item;
     // ["c", clipId]
-    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Clip parse failed - id missing"); return false; }
     clipId = item.value;
-    MLOGD("SequenceData", "ParseClip id=%u", clipId);
+    MLOGD("SequenceData", "Parsed Clip id=%u", clipId);
     return true;
 }
 
@@ -253,11 +254,11 @@ static bool ParseClip(cb0r_s node, uint8_t& clipId)
 static bool ParseEvent(cb0r_s node, SequenceEvent& outEv, uint16_t& timestamp, uint8_t version)
 {
     (void)version;
-    if (node.type != CB0R_ARRAY || node.length < 2) return false;
+    if (node.type != CB0R_ARRAY || node.length < 2) { MLOGW("SequenceData", "Event parse failed - invalid node"); return false; }
     cb0r_s item;
-    if (!cb0r_get(&node, 0, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 0, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Event parse failed - timestamp missing"); return false; }
     timestamp = item.value;
-    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Event parse failed - type missing"); return false; }
     uint8_t type = item.value;
     cb0r_s payload;
     if (!cb0r_get(&node, 2, &payload)) payload.type = CB0R_ARRAY;
@@ -298,12 +299,12 @@ static bool ParseEvent(cb0r_s node, SequenceEvent& outEv, uint16_t& timestamp, u
 
 static bool ParsePattern(cb0r_s node, uint8_t trackId, uint8_t clipId, uint8_t patternId, SequenceData& data)
 {
-    if (node.type != CB0R_ARRAY || node.length < 3) return false;
+    if (node.type != CB0R_ARRAY || node.length < 3) { MLOGW("SequenceData", "Pattern parse failed - invalid node"); return false; }
     cb0r_s item;
     // ["p", steps, events[]]
-    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) return false;
+    if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) { MLOGW("SequenceData", "Pattern parse failed - steps missing"); return false; }
     uint8_t steps = item.value;
-    if (!cb0r_get(&node, 2, &item) || item.type != CB0R_ARRAY) return false;
+    if (!cb0r_get(&node, 2, &item) || item.type != CB0R_ARRAY) { MLOGW("SequenceData", "Pattern parse failed - events array missing"); return false; }
 
     if (trackId >= data.tracks.size()) data.tracks.resize(trackId + 1);
     SequenceTrack& track = data.tracks[trackId];
@@ -324,103 +325,128 @@ static bool ParsePattern(cb0r_s node, uint8_t trackId, uint8_t clipId, uint8_t p
             pat.events.insert({timestamp, e});
         }
     }
-    MLOGD("SequenceData", "ParsePattern t=%u c=%u p=%u steps=%u events=%zu", trackId, clipId, patternId, pat.steps, pat.events.size());
+    MLOGD("SequenceData", "Parsed Pattern t=%u c=%u p=%u steps=%u events=%zu", trackId, clipId, patternId, pat.steps, pat.events.size());
     return true;
 }
 
 bool DeserializeSequenceData(File& file, SequenceData& out)
 {
-    const size_t kMaxItemSize = 8 * 1024;
+    const size_t MAX_STREAMING_BUFFER = 8 * 1024;
     std::vector<uint8_t> buffer;
     buffer.reserve(1024);
     uint8_t chunk[512];
+    size_t fileOffset = 0; // bytes consumed from start of file
+    bool eofReached = false;
 
     bool headerParsed = false;
     uint8_t currentTrack = 0xFF;
     uint8_t currentClip = 0;
     uint8_t nextPattern = 0;
 
-    // Parse header
-    while (!headerParsed)
-    {
-        cb0r_s root{};
-        if (cb0r_read(buffer.data(), buffer.size(), &root))
-        {
-            size_t consumed = (size_t)(root.end - buffer.data());
-            if (consumed == 0 || consumed > buffer.size()) return false;
-            if (root.type != CB0R_MAP) return false;
-            if (!ParseHeaderMap(root, out)) return false;
-            MLOGD("SequenceData", "Header parsed ver=%u bpm=%u swing=%u patternLen=%u beats=%u beatUnit=%u stepDiv=%u", out.version, out.bpm, out.swing, out.patternLength, out.beatsPerBar, out.beatUnit, out.stepDivision);
-            headerParsed = true;
-            currentTrack = 0xFF;
-            currentClip = 0;
-            nextPattern = 0;
-            buffer.erase(buffer.begin(), buffer.begin() + consumed);
-            break;
-        }
-
-        size_t n = file.Read(chunk, sizeof(chunk));
-        if (n == 0) return false;
-        buffer.insert(buffer.end(), chunk, chunk + n);
-        if (buffer.size() > kMaxItemSize) { MLOGE("SequenceData", "Deserialize - item too large (%zu bytes)", buffer.size()); return false; }
-    }
-
-    // Parse items until EOF
     while (true)
     {
         cb0r_s root{};
-        if (cb0r_read(buffer.data(), buffer.size(), &root))
+        while (true)
         {
-            size_t consumed = (size_t)(root.end - buffer.data());
-            if (consumed == 0 || consumed > buffer.size()) return false;
+            size_t consumed = 0;
+            bool itemReady = false;
 
-            if (root.type != CB0R_ARRAY || root.length < 1) return false;
-            cb0r_s tagNode;
-            if (!cb0r_get(&root, 0, &tagNode) || tagNode.type != CB0R_UTF8) return false;
-            string tag((char*)(tagNode.start + tagNode.header), tagNode.length);
-
-            if (tag == "t")
+            do
             {
-                uint8_t channel = 0;
-                uint8_t activeClip = 0;
-                if (!ParseTrack(root, channel, activeClip)) return false;
-                currentTrack++;
+                bool itemRead = cb0r_read(buffer.data(), buffer.size(), &root);
+                consumed = itemRead ? (size_t)(root.end - buffer.data()) : 0;
+
+                if (buffer.size() > 0 && (consumed == 0 || consumed > buffer.size()))
+                {
+                    MLOGW("SequenceData", "Item parse failed - consumed=%zu size=%zu", consumed, buffer.size());
+                    return false;
+                }
+
+                itemReady = itemRead && (consumed < buffer.size() || eofReached);
+
+                if (itemReady) break;
+
+                // We need to read more
+                size_t n = file.Read(chunk, 512);
+ 
+                if (buffer.size() + n > MAX_STREAMING_BUFFER)
+                {
+                    MLOGE("SequenceData", "Deserialize - item too large (%zu bytes)", buffer.size() + n);
+                    return false;
+                }
+
+                buffer.insert(buffer.end(), chunk, chunk + n);
+
+                if (file.Position() >= file.Size())
+                {
+                    eofReached = true;
+                }
+            } while (!itemReady);
+
+            MLOGD("SequenceData", "Item parsed offset=%zu consumed=%zu type=%u len=%u first=%02X",
+                  fileOffset, consumed, (unsigned)root.type, (unsigned)root.length, buffer.empty() ? 0 : buffer[0]);
+
+            if (!headerParsed)
+            {
+                if (root.type != CB0R_MAP) { MLOGW("SequenceData", "Header parse failed - not a map"); return false; }
+                if (!ParseHeader(root, out)) { MLOGW("SequenceData", "Header parse failed"); return false; }
+                MLOGD("SequenceData", "Header parsed ver=%u bpm=%u swing=%u patternLen=%u beats=%u beatUnit=%u stepDiv=%u", out.version, out.bpm, out.swing, out.patternLength, out.beatsPerBar, out.beatUnit, out.stepDivision);
+                headerParsed = true;
+                currentTrack = 0xFF;
                 currentClip = 0;
                 nextPattern = 0;
-                if (currentTrack >= out.tracks.size()) out.tracks.resize(currentTrack + 1);
-                out.tracks[currentTrack].channel = channel;
-                out.tracks[currentTrack].activeClip = activeClip;
-                MLOGD("SequenceData", "Parsed track %u ch=%u activeClip=%u", currentTrack, channel, activeClip);
-            }
-            else if (tag == "c")
-            {
-                uint8_t clipId = 0;
-                if (!ParseClip(root, clipId)) return false;
-                currentClip = clipId;
-                nextPattern = 0;
-                if (currentTrack >= out.tracks.size()) out.tracks.resize(currentTrack + 1);
-                MLOGD("SequenceData", "Parsed clip t=%u id=%u", currentTrack, clipId);
-            }
-            else if (tag == "p")
-            {
-                if (!ParsePattern(root, currentTrack, currentClip, nextPattern, out)) return false;
-                size_t evCount = out.tracks[currentTrack].clips[currentClip].patterns.size() > nextPattern ? out.tracks[currentTrack].clips[currentClip].patterns[nextPattern].events.size() : 0;
-                MLOGD("SequenceData", "Parsed pattern t=%u c=%u p=%u steps=%u events=%zu", currentTrack, currentClip, nextPattern, out.tracks[currentTrack].clips[currentClip].patterns[nextPattern].steps, evCount);
-                nextPattern++;
             }
             else
             {
-                return false;
+                if (root.type != CB0R_ARRAY || root.length < 1) {
+                    MLOGW("SequenceData", "Item parse failed - not array (type=%u len=%u)", (unsigned)root.type, (unsigned)root.length);
+                    return false;
+                }
+                cb0r_s tagNode;
+                if (!cb0r_get(&root, 0, &tagNode) || tagNode.type != CB0R_UTF8) { MLOGW("SequenceData", "Item parse failed - tag missing"); return false; }
+                string tag((char*)(tagNode.start + tagNode.header), tagNode.length);
+
+                if (tag == "t")
+                {
+                    uint8_t channel = 0;
+                    uint8_t activeClip = 0;
+                    if (!ParseTrack(root, channel, activeClip)) { MLOGW("SequenceData", "Failed to parse track item"); return false; }
+                    currentTrack++;
+                    currentClip = 0;
+                    nextPattern = 0;
+                    if (currentTrack >= out.tracks.size()) out.tracks.resize(currentTrack + 1);
+                    out.tracks[currentTrack].channel = channel;
+                    out.tracks[currentTrack].activeClip = activeClip;
+                }
+                else if (tag == "c")
+                {
+                    uint8_t clipId = 0;
+                    if (!ParseClip(root, clipId)) { MLOGW("SequenceData", "Failed to parse clip item"); return false; }
+                    currentClip = clipId;
+                    nextPattern = 0;
+                    if (currentTrack >= out.tracks.size()) out.tracks.resize(currentTrack + 1);
+                }
+                else if (tag == "p")
+                {
+                    if (!ParsePattern(root, currentTrack, currentClip, nextPattern, out)) { MLOGW("SequenceData", "Failed to parse pattern item t=%u c=%u p=%u", currentTrack, currentClip, nextPattern); return false; }
+                    nextPattern++;
+                }
+                else
+                {
+                    MLOGW("SequenceData", "Unknown item tag");
+                    return false;
+                }
             }
 
             buffer.erase(buffer.begin(), buffer.begin() + consumed);
-            continue;
-        }
+            fileOffset += consumed;
 
-        size_t n = file.Read(chunk, sizeof(chunk));
-        if (n == 0) break; // EOF
-        buffer.insert(buffer.end(), chunk, chunk + n);
-        if (buffer.size() > kMaxItemSize) { MLOGE("SequenceData", "Deserialize - item too large (%zu bytes)", buffer.size()); return false; }
+            if (buffer.empty() && eofReached)
+            {
+                return headerParsed;
+            }
+            break;
+        }
     }
 
     return headerParsed;

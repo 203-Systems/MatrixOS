@@ -128,9 +128,9 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t)
 
 bool DeserializeSequenceMeta(File& file, SequenceMeta& out)
 {
-    const size_t maxSize = 2048; // meta is small; keep under 2KB
+    const size_t MAX_STREAMING_BUFFER = 2048; // meta is small; keep under 2KB
     vector<uint8_t> buffer;
-    buffer.reserve(512);
+    buffer.reserve(1024);
 
     // Load entire file (bounded)
     size_t fileSize = file.Size();
@@ -139,7 +139,7 @@ bool DeserializeSequenceMeta(File& file, SequenceMeta& out)
         MLOGE("SequenceMeta", "Empty meta file");
         return false;
     }
-    if (fileSize > maxSize)
+    if (fileSize > MAX_STREAMING_BUFFER)
     {
         MLOGE("SequenceMeta", "Meta file too large (%u bytes)", (unsigned)fileSize);
         return false;
