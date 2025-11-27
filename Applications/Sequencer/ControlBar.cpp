@@ -136,9 +136,17 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
     else if(keyInfo->state == RELEASED)
     {
         sequencer->clear = false;
-        if(clearCallback != nullptr)
+        if(sequencer->stepSelected.empty() == false)
         {
-            clearCallback();
+            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+            uint8_t track = sequencer->track;
+            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+            SequencePattern* pattern = &sequencer->sequence.GetPattern(track, clip, patternIdx);
+            for (const auto& step : sequencer->stepSelected)
+            {
+                pattern->ClearStepEvents(step, pulsesPerStep);
+            }
         }
     }
     return true;

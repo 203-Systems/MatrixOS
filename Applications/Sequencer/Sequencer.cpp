@@ -123,14 +123,6 @@ void Sequencer::SequencerUI()
     sequencerUI.AddUIComponent(trackSelector, Point(0, 0));
 
     SequencerControlBar controlBar(this, &notePad);
-    controlBar.OnClear([&]() -> void
-                       {
-        for (const auto& step : stepSelected)
-        {
-            uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
-            SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
-            pattern->ClearStepEvents(step, pulsesPerStep);
-        } });
     sequencerUI.AddUIComponent(controlBar, Point(0, 7));
 
     sequencerUI.AllowExit(false);
