@@ -170,7 +170,8 @@ bool ClipLauncher::Render(Point origin)
                 }
                 else
                 {
-                    color = Color(0x101010);
+                    Color trackColor = sequencer->meta.tracks[track].color;
+                    color = trackColor.Dim(32);
                 }
             }
             else
