@@ -8,15 +8,13 @@
 
 class ClipLauncher : public UIComponent {
     Sequencer* sequencer;
-    std::function<void(uint8_t track, uint8_t clip)> changeCallback;
 
     public:
     ClipLauncher(Sequencer* sequencer);
 
     Dimension GetSize();
 
-    void OnChange(std::function<void(uint8_t track, uint8_t clip)> callback);
-
+    virtual bool IsEnabled() override;
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
 
     virtual bool Render(Point origin);

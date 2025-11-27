@@ -7,9 +7,9 @@ ClipLauncher::ClipLauncher(Sequencer* sequencer)
 
 Dimension ClipLauncher::GetSize() { return Dimension(8, 7); }
 
-void ClipLauncher::OnChange(std::function<void(uint8_t track, uint8_t clip)> callback)
+bool ClipLauncher::IsEnabled()
 {
-    changeCallback = callback;
+    return sequencer->currentView == Sequencer::ViewMode::Session;
 }
 
 bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
@@ -76,11 +76,9 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
                 // Select the newly created clip
                 sequencer->track = track;
                 sequencer->sequence.SetClip(track, clip);
-
-                if (changeCallback != nullptr)
-                {
-                    changeCallback(track, clip);
-                }
+                sequencer->ClearActiveNotes();
+                sequencer->ClearSelectedNotes();
+                sequencer->stepSelected.clear();
             }
         }
         // Select clip
@@ -110,10 +108,9 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
                 }   
             }
 
-            if (changeCallback != nullptr)
-            {
-                changeCallback(track, clip);
-            }
+            sequencer->ClearActiveNotes();
+            sequencer->ClearSelectedNotes();
+            sequencer->stepSelected.clear();
         }
     }
     return true;

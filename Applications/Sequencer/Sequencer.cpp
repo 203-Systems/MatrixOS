@@ -70,18 +70,6 @@ void Sequencer::SequencerUI()
 
     // Session View
     ClipLauncher clipLauncher(this);
-    clipLauncher.OnChange([&](uint8_t track, uint8_t clip) -> void
-                          {
-        stepSelected.clear();
-
-        ClearActiveNotes();
-        ClearSelectedNotes();
-
-        notePad.GenerateKeymap();
-
-    });
-    clipLauncher.SetEnableFunc([&]() -> bool
-                               { return currentView == ViewMode::Session; });
     sequencerUI.AddUIComponent(clipLauncher, Point(0, 0));
 
     // Mixer View
