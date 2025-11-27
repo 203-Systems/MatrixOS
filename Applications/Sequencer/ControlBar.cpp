@@ -34,27 +34,37 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
-      if(sequencer->sequence.Playing())
+      if(sequencer->ShiftActive())
       {
-        sequencer->sequence.Stop();
+        sequencer->ShiftEventOccured();
+        bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
+        if(trackPlaying)
+        {
+          sequencer->sequence.StopAfter(sequencer->track);
+        }
+        else
+        {
+          sequencer->sequence.Play(sequencer->track);
+          if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
+          {
+            sequencer->SetView(Sequencer::ViewMode::Sequencer);
+          }
+        }
       }
       else
       {
-        if(sequencer->ShiftActive())
+        if(sequencer->sequence.Playing())
         {
-          sequencer->ShiftEventOccured();
-          sequencer->sequence.Play(sequencer->track);
+          sequencer->sequence.Stop();
         }
         else
         {
           sequencer->sequence.Play();
+          if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
+          {
+            sequencer->SetView(Sequencer::ViewMode::Sequencer);
+          }
         }
-
-        if(sequencer->currentView == Sequencer::ViewMode::StepDetail)
-        {
-          sequencer->SetView(Sequencer::ViewMode::Sequencer);
-        }
-        
       }
     }
     return true;
