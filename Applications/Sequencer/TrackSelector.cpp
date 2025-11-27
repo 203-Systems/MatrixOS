@@ -29,11 +29,26 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 (changeCallback)(xy.x);
             }
         }
+        else
+        {
+            sequencer->trackSelected = true;
+            if(sequencer->ClearActive())
+            {
+                sequencer->sequence.ClearAllStepsInClip(sequencer->track, sequencer->sequence.GetPosition(sequencer->track).clip);
+            }
+        }
     }
-    else if(textScroll && keyInfo->State() == HOLD)
+    else if(keyInfo->State() == HOLD)
     {
-        Color color = sequencer->meta.tracks[xy.x].color;
-        MatrixOS::UIUtility::TextScroll("Track " + std::to_string(xy.x + 1), color);
+        if(textScroll)
+        {
+            Color color = sequencer->meta.tracks[xy.x].color;
+            MatrixOS::UIUtility::TextScroll("Track " + std::to_string(xy.x + 1), color);
+        }
+    }
+    else if(keyInfo->State() == RELEASED && xy.x == sequencer->track)
+    {
+        sequencer->trackSelected = false;
     }
     return true;
 }

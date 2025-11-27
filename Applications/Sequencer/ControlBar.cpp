@@ -124,6 +124,10 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
     if(keyInfo->state == PRESSED)
     {
         sequencer->clear = true;
+        if(sequencer->trackSelected)
+        {
+          sequencer->sequence.ClearAllStepsInClip(sequencer->track, sequencer->sequence.GetPosition(sequencer->track).clip);
+        }
     }
     else if(keyInfo->state == RELEASED)
     {
