@@ -73,6 +73,12 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
+      if(sequencer->ShiftActive() && !sequencer->sequence.Playing())
+      {
+        sequencer->ShiftEventOccured();
+        sequencer->sequence.UndoLastRecorded();
+        return true;
+      }
       sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
     }
     return true;

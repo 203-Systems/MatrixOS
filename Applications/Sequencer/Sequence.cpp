@@ -47,6 +47,8 @@ void Sequence::New(uint8_t tracks)
     currentPulse = UINT16_MAX; // so first increment lands on pulse 0
     currentStep = 0;
     lastPulseTime = 0;
+    lastRecordLayer = 0;
+    currentRecordLayer = 0;
 
     data.solo = 0;
     data.mute = 0;
@@ -210,6 +212,7 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
         currentPulse = UINT16_MAX;
         currentStep = 0;
         pulseSinceStart = 0;
+        currentRecordLayer = 0;
 
         for (uint8_t i = 0; i < trackPlayback.size(); i++) {
             // Reset positions and prepare for playback
@@ -254,6 +257,7 @@ void Sequence::Stop()
 {
     playing = false;
     record = false;
+    uint8_t sessionLayer = currentRecordLayer;
 
     // Send note-off for all queued notes before clearing
     for (uint8_t track = 0; track < trackPlayback.size(); track++) {
@@ -269,6 +273,29 @@ void Sequence::Stop()
         trackPlayback[track].nextClip = 255;
         trackPlayback[track].playing = false;
     }
+
+    if (sessionLayer > 127 && lastRecordLayer > 127)
+    {
+        for (auto& track : data.tracks)
+        {
+            for (auto& clipPair : track.clips)
+            {
+                for (auto& pattern : clipPair.second.patterns)
+                {
+                    for (auto& ev : pattern.events)
+                    {
+                        if (ev.second.eventType == SequenceEventType::NoteEvent)
+                        {
+                            int16_t rl = static_cast<int16_t>(ev.second.recordLayer) - 127;
+                            ev.second.recordLayer = rl > 0 ? static_cast<uint8_t>(rl) : 0;
+                        }
+                    }
+                }
+            }
+        }
+        lastRecordLayer = static_cast<uint8_t>(lastRecordLayer - 127);
+    }
+    currentRecordLayer = 0;
 }
 
 void Sequence::Stop(uint8_t track)
@@ -928,6 +955,12 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 
         if (status == EMidiStatus::NoteOn && velocity > 0)
         {
+            if (currentRecordLayer == 0)
+            {
+                lastRecordLayer++;
+                if (lastRecordLayer == 0) { lastRecordLayer = 1; }
+                currentRecordLayer = lastRecordLayer;
+            }
             // If a note is already pending, finalize its length to this tick
             auto prevIt = pending.find(note);
             if (prevIt != pending.end())
@@ -947,6 +980,10 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 
             auto evIt = pattern.events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
             SequenceEvent& evRef = evIt->second;
+            if (evRef.eventType == SequenceEventType::NoteEvent)
+            {
+                evRef.recordLayer = currentRecordLayer;
+            }
             Sequence::TrackPlayback::RecordedNote info;
             info.startPulse = pulseSinceStart;
             info.eventPtr = &evRef;
@@ -975,6 +1012,42 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
         {
             // Ignore other statuses for now
         }
+    }
+}
+
+void Sequence::UndoLastRecorded()
+{
+    if (lastRecordLayer == 0)
+    {
+        return;
+    }
+
+    bool removed = false;
+    for (auto& track : data.tracks)
+    {
+        for (auto& clipPair : track.clips)
+        {
+            for (auto& pattern : clipPair.second.patterns)
+            {
+                for (auto it = pattern.events.begin(); it != pattern.events.end();)
+                {
+                    if (it->second.recordLayer == lastRecordLayer)
+                    {
+                        it = pattern.events.erase(it);
+                        removed = true;
+                        continue;
+                    }
+                    ++it;
+                }
+            }
+        }
+    }
+
+    if (removed)
+    {
+        if (lastRecordLayer > 0) { lastRecordLayer--; }
+        currentRecordLayer = 0;
+        dirty = true;
     }
 }
 

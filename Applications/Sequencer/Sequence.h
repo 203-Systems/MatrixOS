@@ -36,6 +36,8 @@ private:
     uint32_t usPerPulse[2];                 // Microseconds per pulse with swing (on-beat/off-beat)
     uint8_t stepDivision = 16;                // division: 4=quarter,8=8th,16=16th per step
     uint16_t pulsesPerStep = (PPQN * 4) / 16;      // will be updated with stepDivision
+    uint8_t lastRecordLayer = 0;
+    uint8_t currentRecordLayer = 0;
 
     // Unswung Clock timing (24 PPQN) - For MIDI Clock & LED Animation
     uint32_t lastClockTime = 0;             // Last time a MIDI clock pulse was sent (microseconds)
@@ -141,6 +143,8 @@ public:
 
     bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
 
+    void UndoLastRecorded();
+
     bool IsNoteActive(uint8_t track, uint8_t note) const;
 
     SequencePosition& GetPosition(uint8_t track);
@@ -163,7 +167,7 @@ public:
 
     // Data accessors (for serialization)
     const SequenceData& GetData() const { return data; }
-    void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithPatternLength(); UpdateTiming(); dirty = true; }
+    void SetData(const SequenceData& newData) { data = newData; UpdateEmptyPatternsWithPatternLength(); UpdateTiming(); lastRecordLayer = 0; currentRecordLayer = 0; dirty = true; }
 
 private:
     void TerminateRecordedNotes(uint8_t track);

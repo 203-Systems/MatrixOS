@@ -53,10 +53,11 @@ using SequenceEventData = std::variant<
 struct SequenceEvent {
     SequenceEventType eventType;
     SequenceEventData data;
+    uint8_t recordLayer = 0;
 
     // constructor for factory methods
     SequenceEvent(SequenceEventType type, const SequenceEventData& eventData)
-        : eventType(type), data(eventData) {}
+        : eventType(type), data(eventData), recordLayer(0) {}
 
     // Static factory methods - defined in SequenceEvent.cpp
     static SequenceEvent Note(const uint8_t note, const uint8_t velocity, const bool aftertouch, const uint16_t length = UINT16_MAX /*UINT16_MAX = auto-set to default step length*/);
