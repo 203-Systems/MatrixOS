@@ -7,11 +7,6 @@ SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
     GenerateKeymap();
 }
 
-void SequencerNotePad::OnEvent(std::function<void(MidiPacket)> callback)
-{
-    eventCallback = callback;
-}
-
 Dimension SequencerNotePad::GetSize()
 {
     return Dimension(8, 4);
@@ -252,6 +247,60 @@ void SequencerNotePad::GenerateKeymap()
     rescanNeeded = true;
 }
 
+void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
+{
+    uint8_t track = sequencer->track;
+    if (sequencer->sequence.Playing(track) && sequencer->sequence.ShouldRecord(track))
+    {
+        sequencer->sequence.RecordEvent(packet, track);
+        return;
+    }
+
+    uint8_t note = packet.Note();
+    uint8_t velocity = packet.Velocity();
+    bool isNoteOn = packet.Status() == EMidiStatus::NoteOn && velocity > 0;
+
+    if (!isNoteOn)
+    {
+        return;
+    }
+
+    SequencePosition pos = sequencer->sequence.GetPosition(track);
+    SequencePattern* pattern = &sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+    if (pattern == nullptr)
+    {
+        return;
+    }
+
+    bool existAlready = false;
+    uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+    for (const auto& step : sequencer->stepSelected)
+    {
+        uint16_t startTime = step * pulsesPerStep;
+        uint16_t endTime = startTime + pulsesPerStep - 1;
+
+        if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
+        {
+            existAlready = true;
+            auto it = sequencer->noteActive.find(note);
+            if (it != sequencer->noteActive.end())
+            {
+                sequencer->noteActive.erase(it);
+            }
+        }
+    }
+
+    if (!existAlready)
+    {
+        SequenceEvent event = SequenceEvent::Note(note, velocity, false);
+        for (const auto& step : sequencer->stepSelected)
+        {
+            pattern->AddEvent(step * pulsesPerStep, event);
+            sequencer->noteActive.insert(note);
+        }
+    }
+}
+
 bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     uint8_t note = noteMap[xy.y * 8 + xy.x];
@@ -262,6 +311,8 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
     uint8_t track = sequencer->track;
     uint8_t channel = sequencer->sequence.GetChannel(track);
 
+    MidiPacket packet = MidiPacket();
+
     if(keyInfo->state == PRESSED)
     {
         uint8_t velocity = 127;
@@ -270,11 +321,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
             velocity = keyInfo->Value().to7bits();
         }
         sequencer->noteSelected[note] = velocity;
-        if(eventCallback != nullptr)
-        {
-            eventCallback(MidiPacket::NoteOn(channel, note, velocity));
-        }
-        MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, velocity));
+        packet = MidiPacket::NoteOn(channel, note, velocity);
     }
     else if(keyInfo->state == AFTERTOUCH && sequencer->meta.tracks[track].velocitySensitive)
     {
@@ -282,23 +329,23 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             uint8_t velocity = keyInfo->Value().to7bits();
             sequencer->noteSelected[note] = velocity;
-            if(eventCallback != nullptr)
-            {
-                eventCallback(MidiPacket::AfterTouch(channel, note, velocity));
-            }
-            MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, velocity));
+            packet = MidiPacket::AfterTouch(channel, note, velocity);
         }
     }
     else if(keyInfo->state == RELEASED)
     {
         // Remove note from selection
         sequencer->noteSelected.erase(note);
-        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
-        if(eventCallback != nullptr)
-        {
-            eventCallback(MidiPacket::NoteOff(channel, note));
-        }
+        packet = MidiPacket::NoteOff(channel, note, 0);
     }
+
+    if(packet.Status() == EMidiStatus::None)
+    {
+        return true;
+    }
+
+    MatrixOS::MIDI::Send(packet);
+    SequencerEvent(packet);
 
     return true;
 }
@@ -477,10 +524,7 @@ void SequencerNotePad::Rescan(Point origin)
                     }
                     sequencer->noteSelected[note] = velocity;
                     MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);
-                    if(eventCallback != nullptr)
-                    {
-                        eventCallback(packet);
-                    }
+                    SequencerEvent(packet);
                     MatrixOS::MIDI::Send(packet);
                 }
             }
@@ -527,4 +571,9 @@ bool SequencerNotePad::Render(Point origin)
         return RenderDrum(origin);
     }
     return false;
+}
+
+bool SequencerNotePad::IsEnabled()
+{
+    return sequencer->currentView == Sequencer::ViewMode::Sequencer;
 }

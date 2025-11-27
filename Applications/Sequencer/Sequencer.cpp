@@ -65,49 +65,6 @@ void Sequencer::SequencerUI()
     sequencerUI.AddUIComponent(patternPad, Point(0, 1));
 
     SequencerNotePad notePad(this);
-    notePad.OnEvent([&](MidiPacket packet) -> void
-                    {   
-                        if(sequence.Playing(track) && sequence.ShouldRecord(track))
-                        {
-                            sequence.RecordEvent(packet, track);
-                            return;
-                        }
-
-                        uint8_t note = packet.Note();
-                        uint8_t velocity = packet.Velocity();
-                        bool isNoteOn = packet.Status() == EMidiStatus::NoteOn && velocity > 0;
-                        
-                        SequencePattern* pattern = &sequence.GetPattern(track, sequence.GetPosition(track).clip, sequence.GetPosition(track).pattern);
-                        if (pattern != nullptr && isNoteOn)
-                        {
-                            bool existAlready = false;
-
-                            for (const auto &step : stepSelected)
-                            {
-                                uint16_t pulsesPerStep = sequence.GetPulsesPerStep();
-                                uint16_t startTime = step * pulsesPerStep;
-                                uint16_t endTime = startTime + pulsesPerStep - 1;
-
-                                if (pattern->RemoveNoteEventsInRange(startTime, endTime, note))
-                                {
-                                     existAlready = true;
-                                     noteActive.erase(noteActive.find(note));
-                                }
-                            }
-
-                            if (existAlready == false)
-                            {
-                                SequenceEvent event = SequenceEvent::Note(note, velocity, false);
-                                for (const auto &step : stepSelected)
-                                {
-                                    pattern->AddEvent(step * sequence.GetPulsesPerStep(), event);
-                                    noteActive.insert(note);
-                                }
-                            }
-                        }
-                    });
-    notePad.SetEnableFunc([&]() -> bool
-                          { return currentView == ViewMode::Sequencer; });
     sequencerUI.AddUIComponent(notePad, Point(0, 3));
 
     PatternSelector patternSelector(this);
