@@ -25,6 +25,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             sequencer->ClearActiveNotes();
             sequencer->ClearSelectedNotes();
             sequencer->stepSelected.clear();
+            sequencer->copySourceStep = -1;
             if (changeCallback != nullptr) {
                 (changeCallback)(xy.x);
             }
