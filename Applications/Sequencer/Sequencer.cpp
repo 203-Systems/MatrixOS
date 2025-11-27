@@ -74,8 +74,6 @@ void Sequencer::SequencerUI()
 
     // Mixer View
     MixerControl mixerControl(this);
-    mixerControl.SetEnableFunc([&]() -> bool
-                               { return currentView == ViewMode::Mixer; });
     sequencerUI.AddUIComponent(mixerControl, Point(0, 0));
 
     // Step Detail View

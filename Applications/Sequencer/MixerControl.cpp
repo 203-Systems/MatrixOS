@@ -7,6 +7,11 @@ MixerControl::MixerControl(Sequencer* sequencer)
 
 Dimension MixerControl::GetSize() { return Dimension(8, 3); }
 
+bool MixerControl::IsEnabled()
+{
+    return sequencer->currentView == Sequencer::ViewMode::Mixer;
+}
+
 bool MixerControl::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     if(keyInfo->State() == PRESSED)
