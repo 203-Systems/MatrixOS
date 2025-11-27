@@ -78,8 +78,6 @@ void Sequencer::SequencerUI()
 
     // Step Detail View
     EventDetailView eventDetailView(this);
-    eventDetailView.SetEnableFunc([&]() -> bool
-                                  { return currentView == ViewMode::StepDetail; });
     sequencerUI.AddUIComponent(eventDetailView, Point(0, 0));
 
     // Global

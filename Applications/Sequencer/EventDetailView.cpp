@@ -16,10 +16,7 @@ EventDetailView::EventDetailView(Sequencer* sequencer)
 }
 
 bool EventDetailView::IsEnabled() {
-    bool enabled = this->enabled;
-    if (enableFunc) {
-        enabled = (*enableFunc)();
-    }
+    bool enabled = sequencer->currentView == Sequencer::ViewMode::StepDetail;
 
     if (!enabled && wasEnabled == true)
     {
