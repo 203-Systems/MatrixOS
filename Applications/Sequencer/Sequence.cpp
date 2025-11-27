@@ -296,6 +296,7 @@ void Sequence::Stop()
         lastRecordLayer = static_cast<uint8_t>(lastRecordLayer - 127);
     }
     currentRecordLayer = 0;
+    clocksTillStart = 0;
 }
 
 void Sequence::Stop(uint8_t track)
@@ -323,6 +324,7 @@ void Sequence::Stop(uint8_t track)
     }
     if (!anyPlaying) {
         playing = false;
+        clocksTillStart = 0;
     }
 }
 
