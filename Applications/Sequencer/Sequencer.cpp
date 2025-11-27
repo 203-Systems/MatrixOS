@@ -59,9 +59,7 @@ void Sequencer::SequencerUI()
 {
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
 
-    PatternPad patternPad(this, &this->stepSelected, &this->noteSelected, &this->noteActive);
-    patternPad.SetEnableFunc([&]() -> bool
-                                     { return currentView == ViewMode::Sequencer; });
+    PatternPad patternPad(this);
     sequencerUI.AddUIComponent(patternPad, Point(0, 1));
 
     SequencerNotePad notePad(this);

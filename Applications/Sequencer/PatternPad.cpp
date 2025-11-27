@@ -1,11 +1,8 @@
 #include "PatternPad.h"
 
-PatternPad::PatternPad(Sequencer* sequencer, std::set<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive)
+PatternPad::PatternPad(Sequencer* sequencer)
 {
     this->sequencer = sequencer;
-    this->stepSelected = stepSelected;
-    this->noteSelected = noteSelected;
-    this->noteActive = noteActive;
     width = sequencer->sequence.GetTrackCount();
 }
 

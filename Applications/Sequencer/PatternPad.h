@@ -9,13 +9,10 @@
 
 class PatternPad : public UIComponent {
     Sequencer* sequencer;
-    std::set<uint8_t>* stepSelected;
-    std::unordered_map<uint8_t, uint8_t>* noteSelected;
-    std::unordered_multiset<uint8_t>* noteActive;
     uint8_t width = 8;
 
     public:
-    PatternPad(Sequencer* sequencer, std::set<uint8_t>* stepSelected, std::unordered_map<uint8_t, uint8_t>* noteSelected, std::unordered_multiset<uint8_t>* noteActive);
+    PatternPad(Sequencer* sequencer);
 
     Dimension GetSize();
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
