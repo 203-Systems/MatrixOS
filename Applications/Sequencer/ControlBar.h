@@ -11,7 +11,6 @@ class SequencerNotePad; // Forward declaration
 class SequencerControlBar : public UIComponent {
     Sequencer* sequencer;
     SequencerNotePad* notePad;
-    std::function<void()> clearCallback;
 
     const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};
 
@@ -25,8 +24,6 @@ class SequencerControlBar : public UIComponent {
 
     public:
     SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad);
-
-    void OnClear(std::function<void()> callback);
 
     Dimension GetSize();
     Color GetOctavePlusColor();

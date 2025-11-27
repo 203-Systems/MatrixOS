@@ -7,11 +7,6 @@ SequencerControlBar::SequencerControlBar(Sequencer* sequencer, SequencerNotePad*
     this->notePad = notePad;
 }
 
-void SequencerControlBar::OnClear(std::function<void()> callback)
-{
-    clearCallback = callback;
-}
-
 Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 
 bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
