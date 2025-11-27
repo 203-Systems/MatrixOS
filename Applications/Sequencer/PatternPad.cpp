@@ -71,9 +71,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         }
 
         // Check if step already exists in selection
-        if(stepSelected->find(step) == stepSelected->end())
+        if(sequencer->stepSelected.find(step) == sequencer->stepSelected.end())
         {
-            stepSelected->insert(step);
+            sequencer->stepSelected.insert(step);
         }
 
         bool playAllNotes = false;
@@ -104,7 +104,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 
             pattern.ClearStepEvents(step, pulsesPerStep);
         }
-        else if(!noteSelected->empty())
+        else if(!sequencer->noteSelected.empty())
         {
             bool existAlready = false;
 
@@ -148,10 +148,10 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     else if(keyInfo->state == RELEASED)
     {
         // Remove step from selection
-        auto stepIt = stepSelected->find(step);
-        if(stepIt != stepSelected->end())
+        auto stepIt = sequencer->stepSelected.find(step);
+        if(stepIt != sequencer->stepSelected.end())
         {
-            stepSelected->erase(stepIt);
+            sequencer->stepSelected.erase(stepIt);
         }
 
         // Clear noteActive from notes in this step and send MIDI NoteOff
@@ -168,7 +168,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 }
 
                 // Only send NoteOff if note is not currently selected on NotePad
-                if(noteSelected->find(noteData.note) == noteSelected->end())
+                if(sequencer->noteSelected.find(noteData.note) == sequencer->noteSelected.end())
                 {
                     MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
                 }
@@ -249,28 +249,28 @@ bool PatternPad::Render(Point origin)
         for(uint8_t slot = 0; slot < pattern.steps; slot++)
         {
             uint16_t startTime = slot * pulsesPerStep;
-            uint16_t endTime = startTime + pulsesPerStep - 1;
+          uint16_t endTime = startTime + pulsesPerStep - 1;
 
-            bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
-            bool shouldRender = false;
+          bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+          bool shouldRender = false;
 
-            // If notes are selected, only render events with matching notes
-            bool noteFilter = !noteSelected->empty();
-            if(noteFilter)
-            {
-                // Check if any event in this slot has a note that's selected
-                auto it = pattern.events.lower_bound(startTime);
-                while (it != pattern.events.end() && it->first <= endTime)
-                {
-                    if (it->second.eventType == SequenceEventType::NoteEvent)
-                    {
-                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
-                        if(noteSelected->find(noteData.note) != noteSelected->end())
-                        {
-                            shouldRender = true;
-                            break;
-                        }
-                    }
+          // If notes are selected, only render events with matching notes
+          bool noteFilter = !sequencer->noteSelected.empty();
+          if(noteFilter)
+          {
+              // Check if any event in this slot has a note that's selected
+              auto it = pattern.events.lower_bound(startTime);
+              while (it != pattern.events.end() && it->first <= endTime)
+              {
+                  if (it->second.eventType == SequenceEventType::NoteEvent)
+                  {
+                      const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                      if(sequencer->noteSelected.find(noteData.note) != sequencer->noteSelected.end())
+                      {
+                          shouldRender = true;
+                          break;
+                      }
+                  }
                     ++it;
                 }
             }
@@ -295,12 +295,12 @@ bool PatternPad::Render(Point origin)
             }
         }
 
-        // Render Selected
-        for(uint8_t selectedStep : *stepSelected)
-        {
-            Point point = Point(selectedStep % width, selectedStep / width);
-            MatrixOS::LED::SetColor(origin + point, Color::White);
-        }
+          // Render Selected
+          for(uint8_t selectedStep : sequencer->stepSelected)
+          {
+              Point point = Point(selectedStep % width, selectedStep / width);
+              MatrixOS::LED::SetColor(origin + point, Color::White);
+          }
 
         // Render Cursor
         if(sequencer->sequence.Playing(track))
