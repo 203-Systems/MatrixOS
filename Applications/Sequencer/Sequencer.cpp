@@ -1375,7 +1375,7 @@ bool Sequencer::Save(uint16_t slot)
         MLOGD("Sequencer", "Save - created /sequences");
     }
 
-    string slotDir = "/sequences/" + std::to_string(slot);
+    string slotDir = "/sequences/" + std::to_string(slot + 1);
     if (!MatrixOS::FileSystem::Exists(slotDir))
     {
         if (!MatrixOS::FileSystem::MakeDir(slotDir))
@@ -1423,7 +1423,7 @@ bool Sequencer::Load(uint16_t slot)
     if (slot >= SD_SLOT_MAX) { MLOGE("Sequencer", "Load - slot out of range %u", slot); return false; }
     if (!MatrixOS::FileSystem::Available()) { MLOGE("Sequencer", "Load - filesystem not available"); return false; }
 
-    string slotDir = "/sequences/" + std::to_string(slot);
+    string slotDir = "/sequences/" + std::to_string(slot + 1);
     string dataPath = slotDir + "/sequence.data";
     string metaPath = slotDir + "/sequence.meta";
 
@@ -1469,7 +1469,7 @@ bool Sequencer::Saved(uint16_t slot)
 {
     if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SavedSD slot out of range %u", slot); return false; }
     if (!MatrixOS::FileSystem::Available()) { return false; }
-    string base = "/sequences/" + std::to_string(slot) + "/";
+    string base = "/sequences/" + std::to_string(slot + 1) + "/";
     string dataPath = base + "sequence.data";
     string metaPath = base + "sequence.meta";
     return MatrixOS::FileSystem::Exists(dataPath) && MatrixOS::FileSystem::Exists(metaPath);
@@ -1636,7 +1636,7 @@ void Sequencer::SequenceBrowser()
         if (Saved(slot))
         {
             Color c = meta.color;
-            std::string path = "/sequences/" + std::to_string(slot) + "/sequence.meta";
+            std::string path = "/sequences/" + std::to_string(slot + 1) + "/sequence.meta";
             File f = MatrixOS::FileSystem::Open(path, "rb");
             if (GetColorFromSequenceMetaFile(f, c)) slotColors[slot] = c;
         }
@@ -2010,7 +2010,7 @@ void Sequencer::SequenceBrowser()
 bool Sequencer::ClearSlot(uint16_t slot)
 {
     if (!MatrixOS::FileSystem::Available()) return false;
-    std::string base = "/sequences/" + std::to_string(slot) + "/";
+    std::string base = "/sequences/" + std::to_string(slot + 1) + "/";
     if(slot == saveSlot) {
         saveSlot = 0xFFFF;
         sequence.SetDirty();
@@ -2026,8 +2026,8 @@ bool Sequencer::CopySlot(uint16_t from, uint16_t to)
     if (!MatrixOS::FileSystem::Available()) return false;
     if (!Saved(from)) return false;
 
-    std::string fromBase = "/sequences/" + std::to_string(from) + "/";
-    std::string toBase   = "/sequences/" + std::to_string(to) + "/";
+    std::string fromBase = "/sequences/" + std::to_string(from + 1) + "/";
+    std::string toBase   = "/sequences/" + std::to_string(to + 1) + "/";
 
     std::string fromData = fromBase + "sequence.data";
     std::string fromMeta = fromBase + "sequence.meta";
@@ -2078,7 +2078,7 @@ bool Sequencer::CopySlot(uint16_t from, uint16_t to)
 
 bool Sequencer::BackupSlot(uint16_t slot)
 {
-    std::string slotDir = "/sequences/" + std::to_string(slot);
+    std::string slotDir = "/sequences/" + std::to_string(slot + 1);
     std::string dataPath = slotDir + "/sequence.data";
     std::string metaPath = slotDir + "/sequence.meta";
     std::string prevDir = slotDir + "/prev";
