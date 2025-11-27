@@ -31,7 +31,6 @@ void Sequence::New(uint8_t tracks)
 
         // Create default clip 0 with one pattern
         data.tracks[i].clips[0] = SequenceClip();
-        data.tracks[i].clips[0].enabled = true;
         data.tracks[i].clips[0].patterns.emplace_back();
         data.tracks[i].clips[0].patterns[0].steps = 16;
     }
@@ -388,28 +387,11 @@ bool Sequence::ClipExists(uint8_t track, uint8_t clip)
     return data.tracks[track].clips.find(clip) != data.tracks[track].clips.end();
 }
 
-bool Sequence::GetClipEnabled(uint8_t track, uint8_t clip)
-{
-    if (!ClipExists(track, clip)) return false;
-    return data.tracks[track].clips[clip].enabled;
-}
-
-void Sequence::SetClipEnabled(uint8_t track, uint8_t clip, bool enabled)
-{
-    if (!ClipExists(track, clip)) return;
-    if(data.tracks[track].clips[clip].enabled != enabled)
-    {
-        data.tracks[track].clips[clip].enabled = enabled;
-        dirty = true;
-    }
-}
-
 bool Sequence::NewClip(uint8_t track, uint8_t clipId)
 {
     if (ClipExists(track, clipId)) return false;
 
     data.tracks[track].clips[clipId] = SequenceClip();
-    data.tracks[track].clips[clipId].enabled = true;
     data.tracks[track].clips[clipId].patterns.emplace_back();
     data.tracks[track].clips[clipId].patterns[0].steps = 16;
     dirty = true;
@@ -502,6 +484,18 @@ void Sequence::ClearPattern(uint8_t track, uint8_t clip, uint8_t pattern)
     if (!ClipExists(track, clip)) return;
     if(pattern >= data.tracks[track].clips[clip].patterns.size()) return;
     data.tracks[track].clips[clip].patterns[pattern].events.clear();
+    dirty = true;
+}
+
+void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip)
+{
+    if (!ClipExists(track, clip)) return;
+
+    auto& patterns = data.tracks[track].clips[clip].patterns;
+    for (auto& pattern : patterns)
+    {
+        pattern.Clear();
+    }
     dirty = true;
 }
 

@@ -203,9 +203,8 @@ bool ClipLauncher::Render(Point origin)
                 }
                 else
                 {
-                    // Clip exists - show track color, dim if disabled
-                    bool enabled = sequencer->sequence.GetClipEnabled(track, clip);
-                    color = trackColor.DimIfNot(enabled);
+                    // Clip exists - show track color
+                    color = trackColor;
                 }
             }
 

@@ -27,7 +27,6 @@ struct SequencePattern {
 
 
 struct SequenceClip {
-    bool enabled = true;
     vector<SequencePattern> patterns;
 };
 

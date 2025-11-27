@@ -173,13 +173,12 @@ bool SerializeSequenceData(const SequenceData& data, File& file)
             uint8_t clipId = clipPair.first;
             const SequenceClip& clip = clipPair.second;
 
-            MLOGD("SequenceData", "Serialize clip t=%u id=%u enabled=%d patterns=%zu", trackId, clipId, clip.enabled ? 1 : 0, clip.patterns.size());
-            // Clip item: ["c", clipId, enabled]
+            MLOGD("SequenceData", "Serialize clip t=%u id=%u patterns=%zu", trackId, clipId, clip.patterns.size());
+            // Clip item: ["c", clipId]
             buffer.clear();
             cb_write_uint(buffer, CB0R_ARRAY, 3);
             cb_write_text(buffer, "c");
             cb_write_uint(buffer, CB0R_INT, clipId);
-            cb_write_bool(buffer, clip.enabled);
             if (file.Write(buffer.data(), buffer.size()) != buffer.size()) return false;
 
             // Patterns
@@ -239,19 +238,14 @@ static bool ParseTrack(cb0r_s node, uint8_t& channel, uint8_t& activeClip)
     return true;
 }
 
-static bool ParseClip(cb0r_s node, uint8_t& clipId, bool& enabled)
+static bool ParseClip(cb0r_s node, uint8_t& clipId)
 {
     if (node.type != CB0R_ARRAY || node.length < 3) return false;
     cb0r_s item;
-    // ["c", clipId, enabled]
+    // ["c", clipId]
     if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT) return false;
     clipId = item.value;
-    if (!cb0r_get(&node, 2, &item)) return false;
-    if (item.type == CB0R_TRUE) enabled = true;
-    else if (item.type == CB0R_FALSE) enabled = false;
-    else if (item.type == CB0R_INT) enabled = (item.value != 0);
-    else return false;
-    MLOGD("SequenceData", "ParseClip id=%u enabled=%d", clipId, enabled ? 1 : 0);
+    MLOGD("SequenceData", "ParseClip id=%u", clipId);
     return true;
 }
 
@@ -400,14 +394,12 @@ bool DeserializeSequenceData(File& file, SequenceData& out)
             }
             else if (tag == "c")
             {
-                bool enabled = true;
                 uint8_t clipId = 0;
-                if (!ParseClip(root, clipId, enabled)) return false;
+                if (!ParseClip(root, clipId)) return false;
                 currentClip = clipId;
                 nextPattern = 0;
                 if (currentTrack >= out.tracks.size()) out.tracks.resize(currentTrack + 1);
-                out.tracks[currentTrack].clips[currentClip].enabled = enabled;
-                MLOGD("SequenceData", "Parsed clip t=%u id=%u enabled=%d", currentTrack, clipId, enabled ? 1 : 0);
+                MLOGD("SequenceData", "Parsed clip t=%u id=%u", currentTrack, clipId);
             }
             else if (tag == "p")
             {
