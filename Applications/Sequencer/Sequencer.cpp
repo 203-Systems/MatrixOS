@@ -118,7 +118,7 @@ void Sequencer::SequencerUI()
     });
     patternSelector.SetEnableFunc([&]() -> bool
                                   { 
-                                    bool enable = currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 100)) || patternView); 
+                                    bool enable = currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 150)) || patternView); 
                                     patternViewActive = enable;
                                     return enable; 
                                 });
