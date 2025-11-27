@@ -1823,7 +1823,7 @@ void Sequencer::SequenceBrowser()
 
         Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
         if(!xy) {return false;}
-        if (xy.y < 6)
+        if (xy.y >= 0 && xy.y < 6 && xy.x >= 0 && xy.x < 8)
         {
             if(modifierTime != 0 && MatrixOS::SYS::Millis() - modifierTime < 500)
             {
