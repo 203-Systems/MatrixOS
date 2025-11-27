@@ -6,21 +6,14 @@ PatternSelector::PatternSelector(Sequencer* sequencer)
 }
 
 bool PatternSelector::IsEnabled() {
-    bool enabled = this->enabled;
-    if (enableFunc) {
-        enabled = (*enableFunc)();
-    }
-
-    lengthAdjustmentMode &= enabled;
-    return enabled;
+    bool enable = sequencer->currentView == Sequencer::ViewMode::Sequencer &&
+                  ((sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150)) || sequencer->patternView);
+    sequencer->patternViewActive = enable;
+    lengthAdjustmentMode &= enable;
+    return enable;
 }
 
 Dimension PatternSelector::GetSize() { return Dimension(8, lengthAdjustmentMode ? 4 : 2); }
-
-void PatternSelector::OnChange(std::function<void(uint8_t)> callback)
-{
-    changeCallback = callback;
-}
 
 bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
@@ -62,10 +55,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     if(!sequencer->sequence.Playing(track))
                     {
                         sequencer->sequence.SetPattern(track, newPatternIdx);
-                        if (changeCallback != nullptr)
-                        {
-                            changeCallback(newPatternIdx);
-                        }
+                        sequencer->ClearActiveNotes();
+                        sequencer->stepSelected.clear();
                     }
                 }
             }
@@ -85,10 +76,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                         if(sequencer->sequence.Playing(track) == false)
                         {
                             sequencer->sequence.SetPattern(track, patternIdx);
-                            if (changeCallback != nullptr)
-                            {
-                                changeCallback(patternIdx);
-                            }
+                            sequencer->ClearActiveNotes();
+                            sequencer->stepSelected.clear();
                         }
                     }
                 }
@@ -105,10 +94,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                         sequencer->sequence.SetPattern(track, currentPattern);
                     }
 
-                    if (changeCallback != nullptr)
-                    {
-                        changeCallback(currentPattern);
-                    }
+                    sequencer->ClearActiveNotes();
+                    sequencer->stepSelected.clear();
                 }
                 // Copy pattern if CopyActive
                 else if(sequencer->CopyActive()) //Take a short cut here and not check if current pattern is held
@@ -118,10 +105,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
                     sequencer->sequence.CopyPattern(track, clip, sourcePattern, track, clip, destPattern);
 
-                    if (changeCallback != nullptr)
-                    {
-                        changeCallback(sequencer->sequence.GetPosition(track).pattern);
-                    }
+                    sequencer->ClearActiveNotes();
+                    sequencer->stepSelected.clear();
                 }
                 // Select pattern
                 else if(patternIdx != sequencer->sequence.GetPosition(track).pattern)
@@ -129,10 +114,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     if(sequencer->sequence.Playing() == false) // Disable pattern switching if playing
                     {
                         sequencer->sequence.SetPattern(track, patternIdx);
-                        if (changeCallback != nullptr)
-                        {
-                            changeCallback(patternIdx);
-                        }
+                        sequencer->ClearActiveNotes();
+                        sequencer->stepSelected.clear();
                     }
                 }
                 else if(patternIdx == pattern && lengthAdjustmentMode)

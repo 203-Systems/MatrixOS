@@ -8,7 +8,6 @@
 
 class PatternSelector : public UIComponent {
     Sequencer* sequencer;
-    std::function<void(uint8_t)> changeCallback;
     bool lengthAdjustmentMode = false;
 
     public:
@@ -16,7 +15,6 @@ class PatternSelector : public UIComponent {
 
     virtual bool IsEnabled();
     Dimension GetSize();
-    void OnChange(std::function<void(uint8_t)> callback);
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
     virtual bool Render(Point origin);
 };

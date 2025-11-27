@@ -66,17 +66,6 @@ void Sequencer::SequencerUI()
     sequencerUI.AddUIComponent(notePad, Point(0, 3));
 
     PatternSelector patternSelector(this);
-    patternSelector.OnChange([&](uint8_t patternIdx) -> void
-    {
-        ClearActiveNotes();
-        stepSelected.clear();
-    });
-    patternSelector.SetEnableFunc([&]() -> bool
-                                  { 
-                                    bool enable = currentView == ViewMode::Sequencer && ((ShiftActive() && ((MatrixOS::SYS::Millis() - shiftOnTime) > 150)) || patternView); 
-                                    patternViewActive = enable;
-                                    return enable; 
-                                });
     sequencerUI.AddUIComponent(patternSelector, Point(0, 3));
 
     // Session View
