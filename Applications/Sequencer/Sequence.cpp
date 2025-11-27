@@ -183,52 +183,26 @@ void Sequence::UpdateTiming()
 // Playback control
 void Sequence::Play()
 {
-    playing = true;  // Set immediately for UI feedback
-
-    // Schedule playback to start at next MIDI clock edge (24 PPQN)
-    // Can be increased for count-in: 96 = 1 bar at 4/4
-    clocksTillStart = record ? 24 * 4 + 1 : 1;
-    currentPulse = UINT16_MAX;
-    currentStep = 0;
-    pulseSinceStart = 0;
-
-    for (uint8_t i = 0; i < trackPlayback.size(); i++) {
-        // Reset positions and prepare for playback
-        trackPlayback[i].position.pattern = 0;
-        trackPlayback[i].position.step = 0;
-        trackPlayback[i].position.pulse = UINT16_MAX; // so first advance lands on 0
-
-        // Clear playback state
-        trackPlayback[i].noteOffMap.clear();
-        trackPlayback[i].noteOffQueue.clear();
-        trackPlayback[i].playing = true;
+    for(uint8_t track = 0; track < trackPlayback.size(); track++)
+    {
+        uint8_t currentClip = trackPlayback[track].position.clip;
+        PlayClip(track, currentClip);
     }
 }
 
 void Sequence::Play(uint8_t track)
 {
-    // Initialize timing if not already playing
-    if (!playing) {
-        playing = true;
-        clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = UINT16_MAX;
-        currentStep = 0;
-        pulseSinceStart = 0;
-    }
-
-    // Play the track at its current clip position
-    trackPlayback[track].position.pattern = 0;
-    trackPlayback[track].position.step = 0;
-    trackPlayback[track].position.pulse = UINT16_MAX;
-
-    // Clear playback state and start track
-    trackPlayback[track].noteOffMap.clear();
-    trackPlayback[track].noteOffQueue.clear();
-    trackPlayback[track].playing = true;
+    uint8_t currentClip = trackPlayback[track].position.clip;
+    PlayClip(track, currentClip);
 }
 
 void Sequence::PlayClip(uint8_t track, uint8_t clip)
 {
+    if (!ClipExists(track, clip))
+    {
+        clip = 254;
+    }
+
     // Initialize timing if not already playing
     if (!playing) {
         playing = true;
@@ -236,6 +210,19 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
         currentPulse = UINT16_MAX;
         currentStep = 0;
         pulseSinceStart = 0;
+
+        for (uint8_t i = 0; i < trackPlayback.size(); i++) {
+            // Reset positions and prepare for playback
+            trackPlayback[i].position.pattern = 0;
+            trackPlayback[i].position.step = 0;
+            trackPlayback[i].position.pulse = UINT16_MAX; // so first advance lands on 0
+
+            // Clear playback state
+            trackPlayback[i].nextClip = 255;
+            trackPlayback[i].playing = false;
+            trackPlayback[i].noteOffMap.clear();
+            trackPlayback[i].noteOffQueue.clear();
+        }
     }
 
     // Terminate recorded notes on this track before switching
@@ -247,30 +234,9 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
 
 void Sequence::PlayClipForAllTracks(uint8_t clip)
 {
-    // Initialize timing if not already playing
-    if (!playing) {
-        playing = true;
-        clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = UINT16_MAX;
-        currentStep = 0;
-        pulseSinceStart = 0;
-    }
-
-    // For each track, check if clip exists
     for (uint8_t track = 0; track < data.tracks.size(); track++)
     {
-        TerminateRecordedNotes(track);
-        if (ClipExists(track, clip))
-        {
-            // Track has this clip, queue it to play
-            trackPlayback[track].nextClip = clip;
-        }
-        else if (trackPlayback[track].playing)
-        {
-            // Track doesn't have this clip but is playing, queue stop
-            trackPlayback[track].nextClip = 254;
-        }
-        // If track is not playing and has no clip, do nothing (don't update nextClip)
+       PlayClip(track, clip);
     }
 }
 
