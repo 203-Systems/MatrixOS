@@ -216,25 +216,32 @@ bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo
         sequencer->ShiftEventOccured();
       }
 
+      sequencer->shiftOnTime = MatrixOS::SYS::Millis();
+      sequencer->shift[shiftIndex] = true;
+
       if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
       {
         uint8_t clip = sequencer->sequence.GetPosition(track).clip;
         uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
         uint8_t step = *sequencer->stepSelected.begin();
 
-        sequencer->ShiftEventOccured();
-        sequencer->sequence.SetPosition(track, clip, patternIdx, step);
-        sequencer->SetView(Sequencer::ViewMode::StepDetail);
-        sequencer->ClearActiveNotes();
-        sequencer->ClearSelectedNotes();
-        sequencer->stepSelected.clear();
-      }
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        uint16_t startTime = step * pulsesPerStep;
+        uint16_t endTime = startTime + pulsesPerStep - 1;
 
-      sequencer->shiftOnTime = MatrixOS::SYS::Millis();
-      sequencer->shift[shiftIndex] = true;
+        if(pattern && sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime))
+        {
+          sequencer->ShiftEventOccured();
+          sequencer->sequence.SetPosition(track, clip, patternIdx, step);
+          sequencer->SetView(Sequencer::ViewMode::StepDetail);
+        }
+      }
     }
     else if(keyInfo->state == RELEASED)
     {
+      if(sequencer->ShiftActive() == false) {return true;} // ClearState called probably
+
       bool shiftEvent = sequencer->shiftEventOccured[0] || sequencer->shiftEventOccured[1];
       if(keyInfo->hold == false && !shiftEvent)
       {

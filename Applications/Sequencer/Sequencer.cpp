@@ -108,11 +108,6 @@ void Sequencer::SequencerUI()
         else
         {
             // Clean up the state
-            clear = false;
-            copy = false;
-            shift[0] = shift[1] = false;
-            shiftEventOccured[0] = shiftEventOccured[1] = false;
-
             ClearState();
 
             SequencerMenu();
@@ -272,6 +267,9 @@ void Sequencer::SequencerMenu()
 
 void Sequencer::ClearState()
 {
+    clear = copy = false;
+    shift[0] = shift[1] = false;
+    shiftEventOccured[0] = shiftEventOccured[1] = false;
     ClearSelectedNotes();
     ClearActiveNotes();
     stepSelected.clear();
