@@ -378,6 +378,11 @@ bool SequencerControlBar::Render(Point origin)
       {
         MatrixOS::LED::SetColor(point, Color::White);
       }
+      else if(sequencer->ShiftActive() && !sequencer->sequence.Playing())
+      {
+        // Undo record
+        MatrixOS::LED::SetColor(point, Color(0xFF0040).DimIfNot(sequencer->sequence.CanUndoLastRecord()));
+      }
       else if(sequencer->sequence.RecordEnabled())
       {
         uint8_t scale = breathingScale / 4 * 3 + 64;

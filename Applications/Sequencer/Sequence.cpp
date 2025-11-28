@@ -1181,6 +1181,11 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
     }
 }
 
+bool Sequence::CanUndoLastRecord()
+{
+    return lastRecordLayer > 0;
+}
+
 void Sequence::UndoLastRecorded()
 {
     if (lastRecordLayer == 0)

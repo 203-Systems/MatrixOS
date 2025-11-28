@@ -154,6 +154,7 @@ public:
 
     bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
 
+    bool CanUndoLastRecord();
     void UndoLastRecorded();
 
     bool IsNoteActive(uint8_t track, uint8_t note) const;
