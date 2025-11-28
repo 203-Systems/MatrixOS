@@ -20,6 +20,7 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
       {
         case 0: return HandleNudgeKey(false, keyInfo);
         case 1: return HandleNudgeKey(true, keyInfo);
+        case 2: return HandleQuantizeKey(keyInfo);
         case 3: return HandleTwoPatternToggleKey(keyInfo);
       }
     }
@@ -232,6 +233,37 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo* keyInfo)
     return true;
 }
 
+bool SequencerControlBar::HandleQuantizeKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+      uint8_t track = sequencer->track;
+      if (sequencer->sequence.Playing(track)) { return true; }
+      uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+      bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
+      if(twoPatternMode) { 
+        patternIdx = patternIdx / 2 * 2; 
+      }
+
+      SequencePattern* pattern = sequencer->sequence.GetPattern(track, sequencer->sequence.GetPosition(track).clip, patternIdx);
+      
+      if (pattern)
+      {
+        sequencer->sequence.PatternQuantize(pattern, sequencer->sequence.GetPulsesPerStep());
+      }
+
+      if(twoPatternMode)
+      {
+        pattern = sequencer->sequence.GetPattern(track, sequencer->sequence.GetPosition(track).clip, patternIdx + 1);
+        if (pattern)
+        {
+          sequencer->sequence.PatternQuantize(pattern, sequencer->sequence.GetPulsesPerStep());
+        }
+      }
+    }
+    return true;
+}
+
 bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
 {
     uint8_t track = sequencer->track;
@@ -376,13 +408,19 @@ bool SequencerControlBar::Render(Point origin)
     // Nudge Left
     {
       Point point = origin + Point(0, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
       MatrixOS::LED::SetColor(point, color);
     }
     // Nudge Right
     {
       Point point = origin + Point(1, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
+      MatrixOS::LED::SetColor(point, color);
+    }
+    // Quantize
+    {
+      Point point = origin + Point(2, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
     // 2 Pattern View
@@ -390,7 +428,7 @@ bool SequencerControlBar::Render(Point origin)
       Point point = origin + Point(3, 0);
       uint8_t track = sequencer->track;
       bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x8000FF).DimIfNot(twoPatternMode);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00).DimIfNot(twoPatternMode);
       MatrixOS::LED::SetColor(point, color);
     }
   }
