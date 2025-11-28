@@ -19,7 +19,7 @@ Dimension SequencerNotePad::GetSize()
 
 bool SequencerNotePad::TwoRowMode()
 {
-    return sequencer->patternViewActive;
+    return sequencer->patternViewActive || sequencer->meta.tracks[sequencer->track].twoPatternMode;
 }
 
 NoteType SequencerNotePad::InScale(int16_t note)
@@ -371,8 +371,8 @@ bool SequencerNotePad::RenderRootNScale(Point origin)
     Color scaleColor = Color::Crossfade(rootColor, Color::White, Fract16(0xC000)).Dim(96);
     Color offScaleColor = Color(0x202020);
 
-    uint8_t index = 0;
-    for (int8_t y = 0; y < dimension.y; y++) {
+    uint8_t index = TwoRowMode() ? 16 : 0;
+    for (int8_t y = TwoRowMode() ? 2 : 0; y < dimension.y; y++) {
         for (int8_t x = 0; x < dimension.x; x++) {
             uint8_t note = noteMap[index];
             Point globalPos = origin + Point(x, y);
@@ -420,8 +420,8 @@ bool SequencerNotePad::RenderPiano(Point origin)
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
     Dimension dimension = GetSize();
 
-    uint8_t index = 0;
-    for (int8_t y = 0; y < dimension.y; y++) {
+    uint8_t index = TwoRowMode() ? 16 : 0;
+    for (int8_t y = TwoRowMode() ? 2 : 0; y < dimension.y; y++) {
         int8_t ui_y = dimension.y - y - 1;
         bool isBlackKeyRow = (ui_y % 2 == 1);
 

@@ -18,4 +18,5 @@ class PatternPad : public UIComponent {
     virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
     virtual bool Render(Point origin);
     virtual bool IsEnabled();
+    bool TwoPatternMode();
 };

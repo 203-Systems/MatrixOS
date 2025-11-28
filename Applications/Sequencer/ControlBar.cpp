@@ -12,11 +12,22 @@ Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 
 bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
-    bool nudgeEnabled = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
+    bool stepSelected = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
+
+    if(stepSelected)
+    {
+      switch (xy.x)
+      {
+        case 0: return HandleNudgeKey(false, keyInfo);
+        case 1: return HandleNudgeKey(true, keyInfo);
+        case 3: return HandleTwoPatternToggleKey(keyInfo);
+      }
+    }
+    
     switch (xy.x)
     {
-    case 0: return nudgeEnabled ? HandleNudgeKey(false, keyInfo) : HandlePlayKey(keyInfo);
-    case 1: return nudgeEnabled ? HandleNudgeKey(true, keyInfo) : HandleRecordKey(keyInfo);
+    case 0: return HandlePlayKey(keyInfo);
+    case 1: return HandleRecordKey(keyInfo);
     case 2: return HandleSessionKey(keyInfo);
     case 3: return HandleMixerKey(keyInfo);
     case 4: return HandleClearKey(keyInfo);
@@ -229,6 +240,18 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
     return true;
 }
 
+bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo* keyInfo)
+{
+    if(keyInfo->state == PRESSED)
+    {
+        uint8_t track = sequencer->track;
+        sequencer->meta.tracks[track].twoPatternMode = !sequencer->meta.tracks[track].twoPatternMode;
+        sequencer->stepSelected.clear();
+        sequencer->sequence.SetDirty();
+    }
+    return true;
+}
+
 bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
 {
     uint8_t track = sequencer->track;
@@ -407,7 +430,7 @@ bool SequencerControlBar::Render(Point origin)
     }
     else
     {
-      if(MatrixOS::KeyPad::GetKey(point)->Active()) 
+      if(MatrixOS::KeyPad::GetKey(point)->Active())
       {
         MatrixOS::LED::SetColor(point, Color::White);
       }
@@ -447,23 +470,33 @@ bool SequencerControlBar::Render(Point origin)
     MatrixOS::LED::SetColor(point, color);
   }
 
-  // Mixer View
+  // Mixer View (or TwoPatternToggle)
   {
     Point point = origin + Point(3, 0);
-    Color color;
-    if(MatrixOS::KeyPad::GetKey(point)->Active())
+    if (nudgeEnabled)
     {
-      color = Color::White;
-    }
-    else if(sequencer->currentView == Sequencer::ViewMode::Mixer)
-    {
-      color = Color(0xA0FFC0);
+      uint8_t track = sequencer->track;
+      bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x8000FF).DimIfNot(twoPatternMode);
+      MatrixOS::LED::SetColor(point, color);
     }
     else
     {
-      color = Color(0x00FF60);
+      Color color;
+      if(MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        color = Color::White;
+      }
+      else if(sequencer->currentView == Sequencer::ViewMode::Mixer)
+      {
+        color = Color(0xA0FFC0);
+      }
+      else
+      {
+        color = Color(0x00FF60);
+      }
+      MatrixOS::LED::SetColor(point, color);
     }
-    MatrixOS::LED::SetColor(point, color);
   }
 
   // Clear

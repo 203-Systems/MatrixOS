@@ -60,11 +60,11 @@ void Sequencer::SequencerUI()
 {
     UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
 
-    PatternPad patternPad(this);
-    sequencerUI.AddUIComponent(patternPad, Point(0, 1));
-
     SequencerNotePad notePad(this);
     sequencerUI.AddUIComponent(notePad, Point(0, 3));
+
+    PatternPad patternPad(this);
+    sequencerUI.AddUIComponent(patternPad, Point(0, 1));
 
     PatternSelector patternSelector(this);
     sequencerUI.AddUIComponent(patternSelector, Point(0, 3));
