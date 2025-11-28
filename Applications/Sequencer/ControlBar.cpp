@@ -171,6 +171,8 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
           {
             sequencer->copySourceStep = -1;
             sequencer->copySourcePattern = -1;
+            sequencer->copySourceClip = -1;
+            sequencer->copySourceTrack = -1;
           }
           sequencer->stepSelected.clear();
         }

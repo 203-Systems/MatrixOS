@@ -28,20 +28,26 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
         // Handle copy mode
         if(sequencer->CopyActive())
         {
-            uint8_t sourceTrack = sequencer->track;
-            uint8_t sourceClip = sequencer->sequence.GetPosition(sourceTrack).clip;
+            // Source selection if none yet
+            if(sequencer->copySourceClip < 0)
+            {
+                // Only allow selecting existing clips as source
+                if(sequencer->sequence.ClipExists(track, clip))
+                {
+                    sequencer->copySourceClip = clip;
+                    sequencer->copySourceTrack = track;
+                }
+                return true;
+            }
+            else
+            {
+                // Copy from existing source to this location
+                uint8_t sourceTrack = sequencer->copySourceTrack;
+                uint8_t sourceClip = sequencer->copySourceClip;
 
-            // Copy clip (includes all patterns and enabled state)
-            sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
-
-            // // Select the newly copied clip
-            // sequencer->track = track;
-            // sequencer->sequence.SetClip(track, clip);
-
-            // if (changeCallback != nullptr)
-            // {
-            //     changeCallback(track, clip);
-            // }
+                // Copy clip (includes all patterns and enabled state)
+                sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
+            }
         }
         // If clip exists and Clear is active, delete it
         else if(sequencer->ClearActive())
@@ -140,17 +146,26 @@ bool ClipLauncher::Render(Point origin)
             }
             else if(sequencer->CopyActive())
             {
-                if(sequencer->track == track && activeClip == clip)
+                // Copy mode rendering
+                if(sequencer->copySourceClip >= 0 && sequencer->copySourceTrack == track && sequencer->copySourceClip == clip)
                 {
-                    color = sequencer->meta.tracks[track].color;
+                    // Highlight selected source in white
+                    color = Color::White;
                 }
                 else if(sequencer->sequence.ClipExists(track, clip))
                 {
+                    // Show existing clips in track color
+                    color = sequencer->meta.tracks[track].color;
+                }
+                else if(sequencer->copySourceClip >= 0)
+                {
+                    // Show empty slots in dimmed track color when source selected
                     color = sequencer->meta.tracks[track].color.Dim(32);
                 }
                 else
                 {
-                    color = Color(0x101010);
+                    // Show empty slots in dim gray when no source selected
+                    color = Color::Black;
                 }
             }
             else if(!sequencer->sequence.ClipExists(track, clip))

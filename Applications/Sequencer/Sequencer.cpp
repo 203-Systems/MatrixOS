@@ -275,6 +275,8 @@ void Sequencer::ClearState()
     stepSelected.clear();
     copySourceStep = -1;
     copySourcePattern = -1;
+    copySourceClip = -1;
+    copySourceTrack = -1;
     trackSelected = false;
 }
 
