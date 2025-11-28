@@ -407,7 +407,7 @@ bool SequencerControlBar::Render(Point origin)
       {
         MatrixOS::LED::SetColor(point, Color::White);
       }
-      else if(sequencer->ShiftActive() && !sequencer->sequence.Playing())
+      else if(sequencer->ShiftActive() && !sequencer->sequence.Playing() && (MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150)
       {
         // Undo record
         MatrixOS::LED::SetColor(point, Color(0xFF0040).DimIfNot(sequencer->sequence.CanUndoLastRecord()));
