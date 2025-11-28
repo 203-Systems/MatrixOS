@@ -7,6 +7,11 @@ SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
     GenerateKeymap();
 }
 
+bool SequencerNotePad::IsEnabled()
+{
+    return sequencer->currentView == Sequencer::ViewMode::Sequencer;
+}
+
 Dimension SequencerNotePad::GetSize()
 {
     return Dimension(8, 4);
@@ -568,9 +573,4 @@ bool SequencerNotePad::Render(Point origin)
         return RenderDrum(origin);
     }
     return false;
-}
-
-bool SequencerNotePad::IsEnabled()
-{
-    return sequencer->currentView == Sequencer::ViewMode::Sequencer;
 }

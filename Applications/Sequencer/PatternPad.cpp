@@ -8,6 +8,11 @@ PatternPad::PatternPad(Sequencer* sequencer)
 
 Dimension PatternPad::GetSize() { return Dimension(8, 2); }
 
+bool PatternPad::IsEnabled()
+{
+    return sequencer->currentView == Sequencer::ViewMode::Sequencer;
+}
+
 bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     if(keyInfo->state != PRESSED && keyInfo->state != RELEASED)
