@@ -288,14 +288,14 @@ void Sequence::Stop()
                     {
                         if (ev.second.eventType == SequenceEventType::NoteEvent)
                         {
-                            int16_t rl = static_cast<int16_t>(ev.second.recordLayer) - 127;
-                            ev.second.recordLayer = rl > 0 ? static_cast<uint8_t>(rl) : 0;
+                            int16_t rl = ev.second.recordLayer - 127;
+                            ev.second.recordLayer = rl > 0 ? rl : 0;
                         }
                     }
                 }
             }
         }
-        lastRecordLayer = static_cast<uint8_t>(lastRecordLayer - 127);
+        lastRecordLayer = lastRecordLayer - 127;
     }
     currentRecordLayer = 0;
     clocksTillStart = 0;
@@ -604,6 +604,31 @@ void Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
 {
     if (!pattern) return;
     pattern->steps = steps;
+    dirty = true;
+}
+
+
+void Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
+{
+    if (!pattern) return;
+
+    // Total pulses in the pattern
+    int32_t patternLengthPulses = pattern->steps * pulsesPerStep;
+    if (patternLengthPulses == 0) return;
+
+    // Normalize offset to [0, patternLengthPulses)
+    int32_t normalized = offsetPulse % patternLengthPulses;
+    if (normalized == 0) return;
+    if (normalized < 0) { normalized += patternLengthPulses; }
+
+    std::multimap<uint16_t, SequenceEvent> shifted;
+    for (const auto& [timestamp, ev] : pattern->events)
+    {
+        int32_t shiftedTs = (timestamp + normalized) % patternLengthPulses;
+        shifted.insert({shiftedTs, ev});
+    }
+
+    pattern->events.swap(shifted);
     dirty = true;
 }
 

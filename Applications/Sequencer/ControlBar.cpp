@@ -1,5 +1,6 @@
 #include "ControlBar.h"
 #include "NotePad.h"
+#include <algorithm>
 
 SequencerControlBar::SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad)
 {
@@ -11,10 +12,11 @@ Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 
 bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
+    bool nudgeEnabled = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
     switch (xy.x)
     {
-    case 0: return HandlePlayKey(keyInfo);
-    case 1: return HandleRecordKey(keyInfo);
+    case 0: return nudgeEnabled ? HandleNudgeKey(false, keyInfo) : HandlePlayKey(keyInfo);
+    case 1: return nudgeEnabled ? HandleNudgeKey(true, keyInfo) : HandleRecordKey(keyInfo);
     case 2: return HandleSessionKey(keyInfo);
     case 3: return HandleMixerKey(keyInfo);
     case 4: return HandleClearKey(keyInfo);
@@ -179,6 +181,26 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
     return true;
 }
 
+bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
+{
+    if (keyInfo->state != RELEASED) { return true; }
+
+    uint8_t track = sequencer->track;
+    if (sequencer->sequence.Playing(track)) { return true; }
+    if (sequencer->stepSelected.empty()) { return true; }
+
+    SequencePosition pos = sequencer->sequence.GetPosition(track);
+    SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+    if (!pattern) { return true; }
+
+    uint16_t base = sequencer->sequence.GetPulsesPerStep();
+    uint16_t step = base;
+    int16_t offset = positive ? step : - (int16_t)step;
+
+    sequencer->sequence.PatternNudge(pattern, offset);
+    return true;
+}
+
 bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo)
 {
     uint8_t track = sequencer->track;
@@ -305,40 +327,57 @@ Color SequencerControlBar::GetOctaveMinusColor() {
 bool SequencerControlBar::Render(Point origin)
 {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
+  bool nudgeEnabled = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
 
-  // Play
+  // Play (or Nudge Left)
   {
     Point point = origin + Point(0, 0);
-    if(MatrixOS::KeyPad::GetKey(point)->Active())
+    if (nudgeEnabled)
     {
-      MatrixOS::LED::SetColor(point, Color::White);
-    }
-    else if(sequencer->sequence.Playing())
-    {
-      uint8_t scale = breathingScale / 4 * 3;
-      MatrixOS::LED::SetColor(point, Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8)));
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
+      MatrixOS::LED::SetColor(point, color);
     }
     else
     {
-      MatrixOS::LED::SetColor(point, Color::Green);
+      if(MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        MatrixOS::LED::SetColor(point, Color::White);
+      }
+      else if(sequencer->sequence.Playing())
+      {
+        uint8_t scale = breathingScale / 4 * 3;
+        MatrixOS::LED::SetColor(point, Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8)));
+      }
+      else
+      {
+        MatrixOS::LED::SetColor(point, Color::Green);
+      }
     }
   }
 
-  // Record
+  // Record (or Nudge Right)
   {
     Point point = origin + Point(1, 0);
-    if(MatrixOS::KeyPad::GetKey(point)->Active())
+    if (nudgeEnabled)
     {
-      MatrixOS::LED::SetColor(point, Color::White);
-    }
-    else if(sequencer->sequence.RecordEnabled())
-    {
-      uint8_t scale = breathingScale / 4 * 3 + 64;
-      MatrixOS::LED::SetColor(point, Color::Red.Scale(scale));
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
+      MatrixOS::LED::SetColor(point, color);
     }
     else
     {
-      MatrixOS::LED::SetColor(point, Color::Red);
+      if(MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        MatrixOS::LED::SetColor(point, Color::White);
+      }
+      else if(sequencer->sequence.RecordEnabled())
+      {
+        uint8_t scale = breathingScale / 4 * 3 + 64;
+        MatrixOS::LED::SetColor(point, Color::Red.Scale(scale));
+      }
+      else
+      {
+        MatrixOS::LED::SetColor(point, Color::Red);
+      }
     }
   }
 

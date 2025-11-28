@@ -21,6 +21,7 @@ class SequencerControlBar : public UIComponent {
     bool HandleMixerKey(KeyInfo* keyInfo);
     bool HandleClearKey(KeyInfo* keyInfo);
     bool HandleCopyKey(KeyInfo* keyInfo);
+    bool HandleNudgeKey(bool positive, KeyInfo* keyInfo);
 
     public:
     SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad);

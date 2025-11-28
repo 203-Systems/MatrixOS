@@ -119,6 +119,7 @@ public:
     void PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep);
     void PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep);
     void PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length);
+    void PatternNudge(SequencePattern* pattern, int16_t offsetPulse);
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);
