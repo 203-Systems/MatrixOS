@@ -631,6 +631,48 @@ bool Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
     return true;
 }
 
+bool Sequence::PatternQuantize(SequencePattern* pattern, uint16_t pulse)
+{
+    if (!pattern || pulse == 0) return false;
+
+    std::multimap<uint16_t, SequenceEvent> quantized;
+    bool changed = false;
+
+    auto quantizeVal = [pulse](uint16_t val) -> uint16_t {
+        // Round to nearest multiple of pulse
+        uint32_t rounded = (val + pulse / 2) / pulse * pulse;
+        return rounded;
+    };
+
+    for (const auto& [timestamp, ev] : pattern->events)
+    {
+        uint16_t newTimestamp = quantizeVal(timestamp);
+        SequenceEvent newEvent = ev;
+
+        if (ev.eventType == SequenceEventType::NoteEvent)
+        {
+            auto& note = std::get<SequenceEventNote>(newEvent.data);
+            uint16_t newLen = quantizeVal(note.length);
+            if (newLen == 0) { newLen = pulse; } // ensure non-zero length
+            if (newLen != note.length)
+            {
+                note.length = newLen;
+                changed = true;
+            }
+        }
+
+        if (newTimestamp != timestamp) { changed = true; }
+        quantized.insert({newTimestamp, newEvent});
+    }
+
+    if (changed)
+    {
+        pattern->events.swap(quantized);
+        dirty = true;
+    }
+
+    return true;
+}
 
 bool Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
 {

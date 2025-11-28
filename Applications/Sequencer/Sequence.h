@@ -119,6 +119,7 @@ public:
     bool PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep);
     bool PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep);
     bool PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length);
+    bool PatternQuantize(SequencePattern* pattern, uint16_t pulse);
     bool PatternNudge(SequencePattern* pattern, int16_t offsetPulse);
 
     uint8_t GetChannel(uint8_t track);

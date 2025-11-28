@@ -183,23 +183,43 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
 
 bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
 {
-    if (keyInfo->state != RELEASED) { return true; }
+    if(keyInfo->state == PRESSED)
+    {
+      if(nudge[0] || nudge[1])
+      {
+        uint8_t track = sequencer->track;
+        SequencePosition pos = sequencer->sequence.GetPosition(track);
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+        sequencer->sequence.PatternQuantize(pattern, sequencer->sequence.GetPulsesPerStep());
+        sequencer->ClearActiveNotes();
+        nudgeEventOccured[0] = nudgeEventOccured[1] = true;
+      }
+      nudge[positive ? 1 : 0] = true;
+      nudgeEventOccured[positive ? 1 : 0] = false;
+    }
+    else if(keyInfo->state == RELEASED)
+    {
+      bool nudgeEvent = nudgeEventOccured[0] || nudgeEventOccured[1];
+      if(keyInfo->hold == false && !nudgeEvent)
+      {
+        uint8_t track = sequencer->track;
+        if (sequencer->sequence.Playing(track)) { return true; }
+        if (sequencer->stepSelected.empty()) { return true; }
 
-    uint8_t track = sequencer->track;
-    if (sequencer->sequence.Playing(track)) { return true; }
-    if (sequencer->stepSelected.empty()) { return true; }
+        SequencePosition pos = sequencer->sequence.GetPosition(track);
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+        if (!pattern) { return true; }
 
-    SequencePosition pos = sequencer->sequence.GetPosition(track);
-    SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
-    if (!pattern) { return true; }
+        uint16_t base = sequencer->sequence.GetPulsesPerStep();
+        uint16_t step = base;
+        int16_t offset = positive ? step : - (int16_t)step;
 
-    uint16_t base = sequencer->sequence.GetPulsesPerStep();
-    uint16_t step = base;
-    int16_t offset = positive ? step : - (int16_t)step;
-
-    sequencer->sequence.PatternNudge(pattern, offset);
-    sequencer->ClearActiveNotes();
-    sequencer->stepSelected.clear();
+        sequencer->sequence.PatternNudge(pattern, offset);
+        sequencer->ClearActiveNotes();
+      }
+      nudge[positive ? 1 : 0] = false;
+      nudgeEventOccured[positive ? 1 : 0] = false;
+    }
     return true;
 }
 
@@ -218,6 +238,7 @@ bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo
 
       sequencer->shiftOnTime = MatrixOS::SYS::Millis();
       sequencer->shift[shiftIndex] = true;
+      sequencer->shiftEventOccured[shiftIndex] = false; 
 
       if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
       {
@@ -338,6 +359,11 @@ bool SequencerControlBar::Render(Point origin)
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
   bool nudgeEnabled = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
 
+  if(nudgeEnabled == false)
+  {
+    nudge[0] = nudge[1] = false;
+    nudgeEventOccured[0] = nudgeEventOccured[1] = false;
+  }
   // Play (or Nudge Left)
   {
     Point point = origin + Point(0, 0);
@@ -374,7 +400,7 @@ bool SequencerControlBar::Render(Point origin)
     }
     else
     {
-      if(MatrixOS::KeyPad::GetKey(point)->Active())
+      if(MatrixOS::KeyPad::GetKey(point)->Active()) 
       {
         MatrixOS::LED::SetColor(point, Color::White);
       }
