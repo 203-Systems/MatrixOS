@@ -9,6 +9,6 @@ class KeyState:
     HOLD: int = 3
     AFTERTOUCH: int = 4
     RELEASED: int = 5
-    DEBUNCING: int = 240
-    RELEASE_DEBUNCING: int = 241
+    DEBOUNCING: int = 240
+    RELEASE_DEBOUNCING: int = 241
     INVALID: int = 255
