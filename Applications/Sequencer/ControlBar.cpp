@@ -202,40 +202,20 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
 {
     if(keyInfo->state == PRESSED)
     {
-      if(nudge[0] || nudge[1])
-      {
-        uint8_t track = sequencer->track;
-        SequencePosition pos = sequencer->sequence.GetPosition(track);
-        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
-        sequencer->sequence.PatternQuantize(pattern, sequencer->sequence.GetPulsesPerStep());
-        sequencer->ClearActiveNotes();
-        nudgeEventOccured[0] = nudgeEventOccured[1] = true;
-      }
-      nudge[positive ? 1 : 0] = true;
-      nudgeEventOccured[positive ? 1 : 0] = false;
-    }
-    else if(keyInfo->state == RELEASED)
-    {
-      bool nudgeEvent = nudgeEventOccured[0] || nudgeEventOccured[1];
-      if(keyInfo->hold == false && !nudgeEvent)
-      {
-        uint8_t track = sequencer->track;
-        if (sequencer->sequence.Playing(track)) { return true; }
-        if (sequencer->stepSelected.empty()) { return true; }
+      uint8_t track = sequencer->track;
+      if (sequencer->sequence.Playing(track)) { return true; }
+      if (sequencer->stepSelected.empty()) { return true; }
 
-        SequencePosition pos = sequencer->sequence.GetPosition(track);
-        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
-        if (!pattern) { return true; }
+      SequencePosition pos = sequencer->sequence.GetPosition(track);
+      SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+      if (!pattern) { return true; }
 
-        uint16_t base = sequencer->sequence.GetPulsesPerStep();
-        uint16_t step = base;
-        int16_t offset = positive ? step : - (int16_t)step;
+      uint16_t base = sequencer->sequence.GetPulsesPerStep();
+      uint16_t step = base;
+      int16_t offset = positive ? step : - (int16_t)step;
 
-        sequencer->sequence.PatternNudge(pattern, offset);
-        sequencer->ClearActiveNotes();
-      }
-      nudge[positive ? 1 : 0] = false;
-      nudgeEventOccured[positive ? 1 : 0] = false;
+      sequencer->sequence.PatternNudge(pattern, offset);
+      sequencer->ClearActiveNotes();
     }
     return true;
 }
@@ -387,23 +367,38 @@ Color SequencerControlBar::GetOctaveMinusColor() {
 bool SequencerControlBar::Render(Point origin)
 {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
-  bool nudgeEnabled = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
+  bool stepSelected = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
 
-  if(nudgeEnabled == false)
+
+  // Left 4 - Floating UI
+  if(stepSelected) // Step Specific
   {
-    nudge[0] = nudge[1] = false;
-    nudgeEventOccured[0] = nudgeEventOccured[1] = false;
-  }
-  // Play (or Nudge Left)
-  {
-    Point point = origin + Point(0, 0);
-    if (nudgeEnabled)
+    // Nudge Left
     {
+      Point point = origin + Point(0, 0);
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
       MatrixOS::LED::SetColor(point, color);
     }
-    else
+    // Nudge Right
     {
+      Point point = origin + Point(1, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
+      MatrixOS::LED::SetColor(point, color);
+    }
+    // 2 Pattern View
+    {
+      Point point = origin + Point(3, 0);
+      uint8_t track = sequencer->track;
+      bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x8000FF).DimIfNot(twoPatternMode);
+      MatrixOS::LED::SetColor(point, color);
+    }
+  }
+  else // General
+  {
+    // Play
+    {
+      Point point = origin + Point(0, 0);
       if(MatrixOS::KeyPad::GetKey(point)->Active())
       {
         MatrixOS::LED::SetColor(point, Color::White);
@@ -418,18 +413,10 @@ bool SequencerControlBar::Render(Point origin)
         MatrixOS::LED::SetColor(point, Color::Green);
       }
     }
-  }
 
-  // Record (or Nudge Right)
-  {
-    Point point = origin + Point(1, 0);
-    if (nudgeEnabled)
+    // Record
     {
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000);
-      MatrixOS::LED::SetColor(point, color);
-    }
-    else
-    {
+      Point point = origin + Point(1, 0);
       if(MatrixOS::KeyPad::GetKey(point)->Active())
       {
         MatrixOS::LED::SetColor(point, Color::White);
@@ -449,39 +436,29 @@ bool SequencerControlBar::Render(Point origin)
         MatrixOS::LED::SetColor(point, Color::Red);
       }
     }
-  }
 
-  // Session View
-  {
-    Point point = origin + Point(2, 0);
-    Color color;
-    if(MatrixOS::KeyPad::GetKey(point)->Active())
+    // Session View
     {
-      color = Color::White;
-    }
-    else if(sequencer->currentView == Sequencer::ViewMode::Session)
-    {
-      color = Color(0xFFFFA0);
-    }
-    else
-    {
-      color = Color(0xFFFF00);
-    }
-    MatrixOS::LED::SetColor(point, color);
-  }
-
-  // Mixer View (or TwoPatternToggle)
-  {
-    Point point = origin + Point(3, 0);
-    if (nudgeEnabled)
-    {
-      uint8_t track = sequencer->track;
-      bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x8000FF).DimIfNot(twoPatternMode);
+      Point point = origin + Point(2, 0);
+      Color color;
+      if(MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        color = Color::White;
+      }
+      else if(sequencer->currentView == Sequencer::ViewMode::Session)
+      {
+        color = Color(0xFFFFA0);
+      }
+      else
+      {
+        color = Color(0xFFFF00);
+      }
       MatrixOS::LED::SetColor(point, color);
     }
-    else
+
+    // Mixer View
     {
+      Point point = origin + Point(3, 0);
       Color color;
       if(MatrixOS::KeyPad::GetKey(point)->Active())
       {
@@ -499,6 +476,7 @@ bool SequencerControlBar::Render(Point origin)
     }
   }
 
+  // Right 4 - Constent UI
   // Clear
   {
     Point point = origin + Point(4, 0);

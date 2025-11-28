@@ -14,10 +14,6 @@ class SequencerControlBar : public UIComponent {
 
     const uint8_t OctaveGradient[8]  = {0, 16, 42, 68, 124, 182, 255};
 
-    // Nudge state
-    bool nudge[2] = {false, false};
-    bool nudgeEventOccured[2] = {false, false};
-
     bool HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo);
     bool HandlePlayKey(KeyInfo* keyInfo);
     bool HandleRecordKey(KeyInfo* keyInfo);
