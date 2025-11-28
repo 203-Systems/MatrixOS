@@ -170,6 +170,7 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
           else
           {
             sequencer->copySourceStep = -1;
+            sequencer->copySourcePattern = -1;
           }
           sequencer->stepSelected.clear();
         }

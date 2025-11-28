@@ -274,6 +274,7 @@ void Sequencer::ClearState()
     ClearActiveNotes();
     stepSelected.clear();
     copySourceStep = -1;
+    copySourcePattern = -1;
     trackSelected = false;
 }
 

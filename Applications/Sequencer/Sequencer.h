@@ -51,6 +51,7 @@ class Sequencer : public Application {
 
   std::set<uint8_t> stepSelected;
   int8_t copySourceStep = -1;
+  int8_t copySourcePattern = -1;
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;
