@@ -491,21 +491,25 @@ void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip)
     dirty = true;
 }
 
-void Sequence::PatternClearAll(SequencePattern* pattern)
+bool Sequence::PatternClearAll(SequencePattern* pattern)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
     if (!pattern->events.empty())
     {
         pattern->events.clear();
         dirty = true;
     }
+    return true;
 }
 
-void Sequence::PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event)
+bool Sequence::PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
+    uint32_t patternLimit = pattern->steps * pulsesPerStep;
+    if (timestamp >= patternLimit) return false;
     pattern->events.insert({timestamp, event});
     dirty = true;
+    return true;
 }
 
 bool Sequence::PatternHasEventInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, SequenceEventType type)
@@ -545,9 +549,9 @@ bool Sequence::PatternClearNotesInRange(SequencePattern* pattern, uint16_t start
     return removed;
 }
 
-void Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime)
+bool Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
     bool removed = false;
     for (auto it = pattern->events.lower_bound(startTime); it != pattern->events.end() && it->first <= endTime; )
     {
@@ -555,27 +559,30 @@ void Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t star
         removed = true;
     }
     if (removed) { dirty = true; }
+    return true;
 }
 
-void Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep)
+bool Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
     uint16_t startTime = step * pulsesPerStep;
     uint16_t endTime = startTime + pulsesPerStep - 1;
     PatternClearEventsInRange(pattern, startTime, endTime);
+    return true;
 }
 
-void Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep)
+bool Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep)
 {
-    if (!pattern || src == dest) return;
+    if (!pattern || src == dest) return false;
     uint16_t sourceStartTime = src * pulsesPerStep;
     uint16_t destStartTime = dest * pulsesPerStep;
     PatternCopyEventsInRange(pattern, sourceStartTime, destStartTime, pulsesPerStep);
+    return true;
 }
 
-void Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length)
+bool Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
     vector<std::pair<uint16_t, SequenceEvent>> eventsToCopy;
 
     uint16_t sourceEnd = sourceStart + length - 1;
@@ -590,7 +597,7 @@ void Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourc
         ++it;
     }
 
-    if (eventsToCopy.empty()) { return; }
+    if (eventsToCopy.empty()) { return true; }
 
     // Add copied events to destination
     for (const auto& [timestamp, event] : eventsToCopy)
@@ -598,27 +605,44 @@ void Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourc
         pattern->events.insert({timestamp, event});
     }
     dirty = true;
+    return true;
 }
 
-void Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
+bool Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
+
+    // Remove any events that now fall beyond the new pattern length
+    uint32_t maxPulse = steps * pulsesPerStep;
+    for (auto it = pattern->events.begin(); it != pattern->events.end(); )
+    {
+        if (it->first >= maxPulse)
+        {
+            it = pattern->events.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     pattern->steps = steps;
     dirty = true;
+    return true;
 }
 
 
-void Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
+bool Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
 {
-    if (!pattern) return;
+    if (!pattern) return false;
 
     // Total pulses in the pattern
     int32_t patternLengthPulses = pattern->steps * pulsesPerStep;
-    if (patternLengthPulses == 0) return;
+    if (patternLengthPulses == 0) return true;
 
     // Normalize offset to [0, patternLengthPulses)
     int32_t normalized = offsetPulse % patternLengthPulses;
-    if (normalized == 0) return;
+    if (normalized == 0) return true;
     if (normalized < 0) { normalized += patternLengthPulses; }
 
     std::multimap<uint16_t, SequenceEvent> shifted;
@@ -630,6 +654,7 @@ void Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
 
     pattern->events.swap(shifted);
     dirty = true;
+    return true;
 }
 
 void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)

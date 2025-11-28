@@ -297,8 +297,10 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
         SequenceEvent event = SequenceEvent::Note(note, velocity, false);
         for (const auto& step : sequencer->stepSelected)
         {
-            sequencer->sequence.PatternAddEvent(pattern, step * pulsesPerStep, event);
-            sequencer->noteActive.insert(note);
+            if (sequencer->sequence.PatternAddEvent(pattern, step * pulsesPerStep, event))
+            {
+                sequencer->noteActive.insert(note);
+            }
         }
     }
 }

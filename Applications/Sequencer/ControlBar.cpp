@@ -198,6 +198,8 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
     int16_t offset = positive ? step : - (int16_t)step;
 
     sequencer->sequence.PatternNudge(pattern, offset);
+    sequencer->ClearActiveNotes();
+    sequencer->stepSelected.clear();
     return true;
 }
 
