@@ -144,12 +144,13 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
             uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
             uint8_t track = sequencer->track;
             uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
-            if (!pattern) { return true; }
-            for (const auto& step : sequencer->stepSelected)
+            for (const auto& selection : sequencer->stepSelected)
             {
-                sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
+              uint8_t patternIdx = selection.first;
+              uint8_t step = selection.second;
+              SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+              if (!pattern) { return true; }  
+              sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
             }
         }
     }
@@ -165,7 +166,9 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo)
         {
           if(sequencer->stepSelected.size() == 1)
           {
-            sequencer->copySourceStep = *sequencer->stepSelected.begin();
+            auto selection = *sequencer->stepSelected.begin();
+            sequencer->copySourcePattern = selection.first;
+            sequencer->copySourceStep = selection.second;
           }
           else
           {
@@ -246,10 +249,11 @@ bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo* keyInfo
       if(sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
       {
         uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-        uint8_t step = *sequencer->stepSelected.begin();
-
+        auto selection = *sequencer->stepSelected.begin();
+        uint8_t patternIdx = selection.first;
+        uint8_t step = selection.second;
         SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+
         uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
         uint16_t startTime = step * pulsesPerStep;
         uint16_t endTime = startTime + pulsesPerStep - 1;

@@ -49,7 +49,7 @@ class Sequencer : public Application {
 
   ViewMode currentView = ViewMode::Sequencer;
 
-  std::set<uint8_t> stepSelected;
+  std::set<std::pair<uint8_t, uint8_t>> stepSelected; // pair<pattern, step>
   int8_t copySourceStep = -1;
   int8_t copySourcePattern = -1;
   int8_t copySourceClip = -1;

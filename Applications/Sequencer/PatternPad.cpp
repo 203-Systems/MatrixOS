@@ -76,9 +76,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         }
 
         // Check if step already exists in selection
-        if(sequencer->stepSelected.find(step) == sequencer->stepSelected.end())
+        if(sequencer->stepSelected.find(std::make_pair(patternIdx, step)) == sequencer->stepSelected.end())
         {
-            sequencer->stepSelected.insert(step);
+            sequencer->stepSelected.insert(std::make_pair(patternIdx, step));
         }
 
         bool playAllNotes = false;
@@ -151,7 +151,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     else if(keyInfo->state == RELEASED)
     {
         // Remove step from selection
-        auto stepIt = sequencer->stepSelected.find(step);
+        auto stepIt = sequencer->stepSelected.find(std::make_pair(patternIdx, step));
         if(stepIt != sequencer->stepSelected.end())
         {
             sequencer->stepSelected.erase(stepIt);
@@ -311,11 +311,15 @@ bool PatternPad::Render(Point origin)
             }
         }
 
-          // Render Selected
-          for(uint8_t selectedStep : sequencer->stepSelected)
+          // Render Selected (only for current pattern)
+          for(const auto& selection : sequencer->stepSelected)
           {
-              Point point = Point(selectedStep % width, selectedStep / width);
-              MatrixOS::LED::SetColor(origin + point, Color::White);
+              if(selection.first == patternIdx) // Only render selections for current pattern
+              {
+                  uint8_t selectedStep = selection.second;
+                  Point point = Point(selectedStep % width, selectedStep / width);
+                  MatrixOS::LED::SetColor(origin + point, Color::White);
+              }
           }
 
         // Render Cursor
