@@ -204,6 +204,18 @@ bool PatternPad::Render(Point origin)
     SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, (uint8_t)patternIdx);
     if (!pattern) { return true; }
 
+    // Special state: Pattern copy mode active (from PatternSelector)
+    if(sequencer->CopyActive() && sequencer->copySourcePattern >= 0 && sequencer->sequence.Playing(track) == false)
+    {
+        // Render all slots dimmed when pattern copy is active
+        for(uint8_t step = 0; step < pattern->steps; step++)
+        {
+            Point point = Point(step % width, step / width);
+            MatrixOS::LED::SetColor(origin + point, Color::White.Dim(32));
+        }
+        return true;
+    }
+
     if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
     {
         // Render Base

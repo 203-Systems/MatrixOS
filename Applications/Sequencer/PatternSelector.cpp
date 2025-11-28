@@ -192,6 +192,27 @@ bool PatternSelector::Render(Point origin)
     uint8_t selectedPattern = sequencer->sequence.GetPosition(track).pattern;
     Color trackColor = sequencer->meta.tracks[track].color;
 
+    // Special state: Step copy mode active (from PatternPad)
+    if(sequencer->CopyActive() && sequencer->copySourceStep >= 0 && sequencer->sequence.Playing(track) == false)
+    {
+        // Render all pattern slots dimmed when step copy is active
+        for(uint8_t i = 0; i < 16; i++)
+        {
+            uint8_t x = i % 8;
+            uint8_t y = i / 8;
+
+            if(i < patternCount)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim(32));
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+            }
+        }
+        return true;
+    }
+
     if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
     {
         // Copy mode rendering
