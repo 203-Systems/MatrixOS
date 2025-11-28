@@ -20,17 +20,16 @@ class SequencerNotePad : public UIComponent {
     Sequencer* sequencer;
 
     bool rescanNeeded = false;
-    bool prevPatternView = false;
+    bool prevTwoRowMode = false;
 
     std::vector<uint8_t> noteMap;
     uint16_t c_aligned_scale_map;
 
     void SequencerEvent(const MidiPacket& packet);
+    bool TwoRowMode();
 
     public:
     SequencerNotePad(Sequencer* sequencer);
-
-    void EnableTwoRowMode(std::function<bool()> callback);
 
     Dimension GetSize();
 

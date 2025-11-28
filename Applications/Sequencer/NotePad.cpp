@@ -3,7 +3,7 @@
 SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
 {
     this->sequencer = sequencer;
-    prevPatternView = sequencer->patternViewActive;
+    prevTwoRowMode = TwoRowMode();  
     GenerateKeymap();
 }
 
@@ -15,6 +15,11 @@ bool SequencerNotePad::IsEnabled()
 Dimension SequencerNotePad::GetSize()
 {
     return Dimension(8, 4);
+}
+
+bool SequencerNotePad::TwoRowMode()
+{
+    return sequencer->patternViewActive;
 }
 
 NoteType SequencerNotePad::InScale(int16_t note)
@@ -192,7 +197,7 @@ void SequencerNotePad::GenerateDrumKeymap()
 
         uint8_t note = 0;
         uint8_t offset = 36;
-        if(sequencer->patternViewActive)
+        if(TwoRowMode())
         {   
             note = (x % 4) + ui_y * 4 + offset;
             if(x >= 4) {note += 8;}
@@ -470,8 +475,8 @@ bool SequencerNotePad::RenderDrum(Point origin)
     Dimension dimension = GetSize();
     Color drumColor = metaTrack.color;
 
-    uint8_t index = sequencer->patternViewActive ? 16 : 0;
-    for (int8_t y = sequencer->patternViewActive ? 2 : 0; y < dimension.y; y++) {
+    uint8_t index = TwoRowMode() ? 16 : 0;
+    for (int8_t y = TwoRowMode() ? 2 : 0; y < dimension.y; y++) {
         for (int8_t x =  0; x < dimension.x; x++) {
             uint8_t note = noteMap[index];
             Point globalPos = origin + Point(x, y);
@@ -509,7 +514,7 @@ void SequencerNotePad::Rescan(Point origin)
     uint8_t track = sequencer->track;
     uint8_t channel = sequencer->sequence.GetChannel(track);
 
-    for(uint8_t y = 0; y < GetSize().y; y++)
+    for(uint8_t y = TwoRowMode() ? 2 : 0; y < GetSize().y; y++)
     {
         for(uint8_t x = 0; x < GetSize().x; x++)
         {
@@ -542,9 +547,9 @@ bool SequencerNotePad::Render(Point origin)
     uint8_t track = sequencer->track;
     SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
-    if(sequencer->patternViewActive != prevPatternView)
+    if(TwoRowMode() != prevTwoRowMode)
     {
-        prevPatternView = sequencer->patternViewActive;
+        prevTwoRowMode = TwoRowMode();
         GenerateKeymap();
     }
 
