@@ -2,6 +2,8 @@
 #include "Scales.h"
 #include <cmath>
 
+using std::vector;
+
 Sequence::Sequence(uint8_t tracks)
 {
     New(tracks);
@@ -455,9 +457,12 @@ uint8_t Sequence::GetPatternCount(uint8_t track, uint8_t clip)
     return data.tracks[track].clips[clip].patterns.size();
 }
 
-SequencePattern& Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t pattern)
+SequencePattern* Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t pattern)
 {
-    return data.tracks[track].clips[clip].patterns[pattern];
+    if (!ClipExists(track, clip)) return nullptr;
+    auto& pats = data.tracks[track].clips[clip].patterns;
+    if (pattern >= pats.size()) return nullptr;
+    return &pats[pattern];
 }
 
 int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps)
@@ -474,14 +479,6 @@ int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps)
     return data.tracks[track].clips[clip].patterns.size() - 1;
 }
 
-void Sequence::ClearPattern(uint8_t track, uint8_t clip, uint8_t pattern)
-{
-    if (!ClipExists(track, clip)) return;
-    if(pattern >= data.tracks[track].clips[clip].patterns.size()) return;
-    data.tracks[track].clips[clip].patterns[pattern].events.clear();
-    dirty = true;
-}
-
 void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip)
 {
     if (!ClipExists(track, clip)) return;
@@ -491,6 +488,122 @@ void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip)
     {
         pattern.Clear();
     }
+    dirty = true;
+}
+
+void Sequence::PatternClearAll(SequencePattern* pattern)
+{
+    if (!pattern) return;
+    if (!pattern->events.empty())
+    {
+        pattern->events.clear();
+        dirty = true;
+    }
+}
+
+void Sequence::PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event)
+{
+    if (!pattern) return;
+    pattern->events.insert({timestamp, event});
+    dirty = true;
+}
+
+bool Sequence::PatternHasEventInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, SequenceEventType type)
+{
+    if (!pattern) return false;
+    auto it = pattern->events.lower_bound(startTime);
+    while (it != pattern->events.end() && it->first <= endTime)
+    {
+        if (type == SequenceEventType::Invalid || it->second.eventType == type)
+        {
+            return true;
+        }
+        ++it;
+    }
+    return false;
+}
+
+bool Sequence::PatternClearNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, uint8_t note)
+{
+    if (!pattern) return false;
+    bool removed = false;
+    for (auto it = pattern->events.lower_bound(startTime); it != pattern->events.end() && it->first <= endTime; )
+    {
+        if (it->second.eventType == SequenceEventType::NoteEvent)
+        {
+            const SequenceEventNote& n = std::get<SequenceEventNote>(it->second.data);
+            if (n.note == note)
+            {
+                it = pattern->events.erase(it);
+                removed = true;
+                continue;
+            }
+        }
+        ++it;
+    }
+    if (removed) { dirty = true; }
+    return removed;
+}
+
+void Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime)
+{
+    if (!pattern) return;
+    bool removed = false;
+    for (auto it = pattern->events.lower_bound(startTime); it != pattern->events.end() && it->first <= endTime; )
+    {
+        it = pattern->events.erase(it);
+        removed = true;
+    }
+    if (removed) { dirty = true; }
+}
+
+void Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep)
+{
+    if (!pattern) return;
+    uint16_t startTime = step * pulsesPerStep;
+    uint16_t endTime = startTime + pulsesPerStep - 1;
+    PatternClearEventsInRange(pattern, startTime, endTime);
+}
+
+void Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep)
+{
+    if (!pattern || src == dest) return;
+    uint16_t sourceStartTime = src * pulsesPerStep;
+    uint16_t destStartTime = dest * pulsesPerStep;
+    PatternCopyEventsInRange(pattern, sourceStartTime, destStartTime, pulsesPerStep);
+}
+
+void Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length)
+{
+    if (!pattern) return;
+    vector<std::pair<uint16_t, SequenceEvent>> eventsToCopy;
+
+    uint16_t sourceEnd = sourceStart + length - 1;
+
+    // Collect events in source range
+    auto it = pattern->events.lower_bound(sourceStart);
+    while (it != pattern->events.end() && it->first <= sourceEnd)
+    {
+        uint16_t offset = it->first - sourceStart;
+        uint16_t newTimestamp = destStart + offset;
+        eventsToCopy.push_back({newTimestamp, it->second});
+        ++it;
+    }
+
+    if (eventsToCopy.empty()) { return; }
+
+    // Add copied events to destination
+    for (const auto& [timestamp, event] : eventsToCopy)
+    {
+        pattern->events.insert({timestamp, event});
+    }
+    dirty = true;
+}
+
+void Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
+{
+    if (!pattern) return;
+    pattern->steps = steps;
     dirty = true;
 }
 
@@ -951,7 +1064,8 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
         uint8_t patIdx = trackPlayback[t].position.pattern;
         if (patIdx >= GetPatternCount(t, clipIdx)) continue;
 
-        SequencePattern& pattern = GetPattern(t, clipIdx, patIdx);
+        SequencePattern* pattern = GetPattern(t, clipIdx, patIdx);
+        if (!pattern) continue;
         uint32_t currentTick = trackPlayback[t].position.step * pulsesPerStep + trackPlayback[t].position.pulse;
         auto& pending = trackPlayback[t].recordedNotes;
 
@@ -980,7 +1094,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
                 }
             }
 
-            auto evIt = pattern.events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
+            auto evIt = pattern->events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
             SequenceEvent& evRef = evIt->second;
             if (evRef.eventType == SequenceEventType::NoteEvent)
             {
@@ -1105,7 +1219,9 @@ void Sequence::ProcessTrack(uint8_t track)
         uint8_t pattern = pos.pattern;
         uint8_t patternSteps = data.patternLength;
         if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
-            patternSteps = GetPattern(track, clip, pattern).steps;
+            if (SequencePattern* pat = GetPattern(track, clip, pattern)) {
+                patternSteps = pat->steps;
+            }
         }
         if (pos.step >= patternSteps) {
             pos.step = 0;
@@ -1138,13 +1254,14 @@ void Sequence::ProcessTrack(uint8_t track)
     uint8_t clip = pos.clip;
     uint8_t pattern = pos.pattern;
     if (trackEnabled && ClipExists(track, clip)) {
-        SequencePattern& currentPattern = GetPattern(track, clip, pattern);
+        SequencePattern* currentPattern = GetPattern(track, clip, pattern);
+        if (!currentPattern) return;
 
         // Calculate the absolute tick position within the pattern
         uint16_t currentTick = pos.step * pulsesPerStep + pos.pulse;
 
         // Fire all events at exactly this tick (there can be multiple at the same timestamp)
-        auto range = currentPattern.events.equal_range(currentTick);
+        auto range = currentPattern->events.equal_range(currentTick);
         for (auto eventIt = range.first; eventIt != range.second; ++eventIt) {
             const auto& ev = eventIt->second;
             switch (ev.eventType)

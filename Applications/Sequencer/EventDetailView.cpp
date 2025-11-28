@@ -44,7 +44,12 @@ void EventDetailView::RebuildEventList()
     eventRefs.clear();
 
     position = sequencer->sequence.GetPosition(sequencer->track);
-    pattern = &sequencer->sequence.GetPattern(sequencer->track, position.clip, position.pattern);
+    pattern = sequencer->sequence.GetPattern(sequencer->track, position.clip, position.pattern);
+    if (!pattern)
+    {
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
+        return;
+    }
     
     uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
     uint16_t startTime = position.step * pulsesPerStep;

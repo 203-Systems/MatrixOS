@@ -103,12 +103,22 @@ public:
 
     // Pattern management (now with clip parameter)
     uint8_t GetPatternCount(uint8_t track, uint8_t clip);
-    SequencePattern& GetPattern(uint8_t track, uint8_t clip, uint8_t pattern);
+    SequencePattern* GetPattern(uint8_t track, uint8_t clip, uint8_t pattern);
     int8_t NewPattern(uint8_t track, uint8_t clip, uint8_t length = 0); // if length is 0. Then use data.patternLength
-    void ClearPattern(uint8_t track, uint8_t clip, uint8_t pattern);
     void ClearAllStepsInClip(uint8_t track, uint8_t clip);
-    void DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern);
     void CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sourcePattern, uint8_t destTrack, uint8_t destClip, uint8_t destPattern = 255); // if destPattern is 255, then will create new pattern
+    void DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern);
+    
+    // Pattern helpers routed through Sequence
+    void PatternClearAll(SequencePattern* pattern);
+    void PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event);
+    bool PatternHasEventInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, SequenceEventType type = SequenceEventType::Invalid);
+    bool PatternClearNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, uint8_t note);
+    void PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime);
+    void PatternSetLength(SequencePattern* pattern, uint8_t steps);
+    void PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep);
+    void PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep);
+    void PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length);
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);

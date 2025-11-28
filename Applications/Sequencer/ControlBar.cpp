@@ -143,10 +143,11 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
             uint8_t track = sequencer->track;
             uint8_t clip = sequencer->sequence.GetPosition(track).clip;
             uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            SequencePattern* pattern = &sequencer->sequence.GetPattern(track, clip, patternIdx);
+            SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+            if (!pattern) { return true; }
             for (const auto& step : sequencer->stepSelected)
             {
-                pattern->ClearStepEvents(step, pulsesPerStep);
+                sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
             }
         }
     }

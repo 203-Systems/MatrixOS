@@ -20,7 +20,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     uint8_t clip = sequencer->sequence.GetPosition(track).clip;
     uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
     uint8_t channel = sequencer->sequence.GetChannel(track);
-    SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+    SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+    if (!pattern) { return true; }
 
     int16_t clockTillStart = sequencer->sequence.GetClocksTillStart();
     if(sequencer->sequence.RecordEnabled() && (clockTillStart > 0))
@@ -34,7 +35,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 
     if(keyInfo->state == PRESSED)
     {
-        bool hasEvent = pattern.HasEventInRange(startTime, endTime);
+        bool hasEvent = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime);
         if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
         {
             // Source selection if none yet
@@ -51,9 +52,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             {
                 // Copy from existing source to this step
                 uint8_t srcStep = sequencer->copySourceStep;
-                pattern.ClearStepEvents(step, pulsesPerStep);
-                pattern.CopyStepEvents(srcStep, step, pulsesPerStep);
-                sequencer->sequence.SetDirty();
+                sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
+                sequencer->sequence.PatternCopyStepEvents(pattern, srcStep, step, pulsesPerStep);
                 return true;
             }
         }
@@ -86,8 +86,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             uint8_t channel = sequencer->sequence.GetChannel(track);
 
             // Remove notes from noteActive and send noteOff
-            auto it = pattern.events.lower_bound(startTime);
-            while (it != pattern.events.end() && it->first <= endTime)
+            auto it = pattern->events.lower_bound(startTime);
+            while (it != pattern->events.end() && it->first <= endTime)
             {
                 if (it->second.eventType == SequenceEventType::NoteEvent)
                 {
@@ -102,7 +102,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 ++it;
             }
 
-            pattern.ClearStepEvents(step, pulsesPerStep);
+            sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
         }
         else if(!sequencer->noteSelected.empty())
         {
@@ -114,10 +114,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 
             for (const auto& [note, velocity] : sequencer->noteSelected)
             {
-                if (pattern.RemoveNoteEventsInRange(startTime, endTime, note))
+                if (sequencer->sequence.PatternClearNotesInRange(pattern, startTime, endTime, note))
                 {
                     existAlready = true;
-                    sequencer->sequence.SetDirty();
                 }
             }
 
@@ -126,15 +125,14 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 for (const auto& [note, velocity] : sequencer->noteSelected)
                 {
                     SequenceEvent event = SequenceEvent::Note(note, velocity, false);
-                    pattern.AddEvent(step * sequencer->sequence.GetPulsesPerStep(), event);
-                    sequencer->sequence.SetDirty();
+                    sequencer->sequence.PatternAddEvent(pattern, step * sequencer->sequence.GetPulsesPerStep(), event);
                 }
             }
         }
         
         // Populate noteActive with notes from this step and send MIDI NoteOn
-        auto it = pattern.events.lower_bound(startTime);
-        while (it != pattern.events.end() && it->first <= endTime)
+        auto it = pattern->events.lower_bound(startTime);
+        while (it != pattern->events.end() && it->first <= endTime)
         {
             if (it->second.eventType == SequenceEventType::NoteEvent)
             {
@@ -155,8 +153,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         }
 
         // Clear noteActive from notes in this step and send MIDI NoteOff
-        auto eventIt = pattern.events.lower_bound(startTime);
-        while (eventIt != pattern.events.end() && eventIt->first <= endTime)
+        auto eventIt = pattern->events.lower_bound(startTime);
+        while (eventIt != pattern->events.end() && eventIt->first <= endTime)
         {
             if (eventIt->second.eventType == SequenceEventType::NoteEvent)
             {
@@ -198,14 +196,15 @@ bool PatternPad::Render(Point origin)
     }
 
     Color trackColor = sequencer->meta.tracks[track].color;
-    SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, (uint8_t)patternIdx);
+    SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, (uint8_t)patternIdx);
+    if (!pattern) { return true; }
 
     if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
     {
         // Render Base
         if(sequencer->copySourceStep >= 0)
         {
-            for(uint8_t step = 0; step < pattern.steps; step++)
+          for(uint8_t step = 0; step < pattern->steps; step++)
             {
                 Point point = Point(step % width, step / width);
                 MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
@@ -215,12 +214,12 @@ bool PatternPad::Render(Point origin)
         // Render Step
         uint16_t hasNote = 0;
         uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-        for(uint8_t slot = 0; slot < pattern.steps; slot++)
+          for(uint8_t slot = 0; slot < pattern->steps; slot++)
         {
             uint16_t startTime = slot * pulsesPerStep;
             uint16_t endTime = startTime + pulsesPerStep - 1;
 
-            bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+              bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
             if(hasEventInSlot)
             {
                 MatrixOS::LED::SetColor(origin + Point(slot % width, slot / width), trackColor);
@@ -237,7 +236,7 @@ bool PatternPad::Render(Point origin)
     else // Normal mode
     {
         // Render Base
-        for(uint8_t step = 0; step < pattern.steps; step++)
+        for(uint8_t step = 0; step < pattern->steps; step++)
         {
             Point point = Point(step % width, step / width);
             MatrixOS::LED::SetColor(origin + point, trackColor.Dim());
@@ -246,12 +245,12 @@ bool PatternPad::Render(Point origin)
         // Render Step
         uint16_t hasNote = 0;
         uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-        for(uint8_t slot = 0; slot < pattern.steps; slot++)
+        for(uint8_t slot = 0; slot < pattern->steps; slot++)
         {
             uint16_t startTime = slot * pulsesPerStep;
           uint16_t endTime = startTime + pulsesPerStep - 1;
 
-          bool hasEventInSlot = pattern.HasEventInRange(startTime, endTime, SequenceEventType::NoteEvent);
+          bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
           bool shouldRender = false;
 
           // If notes are selected, only render events with matching notes
@@ -259,8 +258,8 @@ bool PatternPad::Render(Point origin)
           if(noteFilter)
           {
               // Check if any event in this slot has a note that's selected
-              auto it = pattern.events.lower_bound(startTime);
-              while (it != pattern.events.end() && it->first <= endTime)
+              auto it = pattern->events.lower_bound(startTime);
+              while (it != pattern->events.end() && it->first <= endTime)
               {
                   if (it->second.eventType == SequenceEventType::NoteEvent)
                   {

@@ -14,13 +14,7 @@ struct SequencePattern {
     std::multimap<uint16_t, SequenceEvent> events;
 
     void Clear();
-    void AddEvent(uint16_t timestamp, const SequenceEvent& event);
-    bool HasEventInRange(uint16_t startTime, uint16_t endTime, SequenceEventType eventType = SequenceEventType::Invalid);
-    bool RemoveNoteEventsInRange(uint16_t startTime, uint16_t endTime, uint8_t note);
-    bool RemoveAllEventsInRange(uint16_t startTime, uint16_t endTime);
-    void CopyEventsInRange(uint16_t sourceStart, uint16_t destStart, uint16_t length);
     void ClearStepEvents(uint8_t step, uint16_t pulsesPerStep);
-    void CopyStepEvents(uint8_t src, uint8_t dest, uint16_t pulsesPerStep);
 };
 
 #define SEQUENCE_MAX_PATTERN_COUNT 16

@@ -150,15 +150,15 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             uint8_t track = sequencer->track;
             uint8_t clip = sequencer->sequence.GetPosition(track).clip;
             uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-            SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+            SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+            if (!pattern) { return true; }
 
             uint8_t lengthIdx = xy.x + (xy.y - 2) * 8; // Convert 2D coordinates to length index (offset by 2 rows)
             uint8_t newLength = lengthIdx + 1; // Length is 1-indexed (1-16)
 
             if(newLength >= 1 && newLength <= 16)
             {
-                pattern.steps = newLength;
-                sequencer->sequence.SetDirty();
+                sequencer->sequence.PatternSetLength(pattern, newLength);
             }
         }
         else if(keyInfo->State() == HOLD)
@@ -223,17 +223,20 @@ bool PatternSelector::Render(Point origin)
     if(lengthAdjustmentMode)
     {
         uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
-        SequencePattern& pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
-        for(uint8_t i = 0; i < 16; i++)
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+        if (pattern)
         {
-            Point point = origin + Point(i % 8, i / 8 + 2);
-            if((i + 1) <= pattern.steps)
+            for(uint8_t i = 0; i < 16; i++)
             {
-                MatrixOS::LED::SetColor(point, Color::White);
-            }
-            else
-            {
-                MatrixOS::LED::SetColor(point, Color(0x202020));
+                Point point = origin + Point(i % 8, i / 8 + 2);
+                if((i + 1) <= pattern->steps)
+                {
+                    MatrixOS::LED::SetColor(point, Color::White);
+                }
+                else
+                {
+                    MatrixOS::LED::SetColor(point, Color(0x202020));
+                }
             }
         }
     }
