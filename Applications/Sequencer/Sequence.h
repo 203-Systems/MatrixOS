@@ -119,7 +119,8 @@ public:
     bool PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep);
     bool PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep);
     bool PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length);
-    bool PatternQuantize(SequencePattern* pattern, uint16_t pulse);
+    bool PatternQuantize(SequencePattern* pattern, SequencePattern* patternNext, uint16_t stepPulse); // patternNext to handle overflow
+    bool DualPatternQuantize(SequencePattern* pattern1, SequencePattern* pattern2, SequencePattern* patternNext, uint16_t stepPulse); // patternNext to handle overflow
     bool PatternNudge(SequencePattern* pattern, int16_t offsetPulse);
     bool DualPatternNudge(SequencePattern* pattern1, SequencePattern* pattern2, int16_t offsetPulse); // Nudge cycle though 2 patterns
 

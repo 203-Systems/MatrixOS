@@ -381,6 +381,7 @@ uint8_t Sequence::GetClipCount(uint8_t track)
 
 bool Sequence::ClipExists(uint8_t track, uint8_t clip)
 {
+    if(clip > 127) return false;
     return data.tracks[track].clips.find(clip) != data.tracks[track].clips.end();
 }
 
@@ -631,17 +632,17 @@ bool Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps)
     return true;
 }
 
-bool Sequence::PatternQuantize(SequencePattern* pattern, uint16_t pulse)
+bool Sequence::PatternQuantize(SequencePattern* pattern, SequencePattern* patternNext, uint16_t stepPulse)
 {
-    if (!pattern || pulse == 0) return false;
+    if (!pattern || stepPulse == 0) return false;
 
-    std::multimap<uint16_t, SequenceEvent> quantized;
+    int32_t patternLen = pattern->steps * pulsesPerStep;
+    
+    std::multimap<uint16_t, SequenceEvent> currentQuantized;
     bool changed = false;
 
-    auto quantizeVal = [pulse](uint16_t val) -> uint16_t {
-        // Round to nearest multiple of pulse
-        uint32_t rounded = (val + pulse / 2) / pulse * pulse;
-        return rounded;
+    auto quantizeVal = [stepPulse](uint16_t val) -> uint16_t {
+        return (val + stepPulse / 2) / stepPulse * stepPulse;
     };
 
     for (const auto& [timestamp, ev] : pattern->events)
@@ -653,24 +654,51 @@ bool Sequence::PatternQuantize(SequencePattern* pattern, uint16_t pulse)
         {
             auto& note = std::get<SequenceEventNote>(newEvent.data);
             uint16_t newLen = quantizeVal(note.length);
-            if (newLen == 0) { newLen = pulse; } // ensure non-zero length
-            if (newLen != note.length)
-            {
-                note.length = newLen;
-                changed = true;
-            }
+            if (newLen == 0) newLen = stepPulse; 
+            if (newLen != note.length) { note.length = newLen; changed = true; }
         }
 
-        if (newTimestamp != timestamp) { changed = true; }
-        quantized.insert({newTimestamp, newEvent});
+        if (newTimestamp != timestamp) changed = true;
+
+        if (newTimestamp >= patternLen)
+        {
+            if (patternNext)
+            {
+                uint16_t overflowTimestamp = newTimestamp - patternLen;
+
+                if (patternNext == pattern)
+                {
+                    // Loop to Self: Insert into TEMP map
+                    currentQuantized.insert({overflowTimestamp, newEvent});
+                }
+                else
+                {
+                    // Distinct patternNext: Safe to insert directly
+                    patternNext->events.insert({overflowTimestamp, newEvent});
+                }
+            }
+        }
+        else
+        {
+            currentQuantized.insert({newTimestamp, newEvent});
+        }
     }
 
     if (changed)
     {
-        pattern->events.swap(quantized);
+        pattern->events.swap(currentQuantized);
         dirty = true;
     }
+    
+    return true;
+}
 
+bool Sequence::DualPatternQuantize(SequencePattern* pattern1, SequencePattern* pattern2, SequencePattern* patternNext, uint16_t stepPulse)
+{
+    if (!pattern2) return PatternQuantize(pattern1, patternNext, stepPulse);
+    if (!pattern1 || stepPulse == 0) return false;
+    PatternQuantize(pattern1, pattern2, stepPulse);
+    PatternQuantize(pattern2, patternNext, stepPulse);
     return true;
 }
 
