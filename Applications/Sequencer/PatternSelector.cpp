@@ -44,6 +44,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     {
                         sequencer->sequence.CopyPattern(track, clip, sequencer->copySourcePattern, track, clip, 255);
                         newPatternIdx = clip;
+                        sequencer->SetMessage(SequencerMessage::COPIED);
                     }
                 }
                 // Add new empty pattern
@@ -99,6 +100,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
                     sequencer->ClearActiveNotes();
                     sequencer->stepSelected.clear();
+                    sequencer->SetMessage(SequencerMessage::CLEARED);
                 }
                 // Copy pattern if CopyActive
                 else if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
@@ -119,6 +121,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
                         sequencer->ClearActiveNotes();
                         sequencer->stepSelected.clear();
+                        sequencer->SetMessage(SequencerMessage::COPIED);
                     }
                 }
                 // Select pattern

@@ -16,6 +16,7 @@ add_library(Sequencer
     EventDetailView.cpp
     ClipLauncher.cpp
     SaveButton.cpp
+    MessageDisplay.cpp
 )
 
 target_link_libraries(Sequencer PUBLIC

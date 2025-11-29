@@ -87,6 +87,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 uint8_t srcStep = sequencer->copySourceStep;
                 sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
                 sequencer->sequence.PatternCopyStepEvents(pattern, srcStep, step, pulsesPerStep);
+                sequencer->SetMessage(SequencerMessage::COPIED);
                 return true;
             }
         }
@@ -136,6 +137,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             }
 
             sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
+            sequencer->SetMessage(SequencerMessage::CLEARED);
         }
         else if(!sequencer->noteSelected.empty())
         {

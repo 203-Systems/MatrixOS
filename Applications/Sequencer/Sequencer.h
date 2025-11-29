@@ -7,6 +7,24 @@
 #include "Sequence.h"
 #include "SequenceMeta.h"
 
+enum class SequencerMessage
+{
+    NONE,
+    CLEAR,
+    CLEARED,
+    COPY,
+    COPIED,
+    NUDGE,
+    QUANTIZE,
+    QUANTIZED,
+    TWO_PATTERN_VIEW,
+    CLIP,
+    MIX,
+    PLAY,
+    RECORD,
+    UNDO,
+};
+
 class Sequencer : public Application {
  public:
   inline static Application_Info info = {
@@ -37,6 +55,10 @@ class Sequencer : public Application {
 
   // Helper Var
   bool patternViewActive = false; // True if the patternView is on, even if unlatched, shift hold
+
+  // EventDisplay
+  SequencerMessage lastMessage = SequencerMessage::NONE;
+  uint32_t lastMessageTime = 0;
 
   enum class ViewMode
   {
@@ -81,6 +103,7 @@ class Sequencer : public Application {
   bool IsNoteActive(uint8_t note) const;
 
   void SetView(ViewMode view);
+  void SetMessage(SequencerMessage msg, bool stayOn = false);
 
   // Persistence
   static constexpr uint8_t SD_SLOT_MAX = 48;

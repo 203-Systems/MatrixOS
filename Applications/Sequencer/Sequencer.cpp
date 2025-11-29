@@ -13,6 +13,7 @@
 #include "ScaleModifier.h"
 #include "ScaleSelector.h"
 #include "EventDetailView.h"
+#include "MessageDisplay.h"
 #include "SaveButton.h"
 #include "cb0r.h"
 
@@ -93,6 +94,9 @@ void Sequencer::SequencerUI()
 
     SequencerControlBar controlBar(this, &notePad);
     sequencerUI.AddUIComponent(controlBar, Point(0, 7));
+
+    SequencerMessageDisplay messageDisplay(this);
+    sequencerUI.AddUIComponent(messageDisplay, Point(0, 3));
 
     sequencerUI.AllowExit(false);
     sequencerUI.SetKeyEventHandler([&](KeyEvent *keyEvent) -> bool
@@ -278,6 +282,8 @@ void Sequencer::ClearState()
     copySourceClip = -1;
     copySourceTrack = -1;
     trackSelected = false;
+    lastMessage = SequencerMessage::NONE;
+    lastMessageTime = 0;
 }
 
 void Sequencer::LayoutSelector()
@@ -1260,6 +1266,12 @@ void Sequencer::SetView(ViewMode view)
     }
 
     currentView = view;
+}
+
+void Sequencer::SetMessage(SequencerMessage msg, bool stayOn)
+{
+    lastMessage = msg;
+    lastMessageTime = stayOn ? UINT32_MAX : MatrixOS::SYS::Millis();
 }
 
 bool Sequencer::Save(uint16_t slot)
