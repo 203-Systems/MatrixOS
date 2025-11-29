@@ -316,8 +316,8 @@ void Note::ScaleSelector() {
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
   UIButton offsetModeBtn;
-  offsetModeBtn.SetName("Modern Diatonic");
-  offsetModeBtn.SetColorFunc([&]() -> Color { return scaleVisualizer.offsetMode ? Color(0xFF0080) : Color(0x8000FF); });
+  offsetModeBtn.SetName("Diatonic Mode");
+  offsetModeBtn.SetColorFunc([&]() -> Color { return scaleVisualizer.offsetMode ? Color(0xFF0090) : Color(0x8000FF); });
   offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
   scaleSelector.AddUIComponent(offsetModeBtn, Point(7, 1));
 

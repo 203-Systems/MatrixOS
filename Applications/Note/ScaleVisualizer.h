@@ -10,7 +10,7 @@ class NoteScaleVisualizer : public UIComponent {
   Color rootOffsetColor;
   bool offsetMode = false;
 
-  NoteScaleVisualizer(uint8_t* rootKey, uint8_t* rootOffset, uint16_t* scale, Color color = Color(0xFF00FF), Color rootColor = Color(0x8000FF), Color rootOffsetColor = Color(0xFF0080)) {
+  NoteScaleVisualizer(uint8_t* rootKey, uint8_t* rootOffset, uint16_t* scale, Color color = Color(0xFF00FF), Color rootColor = Color(0x8000FF), Color rootOffsetColor = Color(0xFF0090)) {
     this->rootKey = rootKey;
     this->rootOffset = rootOffset;
     this->scale = scale;
