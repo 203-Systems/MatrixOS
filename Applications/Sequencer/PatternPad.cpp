@@ -268,7 +268,7 @@ bool PatternPad::Render(Point origin)
             continue;
         }
 
-        if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+        if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
         {
             // Render Base
             if(sequencer->copySourceStep >= 0)

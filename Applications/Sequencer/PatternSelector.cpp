@@ -213,7 +213,7 @@ bool PatternSelector::Render(Point origin)
         return true;
     }
 
-    if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+    if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
     {
         // Copy mode rendering
         for(uint8_t i = 0; i < 16; i++)

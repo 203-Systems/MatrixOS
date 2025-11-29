@@ -53,30 +53,37 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
 bool TrackSelector::Render(Point origin)
 {
-    for(uint8_t i = 0; i < width; i++)
+    if(sequencer->ClearActive())
     {
-        Color color = sequencer->meta.tracks[i].color;
-        if(i == sequencer->track)
+        MatrixOS::LED::SetColor(origin + Point(sequencer->track, 0), sequencer->meta.tracks[sequencer->track].color);
+    }
+    else
+    {
+        for(uint8_t i = 0; i < width; i++)
         {
-            MatrixOS::LED::SetColor(origin + Point(i, 0), Color::Crossfade(color, Color::White, Fract16(0xB000)));
-        }
-        else if(sequencer->sequence.GetEnabled(i) == false)
-        {
-
-            MatrixOS::LED::SetColor(origin + Point(i, 0), color.Dim());
-        }
-        else
-        {
-            uint32_t timeSinceLastEvent = MatrixOS::SYS::Millis() - sequencer->sequence.GetLastEventTime(i);
-
-            const uint16_t fadeLengthMs = 200;
-            if(timeSinceLastEvent < fadeLengthMs)
+            Color color = sequencer->meta.tracks[i].color;
+            if(i == sequencer->track)
             {
-                float ratio = (float)timeSinceLastEvent / fadeLengthMs;
-                color = Color::Crossfade(Color::White, color, Fract16(ratio * UINT16_MAX));
+                MatrixOS::LED::SetColor(origin + Point(i, 0), Color::Crossfade(color, Color::White, Fract16(0xB000)));
             }
+            else if(sequencer->sequence.GetEnabled(i) == false)
+            {
 
-            MatrixOS::LED::SetColor(origin + Point(i, 0), color);
+                MatrixOS::LED::SetColor(origin + Point(i, 0), color.Dim());
+            }
+            else
+            {
+                uint32_t timeSinceLastEvent = MatrixOS::SYS::Millis() - sequencer->sequence.GetLastEventTime(i);
+
+                const uint16_t fadeLengthMs = 200;
+                if(timeSinceLastEvent < fadeLengthMs)
+                {
+                    float ratio = (float)timeSinceLastEvent / fadeLengthMs;
+                    color = Color::Crossfade(Color::White, color, Fract16(ratio * UINT16_MAX));
+                }
+
+                MatrixOS::LED::SetColor(origin + Point(i, 0), color);
+            }
         }
     }
 
