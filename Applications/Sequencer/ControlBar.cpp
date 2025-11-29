@@ -153,15 +153,35 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo)
         sequencer->clear = false;
         if(sequencer->stepSelected.empty() == false)
         {
-            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
             uint8_t track = sequencer->track;
             uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
             for (const auto& selection : sequencer->stepSelected)
             {
               uint8_t patternIdx = selection.first;
               uint8_t step = selection.second;
               SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
               if (!pattern) { return true; }  
+              // Remove notes from noteActive and send noteOff
+
+              uint16_t startTime = step * pulsesPerStep;
+              uint16_t endTime = startTime + pulsesPerStep - 1;
+              uint8_t channel = sequencer->sequence.GetChannel(track);
+              auto it = pattern->events.lower_bound(startTime);
+              while (it != pattern->events.end() && it->first <= endTime)
+              {
+                  if (it->second.eventType == SequenceEventType::NoteEvent)
+                  {
+                      const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
+                      auto activeIt = sequencer->noteActive.find(noteData.note);
+                      if (activeIt != sequencer->noteActive.end())
+                      {
+                          MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+                          sequencer->noteActive.erase(activeIt);
+                      }
+                  }
+                  ++it;
+              }
               sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
             }
         }
