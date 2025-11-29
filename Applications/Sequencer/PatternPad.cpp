@@ -221,11 +221,17 @@ bool PatternPad::Render(Point origin)
     int16_t clockTillStart = sequencer->sequence.GetClocksTillStart();
     if(sequencer->sequence.RecordEnabled() && (clockTillStart > 0))
     {
-        uint8_t totalSteps = TwoPatternMode() ? 32 : 16;
-        for(uint8_t step = 0; step < totalSteps; step++)
+        uint8_t totalSteps = 16;
+        for(uint8_t step = 0; step < 16; step++)
         {
+            bool lit = clockTillStart <= 6 * (totalSteps - step);
             Point xy = Point(step % width, step / width);
-            MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(clockTillStart <= 6 * (totalSteps - step)));
+            MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(lit));
+            if(TwoPatternMode())
+            {
+                xy = xy + Point(0, 2);
+                MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(lit));
+            }
         }
         return true;
     }
