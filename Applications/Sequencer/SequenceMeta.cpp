@@ -60,13 +60,12 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, File& file)
     {
         const SequenceMetaTrack& t = meta.tracks[i];
         buffer.clear();
-        // ["t", color, vel, mode, 2pat, cfg]
-        cb_write_uint(buffer, CB0R_ARRAY, 6);
+        // ["t", color, vel, mode, cfg]
+        cb_write_uint(buffer, CB0R_ARRAY, 5);
         cb_write_text(buffer, "t");
         cb_write_uint(buffer, CB0R_INT, t.color.RGB());
         cb_write_bool(buffer, t.velocitySensitive);
         cb_write_uint(buffer, CB0R_INT, static_cast<uint8_t>(t.mode));
-        cb_write_bool(buffer, t.twoPatternMode);
         if (t.mode == SequenceTrackMode::NoteTrack || t.mode == SequenceTrackMode::DrumTrack)
         {
             const auto& n = t.config.note;
@@ -78,14 +77,14 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, File& file)
             cb_write_text(buffer, "root"); cb_write_uint(buffer, CB0R_INT, n.root);
             cb_write_text(buffer, "offset"); cb_write_uint(buffer, CB0R_INT, n.rootOffset);
             cb_write_text(buffer, "oct"); cb_write_uint(buffer, CB0R_INT, n.octave);
-            MLOGD("SequenceMeta", "Serialize track %u mode=note color=0x%06X vel=%d 2pat=%d type=%u scale=%u root=%u off=%u oct=%u", (unsigned)i, t.color.RGB(), t.velocitySensitive ? 1 : 0, t.twoPatternMode ? 1 : 0, (unsigned)n.type, (unsigned)n.scale, (unsigned)n.root, (unsigned)n.rootOffset, (unsigned)n.octave);
+            MLOGD("SequenceMeta", "Serialize track %u mode=note color=0x%06X vel=%d type=%u scale=%u root=%u off=%u oct=%u", (unsigned)i, t.color.RGB(), t.velocitySensitive ? 1 : 0, (unsigned)n.type, (unsigned)n.scale, (unsigned)n.root, (unsigned)n.rootOffset, (unsigned)n.octave);
         }
         else // CC track
         {
             const auto& c = t.config.cc;
             cb_write_uint(buffer, CB0R_MAP, 1);
             cb_write_text(buffer, "param"); cb_write_uint(buffer, CB0R_INT, c.parameter);
-            MLOGD("SequenceMeta", "Serialize track %u mode=cc color=0x%06X vel=%d 2pat=%d param=%u", (unsigned)i, t.color.RGB(), t.velocitySensitive ? 1 : 0, t.twoPatternMode ? 1 : 0, (unsigned)c.parameter);
+            MLOGD("SequenceMeta", "Serialize track %u mode=cc color=0x%06X vel=%d param=%u", (unsigned)i, t.color.RGB(), t.velocitySensitive ? 1 : 0, (unsigned)c.parameter);
         }
         if (file.Write(buffer.data(), buffer.size()) != buffer.size()) return false;
     }
@@ -96,8 +95,7 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, File& file)
 static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t)
 {
     cb0r_s item;
-    // Old: ["t", color, vel, mode, cfg]
-    // New: ["t", color, vel, mode, 2pat, cfg]
+    // ["t", color, vel, mode, cfg]
     if (m.type != CB0R_ARRAY || m.length < 5) return false;
     if (!cb0r_get(&m, 1, &item) || item.type != CB0R_INT) return false;
     t.color = Color(item.value);
@@ -105,25 +103,7 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t)
     t.velocitySensitive = (item.type == CB0R_TRUE) || (item.type == CB0R_INT && item.value != 0);
     if (!cb0r_get(&m, 3, &item) || item.type != CB0R_INT) return false;
     t.mode = static_cast<SequenceTrackMode>(item.value);
-
-    // TODO - Delete this compat fix in 3.2 final release
-    // Check if element 4 is a map (no 2pat) or bool (has 2 pat)
-    uint8_t cfgIndex = 4;
-    if (!cb0r_get(&m, 4, &item)) return false;
-    if (item.type == CB0R_TRUE || item.type == CB0R_FALSE || (item.type == CB0R_INT && (item.value == 0 || item.value == 1)))
-    {
-        // Has 2pat: element 4 is twoPatternMode
-        t.twoPatternMode = (item.type == CB0R_TRUE) || (item.type == CB0R_INT && item.value != 0);
-        cfgIndex = 5;
-    }
-    else
-    {
-        // No 2pat: element 4 is cfg map
-        t.twoPatternMode = false; // Default for old files
-    }
-
-    // Get config map
-    if (!cb0r_get(&m, cfgIndex, &item) || item.type != CB0R_MAP) return false;
+    if (!cb0r_get(&m, 4, &item) || item.type != CB0R_MAP) return false;
 
     if (t.mode == SequenceTrackMode::NoteTrack || t.mode == SequenceTrackMode::DrumTrack)
     {
