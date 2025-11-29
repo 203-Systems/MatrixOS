@@ -52,6 +52,8 @@ class Sequencer : public Application {
   uint32_t shiftOnTime = 0;
   bool shiftEventOccured[2] = {false, false};
   bool trackSelected = false;
+  bool wideClipMode = false;
+  uint8_t clipWindow = 0;
 
   // Helper Var
   bool patternViewActive = false; // True if the patternView is on, even if unlatched, shift hold

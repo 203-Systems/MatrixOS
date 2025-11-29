@@ -44,9 +44,9 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
   case 5:
     return HandleCopyKey(keyInfo);
   case 6:
-    return HandleOctaveKey(0, /*up*/ false, keyInfo);
+    return HandleShiftKey(0, /*right*/ false, keyInfo);
   case 7:
-    return HandleOctaveKey(1, /*up*/ true, keyInfo);
+    return HandleShiftKey(1, /*right*/ true, keyInfo);
   default:
     return true;
   }
@@ -389,16 +389,24 @@ bool SequencerControlBar::HandleQuantizeKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo *keyInfo)
+bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyInfo)
 {
   uint8_t track = sequencer->track;
-  uint8_t shiftIndex = up ? 1 : 0;
+  uint8_t shiftIndex = right ? 1 : 0;
 
   if (keyInfo->state == PRESSED)
   {
     if (sequencer->ShiftActive())
     {
-      sequencer->patternView = !sequencer->patternView;
+      if(sequencer->currentView == Sequencer::ViewMode::Sequencer)
+      {
+        sequencer->patternView = !sequencer->patternView;
+      }
+      else if(sequencer->currentView == Sequencer::ViewMode::Session)
+      {
+        sequencer->wideClipMode = !sequencer->wideClipMode;
+        sequencer->clipWindow = 0;
+      }
       sequencer->ShiftEventOccured();
     }
 
@@ -436,37 +444,44 @@ bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo *keyInfo
     bool shiftEvent = sequencer->shiftEventOccured[0] || sequencer->shiftEventOccured[1];
     if (keyInfo->hold == false && !shiftEvent)
     {
-      if (sequencer->currentView != Sequencer::ViewMode::Sequencer)
+      if (sequencer->currentView == Sequencer::ViewMode::Session)
+      {
+        sequencer->clipWindow = shiftIndex;
+      }
+      else if (sequencer->currentView == Sequencer::ViewMode::Sequencer)
+      {
+        if (sequencer->meta.tracks[track].mode == SequenceTrackMode::NoteTrack)
+        {
+          auto &noteCfg = sequencer->meta.tracks[track].config.note;
+          if (right)
+          {
+            if (noteCfg.octave < 9)
+            {
+              noteCfg.octave++;
+              sequencer->sequence.SetDirty();
+              if (notePad != nullptr)
+              {
+                notePad->GenerateKeymap();
+              }
+            }
+          }
+          else
+          {
+            if (noteCfg.octave > 0)
+            {
+              noteCfg.octave--;
+              sequencer->sequence.SetDirty();
+              if (notePad != nullptr)
+              {
+                notePad->GenerateKeymap();
+              }
+            }
+          }
+        }
+      }
+      else
       {
         sequencer->currentView = Sequencer::ViewMode::Sequencer;
-      }
-      else if (sequencer->meta.tracks[track].mode == SequenceTrackMode::NoteTrack)
-      {
-        auto &noteCfg = sequencer->meta.tracks[track].config.note;
-        if (up)
-        {
-          if (noteCfg.octave < 9)
-          {
-            noteCfg.octave++;
-            sequencer->sequence.SetDirty();
-            if (notePad != nullptr)
-            {
-              notePad->GenerateKeymap();
-            }
-          }
-        }
-        else
-        {
-          if (noteCfg.octave > 0)
-          {
-            noteCfg.octave--;
-            sequencer->sequence.SetDirty();
-            if (notePad != nullptr)
-            {
-              notePad->GenerateKeymap();
-            }
-          }
-        }
       }
     }
     sequencer->shift[shiftIndex] = false;
@@ -478,11 +493,6 @@ bool SequencerControlBar::HandleOctaveKey(uint8_t idx, bool up, KeyInfo *keyInfo
 Color SequencerControlBar::GetOctavePlusColor()
 {
   Color color = sequencer->meta.tracks[sequencer->track].color;
-
-  if (sequencer->currentView != Sequencer::ViewMode::Sequencer)
-  {
-    return color;
-  }
 
   if (sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
   {
@@ -510,11 +520,6 @@ Color SequencerControlBar::GetOctaveMinusColor()
 {
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
-  if (sequencer->currentView != Sequencer::ViewMode::Sequencer)
-  {
-    return color;
-  }
-
   if (sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
   {
     return color;
@@ -529,7 +534,7 @@ Color SequencerControlBar::GetOctaveMinusColor()
   }
   else
   {
-    // Use gradient for octaves above 4 - dimmer as it goes up
+    // Use gradient for octaves above 4 - dimmer as it goes right
     uint8_t index = (octave - 4) > 6 ? 6 : (octave - 4);
     brightness = OctaveGradient[6 - index];
   }
@@ -695,18 +700,37 @@ bool SequencerControlBar::Render(Point origin)
     MatrixOS::LED::SetColor(point, color);
   }
 
-  // Octave -
+  if(sequencer->currentView == Sequencer::ViewMode::Sequencer)
   {
-    Point point = origin + Point(6, 0);
-    Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctaveMinusColor();
-    MatrixOS::LED::SetColor(point, color);
-  }
+    // Octave -
+    {
+      Point point = origin + Point(6, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctaveMinusColor();
+      MatrixOS::LED::SetColor(point, color);
+    }
 
-  // Octave +
+    // Octave +
+    {
+      Point point = origin + Point(7, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctavePlusColor();
+      MatrixOS::LED::SetColor(point, color);
+    }
+  }
+  else if(sequencer->currentView == Sequencer::ViewMode::Session)
   {
-    Point point = origin + Point(7, 0);
-    Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctavePlusColor();
-    MatrixOS::LED::SetColor(point, color);
+    Point point1 = origin + Point(6, 0);
+    Point point2 = origin + Point(7, 0);
+    MatrixOS::LED::SetColor(point1, Color::White.DimIfNot(sequencer->clipWindow == 0));
+    MatrixOS::LED::SetColor(point2, Color::White.DimIfNot(sequencer->clipWindow == 1));
+  }
+  else // Go back to sequencer
+  {
+    Point point1 = origin + Point(6, 0);
+    Point point2 = origin + Point(7, 0);
+    bool active = MatrixOS::KeyPad::GetKey(point1)->Active() || MatrixOS::KeyPad::GetKey(point2)->Active();
+    Color color = MatrixOS::KeyPad::GetKey(point1)->Active() ? Color::White : sequencer->meta.tracks[sequencer->track].color;
+    MatrixOS::LED::SetColor(point1, color);
+    MatrixOS::LED::SetColor(point2, color);
   }
   return true;
 }

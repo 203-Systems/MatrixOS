@@ -5,6 +5,22 @@ ClipLauncher::ClipLauncher(Sequencer* sequencer)
     this->sequencer = sequencer;
 }
 
+std::pair<uint8_t, uint8_t> ClipLauncher::XY2Clip(Point xy) const
+{
+    uint8_t track, clip;
+
+    if (sequencer->wideClipMode) {
+        track = sequencer->clipWindow * 4 + xy.x / 2;
+        clip = xy.y * 2 + xy.x % 2;
+
+    } else {
+        track = xy.x;
+        clip = xy.y + (sequencer->clipWindow * 7);
+    }
+
+    return std::make_pair(track, clip);
+}
+
 Dimension ClipLauncher::GetSize() { return Dimension(8, 7); }
 
 bool ClipLauncher::IsEnabled()
@@ -16,14 +32,9 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     if(keyInfo->State() == PRESSED)
     {
-        uint8_t track = xy.x;
-        uint8_t clip = xy.y;
-
-        // Check if track exists
-        if(track >= sequencer->sequence.GetTrackCount())
-        {
-            return true;
-        }
+        std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
+        uint8_t track = pair.first;
+        uint8_t clip = pair.second;
 
         // Handle copy mode
         if(sequencer->CopyActive())
@@ -55,7 +66,7 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
             sequencer->sequence.DeleteClip(track, clip);
 
             // Update selection if we deleted the current clip
-            if(sequencer->sequence.GetPosition(track).clip == clip)
+            if(sequencer->sequence.GetPosition(track)->clip == clip)
             {
                 // Find first available clip or default to 0
                 sequencer->sequence.SetClip(track, 0);
@@ -129,14 +140,31 @@ bool ClipLauncher::Render(Point origin)
     Fract16 quarterNoteProgress = sequencer->sequence.GetQuarterNoteProgress();
     uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
-    // Render all clip slots
-    for(uint8_t track = 0; track < 8; track++)
+    vector<uint8_t> activeClips;
+    vector<uint8_t> nextClips;
+    activeClips.reserve(trackCount);
+    nextClips.reserve(trackCount);
+
+    for(uint8_t track = 0; track < trackCount; track++)
     {
-        uint8_t activeClip = sequencer->sequence.GetPosition(track).clip;
+        uint8_t activeClip = sequencer->sequence.GetPosition(track)->clip;
+        activeClips.push_back(activeClip);
         uint8_t nextClip = sequencer->sequence.GetNextClip(track);
-        for(uint8_t clip = 0; clip < 7; clip++)
+        nextClips.push_back(nextClip);
+    }
+
+    // Render all clip slots
+    for(uint8_t x = 0; x < GetSize().x; x++)
+    {
+        for(uint8_t y = 0; y < GetSize().y; y++)
         {
-            Point point = origin + Point(track, clip);
+            Point xy = Point(x, y);
+            
+            std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
+            uint8_t track = pair.first;
+            uint8_t clip = pair.second;
+
+            Point point = origin + xy;
             Color color;
 
             if(track >= trackCount)
@@ -173,7 +201,7 @@ bool ClipLauncher::Render(Point origin)
                 // Clip doesn't exist - show black if track is playing, otherwise dim gray
                 if(sequencer->sequence.Playing())
                 {
-                    if(nextClip == 254) // About to stop
+                    if(nextClips[track] == 254) // About to stop
                     {
                         // color = Color(0x100000);
                         color = (quarterNoteProgress < 0x8000) ? Color(0x600000) : Color::Black;
@@ -197,9 +225,9 @@ bool ClipLauncher::Render(Point origin)
             {
                 Color trackColor = sequencer->meta.tracks[track].color;
                 bool isCurrentTrack = (sequencer->track == track);
-                bool isSelectedInTrack = (activeClip == clip);
+                bool isSelectedInTrack = (activeClips[track] == clip);
                 bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
-                bool isNextClip = (nextClip == clip);
+                bool isNextClip = (nextClips[track] == clip);
 
                 if(isPlaying)
                 {

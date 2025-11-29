@@ -9,6 +9,8 @@
 class ClipLauncher : public UIComponent {
     Sequencer* sequencer;
 
+    std::pair<uint8_t, uint8_t> XY2Clip(Point xy) const;
+
     public:
     ClipLauncher(Sequencer* sequencer);
 
