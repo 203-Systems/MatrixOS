@@ -281,14 +281,14 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
         return;
     }
 
-    SequencePosition pos = sequencer->sequence.GetPosition(track);
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
 
     bool existAlready = false;
     uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
     for (const auto& selection : sequencer->stepSelected)
     {
         uint8_t patternIdx = selection.first;
-        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, patternIdx);
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
         uint16_t startTime = selection.second * pulsesPerStep;
         uint16_t endTime = startTime + pulsesPerStep - 1;
 
@@ -309,7 +309,7 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
         for (const auto& selection : sequencer->stepSelected)
         {
             uint8_t patternIdx = selection.first;
-            SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos.clip, patternIdx);
+            SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
             if (pattern && sequencer->sequence.PatternAddEvent(pattern, selection.second * pulsesPerStep, event))
             {
                 sequencer->noteActive.insert(note);

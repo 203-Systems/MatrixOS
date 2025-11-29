@@ -11,7 +11,7 @@ Sequence::Sequence(uint8_t tracks)
 
 void Sequence::New(uint8_t tracks)
 {
-    if(tracks > 32)
+    if (tracks > 32)
     {
         // Don't support 32+ tracks
         MatrixOS::SYS::ErrorHandler("Too Many Tracks");
@@ -252,6 +252,7 @@ bool Sequence::Playing()
 
 bool Sequence::Playing(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return false;
     return trackPlayback[track].playing;
 }
 
@@ -303,6 +304,8 @@ void Sequence::Stop()
 
 void Sequence::Stop(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return;
+
     // Send note-off for all queued notes on this track before clearing
     uint8_t channel = GetChannel(track);
     TerminateRecordedNotes(track);
@@ -332,6 +335,8 @@ void Sequence::Stop(uint8_t track)
 
 void Sequence::StopAfter(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return;
+
     // Only queue stop if track is currently playing
     if (trackPlayback[track].playing)
     {
@@ -376,12 +381,14 @@ uint8_t Sequence::GetTrackCount()
 // Clip management
 uint8_t Sequence::GetClipCount(uint8_t track)
 {
+    if (track > data.tracks.size()) return false;
     return data.tracks[track].clips.size();
 }
 
 bool Sequence::ClipExists(uint8_t track, uint8_t clip)
-{
-    if(clip > 127) return false;
+{   
+    if (track > data.tracks.size()) return false;
+    if (clip > 127) return false;
     return data.tracks[track].clips.find(clip) != data.tracks[track].clips.end();
 }
 
@@ -402,10 +409,10 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
     data.tracks[track].clips.erase(clip);
 
     // Update position if pointing to deleted clip
-    if(trackPlayback[track].position.clip == clip)
+    if (trackPlayback[track].position.clip == clip)
     {
         // Find lowest available clip or create clip 0
-        if(data.tracks[track].clips.empty())
+        if (data.tracks[track].clips.empty())
         {
             NewClip(track, 0);
             trackPlayback[track].position.clip = 0;
@@ -416,7 +423,7 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
             uint8_t lowestClip = 255;
             for(const auto& [clipIdx, clipData] : data.tracks[track].clips)
             {
-                if(clipIdx < lowestClip)
+                if (clipIdx < lowestClip)
                 {
                     lowestClip = clipIdx;
                 }
@@ -469,7 +476,7 @@ SequencePattern* Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t patte
 int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps)
 {
     if (!ClipExists(track, clip)) return -1;
-    if(data.tracks[track].clips[clip].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return -1;}
+    if (data.tracks[track].clips[clip].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return -1;}
 
     // If length is 0, use patternLength as default
     uint8_t actualLength = (steps == 0) ? data.patternLength : steps;
@@ -800,9 +807,9 @@ void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)
     if (!ClipExists(track, clip)) return;
 
     auto& patterns = data.tracks[track].clips[clip].patterns;
-    if(pattern >= patterns.size()) return;
+    if (pattern >= patterns.size()) return;
 
-    if(patterns.size() == 1)
+    if (patterns.size() == 1)
     {
         // Clear instead of delete (keep at least 1 pattern)
         patterns[0].Clear();
@@ -812,9 +819,9 @@ void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)
         patterns.erase(patterns.begin() + pattern);
 
         // Update position if pointing to this clip and pattern
-        if(trackPlayback[track].position.clip == clip && trackPlayback[track].position.pattern >= pattern)
+        if (trackPlayback[track].position.clip == clip && trackPlayback[track].position.pattern >= pattern)
         {
-            if(trackPlayback[track].position.pattern > 0)
+            if (trackPlayback[track].position.pattern > 0)
             {
                 trackPlayback[track].position.pattern--;
             }
@@ -833,15 +840,15 @@ void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sour
     if (!ClipExists(sourceTrack, sourceClip) || !ClipExists(destTrack, destClip)) return;
 
     auto& sourcePatterns = data.tracks[sourceTrack].clips[sourceClip].patterns;
-    if(sourcePattern >= sourcePatterns.size()) return;
+    if (sourcePattern >= sourcePatterns.size()) return;
 
     SequencePattern& source = sourcePatterns[sourcePattern];
 
-    if(destPattern == 255)
+    if (destPattern == 255)
     {
         // Create new pattern
         auto& destPatterns = data.tracks[destTrack].clips[destClip].patterns;
-        if(destPatterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return;}
+        if (destPatterns.size() >= SEQUENCE_MAX_PATTERN_COUNT) {return;}
         destPatterns.emplace_back();
         SequencePattern& dest = destPatterns.back();
         dest.steps = source.steps;
@@ -851,7 +858,7 @@ void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sour
     {
         // Overwrite existing pattern
         auto& destPatterns = data.tracks[destTrack].clips[destClip].patterns;
-        if(destPattern >= destPatterns.size()) return;
+        if (destPattern >= destPatterns.size()) return;
         SequencePattern& dest = destPatterns[destPattern];
         dest.steps = source.steps;
         dest.events = source.events;
@@ -867,7 +874,7 @@ uint8_t Sequence::GetChannel(uint8_t track)
 
 void Sequence::SetChannel(uint8_t track, uint8_t channel)
 {
-    if(data.tracks[track].channel != channel)
+    if (data.tracks[track].channel != channel)
     {
         data.tracks[track].channel = channel;
         dirty = true;
@@ -882,7 +889,7 @@ uint16_t Sequence::GetBPM()
 
 void Sequence::SetBPM(uint16_t bpm)
 {
-    if(bpm != data.bpm)
+    if (bpm != data.bpm)
     {
         data.bpm = bpm;
         UpdateTiming();
@@ -898,7 +905,7 @@ uint8_t Sequence::GetSwing()
 
 void Sequence::SetSwing(uint8_t swing)
 {
-    if(swing != data.swing)
+    if (swing != data.swing)
     {
         data.swing = swing;
         UpdateTiming();
@@ -914,8 +921,8 @@ uint8_t Sequence::GetStepDivision()
 
 void Sequence::SetStepDivision(uint8_t stepLen)
 {
-    if(stepLen == 0) { return; }
-    if(stepLen != stepDivision)
+    if (stepLen == 0) { return; }
+    if (stepLen != stepDivision)
     {
         stepDivision = stepLen;
         UpdateTiming();
@@ -931,7 +938,7 @@ uint8_t Sequence::GetPatternLength()
 
 void Sequence::SetPatternLength(uint8_t patternLength)
 {
-    if(patternLength != data.patternLength)
+    if (patternLength != data.patternLength)
     {
         data.patternLength = patternLength;
         dirty = true;
@@ -967,7 +974,7 @@ void Sequence::SetTimeSignature(uint8_t beatsPerBar, uint8_t beatUnit)
         return;
     }
 
-    if(beatsPerBar > 16)
+    if (beatsPerBar > 16)
     {
         return;
     }
@@ -1010,17 +1017,19 @@ void Sequence::SetDirty(bool val)
 // Solo/Mute/Record bitmap operations
 bool Sequence::GetSolo(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return false;
     return (data.solo >> track) & 1;
 }
 
 void Sequence::SetSolo(uint8_t track, bool val)
 {
+    if (track >= trackPlayback.size()) return;
     uint32_t mask = 1 << track;
     bool currentVal = (data.solo >> track) & 1;
 
-    if(currentVal != val)
+    if (currentVal != val)
     {
-        if(val)
+        if (val)
             data.solo |= mask;
         else
             data.solo &= ~mask;
@@ -1042,17 +1051,20 @@ void Sequence::SetSolo(uint8_t track, bool val)
 
 bool Sequence::GetMute(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return false;
     return (data.mute >> track) & 1;
 }
 
 void Sequence::SetMute(uint8_t track, bool val)
 {
+    if (track >= trackPlayback.size()) return;
+
     uint32_t mask = 1 << track;
     bool currentVal = (data.mute >> track) & 1;
 
-    if(currentVal != val)
+    if (currentVal != val)
     {
-        if(val)
+        if (val)
             data.mute |= mask;
         else
             data.mute &= ~mask;
@@ -1066,22 +1078,26 @@ void Sequence::SetMute(uint8_t track, bool val)
 
 bool Sequence::ShouldRecord(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return false;
     return GetEnabled(track) && GetRecord(track);
 }
 
 bool Sequence::GetRecord(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return false;
     return (data.record >> track) & 1;
 }
 
 void Sequence::SetRecord(uint8_t track, bool val)
 {
+    if (track >= trackPlayback.size()) return;
+    
     uint32_t mask = 1 << track;
     bool currentVal = (data.record >> track) & 1;
 
-    if(currentVal != val)
+    if (currentVal != val)
     {
-        if(val)
+        if (val)
             data.record |= mask;
         else
             data.record &= ~mask;
@@ -1094,29 +1110,31 @@ bool Sequence::GetEnabled(uint8_t track)
     // Track is disabled if:
     // 1. Track is muted
     // 2. Other tracks have solo (and this track doesn't have solo)
-    if(GetMute(track))
+    if (GetMute(track))
         return false;
 
-    if(data.solo != 0 && !GetSolo(track))
+    if (data.solo != 0 && !GetSolo(track))
         return false;
 
     return true;
 }
 
 bool Sequence::IsNoteActive(uint8_t track, uint8_t note) const
-{
+{   
     if (track >= trackPlayback.size()) return false;
     auto it = trackPlayback[track].noteOffMap.find(note);
     return it != trackPlayback[track].noteOffMap.end();
 }
 
-SequencePosition& Sequence::GetPosition(uint8_t track)
+SequencePosition* Sequence::GetPosition(uint8_t track)
 {
-    return trackPlayback[track].position;
+    if (track >= trackPlayback.size()) return nullptr;
+    return &trackPlayback[track].position;
 }
 
 void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step)
 {
+    if (track >= trackPlayback.size()) return;
     trackPlayback[track].position.clip = clip;
     trackPlayback[track].position.pattern = pattern;
     trackPlayback[track].position.step = step;
@@ -1126,6 +1144,7 @@ void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t
 
 void Sequence::SetClip(uint8_t track, uint8_t clip)
 {
+    if (track >= trackPlayback.size()) return;
     trackPlayback[track].position.clip = clip;
     trackPlayback[track].position.pattern = 0;
     trackPlayback[track].position.step = 0;
@@ -1135,22 +1154,26 @@ void Sequence::SetClip(uint8_t track, uint8_t clip)
 
 void Sequence::SetPattern(uint8_t track, uint8_t pattern)
 {
+    if (track >= trackPlayback.size()) return;
     trackPlayback[track].position.pattern = pattern;
     trackPlayback[track].position.step = 0;
 }
 
 uint8_t Sequence::GetNextClip(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return 255;
     return trackPlayback[track].nextClip;
 }
 
 void Sequence::SetNextClip(uint8_t track, uint8_t clip)
 {
+    if (track >= trackPlayback.size()) return;
     trackPlayback[track].nextClip = clip;
 }
 
 uint32_t Sequence::GetLastEventTime(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return 0;
     return trackPlayback[track].lastEventTime;
 }
 
@@ -1217,6 +1240,8 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 {
     // if track is 0xff, determine based on the packet channel.
     if (!record) return;
+
+    if (track >= trackPlayback.size()) return;
 
     EMidiStatus status = packet.Status();
     if (status != EMidiStatus::NoteOn && status != EMidiStatus::NoteOff)
@@ -1390,6 +1415,8 @@ void Sequence::TerminateRecordedNotes(uint8_t track)
 
 void Sequence::ProcessTrack(uint8_t track)
 {
+    if (track >= trackPlayback.size()) return;
+
     bool trackEnabled = GetEnabled(track);
 
     SequencePosition& pos = trackPlayback[track].position;

@@ -26,8 +26,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     }
 
     uint8_t track = sequencer->track;
-    uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-    uint8_t currentPattern = sequencer->sequence.GetPosition(track).pattern;
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+    uint8_t clip = pos->clip;
+    uint8_t currentPattern = pos->pattern;
     uint8_t channel = sequencer->sequence.GetChannel(track);
 
     // Calculate pattern and step indices based on mode
@@ -216,8 +217,9 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
 bool PatternPad::Render(Point origin)
 {
     uint8_t track = sequencer->track;
-    uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-    uint8_t currentPattern = sequencer->sequence.GetPosition(track).pattern;
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+    uint8_t clip = pos->clip;
+    uint8_t currentPattern = pos->pattern;
 
     // Handle countdown mode
     int16_t clockTillStart = sequencer->sequence.GetClocksTillStart();
@@ -379,10 +381,10 @@ bool PatternPad::Render(Point origin)
             // Render Cursor
             if(sequencer->sequence.Playing(track))
             {
-                SequencePosition& position = sequencer->sequence.GetPosition(track);
-                if(patternIdx == position.pattern)
+                SequencePosition* pos = sequencer->sequence.GetPosition(track);
+                if(patternIdx == pos->pattern)
                 {
-                    uint8_t slot = position.step;
+                    uint8_t slot = pos->step;
                     Point point = Point(slot % width, slot / width);
 
                     if(sequencer->sequence.RecordEnabled() && sequencer->sequence.ShouldRecord(track))

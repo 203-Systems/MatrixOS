@@ -22,9 +22,9 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(keyInfo->State() == PRESSED)
         {
             uint8_t track = sequencer->track;
-            SequencePosition position = sequencer->sequence.GetPosition(track);
-            uint8_t clip = position.clip;
-            uint8_t pattern = position.pattern;
+            SequencePosition* pos = sequencer->sequence.GetPosition(track);
+            uint8_t clip = pos->clip;
+            uint8_t pattern = pos->pattern;
             uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
             uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
             uint8_t newPatternIdx = 0;
@@ -91,7 +91,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     sequencer->sequence.DeletePattern(track, clip, patternIdx);
 
                     // Update selected pattern index if needed
-                    uint8_t currentPattern = sequencer->sequence.GetPosition(track).pattern;
+                    uint8_t currentPattern = pos->pattern;
                     if(currentPattern >= sequencer->sequence.GetPatternCount(track, clip))
                     {
                         currentPattern = sequencer->sequence.GetPatternCount(track, clip) - 1;
@@ -125,7 +125,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     }
                 }
                 // Select pattern
-                else if(patternIdx != sequencer->sequence.GetPosition(track).pattern)
+                else if(patternIdx != pos->pattern)
                 {
                     if(sequencer->sequence.Playing() == false) // Disable pattern switching if playing
                     {
@@ -148,7 +148,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         else if(keyInfo->State() == HOLD)
         {
             uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+            uint8_t clip = sequencer->sequence.GetPosition(track)->clip;
             uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
             uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
 
@@ -164,8 +164,9 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(keyInfo->State() == PRESSED)
         {
             uint8_t track = sequencer->track;
-            uint8_t clip = sequencer->sequence.GetPosition(track).clip;
-            uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+            SequencePosition* pos = sequencer->sequence.GetPosition(track);
+            uint8_t clip = pos->clip;
+            uint8_t patternIdx = pos->pattern;
             SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
             if (!pattern) { return true; }
 
@@ -190,9 +191,10 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 bool PatternSelector::Render(Point origin)
 {
     uint8_t track = sequencer->track;
-    uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+    uint8_t clip = pos->clip;
     uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
-    uint8_t selectedPattern = sequencer->sequence.GetPosition(track).pattern;
+    uint8_t patternIdx = pos->pattern;
     Color trackColor = sequencer->meta.tracks[track].color;
 
     // Special state: Step copy mode active (from PatternPad)
@@ -261,7 +263,7 @@ bool PatternSelector::Render(Point origin)
             if(i < patternCount)
             {
                 // Pattern exists
-                if(i == selectedPattern)
+                if(i == patternIdx)
                 {
                     if(sequencer->sequence.Playing(track))
                     {
@@ -295,8 +297,8 @@ bool PatternSelector::Render(Point origin)
 
     // Length Adjustment Mode
     if(lengthAdjustmentMode)
-    {
-        uint8_t patternIdx = sequencer->sequence.GetPosition(track).pattern;
+    {   
+        uint8_t patternIdx = sequencer->sequence.GetPosition(track)->pattern;
         SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
         if (pattern)
         {

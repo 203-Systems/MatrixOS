@@ -43,7 +43,7 @@ void EventDetailView::RebuildEventList()
 {
     eventRefs.clear();
 
-    position = sequencer->sequence.GetPosition(sequencer->track);
+    position = *sequencer->sequence.GetPosition(sequencer->track);
     pattern = sequencer->sequence.GetPattern(sequencer->track, position.clip, position.pattern);
     if (!pattern)
     {

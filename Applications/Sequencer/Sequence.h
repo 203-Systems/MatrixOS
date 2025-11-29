@@ -162,7 +162,7 @@ public:
 
     bool IsNoteActive(uint8_t track, uint8_t note) const;
 
-    SequencePosition& GetPosition(uint8_t track);
+    SequencePosition* GetPosition(uint8_t track);
     void SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step = 0);
     void SetClip(uint8_t track, uint8_t clip);
     void SetPattern(uint8_t track, uint8_t pattern);

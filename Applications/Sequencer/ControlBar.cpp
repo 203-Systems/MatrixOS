@@ -190,16 +190,18 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
   {
     sequencer->clear = true;
 
+    SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
+
     if (sequencer->trackSelected)
     {
-      sequencer->sequence.ClearAllStepsInClip(sequencer->track, sequencer->sequence.GetPosition(sequencer->track).clip);
+      sequencer->sequence.ClearAllStepsInClip(sequencer->track, pos->clip);
       sequencer->SetMessage(SequencerMessage::CLEARED);
     }
 
     if (sequencer->stepSelected.empty() == false)
     {
       uint8_t track = sequencer->track;
-      uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+      uint8_t clip = pos->clip;
       uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
       for (const auto &selection : sequencer->stepSelected)
       {
@@ -294,8 +296,8 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
       return true;
     }
 
-    SequencePosition pos = sequencer->sequence.GetPosition(track);
-    SequencePattern *pattern = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern);
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+    SequencePattern *pattern = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern);
     if (!pattern)
     {
       return true;
@@ -312,7 +314,7 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
     }
     else
     {
-      SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern + 1);
+      SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern + 1);
       sequencer->sequence.DualPatternNudge(pattern, patternNext, offset);
     }
     sequencer->ClearActiveNotes();
@@ -360,27 +362,27 @@ bool SequencerControlBar::HandleQuantizeKey(KeyInfo *keyInfo)
 
     bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
 
-    SequencePosition pos = sequencer->sequence.GetPosition(track);
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
 
     uint8_t pattern1Idx;
     uint8_t pattern2Idx;
     uint8_t patternNextIdx;
     if (twoPatternMode == false)
     {
-      pattern1Idx = pos.pattern;
+      pattern1Idx = pos->pattern;
       pattern2Idx = 255;
-      patternNextIdx = (pattern1Idx + 1) >= sequencer->sequence.GetPatternCount(track, pos.clip) ? 0 : pattern1Idx + 1;
+      patternNextIdx = (pattern1Idx + 1) >= sequencer->sequence.GetPatternCount(track, pos->clip) ? 0 : pattern1Idx + 1;
     }
     else
     {
-      pattern1Idx = pos.pattern / 2 * 2;
+      pattern1Idx = pos->pattern / 2 * 2;
       pattern2Idx = pattern1Idx + 1;
-      patternNextIdx = (pattern2Idx + 1) >= sequencer->sequence.GetPatternCount(track, pos.clip) ? 0 : pattern2Idx + 1;
+      patternNextIdx = (pattern2Idx + 1) >= sequencer->sequence.GetPatternCount(track, pos->clip) ? 0 : pattern2Idx + 1;
     }
 
-    SequencePattern *pattern1 = sequencer->sequence.GetPattern(track, pos.clip, pattern1Idx);
-    SequencePattern *pattern2 = sequencer->sequence.GetPattern(track, pos.clip, pattern2Idx); // Will return nullptr if pattern2Idx == 255
-    SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos.clip, patternNextIdx);
+    SequencePattern *pattern1 = sequencer->sequence.GetPattern(track, pos->clip, pattern1Idx);
+    SequencePattern *pattern2 = sequencer->sequence.GetPattern(track, pos->clip, pattern2Idx); // Will return nullptr if pattern2Idx == 255
+    SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos->clip, patternNextIdx);
 
     sequencer->sequence.DualPatternQuantize(pattern1, pattern2, patternNext, sequencer->sequence.GetPulsesPerStep());
 
@@ -416,7 +418,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
 
     if (sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
     {
-      uint8_t clip = sequencer->sequence.GetPosition(track).clip;
+      uint8_t clip = sequencer->sequence.GetPosition(track)->clip;
       auto selection = *sequencer->stepSelected.begin();
       uint8_t patternIdx = selection.first;
       uint8_t step = selection.second;

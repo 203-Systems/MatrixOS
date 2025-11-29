@@ -27,7 +27,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         bool clear;
         if(sequencer->ClearActive())
         {
-            sequencer->sequence.ClearAllStepsInClip(xy.x, sequencer->sequence.GetPosition(xy.x).clip);
+            sequencer->sequence.ClearAllStepsInClip(xy.x, sequencer->sequence.GetPosition(xy.x)->clip);
             sequencer->SetMessage(SequencerMessage::CLEARED);
         }
         else
