@@ -200,7 +200,7 @@ bool ClipLauncher::Render(Point origin)
                 else
                 {
                     // Show empty slots in dim gray when no source selected
-                    color = Color::Black;
+                    color = Color::White.Dim(32);
                 }
             }
             else if(!sequencer->sequence.ClipExists(track, clip))
@@ -220,7 +220,7 @@ bool ClipLauncher::Render(Point origin)
                 }
                 else if(sequencer->ClearActive())
                 {
-                    color = Color::Black;
+                    color = Color::White.Dim(32);
                 }
                 else
                 {

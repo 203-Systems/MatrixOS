@@ -232,9 +232,12 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
           }
           ++it;
         }
-        sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
+        
+        if(sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep))
+        {
+          sequencer->SetMessage(SequencerMessage::CLEARED);
+        }
       }
-      sequencer->SetMessage(SequencerMessage::CLEARED);
     }
   }
   else if (keyInfo->state == RELEASED)

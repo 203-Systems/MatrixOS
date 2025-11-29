@@ -119,7 +119,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             uint16_t startTime = step * pulsesPerStep;
             uint16_t endTime = startTime + pulsesPerStep - 1;
             uint8_t channel = sequencer->sequence.GetChannel(track);
-
+            
             // Remove notes from noteActive and send noteOff
             auto it = pattern->events.lower_bound(startTime);
             while (it != pattern->events.end() && it->first <= endTime)
@@ -137,8 +137,10 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 ++it;
             }
 
-            sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
-            sequencer->SetMessage(SequencerMessage::CLEARED);
+            if(sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep))
+            {
+                sequencer->SetMessage(SequencerMessage::CLEARED);
+            }
         }
         else if(!sequencer->noteSelected.empty())
         {
@@ -275,13 +277,10 @@ bool PatternPad::Render(Point origin)
         if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
         {
             // Render Base
-            if(sequencer->copySourceStep >= 0)
+            for(uint8_t step = 0; step < pattern->steps; step++)
             {
-                for(uint8_t step = 0; step < pattern->steps; step++)
-                {
-                    Point point = Point(step % width, step / width);
-                    MatrixOS::LED::SetColor(patternOrigin + point, trackColor.Dim());
-                }
+                Point point = Point(step % width, step / width);
+                MatrixOS::LED::SetColor(patternOrigin + point, sequencer->copySourceStep >= 0 ? trackColor.Dim() : Color::White.Dim(32));
             }
 
             // Render Step

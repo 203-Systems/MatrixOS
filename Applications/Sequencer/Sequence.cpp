@@ -567,7 +567,7 @@ bool Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t star
         removed = true;
     }
     if (removed) { dirty = true; }
-    return true;
+    return removed;
 }
 
 bool Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep)
@@ -575,8 +575,7 @@ bool Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, ui
     if (!pattern) return false;
     uint16_t startTime = step * pulsesPerStep;
     uint16_t endTime = startTime + pulsesPerStep - 1;
-    PatternClearEventsInRange(pattern, startTime, endTime);
-    return true;
+    return PatternClearEventsInRange(pattern, startTime, endTime);
 }
 
 bool Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep)

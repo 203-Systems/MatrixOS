@@ -69,7 +69,10 @@ bool TrackSelector::Render(Point origin)
     }
     else if(sequencer->CopyActive() && sequencer->sequence.Playing() == false)
     {
-        // Render nothing because we don't allow copy in here
+        for(uint8_t i = 0; i < width; i++)
+        {
+            MatrixOS::LED::SetColor(origin + Point(i, 0), Color::White.Dim(32));
+        }
     }
     else
     {
