@@ -13,8 +13,28 @@ bool MixerControl::IsEnabled()
 }
 
 bool MixerControl::KeyEvent(Point xy, KeyInfo* keyInfo)
-{
-    if(keyInfo->State() == PRESSED)
+{   
+    if(keyInfo->State() == HOLD)
+    {
+        uint8_t track = xy.x;
+        uint8_t row = xy.y;
+        // Mute (Y=0)
+        if(row == 0)
+        {
+            MatrixOS::UIUtility::TextScroll("Mute", sequencer->meta.tracks[track].color);
+        }
+        // Solo (Y=1)
+        else if(row == 1)
+        {
+            MatrixOS::UIUtility::TextScroll("Solo", Color(0x0080FF));
+        }
+        // Record (Y=2)
+        else if(row == 2)
+        {
+            MatrixOS::UIUtility::TextScroll("Record", Color(0xFF0000));
+        }
+    } 
+    else if(keyInfo->State() == RELEASED && keyInfo->Hold() == false)
     {
         uint8_t track = xy.x;
         uint8_t row = xy.y;
