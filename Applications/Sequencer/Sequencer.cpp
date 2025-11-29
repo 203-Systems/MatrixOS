@@ -294,11 +294,17 @@ void Sequencer::LayoutSelector()
     Color pcColor = Color(0x00FF80);
 
     Color updateColor = Color(0x80FF00);
+
+    bool noteMapTesting = false;
     
     UI layoutSelector("Layout Selector", noteColor, false);
 
     TrackSelector trackSelector(this, true);
     layoutSelector.AddUIComponent(trackSelector, Point(0, 0));
+
+    SequencerNotePad notePad(this, true);
+    notePad.SetEnableFunc([&]() -> bool {return noteMapTesting;});
+    layoutSelector.AddUIComponent(notePad, Point(0, 4));
 
     UIButton scaleModeBtn;
     scaleModeBtn.SetName("Scale Mode");
@@ -311,6 +317,7 @@ void Sequencer::LayoutSelector()
     scaleModeBtn.OnPress([&]() -> void {
         meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Scale;
+        notePad.GenerateKeymap();
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(scaleModeBtn, Point(0, 1));
@@ -326,6 +333,7 @@ void Sequencer::LayoutSelector()
     chromaticModeBtn.OnPress([&]() -> void {
         meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Chromatic;
+        notePad.GenerateKeymap();
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(chromaticModeBtn, Point(1, 1));
@@ -341,6 +349,7 @@ void Sequencer::LayoutSelector()
     pianoModeBtn.OnPress([&]() -> void {
         meta.tracks[track].mode = SequenceTrackMode::NoteTrack;
         meta.tracks[track].config.note.type = SequenceNoteType::Piano;
+        notePad.GenerateKeymap();
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(pianoModeBtn, Point(2, 1));
@@ -352,9 +361,23 @@ void Sequencer::LayoutSelector()
     });
     drumModeBtn.OnPress([&]() -> void {
         meta.tracks[track].mode = SequenceTrackMode::DrumTrack;
+        notePad.GenerateKeymap();
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(drumModeBtn, Point(3, 1));
+
+    // Note Map Test Toggle
+    UIToggle notePadTestToggle;
+    notePadTestToggle.SetName("Note Map Test");
+    notePadTestToggle.SetValuePointer(&noteMapTesting);
+    notePadTestToggle.SetColor(Color(0xFF0080));
+    notePadTestToggle.SetEnableFunc([&]() -> bool {
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack || meta.tracks[track].mode == SequenceTrackMode::DrumTrack;
+    });
+    notePadTestToggle.OnPress([&]() -> void {
+        if(noteMapTesting) {notePad.GenerateKeymap();}
+    });
+    layoutSelector.AddUIComponent(notePadTestToggle, Point(0, 2));
 
     // Enforce Scale Toggle
     UIButton enforceScaleBtn;
@@ -363,15 +386,17 @@ void Sequencer::LayoutSelector()
         return Color(0xFFFFFF).DimIfNot(meta.tracks[track].config.note.enforceScale);
     });
     enforceScaleBtn.SetEnableFunc([&]() -> bool {
-        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+        return  meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
                (meta.tracks[track].config.note.type == SequenceNoteType::Scale ||
                 meta.tracks[track].config.note.type == SequenceNoteType::Chromatic);
     });
     enforceScaleBtn.OnPress([&]() -> void {
         meta.tracks[track].config.note.enforceScale = !meta.tracks[track].config.note.enforceScale;
+        notePad.GenerateKeymap();
         sequence.SetDirty();
     });
     layoutSelector.AddUIComponent(enforceScaleBtn, Point(1, 2));
+
 
     // Custom Scale Toggle
     UIButton customScaleEnableBtn;
@@ -380,7 +405,7 @@ void Sequencer::LayoutSelector()
         return Color(0x00FFFF).DimIfNot(meta.tracks[track].config.note.customScale);
     });
     customScaleEnableBtn.SetEnableFunc([&]() -> bool {
-        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack && !noteMapTesting;
     });
     customScaleEnableBtn.OnPress([&]() -> void {
         if (!meta.tracks[track].config.note.customScale) {
@@ -395,14 +420,14 @@ void Sequencer::LayoutSelector()
             sequence.SetDirty();
         }
     });
-    layoutSelector.AddUIComponent(customScaleEnableBtn, Point(0, 2));
+    layoutSelector.AddUIComponent(customScaleEnableBtn, Point(2, 2));
 
     SequencerScaleVisualizer scaleVisualizer(Color(0x8000FF), Color(0xFF0080),  Color(0xFF0080));
     scaleVisualizer.SetGetRootKeyFunc([&]() -> uint8_t { return meta.tracks[track].config.note.root; });
     scaleVisualizer.SetGetRootOffsetFunc([&]() -> uint8_t { return meta.tracks[track].config.note.rootOffset; });
     scaleVisualizer.SetGetScaleFunc([&]() -> uint16_t { return meta.tracks[track].config.note.scale; });
     scaleVisualizer.SetEnableFunc([&]() -> bool {
-        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack && !noteMapTesting;
     });
     scaleVisualizer.OnChange([&](uint8_t root, uint8_t offset, uint16_t /*scale*/) -> void {
         meta.tracks[track].config.note.root = root;
@@ -417,7 +442,7 @@ void Sequencer::LayoutSelector()
         return scaleVisualizer.offsetMode ? Color(0xFF0080) : Color(0x8000FF);
     });
     offsetModeBtn.SetEnableFunc([&]() -> bool {
-        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack;
+        return meta.tracks[track].mode == SequenceTrackMode::NoteTrack && !noteMapTesting;
     });
     offsetModeBtn.OnPress([&]() -> void { scaleVisualizer.offsetMode = !scaleVisualizer.offsetMode; });
     layoutSelector.AddUIComponent(offsetModeBtn, Point(7, 5));
@@ -427,6 +452,7 @@ void Sequencer::LayoutSelector()
     scaleSelectorBar.SetScaleFunc([&]() -> uint16_t { return meta.tracks[track].config.note.scale; });
     scaleSelectorBar.SetEnableFunc([&]() -> bool {
         return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               !noteMapTesting &&
                !meta.tracks[track].config.note.customScale;
     });
     scaleSelectorBar.OnChange([&](uint16_t scale) -> void {
@@ -442,6 +468,7 @@ void Sequencer::LayoutSelector()
     scaleModifier.SetScaleFunc([&]() -> uint16_t { return meta.tracks[track].config.note.scale; });
     scaleModifier.SetEnableFunc([&]() -> bool {
         return meta.tracks[track].mode == SequenceTrackMode::NoteTrack &&
+               !noteMapTesting &&
                meta.tracks[track].config.note.customScale;
     });
     scaleModifier.OnChange([&](uint16_t newScale) -> void {
@@ -605,8 +632,9 @@ void Sequencer::LayoutSelector()
         return meta.tracks[track].mode == SequenceTrackMode::DrumTrack;
     });
     layoutSelector.AddUIComponent(drmTextDisplay, Point(0, 4));
+    
 
-    // Update  text display
+    // Update text display
     UITimedDisplay updateTextDisplay(1000);
     updateTextDisplay.SetDimension(Dimension(8, 4));
     updateTextDisplay.SetRenderFunc([&](Point origin) -> void

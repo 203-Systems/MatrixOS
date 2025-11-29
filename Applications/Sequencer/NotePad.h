@@ -21,6 +21,7 @@ class SequencerNotePad : public UIComponent {
 
     bool rescanNeeded = false;
     bool prevTwoRowMode = false;
+    bool testingMode = false;
 
     std::vector<uint8_t> noteMap;
     uint16_t c_aligned_scale_map;
@@ -29,7 +30,7 @@ class SequencerNotePad : public UIComponent {
     bool TwoRowMode();
 
     public:
-    SequencerNotePad(Sequencer* sequencer);
+    SequencerNotePad(Sequencer* sequencer, bool testingMode = false);
 
     Dimension GetSize();
 

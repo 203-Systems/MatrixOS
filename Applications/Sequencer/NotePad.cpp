@@ -1,15 +1,19 @@
 #include "NotePad.h"
 
-SequencerNotePad::SequencerNotePad(Sequencer* sequencer)
+SequencerNotePad::SequencerNotePad(Sequencer* sequencer, bool testingMode)
 {
     this->sequencer = sequencer;
+    this->testingMode = testingMode;
     prevTwoRowMode = TwoRowMode();  
     GenerateKeymap();
 }
 
 bool SequencerNotePad::IsEnabled()
 {
-    return sequencer->currentView == Sequencer::ViewMode::Sequencer;
+    if (enableFunc) {
+      return (*enableFunc)();
+    }
+    return (sequencer->currentView == Sequencer::ViewMode::Sequencer) && (sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::NoteTrack || sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::DrumTrack);
 }
 
 Dimension SequencerNotePad::GetSize()
@@ -19,7 +23,7 @@ Dimension SequencerNotePad::GetSize()
 
 bool SequencerNotePad::TwoRowMode()
 {
-    return sequencer->patternViewActive || sequencer->meta.tracks[sequencer->track].twoPatternMode;
+    return !testingMode && (sequencer->patternViewActive || sequencer->meta.tracks[sequencer->track].twoPatternMode);
 }
 
 NoteType SequencerNotePad::InScale(int16_t note)
@@ -259,6 +263,8 @@ void SequencerNotePad::GenerateKeymap()
 
 void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
 {
+    if(testingMode) {return;}
+
     uint8_t track = sequencer->track;
     if (sequencer->sequence.Playing(track) && sequencer->sequence.ShouldRecord(track))
     {
