@@ -56,7 +56,7 @@ void SequencerMessageDisplay::RenderWave(Point origin, uint8_t row, Color color)
     ClearRows(origin, row);
     for(uint8_t x = 0; x < 8; x++)
     {
-        uint8_t scale = ColorEffects::Breath(1000, 125 * x);
+        uint8_t scale = ColorEffects::Breath(600, 75 * x);
         Color colColor = Color::Crossfade(color, Color::White, Fract16(scale, 8));
         for(uint8_t y = 0; y < row; y++)
         {
