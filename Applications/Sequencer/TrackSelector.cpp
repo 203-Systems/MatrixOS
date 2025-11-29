@@ -17,23 +17,29 @@ void TrackSelector::OnChange(std::function<void(uint8_t)> callback)
 
 bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
-    if(keyInfo->State() == PRESSED)
+    if(sequencer->CopyActive() && sequencer->sequence.Playing() == false)
     {
-        if(xy.x != sequencer->track)
+        return true;
+    }
+
+    if(keyInfo->State() == PRESSED)
+    {   
+        bool clear;
+        if(sequencer->ClearActive())
         {
-            sequencer->track = xy.x;
-            sequencer->ClearState();
-            if (changeCallback != nullptr) {
-                (changeCallback)(xy.x);
-            }
+            sequencer->sequence.ClearAllStepsInClip(xy.x, sequencer->sequence.GetPosition(xy.x).clip);
+            sequencer->SetMessage(SequencerMessage::CLEARED);
         }
         else
         {
-            sequencer->trackSelected = true;
-            if(sequencer->ClearActive())
+            if(xy.x != sequencer->track)
             {
-                sequencer->sequence.ClearAllStepsInClip(sequencer->track, sequencer->sequence.GetPosition(sequencer->track).clip);
-                sequencer->SetMessage(SequencerMessage::CLEARED);
+                sequencer->track = xy.x;
+                sequencer->trackSelected = true;    
+                if (changeCallback != nullptr) {
+                    (changeCallback)(xy.x);
+                }
+                sequencer->ClearState();
             }
         }
     }
@@ -53,10 +59,17 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 }
 
 bool TrackSelector::Render(Point origin)
-{
+{   
     if(sequencer->ClearActive())
     {
-        MatrixOS::LED::SetColor(origin + Point(sequencer->track, 0), sequencer->meta.tracks[sequencer->track].color);
+        for(uint8_t i = 0; i < width; i++)
+        {
+            MatrixOS::LED::SetColor(origin + Point(i, 0), sequencer->meta.tracks[i].color);
+        }
+    }
+    else if(sequencer->CopyActive() && sequencer->sequence.Playing() == false)
+    {
+        // Render nothing because we don't allow copy in here
     }
     else
     {
