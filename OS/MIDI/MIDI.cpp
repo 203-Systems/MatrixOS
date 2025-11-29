@@ -102,22 +102,22 @@ namespace MatrixOS::MIDI
     if(includeMeta)
     {
       uint8_t header[6] = {MIDIv1_SYSEX_START, SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1]};
-      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, header), port, 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, header[0], header[1], header[2]), port, 5))
       { return false; }
 
-      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, header + 3), port, 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, header[3], header[4], header[5]), port, 5))
       { return false; }
     }
 
     for (uint8_t index = 0; index < length - 3 - !includeMeta; index += 3)
     {
-      if(!Send(MidiPacket(EMidiStatus::SysExData, 3, data + index), port, 5))
+      if(!Send(MidiPacket(EMidiStatus::SysExData, data[index], data[index+1], data[index+2]), port, 5))
       { return false; }
     }
 
     // Send End
     if(includeMeta)
-    { 
+    {
       uint16_t start_ptr = length - length % 3;
       uint8_t footer[3] = {0, 0, 0};
       for (uint16_t i = start_ptr; i < length; i++)
@@ -125,8 +125,8 @@ namespace MatrixOS::MIDI
         footer[i] = data[start_ptr + i];
       }
       footer[length % 3] = MIDIv1_SYSEX_END;
-      
-      if(!Send(MidiPacket(EMidiStatus::SysExEnd, length % 3 + 1, footer), port, 5))
+
+      if(!Send(MidiPacket(EMidiStatus::SysExEnd, footer[0], footer[1], footer[2]), port, 5))
       { return false;}
      }
     else
@@ -138,8 +138,8 @@ namespace MatrixOS::MIDI
       {
         footer[i] = data[start_ptr + i];
       }
-      
-      if(!Send(MidiPacket(EMidiStatus::SysExEnd, end_frame_length, footer), port, 5))
+
+      if(!Send(MidiPacket(EMidiStatus::SysExEnd, footer[0], footer[1], footer[2]), port, 5))
       { return false; }
     }
     return true;
@@ -166,9 +166,9 @@ namespace MatrixOS::MIDI
         #endif
 
          uint8_t reply[] = {
-          MIDIv1_SYSEX_START, MIDIv1_UNIVERSAL_NON_REALTIME_ID, USYSEX_ALL_CHANNELS, USYSEX_GENERAL_INFO, USYSEX_GI_ID_RESPONSE, 
-          SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], 
-          SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1], 
+          MIDIv1_SYSEX_START, MIDIv1_UNIVERSAL_NON_REALTIME_ID, USYSEX_ALL_CHANNELS, USYSEX_GENERAL_INFO, USYSEX_GI_ID_RESPONSE,
+          SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2],
+          SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1],
           SYSEX_MODEL_ID[0], SYSEX_MODEL_ID[1],
           MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER, MATRIXOS_PATCH_VER, osReleaseVersion,
           MIDIv1_SYSEX_END};
