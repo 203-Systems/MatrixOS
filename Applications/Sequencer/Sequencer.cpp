@@ -1253,7 +1253,6 @@ void Sequencer::ShiftEventOccured()
 {
     if (shift[0]) { shiftEventOccured[0] = true; }
     else if (shift[1]) { shiftEventOccured[1] = true; }
-    shiftOnTime = MatrixOS::SYS::Millis();
 }
 
 void Sequencer::ClearActiveNotes()
