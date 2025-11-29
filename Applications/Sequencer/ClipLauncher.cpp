@@ -82,11 +82,18 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
             }
 
             // If track is playing, stop it when clicking empty slot
-            if(sequencer->sequence.Playing(track))
-            {
-                sequencer->sequence.StopAfter(track);
+            if(sequencer->sequence.Playing())
+            {   
+                if(sequencer->sequence.GetNextClip(track) == 254)
+                {
+                    sequencer->sequence.PlayClipForAllTracks(clip);
+                }
+                else
+                {
+                    sequencer->sequence.PlayClip(track, 254); // Force into wait to stop
+                }
             }
-            else if(sequencer->sequence.Playing() == false)
+            else
             {
                 sequencer->sequence.NewClip(track, clip);
 
