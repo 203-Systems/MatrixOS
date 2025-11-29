@@ -121,6 +121,7 @@ public:
     bool PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length);
     bool PatternQuantize(SequencePattern* pattern, uint16_t pulse);
     bool PatternNudge(SequencePattern* pattern, int16_t offsetPulse);
+    bool DualPatternNudge(SequencePattern* pattern1, SequencePattern* pattern2, int16_t offsetPulse); // Nudge cycle though 2 patterns
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);

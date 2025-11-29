@@ -215,7 +215,16 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo)
       uint16_t step = base;
       int16_t offset = positive ? step : - (int16_t)step;
 
-      sequencer->sequence.PatternNudge(pattern, offset);
+      bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
+      if(twoPatternMode == false)
+      {
+        sequencer->sequence.PatternNudge(pattern, offset);
+      }
+      else
+      {
+        SequencePattern* patternNext = sequencer->sequence.GetPattern(track, pos.clip, pos.pattern + 1);
+        sequencer->sequence.DualPatternNudge(pattern, patternNext, offset);
+      }
       sequencer->ClearActiveNotes();
     }
     return true;

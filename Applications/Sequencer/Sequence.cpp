@@ -699,6 +699,74 @@ bool Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse)
     return true;
 }
 
+bool Sequence::DualPatternNudge(SequencePattern* pattern1, SequencePattern* pattern2, int16_t offsetPulse)
+{
+    if (!pattern1) return false;
+
+    // Fallback to single pattern logic if pattern2 is missing
+    if (!pattern2) {
+        return PatternNudge(pattern1, offsetPulse);
+    }
+
+    // Calculate lengths
+    int32_t len1 = pattern1->steps * pulsesPerStep;
+    int32_t len2 = pattern2->steps * pulsesPerStep;
+    int32_t totalLen = len1 + len2;
+
+    if (totalLen == 0) return true;
+
+    // Normalize offset to [0, totalLen)
+    int32_t normalized = offsetPulse % totalLen;
+    if (normalized == 0) return true;
+    if (normalized < 0) { normalized += totalLen; }
+
+    // Temporary storage for the new state of both patterns
+    std::multimap<uint16_t, SequenceEvent> newEvents1;
+    std::multimap<uint16_t, SequenceEvent> newEvents2;
+
+    // --- Process Pattern 1 Events ---
+    // These exist virtually from [0 to len1)
+    for (const auto& [timestamp, ev] : pattern1->events)
+    {
+        // Calculate new absolute position in the combined timeline
+        int32_t newAbsTs = (timestamp + normalized) % totalLen;
+
+        if (newAbsTs < len1) {
+            // It lands back inside Pattern 1
+            newEvents1.insert({(uint16_t)newAbsTs, ev});
+        } else {
+            // It lands inside Pattern 2 (subtract len1 to get local P2 time)
+            newEvents2.insert({(uint16_t)(newAbsTs - len1), ev});
+        }
+    }
+
+    // --- Process Pattern 2 Events ---
+    // These exist virtually from [len1 to totalLen)
+    for (const auto& [timestamp, ev] : pattern2->events)
+    {
+        // Current absolute position is local timestamp + len1
+        int32_t currentAbsTs = timestamp + len1;
+        
+        // Calculate new absolute position
+        int32_t newAbsTs = (currentAbsTs + normalized) % totalLen;
+
+        if (newAbsTs < len1) {
+            // It wraps around to Pattern 1
+            newEvents1.insert({(uint16_t)newAbsTs, ev});
+        } else {
+            // It stays/lands in Pattern 2
+            newEvents2.insert({(uint16_t)(newAbsTs - len1), ev});
+        }
+    }
+
+    // Apply changes
+    pattern1->events.swap(newEvents1);
+    pattern2->events.swap(newEvents2);
+    dirty = true;
+    
+    return true;
+}
+
 void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern)
 {
     if (!ClipExists(track, clip)) return;
