@@ -151,6 +151,19 @@ bool ClipLauncher::Render(Point origin)
     activeClips.reserve(trackCount);
     nextClips.reserve(trackCount);
 
+    Color baseColor = Color::Black;
+
+    if(sequencer->ClearActive())
+    {
+        uint8_t scale = ColorEffects::Breath();
+        baseColor = Color::Crossfade(Color(0xFF0080).Dim(32), Color::White.Dim(32), Fract16(scale / 2, 8));
+    }
+    else if(sequencer->CopyActive())
+    {
+        uint8_t scale = ColorEffects::Breath();
+        baseColor = Color::Crossfade(Color(0x0080FF).Dim(32), Color::White.Dim(32), Fract16(scale / 2, 8));
+    }
+
     for(uint8_t track = 0; track < trackCount; track++)
     {
         uint8_t activeClip = sequencer->sequence.GetPosition(track)->clip;
@@ -176,36 +189,28 @@ bool ClipLauncher::Render(Point origin)
             if(track >= trackCount)
             {
                 // No track at this position
-                color = Color::Black;
-            }
-            else if(sequencer->CopyActive())
-            {
-                // Copy mode rendering
-                if(sequencer->clipCopySource.first >= 0 && sequencer->clipCopySource.first == track && sequencer->clipCopySource.second == clip)
-                {
-                    // Highlight selected source in white
-                    color = Color::White;
-                }
-                else if(sequencer->sequence.ClipExists(track, clip))
-                {
-                    // Show existing clips in track color
-                    color = sequencer->meta.tracks[track].color;
-                }
-                else if(sequencer->clipCopySource.first >= 0)
-                {
-                    // Show empty slots in dimmed track color when source selected
-                    color = sequencer->meta.tracks[track].color.Dim(32);
-                }
-                else
-                {
-                    // Show empty slots in dim gray when no source selected
-                    color = Color::White.Dim(32);
-                }
+                color = baseColor;
             }
             else if(!sequencer->sequence.ClipExists(track, clip))
             {
                 // Clip doesn't exist - show black if track is playing, otherwise dim gray
-                if(sequencer->sequence.Playing())
+                if(sequencer->ClearActive())
+                {
+                    color = baseColor;
+                }
+                else if(sequencer->CopyActive())
+                {
+                    if(std::get<0>(sequencer->clipCopySource) != -1)
+                    {
+                        Color trackColor = sequencer->meta.tracks[track].color;
+                        color = trackColor.Dim(32);
+                    }
+                    else
+                    {
+                        color = baseColor;
+                    }
+                }
+                else if(sequencer->sequence.Playing())
                 {
                     if(nextClips[track] == 254) // About to stop
                     {
@@ -216,10 +221,6 @@ bool ClipLauncher::Render(Point origin)
                     {
                         color = Color::Black;
                     }
-                }
-                else if(sequencer->ClearActive())
-                {
-                    color = Color::White.Dim(32);
                 }
                 else
                 {
@@ -234,32 +235,43 @@ bool ClipLauncher::Render(Point origin)
                 bool isSelectedInTrack = (activeClips[track] == clip);
                 bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
                 bool isNextClip = (nextClips[track] == clip);
+                bool isCopySourceSelected = sequencer->CopyActive() && std::get<0>(sequencer->clipCopySource) != -1;
+                bool isCopySource = isCopySourceSelected && (std::get<0>(sequencer->clipCopySource) == track && std::get<1>(sequencer->clipCopySource) == clip);
 
-                if(isPlaying)
-                {
-                    // Playing clip pulse toward white
-                    color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 2, 8));
-                }
-                else if(isNextClip)
-                {
-                    color = (quarterNoteProgress < 0x8000) ? Color(0x00FF00) : trackColor;
-                }
-                else if(isCurrentTrack && isSelectedInTrack)
-                {
-                    color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
-                }
-                else if(isSelectedInTrack)
-                {
-                    // Selected clip in other tracks shows red
-                    uint16_t brightness = breathingScale / 2 + 128;
-                    if(brightness > 255) { brightness = 255; }
-                    color = trackColor.Scale(brightness);
-                }
-                else
-                {
-                    // Clip exists - show track color
-                    color = trackColor;
-                }
+                    
+                    if(isCopySource)
+                    {
+                        color = Color::White;
+                    }
+                    else if (isCopySourceSelected)
+                    {
+                        color = trackColor;
+                    }
+                    else if(isPlaying)
+                    {
+                        // Playing clip pulse toward white
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 2, 8));
+                    }
+                    else if(isNextClip)
+                    {
+                        color = (quarterNoteProgress < 0x8000) ? Color(0x00FF00) : trackColor;
+                    }
+                    else if(isCurrentTrack && isSelectedInTrack)
+                    {
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
+                    }
+                    else if(isSelectedInTrack)
+                    {
+                        // Selected clip in other tracks shows red
+                        uint16_t brightness = breathingScale / 2 + 128;
+                        if(brightness > 255) { brightness = 255; }
+                        color = trackColor.Scale(brightness);
+                    }
+                    else
+                    {
+                        // Clip exists - show track color
+                        color = trackColor;
+                    }
             }
 
             MatrixOS::LED::SetColor(point, color);
