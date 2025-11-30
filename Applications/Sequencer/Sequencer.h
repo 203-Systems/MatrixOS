@@ -51,7 +51,7 @@ class Sequencer : public Application {
   bool shift[2] = {false, false};
   uint32_t shiftOnTime = 0;
   bool shiftEventOccured[2] = {false, false};
-  bool trackSelected = false;
+  bool activeTrackSelected = false;
   bool wideClipMode = false;
   uint8_t clipWindow = 0;
 

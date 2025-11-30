@@ -280,7 +280,7 @@ void Sequencer::ClearState()
     copySourceStep = -1;
     copySourcePattern = -1;
     clipCopySource = {-1, -1};
-    trackSelected = false;
+    activeTrackSelected = false;
     lastMessage = SequencerMessage::NONE;
     lastMessageTime = 0;
 }

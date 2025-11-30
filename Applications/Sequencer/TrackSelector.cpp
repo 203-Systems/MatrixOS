@@ -35,7 +35,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             if(xy.x != sequencer->track)
             {
                 sequencer->track = xy.x;
-                sequencer->trackSelected = true;    
+                sequencer->activeTrackSelected = true;    
                 if (changeCallback != nullptr) {
                     (changeCallback)(xy.x);
                 }
@@ -53,7 +53,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
     }
     else if(keyInfo->State() == RELEASED && xy.x == sequencer->track)
     {
-        sequencer->trackSelected = false;
+        sequencer->activeTrackSelected = false;
     }
     return true;
 }

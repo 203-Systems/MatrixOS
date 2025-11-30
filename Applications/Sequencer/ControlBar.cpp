@@ -192,7 +192,7 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
 
     SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
 
-    if (sequencer->trackSelected)
+    if (sequencer->activeTrackSelected)
     {
       sequencer->sequence.ClearAllStepsInClip(sequencer->track, pos->clip);
       sequencer->SetMessage(SequencerMessage::CLEARED);
