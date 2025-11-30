@@ -1451,8 +1451,8 @@ void Sequence::ProcessTrack(uint8_t track)
         }
     }
 
-    // Check for queued clip change at bar boundary (step 0, pulse 0)
-    if (trackPlayback[track].nextClip != 255 && pos.step == 0 && pos.pulse == 0) {
+    // Check for queued clip change at bar boundary (currentStep == 0)
+    if (trackPlayback[track].nextClip != 255 && currentStep == 0) {
         if (trackPlayback[track].nextClip == 254) {
             Stop(track);
             return;
