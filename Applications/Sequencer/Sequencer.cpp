@@ -1303,8 +1303,6 @@ void Sequencer::SetMessage(SequencerMessage msg, bool stayOn)
 
 bool Sequencer::Save(uint16_t slot)
 {
-    sequence.Stop();
-
     if (slot == 0xFFFF) { 
         MLOGD("Sequencer", "Load - No Previous Assigned Slot - Finding the next available slot"); 
         uint16_t freeSlot = 0xFFFF;
