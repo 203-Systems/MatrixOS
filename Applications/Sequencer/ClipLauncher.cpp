@@ -40,21 +40,20 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(sequencer->CopyActive())
         {
             // Source selection if none yet
-            if(sequencer->copySourceClip < 0)
+            if(sequencer->clipCopySource.first < 0)
             {
                 // Only allow selecting existing clips as source
                 if(sequencer->sequence.ClipExists(track, clip))
                 {
-                    sequencer->copySourceClip = clip;
-                    sequencer->copySourceTrack = track;
+                    sequencer->clipCopySource = std::make_pair(track, clip);
                 }
                 return true;
             }
             else
             {
                 // Copy from existing source to this location
-                uint8_t sourceTrack = sequencer->copySourceTrack;
-                uint8_t sourceClip = sequencer->copySourceClip;
+                uint8_t sourceTrack = sequencer->clipCopySource.first;
+                uint8_t sourceClip = sequencer->clipCopySource.second;
 
                 // Copy clip (includes all patterns and enabled state)
                 sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
@@ -182,7 +181,7 @@ bool ClipLauncher::Render(Point origin)
             else if(sequencer->CopyActive())
             {
                 // Copy mode rendering
-                if(sequencer->copySourceClip >= 0 && sequencer->copySourceTrack == track && sequencer->copySourceClip == clip)
+                if(sequencer->clipCopySource.first >= 0 && sequencer->clipCopySource.first == track && sequencer->clipCopySource.second == clip)
                 {
                     // Highlight selected source in white
                     color = Color::White;
@@ -192,7 +191,7 @@ bool ClipLauncher::Render(Point origin)
                     // Show existing clips in track color
                     color = sequencer->meta.tracks[track].color;
                 }
-                else if(sequencer->copySourceClip >= 0)
+                else if(sequencer->clipCopySource.first >= 0)
                 {
                     // Show empty slots in dimmed track color when source selected
                     color = sequencer->meta.tracks[track].color.Dim(32);

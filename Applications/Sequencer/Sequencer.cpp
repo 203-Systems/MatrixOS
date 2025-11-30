@@ -279,8 +279,7 @@ void Sequencer::ClearState()
     stepSelected.clear();
     copySourceStep = -1;
     copySourcePattern = -1;
-    copySourceClip = -1;
-    copySourceTrack = -1;
+    clipCopySource = {-1, -1};
     trackSelected = false;
     lastMessage = SequencerMessage::NONE;
     lastMessageTime = 0;

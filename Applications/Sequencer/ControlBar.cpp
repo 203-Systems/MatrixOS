@@ -252,23 +252,19 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
   if (keyInfo->state == PRESSED)
   {
     sequencer->copy = true;
-    if (sequencer->sequence.Playing(sequencer->track) == false)
+    if (sequencer->stepSelected.size() == 1)
     {
-      if (sequencer->stepSelected.size() == 1)
-      {
-        auto selection = *sequencer->stepSelected.begin();
-        sequencer->copySourcePattern = selection.first;
-        sequencer->copySourceStep = selection.second;
-      }
-      else
-      {
-        sequencer->copySourceStep = -1;
-        sequencer->copySourcePattern = -1;
-        sequencer->copySourceClip = -1;
-        sequencer->copySourceTrack = -1;
-      }
-      sequencer->stepSelected.clear();
+      auto selection = *sequencer->stepSelected.begin();
+      sequencer->copySourcePattern = selection.first;
+      sequencer->copySourceStep = selection.second;
     }
+    else
+    {
+      sequencer->copySourceStep = -1;
+      sequencer->copySourcePattern = -1;
+      sequencer->clipCopySource = {-1, -1};
+    }
+    sequencer->stepSelected.clear();
   }
   else if (keyInfo->state == RELEASED)
   {
@@ -339,6 +335,7 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo *keyInfo)
   {
     uint8_t track = sequencer->track;
     sequencer->meta.tracks[track].twoPatternMode = !sequencer->meta.tracks[track].twoPatternMode;
+    sequencer->patternView = false; // So user know what happened.
     sequencer->stepSelected.clear();
     sequencer->sequence.SetDirty();
   }
