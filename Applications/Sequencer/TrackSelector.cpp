@@ -17,11 +17,6 @@ void TrackSelector::OnChange(std::function<void(uint8_t)> callback)
 
 bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
-    if(sequencer->CopyActive() && sequencer->sequence.Playing() == false)
-    {
-        return true;
-    }
-
     if(keyInfo->State() == PRESSED)
     {   
         bool clear;
@@ -65,13 +60,6 @@ bool TrackSelector::Render(Point origin)
         for(uint8_t i = 0; i < width; i++)
         {
             MatrixOS::LED::SetColor(origin + Point(i, 0), sequencer->meta.tracks[i].color);
-        }
-    }
-    else if(sequencer->CopyActive() && sequencer->sequence.Playing() == false)
-    {
-        for(uint8_t i = 0; i < width; i++)
-        {
-            MatrixOS::LED::SetColor(origin + Point(i, 0), Color::White.Dim(32));
         }
     }
     else
