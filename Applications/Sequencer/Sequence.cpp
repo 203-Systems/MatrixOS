@@ -411,6 +411,11 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip)
     // Update position if pointing to deleted clip
     if (trackPlayback[track].position.clip == clip)
     {
+        if(Playing(track))
+        {
+            Stop(track);
+        }
+
         // Find lowest available clip or create clip 0
         if (data.tracks[track].clips.empty())
         {
