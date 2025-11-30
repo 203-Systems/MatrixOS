@@ -255,13 +255,15 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
     if (sequencer->stepSelected.size() == 1)
     {
       auto selection = *sequencer->stepSelected.begin();
-      sequencer->copySourcePattern = selection.first;
       sequencer->copySourceStep = selection.second;
+      // For step copy, we only need pattern index (track/clip are implicit from current context)
+      // Store in tuple as {-1, -1, pattern} to indicate step copy mode
+      std::get<2>(sequencer->patternCopySource) = selection.first;
     }
     else
     {
       sequencer->copySourceStep = -1;
-      sequencer->copySourcePattern = -1;
+      sequencer->patternCopySource = {-1, -1, -1};
       sequencer->clipCopySource = {-1, -1};
     }
     sequencer->stepSelected.clear();

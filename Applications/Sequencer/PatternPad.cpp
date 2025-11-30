@@ -263,7 +263,7 @@ bool PatternPad::Render(Point origin)
         if (!pattern) { continue; }
 
         // Special state: Pattern copy mode active (from PatternSelector)
-        if(sequencer->CopyActive() && sequencer->copySourcePattern >= 0 && sequencer->sequence.Playing(track) == false)
+        if(sequencer->CopyActive() && std::get<2>(sequencer->patternCopySource) >= 0 && sequencer->sequence.Playing(track) == false)
         {
             // Render all slots dimmed when pattern copy is active
             for(uint8_t step = 0; step < pattern->steps; step++)

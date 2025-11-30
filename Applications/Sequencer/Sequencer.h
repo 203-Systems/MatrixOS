@@ -75,7 +75,7 @@ class Sequencer : public Application {
 
   std::set<std::pair<uint8_t, uint8_t>> stepSelected; // pair<pattern, step>
   int8_t copySourceStep = -1;
-  int8_t copySourcePattern = -1;
+  std::tuple<int8_t, int8_t, int8_t> patternCopySource = {-1, -1, -1}; // tuple<track, clip, pattern>
   std::pair<int8_t, int8_t> clipCopySource = {-1, -1}; // pair<track, clip>
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
