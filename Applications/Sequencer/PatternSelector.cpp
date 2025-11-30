@@ -203,7 +203,7 @@ bool PatternSelector::Render(Point origin)
     Color trackColor = sequencer->meta.tracks[track].color;
 
     // Special state: Step copy mode active (from PatternPad)
-    if(sequencer->CopyActive() && sequencer->copySourceStep >= 0 && sequencer->sequence.Playing(track) == false)
+    if(sequencer->CopyActive() && std::get<3>(sequencer->stepCopySource) >= 0 && sequencer->sequence.Playing(track) == false)
     {
         // Render all pattern slots dimmed when step copy is active
         for(uint8_t i = 0; i < 16; i++)

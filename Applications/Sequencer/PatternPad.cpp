@@ -73,22 +73,54 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
         {
             // Source selection if none yet
-            if(sequencer->copySourceStep < 0)
+            if(std::get<3>(sequencer->stepCopySource) < 0)
             {
                 if(hasEvent == false)
                 {
                     return true; // only allow selecting source with events
                 }
-                sequencer->copySourceStep = step;
+                sequencer->stepCopySource = std::make_tuple(track, clip, patternIdx, step);
                 return true;
             }
             else
             {
                 // Copy from existing source to this step
-                uint8_t srcStep = sequencer->copySourceStep;
+                uint8_t srcTrack = std::get<0>(sequencer->stepCopySource);
+                uint8_t srcClip = std::get<1>(sequencer->stepCopySource);
+                uint8_t srcPatternIdx = std::get<2>(sequencer->stepCopySource);
+                uint8_t srcStep = std::get<3>(sequencer->stepCopySource);
+
+                SequencePattern* srcPatternPtr = sequencer->sequence.GetPattern(srcTrack, srcClip, srcPatternIdx);
+
+                // Clear destination step first
                 sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep);
-                sequencer->sequence.PatternCopyStepEvents(pattern, srcStep, step, pulsesPerStep);
-                sequencer->SetMessage(SequencerMessage::COPIED);
+
+                if(srcPatternPtr)
+                {
+                    // If copying within same pattern, use existing function
+                    if(srcPatternPtr == pattern)
+                    {
+                        sequencer->sequence.PatternCopyStepEvents(pattern, srcStep, step, pulsesPerStep);
+                    }
+                    else
+                    {
+                        // Copy between different patterns - manually copy events
+                        uint16_t srcStart = srcStep * pulsesPerStep;
+                        uint16_t srcEnd = srcStart + pulsesPerStep - 1;
+                        uint16_t destStart = step * pulsesPerStep;
+
+                        // Collect and copy events
+                        auto it = srcPatternPtr->events.lower_bound(srcStart);
+                        while (it != srcPatternPtr->events.end() && it->first <= srcEnd)
+                        {
+                            uint16_t offset = it->first - srcStart;
+                            uint16_t newTimestamp = destStart + offset;
+                            pattern->events.insert({newTimestamp, it->second});
+                            ++it;
+                        }
+                    }
+                    sequencer->SetMessage(SequencerMessage::COPIED);
+                }
                 return true;
             }
         }
@@ -276,11 +308,18 @@ bool PatternPad::Render(Point origin)
 
         if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
         {
+            // Check if we have a step copy source
+            bool hasStepCopySource = std::get<3>(sequencer->stepCopySource) >= 0;
+            bool isStepCopySourceInThisPattern = hasStepCopySource &&
+                                                 std::get<0>(sequencer->stepCopySource) == track &&
+                                                 std::get<1>(sequencer->stepCopySource) == clip &&
+                                                 std::get<2>(sequencer->stepCopySource) == patternIdx;
+
             // Render Base
             for(uint8_t step = 0; step < pattern->steps; step++)
             {
                 Point point = Point(step % width, step / width);
-                MatrixOS::LED::SetColor(patternOrigin + point, sequencer->copySourceStep >= 0 ? trackColor.Dim() : Color::White.Dim(32));
+                MatrixOS::LED::SetColor(patternOrigin + point, hasStepCopySource ? trackColor.Dim() : Color::White.Dim(32));
             }
 
             // Render Step
@@ -298,10 +337,11 @@ bool PatternPad::Render(Point origin)
                 }
             }
 
-            // Render Selected
-            if(sequencer->copySourceStep >= 0)
+            // Render Selected source step in this pattern
+            if(isStepCopySourceInThisPattern)
             {
-                Point point = Point(sequencer->copySourceStep % width, sequencer->copySourceStep / width);
+                uint8_t sourceStep = std::get<3>(sequencer->stepCopySource);
+                Point point = Point(sourceStep % width, sourceStep / width);
                 MatrixOS::LED::SetColor(patternOrigin + point, Color::White);
             }
         }

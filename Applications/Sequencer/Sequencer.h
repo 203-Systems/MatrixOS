@@ -51,7 +51,6 @@ class Sequencer : public Application {
   bool shift[2] = {false, false};
   uint32_t shiftOnTime = 0;
   bool shiftEventOccured[2] = {false, false};
-  bool activeTrackSelected = false;
   bool wideClipMode = false;
   uint8_t clipWindow = 0;
 
@@ -74,12 +73,13 @@ class Sequencer : public Application {
   ViewMode currentView = ViewMode::Sequencer;
 
   std::set<std::pair<uint8_t, uint8_t>> stepSelected; // pair<pattern, step>
-  int8_t copySourceStep = -1;
+  std::tuple<int8_t, int8_t, int8_t, int8_t> stepCopySource = {-1, -1, -1, -1}; // tuple<track, clip, pattern, step>
   std::tuple<int8_t, int8_t, int8_t> patternCopySource = {-1, -1, -1}; // tuple<track, clip, pattern>
   std::pair<int8_t, int8_t> clipCopySource = {-1, -1}; // pair<track, clip>
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;
+  bool activeTrackSelected = false;
 
   void ColorSelector();
   void LayoutSelector();
