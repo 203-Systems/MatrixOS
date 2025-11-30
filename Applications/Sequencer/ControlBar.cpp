@@ -252,6 +252,9 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
   if (keyInfo->state == PRESSED)
   {
     sequencer->copy = true;
+    sequencer->stepCopySource = {-1, -1, -1, -1};
+    sequencer->patternCopySource = {-1, -1, -1};
+    sequencer->clipCopySource = {-1, -1};
     if (sequencer->stepSelected.size() == 1)
     {
       auto selection = *sequencer->stepSelected.begin();
@@ -261,12 +264,6 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
       uint8_t pattern = selection.first;
       uint8_t step = selection.second;
       sequencer->stepCopySource = std::make_tuple(track, clip, pattern, step);
-    }
-    else
-    {
-      sequencer->stepCopySource = {-1, -1, -1, -1};
-      sequencer->patternCopySource = {-1, -1, -1};
-      sequencer->clipCopySource = {-1, -1};
     }
     sequencer->stepSelected.clear();
   }
