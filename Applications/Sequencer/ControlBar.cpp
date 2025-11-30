@@ -189,6 +189,7 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
   if (keyInfo->state == PRESSED)
   {
     sequencer->clear = true;
+    sequencer->copy = false;
 
     SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
 
@@ -252,6 +253,7 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
   if (keyInfo->state == PRESSED)
   {
     sequencer->copy = true;
+    sequencer->clear = false;
     sequencer->stepCopySource = {-1, -1, -1, -1};
     sequencer->patternCopySource = {-1, -1, -1};
     sequencer->clipCopySource = {-1, -1};
