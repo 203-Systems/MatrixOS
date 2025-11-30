@@ -185,6 +185,12 @@ uint8_t const* default_device_descriptor_cb(void) {
     .bNumConfigurations = 0x01
   };
 
+  uint8_t deviceID = MatrixOS::UserVar::device_id.Get();
+  if (deviceID > 0 && deviceID < 64)
+  {
+    desc_device.idProduct = (Device::usb_pid & 0xFFC0) + deviceID;
+  }
+
   return (uint8_t const*)&desc_device;
 }
 

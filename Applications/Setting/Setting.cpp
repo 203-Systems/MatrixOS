@@ -77,7 +77,7 @@ void Setting::Start() {
   deviceIdBtn.SetSize(Dimension(1, 1));
   deviceIdBtn.OnPress([]() -> void {
     MatrixOS::UserVar::device_id =
-        MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 255);
+        MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 63);
   });
   AddUIComponent(deviceIdBtn, Point(Device::x_size - 2, Device::y_size - 1));
 
