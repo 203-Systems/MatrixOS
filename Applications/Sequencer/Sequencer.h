@@ -101,7 +101,6 @@ class Sequencer : public Application {
   enum class ViewMode
   {
     Sequencer,
-    PatternSetting,
     StepDetail,
     Mixer,
     Session
@@ -126,7 +125,6 @@ class Sequencer : public Application {
 
   void SequencerUI();
   void SequencerMenu();
-  void ClearState();
 
   bool ClearActive();
   bool CopyActive();

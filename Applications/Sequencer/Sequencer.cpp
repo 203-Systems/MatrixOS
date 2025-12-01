@@ -43,7 +43,6 @@ void Sequencer::Setup(const vector<string> &args)
         xTaskCreate(SequenceTask, "SeqTick", configMINIMAL_STACK_SIZE * 2, this, 1, &tickTaskHandle);
     }
 
-    ClearState();
     SequencerUI();
 }
 
@@ -112,7 +111,16 @@ void Sequencer::SequencerUI()
         else
         {
             // Clean up the state
-            ClearState();
+            copy = clear = false;
+            copySource.Clear();
+            shift[0] = shift[1] = false;
+            shiftEventOccured[0] = shiftEventOccured[1] = false;
+            activeTrackSelected = false;
+            ClearSelectedNotes();
+            ClearActiveNotes();
+            stepSelected.clear();
+            lastMessage = SequencerMessage::NONE;
+            lastMessageTime = 0;
 
             SequencerMenu();
 
@@ -267,20 +275,6 @@ void Sequencer::SequencerMenu()
         return false; });
 
     sequencerMenu.Start();
-}
-
-void Sequencer::ClearState()
-{
-    clear = copy = false;
-    shift[0] = shift[1] = false;
-    shiftEventOccured[0] = shiftEventOccured[1] = false;
-    ClearSelectedNotes();
-    ClearActiveNotes();
-    stepSelected.clear();
-    copySource.Clear();
-    activeTrackSelected = false;
-    lastMessage = SequencerMessage::NONE;
-    lastMessageTime = 0;
 }
 
 void Sequencer::LayoutSelector()
@@ -1286,7 +1280,22 @@ void Sequencer::SetView(ViewMode view)
 
     if (currentView == ViewMode::Sequencer)
     {
-        ClearState();
+        activeTrackSelected = false;
+        ClearSelectedNotes();
+        ClearActiveNotes();
+        stepSelected.clear();
+
+        lastMessage = SequencerMessage::NONE;
+        lastMessageTime = 0;
+
+        // Copy, Clear, & Shift
+        if(!(view == ViewMode::Mixer || view == ViewMode::Session))
+        {
+            copy = clear = false;
+            copySource.Clear();
+            shift[0] = shift[1] = false;
+            shiftEventOccured[0] = shiftEventOccured[1] = false;
+        }
     }
 
     currentView = view;

@@ -433,7 +433,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
     if (sequencer->ShiftActive() == false)
     {
       return true;
-    } // ClearState called probably
+    }
 
     bool shiftEvent = sequencer->shiftEventOccured[0] || sequencer->shiftEventOccured[1];
     if (keyInfo->hold == false && !shiftEvent)

@@ -29,12 +29,17 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         {
             if(xy.x != sequencer->track)
             {
-                sequencer->track = xy.x;
-                sequencer->activeTrackSelected = true;    
+                sequencer->track = xy.x;   
+                sequencer->ClearSelectedNotes();
+                sequencer->ClearActiveNotes();
+                sequencer->stepSelected.clear(); 
                 if (changeCallback != nullptr) {
                     (changeCallback)(xy.x);
                 }
-                sequencer->ClearState();
+            }
+            if(xy.x < sequencer->sequence.GetTrackCount())
+            {
+                sequencer->activeTrackSelected = true;
             }
         }
     }
