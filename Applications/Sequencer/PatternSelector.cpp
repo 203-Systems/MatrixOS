@@ -28,6 +28,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
             uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
             uint8_t newPatternIdx = 0;
+            bool copyActive = sequencer->CopyActive() && (sequencer->copySource.IsType(SequenceSelectionType::PATTERN) || sequencer->copySource.IsType(SequenceSelectionType::NONE));
+
 
             // Check if clicking on add button
             if(patternIdx == patternCount && patternCount < 16)
@@ -41,7 +43,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     lengthAdjustmentMode = true;
                     newPatternIdx = sequencer->sequence.NewPattern(track, clip);
                 }
-                else if(sequencer->CopyActive())
+                else if(copyActive)
                 {
                     // Copy mode: Copy selected pattern to new pattern
                     if(sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
@@ -110,7 +112,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     sequencer->SetMessage(SequencerMessage::CLEARED);
                 }
                 // Copy pattern if CopyActive
-                else if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+                else if(copyActive)
                 {
                     // Source selection if none yet
                     if(!sequencer->copySource.Selected())
@@ -209,99 +211,72 @@ bool PatternSelector::Render(Point origin)
     uint8_t patternIdx = pos->pattern;
     Color trackColor = sequencer->meta.tracks[track].color;
 
-    if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
+    for(uint8_t i = 0; i < 16; i++)
     {
-        // Copy mode rendering
-        for(uint8_t i = 0; i < 16; i++)
+        uint8_t x = i % 8;
+        uint8_t y = i / 8;
+
+        if(i < patternCount)
         {
-            uint8_t x = i % 8;
-            uint8_t y = i / 8;
 
-            if(i < patternCount)
+            bool patternSelectedForCopy = sequencer->CopyActive() && sequencer->copySource.IsType(SequenceSelectionType::PATTERN);
+            bool isPatternCopySource = patternSelectedForCopy &&
+                        sequencer->copySource.track == track &&
+                        sequencer->copySource.clip == clip &&
+                        i == sequencer->copySource.pattern;
+
+            if(patternSelectedForCopy)
             {
-                // Pattern exists
-                bool isPatternCopySource = sequencer->copySource.IsType(SequenceSelectionType::PATTERN) &&
-                                          sequencer->copySource.track == track &&
-                                          sequencer->copySource.clip == clip &&
-                                          i == sequencer->copySource.pattern;
-                bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::PATTERN);
-
-                if(isWrongCopyType)
+                if(isPatternCopySource)
                 {
-                    // Gray out when wrong copy type is selected
-                    MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim(32));
-                }
-                else if(isPatternCopySource)
-                {
-                    // Highlight selected source in white
                     MatrixOS::LED::SetColor(origin + Point(x, y), Color::White);
                 }
                 else
                 {
-                    // Show existing patterns in track color
                     MatrixOS::LED::SetColor(origin + Point(x, y), trackColor);
                 }
             }
-            else if(i == patternCount)
-            {
-                if(sequencer->ClearActive() || sequencer->copySource.IsType(SequenceSelectionType::PATTERN) == false)
+            else  if(i == patternIdx )
+            {   
+                if(sequencer->sequence.Playing(track))
                 {
-                    MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+                    uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
+                    Color color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4 * 3 + 64, 8));
+                    MatrixOS::LED::SetColor(origin + Point(x, y), color);
                 }
                 else
                 {
-                    MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
+                    Color color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
+                    MatrixOS::LED::SetColor(origin + Point(x, y), color);
                 }
             }
             else
             {
-
-
-                // Hide other empty slots in copy mode
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+                MatrixOS::LED::SetColor(origin + Point(x, y), trackColor);
             }
         }
-    }
-    else
-    {
-        // Normal mode rendering
-        for(uint8_t i = 0; i < 16; i++)
-        {
-            uint8_t x = i % 8;
-            uint8_t y = i / 8;
-
-            if(i < patternCount)
+        else if(i == patternCount)
+        {   
+            if(sequencer->ClearActive())
             {
-                // Pattern exists
-                if(i == patternIdx)
-                {
-                    if(sequencer->sequence.Playing(track))
-                    {
-                        uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
-                        Color color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 4 * 3 + 64, 8));
-                        MatrixOS::LED::SetColor(origin + Point(x, y), color);
-                    }
-                    else
-                    {
-                        Color color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
-                        MatrixOS::LED::SetColor(origin + Point(x, y), color);
-                    }
-                }
-                else
-                {
-                    MatrixOS::LED::SetColor(origin + Point(x, y), trackColor);
-                }
+                // Slot not available for clear
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
             }
-            else if(i == patternCount)
+            else if(sequencer->CopyActive() && !sequencer->copySource.Selected())
+            {
+                // Slot not available as copy source
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+            }
+            else
             {
                 // Add button at next available slot
                 MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
             }
-            else
-            {
-                // Empty pattern slot
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
-            }
+        }
+        else
+        {
+            // Empty pattern slot
+            MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
         }
     }
 
