@@ -256,20 +256,6 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
     sequencer->copy = true;
     sequencer->clear = false;
     sequencer->copySource.Clear();
-    if (sequencer->stepSelected.size() == 1)
-    {
-      auto selection = *sequencer->stepSelected.begin();
-      uint8_t track = sequencer->track;
-      SequencePosition* pos = sequencer->sequence.GetPosition(track);
-      uint8_t clip = pos->clip;
-      uint8_t pattern = selection.first;
-      uint8_t step = selection.second;
-      sequencer->copySource.type = SequenceSelectionType::STEP;
-      sequencer->copySource.track = track;
-      sequencer->copySource.clip = clip;
-      sequencer->copySource.pattern = pattern;
-      sequencer->copySource.step = step;
-    }
     sequencer->stepSelected.clear();
   }
   else if (keyInfo->state == RELEASED)
