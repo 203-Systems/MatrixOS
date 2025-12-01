@@ -20,6 +20,9 @@ void Sequence::New(uint8_t tracks)
     // Initialize sequence data
     data.bpm = 120;
     data.swing = 50;
+    data.beatsPerBar = 4;
+    data.beatUnit = 4;
+    data.stepDivision = 4;
     data.patternLength = 16;
     data.version = SEQUENCE_VERSION;
     data.tracks.clear();
