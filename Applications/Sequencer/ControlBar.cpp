@@ -104,7 +104,7 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo *keyInfo)
 {
   if (keyInfo->state == HOLD)
   {
-    sequencer->SetMessage(sequencer->ShiftActive() ? SequencerMessage::UNDO : SequencerMessage::RECORD, true);
+    sequencer->SetMessage(sequencer->ClearActive() ? SequencerMessage::UNDO : SequencerMessage::RECORD, true);
   }
   else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::RECORD || sequencer->lastMessage == SequencerMessage::UNDO))
   {
@@ -112,13 +112,18 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-    if (sequencer->ShiftActive() && !sequencer->sequence.Playing())
+    if (sequencer->ClearActive())
     {
-      sequencer->ShiftEventOccured();
-      sequencer->sequence.UndoLastRecorded();
-      return true;
+      if(!sequencer->sequence.Playing())
+      {
+        sequencer->sequence.UndoLastRecorded();
+        sequencer->SetMessage(SequencerMessage::UNDONE);
+      }
     }
-    sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
+    else
+    { 
+      sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
+    }
   }
   return true;
 }
@@ -617,10 +622,10 @@ bool SequencerControlBar::Render(Point origin)
       {
         MatrixOS::LED::SetColor(point, Color::White);
       }
-      else if (sequencer->ShiftActive() && !sequencer->sequence.Playing() && (MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150)
+      else if (sequencer->ClearActive())
       {
         // Undo record
-        MatrixOS::LED::SetColor(point, Color(0xFF0040).DimIfNot(sequencer->sequence.CanUndoLastRecord()));
+        MatrixOS::LED::SetColor(point, Color(0xFF0020).DimIfNot(sequencer->sequence.CanUndoLastRecord() && !sequencer->sequence.Playing()));
       }
       else if (sequencer->sequence.RecordEnabled())
       {

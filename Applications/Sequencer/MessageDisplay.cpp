@@ -475,8 +475,9 @@ bool SequencerMessageDisplay::Render(Point origin)
                 break;
             }
             case SequencerMessage::UNDO:
+            case SequencerMessage::UNDONE:
             {
-                Color undoColor = Color(0xFF0040);
+                Color undoColor = sequencer->lastMessage == SequencerMessage::UNDO ? Color(0xFF0020) : successColor;
                 RenderUndo(origin, undoColor);
                 break;
             }

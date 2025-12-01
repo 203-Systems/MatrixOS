@@ -23,6 +23,7 @@ enum class SequencerMessage
     PLAY,
     RECORD,
     UNDO,
+    UNDONE,
 };
 
 enum class SequenceSelectionType
