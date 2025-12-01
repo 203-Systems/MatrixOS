@@ -12,7 +12,7 @@ Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 
 bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
 {
-  bool stepSelected = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
+  bool stepSelected = !sequencer->stepSelected.empty();
 
   if (stepSelected)
   {
@@ -539,7 +539,7 @@ Color SequencerControlBar::GetOctaveMinusColor()
 bool SequencerControlBar::Render(Point origin)
 {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
-  bool stepSelected = !sequencer->sequence.Playing(sequencer->track) && !sequencer->stepSelected.empty();
+  bool stepSelected = !sequencer->stepSelected.empty();
 
   if(stepSelected == false)
   {
