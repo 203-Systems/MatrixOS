@@ -153,17 +153,18 @@ bool ClipLauncher::Render(Point origin)
     activeClips.reserve(trackCount);
     nextClips.reserve(trackCount);
 
-    Color baseColor = Color::Black;
+    Color waveColor[8];
 
-    if(sequencer->ClearActive())
+    if(sequencer->ClearActive() || sequencer->CopyActive())
     {
-        uint8_t scale = ColorEffects::Breath();
-        baseColor = Color::Crossfade(Color(0xFF0080).Dim(32), Color::White.Dim(32), Fract16(scale / 2, 8));
-    }
-    else if(sequencer->CopyActive())
-    {
-        uint8_t scale = ColorEffects::Breath();
-        baseColor = Color::Crossfade(Color(0x0080FF).Dim(32), Color::White.Dim(32), Fract16(scale / 2, 8));
+        Color color;
+        if(sequencer->ClearActive()) {color = Color(0xFF0080);}
+        else {color = Color(0x0080FF);}
+        for(uint8_t x = 0; x < 8; x++)
+        {
+            uint8_t scale = ColorEffects::Breath(600, 75 * x);
+            waveColor[x] = Color::Crossfade(color, Color::White, Fract16(scale, 8)).Dim(64);
+        }
     }
 
     for(uint8_t track = 0; track < trackCount; track++)
@@ -190,15 +191,13 @@ bool ClipLauncher::Render(Point origin)
 
             if(track >= trackCount)
             {
-                // No track at this position
-                color = baseColor;
+                color = Color::Black;
             }
             else if(!sequencer->sequence.ClipExists(track, clip))
             {
-                // Clip doesn't exist - show black if track is playing, otherwise dim gray
                 if(sequencer->ClearActive())
                 {
-                    color = baseColor;
+                    color = waveColor[x];
                 }
                 else if(sequencer->CopyActive())
                 {
@@ -209,14 +208,13 @@ bool ClipLauncher::Render(Point origin)
                     }
                     else
                     {
-                        color = baseColor;
+                        color = waveColor[x];
                     }
                 }
                 else if(sequencer->sequence.Playing())
                 {
                     if(nextClips[track] == 254) // About to stop
                     {
-                        // color = Color(0x100000);
                         color = (quarterNoteProgress < 0x8000) ? Color(0x600000) : Color::Black;
                     }
                     else
