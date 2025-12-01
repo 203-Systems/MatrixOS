@@ -31,8 +31,12 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
             // Check if clicking on add button
             if(patternIdx == patternCount && patternCount < 16)
-            {
-                if(sequencer->ShiftActive() && sequencer->patternView)
+            {   
+                if(sequencer->ClearActive())
+                {
+                    return true; // Not relevent
+                }
+                else if(sequencer->ShiftActive() && sequencer->patternView)
                 {
                     lengthAdjustmentMode = true;
                     newPatternIdx = sequencer->sequence.NewPattern(track, clip);
@@ -238,14 +242,21 @@ bool PatternSelector::Render(Point origin)
                     MatrixOS::LED::SetColor(origin + Point(x, y), trackColor);
                 }
             }
-            else if(i == patternCount && patternCount < 16 &&
-                    sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
+            else if(i == patternCount)
             {
-                // Show add button in dim white when source is selected
-                MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
+                if(sequencer->ClearActive() || sequencer->copySource.IsType(SequenceSelectionType::PATTERN) == false)
+                {
+                    MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
+                }
+                else
+                {
+                    MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
+                }
             }
             else
             {
+
+
                 // Hide other empty slots in copy mode
                 MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
             }
