@@ -242,7 +242,7 @@ bool PatternSelector::Render(Point origin)
                     sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
             {
                 // Show add button in dim white when source is selected
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim());
+                MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
             }
             else
             {
@@ -284,7 +284,7 @@ bool PatternSelector::Render(Point origin)
             else if(i == patternCount)
             {
                 // Add button at next available slot
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color(0x202020));
+                MatrixOS::LED::SetColor(origin + Point(x, y), trackColor.Dim(32));
             }
             else
             {
