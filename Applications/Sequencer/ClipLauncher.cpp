@@ -158,11 +158,28 @@ bool ClipLauncher::Render(Point origin)
     if(sequencer->ClearActive() || sequencer->CopyActive())
     {
         Color color;
-        if(sequencer->ClearActive()) {color = Color(0xFF0080);}
-        else {color = Color(0x0080FF);}
+        uint16_t period = 600;
+        uint16_t xDelay = 80;
+        if(sequencer->ClearActive()) 
+        {
+            color = Color(0xFF0080);
+        }
+        else if(sequencer->CopyActive())
+        {
+            if(sequencer->copySource.Selected())
+            {
+                color = Color(0xFFD000);
+                period = 300;
+                xDelay = 40;
+            }
+            else
+            {
+                color = Color(0x0080FF);
+            }
+        }
         for(uint8_t x = 0; x < 8; x++)
         {
-            uint8_t scale = ColorEffects::Breath(600, 75 * x);
+            uint8_t scale = ColorEffects::Breath(600, 80 * x);
             waveColor[x] = Color::Crossfade(color, Color::White, Fract16(scale, 8)).Dim(64);
         }
     }
@@ -201,7 +218,7 @@ bool ClipLauncher::Render(Point origin)
                 }
                 else if(sequencer->CopyActive())
                 {
-                    if(sequencer->copySource.Selected())
+                    if(sequencer->copySource.Selected() && sequencer->copySource.IsType(SequenceSelectionType::CLIP))
                     {
                         Color trackColor = sequencer->meta.tracks[track].color;
                         color = trackColor.Dim(32);
@@ -243,7 +260,7 @@ bool ClipLauncher::Render(Point origin)
                     if(isWrongCopyType)
                     {
                         // Gray out when wrong copy type is selected
-                        color = Color::White.Dim(32);
+                        color = Color::White.Dim(127);
                     }
                     else if(isCopySource)
                     {
