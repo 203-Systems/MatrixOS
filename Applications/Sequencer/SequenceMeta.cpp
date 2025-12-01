@@ -21,6 +21,7 @@ void SequenceMeta::New(uint8_t tracks)
         Color(0x00FF40)
     };
 
+    this->tracks.clear();
     this->tracks.reserve(tracks);
     constexpr float hueStep = 1.0f / 16.0f;
     uint8_t hueIndex = MatrixOS::SYS::Millis() % 16;

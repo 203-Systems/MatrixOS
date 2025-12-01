@@ -1434,11 +1434,12 @@ bool Sequencer::Load(uint16_t slot)
 
 bool Sequencer::Saved(uint16_t slot)
 {
-    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "SavedSD slot out of range %u", slot); return false; }
+    if (slot >= SD_SLOT_MAX) { MLOGD("Sequencer", "Saved slot out of range %u", slot); return false; }
     if (!MatrixOS::FileSystem::Available()) { return false; }
     string base = "/sequences/" + std::to_string(slot + 1) + "/";
     string dataPath = base + "sequence.data";
     string metaPath = base + "sequence.meta";
+    MLOGD("Sequencer", "Saved Slot %d - %d|%d", slot, MatrixOS::FileSystem::Exists(dataPath), MatrixOS::FileSystem::Exists(metaPath));
     return MatrixOS::FileSystem::Exists(dataPath) && MatrixOS::FileSystem::Exists(metaPath);
 }
 
@@ -1591,7 +1592,6 @@ void Sequencer::SequenceBrowser()
     uint32_t modifierTime = 0;
 
     bool loaded = false;
-    bool saved = false;
     bool failed = false;
     uint32_t eventTime = 0;
 
@@ -1602,7 +1602,7 @@ void Sequencer::SequenceBrowser()
     {
         if (Saved(slot))
         {
-            Color c = meta.color;
+            Color c = Color::Black;
             std::string path = "/sequences/" + std::to_string(slot + 1) + "/sequence.meta";
             File f = MatrixOS::FileSystem::Open(path, "rb");
             if (GetColorFromSequenceMetaFile(f, c)) slotColors[slot] = c;
@@ -1614,10 +1614,6 @@ void Sequencer::SequenceBrowser()
         if(eventTime != 0 && MatrixOS::SYS::Millis() - eventTime < 500)
         {
             if(loaded)
-            {
-                RenderRing(Point(2,2), meta.color);
-            }
-            else if(saved)
             {
                 RenderRing(Point(2,2), meta.color);
             }
@@ -1861,41 +1857,38 @@ void Sequencer::SequenceBrowser()
                 }
                 else
                 {
-                    if (hasSequence && slot != saveSlot)
-                    {
                         MatrixOS::LED::Fill(Color::Black);
-                        RenderUpArrow(Point(2, 2), Color::White);
-                        MatrixOS::LED::Update();
                         loaded = false;
-                        saved = false;
                         failed = false;
-                        if (Load(slot)) {
-                            loaded = true;
-                        }
-                        else { 
-                            failed = true;
-                        }
-                        eventTime = MatrixOS::SYS::Millis();
-                    }
-                    else
-                    {
-                        MatrixOS::LED::Fill(Color::Black);
-                        RenderDownArrow(Point(2, 2), Color::White);
-                        MatrixOS::LED::Update();
-                        loaded = false;
-                        saved = false;
-                        failed = false;
-                        if (Save(slot))
+                        if(hasSequence)
                         {
-                            slotColors[slot] = meta.color;
-                            saved = true;
+                            RenderUpArrow(Point(2, 2), Color::White);
+                            MatrixOS::LED::Update();
+                            if (Load(slot)) {
+                                loaded = true;
+                            }
+                            else { 
+                                failed = true;
+                            }
                         }
                         else
-                        {   
-                            failed = true;
+                        {
+                            RenderDownArrow(Point(2, 2), Color::White);
+                            MatrixOS::LED::Update();
+                            sequence.New(8);
+                            meta.New(8);
+                            saveSlot = slot;
+                            if(Save(slot))
+                            {
+                                loaded = true;
+                                slotColors[slot] = meta.color;
+                            }
+                            else
+                            {
+                                failed = true;
+                            }
                         }
                         eventTime = MatrixOS::SYS::Millis();
-                    }
             }
             }
             return true;
@@ -1915,6 +1908,11 @@ void Sequencer::SequenceBrowser()
                 {
                     meta.color = newColor;
                     sequence.SetDirty();
+                    uint16_t slot = saveSlot;
+                    if(slot < SD_SLOT_MAX)
+                    {
+                        slotColors[slot] = newColor;
+                    }
                 }
                 return true;
             }
