@@ -33,6 +33,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 sequencer->ClearSelectedNotes();
                 sequencer->ClearActiveNotes();
                 sequencer->stepSelected.clear(); 
+                sequencer->patternSelected.clear();
                 if (changeCallback != nullptr) {
                     (changeCallback)(xy.x);
                 }

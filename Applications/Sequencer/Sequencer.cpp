@@ -119,6 +119,7 @@ void Sequencer::SequencerUI()
             ClearSelectedNotes();
             ClearActiveNotes();
             stepSelected.clear();
+            patternSelected.clear();
             lastMessage = SequencerMessage::NONE;
             lastMessageTime = 0;
 
@@ -1284,6 +1285,7 @@ void Sequencer::SetView(ViewMode view)
         ClearSelectedNotes();
         ClearActiveNotes();
         stepSelected.clear();
+        patternSelected.clear();
 
         lastMessage = SequencerMessage::NONE;
         lastMessageTime = 0;

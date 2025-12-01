@@ -101,9 +101,6 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
                 // Select the newly created clip
                 sequencer->track = track;
                 sequencer->sequence.SetClip(track, clip);
-                sequencer->ClearActiveNotes();
-                sequencer->ClearSelectedNotes();
-                sequencer->stepSelected.clear();
             }
         }
         // Select clip
@@ -132,10 +129,6 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
                     sequencer->sequence.SetClip(track, clip);
                 }   
             }
-
-            sequencer->ClearActiveNotes();
-            sequencer->ClearSelectedNotes();
-            sequencer->stepSelected.clear();
         }
     }
     return true;

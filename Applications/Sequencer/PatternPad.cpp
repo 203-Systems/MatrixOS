@@ -135,9 +135,6 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             sequencer->ShiftEventOccured();
             sequencer->sequence.SetPosition(track, clip, patternIdx, step);
             sequencer->SetView(Sequencer::ViewMode::StepDetail);
-            sequencer->ClearActiveNotes();
-            sequencer->ClearSelectedNotes();
-            sequencer->stepSelected.clear();
             return true;
         }
 

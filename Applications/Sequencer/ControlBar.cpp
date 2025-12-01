@@ -241,6 +241,36 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
         }
       }
     }
+
+    if (sequencer->patternSelected.empty() == false)
+    {
+      uint8_t track = sequencer->track;
+      uint8_t clip = pos->clip;
+
+      // Create a vector from the set and sort in reverse order
+      std::vector<uint8_t> patternsToDelete(sequencer->patternSelected.begin(), sequencer->patternSelected.end());
+      std::sort(patternsToDelete.rbegin(), patternsToDelete.rend());
+
+      // Delete patterns from last to first to avoid index shifting
+      for (uint8_t patternIdx : patternsToDelete)
+      {
+        sequencer->sequence.DeletePattern(track, clip, patternIdx);
+      }
+
+      // Update current pattern index if needed
+      uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
+      uint8_t currentPattern = pos->pattern;
+      if (currentPattern >= patternCount)
+      {
+        currentPattern = patternCount > 0 ? patternCount - 1 : 0;
+        sequencer->sequence.SetPattern(track, currentPattern);
+      }
+
+      sequencer->ClearActiveNotes();
+      sequencer->stepSelected.clear();
+      sequencer->patternSelected.clear();
+      sequencer->SetMessage(SequencerMessage::CLEARED);
+    }
   }
   else if (keyInfo->state == RELEASED)
   {
@@ -257,6 +287,7 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
     sequencer->clear = false;
     sequencer->copySource.Clear();
     sequencer->stepSelected.clear();
+    sequencer->patternSelected.clear();
   }
   else if (keyInfo->state == RELEASED)
   {
@@ -329,7 +360,7 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo *keyInfo)
     sequencer->meta.tracks[track].twoPatternMode = !sequencer->meta.tracks[track].twoPatternMode;
     sequencer->patternView = false; // So user know what happened.
     sequencer->stepSelected.clear();
-    sequencer->sequence.SetDirty();
+    sequencer->patternSelected.clear();
   }
   return true;
 }

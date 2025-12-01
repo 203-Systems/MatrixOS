@@ -19,6 +19,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 {
     if(xy.y < 2) // Selector part
     {
+        uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
+
         if(keyInfo->State() == PRESSED)
         {
             uint8_t track = sequencer->track;
@@ -26,10 +28,10 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             uint8_t clip = pos->clip;
             uint8_t pattern = pos->pattern;
             uint8_t patternCount = sequencer->sequence.GetPatternCount(track, clip);
-            uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
             uint8_t newPatternIdx = 0;
             bool copyActive = sequencer->CopyActive() && (sequencer->copySource.IsType(SequenceSelectionType::PATTERN) || sequencer->copySource.IsType(SequenceSelectionType::NONE));
 
+            sequencer->patternSelected.insert(patternIdx);
 
             // Check if clicking on add button
             if(patternIdx == patternCount && patternCount < 16)
@@ -107,8 +109,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                         sequencer->sequence.SetPattern(track, currentPattern);
                     }
 
-                    sequencer->ClearActiveNotes();
-                    sequencer->stepSelected.clear();
+                    sequencer->patternSelected.clear();
                     sequencer->SetMessage(SequencerMessage::CLEARED);
                 }
                 // Copy pattern if CopyActive
@@ -133,8 +134,6 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
 
                         sequencer->sequence.CopyPattern(sourceTrack, sourceClip, sourcePattern, track, clip, destPattern);
 
-                        sequencer->ClearActiveNotes();
-                        sequencer->stepSelected.clear();
                         sequencer->SetMessage(SequencerMessage::COPIED);
                     }
                 }
@@ -171,6 +170,10 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             {
                 lengthAdjustmentMode = !lengthAdjustmentMode;
             }
+        }
+        else if(keyInfo->State() == RELEASED)
+        {
+            sequencer->patternSelected.erase(patternIdx);
         }
     }
     else // Length Adjustment Mode
@@ -216,7 +219,15 @@ bool PatternSelector::Render(Point origin)
         uint8_t x = i % 8;
         uint8_t y = i / 8;
 
-        if(i < patternCount)
+        // Check if this pattern is currently selected (held down)
+        bool isSelected = sequencer->patternSelected.find(i) != sequencer->patternSelected.end();
+
+        // If selected, render white regardless of whether pattern exists
+        if(isSelected)
+        {
+            MatrixOS::LED::SetColor(origin + Point(x, y), Color::White);
+        }
+        else if(i < patternCount)
         {
 
             bool patternSelectedForCopy = sequencer->CopyActive() && sequencer->copySource.IsType(SequenceSelectionType::PATTERN);
@@ -237,7 +248,7 @@ bool PatternSelector::Render(Point origin)
                 }
             }
             else  if(i == patternIdx )
-            {   
+            {
                 if(sequencer->sequence.Playing(track))
                 {
                     uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
@@ -256,7 +267,7 @@ bool PatternSelector::Render(Point origin)
             }
         }
         else if(i == patternCount)
-        {   
+        {
             if(sequencer->ClearActive())
             {
                 // Slot not available for clear

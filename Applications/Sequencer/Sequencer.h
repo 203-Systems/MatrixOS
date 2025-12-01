@@ -109,6 +109,7 @@ class Sequencer : public Application {
   ViewMode currentView = ViewMode::Sequencer;
 
   std::set<std::pair<uint8_t, uint8_t>> stepSelected; // pair<pattern, step>
+  std::set<uint8_t> patternSelected;
   SequenceCopySource copySource;
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
