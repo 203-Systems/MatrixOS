@@ -458,7 +458,7 @@ bool SequencerMessageDisplay::Render(Point origin)
             }
             case SequencerMessage::MIX:
             {
-                Color mixColor = Color(0x00FF60);
+                Color mixColor = Color(0x40FF00);
                 RenderMix(origin, mixColor);
                 break;
             }

@@ -647,7 +647,7 @@ bool SequencerControlBar::Render(Point origin)
       }
       else if (sequencer->currentView == Sequencer::ViewMode::Session)
       {
-        color = Color(0xFFFFA0);
+        color = Color(0xFFFFB3);
       }
       else
       {
@@ -666,11 +666,11 @@ bool SequencerControlBar::Render(Point origin)
       }
       else if (sequencer->currentView == Sequencer::ViewMode::Mixer)
       {
-        color = Color(0xA0FFC0);
+        color = Color(0xC6FFB3);
       }
       else
       {
-        color = Color(0x00FF60);
+        color = Color(0x40FF00);
       }
       MatrixOS::LED::SetColor(point, color);
     }
