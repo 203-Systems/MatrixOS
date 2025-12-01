@@ -37,7 +37,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                     lengthAdjustmentMode = true;
                     newPatternIdx = sequencer->sequence.NewPattern(track, clip);
                 }
-                else if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+                else if(sequencer->CopyActive())
                 {
                     // Copy mode: Copy selected pattern to new pattern
                     if(sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
@@ -45,8 +45,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                         uint8_t sourceTrack = sequencer->copySource.track;
                         uint8_t sourceClip = sequencer->copySource.clip;
                         uint8_t sourcePattern = sequencer->copySource.pattern;
-                        sequencer->sequence.CopyPattern(sourceTrack, sourceClip, sourcePattern, track, clip, 255);
-                        newPatternIdx = clip;
+                        newPatternIdx = sequencer->sequence.NewPattern(track, clip);
+                        sequencer->sequence.CopyPattern(sourceTrack, sourceClip, sourcePattern, track, clip, newPatternIdx);
                         sequencer->SetMessage(SequencerMessage::COPIED);
                     }
                 }
