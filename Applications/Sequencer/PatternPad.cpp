@@ -70,7 +70,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
     if(keyInfo->state == PRESSED)
     {
         bool hasEvent = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime);
-        if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
+        if(sequencer->CopyActive())
         {
             // Source selection if none yet
             if(!sequencer->copySource.Selected())
@@ -86,7 +86,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
                 sequencer->copySource.step = step;
                 return true;
             }
-            else
+            else if(sequencer->copySource.IsType(SequenceSelectionType::STEP))
             {
                 // Copy from existing source to this step
                 uint8_t srcTrack = sequencer->copySource.track;
@@ -298,65 +298,29 @@ bool PatternPad::Render(Point origin)
         SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
         if (!pattern) { continue; }
 
-        if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
+        // Render Base
+        bool whiteBase = false;
+        if(sequencer->ClearActive())
         {
-            // Check if we have a step copy source
-            bool hasStepCopySource = sequencer->copySource.IsType(SequenceSelectionType::STEP);
-            bool isStepCopySourceInThisPattern = hasStepCopySource &&
-                                                 sequencer->copySource.track == track &&
-                                                 sequencer->copySource.clip == clip &&
-                                                 sequencer->copySource.pattern == patternIdx;
-            bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::STEP);
-
-            // Render Base
-            for(uint8_t step = 0; step < pattern->steps; step++)
-            {
-                Point point = Point(step % width, step / width);
-                MatrixOS::LED::SetColor(patternOrigin + point, hasStepCopySource ? trackColor.Dim() : Color::White.Dim(32));
-            }
-
-            // Render Step
-            uint16_t hasNote = 0;
-            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-            for(uint8_t slot = 0; slot < pattern->steps; slot++)
-            {
-                uint16_t startTime = slot * pulsesPerStep;
-                uint16_t endTime = startTime + pulsesPerStep - 1;
-
-                bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
-                if(hasEventInSlot)
-                {
-                    if(isWrongCopyType)
-                    {
-                        // Gray out when wrong copy type is selected
-                        MatrixOS::LED::SetColor(patternOrigin + Point(slot % width, slot / width), Color::White.Dim(32));
-                    }
-                    else
-                    {
-                        MatrixOS::LED::SetColor(patternOrigin + Point(slot % width, slot / width), trackColor);
-                    }
-                }
-            }
-
-            // Render Selected source step in this pattern
-            if(isStepCopySourceInThisPattern)
-            {
-                uint8_t sourceStep = sequencer->copySource.step;
-                Point point = Point(sourceStep % width, sourceStep / width);
-                MatrixOS::LED::SetColor(patternOrigin + point, Color::White);
-            }
+            whiteBase = true;
         }
-        else // Normal mode
+        else if(sequencer->CopyActive() && !(sequencer->copySource.IsType(SequenceSelectionType::STEP)))
         {
-            // Render Base
-            for(uint8_t step = 0; step < pattern->steps; step++)
-            {
-                Point point = Point(step % width, step / width);
-                MatrixOS::LED::SetColor(patternOrigin + point, trackColor.Dim());
-            }
+            whiteBase = true;
+        }
 
-            // Render Step
-            uint16_t hasNote = 0;
+        for(uint8_t step = 0; step < pattern->steps; step++)
+        {
+            Point point = Point(step % width, step / width);
+            MatrixOS::LED::SetColor(patternOrigin + point, whiteBase ? Color::White.Dim(32) : trackColor.Dim(32));
+        }
+
+        uint16_t hasNote = 0;
+
+        // Render Step
+        bool renderStep = !(sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::STEP));
+        if(renderStep)
+        {
             uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
             for(uint8_t slot = 0; slot < pattern->steps; slot++)
             {
@@ -417,29 +381,51 @@ bool PatternPad::Render(Point origin)
                     MatrixOS::LED::SetColor(patternOrigin + point, Color::White);
                 }
             }
+        }
 
-            // Render Cursor
-            if(sequencer->sequence.Playing(track))
+        // Render Cursor
+        if(sequencer->sequence.Playing(track))
+        {
+            SequencePosition* pos = sequencer->sequence.GetPosition(track);
+            if(patternIdx == pos->pattern)
             {
-                SequencePosition* pos = sequencer->sequence.GetPosition(track);
-                if(patternIdx == pos->pattern)
-                {
-                    uint8_t slot = pos->step;
-                    Point point = Point(slot % width, slot / width);
+                uint8_t slot = pos->step;
+                Point point = Point(slot % width, slot / width);
 
-                    if(sequencer->sequence.RecordEnabled() && sequencer->sequence.ShouldRecord(track))
+                if(sequencer->sequence.RecordEnabled() && sequencer->sequence.ShouldRecord(track))
+                {
+                    Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
+                    MatrixOS::LED::SetColor(patternOrigin + point, baseColor);
+                }
+                else
+                {
+                    Color color;
+                    if(renderStep && (!whiteBase || (hasNote & (1 << slot))))
                     {
-                        Color baseColor = hasNote & (1 << slot) ? Color(0xFF0040) : Color(0xFF0000);
-                        MatrixOS::LED::SetColor(patternOrigin + point, baseColor);
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
                     }
-                    else
+                    else // So it doesn't looks tinted
                     {
-                        Color color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
-                        MatrixOS::LED::SetColor(patternOrigin + point, color);
+                        color = Color::White;
                     }
+                    MatrixOS::LED::SetColor(patternOrigin + point, color);
                 }
             }
         }
+
+        // Render Copy Source
+        if(sequencer->CopyActive() && 
+            sequencer->copySource.IsType(SequenceSelectionType::STEP) &&
+            sequencer->copySource.track == track &&
+            sequencer->copySource.clip == clip &&
+            sequencer->copySource.pattern == patternIdx && 
+            sequencer->copySource.step < pattern->steps
+        )
+        {
+            uint8_t slot = sequencer->copySource.step;
+            Point point = Point(slot % width, slot / width);
+            MatrixOS::LED::SetColor(patternOrigin + point, Color::White);
+        }   
     }
 
     return true;
