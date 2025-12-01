@@ -12,9 +12,9 @@ class SequencerMessageDisplay : public UIComponent {
     bool IsEnabled();
     bool TwoRowMode();
     void ClearRows(Point origin, uint8_t row);
-    void RenderWave(Point origin, uint8_t row, Color color);
+    void RenderWave(Point origin, uint8_t row, Color color, uint16_t speed = 600, uint16_t xDelay = 80);
     void RenderClear(Point origin, Color color);
-    void RenderCopy(Point origin, Color color);
+    void RenderCopy(Point origin, Color color, bool fast);
     void RenderShift(Point origin, Color color);
     void RenderNudge(Point origin, Color color);
     void RenderQuantize(Point origin, Color color);

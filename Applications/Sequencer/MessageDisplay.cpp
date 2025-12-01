@@ -51,12 +51,12 @@ void SequencerMessageDisplay::ClearRows(Point origin, uint8_t row)
     }
 }
 
-void SequencerMessageDisplay::RenderWave(Point origin, uint8_t row, Color color)
+void SequencerMessageDisplay::RenderWave(Point origin, uint8_t row, Color color, uint16_t period, uint16_t xDelay)
 {
     ClearRows(origin, row);
     for(uint8_t x = 0; x < 8; x++)
     {
-        uint8_t scale = ColorEffects::Breath(600, 75 * x);
+        uint8_t scale = ColorEffects::Breath(period, xDelay * x);
         Color colColor = Color::Crossfade(color, Color::White, Fract16(scale, 8));
         for(uint8_t y = 0; y < row; y++)
         {
@@ -104,11 +104,18 @@ void SequencerMessageDisplay::RenderClear(Point origin, Color color)
     MatrixOS::LED::SetColor(origin + Point(7, 3), color);
 }
 
-void SequencerMessageDisplay::RenderCopy(Point origin, Color color)
+void SequencerMessageDisplay::RenderCopy(Point origin, Color color, bool fast)
 {
     if(TwoRowMode())
     {
-        RenderWave(origin + Point(0, 2), 2, color);
+        if(fast)
+        {
+            RenderWave(origin + Point(0, 2), 2, color, 300, 40);
+        }
+        else
+        {
+            RenderWave(origin + Point(0, 2), 2, color);
+        }
         return;
     }
 
@@ -424,11 +431,10 @@ bool SequencerMessageDisplay::Render(Point origin)
                 RenderClear(origin, copyColor);
                 break;
             }
-            case SequencerMessage::COPY:
             case SequencerMessage::COPIED:
             {
                 Color copyColor = sequencer->lastMessage == SequencerMessage::COPY ? Color(0x0080FF) : successColor;
-                RenderCopy(origin, copyColor);
+                RenderCopy(origin, copyColor, true);
                 break;
             }
             case SequencerMessage::NUDGE:
@@ -489,7 +495,15 @@ bool SequencerMessageDisplay::Render(Point origin)
     }
     else if(sequencer->CopyActive())
     {
-        RenderCopy(origin, Color(0x0080FF));
+        bool selected = sequencer->copySource.Selected();
+        if(selected)
+        {
+            RenderCopy(origin, Color(0xFFD000), true);
+        }
+        else
+        {
+            RenderCopy(origin, Color(0x0080FF), false);
+        }
     }
     else if(sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150))
     {
