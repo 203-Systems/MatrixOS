@@ -40,11 +40,11 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 else if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
                 {
                     // Copy mode: Copy selected pattern to new pattern
-                    if(std::get<2>(sequencer->patternCopySource) >= 0)
+                    if(sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
                     {
-                        uint8_t sourceTrack = std::get<0>(sequencer->patternCopySource);
-                        uint8_t sourceClip = std::get<1>(sequencer->patternCopySource);
-                        uint8_t sourcePattern = std::get<2>(sequencer->patternCopySource);
+                        uint8_t sourceTrack = sequencer->copySource.track;
+                        uint8_t sourceClip = sequencer->copySource.clip;
+                        uint8_t sourcePattern = sequencer->copySource.pattern;
                         sequencer->sequence.CopyPattern(sourceTrack, sourceClip, sourcePattern, track, clip, 255);
                         newPatternIdx = clip;
                         sequencer->SetMessage(SequencerMessage::COPIED);
@@ -109,17 +109,20 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 else if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
                 {
                     // Source selection if none yet
-                    if(std::get<2>(sequencer->patternCopySource) < 0)
+                    if(!sequencer->copySource.Selected())
                     {
-                        sequencer->patternCopySource = std::make_tuple(track, clip, patternIdx);
+                        sequencer->copySource.type = SequenceSelectionType::PATTERN;
+                        sequencer->copySource.track = track;
+                        sequencer->copySource.clip = clip;
+                        sequencer->copySource.pattern = patternIdx;
                         return true;
                     }
                     else
                     {
                         // Copy from existing source to this pattern
-                        uint8_t sourceTrack = std::get<0>(sequencer->patternCopySource);
-                        uint8_t sourceClip = std::get<1>(sequencer->patternCopySource);
-                        uint8_t sourcePattern = std::get<2>(sequencer->patternCopySource);
+                        uint8_t sourceTrack = sequencer->copySource.track;
+                        uint8_t sourceClip = sequencer->copySource.clip;
+                        uint8_t sourcePattern = sequencer->copySource.pattern;
                         uint8_t destPattern = patternIdx;
 
                         sequencer->sequence.CopyPattern(sourceTrack, sourceClip, sourcePattern, track, clip, destPattern);
@@ -202,27 +205,6 @@ bool PatternSelector::Render(Point origin)
     uint8_t patternIdx = pos->pattern;
     Color trackColor = sequencer->meta.tracks[track].color;
 
-    // Special state: Step copy mode active (from PatternPad)
-    if(sequencer->CopyActive() && std::get<3>(sequencer->stepCopySource) >= 0 && sequencer->sequence.Playing(track) == false)
-    {
-        // Render all pattern slots dimmed when step copy is active
-        for(uint8_t i = 0; i < 16; i++)
-        {
-            uint8_t x = i % 8;
-            uint8_t y = i / 8;
-
-            if(i < patternCount)
-            {
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim(32));
-            }
-            else
-            {
-                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);
-            }
-        }
-        return true;
-    }
-
     if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
     {
         // Copy mode rendering
@@ -234,11 +216,18 @@ bool PatternSelector::Render(Point origin)
             if(i < patternCount)
             {
                 // Pattern exists
-                uint8_t sourceTrack = std::get<0>(sequencer->patternCopySource);
-                uint8_t sourceClip = std::get<1>(sequencer->patternCopySource);
-                uint8_t sourcePattern = std::get<2>(sequencer->patternCopySource);
+                bool isPatternCopySource = sequencer->copySource.IsType(SequenceSelectionType::PATTERN) &&
+                                          sequencer->copySource.track == track &&
+                                          sequencer->copySource.clip == clip &&
+                                          i == sequencer->copySource.pattern;
+                bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::PATTERN);
 
-                if(sourcePattern >= 0 && sourceTrack == track && sourceClip == clip && i == sourcePattern)
+                if(isWrongCopyType)
+                {
+                    // Gray out when wrong copy type is selected
+                    MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim(32));
+                }
+                else if(isPatternCopySource)
                 {
                     // Highlight selected source in white
                     MatrixOS::LED::SetColor(origin + Point(x, y), Color::White);
@@ -249,7 +238,8 @@ bool PatternSelector::Render(Point origin)
                     MatrixOS::LED::SetColor(origin + Point(x, y), trackColor);
                 }
             }
-            else if(i == patternCount && patternCount < 16 && std::get<2>(sequencer->patternCopySource) >= 0)
+            else if(i == patternCount && patternCount < 16 &&
+                    sequencer->copySource.IsType(SequenceSelectionType::PATTERN))
             {
                 // Show add button in dim white when source is selected
                 MatrixOS::LED::SetColor(origin + Point(x, y), Color::White.Dim());

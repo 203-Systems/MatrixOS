@@ -73,22 +73,26 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(sequencer->CopyActive() && sequencer->sequence.Playing(track) == false)
         {
             // Source selection if none yet
-            if(std::get<3>(sequencer->stepCopySource) < 0)
+            if(!sequencer->copySource.Selected())
             {
                 if(hasEvent == false)
                 {
                     return true; // only allow selecting source with events
                 }
-                sequencer->stepCopySource = std::make_tuple(track, clip, patternIdx, step);
+                sequencer->copySource.type = SequenceSelectionType::STEP;
+                sequencer->copySource.track = track;
+                sequencer->copySource.clip = clip;
+                sequencer->copySource.pattern = patternIdx;
+                sequencer->copySource.step = step;
                 return true;
             }
             else
             {
                 // Copy from existing source to this step
-                uint8_t srcTrack = std::get<0>(sequencer->stepCopySource);
-                uint8_t srcClip = std::get<1>(sequencer->stepCopySource);
-                uint8_t srcPatternIdx = std::get<2>(sequencer->stepCopySource);
-                uint8_t srcStep = std::get<3>(sequencer->stepCopySource);
+                uint8_t srcTrack = sequencer->copySource.track;
+                uint8_t srcClip = sequencer->copySource.clip;
+                uint8_t srcPatternIdx = sequencer->copySource.pattern;
+                uint8_t srcStep = sequencer->copySource.step;
 
                 SequencePattern* srcPatternPtr = sequencer->sequence.GetPattern(srcTrack, srcClip, srcPatternIdx);
 
@@ -295,7 +299,8 @@ bool PatternPad::Render(Point origin)
         if (!pattern) { continue; }
 
         // Special state: Pattern copy mode active (from PatternSelector)
-        if(sequencer->CopyActive() && std::get<2>(sequencer->patternCopySource) >= 0 && sequencer->sequence.Playing(track) == false)
+        if(sequencer->CopyActive() && sequencer->copySource.IsType(SequenceSelectionType::PATTERN) &&
+           sequencer->sequence.Playing(track) == false)
         {
             // Render all slots dimmed when pattern copy is active
             for(uint8_t step = 0; step < pattern->steps; step++)
@@ -309,11 +314,12 @@ bool PatternPad::Render(Point origin)
         if((sequencer->CopyActive() && sequencer->sequence.Playing(track) == false) || sequencer->ClearActive())
         {
             // Check if we have a step copy source
-            bool hasStepCopySource = std::get<3>(sequencer->stepCopySource) >= 0;
+            bool hasStepCopySource = sequencer->copySource.IsType(SequenceSelectionType::STEP);
             bool isStepCopySourceInThisPattern = hasStepCopySource &&
-                                                 std::get<0>(sequencer->stepCopySource) == track &&
-                                                 std::get<1>(sequencer->stepCopySource) == clip &&
-                                                 std::get<2>(sequencer->stepCopySource) == patternIdx;
+                                                 sequencer->copySource.track == track &&
+                                                 sequencer->copySource.clip == clip &&
+                                                 sequencer->copySource.pattern == patternIdx;
+            bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::STEP);
 
             // Render Base
             for(uint8_t step = 0; step < pattern->steps; step++)
@@ -333,14 +339,22 @@ bool PatternPad::Render(Point origin)
                 bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
                 if(hasEventInSlot)
                 {
-                    MatrixOS::LED::SetColor(patternOrigin + Point(slot % width, slot / width), trackColor);
+                    if(isWrongCopyType)
+                    {
+                        // Gray out when wrong copy type is selected
+                        MatrixOS::LED::SetColor(patternOrigin + Point(slot % width, slot / width), Color::White.Dim(32));
+                    }
+                    else
+                    {
+                        MatrixOS::LED::SetColor(patternOrigin + Point(slot % width, slot / width), trackColor);
+                    }
                 }
             }
 
             // Render Selected source step in this pattern
             if(isStepCopySourceInThisPattern)
             {
-                uint8_t sourceStep = std::get<3>(sequencer->stepCopySource);
+                uint8_t sourceStep = sequencer->copySource.step;
                 Point point = Point(sourceStep % width, sourceStep / width);
                 MatrixOS::LED::SetColor(patternOrigin + point, Color::White);
             }

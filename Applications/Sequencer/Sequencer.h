@@ -25,6 +25,42 @@ enum class SequencerMessage
     UNDO,
 };
 
+enum class SequenceSelectionType
+{
+    NONE,
+    STEP,
+    PATTERN,
+    CLIP
+};
+
+struct SequenceCopySource
+{
+    SequenceSelectionType type = SequenceSelectionType::NONE;
+    int8_t track = -1;
+    int8_t clip = -1;
+    int8_t pattern = -1;
+    int8_t step = -1;
+
+    void Clear()
+    {
+        type = SequenceSelectionType::NONE;
+        track = -1;
+        clip = -1;
+        pattern = -1;
+        step = -1;
+    }
+
+    bool Selected() const
+    {
+        return type != SequenceSelectionType::NONE;
+    }
+
+    bool IsType(SequenceSelectionType selectionType) const
+    {
+        return type == selectionType;
+    }
+};
+
 class Sequencer : public Application {
  public:
   inline static Application_Info info = {
@@ -73,9 +109,7 @@ class Sequencer : public Application {
   ViewMode currentView = ViewMode::Sequencer;
 
   std::set<std::pair<uint8_t, uint8_t>> stepSelected; // pair<pattern, step>
-  std::tuple<int8_t, int8_t, int8_t, int8_t> stepCopySource = {-1, -1, -1, -1}; // tuple<track, clip, pattern, step>
-  std::tuple<int8_t, int8_t, int8_t> patternCopySource = {-1, -1, -1}; // tuple<track, clip, pattern>
-  std::pair<int8_t, int8_t> clipCopySource = {-1, -1}; // pair<track, clip>
+  SequenceCopySource copySource;
 
   std::unordered_map<uint8_t, uint8_t> noteSelected;
   std::unordered_multiset<uint8_t> noteActive;

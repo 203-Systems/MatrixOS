@@ -277,9 +277,7 @@ void Sequencer::ClearState()
     ClearSelectedNotes();
     ClearActiveNotes();
     stepSelected.clear();
-    stepCopySource = {-1, -1, -1, -1};
-    patternCopySource = {-1, -1, -1};
-    clipCopySource = {-1, -1};
+    copySource.Clear();
     activeTrackSelected = false;
     lastMessage = SequencerMessage::NONE;
     lastMessageTime = 0;

@@ -40,20 +40,22 @@ bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
         if(sequencer->CopyActive())
         {
             // Source selection if none yet
-            if(sequencer->clipCopySource.first < 0)
+            if(!sequencer->copySource.Selected())
             {
                 // Only allow selecting existing clips as source
                 if(sequencer->sequence.ClipExists(track, clip))
                 {
-                    sequencer->clipCopySource = std::make_pair(track, clip);
+                    sequencer->copySource.type = SequenceSelectionType::CLIP;
+                    sequencer->copySource.track = track;
+                    sequencer->copySource.clip = clip;
                 }
                 return true;
             }
             else
             {
                 // Copy from existing source to this location
-                uint8_t sourceTrack = sequencer->clipCopySource.first;
-                uint8_t sourceClip = sequencer->clipCopySource.second;
+                uint8_t sourceTrack = sequencer->copySource.track;
+                uint8_t sourceClip = sequencer->copySource.clip;
 
                 // Copy clip (includes all patterns and enabled state)
                 sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
@@ -200,7 +202,7 @@ bool ClipLauncher::Render(Point origin)
                 }
                 else if(sequencer->CopyActive())
                 {
-                    if(std::get<0>(sequencer->clipCopySource) != -1)
+                    if(sequencer->copySource.Selected())
                     {
                         Color trackColor = sequencer->meta.tracks[track].color;
                         color = trackColor.Dim(32);
@@ -235,11 +237,17 @@ bool ClipLauncher::Render(Point origin)
                 bool isSelectedInTrack = (activeClips[track] == clip);
                 bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
                 bool isNextClip = (nextClips[track] == clip);
-                bool isCopySourceSelected = sequencer->CopyActive() && std::get<0>(sequencer->clipCopySource) != -1;
-                bool isCopySource = isCopySourceSelected && (std::get<0>(sequencer->clipCopySource) == track && std::get<1>(sequencer->clipCopySource) == clip);
+                bool isCopySourceSelected = sequencer->CopyActive() && sequencer->copySource.Selected();
+                bool isCopySource = isCopySourceSelected && (sequencer->copySource.track == track && sequencer->copySource.clip == clip);
+                bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::CLIP);
 
-                    
-                    if(isCopySource)
+
+                    if(isWrongCopyType)
+                    {
+                        // Gray out when wrong copy type is selected
+                        color = Color::White.Dim(32);
+                    }
+                    else if(isCopySource)
                     {
                         color = Color::White;
                     }
