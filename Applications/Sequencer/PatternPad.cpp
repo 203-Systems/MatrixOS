@@ -318,59 +318,67 @@ bool PatternPad::Render(Point origin)
         uint16_t hasNote = 0;
 
         // Render Step
-        bool renderStep = !(sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::STEP));
-        if(renderStep)
+        bool copyFilter = (sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::STEP));
+        bool noteFilter = !sequencer->noteSelected.empty();
+        uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+        for(uint8_t slot = 0; slot < pattern->steps; slot++)
         {
-            uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-            for(uint8_t slot = 0; slot < pattern->steps; slot++)
+            uint16_t startTime = slot * pulsesPerStep;
+            uint16_t endTime = startTime + pulsesPerStep - 1;
+
+            bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
+            bool shouldRender = false;
+
+            // If notes are selected, only render events with matching notes
+            if(noteFilter && !copyFilter)
             {
-                uint16_t startTime = slot * pulsesPerStep;
-                uint16_t endTime = startTime + pulsesPerStep - 1;
-
-                bool hasEventInSlot = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime, SequenceEventType::NoteEvent);
-                bool shouldRender = false;
-
-                // If notes are selected, only render events with matching notes
-                bool noteFilter = !sequencer->noteSelected.empty();
-                if(noteFilter)
+                // Check if any event in this slot has a note that's selected
+                auto it = pattern->events.lower_bound(startTime);
+                while (it != pattern->events.end() && it->first <= endTime)
                 {
-                    // Check if any event in this slot has a note that's selected
-                    auto it = pattern->events.lower_bound(startTime);
-                    while (it != pattern->events.end() && it->first <= endTime)
+                    if (it->second.eventType == SequenceEventType::NoteEvent)
                     {
-                        if (it->second.eventType == SequenceEventType::NoteEvent)
+                        const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                        if(sequencer->noteSelected.find(noteData.note) != sequencer->noteSelected.end())
                         {
-                            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
-                            if(sequencer->noteSelected.find(noteData.note) != sequencer->noteSelected.end())
-                            {
-                                shouldRender = true;
-                                break;
-                            }
+                            shouldRender = true;
+                            break;
                         }
-                        ++it;
                     }
-                }
-                else
-                {
-                    // No notes selected, render all note events
-                    shouldRender = hasEventInSlot;
-                }
-
-                if(shouldRender)
-                {
-                    hasNote |= 1 << slot;
-                    Color color = noteFilter ? Color::Green : trackColor;
-                    Point point = Point(slot % width, slot / width);
-                    MatrixOS::LED::SetColor(patternOrigin + point, color);
-                }
-                else if(noteFilter && hasEventInSlot)
-                {
-                    // Event exists but not in current filter; dim the track color
-                    Point point = Point(slot % width, slot / width);
-                    MatrixOS::LED::SetColor(patternOrigin + point, Color::Crossfade(trackColor, Color::White, Fract16(0xA000)).Scale(127));
+                    ++it;
                 }
             }
+            else
+            {
+                // No notes selected, render all note events
+                shouldRender = hasEventInSlot;
+            }
 
+            if(shouldRender)
+            {
+                hasNote |= 1 << slot;
+                Color color = trackColor;
+                if(copyFilter)
+                {
+                    color = Color::White.Dim(127);
+                }
+                else if(noteFilter)
+                {
+                    color = Color::Green;
+                }
+                Point point = Point(slot % width, slot / width);
+                MatrixOS::LED::SetColor(patternOrigin + point, color);
+            }
+            else if(noteFilter && hasEventInSlot)
+            {
+                // Event exists but not in current filter; dim the track color
+                Point point = Point(slot % width, slot / width);
+                MatrixOS::LED::SetColor(patternOrigin + point, Color::Crossfade(trackColor, Color::White, Fract16(0xA000)).Scale(127));
+            }
+        }
+
+        if(copyFilter == false)
+        {
             // Render Selected (only for current pattern)
             for(const auto& selection : sequencer->stepSelected)
             {
@@ -400,13 +408,13 @@ bool PatternPad::Render(Point origin)
                 else
                 {
                     Color color;
-                    if(renderStep && (!whiteBase || (hasNote & (1 << slot))))
+                    if((copyFilter) || (whiteBase && !(hasNote & (1 << slot))))
                     {
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
+                        color = Color::White;
                     }
                     else // So it doesn't looks tinted
                     {
-                        color = Color::White;
+                        color = Color::Crossfade(trackColor, Color::White, Fract16(0xA000));
                     }
                     MatrixOS::LED::SetColor(patternOrigin + point, color);
                 }
