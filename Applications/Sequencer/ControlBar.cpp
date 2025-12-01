@@ -64,11 +64,7 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-    if ((sequencer->CopyActive() || sequencer->ClearActive()) && sequencer->sequence.Playing() == false)
-    {
-      return true; // Disable play if we have copy or clear active
-    }
-    else if (sequencer->ShiftActive())
+    if (sequencer->ShiftActive())
     {
       sequencer->ShiftEventOccured();
       bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
