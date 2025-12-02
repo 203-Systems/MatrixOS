@@ -16,6 +16,7 @@
 #include "MessageDisplay.h"
 #include "SaveButton.h"
 #include "cb0r.h"
+#include "BPMTapper.h"
 
 void Sequencer::SequenceTask(void* ctx)
 {
@@ -816,6 +817,18 @@ void Sequencer::BPMSelector()
                              { return !bpmTextDisplay.IsEnabled(); });
     bpmUI.AddUIComponent(bpmDisplay, Point(-1, 0));
 
+    // BPM Tapper
+    SequencerBPMTapper bpmTapper;
+    bpmTapper.SetName("Tap Tempo");
+    bpmTapper.SetColor(color);
+    bpmTapper.SetSize(Dimension(8, 4));
+    bpmTapper.OnChange([&](uint16_t tappedBPM) -> void
+    {
+        bpmValue = tappedBPM;
+        bpmTextDisplay.Disable();
+    });
+    bpmUI.AddUIComponent(bpmTapper, Point(0, 0));
+
     const int32_t coarseModifier[8] = {-25, -10, -5, -1, 1, 5, 10, 25};
     const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
   
@@ -830,7 +843,6 @@ void Sequencer::BPMSelector()
     bpmNumberModifier.OnChange([&](int32_t val) -> void
     {
         bpmValue = val;
-        sequence.SetBPM((uint16_t)val);
         bpmTextDisplay.Disable();
     });
     bpmUI.AddUIComponent(bpmNumberModifier, Point(0, 7));
@@ -849,7 +861,6 @@ void Sequencer::BPMSelector()
     resetButton.OnPress([&]() -> void
     {
         bpmValue = 120;
-        sequence.SetBPM(120);
         bpmTextDisplay.Disable();
     });
     bpmUI.AddUIComponent(resetButton, Point(7, 6));
