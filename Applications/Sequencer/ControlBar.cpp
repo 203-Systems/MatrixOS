@@ -696,9 +696,26 @@ bool SequencerControlBar::Render(Point origin)
 
   if(stepSelected == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::NUDGE ||
-       sequencer->lastMessage == SequencerMessage::QUANTIZE ||
+    if(sequencer->lastMessage == SequencerMessage::QUANTIZE ||
        sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
+    {
+      sequencer->SetMessage(SequencerMessage::NONE);
+    }
+  }
+
+  if(patternSelected == false)
+  {
+    if(sequencer->lastMessage == SequencerMessage::NUDGE)
+    {
+      sequencer->SetMessage(SequencerMessage::NONE);
+    }
+  }
+
+  if(stepSelected == false && patternSelected == false)
+  {
+    if(sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS ||
+       sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS)
+
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
