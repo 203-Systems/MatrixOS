@@ -523,6 +523,10 @@ Color SequencerControlBar::GetOctavePlusColor()
   {
     return color;
   }
+  else if(!sequencer->stepSelected.empty())
+  {
+    return color;
+  }
 
   int8_t octave = sequencer->meta.tracks[sequencer->track].config.note.octave;
   uint8_t brightness;
@@ -546,6 +550,10 @@ Color SequencerControlBar::GetOctaveMinusColor()
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
   if (sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
+  {
+    return color;
+  }
+  else if(!sequencer->stepSelected.empty())
   {
     return color;
   }

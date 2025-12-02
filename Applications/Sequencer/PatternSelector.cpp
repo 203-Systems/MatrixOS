@@ -40,11 +40,6 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
                 {
                     return true; // Not relevent
                 }
-                else if(sequencer->ShiftActive() && sequencer->patternView)
-                {
-                    lengthAdjustmentMode = true;
-                    newPatternIdx = sequencer->sequence.NewPattern(track, clip);
-                }
                 else if(copyActive)
                 {
                     // Copy mode: Copy selected pattern to new pattern
@@ -78,26 +73,8 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             // Check if clicking on existing pattern
             else if(patternIdx < patternCount)
             {
-                // Toggle Length Adjustment based on shift
-                if(sequencer->ShiftActive() && sequencer->patternView)
-                {
-                    if(patternIdx == pattern && lengthAdjustmentMode)
-                    {
-                        lengthAdjustmentMode = false;
-                    }
-                    else
-                    {
-                        lengthAdjustmentMode = true;
-                        if(sequencer->sequence.Playing(track) == false)
-                        {
-                            sequencer->sequence.SetPattern(track, patternIdx);
-                            sequencer->ClearActiveNotes();
-                            sequencer->stepSelected.clear();
-                        }
-                    }
-                }
                 // Delete pattern if ClearActive
-                else if(sequencer->ClearActive())
+                if(sequencer->ClearActive())
                 {
                     sequencer->sequence.DeletePattern(track, clip, patternIdx);
 
@@ -168,11 +145,17 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             // Enable length adjustment mode if holding on an existing pattern
             if(patternIdx < patternCount)
             {
-                lengthAdjustmentMode = !lengthAdjustmentMode;
+                lengthAdjustmentMode = true;
             }
         }
         else if(keyInfo->State() == RELEASED)
         {
+            if(keyInfo->Hold() == true && 
+                patternIdx == sequencer->sequence.GetPosition(sequencer->track)->pattern &&
+                lengthAdjustmentMode)
+            {
+                lengthAdjustmentMode = false;
+            }
             sequencer->patternSelected.erase(patternIdx);
         }
     }
