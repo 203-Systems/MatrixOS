@@ -6,6 +6,7 @@
 #include "ArpDirVisualizer.h"
 #include "RhythmVisualizer.h"
 #include "InfDisplay.h"
+#include "BPMTapper.h"
 
 void Note::Setup(const vector<string>& args) {
   // Set up / Load configs --------------------------------------------------------------------------
@@ -1022,6 +1023,20 @@ void Note::ArpConfigMenu() {
   bpmDisplay.SetAlternativeColor(Color::White);
   bpmDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_BPM) &&  !bpmTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
+
+  // BPM Tapper
+  NoteBPMTapper bpmTapper;
+  bpmTapper.SetName("Tap Tempo");
+  bpmTapper.SetColor(arpConfigColor[ARP_BPM]);
+  bpmTapper.SetSize(Dimension(8, 4));
+  bpmTapper.OnChange([&](uint16_t tappedBPM) -> void {
+    bpmValue = tappedBPM;
+    bpm = tappedBPM;
+    midiClock.SetBPM(tappedBPM);
+    bpmTextDisplay.Disable();
+  });
+  bpmTapper.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_BPM; });
+  arpConfigMenu.AddUIComponent(bpmTapper, Point(0, 2));
 
   UINumberModifier bpmNumberModifier;
   bpmNumberModifier.SetColor(arpConfigColor[ARP_BPM]);
