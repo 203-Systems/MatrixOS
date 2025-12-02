@@ -22,6 +22,8 @@ class SequencerControlBar : public UIComponent {
     bool HandleClearKey(KeyInfo* keyInfo);
     bool HandleCopyKey(KeyInfo* keyInfo);
     bool HandleNudgeKey(bool positive, KeyInfo* keyInfo);
+    bool HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo);
+    bool HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo);
     bool HandleQuantizeKey(KeyInfo* keyInfo);
     bool HandleTwoPatternToggleKey(KeyInfo* keyInfo);
 

@@ -13,19 +13,35 @@ Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
 bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
 {
   bool stepSelected = !sequencer->stepSelected.empty();
+  bool patternSelected = !sequencer->patternSelected.empty();
+
 
   if (stepSelected)
   {
     switch (xy.x)
     {
-    case 0:
-      return HandleNudgeKey(false, keyInfo);
-    case 1:
-      return HandleNudgeKey(true, keyInfo);
-    case 2:
-      return HandleQuantizeKey(keyInfo);
-    case 3:
-      return HandleTwoPatternToggleKey(keyInfo);
+      case 0:
+        return HandleStepOctaveOffsetKey(false, keyInfo);
+      case 1:
+        return HandleStepOctaveOffsetKey(true, keyInfo);
+      case 2:
+        return HandleQuantizeKey(keyInfo);
+      case 3:
+        return HandleTwoPatternToggleKey(keyInfo);
+    }
+  }
+  else if (patternSelected)
+  {
+    switch (xy.x)
+    {
+      case 0:
+        return HandleOctaveOffsetKey(false, keyInfo);
+      case 1:
+        return HandleOctaveOffsetKey(true, keyInfo);
+      case 2:
+        return HandleNudgeKey(false, keyInfo);
+      case 3:
+        return HandleNudgeKey(true, keyInfo);
     }
   }
 
@@ -309,17 +325,10 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
     uint8_t track = sequencer->track;
-    if (sequencer->sequence.Playing(track))
-    {
-      return true;
-    }
-    if (sequencer->stepSelected.empty())
-    {
-      return true;
-    }
 
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
     SequencePattern *pattern = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern);
+
     if (!pattern)
     {
       return true;
@@ -340,6 +349,135 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
       sequencer->sequence.DualPatternNudge(pattern, patternNext, offset);
     }
     sequencer->ClearActiveNotes();
+  }
+  return true;
+}
+
+bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
+{
+  if (keyInfo->state == HOLD)
+  {
+    sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
+  }
+  else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
+  {
+    sequencer->SetMessage(SequencerMessage::NONE);
+  }
+  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  {
+    uint8_t track = sequencer->track;
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+    bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
+
+    uint8_t pattern1Idx;
+    uint8_t pattern2Idx;
+    if (twoPatternMode == false)
+    {
+      pattern1Idx = pos->pattern;
+      pattern2Idx = 255;
+    }
+    else
+    {
+      pattern1Idx = pos->pattern / 2 * 2;
+      pattern2Idx = pattern1Idx + 1;
+    }
+
+    SequencePattern* pattern1 = sequencer->sequence.GetPattern(track, pos->clip, pattern1Idx);
+    if (!pattern1)
+    {
+      return true;
+    }
+
+    int8_t offset = positive ? 12 : -12;
+    uint16_t pattern1LengthPulses = pattern1->steps * sequencer->sequence.GetPulsesPerStep();
+
+    // Apply octave offset to all notes in pattern 1
+    sequencer->sequence.PatternOffsetNotesInRange(pattern1, 0, pattern1LengthPulses - 1, offset);
+
+    // Apply to pattern 2 if in two-pattern mode
+    if (twoPatternMode && pattern2Idx != 255)
+    {
+      SequencePattern* pattern2 = sequencer->sequence.GetPattern(track, pos->clip, pattern2Idx);
+      if (pattern2)
+      {
+        uint16_t pattern2LengthPulses = pattern2->steps * sequencer->sequence.GetPulsesPerStep();
+        sequencer->sequence.PatternOffsetNotesInRange(pattern2, 0, pattern2LengthPulses - 1, offset);
+      }
+    }
+
+    sequencer->ClearActiveNotes();
+    // sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
+  }
+  return true;
+}
+
+bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
+{
+  if (keyInfo->state == HOLD)
+  {
+    sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
+  }
+  else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
+  {
+    sequencer->SetMessage(SequencerMessage::NONE);
+  }
+  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  {
+    uint8_t track = sequencer->track;
+    SequencePosition* pos = sequencer->sequence.GetPosition(track);
+
+    if(!sequencer->stepSelected.empty())
+    {
+      uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
+      int8_t offset = positive ? 12 : -12;
+
+      // Iterate through all selected steps
+      for (const auto& [patternIdx, stepIdx] : sequencer->stepSelected)
+      {
+        SequencePattern* targetPattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
+        if (!targetPattern) continue;
+
+        // Calculate time range for this step
+        uint16_t startTime = stepIdx * pulsesPerStep;
+        uint16_t endTime = startTime + pulsesPerStep - 1;
+
+        uint8_t channel = sequencer->sequence.GetChannel(track);
+
+        // Send note-off for all notes in this step before transposing and remove from noteActive
+        for (auto it = targetPattern->events.lower_bound(startTime); it != targetPattern->events.end() && it->first <= endTime; ++it)
+        {
+          if (it->second.eventType == SequenceEventType::NoteEvent)
+          {
+            SequenceEventNote noteData = std::get<SequenceEventNote>(it->second.data);
+            MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0), MIDI_PORT_ALL);
+
+            // Remove from noteActive
+            auto activeIt = sequencer->noteActive.find(noteData.note);
+            if (activeIt != sequencer->noteActive.end())
+            {
+              sequencer->noteActive.erase(activeIt);
+            }
+          }
+        }
+
+        // Apply octave offset to all notes in this step
+        sequencer->sequence.PatternOffsetNotesInRange(targetPattern, startTime, endTime, offset);
+
+        // Send note-on for all transposed notes in this step and add to noteActive
+        for (auto it = targetPattern->events.lower_bound(startTime); it != targetPattern->events.end() && it->first <= endTime; ++it)
+        {
+          if (it->second.eventType == SequenceEventType::NoteEvent)
+          {
+            SequenceEventNote noteData = std::get<SequenceEventNote>(it->second.data);
+            MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
+
+            // Add to noteActive
+            sequencer->noteActive.insert(noteData.note);
+          }
+        }
+      }
+      // sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
+    }
   }
   return true;
 }
@@ -578,6 +716,7 @@ Color SequencerControlBar::GetOctaveMinusColor()
 bool SequencerControlBar::Render(Point origin)
 {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
+  bool patternSelected = !sequencer->patternSelected.empty();
   bool stepSelected = !sequencer->stepSelected.empty();
 
   if(stepSelected == false)
@@ -592,14 +731,14 @@ bool SequencerControlBar::Render(Point origin)
 
   // Left 4 - Floating UI
   if (stepSelected) // Step Specific
-  {
-    // Nudge Left
+  { 
+    // Octave Up
     {
       Point point = origin + Point(0, 0);
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
       MatrixOS::LED::SetColor(point, color);
     }
-    // Nudge Right
+    // Octave Down
     {
       Point point = origin + Point(1, 0);
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
@@ -608,7 +747,7 @@ bool SequencerControlBar::Render(Point origin)
     // Quantize
     {
       Point point = origin + Point(2, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x00FF40);
       MatrixOS::LED::SetColor(point, color);
     }
     // 2 Pattern View
@@ -617,6 +756,33 @@ bool SequencerControlBar::Render(Point origin)
       uint8_t track = sequencer->track;
       bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00).DimIfNot(twoPatternMode);
+      MatrixOS::LED::SetColor(point, color);
+    }
+  }
+  else if (patternSelected) // Pattern Specific
+  {
+    // Octave Up
+    {
+      Point point = origin + Point(0, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
+      MatrixOS::LED::SetColor(point, color);
+    }
+    // Octave Down
+    {
+      Point point = origin + Point(1, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
+      MatrixOS::LED::SetColor(point, color);
+    }
+    // Nudge Left
+    {
+      Point point = origin + Point(2, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      MatrixOS::LED::SetColor(point, color);
+    }
+    // Nudge Right
+    {
+      Point point = origin + Point(3, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
   }

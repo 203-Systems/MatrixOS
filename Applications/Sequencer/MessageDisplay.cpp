@@ -413,6 +413,48 @@ void SequencerMessageDisplay::RenderUndo(Point origin, Color color)
     MatrixOS::LED::SetColor(origin + Point(7, 3), color);
 }
 
+void SequencerMessageDisplay::RenderOctave(Point origin, Color color, bool positive)
+{
+    ClearRows(origin, 4);
+
+    // O
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), color);
+    
+    // C
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+    if(positive)
+    {
+        // +
+        MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    }
+    else
+    {
+        // -
+        MatrixOS::LED::SetColor(origin + Point(5, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+        MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    }
+}
+
 bool SequencerMessageDisplay::Render(Point origin)
 {
     const Color successColor = Color(0x80FF00);
@@ -446,7 +488,7 @@ bool SequencerMessageDisplay::Render(Point origin)
             case SequencerMessage::QUANTIZE:
             case SequencerMessage::QUANTIZED:
             {
-                Color quantizedColor = sequencer->lastMessage == SequencerMessage::QUANTIZE ? Color(0xA000FF) : successColor;
+                Color quantizedColor = sequencer->lastMessage == SequencerMessage::QUANTIZE ? Color(0x00FF40) : successColor;
                 RenderQuantize(origin, quantizedColor);
                 break;
             }
@@ -486,6 +528,20 @@ bool SequencerMessageDisplay::Render(Point origin)
                 Color undoColor = sequencer->lastMessage == SequencerMessage::UNDO ? Color(0xFF0020) : successColor;
                 RenderUndo(origin, undoColor);
                 break;
+            }
+            case SequencerMessage::OCTAVE_PLUS:
+            case SequencerMessage::OCTAVE_PLUS_DONE:
+            {
+                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS ? Color(0xFF0040) : successColor;
+                RenderOctave(origin, octaveColor, true);
+                break;  
+            }
+            case SequencerMessage::OCTAVE_MINUS:
+            case SequencerMessage::OCTAVE_MINUS_DONE:
+            {
+                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS ? Color(0xFF0040) : successColor;
+                RenderOctave(origin, octaveColor, false);
+                break;  
             }
         }
     }

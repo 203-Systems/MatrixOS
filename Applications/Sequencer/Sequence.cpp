@@ -565,6 +565,56 @@ bool Sequence::PatternClearNotesInRange(SequencePattern* pattern, uint16_t start
     return removed;
 }
 
+bool Sequence::PatternOffsetNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, int8_t offset)
+{
+    if (!pattern || offset == 0) return false;
+
+    std::vector<std::pair<uint16_t, SequenceEvent>> eventsToModify;
+    std::vector<decltype(pattern->events)::iterator> eventsToRemove;
+
+    // Collect events that need modification
+    for (auto it = pattern->events.lower_bound(startTime); it != pattern->events.end() && it->first <= endTime; ++it)
+    {
+        if (it->second.eventType == SequenceEventType::NoteEvent)
+        {
+            SequenceEventNote noteData = std::get<SequenceEventNote>(it->second.data);
+            int16_t newNote = noteData.note + offset;
+
+            // Delete notes that go out of valid MIDI range (0-127)
+            if (newNote < 0 || newNote > 127)
+            {
+                eventsToRemove.push_back(it);
+            }
+            else
+            {
+                // Update note value
+                noteData.note = (uint8_t)newNote;
+                SequenceEvent modifiedEvent = it->second;
+                modifiedEvent.data = noteData;
+                eventsToModify.push_back({it->first, modifiedEvent});
+                eventsToRemove.push_back(it);
+            }
+        }
+    }
+
+    if (eventsToModify.empty() && eventsToRemove.empty()) return false;
+
+    // Remove old events
+    for (auto it : eventsToRemove)
+    {
+        pattern->events.erase(it);
+    }
+
+    // Insert modified events
+    for (const auto& [timestamp, event] : eventsToModify)
+    {
+        pattern->events.insert({timestamp, event});
+    }
+
+    dirty = true;
+    return true;
+}
+
 bool Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime)
 {
     if (!pattern) return false;
@@ -805,7 +855,86 @@ bool Sequence::DualPatternNudge(SequencePattern* pattern1, SequencePattern* patt
     pattern1->events.swap(newEvents1);
     pattern2->events.swap(newEvents2);
     dirty = true;
-    
+
+    return true;
+}
+
+bool Sequence::PatternNudgeInRange(SequencePattern* pattern, uint16_t startTime, uint16_t length, int16_t offsetPulse, SequencePattern* prevPattern, SequencePattern* nextPattern)
+{
+    if (!pattern || offsetPulse == 0 || length == 0) return false;
+
+    int32_t patternLengthPulses = pattern->steps * pulsesPerStep;
+    if (patternLengthPulses == 0) return false;
+
+    uint16_t endTime = startTime + length - 1;
+    std::vector<std::pair<uint16_t, SequenceEvent>> eventsToMove;
+    std::vector<decltype(pattern->events)::iterator> eventsToRemove;
+
+    // Collect events in the specified range
+    for (auto it = pattern->events.lower_bound(startTime); it != pattern->events.end() && it->first <= endTime; ++it)
+    {
+        int32_t newTimestamp = (int32_t)it->first + offsetPulse;
+
+        // Check if event stays within current pattern
+        if (newTimestamp >= 0 && newTimestamp < patternLengthPulses)
+        {
+            eventsToMove.push_back({(uint16_t)newTimestamp, it->second});
+            eventsToRemove.push_back(it);
+        }
+        // Check if event goes to previous pattern
+        else if (newTimestamp < 0 && prevPattern != nullptr)
+        {
+            int32_t prevPatternLength = prevPattern->steps * pulsesPerStep;
+            int32_t prevTimestamp = prevPatternLength + newTimestamp;
+            if (prevTimestamp >= 0 && prevTimestamp < prevPatternLength)
+            {
+                prevPattern->events.insert({(uint16_t)prevTimestamp, it->second});
+                eventsToRemove.push_back(it);
+            }
+            // Discard if can't fit in previous pattern
+            else
+            {
+                eventsToRemove.push_back(it);
+            }
+        }
+        // Check if event goes to next pattern
+        else if (newTimestamp >= patternLengthPulses && nextPattern != nullptr)
+        {
+            int32_t nextTimestamp = newTimestamp - patternLengthPulses;
+            int32_t nextPatternLength = nextPattern->steps * pulsesPerStep;
+            if (nextTimestamp >= 0 && nextTimestamp < nextPatternLength)
+            {
+                nextPattern->events.insert({(uint16_t)nextTimestamp, it->second});
+                eventsToRemove.push_back(it);
+            }
+            // Discard if can't fit in next pattern
+            else
+            {
+                eventsToRemove.push_back(it);
+            }
+        }
+        // Discard if overflow and no prev/next pattern
+        else
+        {
+            eventsToRemove.push_back(it);
+        }
+    }
+
+    if (eventsToMove.empty() && eventsToRemove.empty()) return false;
+
+    // Remove old events
+    for (auto it : eventsToRemove)
+    {
+        pattern->events.erase(it);
+    }
+
+    // Insert moved events back into current pattern
+    for (const auto& [timestamp, event] : eventsToMove)
+    {
+        pattern->events.insert({timestamp, event});
+    }
+
+    dirty = true;
     return true;
 }
 

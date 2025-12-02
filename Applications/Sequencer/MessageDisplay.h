@@ -24,6 +24,7 @@ class SequencerMessageDisplay : public UIComponent {
     void RenderPlay(Point origin, Color color);
     void RenderRecord(Point origin, Color color);
     void RenderUndo(Point origin, Color color);
+    void RenderOctave(Point origin, Color color, bool positive);
 
     public:
     SequencerMessageDisplay(Sequencer* sequencer);

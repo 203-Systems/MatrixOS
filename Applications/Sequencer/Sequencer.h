@@ -24,6 +24,10 @@ enum class SequencerMessage
     RECORD,
     UNDO,
     UNDONE,
+    OCTAVE_PLUS,
+    OCTAVE_PLUS_DONE,
+    OCTAVE_MINUS,
+    OCTAVE_MINUS_DONE,
 };
 
 enum class SequenceSelectionType

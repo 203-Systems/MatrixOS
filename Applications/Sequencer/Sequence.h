@@ -114,6 +114,7 @@ public:
     bool PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event);
     bool PatternHasEventInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, SequenceEventType type = SequenceEventType::Invalid);
     bool PatternClearNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, uint8_t note);
+    bool PatternOffsetNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, int8_t offset);
     bool PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime);
     bool PatternSetLength(SequencePattern* pattern, uint8_t steps);
     bool PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep);
@@ -123,6 +124,7 @@ public:
     bool DualPatternQuantize(SequencePattern* pattern1, SequencePattern* pattern2, SequencePattern* patternNext, uint16_t stepPulse); // patternNext to handle overflow
     bool PatternNudge(SequencePattern* pattern, int16_t offsetPulse);
     bool DualPatternNudge(SequencePattern* pattern1, SequencePattern* pattern2, int16_t offsetPulse); // Nudge cycle though 2 patterns
+    bool PatternNudgeInRange(SequencePattern* pattern, uint16_t startTime, uint16_t length, int16_t offsetPulse, SequencePattern* prevPattern, SequencePattern* nextPattern);
 
     uint8_t GetChannel(uint8_t track);
     void SetChannel(uint8_t track, uint8_t channel);
