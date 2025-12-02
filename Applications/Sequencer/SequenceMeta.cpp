@@ -23,8 +23,8 @@ void SequenceMeta::New(uint8_t tracks)
 
     this->tracks.clear();
     this->tracks.reserve(tracks);
-    constexpr float hueStep = 1.0f / 16.0f;
-    uint8_t hueIndex = MatrixOS::SYS::Millis() % 16;
+    constexpr float hueStep = 1.0f / 64.0f;
+    uint8_t hueIndex = MatrixOS::SYS::Micros() % 64;
     float hue = hueIndex * hueStep;
     color = Color::HsvToRgb(hue, 1.0f, 1.0f);
     clockOutput = false;
