@@ -1212,9 +1212,16 @@ void Note::ArpConfigMenu() {
   gateNumberModifier.SetUpperLimit(200);
   gateNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_GATE; });
   gateNumberModifier.OnChange([&](int32_t val) -> void {
-    gateValue = val;
+    if(notePadConfigs[activeConfig].arpConfig.gateTime == 0) // Was Inf
+    {
+      gateValue = 50; // Revert to default
+    }
+    else
+    {
+      gateValue = val;
+    }
     configModified = true;
-    notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)val;
+    notePadConfigs[activeConfig].arpConfig.gateTime = (uint8_t)gateValue;
     gateTextDisplay.Disable();
     runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
@@ -1475,9 +1482,16 @@ void Note::ArpConfigMenu() {
   repeatNumberModifier.SetLowerLimit(0);
   repeatNumberModifier.SetUpperLimit(100);
   repeatNumberModifier.OnChange([&](int32_t value) -> void {
-    repeatValue = value;
+    if(notePadConfigs[activeConfig].arpConfig.repeat == 0) // Was inf
+    {
+      repeatValue = 1;
+    }
+    else
+    {
+      repeatValue = value;
+    }
     configModified = true;
-    notePadConfigs[activeConfig].arpConfig.repeat = (uint8_t)value;
+    notePadConfigs[activeConfig].arpConfig.repeat = (uint8_t)repeatValue;
     repeatTextDisplay.Disable();
     runtimes[activeConfig].arpeggiator.UpdateConfig();
   });
