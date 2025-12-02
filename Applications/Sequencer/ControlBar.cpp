@@ -369,44 +369,18 @@ bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
   {
     uint8_t track = sequencer->track;
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
-    bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
-
-    uint8_t pattern1Idx;
-    uint8_t pattern2Idx;
-    if (twoPatternMode == false)
-    {
-      pattern1Idx = pos->pattern;
-      pattern2Idx = 255;
-    }
-    else
-    {
-      pattern1Idx = pos->pattern / 2 * 2;
-      pattern2Idx = pattern1Idx + 1;
-    }
-
-    SequencePattern* pattern1 = sequencer->sequence.GetPattern(track, pos->clip, pattern1Idx);
-    if (!pattern1)
-    {
-      return true;
-    }
-
     int8_t offset = positive ? 12 : -12;
-    uint16_t pattern1LengthPulses = pattern1->steps * sequencer->sequence.GetPulsesPerStep();
 
-    // Apply octave offset to all notes in pattern 1
-    sequencer->sequence.PatternOffsetNotesInRange(pattern1, 0, pattern1LengthPulses - 1, offset);
-
-    // Apply to pattern 2 if in two-pattern mode
-    if (twoPatternMode && pattern2Idx != 255)
+    // Apply octave offset to all selected patterns
+    for (uint8_t patternIdx : sequencer->patternSelected)
     {
-      SequencePattern* pattern2 = sequencer->sequence.GetPattern(track, pos->clip, pattern2Idx);
-      if (pattern2)
-      {
-        uint16_t pattern2LengthPulses = pattern2->steps * sequencer->sequence.GetPulsesPerStep();
-        sequencer->sequence.PatternOffsetNotesInRange(pattern2, 0, pattern2LengthPulses - 1, offset);
-      }
-    }
+      SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
+      if (!pattern) continue;
 
+      uint16_t patternLengthPulses = pattern->steps * sequencer->sequence.GetPulsesPerStep();
+      sequencer->sequence.PatternOffsetNotesInRange(pattern, 0, patternLengthPulses - 1, offset);
+    }
+    
     sequencer->ClearActiveNotes();
     // sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
   }
