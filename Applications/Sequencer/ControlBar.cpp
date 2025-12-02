@@ -326,6 +326,8 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
   {
     uint8_t track = sequencer->track;
 
+    if(sequencer->sequence.Playing(track)) {return true;} // Can't nudge in play mode
+
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
     SequencePattern *pattern = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern);
 
@@ -776,13 +778,17 @@ bool SequencerControlBar::Render(Point origin)
     // Nudge Left
     {
       Point point = origin + Point(2, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = Color(0xA000FF);
+      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xA000FF).Dim();}
+      else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
       MatrixOS::LED::SetColor(point, color);
     }
     // Nudge Right
     {
       Point point = origin + Point(3, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = Color(0xA000FF);
+      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xA000FF).Dim();}
+      else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
       MatrixOS::LED::SetColor(point, color);
     }
   }
