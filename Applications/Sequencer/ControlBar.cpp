@@ -380,9 +380,9 @@ bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
       uint16_t patternLengthPulses = pattern->steps * sequencer->sequence.GetPulsesPerStep();
       sequencer->sequence.PatternOffsetNotesInRange(pattern, 0, patternLengthPulses - 1, offset);
     }
-    
+
     sequencer->ClearActiveNotes();
-    // sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
+    sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
   }
   return true;
 }
@@ -452,7 +452,6 @@ bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyI
           }
         }
       }
-      // sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS_DONE : SequencerMessage::OCTAVE_MINUS_DONE);
     }
   }
   return true;
