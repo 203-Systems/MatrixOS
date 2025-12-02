@@ -138,11 +138,8 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             return true;
         }
 
-        // Check if step already exists in selection
-        if(sequencer->stepSelected.find(std::make_pair(patternIdx, step)) == sequencer->stepSelected.end())
-        {
-            sequencer->stepSelected.insert(std::make_pair(patternIdx, step));
-        }
+        sequencer->stepSelected.insert(std::make_pair(patternIdx, step));
+        sequencer->patternSelected.clear();
 
         bool playAllNotes = false;
         

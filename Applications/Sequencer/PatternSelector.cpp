@@ -32,6 +32,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
             bool copyActive = sequencer->CopyActive() && (sequencer->copySource.IsType(SequenceSelectionType::PATTERN) || sequencer->copySource.IsType(SequenceSelectionType::NONE));
 
             sequencer->patternSelected.insert(patternIdx);
+            sequencer->stepSelected.clear();
 
             // Check if clicking on add button
             if(patternIdx == patternCount && patternCount < 16)
