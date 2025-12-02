@@ -481,7 +481,7 @@ bool SequencerMessageDisplay::Render(Point origin)
             }
             case SequencerMessage::NUDGE:
             {
-                Color nudgeColor = Color(0xFF0040);
+                Color nudgeColor = Color(0xA000FF);
                 RenderNudge(origin, nudgeColor);
                 break;
             }
