@@ -247,6 +247,72 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
     }
 }
 
+void Sequence::PlayFrom(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step)
+{
+    // Validate clip exists
+    if (!ClipExists(track, clip)) return;
+
+    // Validate pattern exists
+    if (pattern >= GetPatternCount(track, clip)) return;
+
+    // Get the pattern to validate step
+    SequencePattern* targetPattern = GetPattern(track, clip, pattern);
+    if (!targetPattern) return;
+
+    // Validate step is within pattern bounds
+    if (step >= targetPattern->steps) return;
+
+    // Initialize timing if not already playing
+    if (!playing) {
+        playing = true;
+        clocksTillStart = record ? 24 * 4 + 1 : 1;
+        currentPulse = UINT16_MAX;
+        pulseSinceStart = 0;
+        currentRecordLayer = 0;
+
+        for (uint8_t i = 0; i < trackPlayback.size(); i++) {
+            // Reset positions and prepare for playback
+            trackPlayback[i].position.pattern = 0;
+            trackPlayback[i].position.step = 0;
+            trackPlayback[i].position.pulse = UINT16_MAX; // so first advance lands on 0
+
+            // Clear playback state
+            trackPlayback[i].nextClip = 255;
+            trackPlayback[i].playing = false;
+            trackPlayback[i].canResume = false;  // Clear resume state when starting fresh playback
+            trackPlayback[i].noteOffMap.clear();
+            trackPlayback[i].noteOffQueue.clear();
+        }
+    }
+
+    // Set the track position directly to our target location
+    trackPlayback[track].position.clip = clip;
+    trackPlayback[track].position.pattern = pattern;
+    trackPlayback[track].position.step = step;
+    trackPlayback[track].position.pulse = UINT16_MAX;  // Will advance to 0 on first tick
+
+    // Start playback for this track
+    trackPlayback[track].playing = true;
+    trackPlayback[track].nextClip = 255;  // No queued clip change
+
+    // Calculate steps elapsed from clip start to our starting position
+    uint16_t stepSinceStart = 0;
+
+    // Sum up all steps in patterns before our target pattern
+    for (uint8_t p = 0; p < pattern; p++) {
+        SequencePattern* pat = GetPattern(track, clip, p);
+        if (pat) {
+            stepSinceStart += pat->steps;
+        }
+    }
+
+    // Add steps within the target pattern up to our starting step
+    stepSinceStart += step;
+
+    // Set currentStep to sync with bar boundaries
+    currentStep = stepSinceStart % barLength;
+}
+
 void Sequence::Resume()
 {
     if(CanResume() == false)

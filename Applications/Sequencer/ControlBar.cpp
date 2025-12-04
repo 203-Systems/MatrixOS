@@ -191,19 +191,33 @@ bool SequencerControlBar::HandleStepPlayKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-      // bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
-      // if (trackPlaying)
-      // {
-      //   sequencer->sequence.StopAfter(sequencer->track);
-      // }
-      // else
-      // {
-      //   sequencer->sequence.Play(sequencer->track);
-      //   if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
-      //   {
-      //     sequencer->SetView(Sequencer::ViewMode::Sequencer);
-      //   }
-      // }
+      if (sequencer->sequence.Playing(sequencer->track))
+      {
+        sequencer->sequence.StopAfter(sequencer->track);
+      }
+      else if(sequencer->sequence.Playing())
+      {
+        // Launch track in next possible bar
+        sequencer->sequence.Play(sequencer->track);
+        uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
+        SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
+        if(pattern != pos->pattern)
+        {
+          sequencer->stepSelected.clear();
+          sequencer->ClearActiveNotes();
+        }
+      }
+      else
+      {
+        if(sequencer->stepSelected.size() == 1)
+        {
+          SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
+          uint8_t currentPattern = pos->pattern;
+          uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
+          uint8_t step = std::get<1>(*sequencer->stepSelected.begin());
+          sequencer->sequence.PlayFrom(sequencer->track, pos->clip, pattern, step);
+        }
+      }
   }
   return true;
 }

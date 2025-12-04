@@ -26,7 +26,7 @@ private:
     bool clockOutput = false;
 
     // Clip switching timing
-    uint16_t barLength = 16; // Length of each bay in steps
+    uint16_t barLength = 16; // Length of each bar in steps
 
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
@@ -78,6 +78,7 @@ public:
     void Play(uint8_t track);
     void PlayClip(uint8_t track, uint8_t clip);
     void PlayClipForAllTracks(uint8_t clip);
+    void PlayFrom(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step);
     void Resume();
     bool CanResume();
     bool Playing();
