@@ -22,6 +22,7 @@ enum class SequencerMessage
     MIX,
     PLAY,
     RECORD,
+    RESUME,
     UNDO,
     UNDONE,
     OCTAVE_PLUS,

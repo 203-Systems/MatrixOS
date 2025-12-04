@@ -16,6 +16,8 @@ class SequencerControlBar : public UIComponent {
 
     bool HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyInfo);
     bool HandlePlayKey(KeyInfo* keyInfo);
+    bool HandleTrackPlayKey(KeyInfo* keyInfo);
+    bool HandleStepPlayKey(KeyInfo* keyInfo);
     bool HandleResumeKey(KeyInfo* keyInfo);
     bool HandleRecordKey(KeyInfo* keyInfo);
     bool HandleSessionKey(KeyInfo* keyInfo);
