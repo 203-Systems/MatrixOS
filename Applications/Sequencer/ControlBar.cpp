@@ -90,12 +90,10 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
       case 0:
         return HandleTrackPlayKey(keyInfo);
       case 4:
-        break; // Clear
       case 1:
       case 2:
       case 3:
       case 5:
-        return true;
       default:
         break;
     }
@@ -573,9 +571,9 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-    sequencer->ShiftEventOccured();
     uint8_t track = sequencer->track;
     sequencer->meta.tracks[track].twoPatternMode = !sequencer->meta.tracks[track].twoPatternMode;
+    sequencer->shift[0] = sequencer->shift[1] = false;
     sequencer->patternView = false; // So user know what happened.
     sequencer->stepSelected.clear();
     sequencer->patternSelected.clear();
@@ -960,10 +958,6 @@ bool SequencerControlBar::Render(Point origin)
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
-  }
-  else if(trackSelected)
-  {
-    barRenderMask = 0b10001000;
   }
 
   // Left 4 General Bar
