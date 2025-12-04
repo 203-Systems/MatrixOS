@@ -95,7 +95,6 @@ void Sequence::Tick()
                     // Initialize timing at this clock edge
                     lastPulseTime = lastClockTime;
                     currentPulse = UINT16_MAX; // next advance produces pulse 0
-                    currentStep = 0;
                     pulseSinceStart = 0;
                 }
             }
@@ -250,21 +249,22 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
 
 void Sequence::Resume()
 {
-    // Initialize timing if not already playing
-    if (!playing) {
-        playing = true;
-        clocksTillStart = record ? 24 * 4 + 1 : 1;
-        currentPulse = UINT16_MAX;
-        currentStep = 0;
-        pulseSinceStart = 0;
-        currentRecordLayer = 0;
+    if(CanResume() == false)
+    {
+        return;
     }
+
+    // Initialize timing if not already playing
+    playing = true;
+    currentPulse = UINT16_MAX;
+    clocksTillStart = record ? 24 * 4 + 1 : 1;  // Count-in for recording, immediate otherwise
 
     // Resume only tracks that were playing before stop
     for (uint8_t track = 0; track < trackPlayback.size(); track++) {
         if (trackPlayback[track].canResume) {
             // Restore position from resumePosition
             trackPlayback[track].position = trackPlayback[track].resumePosition;
+            trackPlayback[track].position.pulse = UINT16_MAX;
 
             // Clear playback state
             trackPlayback[track].nextClip = 255;
@@ -1601,37 +1601,6 @@ void Sequence::ProcessTrack(uint8_t track)
 
     SequencePosition& pos = trackPlayback[track].position;
 
-    // Advance to the pulse being processed
-    if (pos.pulse == UINT16_MAX) {
-        pos.pulse = 0;
-    }
-    else {
-        pos.pulse++;
-        if (pos.pulse >= pulsesPerStep) {
-            pos.pulse = 0;
-            pos.step++;
-        }
-    }
-
-    // Wrap step/pattern based on active pattern length
-    {
-        uint8_t clip = pos.clip;
-        uint8_t pattern = pos.pattern;
-        uint8_t patternSteps = data.patternLength;
-        if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
-            if (SequencePattern* pat = GetPattern(track, clip, pattern)) {
-                patternSteps = pat->steps;
-            }
-        }
-        if (pos.step >= patternSteps) {
-            pos.step = 0;
-            pos.pattern++;
-            if (ClipExists(track, clip) && pos.pattern >= GetPatternCount(track, clip)) {
-                pos.pattern = 0;
-            }
-        }
-    }
-
     // Check for queued clip change at bar boundary (currentStep == 0)
     if (trackPlayback[track].nextClip != 255 && currentStep == 0) {
         if (trackPlayback[track].nextClip == 254) {
@@ -1646,9 +1615,43 @@ void Sequence::ProcessTrack(uint8_t track)
         trackPlayback[track].nextClip = 255;
         trackPlayback[track].playing = true;
     }
+    else
+    {
+        // Only process tracks that are currently playing
+        if (!trackPlayback[track].playing) return;
 
-    // Only process tracks that are currently playing
-    if (!trackPlayback[track].playing) return;
+        // Advance to the pulse being processed
+        if (pos.pulse == UINT16_MAX) {
+            pos.pulse = 0;
+        }
+        else {
+            pos.pulse++;
+            if (pos.pulse >= pulsesPerStep) {
+                pos.pulse = 0;
+                pos.step++;
+            }
+        }
+
+        // Wrap step/pattern based on active pattern length
+        {
+            uint8_t clip = pos.clip;
+            uint8_t pattern = pos.pattern;
+            uint8_t patternSteps = data.patternLength;
+            if (ClipExists(track, clip) && pattern < GetPatternCount(track, clip)) {
+                if (SequencePattern* pat = GetPattern(track, clip, pattern)) {
+                    patternSteps = pat->steps;
+                }
+            }
+            if (pos.step >= patternSteps) {
+                pos.step = 0;
+                pos.pattern++;
+                
+                if (ClipExists(track, clip) && pos.pattern >= GetPatternCount(track, clip)) {
+                    pos.pattern = 0;
+                }
+            }
+        }
+    }
 
     // 2. Fire events at current tick position
     uint8_t clip = pos.clip;

@@ -26,7 +26,7 @@ private:
     bool clockOutput = false;
 
     // Clip switching timing
-    uint16_t barLength = 16; // Length of each bay in steps 
+    uint16_t barLength = 16; // Length of each bay in steps
 
     // Internal sequencer timing (96 PPQN)
     uint32_t lastPulseTime = 0;             // Last time the sequencer tick was processed (microseconds)
