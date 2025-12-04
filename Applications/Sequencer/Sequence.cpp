@@ -1276,9 +1276,9 @@ void Sequence::SetSolo(uint8_t track, bool val)
     if (currentVal != val)
     {
         if (val)
-            data.solo |= mask;
+            data.solo = mask;
         else
-            data.solo &= ~mask;
+            data.solo = 0;
 
         // Send all-notes-off on this track's channel when solo state changes
         uint8_t channel = GetChannel(track);
