@@ -166,10 +166,6 @@ bool SequencerControlBar::HandleSessionKey(KeyInfo *keyInfo)
       sequencer->SetView(Sequencer::ViewMode::Session);
     }
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Session)
-  {
-    sequencer->SetView(Sequencer::ViewMode::Sequencer);
-  }
   return true;
 }
 
@@ -193,10 +189,6 @@ bool SequencerControlBar::HandleMixerKey(KeyInfo *keyInfo)
     {
       sequencer->SetView(Sequencer::ViewMode::Mixer);
     }
-  }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() && sequencer->currentView == Sequencer::ViewMode::Mixer)
-  {
-    sequencer->SetView(Sequencer::ViewMode::Sequencer);
   }
   return true;
 }
