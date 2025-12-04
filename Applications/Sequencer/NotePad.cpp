@@ -10,10 +10,19 @@ SequencerNotePad::SequencerNotePad(Sequencer* sequencer, bool testingMode)
 
 bool SequencerNotePad::IsEnabled()
 {
+    bool enabled = (sequencer->currentView == Sequencer::ViewMode::Sequencer) && (sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::NoteTrack || sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::DrumTrack);
+    
     if (enableFunc) {
-      return (*enableFunc)();
+      enabled = (*enableFunc)();
     }
-    return (sequencer->currentView == Sequencer::ViewMode::Sequencer) && (sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::NoteTrack || sequencer->meta.tracks[sequencer->track].mode == SequenceTrackMode::DrumTrack);
+
+    if (enabled && wasEnabled == false)
+    {
+        GenerateKeymap();
+    }
+
+    wasEnabled = enabled;
+    return enabled;
 }
 
 Dimension SequencerNotePad::GetSize()

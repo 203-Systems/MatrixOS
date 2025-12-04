@@ -19,6 +19,7 @@ extern const Color sequencerRainbowNoteColor[12];
 class SequencerNotePad : public UIComponent {
     Sequencer* sequencer;
 
+    bool wasEnabled = false;
     bool rescanNeeded = false;
     bool prevTwoRowMode = false;
     bool testingMode = false;
