@@ -481,14 +481,14 @@ bool SequencerMessageDisplay::Render(Point origin)
             }
             case SequencerMessage::NUDGE:
             {
-                Color nudgeColor = Color(0xA000FF);
+                Color nudgeColor = Color(0xFF0040);
                 RenderNudge(origin, nudgeColor);
                 break;
             }
             case SequencerMessage::QUANTIZE:
             case SequencerMessage::QUANTIZED:
             {
-                Color quantizedColor = sequencer->lastMessage == SequencerMessage::QUANTIZE ? Color(0x00FF40) : successColor;
+                Color quantizedColor = sequencer->lastMessage == SequencerMessage::QUANTIZE ? Color(0xFFFF00) : successColor;
                 RenderQuantize(origin, quantizedColor);
                 break;
             }
@@ -532,14 +532,14 @@ bool SequencerMessageDisplay::Render(Point origin)
             case SequencerMessage::OCTAVE_PLUS:
             case SequencerMessage::OCTAVE_PLUS_DONE:
             {
-                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS ? Color(0xFF0040) : successColor;
+                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS ? Color(0xA000FF) : successColor;
                 RenderOctave(origin, octaveColor, true);
                 break;  
             }
             case SequencerMessage::OCTAVE_MINUS:
             case SequencerMessage::OCTAVE_MINUS_DONE:
             {
-                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS ? Color(0xFF0040) : successColor;
+                Color octaveColor = sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS ? Color(0xA000FF) : successColor;
                 RenderOctave(origin, octaveColor, false);
                 break;  
             }

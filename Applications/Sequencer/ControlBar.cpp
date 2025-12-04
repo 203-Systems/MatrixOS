@@ -14,20 +14,35 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
 {
   bool stepSelected = !sequencer->stepSelected.empty();
   bool patternSelected = !sequencer->patternSelected.empty();
+  bool sequencerShift = sequencer->currentView == Sequencer::ViewMode::Sequencer && (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
 
-
-  if (stepSelected)
+  if (sequencerShift)
   {
     switch (xy.x)
     {
       case 0:
-        return HandleStepOctaveOffsetKey(false, keyInfo);
+      return HandlePlayKey(keyInfo);
       case 1:
-        return HandleStepOctaveOffsetKey(true, keyInfo);
       case 2:
-        return HandleQuantizeKey(keyInfo);
       case 3:
+      case 4:
+        return true;
+      case 5:
         return HandleTwoPatternToggleKey(keyInfo);
+    }
+  }
+  else if (stepSelected)
+  {
+    switch (xy.x)
+    {
+      case 0:
+        return HandlePlayKey(keyInfo);
+      case 1:
+        return HandleQuantizeKey(keyInfo);
+      case 2:
+        return HandleStepOctaveOffsetKey(false, keyInfo);
+      case 3:
+        return HandleStepOctaveOffsetKey(true, keyInfo);
     }
   }
   else if (patternSelected)
@@ -35,13 +50,13 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
     switch (xy.x)
     {
       case 0:
-        return HandleOctaveOffsetKey(false, keyInfo);
-      case 1:
-        return HandleOctaveOffsetKey(true, keyInfo);
-      case 2:
         return HandleNudgeKey(false, keyInfo);
-      case 3:
+      case 1:
         return HandleNudgeKey(true, keyInfo);
+      case 2:
+        return HandleOctaveOffsetKey(false, keyInfo);
+      case 3:
+        return HandleOctaveOffsetKey(true, keyInfo);
     }
   }
 
@@ -688,8 +703,7 @@ bool SequencerControlBar::Render(Point origin)
 
   if(stepSelected == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::QUANTIZE ||
-       sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
+    if(sequencer->lastMessage == SequencerMessage::QUANTIZE)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
@@ -702,6 +716,10 @@ bool SequencerControlBar::Render(Point origin)
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
+  else if(sequencer->lastMessage == SequencerMessage::PLAY)
+  {
+    sequencer->SetMessage(SequencerMessage::NONE);
+  }
 
   if(stepSelected == false && patternSelected == false)
   {
@@ -713,151 +731,180 @@ bool SequencerControlBar::Render(Point origin)
     }
   }
 
+  if(stepSelected || patternSelected)
+  {
+    if(sequencer->lastMessage == SequencerMessage::RECORD ||
+       sequencer->lastMessage == SequencerMessage::MIX ||
+       sequencer->lastMessage == SequencerMessage::CLIP)
+    {
+      sequencer->SetMessage(SequencerMessage::NONE);
+    }
+  }
+
+  uint8_t barRenderMask = 0b11111111;
+
+  bool sequencerShift = sequencer->currentView == Sequencer::ViewMode::Sequencer && (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
+
   // Left 4 - Floating UI
-  if (stepSelected) // Step Specific
-  { 
-    // Octave Up
-    {
-      Point point = origin + Point(0, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
-      MatrixOS::LED::SetColor(point, color);
-    }
-    // Octave Down
-    {
-      Point point = origin + Point(1, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
-      MatrixOS::LED::SetColor(point, color);
-    }
-    // Quantize
-    {
-      Point point = origin + Point(2, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x00FF40);
-      MatrixOS::LED::SetColor(point, color);
-    }
+  if (sequencerShift) // Track specific?
+  {
+    barRenderMask = 0b10000011;
+
     // 2 Pattern View
     {
-      Point point = origin + Point(3, 0);
+      Point point = origin + Point(5, 0);
       uint8_t track = sequencer->track;
       bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00).DimIfNot(twoPatternMode);
       MatrixOS::LED::SetColor(point, color);
     }
   }
-  else if (patternSelected) // Pattern Specific
-  {
+  else if (stepSelected) // Step Specific
+  { 
+    barRenderMask = 0b10001111;
+    // Quantize
+    {
+      Point point = origin + Point(1, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00);
+      MatrixOS::LED::SetColor(point, color);
+    }
     // Octave Up
     {
-      Point point = origin + Point(0, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
+      Point point = origin + Point(2, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
     // Octave Down
     {
-      Point point = origin + Point(1, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0040);
+      Point point = origin + Point(3, 0);
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
+  }
+  else if (patternSelected) // Pattern Specific
+  {
+    barRenderMask = 0b00001111;
     // Nudge Left
     {
-      Point point = origin + Point(2, 0);
-      Color color = Color(0xA000FF);
-      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xA000FF).Dim();}
+      Point point = origin + Point(0, 0);
+      Color color = Color(0xFF0040);
+      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xFF0040).Dim();}
       else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
       MatrixOS::LED::SetColor(point, color);
     }
     // Nudge Right
     {
-      Point point = origin + Point(3, 0);
-      Color color = Color(0xA000FF);
-      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xA000FF).Dim();}
+      Point point = origin + Point(1, 0);
+      Color color = Color(0xFF0040);
+      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xFF0040).Dim();}
       else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
       MatrixOS::LED::SetColor(point, color);
     }
-  }
-  else // General
-  {
-    // Play
-    {
-      Point point = origin + Point(0, 0);
-      if (MatrixOS::KeyPad::GetKey(point)->Active())
-      {
-        MatrixOS::LED::SetColor(point, Color::White);
-      }
-      else if (sequencer->sequence.Playing())
-      {
-        uint8_t scale = breathingScale / 4 * 3;
-        MatrixOS::LED::SetColor(point, Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8)));
-      }
-      else
-      {
-        MatrixOS::LED::SetColor(point, Color::Green);
-      }
-    }
-
-    // Record
-    {
-      Point point = origin + Point(1, 0);
-      if (MatrixOS::KeyPad::GetKey(point)->Active())
-      {
-        MatrixOS::LED::SetColor(point, Color::White);
-      }
-      else if (sequencer->ClearActive())
-      {
-        // Undo record
-        MatrixOS::LED::SetColor(point, Color(0xFF0020).DimIfNot(sequencer->sequence.CanUndoLastRecord() && !sequencer->sequence.Playing()));
-      }
-      else if (sequencer->sequence.RecordEnabled())
-      {
-        uint8_t scale = breathingScale / 4 * 3 + 64;
-        MatrixOS::LED::SetColor(point, Color::Red.Scale(scale));
-      }
-      else
-      {
-        MatrixOS::LED::SetColor(point, Color::Red);
-      }
-    }
-
-    // Session View
+    // Octave Up
     {
       Point point = origin + Point(2, 0);
-      Color color;
-      if (MatrixOS::KeyPad::GetKey(point)->Active())
-      {
-        color = Color::White;
-      }
-      else if (sequencer->currentView == Sequencer::ViewMode::Session)
-      {
-        color = Color(0xFFFFB3);
-      }
-      else
-      {
-        color = Color(0xFFFF00);
-      }
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
-
-    // Mixer View
+    // Octave Down
     {
       Point point = origin + Point(3, 0);
-      Color color;
-      if (MatrixOS::KeyPad::GetKey(point)->Active())
-      {
-        color = Color::White;
-      }
-      else if (sequencer->currentView == Sequencer::ViewMode::Mixer)
-      {
-        color = Color(0xC6FFB3);
-      }
-      else
-      {
-        color = Color(0x40FF00);
-      }
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
+  }
+
+  // Left 4 General Bar
+  // Play
+  if(barRenderMask & 0b10000000)
+  {
+    Point point = origin + Point(0, 0);
+    if (sequencer->sequence.Playing() == false && sequencer->stepSelected.size() > 1)
+    {
+      MatrixOS::LED::SetColor(point, Color::Green.Dim());
+    }
+    else if (MatrixOS::KeyPad::GetKey(point)->Active())
+    {
+      MatrixOS::LED::SetColor(point, Color::White);
+    }
+    else if (sequencer->sequence.Playing())
+    {
+      uint8_t scale = breathingScale / 4 * 3;
+      MatrixOS::LED::SetColor(point, Color::Crossfade(Color::Green, Color::White, Fract16(scale, 8)));
+    }
+    else
+    {
+      MatrixOS::LED::SetColor(point, Color::Green);
+    }
+  }
+
+  // Record
+  if(barRenderMask & 0b01000000)
+  {
+    Point point = origin + Point(1, 0);
+    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    {
+      MatrixOS::LED::SetColor(point, Color::White);
+    }
+    else if (sequencer->ClearActive())
+    {
+      // Undo record
+      MatrixOS::LED::SetColor(point, Color(0xFF0020).DimIfNot(sequencer->sequence.CanUndoLastRecord() && !sequencer->sequence.Playing()));
+    }
+    else if (sequencer->sequence.RecordEnabled())
+    {
+      uint8_t scale = breathingScale / 4 * 3 + 64;
+      MatrixOS::LED::SetColor(point, Color::Red.Scale(scale));
+    }
+    else
+    {
+      MatrixOS::LED::SetColor(point, Color::Red);
+    }
+  }
+
+  // Session View
+  if(barRenderMask & 0b00100000)
+  {
+    Point point = origin + Point(2, 0);
+    Color color;
+    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    {
+      color = Color::White;
+    }
+    else if (sequencer->currentView == Sequencer::ViewMode::Session)
+    {
+      color = Color(0xFFFFB3);
+    }
+    else
+    {
+      color = Color(0xFFFF00);
+    }
+    MatrixOS::LED::SetColor(point, color);
+  }
+
+  // Mixer View
+  if(barRenderMask & 0b00010000)
+  {
+    Point point = origin + Point(3, 0);
+    Color color;
+    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    {
+      color = Color::White;
+    }
+    else if (sequencer->currentView == Sequencer::ViewMode::Mixer)
+    {
+      color = Color(0xC6FFB3);
+    }
+    else
+    {
+      color = Color(0x40FF00);
+    }
+    MatrixOS::LED::SetColor(point, color);
   }
 
   // Right 4 - Constent UI
   // Clear
+  if(barRenderMask & 0b00001000)
   {
     Point point = origin + Point(4, 0);
     Color color;
@@ -873,6 +920,7 @@ bool SequencerControlBar::Render(Point origin)
   }
 
   // Copy
+  if(barRenderMask & 0b00000100)
   {
     Point point = origin + Point(5, 0);
     Color color;
