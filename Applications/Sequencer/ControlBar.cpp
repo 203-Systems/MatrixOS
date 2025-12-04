@@ -225,7 +225,15 @@ bool SequencerControlBar::HandleStepPlayKey(KeyInfo *keyInfo)
 
 bool SequencerControlBar::HandleResumeKey(KeyInfo *keyInfo)
 {
-  if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  if (keyInfo->state == HOLD)
+  {
+    sequencer->SetMessage(SequencerMessage::RESUME, true);
+  }
+  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::RESUME)
+  {
+    sequencer->SetMessage(SequencerMessage::NONE);
+  }
+  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
     sequencer->ShiftEventOccured();
     if(sequencer->sequence.Playing() == false)

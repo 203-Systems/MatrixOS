@@ -376,7 +376,41 @@ void SequencerMessageDisplay::RenderRecord(Point origin, Color color)
     MatrixOS::LED::SetColor(origin + Point(6, 3), color);
     MatrixOS::LED::SetColor(origin + Point(7, 0), color);
     MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+}
 
+void SequencerMessageDisplay::RenderResume(Point origin, Color color)
+{
+    ClearRows(origin, 4);
+
+    // R
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 3), color);
+    
+    // E
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(5, 3), Color::White);
+
+    // S
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
 }
 
 void SequencerMessageDisplay::RenderUndo(Point origin, Color color)
@@ -520,6 +554,12 @@ bool SequencerMessageDisplay::Render(Point origin)
             {
                 Color recordColor = Color(0xFF0000);
                 RenderRecord(origin, recordColor);
+                break;
+            }
+            case SequencerMessage::RESUME:
+            {
+                Color resumeColor = Color(0xFF8000);
+                RenderResume(origin, resumeColor);
                 break;
             }
             case SequencerMessage::UNDO:
