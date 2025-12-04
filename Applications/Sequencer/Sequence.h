@@ -48,6 +48,8 @@ private:
     struct TrackPlayback {
         bool playing = false;                     // Is this track playing
         SequencePosition position;                // Current playback position
+        SequencePosition resumePosition;          // Position to resume from after stop
+        bool canResume = false;                   // Whether this track can be resumed (was playing before stop)
         uint8_t nextClip = 255;                   // Next clip to play (255 = none)
         uint32_t lastEventTime = 0;               // Last event time (for animation)
         map<uint8_t, uint32_t> noteOffMap;        // note -> tick time (for overwrite lookup)
@@ -76,6 +78,8 @@ public:
     void Play(uint8_t track);
     void PlayClip(uint8_t track, uint8_t clip);
     void PlayClipForAllTracks(uint8_t clip);
+    void Resume();
+    bool CanResume();
     bool Playing();
     bool Playing(uint8_t track);
 

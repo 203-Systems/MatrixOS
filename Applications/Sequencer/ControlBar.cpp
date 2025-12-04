@@ -21,8 +21,9 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
     switch (xy.x)
     {
       case 0:
-      return HandlePlayKey(keyInfo);
+        return HandlePlayKey(keyInfo);
       case 1:
+        return HandleResumeKey(keyInfo);
       case 2:
       case 3:
       case 4:
@@ -125,6 +126,22 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo *keyInfo)
         {
           sequencer->SetView(Sequencer::ViewMode::Sequencer);
         }
+      }
+    }
+  }
+  return true;
+}
+
+bool SequencerControlBar::HandleResumeKey(KeyInfo *keyInfo)
+{
+  if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  {
+    if(sequencer->sequence.Playing() == false)
+    {
+      sequencer->sequence.Resume();
+      if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
+      {
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
       }
     }
   }
@@ -749,6 +766,14 @@ bool SequencerControlBar::Render(Point origin)
   if (sequencerShift) // Track specific?
   {
     barRenderMask = 0b10000011;
+
+    // Resume
+    {
+      Point point = origin + Point(1, 0);
+      bool canResume = sequencer->sequence.CanResume();
+      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
+      MatrixOS::LED::SetColor(point, color);
+    }
 
     // 2 Pattern View
     {

@@ -248,6 +248,45 @@ void Sequence::PlayClipForAllTracks(uint8_t clip)
     }
 }
 
+void Sequence::Resume()
+{
+    // Initialize timing if not already playing
+    if (!playing) {
+        playing = true;
+        clocksTillStart = record ? 24 * 4 + 1 : 1;
+        currentPulse = UINT16_MAX;
+        currentStep = 0;
+        pulseSinceStart = 0;
+        currentRecordLayer = 0;
+    }
+
+    // Resume only tracks that were playing before stop
+    for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+        if (trackPlayback[track].canResume) {
+            // Restore position from resumePosition
+            trackPlayback[track].position = trackPlayback[track].resumePosition;
+
+            // Clear playback state
+            trackPlayback[track].nextClip = 255;
+            trackPlayback[track].playing = true;
+            trackPlayback[track].noteOffMap.clear();
+            trackPlayback[track].noteOffQueue.clear();
+            trackPlayback[track].canResume = false;  // Clear after resuming
+        }
+    }
+}
+
+bool Sequence::CanResume()
+{
+    if(playing) return false;
+    for (uint8_t track = 0; track < trackPlayback.size(); track++) {
+        if (trackPlayback[track].canResume) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Sequence::Playing()
 {
     return playing;
@@ -273,7 +312,11 @@ void Sequence::Stop()
             MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
         }
         MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 120, 0), MIDI_PORT_ALL); // All sound off per channel
-    
+
+        // Save current position to resume position and mark if it can be resumed
+        trackPlayback[track].resumePosition = trackPlayback[track].position;
+        trackPlayback[track].canResume = trackPlayback[track].playing;
+
         trackPlayback[track].noteOffMap.clear();
         trackPlayback[track].noteOffQueue.clear();
         trackPlayback[track].nextClip = 255;
@@ -333,6 +376,7 @@ void Sequence::Stop(uint8_t track)
     if (!anyPlaying) {
         playing = false;
         clocksTillStart = 0;
+        trackPlayback[track].resumePosition = trackPlayback[track].position;
     }
 }
 
