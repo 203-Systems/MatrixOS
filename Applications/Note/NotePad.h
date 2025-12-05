@@ -41,7 +41,7 @@ struct NotePadConfig {
   uint8_t rootKey = 0;
   uint8_t rootOffset = 0;
   uint16_t scale = MINOR;
-  int8_t octave = 4;
+  int8_t octave = 2;
   uint8_t channel = 0;
   NoteLayoutMode mode = OCTAVE_LAYOUT;
   bool enforceScale = true;
