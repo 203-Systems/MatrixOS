@@ -230,6 +230,8 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip)
             trackPlayback[i].noteOffMap.clear();
             trackPlayback[i].noteOffQueue.clear();
         }
+
+        MatrixOS::MIDI::Send(MidiPacket::Start(), MIDI_PORT_ALL);
     }
 
     // Terminate recorded notes on this track before switching
@@ -340,6 +342,8 @@ void Sequence::Resume()
             trackPlayback[track].canResume = false;  // Clear after resuming
         }
     }
+
+    MatrixOS::MIDI::Send(MidiPacket::Continue(), MIDI_PORT_ALL);
 }
 
 bool Sequence::CanResume()
@@ -388,6 +392,8 @@ void Sequence::Stop()
         trackPlayback[track].nextClip = 255;
         trackPlayback[track].playing = false;
     }
+    
+    MatrixOS::MIDI::Send(MidiPacket::Stop(), MIDI_PORT_ALL);
 
     if (sessionLayer > 127 && lastRecordLayer > 127)
     {
@@ -443,6 +449,7 @@ void Sequence::Stop(uint8_t track)
         playing = false;
         clocksTillStart = 0;
         trackPlayback[track].resumePosition = trackPlayback[track].position;
+        MatrixOS::MIDI::Send(MidiPacket::Stop(), MIDI_PORT_ALL);
     }
 }
 
