@@ -224,49 +224,66 @@ void ChordEffect::ReleaseAllChords(deque<MidiPacket>& output)
 
 void ChordEffect::UpdateChords(deque<MidiPacket>& output)
 {
-    CalculateChord(); 
+    CalculateChord();
 
-    // First, note off all current chord notes (including root notes)
-    for (auto& pair : noteMap) {
-        uint8_t root = pair.first;
-        NoteData& data = pair.second;
-        for (uint8_t chordNote : data.chordNotes) {
-            output.push_back(MidiPacket::NoteOff(lastChannel, chordNote, 0));
+    // Build new ownership map and chord notes for all roots
+    unordered_map<uint8_t, uint8_t> newNoteOwner; // chordNote -> root
+    unordered_map<uint8_t, vector<uint8_t>> newChordMap; // root -> new chord notes
+
+    // Calculate new chords for all active roots in FIFO order
+    for (uint8_t root : noteOrder) {
+        if (noteMap.find(root) == noteMap.end()) continue;
+
+        NoteData& data = noteMap[root];
+        vector<uint8_t> newChordNotes = BuildChordFromNote(root);
+
+        // Resolve conflicts - later roots (in FIFO) win
+        for (uint8_t chordNote : newChordNotes) {
+            if (newNoteOwner.find(chordNote) != newNoteOwner.end()) {
+                // Remove from previous owner's chord
+                uint8_t prevOwner = newNoteOwner[chordNote];
+                auto& prevChord = newChordMap[prevOwner];
+                prevChord.erase(std::remove(prevChord.begin(), prevChord.end(), chordNote), prevChord.end());
+            }
+            newNoteOwner[chordNote] = root;
+        }
+
+        newChordMap[root] = newChordNotes;
+    }
+
+    // Now compare old vs new and only send changes
+    // 1. Find notes to turn off (in old but not in new, or changed owner)
+    for (auto& chordNote : noteOwner) {
+        uint8_t note = chordNote.first;
+        uint8_t oldOwner = chordNote.second;
+
+        // Check if note no longer exists or changed owner
+        if (newNoteOwner.find(note) == newNoteOwner.end() || newNoteOwner[note] != oldOwner) {
+            output.push_back(MidiPacket::NoteOff(lastChannel, note, 0));
         }
     }
 
-    // Clear noteOwner for chord notes
-    noteOwner.clear();
+    // 2. Find notes to turn on (in new but not in old, or changed owner)
+    for (auto& chordNote : newNoteOwner) {
+        uint8_t note = chordNote.first;
+        uint8_t newOwner = chordNote.second;
 
-    // Recalculate and send new chords for all active root notes in FIFO order
-    for (uint8_t root : noteOrder) {
-        if (noteMap.find(root) == noteMap.end()) continue; // Safety check
-
-        NoteData& data = noteMap[root];
-        // Use the velocity stored in NoteData
-        uint8_t velocity = data.velocity;
-
-        // Build new chord notes
-        vector<uint8_t> newChordNotes = BuildChordFromNote(root);
-
-        // Handle chord note conflicts and send MIDI
-        for (uint8_t chordNote : newChordNotes) {
-            // Check if another root already owns this note
-            if (noteOwner.find(chordNote) != noteOwner.end()) {
-                // Find the previous owner and remove from their vector
-                uint8_t prevOwner = noteOwner[chordNote];
-                if (noteMap.find(prevOwner) != noteMap.end()) {
-                    auto& prevData = noteMap[prevOwner];
-                    prevData.chordNotes.erase(std::remove(prevData.chordNotes.begin(), prevData.chordNotes.end(), chordNote), prevData.chordNotes.end());
-                }
-            }
-
-            noteOwner[chordNote] = root;
-            output.push_back(MidiPacket::NoteOn(lastChannel, chordNote, velocity)); // Use saved velocity
+        // Check if note is new or changed owner
+        if (noteOwner.find(note) == noteOwner.end() || noteOwner[note] != newOwner) {
+            uint8_t velocity = noteMap[newOwner].velocity;
+            output.push_back(MidiPacket::NoteOn(lastChannel, note, velocity));
         }
+    }
 
-        // Update the noteMap with new chord notes
-        data.chordNotes = newChordNotes;
+    // Update the state
+    noteOwner = newNoteOwner;
+    for (auto& pair : noteMap) {
+        uint8_t root = pair.first;
+        if (newChordMap.find(root) != newChordMap.end()) {
+            pair.second.chordNotes = newChordMap[root];
+        } else {
+            pair.second.chordNotes.clear();
+        }
     }
 }
 

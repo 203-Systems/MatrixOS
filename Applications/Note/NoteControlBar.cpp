@@ -242,23 +242,39 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
     // Section 1: Top left 4 buttons (CTL_BAR_Y - 3, x0-x3) - Basic chord types
     if (xy.y == CTL_BAR_Y - 3 && xy.x <= 3) {
         if (keyInfo->State() == PRESSED) {
-            if(ShiftActive())
-            {
-                notePad[0]->rt->chordEffect.ClearChord();
+            ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
+            combo.dim = false;
+            combo.min = false;
+            combo.maj = false;
+            combo.sus = false;
+
+            switch(xy.x) {
+                case 0: combo.dim = true; break;
+                case 1: combo.min = true; break;
+                case 2: combo.maj = true; break;
+                case 3: combo.sus = true; break;
             }
-            else
+
+            if(ShiftActive() == false)
+            {
+                combo.ext6 = chordExtKeyOn[0];
+                combo.extMin7 = chordExtKeyOn[1];
+                combo.extMaj7 = chordExtKeyOn[2];
+                combo.ext9 = chordExtKeyOn[3];
+            }
+            
+            notePad[0]->rt->chordEffect.SetChordCombo(combo);
+        }
+        else if(keyInfo->State() == RELEASED)
+        {
+            if(ShiftActive() == false)
             {
                 ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
-                combo.dim = false;
-                combo.min = false;
-                combo.maj = false;
-                combo.sus = false;
-
                 switch(xy.x) {
-                    case 0: combo.dim = true; break;
-                    case 1: combo.min = true; break;
-                    case 2: combo.maj = true; break;
-                    case 3: combo.sus = true; break;
+                    case 0: combo.dim = false; break;
+                    case 1: combo.min = false; break;
+                    case 2: combo.maj = false; break;
+                    case 3: combo.sus = false; break;
                 }
                 notePad[0]->rt->chordEffect.SetChordCombo(combo);
             }
@@ -270,19 +286,11 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
     // Section 2: Bottom left 4 buttons (CTL_BAR_Y - 2, x0-x3) - Extensions
     if (xy.y == CTL_BAR_Y - 2 && xy.x <= 3) {
         if (keyInfo->State() == PRESSED) {
-            if(ShiftActive())
-            {
-                notePad[0]->rt->chordEffect.ClearChord();
-            }
-            else
-            {
-                ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
+            ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
-                // Check if any extension key is already pressed
+            if(ShiftActive() == false)
+            {
                 bool anyKeyPressed = chordExtKeyOn[0] || chordExtKeyOn[1] || chordExtKeyOn[2] || chordExtKeyOn[3];
-
-                // Count how many extensions are currently on
-                int extCount = (combo.ext6 ? 1 : 0) + (combo.extMin7 ? 1 : 0) + (combo.extMaj7 ? 1 : 0) + (combo.ext9 ? 1 : 0);
 
                 // If no keys are pressed, clear all extensions before setting the new one
                 if (!anyKeyPressed) {
@@ -291,34 +299,39 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
                     combo.extMaj7 = false;
                     combo.ext9 = false;
                 }
-
-                // Set the pressed key's extension and mark it as pressed
-                switch(xy.x) {
-                    case 0: combo.ext6 = true; chordExtKeyOn[0] = true; break;
-                    case 1: combo.extMin7 = true; chordExtKeyOn[1] = true; break;
-                    case 2: combo.extMaj7 = true; chordExtKeyOn[2] = true; break;
-                    case 3: combo.ext9 = true; chordExtKeyOn[3] = true; break;
-                }
-                notePad[0]->rt->chordEffect.SetChordCombo(combo);
             }
+
+            // Set the pressed key's extension and mark it as pressed
+            switch(xy.x) {
+                case 0: combo.ext6 = true; break;
+                case 1: combo.extMin7 = true; break;
+                case 2: combo.extMaj7 = true; break;
+                case 3: combo.ext9 = true; break;
+            }
+
+            chordExtKeyOn[xy.x] = true;
+            notePad[0]->rt->chordEffect.SetChordCombo(combo);
         } else if (keyInfo->State() == RELEASED) {
             // Clear the pressed flag but don't turn off the extension
             chordExtKeyOn[xy.x] = false;
+            if(ShiftActive() == false)
+            {
+                ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
+                switch(xy.x) {
+                    case 0: combo.ext6 = false; break;
+                    case 1: combo.extMin7 = false; break;
+                    case 2: combo.extMaj7 = false; break;
+                    case 3: combo.ext9 = false; break;
+                }
+                notePad[0]->rt->chordEffect.SetChordCombo(combo);
+            }
         } else {
             return true;
         }
         return true;
     }
 
-
-    // Section 3: Chord Clear Button
-    if (xy.x == 7 && xy.y == (CTL_BAR_Y - 2) && keyInfo->State() == PRESSED) {
-        notePad[0]->rt->chordEffect.ClearChord();
-        return true;
-    }
-
-
-    // Section 4: Right 8 buttons (x4-x7 on both rows) - Inversion controls (0-7)
+    // Section 3: Right 8 buttons (x4-x7 on both rows) - Inversion controls (0-7)
     if (xy.x >= 4 && xy.x <= 7 && keyInfo->State() == PRESSED) {
         uint8_t inversion;
         if (xy.y == CTL_BAR_Y - 3) {
@@ -518,19 +531,7 @@ void NoteControlBar::RenderChordControl(Point origin) {
     MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 4));
     MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 5));
     MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 6));
-
-    // Clear Button
-    bool chordOn = 
-        notePad[0]->rt->chordEffect.chordCombo.dim || 
-        notePad[0]->rt->chordEffect.chordCombo.min || 
-        notePad[0]->rt->chordEffect.chordCombo.maj || 
-        notePad[0]->rt->chordEffect.chordCombo.sus || 
-        notePad[0]->rt->chordEffect.chordCombo.ext6 || 
-        notePad[0]->rt->chordEffect.chordCombo.extMin7 ||  
-        notePad[0]->rt->chordEffect.chordCombo.extMaj7 || 
-        notePad[0]->rt->chordEffect.chordCombo.ext9;
-
-    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), clearColor.DimIfNot(chordOn));
+    MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 2), inversionColor.DimIfNot(currentInversion >= 7));
 }
 
 void NoteControlBar::RenderArpControl(Point origin) {
