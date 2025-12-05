@@ -94,7 +94,9 @@ void SequencerNotePad::GenerateOctaveKeymap()
                 noteMap[id] = 255;
             }
             else if(!metaTrack.config.note.enforceScale) { // If enforce scale is false, just add the next note
-                noteMap[id] = nextNote;  // Add to map
+            noteMap[id] = nextNote;  // Add to map
+                NoteType inScale = InScale(nextNote);
+                if (inScale == NoteType::ROOT_NOTE) { rootCount++; }
                 nextNote++;
             }
             else { // Find the next note that is in scale

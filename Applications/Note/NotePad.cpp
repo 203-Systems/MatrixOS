@@ -159,6 +159,8 @@ void NotePad::GenerateOctaveKeymap() {
             }
             else if(!rt->config->enforceScale) { // If enforce scale is false, just add the next note
                 noteMap[id] = nextNote;  // Add to map
+                uint8_t inScale = InScale(nextNote);
+                if (inScale == ROOT_NOTE) { rootCount++; }
                 nextNote++;
             }
             else { // If enforce scale is true, find the next note that is in scale
