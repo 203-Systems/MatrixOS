@@ -14,6 +14,7 @@ void Note::Setup(const vector<string>& args) {
   // Default Values
   notePadConfigs[1].color = Color(0xFF00FF);
   notePadConfigs[1].rootColor = Color(0x8000FF);
+  notePadConfigs[1].channel = 2;
 
   // Load From NVS
   if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
