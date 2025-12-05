@@ -23,8 +23,13 @@ void Sequencer::SequenceTask(void* ctx)
     Sequencer* self = static_cast<Sequencer*>(ctx);
     for (;;)
     {
+        MidiPacket midiPacket;
+        while(MatrixOS::MIDI::Get(&midiPacket))
+        {
+            self->sequence.RecordEvent(midiPacket);
+        }
         self->sequence.Tick();
-        taskYIELD(); // yield immediately, keep highest-rate scheduling
+        taskYIELD();
     }
 }
 

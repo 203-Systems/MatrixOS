@@ -1487,7 +1487,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
     // if track is 0xff, determine based on the packet channel.
     if (!record) return;
 
-    if (track >= trackPlayback.size()) return;
+    if (track != 0xFF && track >= trackPlayback.size()) return;
 
     EMidiStatus status = packet.Status();
     if (status != EMidiStatus::NoteOn && status != EMidiStatus::NoteOff)
