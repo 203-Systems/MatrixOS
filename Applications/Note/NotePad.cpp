@@ -391,7 +391,7 @@ bool NotePad::RenderColorPerKey(Point origin) {
             if (note == 255) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
-            else if (IsNoteActive(note)) { // If find the note is currently active. Show it as white
+            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)) { // If find the note is currently active. Show it as white
                 MatrixOS::LED::SetColor(globalPos, Color::White);
             }
             else {
