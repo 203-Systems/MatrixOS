@@ -40,3 +40,4 @@ build/
 *.app
 log.txt
 .last_config
+.DS_Store
