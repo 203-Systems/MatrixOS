@@ -1,6 +1,7 @@
 #include "MatrixOS.h"
 #include "USB.h"
 #include "tusb.h"
+#include "task.h"
 
 #define NKRO_KEY_COUNT (8*13)
 
@@ -20,6 +21,13 @@ typedef union __attribute__((packed, aligned(1))) {
 namespace MatrixOS::HID::Keyboard
 {
     HID_KeyboardReport_Data_t _keyReport;
+    static TaskHandle_t _sendTaskHandle = nullptr;
+    static StaticTask_t _sendTaskBuffer;
+    static StackType_t _sendTaskStack[configMINIMAL_STACK_SIZE];
+    static uint64_t _lastSendMicros = 0;
+
+    static void SendTask(void* param);
+    static void EnsureSendTask();
     
     // Internal API
     bool Set(KeyboardKeycode k, bool s)
@@ -85,20 +93,56 @@ namespace MatrixOS::HID::Keyboard
         return false;
     }
 
+    static void SendTask(void* param)
+    {
+        (void)param;
+
+        while(true)
+        {
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+            if(!HID::Ready())
+            {
+                continue;
+            }
+
+            if (tud_suspended())
+            {
+                // Wake up host if we are in suspend mode
+                // and REMOTE_WAKEUP feature is enabled by host
+                tud_remote_wakeup();
+            }
+
+            uint64_t nowMicros = MatrixOS::SYS::Micros();
+            if(_lastSendMicros != 0)
+            {
+                uint64_t elapsed = nowMicros - _lastSendMicros;
+                if(elapsed < 1000) // keep at least 1ms gap
+                {
+                    MatrixOS::SYS::DelayMs(1);
+                }
+            }
+
+            tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
+            _lastSendMicros = MatrixOS::SYS::Micros();
+        }
+    }
+
+    static void EnsureSendTask()
+    {
+        if(_sendTaskHandle == nullptr)
+        {
+            _sendTaskHandle = xTaskCreateStatic(SendTask, "kbd_send", configMINIMAL_STACK_SIZE, nullptr, 2, _sendTaskStack, &_sendTaskBuffer);
+        }
+    }
+
     void Send()
     {
-        if(!HID::Ready()) {
-            return;
-        }
-
-        if (tud_suspended())
+        EnsureSendTask();
+        if(_sendTaskHandle != nullptr)
         {
-            // Wake up host if we are in suspend mode
-            // and REMOTE_WAKEUP feature is enabled by host
-            tud_remote_wakeup();
+            xTaskNotifyGive(_sendTaskHandle);
         }
-        
-        tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
     }
 
     // User API
@@ -115,20 +159,20 @@ namespace MatrixOS::HID::Keyboard
 
     bool Press(KeyboardKeycode k)
     {
-    bool ret = Set(k, true);
-    if(ret){
-        Send();
-    }
-    return ret;
+        bool ret = Set(k, true);
+        if(ret){
+            Send();
+        }
+        return ret;
     }
 
     bool Release(KeyboardKeycode k)
     {
-    bool ret = Set(k, false);
-    if(ret){
-        Send();
-    }
-    return ret;
+        bool ret = Set(k, false);
+        if(ret){
+            Send();
+        }
+        return ret;
     }
 
     void ReleaseAll(void)
