@@ -1612,9 +1612,9 @@ void Note::ArpConfigMenu() {
   // Reset button
   UIButton resetBtn;
   resetBtn.SetName("Reset");
-  resetBtn.SetColor(Color(0xFF0000));
   resetBtn.SetColorFunc([&]() -> Color {
-    return Color(0xFF0000).DimIfNot(arpMenuPage != ARP_DIRECTION);
+
+    return arpMenuPage == ARP_BPM ? Color(0xFF0060) : Color(0xFF0000);
   });
   resetBtn.SetEnableFunc([&]() -> bool { return arpMenuPage != ARP_DIRECTION; });
   resetBtn.OnPress([&]() -> void {
