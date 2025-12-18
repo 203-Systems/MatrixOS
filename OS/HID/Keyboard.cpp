@@ -52,42 +52,39 @@ namespace MatrixOS::HID::Keyboard
 
             // if we are adding an element to keycodes
             if (s){
-                // iterate through the keycodes
+                uint8_t emptyIndex = keycodesSize;
+                // single pass: find existing key or first empty slot
                 for (uint8_t i = 0; i < keycodesSize; i++)
                 {
                     auto key = _keyReport.keycodes[i];
-                    // if target key is found
                     if (key == uint8_t(k)) {
-                        // do nothing and exit
                         return true;
+                    }
+                    if (key == KEY_RESERVED && emptyIndex == keycodesSize) {
+                        emptyIndex = i;
                     }
                 }
-                // iterate through the keycodes again, this only happens if no existing
-                // keycodes matches k
-                for (uint8_t i = 0; i < keycodesSize; i++)
-                {
-                    auto key = _keyReport.keycodes[i];
-                    // if first instance of empty slot is found
-                    if (key == KEY_RESERVED) {
-                        // change empty slot to k and exit
-                        _keyReport.keycodes[i] = k;
-                        return true;
-                    }
+                if (emptyIndex != keycodesSize) {
+                    _keyReport.keycodes[emptyIndex] = k;
+                    return true;
                 }
             } else { // we are removing k from keycodes
-                // iterate through the keycodes
                 for (uint8_t i = 0; i < keycodesSize; i++)
                 {
-                    auto key = _keyReport.keycodes[i];
-                    // if target key is found
-                    if (key == k) {
-                        // remove target and exit
-                        _keyReport.keycodes[i] = KEY_RESERVED;
+                    if (_keyReport.keycodes[i] == k) {
+                        // compact so we don't leave holes
+                        for (uint8_t j = i; j + 1 < keycodesSize; j++)
+                        {
+                            _keyReport.keycodes[j] = _keyReport.keycodes[j + 1];
+                        }
+                        _keyReport.keycodes[keycodesSize - 1] = KEY_RESERVED;
                         return true;
                     }
                 }
             }
         }
+
+        MLOGD("HID", "Set failed");
 
         // No empty/pressed key was found
         return false;
@@ -103,6 +100,7 @@ namespace MatrixOS::HID::Keyboard
 
             if(!HID::Ready())
             {
+                ulTaskNotifyTake(pdTRUE, 0);
                 continue;
             }
 
@@ -113,18 +111,16 @@ namespace MatrixOS::HID::Keyboard
                 tud_remote_wakeup();
             }
 
-            uint64_t nowMicros = MatrixOS::SYS::Micros();
-            if(_lastSendMicros != 0)
-            {
-                uint64_t elapsed = nowMicros - _lastSendMicros;
-                if(elapsed < 1000) // keep at least 1ms gap
-                {
-                    MatrixOS::SYS::DelayMs(1);
-                }
-            }
-
             tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
-            _lastSendMicros = MatrixOS::SYS::Micros();
+            MatrixOS::SYS::DelayMs(2);
+
+            // Clear any queued notifications; we only need to send the latest _keyReport state once.
+            ulTaskNotifyTake(pdTRUE, 0);
+
+            // Send another one to make sure we didn't drop packet
+            tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
+            MatrixOS::SYS::DelayMs(2);
+
         }
     }
 
