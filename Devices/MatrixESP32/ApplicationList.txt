@@ -21,19 +21,19 @@ BrightnessControl
 # System Apps
 [System]Shell
 MSC
+REDACTED
 
 # User Facing Apps
 Performance
 Note
-REDACTED
-Companion
+Sequencer
 CustomControlMap
 Lighting
 Dice
-Reversi
-# PolyPlayground
 Strum
-Sequencer
+Reversi
+Companion
+# PolyPlayground
 [System]Python
 
 # Boot animation
