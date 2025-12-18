@@ -23,7 +23,7 @@ namespace MatrixOS::HID::Keyboard
     HID_KeyboardReport_Data_t _keyReport;
     static TaskHandle_t _sendTaskHandle = nullptr;
     static StaticTask_t _sendTaskBuffer;
-    static StackType_t _sendTaskStack[configMINIMAL_STACK_SIZE];
+    static StackType_t _sendTaskStack[configMINIMAL_STACK_SIZE * 6];
     static uint64_t _lastSendMicros = 0;
 
     static void SendTask(void* param);
@@ -84,8 +84,6 @@ namespace MatrixOS::HID::Keyboard
             }
         }
 
-        MLOGD("HID", "Set failed");
-
         // No empty/pressed key was found
         return false;
     }
@@ -100,7 +98,6 @@ namespace MatrixOS::HID::Keyboard
 
             if(!HID::Ready())
             {
-                ulTaskNotifyTake(pdTRUE, 0);
                 continue;
             }
 
@@ -110,17 +107,12 @@ namespace MatrixOS::HID::Keyboard
                 // and REMOTE_WAKEUP feature is enabled by host
                 tud_remote_wakeup();
             }
-
-            tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
-            MatrixOS::SYS::DelayMs(2);
-
-            // Clear any queued notifications; we only need to send the latest _keyReport state once.
-            ulTaskNotifyTake(pdTRUE, 0);
-
-            // Send another one to make sure we didn't drop packet
-            tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
-            MatrixOS::SYS::DelayMs(2);
-
+            
+            for(uint8_t i = 0; i < 5; i++)
+            {
+                tud_hid_n_report(0, REPORT_ID_KEYBOARD, &_keyReport, sizeof(_keyReport));
+                MatrixOS::SYS::DelayMs(2);
+            }
         }
     }
 
