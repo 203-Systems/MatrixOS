@@ -5,22 +5,19 @@
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
-class Setting : public UI {
+class Setting {
   public:
-  // string name = "Setting";
-  // Color nameColor = Color(0x00FFFF);
+  Setting() = default;
 
-   Setting();
+  const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
 
-   const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
+  void SystemSetting();
 
-   void Start();
+  static void RotateClockwise(Direction rotation);
+  static void NextBrightness();
+  static void ResetConfirm();
 
-   static void RotateClockwise(Direction rotation);
-   static void NextBrightness();
-   static void ResetConfirm();
-
-   bool CustomKeyEvent(KeyEvent* keyEvent);
+  bool CustomKeyEvent(KeyEvent* keyEvent);
 
   private:
   uint8_t konami = 0;

@@ -190,7 +190,7 @@ namespace MatrixOS::SYS
 
   void OpenSetting(void) {
     Setting setting;
-    setting.Start();
+    setting.SystemSetting();
   }
 
   void Rotate(Direction new_rotation, bool absolute) {
