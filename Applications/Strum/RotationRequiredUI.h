@@ -23,11 +23,9 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
 
   uint32_t start_time = MatrixOS::SYS::Millis();
 
-  UIButton brightnessBtn;
-  brightnessBtn.SetName("Brightness");
+  UIButton brightnessBtn;;
   brightnessBtn.SetColor(Color::White);
   brightnessBtn.SetSize(Dimension(2, 2));
-  brightnessBtn.OnPress([&]() -> void { MatrixOS::LED::NextBrightness(); });
   rotationRequiredUI.AddUIComponent(brightnessBtn, Point(3, 3));
 
   // Rotation control and canvas
@@ -46,7 +44,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   }
   else
   {
-    rotateUpBtn.SetColor(Color(0x00FF00).Dim());
+    rotateUpBtn.SetColor(Color(0x00FF00).Dim(32));
   }
   rotationRequiredUI.AddUIComponent(rotateUpBtn, Point(3, 2));
 
@@ -65,7 +63,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   }
   else
   {
-    rotateRightBtn.SetColor(Color(0x00FF00).Dim());
+    rotateRightBtn.SetColor(Color(0x00FF00).Dim(32));
   }
   rotationRequiredUI.AddUIComponent(rotateRightBtn, Point(5, 3));
 
@@ -84,7 +82,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   }
   else
   {
-    rotateDownBtn.SetColor(Color(0x00FF00).Dim());
+    rotateDownBtn.SetColor(Color(0x00FF00).Dim(32));
   }
   rotationRequiredUI.AddUIComponent(rotateDownBtn, Point(3, 5));
     
@@ -103,7 +101,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   }
   else
   {
-    rotateLeftBtn.SetColor(Color(0x00FF00).Dim());
+    rotateLeftBtn.SetColor(Color(0x00FF00).Dim(32));
   }
   rotationRequiredUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
