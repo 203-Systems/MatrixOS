@@ -92,32 +92,16 @@ void Setting::Start() {
   resetDevice.SetColor(Color(0xFF00FF));
   resetDevice.OnPress([]() -> void { Setting::ResetConfirm(); });
   // resetDevice.SetEnabled(MatrixOS::UserVar::developer_mode);
-  AddUIComponent(resetDevice, Point(0, Device::y_size - 2));
+  AddUIComponent(resetDevice, Point(1, Device::y_size - 1));
 
-  // Infomation
   UIButton osVersionBtn;
-  osVersionBtn.SetName("Matrix OS Version");
-  osVersionBtn.SetColor(Color(0x00FF30));
-  osVersionBtn.OnPress([]() -> void {
-    MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FFFF));
-  });
-  AddUIComponent(osVersionBtn, Point(1, Device::y_size - 1));
-
-  UIButton deviceNameBtn;
-  deviceNameBtn.SetName("Device Name");
-  deviceNameBtn.SetColor(Color(0x00FF30));
-  deviceNameBtn.OnPress([]() -> void {
-    MatrixOS::UIUtility::TextScroll(Device::name, Color(0x00FFFF));
-  });
-  AddUIComponent(deviceNameBtn, Point(2, Device::y_size - 1));
-
-  UIButton deviceSerialBtn;
-  deviceSerialBtn.SetName("Device Serial");
-  deviceSerialBtn.SetColor(Color(0x00FF30));
-  deviceSerialBtn.OnPress([]() -> void {
-    MatrixOS::UIUtility::TextScroll(Device::GetSerial(), Color(0x00FFFF));
-  });
-  AddUIComponent(deviceSerialBtn, Point(3, Device::y_size - 1));
+    osVersionBtn.SetName("Matrix OS Version");
+    osVersionBtn.SetColor(Color(0x00FF30));
+    osVersionBtn.SetSize(Dimension(2, 1));
+    osVersionBtn.OnPress([]() -> void {
+      MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FF30));
+    });
+  AddUIComponent(osVersionBtn, Point(3, Device::y_size - 1));
 
   UIButton deviceSettingsBtn;
   deviceSettingsBtn.SetName("Device Settings");

@@ -115,6 +115,23 @@ namespace Device
     keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocity_sensitivity);
     deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
 
+    // Infomation
+    UIButton deviceNameBtn;
+    deviceNameBtn.SetName("Device Name");
+    deviceNameBtn.SetColor(Color(0x00FFD0));
+    deviceNameBtn.OnPress([]() -> void {
+      MatrixOS::UIUtility::TextScroll(Device::name, Color(0x00FFD0));
+    });
+    deviceSettings.AddUIComponent(deviceNameBtn, Point(0, 7));
+
+    UIButton deviceSerialBtn;
+    deviceSerialBtn.SetName("Device Serial");
+    deviceSerialBtn.SetColor(Color(0x00FF30));
+    deviceSerialBtn.OnPress([]() -> void {
+      MatrixOS::UIUtility::TextScroll(Device::GetSerial(), Color(0x00FF30));
+    });
+    deviceSettings.AddUIComponent(deviceSerialBtn, Point(1, 7));
+
     deviceSettings.Start();
   }
 
