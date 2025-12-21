@@ -93,7 +93,7 @@ bool UADRuntime::ExecuteActions(ActionInfo* actionInfo, ActionEvent* actionEvent
   // I will get this fixed. 
   cb0r_s actions = bitmap;
   MLOGD(TAG, "Layer Enabled: %d", layerEnabled);
-  for (int8_t layer = layerCount; layer >= 0; layer--)
+  for (int8_t layer = layerCount - 1; layer >= 0; layer--)
   {
     // If the layer has no action.
     if (!IsBitSet(bitmap.value, layer))
