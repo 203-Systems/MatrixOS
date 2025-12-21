@@ -257,16 +257,30 @@ bool PatternPad::Render(Point origin)
     int16_t clockTillStart = sequencer->sequence.GetClocksTillStart();
     if(sequencer->sequence.RecordEnabled() && (clockTillStart > 0))
     {
-        uint8_t totalSteps = 16;
-        for(uint8_t step = 0; step < 16; step++)
+        // 4 ticks, each spanning two columns.
+        const uint8_t tickCount = 4;
+        const uint8_t columnsPerTick = 2;
+        const uint16_t clocksPerTick = 24;
+        for(uint8_t tick = 0; tick < tickCount; tick++)
         {
-            bool lit = clockTillStart <= 6 * (totalSteps - step);
-            Point xy = Point(step % width, step / width);
-            MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(lit));
-            if(TwoPatternMode())
+            bool lit = clockTillStart <= clocksPerTick * (tickCount - tick);
+            uint8_t startCol = tick * columnsPerTick;
+            for(uint8_t col = 0; col < columnsPerTick; col++)
             {
-                xy = xy + Point(0, 2);
-                MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(lit));
+                uint8_t x = startCol + col;
+                if(x >= width)
+                {
+                    continue;
+                }
+                for(uint8_t row = 0; row < 2; row++)
+                {
+                    Point xy = Point(x, row);
+                    MatrixOS::LED::SetColor(origin + xy, Color::Red.DimIfNot(lit));
+                    if(TwoPatternMode())
+                    {
+                        MatrixOS::LED::SetColor(origin + xy + Point(0, 2), Color::Red.DimIfNot(lit));
+                    }
+                }
             }
         }
         return true;
