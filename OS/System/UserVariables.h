@@ -14,5 +14,7 @@ namespace MatrixOS::UserVar
   UserVar(rotation, Direction, TOP);
   UserVar(brightness, uint8_t, 64);
   UserVar(ui_animation, bool, true);
+  UserVar(secret_menu_en, bool, false);
+
   UserVar(fast_scroll, bool, false);
 }

@@ -13,12 +13,13 @@ class Setting {
 
   void SystemSetting();
 
-  static void RotateClockwise(Direction rotation);
-  static void NextBrightness();
-  static void ResetConfirm();
+   static void RotateClockwise(Direction rotation);
+   static void NextBrightness();
+   static void ResetConfirm();
 
-  bool CustomKeyEvent(KeyEvent* keyEvent);
+   bool CustomKeyEvent(KeyEvent* keyEvent);
 
   private:
+  void SecretMenu();
   uint8_t konami = 0;
 };

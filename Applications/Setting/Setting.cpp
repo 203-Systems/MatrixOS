@@ -8,7 +8,7 @@ void Setting::SystemSetting() {
   // Conspiracy exists?) Also assume at least 4x4
   UI systemSetting;
   systemSetting.SetName("Setting");
-  systemSetting.SetColor(Color(0x00FFFF));
+  systemSetting.SetColor(Color(0xFFFFFF));
   systemSetting.SetKeyEventHandler([this](KeyEvent* keyEvent) -> bool { return CustomKeyEvent(keyEvent); });
 
   // Brightness Control
@@ -116,14 +116,31 @@ void Setting::SystemSetting() {
   uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::ui_animation.Save(); });
   systemSetting.AddUIComponent(uiAnimationToggle, Point(7, 0));
 
+  UIButton secretMenuBtn;
+  secretMenuBtn.SetName("Secret Menu");
+  secretMenuBtn.SetColorFunc([]() -> Color { return ColorEffects::Rainbow(3000); });
+  secretMenuBtn.SetSize(Dimension(4, 1));
+  secretMenuBtn.OnPress([&]() -> void { SecretMenu(); });
+  secretMenuBtn.SetEnableFunc([]() -> bool {return MatrixOS::UserVar::secret_menu_en;});
+  systemSetting.AddUIComponent(secretMenuBtn, Point(2, 0));
+
+  systemSetting.Start();
+}
+
+void Setting::SecretMenu()
+{
+  UI secretMenu;
+  secretMenu.SetName("Secret Menu");
+  secretMenu.SetColor(Color(0xFFFFFF));
+
   UIToggle fastScrollToggle;
   fastScrollToggle.SetName("Fast Text");
   fastScrollToggle.SetColor(Color(0x5A39BD));
   fastScrollToggle.SetValuePointer(&MatrixOS::UserVar::fast_scroll);
   fastScrollToggle.OnPress([]() -> void { MatrixOS::UserVar::fast_scroll.Save(); });
-  systemSetting.AddUIComponent(fastScrollToggle, Point(6, 0));
+  secretMenu.AddUIComponent(fastScrollToggle, Point(0, 0));
 
-  systemSetting.Start();
+  secretMenu.Start();
 }
 
 bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
@@ -160,6 +177,7 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
         aBtn.OnPress([&]() -> void {
           if (konami == 9)
           {
+            MatrixOS::UserVar::secret_menu_en = true;
             MatrixOS::SYS::ExecuteAPP("203 Systems", "REDACTED");
           }
           else
