@@ -677,7 +677,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
     sequencer->shift[shiftIndex] = true;
     sequencer->shiftEventOccured[shiftIndex] = false;
 
-    if (sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->stepSelected.size() == 1)
+    if (sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->sequence.Playing() == false && sequencer->stepSelected.size() == 1)
     {
       uint8_t clip = sequencer->sequence.GetPosition(track)->clip;
       auto selection = *sequencer->stepSelected.begin();
