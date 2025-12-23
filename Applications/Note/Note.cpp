@@ -90,29 +90,6 @@ void Note::Setup(const vector<string>& args) {
   }
   actionMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
 
-  // Split View
-  UIButton splitViewToggle;
-  splitViewToggle.SetName("Split View");
-  splitViewToggle.SetColorFunc([&]() -> Color { 
-    switch(splitView)
-    {
-
-      case VERT_SPLIT: return Color(0x00FFFF);
-      case HORIZ_SPLIT: return Color(0xFF00FF);
-      default: return Color::White.Dim();
-    }
-  });
-  splitViewToggle.OnPress([&]() -> void { splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3); });
-  splitViewToggle.OnHold([&]() -> void { 
-    switch(splitView)
-    {
-      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color::White); break;
-      case VERT_SPLIT: MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF)); break;
-      case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
-    }
-  });
-  actionMenu.AddUIComponent(splitViewToggle, Point(0, 0));
-
   UIButton notepad1SelectBtn;
   notepad1SelectBtn.SetName("Note Pad 1");
   notepad1SelectBtn.SetSize(Dimension(2, 1));
@@ -180,6 +157,57 @@ void Note::Setup(const vector<string>& args) {
     }
   });
   actionMenu.AddUIComponent(octaveMinusBtn, Point(2, 7));
+
+  // Spilt Note Pad Display
+  UITimedDisplay spiltDisplay;
+  spiltDisplay.SetDimension(Dimension(4, 4));
+  spiltDisplay.SetRenderFunc([&](Point origin) -> void {
+        for(uint8_t x = 0; x < 4; x++)
+        {
+          for(uint8_t y = 0; y < 4; y++)
+          {
+            Color color = notePadConfigs[activeConfig].color;
+            if (splitView == SINGLE_VIEW)
+            {
+              // color = notePadConfigs[activeConfig].color;
+            }
+            else if (splitView == VERT_SPLIT)
+            {
+              color = x < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
+            }
+            else if (splitView == HORIZ_SPLIT)
+            {
+              color = y < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
+            }
+            MatrixOS::LED::SetColor(origin + Point(x, y), color);
+          }
+        }
+    });
+  spiltDisplay.Disable();
+  actionMenu.AddUIComponent(spiltDisplay, Point(2, 2));
+
+  UIButton splitViewToggle;
+  splitViewToggle.SetName("Split View");
+  splitViewToggle.SetColorFunc([&]() -> Color { 
+    switch(splitView)
+    {
+
+      case VERT_SPLIT: return Color(0x00FFFF);
+      case HORIZ_SPLIT: return Color(0xFF00FF);
+      default: return Color::White.Dim();
+    }
+  });
+  splitViewToggle.OnPress([&]() -> void { splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3); spiltDisplay.Enable();});
+  splitViewToggle.OnHold([&]() -> void { 
+    switch(splitView)
+    {
+      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color::White); break;
+      case VERT_SPLIT: MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF)); break;
+      case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
+    }
+  });
+  actionMenu.AddUIComponent(splitViewToggle, Point(0, 0));
+
 
   // Control Bar
   UIToggle controlBarToggle;
