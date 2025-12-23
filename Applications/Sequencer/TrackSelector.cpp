@@ -22,8 +22,22 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo)
         bool clear;
         if(sequencer->ClearActive())
         {
-            sequencer->sequence.ClearAllStepsInClip(xy.x, sequencer->sequence.GetPosition(xy.x)->clip);
-            sequencer->SetMessage(SequencerMessage::CLEARED);
+            if(xy.x != sequencer->track)
+            {
+                sequencer->track = xy.x;
+                sequencer->ClearSelectedNotes();
+                sequencer->ClearActiveNotes();
+                sequencer->stepSelected.clear();
+                sequencer->patternSelected.clear();
+                if (changeCallback != nullptr) {
+                    (changeCallback)(xy.x);
+                }
+            }
+            else
+            {
+                sequencer->sequence.ClearAllStepsInClip(xy.x, sequencer->sequence.GetPosition(xy.x)->clip);
+                sequencer->SetMessage(SequencerMessage::CLEARED);
+            }
         }
         else
         {
@@ -65,7 +79,7 @@ bool TrackSelector::Render(Point origin)
     {
         for(uint8_t i = 0; i < width; i++)
         {
-            MatrixOS::LED::SetColor(origin + Point(i, 0), sequencer->meta.tracks[i].color);
+            MatrixOS::LED::SetColor(origin + Point(i, 0), sequencer->meta.tracks[i].color.DimIfNot(i == sequencer->track));
         }
     }
     else
