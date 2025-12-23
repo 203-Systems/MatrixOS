@@ -7,6 +7,7 @@ class UITimedDisplay : public UIComponent {
  public:
   uint32_t lastEnabledTime = 0;
   uint32_t enableLength;
+  bool disableOnTap = true;
   Dimension dimension;
   std::unique_ptr<std::function<void(Point)>> renderFunc;
 
@@ -75,6 +76,11 @@ class UITimedDisplay : public UIComponent {
     enabled = false;
   }
 
+  void SetDisableOnTap(bool disableOnTap)
+  {
+    this->disableOnTap = disableOnTap;
+  }
+
   virtual bool Render(Point origin) {
     for(int8_t y = 0; y < dimension.y; y++)
     {
@@ -93,7 +99,7 @@ class UITimedDisplay : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if(keyInfo->State() == PRESSED)
+    if(keyInfo->State() == PRESSED && disableOnTap)
     {
       Disable();
     }
