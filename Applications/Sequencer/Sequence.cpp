@@ -1502,6 +1502,13 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
         return;
     }
 
+    const uint16_t recordGraceClocks = 24; // one Quartter Note
+    bool isCountIn = clocksTillStart > 0;
+    bool clampToStart = isCountIn && clocksTillStart <= recordGraceClocks;
+    if (isCountIn && !clampToStart) {
+        return;
+    }
+
     std::vector<uint8_t> targets;
     if (track == 0xFF)
     {
@@ -1532,7 +1539,16 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
 
         SequencePattern* pattern = GetPattern(t, clipIdx, patIdx);
         if (!pattern) continue;
-        uint32_t currentTick = trackPlayback[t].position.step * pulsesPerStep + trackPlayback[t].position.pulse;
+        uint32_t currentTick = 0;
+        uint16_t pulse = trackPlayback[t].position.pulse;
+        if (pulse == UINT16_MAX) {
+            pulse = 0;
+        }
+        if (clampToStart) {
+            currentTick = trackPlayback[t].position.step * pulsesPerStep;
+        } else {
+            currentTick = trackPlayback[t].position.step * pulsesPerStep + pulse;
+        }
         auto& pending = trackPlayback[t].recordedNotes;
 
         if (status == EMidiStatus::NoteOn && velocity > 0)
@@ -1567,7 +1583,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
                 evRef.recordLayer = currentRecordLayer;
             }
             Sequence::TrackPlayback::RecordedNote info;
-            info.startPulse = pulseSinceStart;
+            info.startPulse = clampToStart ? 0 : pulseSinceStart;
             info.eventPtr = &evRef;
             pending[note] = info;
             dirty = true;

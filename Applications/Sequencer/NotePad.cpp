@@ -279,7 +279,9 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet)
     uint8_t track = sequencer->track;
     uint8_t stepsSelected = sequencer->stepSelected.size();
 
-    if (sequencer->sequence.Playing(track) && 
+    bool sequenceRunning = sequencer->sequence.Playing(track) ||
+                           (sequencer->sequence.Playing() && sequencer->sequence.GetClocksTillStart() > 0);
+    if (sequenceRunning && 
         sequencer->sequence.RecordEnabled() &&
         sequencer->sequence.ShouldRecord(track) && 
         stepsSelected == 0
