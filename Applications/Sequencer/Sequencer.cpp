@@ -1534,6 +1534,24 @@ static void RenderCross(Point origin, Color color)
     }
 }
 
+static void RenderPlus(Point origin, Color color)
+{
+     for (uint8_t x = 0; x < 4; ++x)
+    {
+        for (uint8_t y = 0; y < 4; ++y)
+        {
+            if (x == 1 || x == 2 || y == 1 || y == 2)
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), color);
+            }
+            else
+            {
+                MatrixOS::LED::SetColor(origin + Point(x, y), Color::Black);    
+            }
+        }
+    }
+}
+
 void Sequencer::ConfirmSaveUI()
 {
     UI confirmSaveUI("Confirm Save", meta.color, false);
@@ -1892,7 +1910,7 @@ void Sequencer::SequenceBrowser()
                         }
                         else
                         {
-                            RenderDownArrow(Point(2, 2), Color::White);
+                            RenderPlus(Point(2, 2), Color::White);
                             MatrixOS::LED::Update();
                             sequence.New(8);
                             meta.New(8);
