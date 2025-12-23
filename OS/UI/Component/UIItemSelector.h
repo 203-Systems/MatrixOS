@@ -57,10 +57,10 @@ class UIItemSelector : public UISelectorBase {
     currentItemIndex = UINT16_MAX;
     if (itemPtr != nullptr && items != nullptr) {
       for (uint16_t i = 0; i < MAX(dimension.Area(), count); i++) {
-        if (items[currentItemIndex] == *itemPtr) {
+        if (items[i] == *itemPtr) {
+          currentItemIndex = i;
           break;
         }
-        currentItemIndex++;
       }
     }
 
