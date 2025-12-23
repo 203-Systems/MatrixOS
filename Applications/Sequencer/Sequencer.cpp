@@ -627,7 +627,7 @@ void Sequencer::LayoutSelector()
         MatrixOS::LED::SetColor(origin + Point(7, 3), drumColor);
     });
     drmTextDisplay.SetEnableFunc([&]() -> bool {
-        return meta.tracks[track].mode == SequenceTrackMode::DrumTrack;
+        return (meta.tracks[track].mode == SequenceTrackMode::DrumTrack) && (noteMapTesting == false);
     });
     layoutSelector.AddUIComponent(drmTextDisplay, Point(0, 4));
     
