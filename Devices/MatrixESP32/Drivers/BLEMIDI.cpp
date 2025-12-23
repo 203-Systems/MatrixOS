@@ -14,7 +14,8 @@ namespace Device
   {
     bool started = false;
     string name;
-    MidiPort* midiPort;
+    MidiPort midiPortInstance;
+    MidiPort* midiPort = nullptr;
     TaskHandle_t portTaskHandle = NULL;
 
     void Callback(uint8_t blemidi_port, uint16_t timestamp, uint8_t midi_status, uint8_t* remaining_message, size_t len,
@@ -23,7 +24,7 @@ namespace Device
       // continued_sysex_pos=%d, remaining_message:", blemidi_port, timestamp, midi_status, len, continued_sysex_pos);
       // MLOGD(TAG, "Received 0x%02x 0x%02x 0x%02x", midi_status, remaining_message[0],
       // remaining_message[1]);
-      if (len == 2)
+      if (len == 2 && midiPort != nullptr)
       {
         midiPort->Send(MidiPacket((EMidiStatus)(midi_status & 0xF0), midi_status, remaining_message[0],
                                   remaining_message[1]));
@@ -42,13 +43,11 @@ namespace Device
     }
 
     void portTask(void* param) {
-      MidiPort port = MidiPort("Bluetooth", MIDI_PORT_BLUETOOTH);
-      midiPort = &port;
       MidiPacket packet;
       while (true)
       {
-        if (port.Get(&packet, portMAX_DELAY))
-        { blemidi_send_message(port.id % 0x100, packet.data, 3); }
+        if (midiPort != nullptr && midiPort->Get(&packet, portMAX_DELAY))
+        { blemidi_send_message(midiPort->id % 0x100, packet.data, 3); }
       }
     }
 
@@ -59,6 +58,12 @@ namespace Device
       else
       {
         ESP_LOGI(TAG, "BLE MIDI Driver initialized successfully");
+        if (midiPort == nullptr)
+        {
+          midiPort = &midiPortInstance;
+          midiPort->SetName("Bluetooth");
+          midiPort->Open(MIDI_PORT_BLUETOOTH);
+        }
         xTaskCreate(portTask, "Bluetooth Midi Port", configMINIMAL_STACK_SIZE * 2, NULL, configMAX_PRIORITIES - 2,
                     &portTaskHandle);
         started = true;
@@ -72,8 +77,16 @@ namespace Device
       else
       {
         ESP_LOGI(TAG, "BLE MIDI Driver deinitialized successfully");
-        midiPort->Close();
-        vTaskDelete(portTaskHandle);
+        if (portTaskHandle != NULL)
+        {
+          vTaskDelete(portTaskHandle);
+          portTaskHandle = NULL;
+        }
+        if (midiPort != nullptr)
+        {
+          midiPort->Close();
+          midiPort = nullptr;
+        }
         started = false;
       }
     }
