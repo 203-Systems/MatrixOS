@@ -691,6 +691,7 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(6, 3), color);
     MatrixOS::LED::SetColor(origin + Point(7, 0), color);
   });
+  octTextDisplay.SetDisableOnTap(false);
   octTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT; });
   layoutSelector.AddUIComponent(octTextDisplay, Point(0, 2));
 
@@ -801,6 +802,7 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(7, 2), color);
     MatrixOS::LED::SetColor(origin + Point(7, 3), color);
   });
+  chmTextDisplay.SetDisableOnTap(false);
   chmTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT; });
   layoutSelector.AddUIComponent(chmTextDisplay, Point(0, 2));
 
@@ -838,6 +840,7 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(7, 2), color);
     MatrixOS::LED::SetColor(origin + Point(7, 3), color);
   });
+  pioTextDisplay.SetDisableOnTap(false);
   pioTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == PIANO_LAYOUT; });
   layoutSelector.AddUIComponent(pioTextDisplay, Point(0, 2));
 
