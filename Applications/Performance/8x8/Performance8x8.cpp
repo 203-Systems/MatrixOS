@@ -156,14 +156,16 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   {
     // MLOGD("Performance", "Set LED");
     Color color;
-    if (channel < BUILTIN_PALETTE_COUNT)
+    uint8_t palette_idx = paletteFollowChannel ? channel : selectedPalette;
+
+    if (palette_idx < BUILTIN_PALETTE_COUNT)
     {
-      color = palette[channel][velocity];
+      color = palette[palette_idx][velocity];
       MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
     }
-    else if (channel < BUILTIN_PALETTE_COUNT + CUSTOM_PALETTE_COUNT)
+    else if (palette_idx < BUILTIN_PALETTE_COUNT + CUSTOM_PALETTE_COUNT)
     {
-      color = custom_palette[channel - BUILTIN_PALETTE_COUNT][velocity];
+      color = custom_palette[palette_idx - BUILTIN_PALETTE_COUNT][velocity];
       MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
     }
   }
@@ -537,6 +539,9 @@ void Performance::stfuScan() {
 void Performance::PaletteViewer(uint8_t custom_palette_id) {
   MLOGD("Performance", "Custom Palette Viewer %d", custom_palette_id);
 
+  MatrixOS::KeyPad::Clear();
+  MatrixOS::KeyPad::ClearList();
+
   bool modified = false;
   Timer timer;
 
@@ -562,6 +567,20 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
       struct KeyEvent keyEvent;
       if (MatrixOS::KeyPad::Get(&keyEvent))
       {
+        if (keyEvent.ID() == FUNCTION_KEY)
+        {
+          if (keyEvent.info.state == HOLD)
+          { 
+            i = 100;  // Force exit, but still runs the saving routine
+            break;
+          }
+          else if (keyEvent.info.state == RELEASED)
+          {
+            break;
+          }
+          continue;
+        }
+
         Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
         if(xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
@@ -576,31 +595,13 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
               MatrixOS::LED::Update();
               modified = true;
             }
-            
           }
           else if (keyEvent.info.state == HOLD)
           {
             string text = "Color " + std::to_string(id);
             MatrixOS::UIUtility::TextScroll(text, Color::White);
           }
-          else if (keyEvent.info.state == RELEASED)
-          {
-            break;
-          }
         }
-        if (keyEvent.ID() == FUNCTION_KEY)
-        {
-          if (keyEvent.info.state == HOLD)
-          { 
-            i = 100;  // Force exit, but still runs the saving routine
-            break;
-          }
-          else if (keyEvent.info.state == RELEASED)
-          {
-            break;
-          }
-        }
-        
       }
     }
   }
@@ -668,29 +669,51 @@ void Performance::ActionMenu() {
   flickerReductionToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor()); });
   actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
-  UIButton customPaletteViewer1;
-  customPaletteViewer1.SetName("Custom Palette 1");
-  customPaletteViewer1.SetColorFunc([&]() -> Color { return custom_palette_available[0] ? Color(0x00FFFF) : Color::White.Dim(); });
-  customPaletteViewer1.OnPress([&]() -> void { PaletteViewer(0); });
-  actionMenu.AddUIComponent(customPaletteViewer1, Point(2, 0));
+  // Palette Settings
+  UIToggle followChannelToggle;
+  followChannelToggle.SetName("Follow MIDI Channel");
+  followChannelToggle.SetColor(Color(0x00FF00));
+  followChannelToggle.SetValuePointer(&paletteFollowChannel);
+  followChannelToggle.OnPress([&]() -> void { paletteFollowChannel.Save(); });
+  actionMenu.AddUIComponent(followChannelToggle, Point(5, 0));
 
-  UIButton customPaletteViewer2;
-  customPaletteViewer2.SetName("Custom Palette 2");
-  customPaletteViewer2.SetColorFunc([&]() -> Color { return custom_palette_available[1] ? Color(0x00FFFF) : Color::White.Dim(); });
-  customPaletteViewer2.OnPress([&]() -> void { PaletteViewer(1); });
-  actionMenu.AddUIComponent(customPaletteViewer2, Point(3, 0));
+  UIButton builtinPaletteBtns[BUILTIN_PALETTE_COUNT];
+  const char* builtinPaletteNames[] = {"Default Palette", "RGB Palette", "RG Palette"};
+  for (uint8_t i = 0; i < BUILTIN_PALETTE_COUNT; i++)
+  {
+    builtinPaletteBtns[i].SetName(builtinPaletteNames[i]);
+    builtinPaletteBtns[i].SetColorFunc([this, i]() -> Color { 
+      bool active = !paletteFollowChannel && selectedPalette.Get() == i;
+      return active ? Color(0x0000FF) : Color(0x0000FF).Dim(); 
+    });
+    builtinPaletteBtns[i].OnPress([this, i]() -> void { 
+      selectedPalette = i; 
+      paletteFollowChannel = false;
+      selectedPalette.Save();
+      paletteFollowChannel.Save();
+    });
+    actionMenu.AddUIComponent(builtinPaletteBtns[i], Point(2 + i, 0));
+  }
 
-  UIButton customPaletteViewer3;
-  customPaletteViewer3.SetName("Custom Palette 3");
-  customPaletteViewer3.SetColorFunc([&]() -> Color { return custom_palette_available[2] ? Color(0x00FFFF) : Color::White.Dim(); });
-  customPaletteViewer3.OnPress([&]() -> void { PaletteViewer(2); });
-  actionMenu.AddUIComponent(customPaletteViewer3, Point(4, 0));
-
-  UIButton customPaletteViewer4;
-  customPaletteViewer4.SetName("Custom Palette 4");
-  customPaletteViewer4.SetColorFunc([&]() -> Color { return custom_palette_available[3] ? Color(0x00FFFF) : Color::White.Dim(); });
-  customPaletteViewer4.OnPress([&]() -> void { PaletteViewer(3); });
-  actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
+  UIButton customPaletteBtns[CUSTOM_PALETTE_COUNT];
+  for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
+  {
+    customPaletteBtns[i].SetName("Custom Palette " + std::to_string(i + 1));
+    uint8_t paletteIndex = BUILTIN_PALETTE_COUNT + i;
+    customPaletteBtns[i].SetColorFunc([this, i, paletteIndex]() -> Color { 
+      bool active = !paletteFollowChannel && selectedPalette.Get() == paletteIndex;
+      Color baseColor = custom_palette_available[i] ? Color(0x00FFFF) : Color::White;
+      return active ? baseColor : baseColor.Dim();
+    });
+    customPaletteBtns[i].OnPress([this, paletteIndex]() -> void { 
+      selectedPalette = paletteIndex; 
+      paletteFollowChannel = false;
+      selectedPalette.Save();
+      paletteFollowChannel.Save();
+    });
+    customPaletteBtns[i].OnHold([this, i]() -> void { PaletteViewer(i); });
+    actionMenu.AddUIComponent(customPaletteBtns[i], Point(2 + i, 1));
+  }
 
   actionMenu.SetGlobalLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open
     struct MidiPacket midiPacket;
