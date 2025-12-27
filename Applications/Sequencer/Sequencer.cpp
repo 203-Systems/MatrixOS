@@ -1702,7 +1702,7 @@ void Sequencer::SequenceBrowser()
             }
             else if(copy)
             {
-                Color color = Color(0x8000FF);
+                Color color = Color(0x0080FF);
 
                 // C
                 MatrixOS::LED::SetColor(Point(0, 1), color);
