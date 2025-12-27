@@ -40,4 +40,6 @@ build/
 *.app
 log.txt
 .last_config
+
+# macOS
 .DS_Store
