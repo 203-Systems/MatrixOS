@@ -503,14 +503,20 @@ bool SequencerMessageDisplay::Render(Point origin)
             case SequencerMessage::CLEAR:
             case SequencerMessage::CLEARED:
             {
-                Color copyColor = sequencer->lastMessage == SequencerMessage::CLEAR ? Color(0xFF0080) : successColor;
-                RenderClear(origin, copyColor);
+                if(sequencer->ClearActive())
+                {
+                    Color copyColor = sequencer->lastMessage == SequencerMessage::CLEAR ? Color(0xFF0080) : successColor;
+                    RenderClear(origin, copyColor);
+                }
                 break;
             }
             case SequencerMessage::COPIED:
             {
-                Color copyColor = sequencer->lastMessage == SequencerMessage::COPY ? Color(0x0080FF) : successColor;
-                RenderCopy(origin, copyColor, true);
+                if(sequencer->CopyActive())
+                {
+                    Color copyColor = sequencer->lastMessage == SequencerMessage::COPY ? Color(0x0080FF) : successColor;
+                    RenderCopy(origin, copyColor, true);
+                }
                 break;
             }
             case SequencerMessage::NUDGE:
