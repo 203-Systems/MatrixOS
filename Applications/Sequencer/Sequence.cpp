@@ -1576,7 +1576,7 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track)
                 }
             }
 
-            auto evIt = pattern->events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 1)});
+            auto evIt = pattern->events.insert({(uint16_t)currentTick, SequenceEvent::Note(note, velocity, false, 0)});
             SequenceEvent& evRef = evIt->second;
             if (evRef.eventType == SequenceEventType::NoteEvent)
             {
@@ -1761,6 +1761,12 @@ void Sequence::ProcessTrack(uint8_t track)
                 case SequenceEventType::NoteEvent:
                 {
                     const SequenceEventNote& noteData = std::get<SequenceEventNote>(ev.data);
+
+                    if(noteData.length == 0) // Pending note (length is still being determained) 
+                    {
+                        break;
+                    }
+
                     uint8_t channel = data.tracks[track].channel;
                     if (noteData.aftertouch)
                     {
