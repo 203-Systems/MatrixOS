@@ -262,7 +262,7 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo *keyInfo)
   {
     if (sequencer->ClearActive())
     {
-      if(!sequencer->sequence.Playing())
+      if(!sequencer->sequence.Playing() && sequencer->sequence.CanUndoLastRecord())
       {
         sequencer->sequence.UndoLastRecorded();
         sequencer->SetMessage(SequencerMessage::UNDONE);
