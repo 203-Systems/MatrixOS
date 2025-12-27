@@ -264,7 +264,7 @@ void SequencerNotePad::GenerateKeymap()
     // Turn off all active keys
     uint8_t channel = sequencer->sequence.GetChannel(track);
     for (const auto& [note, velocity] : sequencer->noteSelected) {
-        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0));
+        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, 0), MIDI_PORT_ALL);
     }
 
     sequencer->noteSelected.clear();
@@ -380,7 +380,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo)
         return true;
     }
 
-    MatrixOS::MIDI::Send(packet);
+    MatrixOS::MIDI::Send(packet, MIDI_PORT_ALL);
     SequencerEvent(packet);
 
     return true;
@@ -561,7 +561,7 @@ void SequencerNotePad::Rescan(Point origin)
                     sequencer->noteSelected[note] = velocity;
                     MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);
                     SequencerEvent(packet);
-                    MatrixOS::MIDI::Send(packet);
+                    MatrixOS::MIDI::Send(packet, MIDI_PORT_ALL);
                 }
             }
         }

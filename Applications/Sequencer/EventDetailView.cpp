@@ -204,7 +204,7 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
             {
                 const SequenceEventNote& noteData = std::get<SequenceEventNote>(event.data);
                 sequencer->noteActive.insert(noteData.note);
-                MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity));
+                MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
             }
 
             return true;
@@ -222,7 +222,7 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo)
                 if (noteIt != sequencer->noteActive.end())
                 {
                     sequencer->noteActive.erase(noteIt);
-                    MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note));
+                    MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note), MIDI_PORT_ALL);
                 }
 
                 if (keyInfo->State() == HOLD)
@@ -343,7 +343,7 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo)
             if (noteIt != sequencer->noteActive.end())
             {
                 sequencer->noteActive.erase(noteIt);
-                MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note));
+                MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note), MIDI_PORT_ALL);
             }
         }
 

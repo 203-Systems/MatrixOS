@@ -368,7 +368,7 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
             auto activeIt = sequencer->noteActive.find(noteData.note);
             if (activeIt != sequencer->noteActive.end())
             {
-              MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0));
+              MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0), MIDI_PORT_ALL);
               sequencer->noteActive.erase(activeIt);
             }
           }
