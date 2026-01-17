@@ -299,14 +299,24 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
                     combo.extMaj7 = false;
                     combo.ext9 = false;
                 }
-            }
 
-            // Set the pressed key's extension and mark it as pressed
-            switch(xy.x) {
-                case 0: combo.ext6 = true; break;
-                case 1: combo.extMin7 = true; break;
-                case 2: combo.extMaj7 = true; break;
-                case 3: combo.ext9 = true; break;
+                // Set the pressed key's extension and mark it as pressed
+                switch(xy.x) {
+                    case 0: combo.ext6 = true; break;
+                    case 1: combo.extMin7 = true; break;
+                    case 2: combo.extMaj7 = true; break;
+                    case 3: combo.ext9 = true; break;
+                }
+            }
+            else
+            {
+                // Set the pressed key's extension and mark it as pressed
+                switch(xy.x) {
+                    case 0: combo.ext6 = !combo.ext6; break;
+                    case 1: combo.extMin7 = !combo.extMin7; break;
+                    case 2: combo.extMaj7 = !combo.extMaj7; break;
+                    case 3: combo.ext9 = !combo.ext9; break;
+                }
             }
 
             chordExtKeyOn[xy.x] = true;
