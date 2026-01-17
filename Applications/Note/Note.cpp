@@ -322,6 +322,29 @@ void Note::PlayView() {
     playView.AddUIComponent(noteControlBar, Point(0, 8 - CTL_BAR_Y));
   }
 
+  playView.SetLoopFunc([&]() -> void {  // Update Note Highlight (external MIDI input)
+
+    MidiPacket midiPacket;
+    while (MatrixOS::MIDI::Get(&midiPacket))
+    {
+      auto handlePadHighlight = [&](NotePad& notePad) -> void {
+        if (!notePad.rt || !notePad.rt->config) return;
+        if (midiPacket.Channel() != notePad.rt->config->channel) return;
+
+        if (midiPacket.status == NoteOn) {
+          notePad.SetNoteHighlight(midiPacket.Note(), midiPacket.Velocity() != 0);
+        } else if (midiPacket.status == NoteOff) {
+          notePad.SetNoteHighlight(midiPacket.Note(), false);
+        } else if (midiPacket.status == ControlChange && midiPacket.Controller() == 123) { // All notes off
+          notePad.ClearNoteHighlight();
+        }
+      };
+
+      handlePadHighlight(notePad1);
+      handlePadHighlight(notePad2);
+    }
+  });
+
   playView.Start();
 
   if(runtimes[0].noteLatch.IsEnabled())

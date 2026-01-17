@@ -97,6 +97,7 @@ class NotePad : public UIComponent {
   NotePadRuntime* rt;
   bool first_scan = true;
   std::vector<ActiveKey> activeKeys;
+  uint8_t highlightedNotes[16] = {0}; // 128 notes as a bitset
 
   NotePad(Dimension dimension, NotePadRuntime* rt);
   ~NotePad();
@@ -117,6 +118,11 @@ class NotePad : public UIComponent {
   void AddActiveKey(Point position, Fract16 velocity);
   void RemoveActiveKey(Point position);
   void UpdateActiveKeyVelocity(Point position, Fract16 velocity);
+
+  // Note highlighting for visualizing notes from external MIDI input.
+  void SetNoteHighlight(uint8_t note, bool highlight);
+  void ClearNoteHighlight();
+  bool IsNoteHighlighted(uint8_t note) const;
 
   void GenerateOctaveKeymap();
   void GenerateOffsetKeymap();

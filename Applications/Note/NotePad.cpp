@@ -1,5 +1,6 @@
 #include "NotePad.h"
 #include <algorithm>
+#include <cstring>
 
 const Color polyNoteColor[12] = {
     Color(0x00FFD9),
@@ -136,6 +137,29 @@ void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
             break;
         }
     }
+}
+
+// Note highlighting for visualizing notes from external MIDI input.
+void NotePad::SetNoteHighlight(uint8_t note, bool highlight) {
+    if (note >= 128) return;
+    uint8_t byteIndex = note / 8;
+    uint8_t mask = static_cast<uint8_t>(1u << (note % 8));
+    if (highlight) {
+        highlightedNotes[byteIndex] |= mask;
+    } else {
+        highlightedNotes[byteIndex] &= static_cast<uint8_t>(~mask);
+    }
+}
+
+void NotePad::ClearNoteHighlight() {
+    memset(highlightedNotes, 0, sizeof(highlightedNotes));
+}
+
+bool NotePad::IsNoteHighlighted(uint8_t note) const {
+    if (note >= 128) return false;
+    uint8_t byteIndex = note / 8;
+    uint8_t mask = static_cast<uint8_t>(1u << (note % 8));
+    return (highlightedNotes[byteIndex] & mask) != 0;
 }
 
 void NotePad::GenerateOctaveKeymap() {
@@ -350,7 +374,7 @@ bool NotePad::RenderRootNScale(Point origin) {
             if (note == 255) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
-            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)) { // If find the note is currently active. Show it as white
+            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note) || IsNoteHighlighted(note)) { // If find the note is currently active. Show it as white
                 MatrixOS::LED::SetColor(globalPos, Color::White);
             }
             else {
@@ -391,7 +415,7 @@ bool NotePad::RenderColorPerKey(Point origin) {
             if (note == 255) {
                 MatrixOS::LED::SetColor(globalPos, Color(0));
             }
-            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)) { // If find the note is currently active. Show it as white
+            else if (IsNoteActive(note) || rt->midiPipeline.IsNoteActive(note)  || IsNoteHighlighted(note)) { // If find the note is currently active. Show it as white
                 MatrixOS::LED::SetColor(globalPos, Color::White);
             }
             else {
