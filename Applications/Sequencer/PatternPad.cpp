@@ -198,17 +198,20 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             }
         }
         
-        // Populate noteActive with notes from this step and send MIDI NoteOn
-        auto it = pattern->events.lower_bound(startTime);
-        while (it != pattern->events.end() && it->first <= endTime)
+        // Populate noteActive with notes from this step and send MIDI NoteOn - Only while not playing
+        if(!sequencer->sequence.Playing())
         {
-            if (it->second.eventType == SequenceEventType::NoteEvent)
+            auto it = pattern->events.lower_bound(startTime);
+            while (it != pattern->events.end() && it->first <= endTime)
             {
-                const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
-                sequencer->noteActive.insert(noteData.note);
-                MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
+                if (it->second.eventType == SequenceEventType::NoteEvent)
+                {
+                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
+                    sequencer->noteActive.insert(noteData.note);
+                    MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, noteData.note, noteData.velocity), MIDI_PORT_ALL);
+                }
+                ++it;
             }
-            ++it;
         }
     }
     else if(keyInfo->state == RELEASED)
@@ -220,26 +223,29 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo)
             sequencer->stepSelected.erase(stepIt);
         }
 
-        // Clear noteActive from notes in this step and send MIDI NoteOff
-        auto eventIt = pattern->events.lower_bound(startTime);
-        while (eventIt != pattern->events.end() && eventIt->first <= endTime)
+        // Clear noteActive from notes in this step and send MIDI NoteOff - Only while not playing
+        if(!sequencer->sequence.Playing())
         {
-            if (eventIt->second.eventType == SequenceEventType::NoteEvent)
+            auto eventIt = pattern->events.lower_bound(startTime);
+            while (eventIt != pattern->events.end() && eventIt->first <= endTime)
             {
-                const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventIt->second.data);
-                auto noteIt = sequencer->noteActive.find(noteData.note);
-                if (noteIt != sequencer->noteActive.end())
+                if (eventIt->second.eventType == SequenceEventType::NoteEvent)
                 {
-                    sequencer->noteActive.erase(noteIt);
-                }
+                    const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventIt->second.data);
+                    auto noteIt = sequencer->noteActive.find(noteData.note);
+                    if (noteIt != sequencer->noteActive.end())
+                    {
+                        sequencer->noteActive.erase(noteIt);
+                    }
 
-                // Only send NoteOff if note is not currently selected on NotePad
-                if(sequencer->noteSelected.find(noteData.note) == sequencer->noteSelected.end())
-                {
-                    MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0), MIDI_PORT_ALL);
+                    // Only send NoteOff if note is not currently selected on NotePad
+                    if(sequencer->noteSelected.find(noteData.note) == sequencer->noteSelected.end())
+                    {
+                        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note, 0), MIDI_PORT_ALL);
+                    }
                 }
+                ++eventIt;
             }
-            ++eventIt;
         }
     }
 
