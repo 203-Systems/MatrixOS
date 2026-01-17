@@ -24,7 +24,7 @@ void NoteLatch::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
         if (packet.status == NoteOn || packet.status == NoteOff) {
             toggleMode ? ProcessNoteMessageToggleMode(packet, output) : ProcessNoteMessage(packet, output);
         } else if (packet.status == AfterTouch) {
-            toggleMode ? ProcessAfterTouchToggleMode(packet, output) : ProcessAfterTouch(packet, output);
+            // Drop aftertouch packet
         }
         else
         {
@@ -89,23 +89,6 @@ void NoteLatch::ProcessNoteMessage(const MidiPacket& packet, deque<MidiPacket>& 
     }
 }
 
-void NoteLatch::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output) {
-    uint8_t note = packet.Note();
-
-    // Check if this aftertouch is from the first still holding note
-    if (!stillHoldingNotes.empty() && stillHoldingNotes[0] == note) {
-        // Mirror this aftertouch to all latched notes
-        for (uint8_t latchedNote : latchedNotes) {
-            MidiPacket mirroredAfterTouch = MidiPacket::AfterTouch(
-                packet.Channel(),  // Use same channel as input
-                latchedNote,
-                packet.data[2] // pressure value
-            );
-            output.push_back(mirroredAfterTouch);
-        }
-    }
-}
-
 void NoteLatch::ProcessNoteMessageToggleMode(const MidiPacket& packet, deque<MidiPacket>& output) {
     uint8_t note = packet.Note();
 
@@ -126,16 +109,6 @@ void NoteLatch::ProcessNoteMessageToggleMode(const MidiPacket& packet, deque<Mid
     }
     else if (packet.status == NoteOff || (packet.status == NoteOn && packet.Velocity() == 0)) {
         // Note Off - ignore for toggle mode (notes are toggled by note on only)
-    }
-}
-
-void NoteLatch::ProcessAfterTouchToggleMode(const MidiPacket& packet, deque<MidiPacket>& output) {
-    uint8_t note = packet.Note();
-
-    // Only pass through aftertouch if note is in latched list
-    auto latchedIt = std::find(latchedNotes.begin(), latchedNotes.end(), note);
-    if (latchedIt != latchedNotes.end()) {
-        output.push_back(packet);
     }
 }
 
