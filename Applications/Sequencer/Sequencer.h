@@ -72,7 +72,7 @@ class Sequencer : public Application {
   inline static Application_Info info = {
       .name = "Sequencer",
       .author = "203 Systems",
-      .color = Color(0x8000FF),
+      .color = Color(0x40FF00),
       .version = 1,
       .visibility = true,
   };
