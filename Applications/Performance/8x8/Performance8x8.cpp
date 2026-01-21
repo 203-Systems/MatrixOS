@@ -156,16 +156,16 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   {
     // MLOGD("Performance", "Set LED");
     Color color;
-    uint8_t palette_idx = paletteFollowChannel ? channel : selectedPalette;
+    uint8_t paletteIndex = paletteFollowChannel ? channel : selectedPalette;
 
-    if (palette_idx < BUILTIN_PALETTE_COUNT)
+    if (paletteIndex < BUILTIN_PALETTE_COUNT)
     {
-      color = palette[palette_idx][velocity];
+      color = palette[paletteIndex][velocity];
       MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
     }
-    else if (palette_idx < BUILTIN_PALETTE_COUNT + CUSTOM_PALETTE_COUNT)
+    else if (paletteIndex < BUILTIN_PALETTE_COUNT + CUSTOM_PALETTE_COUNT)
     {
-      color = custom_palette[palette_idx - BUILTIN_PALETTE_COUNT][velocity];
+      color = custom_palette[paletteIndex - BUILTIN_PALETTE_COUNT][velocity];
       MatrixOS::LED::SetColor(xy, color, uiOpened ? canvasLedLayer : 0);
     }
   }
@@ -539,7 +539,7 @@ void Performance::stfuScan() {
 void Performance::PaletteViewer(uint8_t custom_palette_id) {
   MLOGD("Performance", "Custom Palette Viewer %d", custom_palette_id);
 
-  MatrixOS::KeyPad::Clear();
+  MatrixOS::KeyPad::Clear();  // Clear the keypad buffer to prevent accidental input from the hold action used to enter this menu
   MatrixOS::KeyPad::ClearList();
 
   bool modified = false;
@@ -670,6 +670,14 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
   // Palette Settings
+  auto selectPalette = [&](uint8_t index) {
+      selectedPalette = index;
+      paletteFollowChannel = false;
+      selectedPalette.Save();
+      paletteFollowChannel.Save();
+  };
+  const uint8_t paletteBtnStartX = 2;
+
   UIToggle followChannelToggle;
   followChannelToggle.SetName("Follow MIDI Channel");
   followChannelToggle.SetColor(Color(0x00FF00));
@@ -678,7 +686,6 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(followChannelToggle, Point(5, 0));
 
   UIButton builtinPaletteBtns[BUILTIN_PALETTE_COUNT];
-  const char* builtinPaletteNames[] = {"Default Palette", "RGB Palette", "RG Palette"};
   for (uint8_t i = 0; i < BUILTIN_PALETTE_COUNT; i++)
   {
     builtinPaletteBtns[i].SetName(builtinPaletteNames[i]);
@@ -686,13 +693,8 @@ void Performance::ActionMenu() {
       bool active = !paletteFollowChannel && selectedPalette.Get() == i;
       return active ? Color(0x0000FF) : Color(0x0000FF).Dim(); 
     });
-    builtinPaletteBtns[i].OnPress([this, i]() -> void { 
-      selectedPalette = i; 
-      paletteFollowChannel = false;
-      selectedPalette.Save();
-      paletteFollowChannel.Save();
-    });
-    actionMenu.AddUIComponent(builtinPaletteBtns[i], Point(2 + i, 0));
+    builtinPaletteBtns[i].OnPress([=]() -> void { selectPalette(i); });
+    actionMenu.AddUIComponent(builtinPaletteBtns[i], Point(paletteBtnStartX + i, 0));
   }
 
   UIButton customPaletteBtns[CUSTOM_PALETTE_COUNT];
@@ -705,14 +707,9 @@ void Performance::ActionMenu() {
       Color baseColor = custom_palette_available[i] ? Color(0x00FFFF) : Color::White;
       return active ? baseColor : baseColor.Dim();
     });
-    customPaletteBtns[i].OnPress([this, paletteIndex]() -> void { 
-      selectedPalette = paletteIndex; 
-      paletteFollowChannel = false;
-      selectedPalette.Save();
-      paletteFollowChannel.Save();
-    });
+    customPaletteBtns[i].OnPress([=]() -> void { selectPalette(paletteIndex); });
     customPaletteBtns[i].OnHold([this, i]() -> void { PaletteViewer(i); });
-    actionMenu.AddUIComponent(customPaletteBtns[i], Point(2 + i, 1));
+    actionMenu.AddUIComponent(customPaletteBtns[i], Point(paletteBtnStartX + i, 1));
   }
 
   actionMenu.SetGlobalLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open

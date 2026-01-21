@@ -92,6 +92,8 @@ class Performance : public Application {
       0x47, 0x57, 0x67, 0x77, 0x46, 0x56, 0x66, 0x76, 0x45, 0x55, 0x65, 0x75, 0x44, 0x54, 0x64, 0x74,
       0x43, 0x53, 0x63, 0x73, 0x42, 0x52, 0x62, 0x72, 0x41, 0x51, 0x61, 0x71, 0x40, 0x50, 0x60, 0x70};
 
+  inline static const char* builtinPaletteNames[BUILTIN_PALETTE_COUNT] = {"Default Palette", "RGB Palette", "RG Palette"};
+
   const Color palette[BUILTIN_PALETTE_COUNT][128] =  // color Palette
       {{
           // MatrixcolorPalette (Mat1s' Palette for now)
@@ -353,7 +355,7 @@ class Performance : public Application {
           0x00BFAF00,  // 124
           0x003F2F00,  // 125
           0x00AF4F00,  // 126
-          0x004F0F00,   // 127
+          0x004F0F00   // 127
        },
        {
           // Novation RG Palette
