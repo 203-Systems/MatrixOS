@@ -9,7 +9,7 @@
 #define NUMS_OF_KEYMAP 1
 #define STFU_DEFAULT 1
 
-#define BUILTIN_PALETTE_COUNT 3
+#define BUILTIN_PALETTE_COUNT 2
 #define CUSTOM_PALETTE_COUNT 4
 
 class Performance : public Application {
@@ -92,7 +92,7 @@ class Performance : public Application {
       0x47, 0x57, 0x67, 0x77, 0x46, 0x56, 0x66, 0x76, 0x45, 0x55, 0x65, 0x75, 0x44, 0x54, 0x64, 0x74,
       0x43, 0x53, 0x63, 0x73, 0x42, 0x52, 0x62, 0x72, 0x41, 0x51, 0x61, 0x71, 0x40, 0x50, 0x60, 0x70};
 
-  inline static const char* builtinPaletteNames[BUILTIN_PALETTE_COUNT] = {"Default Palette", "RGB Palette", "RG Palette"};
+  inline static const char* builtinPaletteNames[BUILTIN_PALETTE_COUNT] = {"Default Palette", "RGB Palette"};
 
   const Color palette[BUILTIN_PALETTE_COUNT][128] =  // color Palette
       {{
@@ -356,137 +356,6 @@ class Performance : public Application {
           0x003F2F00,  // 125
           0x00AF4F00,  // 126
           0x004F0F00   // 127
-       },
-       {
-          // Novation RG Palette
-          0x00000000, // 0
-          0x00550000, // 1
-          0x00AA0000, // 2
-          0x00FF0000, // 3
-          0x00000000, // 4
-          0x00550000, // 5
-          0x00AA0000, // 6
-          0x00FF0000, // 7
-          0x00000000, // 8
-          0x00550000, // 9
-          0x00AA0000, // 10
-          0x00FF0000, // 11
-          0x00000000, // 12
-          0x00550000, // 13
-          0x00AA0000, // 14
-          0x00FF0000, // 15
-          0x00005500, // 16
-          0x00555500, // 17
-          0x00AA5500, // 18
-          0x00FF5500, // 19
-          0x00005500, // 20
-          0x00555500, // 21
-          0x00AA5500, // 22
-          0x00FF5500, // 23
-          0x00005500, // 24
-          0x00555500, // 25
-          0x00AA5500, // 26
-          0x00FF5500, // 27
-          0x00005500, // 28
-          0x00555500, // 29
-          0x00AA5500, // 30
-          0x00FF5500, // 31
-          0x0000AA00, // 32
-          0x0055AA00, // 33
-          0x00AAAA00, // 34
-          0x00FFAA00, // 35
-          0x0000AA00, // 36
-          0x0055AA00, // 37
-          0x00AAAA00, // 38
-          0x00FFAA00, // 39
-          0x0000AA00, // 40
-          0x0055AA00, // 41
-          0x00AAAA00, // 42
-          0x00FFAA00, // 43
-          0x0000AA00, // 44
-          0x0055AA00, // 45
-          0x00AAAA00, // 46
-          0x00FFAA00, // 47
-          0x0000FF00, // 48
-          0x0055FF00, // 49
-          0x00AAFF00, // 50
-          0x00FFFF00, // 51
-          0x0000FF00, // 52
-          0x0055FF00, // 53
-          0x00AAFF00, // 54
-          0x00FFFF00, // 55
-          0x0000FF00, // 56
-          0x0055FF00, // 57
-          0x00AAFF00, // 58
-          0x00FFFF00, // 59
-          0x0000FF00, // 60
-          0x0055FF00, // 61
-          0x00AAFF00, // 62
-          0x00FFFF00, // 63
-          0x00000000, // 64
-          0x00550000, // 65
-          0x00AA0000, // 66
-          0x00FF0000, // 67
-          0x00000000, // 68
-          0x00550000, // 69
-          0x00AA0000, // 70
-          0x00FF0000, // 71
-          0x00000000, // 72
-          0x00550000, // 73
-          0x00AA0000, // 74
-          0x00FF0000, // 75
-          0x00000000, // 76
-          0x00550000, // 77
-          0x00AA0000, // 78
-          0x00FF0000, // 79
-          0x00005500, // 80
-          0x00555500, // 81
-          0x00AA5500, // 82
-          0x00FF5500, // 83
-          0x00005500, // 84
-          0x00555500, // 85
-          0x00AA5500, // 86
-          0x00FF5500, // 87
-          0x00005500, // 88
-          0x00555500, // 89
-          0x00AA5500, // 90
-          0x00FF5500, // 91
-          0x00005500, // 92
-          0x00555500, // 93
-          0x00AA5500, // 94
-          0x00FF5500, // 95
-          0x0000AA00, // 96
-          0x0055AA00, // 97
-          0x00AAAA00, // 98
-          0x00FFAA00, // 99
-          0x0000AA00, // 100
-          0x0055AA00, // 101
-          0x00AAAA00, // 102
-          0x00FFAA00, // 103
-          0x0000AA00, // 104
-          0x0055AA00, // 105
-          0x00AAAA00, // 106
-          0x00FFAA00, // 107
-          0x0000AA00, // 108
-          0x0055AA00, // 109
-          0x00AAAA00, // 110
-          0x00FFAA00, // 111
-          0x0000FF00, // 112
-          0x0055FF00, // 113
-          0x00AAFF00, // 114
-          0x00FFFF00, // 115
-          0x0000FF00, // 116
-          0x0055FF00, // 117
-          0x00AAFF00, // 118
-          0x00FFFF00, // 119
-          0x0000FF00, // 120
-          0x0055FF00, // 121
-          0x00AAFF00, // 122
-          0x00FFFF00, // 123
-          0x0000FF00, // 124
-          0x0055FF00, // 125
-          0x00AAFF00, // 126
-          0x00FFFF00  // 127
        }};
         bool custom_palette_available[CUSTOM_PALETTE_COUNT] = {false, false, false, false};
         Color custom_palette[CUSTOM_PALETTE_COUNT][128];
