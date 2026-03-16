@@ -3,6 +3,7 @@
 namespace WS2812
 {
   uint16_t numsOfLED;
+  uint16_t numsOfByte;
 
   rmt_channel_handle_t rmt_channel = NULL;
   rmt_encoder_handle_t rmt_encoder = NULL;
@@ -117,20 +118,22 @@ namespace WS2812
   void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& partitions) {
 
     WS2812::numsOfLED = 0;
+    WS2812::numsOfByte = 0;
     WS2812::partitions = &partitions;
 
     for (uint8_t partition_index = 0; partition_index < partitions.size(); partition_index++)
     {
       numsOfLED += partitions[partition_index].size;
+      numsOfByte += partitions[partition_index].size * (partitions[partition_index].type == RGBW_32B_6K5 ? 4 : 3);
     }
 
-    led_data = (uint8_t*)malloc(numsOfLED * 3);
+    led_data = (uint8_t*)malloc(numsOfByte);
     if (led_data == NULL) {
       ESP_LOGE("WS2812", "Failed to allocate led_data memory");
       return;
     }
 
-    dither_error = (uint8_t*)malloc(numsOfLED * 3 * sizeof(uint8_t));
+    dither_error = (uint8_t*)malloc(numsOfByte * sizeof(uint8_t));
     if (dither_error == NULL) {
       ESP_LOGE("WS2812", "Failed to allocate dither_error memory");
       free(led_data);
@@ -138,7 +141,7 @@ namespace WS2812
       return;
     }
 
-    for (uint16_t i = 0; i < numsOfLED * 3; i++)
+    for (uint16_t i = 0; i < numsOfByte; i++)
     {
       dither_error[i] = esp_random() & 0x7F; // Limit the random error to 8 bits
     }
@@ -172,6 +175,7 @@ namespace WS2812
       return;
     }
 
+    uint16_t byte_offset = 0;
     for (uint8_t partition_index = 0; partition_index < WS2812::partitions->size(); partition_index++)
     {
       if (partition_index >= brightness.size()) {
@@ -179,6 +183,10 @@ namespace WS2812
       }
 
       LEDPartition local_partition = WS2812::partitions->at(partition_index);
+      uint8_t byte_per_pixel = (local_partition.type == RGBW_32B_6K5) ? 4 : 3;
+      uint16_t partition_bytes = local_partition.size * byte_per_pixel;
+      uint16_t partition_data_offset = byte_offset;
+      byte_offset += partition_bytes;
 
       // Bounds check for led_data access
       if (local_partition.start + local_partition.size > numsOfLED) {
@@ -186,7 +194,7 @@ namespace WS2812
       }
 
       if (brightness[partition_index] == 0) {
-        memset(led_data + local_partition.start * 3, 0, local_partition.size * 3);
+        memset(led_data + partition_data_offset, 0, partition_bytes);
         continue;
       }
 
@@ -195,28 +203,36 @@ namespace WS2812
       for (uint16_t i = 0; i < WS2812::partitions->at(partition_index).size; i++)
       {
         uint16_t buffer_index = local_partition.start + i;
-        uint16_t data_index_g = buffer_index * 3;
+        uint16_t data_index_g = partition_data_offset + i * byte_per_pixel;
         uint16_t data_index_r = data_index_g + 1;
         uint16_t data_index_b = data_index_g + 2;
+        uint16_t data_index_w = data_index_g + 3;
 
         led_data[data_index_g] = Color::scale8_video(buffer[buffer_index].G, local_brightness);
         led_data[data_index_r] = Color::scale8_video(buffer[buffer_index].R, local_brightness);
         led_data[data_index_b] = Color::scale8_video(buffer[buffer_index].B, local_brightness);
 
+        if (byte_per_pixel == 4)
+        {
+          led_data[data_index_w] = Color::scale8_video(buffer[buffer_index].W, local_brightness);
+        }
+
         if(dithering && dither_error != NULL) {
           const uint8_t dither_error_threshold = 16;
 
-          // Process all channels in a loop to reduce code duplication
+          // Process all active channels in a loop to reduce code duplication.
           struct {
             uint8_t original;
             uint16_t data_index;
-          } channels[3] = {
+          } channels[4] = {
             {buffer[buffer_index].G, data_index_g},
             {buffer[buffer_index].R, data_index_r},
-            {buffer[buffer_index].B, data_index_b}
+            {buffer[buffer_index].B, data_index_b},
+            {buffer[buffer_index].W, data_index_w}
           };
+          uint8_t channel_count = byte_per_pixel;
 
-          for (int ch = 0; ch < 3; ch++) {
+          for (uint8_t ch = 0; ch < channel_count; ch++) {
             if(led_data[channels[ch].data_index] >= dithering_threshold)
             {
               // Calculate error more efficiently using 16-bit intermediate
@@ -245,7 +261,7 @@ namespace WS2812
     }
 
     // Transmit LED data with error handling
-    esp_err_t ret = rmt_transmit(rmt_channel, rmt_encoder, led_data, numsOfLED * 3, &rmt_config);
+    esp_err_t ret = rmt_transmit(rmt_channel, rmt_encoder, led_data, numsOfByte, &rmt_config);
     if (ret != ESP_OK) {
       ESP_LOGW("WS2812", "RMT transmission failed: %s", esp_err_to_name(ret));
     }
