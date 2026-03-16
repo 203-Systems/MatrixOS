@@ -24,7 +24,6 @@ namespace Device
 
     Storage::Init();
 
-    HWMidi::Init();
     BLEMIDI::Init(name);
   }
 

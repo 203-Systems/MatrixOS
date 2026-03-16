@@ -52,11 +52,6 @@ namespace Device
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
-  namespace HWMidi
-  {
-    inline gpio_num_t tx_gpio = GPIO_NUM_18;
-    inline gpio_num_t rx_gpio = GPIO_NUM_NC;
-  }
 
   namespace LED
   {
@@ -152,11 +147,6 @@ namespace Device
     void Init(string name);
     void Start();
     void Stop();
-  }
-
-  namespace HWMidi
-  {
-    void Init();
   }
 
   namespace Storage
