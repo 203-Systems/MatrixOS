@@ -19,7 +19,10 @@ namespace Device
 
     uint16_t XY2Index(Point xy) {
       if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)  // Main grid
-      { return xy.x + xy.y * 8; }
+      {
+        uint16_t row_offset = xy.y * 8;
+        return row_offset + ((xy.y % 2 == 0) ? xy.x : (7 - xy.x));
+      }
       else if (xy.x == 8 && xy.y >= 0 && xy.y < 8)  // Underglow Right Column
       { return 64 + (7 - xy.y); }
       else if (xy.y == 8 && xy.x >= 0 && xy.x < 8)  // Underglow Bottom Row
@@ -35,7 +38,9 @@ namespace Device
     {
       if (index < 64)
       {
-        return Point(index % 8, index / 8);
+        int16_t y = index / 8;
+        int16_t row_index = index % 8;
+        return Point((y % 2 == 0) ? row_index : (7 - row_index), y);
       }
       else if (index < 72)
       {
