@@ -52,6 +52,8 @@ namespace Device
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
+  inline gpio_num_t i2c_sda_pin;
+  inline gpio_num_t i2c_scl_pin;
 
   namespace LED
   {

@@ -33,6 +33,8 @@ inline void LoadPT2() {
 
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
+  i2c_sda_pin = PT2::I2C_SDA_PIN;
+  i2c_scl_pin = PT2::I2C_SCL_PIN;
 
   Storage::sd_clk_pin = PT2::SD_CLK_PIN;
   Storage::sd_cmd_pin = PT2::SD_CMD_PIN;
