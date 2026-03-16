@@ -62,26 +62,6 @@ inline void LoadPT2() {
 
   KeyPad::fn_pin = PT2::FN_PIN;
 
-  gpio_num_t _keypad_write_pins[X_SIZE] = {
-      PT2::KEY1_PIN, PT2::KEY2_PIN, PT2::KEY3_PIN, PT2::KEY4_PIN,
-      PT2::KEY5_PIN, PT2::KEY6_PIN, PT2::KEY7_PIN, PT2::KEY8_PIN,
-  };
-  memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
-
-  gpio_num_t _keypad_read_pins[Y_SIZE] = {
-      PT2::KEYREAD1_PIN, PT2::KEYREAD2_PIN, PT2::KEYREAD3_PIN, PT2::KEYREAD4_PIN,
-      PT2::KEYREAD5_PIN, PT2::KEYREAD6_PIN, PT2::KEYREAD7_PIN, PT2::KEYREAD8_PIN,
-  };
-  memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
-
-  adc_channel_t _keypad_read_adc_channel[Y_SIZE] = {
-      PT2::KEYREAD1_ADC_CHANNEL, PT2::KEYREAD2_ADC_CHANNEL, PT2::KEYREAD3_ADC_CHANNEL, PT2::KEYREAD4_ADC_CHANNEL,
-      PT2::KEYREAD5_ADC_CHANNEL, PT2::KEYREAD6_ADC_CHANNEL, PT2::KEYREAD7_ADC_CHANNEL, PT2::KEYREAD8_ADC_CHANNEL,
-  };
-  memcpy(KeyPad::keypad_read_adc_channel, _keypad_read_adc_channel, sizeof(_keypad_read_adc_channel));
-
-  KeyPad::touch_data_pin = PT2::TOUCH_DATA_PIN;
-  KeyPad::touch_clock_pin = PT2::TOUCH_CLOCK_PIN;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
 

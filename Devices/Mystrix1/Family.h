@@ -94,7 +94,6 @@ namespace Device
     bool ScanTouchBar();
 
     inline gpio_num_t fn_pin;
-    inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
     inline KeyConfig binary_config = {

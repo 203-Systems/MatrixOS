@@ -94,7 +94,6 @@ namespace Device
     bool ScanTouchBar();
 
     inline gpio_num_t fn_pin;
-    inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
     inline KeyConfig binary_config = {
@@ -113,14 +112,7 @@ namespace Device
         .debounce = 10,
     };
 
-    inline gpio_num_t keypad_write_pins[X_SIZE];
-    inline gpio_num_t keypad_read_pins[Y_SIZE];
-    inline adc_channel_t keypad_read_adc_channel[Y_SIZE];
-
     inline uint16_t keypad_scanrate = 240;
-
-    inline gpio_num_t touch_data_pin;
-    inline gpio_num_t touch_clock_pin;
 
     inline const uint8_t touchbar_size = 16;
     inline const uint16_t touchbar_scanrate = 120;

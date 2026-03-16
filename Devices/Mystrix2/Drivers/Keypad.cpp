@@ -81,13 +81,11 @@ namespace Device::KeyPad
   }
 
   IRAM_ATTR bool ScanFN() {
-    Fract16 read = gpio_get_level(fn_pin) * UINT16_MAX;
+    Fract16 read = gpio_get_level(fn_pin) ? 0 : UINT16_MAX;
     // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
-    if (fn_active_low)
-    { read = UINT16_MAX - (uint16_t)read; }
     if (fn_state.Update(binary_config, read))
     {
-      if (NotifyOS(0, &fn_state))
+      if (NotifyOS(FUNCTION_KEY, &fn_state))
       { return true; }
     }
     return false;

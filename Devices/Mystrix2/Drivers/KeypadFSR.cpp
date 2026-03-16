@@ -7,6 +7,7 @@
 
 #include "esp_private/adc_share_hw_ctrl.h"
 #include "esp_private/esp_sleep_internal.h"
+#include "Variants/Mystrix2/Prototype2/Config.h"
 
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_12
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
@@ -25,6 +26,16 @@ namespace MatrixOS::USB
 
 namespace Device::KeyPad::FSR
 {
+  static constexpr gpio_num_t keypad_write_pins[X_SIZE] = {
+      PT2::KEY1_PIN, PT2::KEY2_PIN, PT2::KEY3_PIN, PT2::KEY4_PIN,
+      PT2::KEY5_PIN, PT2::KEY6_PIN, PT2::KEY7_PIN, PT2::KEY8_PIN,
+  };
+
+  static constexpr adc_channel_t keypad_read_adc_channel[Y_SIZE] = {
+      PT2::KEYREAD1_ADC_CHANNEL, PT2::KEYREAD2_ADC_CHANNEL, PT2::KEYREAD3_ADC_CHANNEL, PT2::KEYREAD4_ADC_CHANNEL,
+      PT2::KEYREAD5_ADC_CHANNEL, PT2::KEYREAD6_ADC_CHANNEL, PT2::KEYREAD7_ADC_CHANNEL, PT2::KEYREAD8_ADC_CHANNEL,
+  };
+
   Fract16 (*low_thresholds)[X_SIZE][Y_SIZE] = nullptr;
   Fract16 (*high_thresholds)[X_SIZE][Y_SIZE] = nullptr;
 

@@ -1,6 +1,7 @@
 #include "Device.h"
 #include "timers.h"
 #include "driver/gpio.h"
+#include "Variants/Mystrix2/Prototype2/Config.h"
 
 namespace Device::KeyPad
 {
@@ -19,7 +20,7 @@ namespace Device::KeyPad
     gpio_config_t data_io_conf;
     data_io_conf.intr_type = GPIO_INTR_DISABLE;
     data_io_conf.mode = GPIO_MODE_INPUT;
-    data_io_conf.pin_bit_mask = (1ULL << touch_data_pin);
+    data_io_conf.pin_bit_mask = (1ULL << PT2::TOUCH_DATA_PIN);
     data_io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
     data_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     gpio_config(&data_io_conf);
@@ -28,7 +29,7 @@ namespace Device::KeyPad
     gpio_config_t clock_io_conf;
     clock_io_conf.intr_type = GPIO_INTR_DISABLE;
     clock_io_conf.mode = GPIO_MODE_OUTPUT;
-    clock_io_conf.pin_bit_mask = (1ULL << touch_clock_pin);
+    clock_io_conf.pin_bit_mask = (1ULL << PT2::TOUCH_CLOCK_PIN);
     clock_io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     clock_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     gpio_config(&clock_io_conf);
@@ -44,11 +45,11 @@ namespace Device::KeyPad
   IRAM_ATTR bool ScanTouchBar() {
     for (uint8_t i = 0; i < touchbar_size; i++)
     {
-      gpio_set_level(touch_clock_pin, 1);
+      gpio_set_level(PT2::TOUCH_CLOCK_PIN, 1);
 
-      Fract16 reading = gpio_get_level(touch_data_pin) * UINT16_MAX;
+      Fract16 reading = gpio_get_level(PT2::TOUCH_DATA_PIN) * UINT16_MAX;
 
-      gpio_set_level(touch_clock_pin, 0);
+      gpio_set_level(PT2::TOUCH_CLOCK_PIN, 0);
 
       uint8_t key_id = touchbar_map[i];
       bool updated = touchbar_state[key_id].Update(binary_config, reading);
