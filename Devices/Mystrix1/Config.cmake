@@ -1,4 +1,4 @@
-# Device feature configuration for MatrixESP32 family
+# Device feature configuration for Mystrix1 family
 # These values must match the #define values in MatrixOSConfig.h
 
 set(DEVICE_STORAGE 1)
