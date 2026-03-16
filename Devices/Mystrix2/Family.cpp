@@ -16,15 +16,29 @@ namespace Device
   }
 
   void DeviceInit() {
+    MLOGI("Mystrix2", "DeviceInit: LoadDeviceInfo start");
     LoadDeviceInfo();
+    MLOGI("Mystrix2", "DeviceInit: LoadDeviceInfo done");
+    MLOGI("Mystrix2", "DeviceInit: USB init start");
     USB::Init();
+    MLOGI("Mystrix2", "DeviceInit: USB init done");
+    MLOGI("Mystrix2", "DeviceInit: NVS init start");
     NVS::Init();
+    MLOGI("Mystrix2", "DeviceInit: NVS init done");
+    MLOGI("Mystrix2", "DeviceInit: LED init start");
     LED::Init();
+    MLOGI("Mystrix2", "DeviceInit: LED init done");
+    MLOGI("Mystrix2", "DeviceInit: KeyPad init start");
     KeyPad::Init();
+    MLOGI("Mystrix2", "DeviceInit: KeyPad init done");
 
+    MLOGI("Mystrix2", "DeviceInit: Storage init start");
     Storage::Init();
+    MLOGI("Mystrix2", "DeviceInit: Storage init done");
 
+    MLOGI("Mystrix2", "DeviceInit: BLEMIDI init start");
     BLEMIDI::Init(name);
+    MLOGI("Mystrix2", "DeviceInit: BLEMIDI init done");
   }
 
   void DeviceStart() {

@@ -122,16 +122,26 @@ namespace MatrixOS::SYS
   }
 
   void Begin(void) {
+    MLOGI("System", "Begin: DeviceInit start");
     Device::DeviceInit();
+    MLOGI("System", "Begin: DeviceInit done");
 
     // Initialize MIDI system before USB to ensure osPort exists
+    MLOGI("System", "Begin: MIDI init start");
     MatrixOS::MIDI::Init();
+    MLOGI("System", "Begin: MIDI init done");
 
+    MLOGI("System", "Begin: USB init start");
     MatrixOS::USB::Init();
+    MLOGI("System", "Begin: USB init done");
 
+    MLOGI("System", "Begin: InitSysModules start");
     InitSysModules();
+    MLOGI("System", "Begin: InitSysModules done");
 
+    MLOGI("System", "Begin: UpdateSystemNVS start");
     UpdateSystemNVS();
+    MLOGI("System", "Begin: UpdateSystemNVS done");
 
     inited = true;
 

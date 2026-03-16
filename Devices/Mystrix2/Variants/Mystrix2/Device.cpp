@@ -21,14 +21,7 @@ namespace Device
     #endif
 
     // Load Velocity Sensitive Config
-    if(device_info.model[3] == 'P')
-    {
-      name += " Pro";
-      product_name += " Pro";
-      model = "MX2P";
-      KeyPad::velocity_sensitivity = true;
-    }
-    else if(device_info.model[3] == 'U')
+    if (memcmp(device_info.model, "MX2U", 4) == 0)
     {
       name += " Ultra";
       product_name += " Ultra";
@@ -42,7 +35,7 @@ namespace Device
       product_name += " Ultra";
       model = "MX2U";
       KeyPad::velocity_sensitivity = true;
-      ESP_LOGE("Device Init", "Failed to find config for %.4s %.4s. Default to Mystrix 2 Ultra", device_info.model, device_info.revision);
+      ESP_LOGE("Device Init", "Failed to find device config. Default to Mystrix 2 Ultra");
     }
 
     ESP_LOGI("Device Init", "Loading config for %s (%.4s %.4s) (MFG: %02d-%02d) (Serial: %s)", Device::name.c_str(), device_info.model, device_info.revision,

@@ -1,0 +1,242 @@
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+
+#ifndef COPROCESSOR_PROTOCOL_VERSION
+#define COPROCESSOR_PROTOCOL_VERSION 0U
+#endif
+
+#ifndef COPROCESSOR_PROTOCOL_MAX_PAYLOAD
+#define COPROCESSOR_PROTOCOL_MAX_PAYLOAD 256U
+#endif
+
+#ifndef COPROCESSOR_FRAME_CRC_SIZE
+#define COPROCESSOR_FRAME_CRC_SIZE 2U
+#endif
+
+#define COPROCESSOR_FRAME_MAGIC 0x23CBU
+
+#define COPROCESSOR_CMD_DIR_MASK 0x80U
+#define COPROCESSOR_CMD_SCOPE_MASK 0x40U
+#define COPROCESSOR_CMD_ID_MASK 0x3FU
+
+#define COPROCESSOR_CMD_DIR_REQUEST 0x00U
+#define COPROCESSOR_CMD_DIR_RESPONSE 0x80U
+
+#define COPROCESSOR_CMD_SCOPE_SYSTEM 0x00U
+#define COPROCESSOR_CMD_SCOPE_APP 0x40U
+
+#define COPROCESSOR_MAKE_CMD(direction, scope, id) \
+  ((uint8_t) ((direction) | (scope) | ((id) & COPROCESSOR_CMD_ID_MASK)))
+
+#define COPROCESSOR_CMD_DIRECTION(cmd) ((uint8_t) ((cmd) & COPROCESSOR_CMD_DIR_MASK))
+#define COPROCESSOR_CMD_SCOPE(cmd) ((uint8_t) ((cmd) & COPROCESSOR_CMD_SCOPE_MASK))
+#define COPROCESSOR_CMD_ID(cmd) ((uint8_t) ((cmd) & COPROCESSOR_CMD_ID_MASK))
+
+enum {
+  COPROCESSOR_ENDPOINT_BOOTLOADER = 0x00,
+  COPROCESSOR_ENDPOINT_APP = 0x01,
+};
+
+enum {
+  COPROCESSOR_FLAG_APP_VALID = 0x01,
+  COPROCESSOR_FLAG_CAN_JUMP_TO_APP = 0x02,
+  COPROCESSOR_FLAG_CAN_ENTER_BOOTLOADER = 0x04,
+};
+
+enum {
+  COPROCESSOR_CMD_ID_GET_STATUS = 0x00,
+  COPROCESSOR_CMD_ID_RESET = 0x01,
+  COPROCESSOR_CMD_ID_ENTER_BOOTLOADER = 0x02,
+  COPROCESSOR_CMD_ID_APP_JUMP = 0x03,
+  COPROCESSOR_CMD_ID_OTA_BEGIN = 0x04,
+  COPROCESSOR_CMD_ID_OTA_DATA = 0x05,
+  COPROCESSOR_CMD_ID_OTA_END = 0x06,
+};
+
+enum {
+  COPROCESSOR_CMD_GET_STATUS_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_GET_STATUS),
+  COPROCESSOR_CMD_GET_STATUS_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_GET_STATUS),
+  COPROCESSOR_CMD_RESET_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_RESET),
+  COPROCESSOR_CMD_RESET_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_RESET),
+  COPROCESSOR_CMD_ENTER_BOOTLOADER_REQ = COPROCESSOR_MAKE_CMD(
+      COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_ENTER_BOOTLOADER),
+  COPROCESSOR_CMD_ENTER_BOOTLOADER_RSP = COPROCESSOR_MAKE_CMD(
+      COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_ENTER_BOOTLOADER),
+  COPROCESSOR_CMD_APP_JUMP_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_APP_JUMP),
+  COPROCESSOR_CMD_APP_JUMP_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_APP_JUMP),
+  COPROCESSOR_CMD_OTA_BEGIN_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_BEGIN),
+  COPROCESSOR_CMD_OTA_BEGIN_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_BEGIN),
+  COPROCESSOR_CMD_OTA_DATA_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_DATA),
+  COPROCESSOR_CMD_OTA_DATA_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_DATA),
+  COPROCESSOR_CMD_OTA_END_REQ =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_END),
+  COPROCESSOR_CMD_OTA_END_RSP =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_RESPONSE, COPROCESSOR_CMD_SCOPE_SYSTEM, COPROCESSOR_CMD_ID_OTA_END),
+};
+
+enum {
+  COPROCESSOR_CMD_GET_STATUS = COPROCESSOR_CMD_GET_STATUS_REQ,
+  COPROCESSOR_CMD_RESET = COPROCESSOR_CMD_RESET_REQ,
+  COPROCESSOR_CMD_ENTER_BOOTLOADER = COPROCESSOR_CMD_ENTER_BOOTLOADER_REQ,
+  COPROCESSOR_CMD_APP_JUMP = COPROCESSOR_CMD_APP_JUMP_REQ,
+  COPROCESSOR_CMD_OTA_BEGIN = COPROCESSOR_CMD_OTA_BEGIN_REQ,
+  COPROCESSOR_CMD_OTA_DATA = COPROCESSOR_CMD_OTA_DATA_REQ,
+  COPROCESSOR_CMD_OTA_END = COPROCESSOR_CMD_OTA_END_REQ,
+};
+
+enum {
+  COPROCESSOR_RESET_WARM = 0x00,
+  COPROCESSOR_RESET_COLD = 0x01,
+  COPROCESSOR_RESET_TO_BOOTLOADER = 0x02,
+  COPROCESSOR_RESET_TO_APP = 0x03,
+};
+
+enum {
+  COPROCESSOR_STATUS_OK = 0x00,
+  COPROCESSOR_STATUS_ERR_CMD = 0x01,
+  COPROCESSOR_STATUS_ERR_STATE = 0x02,
+  COPROCESSOR_STATUS_ERR_LEN = 0x03,
+  COPROCESSOR_STATUS_ERR_OFFSET = 0x04,
+  COPROCESSOR_STATUS_ERR_FLASH = 0x05,
+  COPROCESSOR_STATUS_ERR_CRC = 0x06,
+  COPROCESSOR_STATUS_ERR_CRC32 = COPROCESSOR_STATUS_ERR_CRC,
+  COPROCESSOR_STATUS_ERR_APP_INVALID = 0x07,
+  COPROCESSOR_STATUS_ERR_BUSY = 0x08,
+  COPROCESSOR_STATUS_ERR_NOT_SUPPORTED = 0x09,
+};
+
+typedef struct __attribute__((packed)) {
+  uint16_t magic;
+  uint8_t cmd;
+  uint8_t cmdInv;
+  uint8_t seq;
+  uint16_t length;
+} coprocessor_frame_header_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t status;
+  uint8_t protoVersion;
+  uint8_t endpoint;
+} coprocessor_status_min_rsp_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t status;
+  uint8_t protoVersion;
+  uint8_t endpoint;
+  uint8_t flags;
+  uint32_t bootloaderCrc32;
+  uint32_t appCrc32;
+  uint32_t appSize;
+  uint32_t appMaxSize;
+} coprocessor_get_status_rsp_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t status;
+} coprocessor_status_rsp_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t resetMode;
+} coprocessor_reset_req_t;
+
+typedef struct __attribute__((packed)) {
+  uint32_t imageSize;
+  uint32_t imageCrc32;
+} coprocessor_ota_begin_req_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t status;
+  uint32_t nextOffset;
+} coprocessor_ota_begin_rsp_t;
+
+typedef struct __attribute__((packed)) {
+  uint32_t offset;
+  uint8_t data[];
+} coprocessor_ota_data_req_t;
+
+typedef struct __attribute__((packed)) {
+  uint8_t status;
+  uint32_t nextOffset;
+} coprocessor_ota_data_rsp_t;
+
+typedef struct {
+  uint8_t cmd;
+  uint8_t seq;
+  uint16_t length;
+  uint8_t payload[COPROCESSOR_PROTOCOL_MAX_PAYLOAD];
+} coprocessor_frame_t;
+
+namespace CoprocessorLink {
+
+static constexpr uint16_t kFrameMagic = COPROCESSOR_FRAME_MAGIC;
+static constexpr uint16_t kMaxPayload = COPROCESSOR_PROTOCOL_MAX_PAYLOAD;
+static constexpr uint8_t COPROCESSOR_ENDPOINT_BOOTLOADER = ::COPROCESSOR_ENDPOINT_BOOTLOADER;
+static constexpr uint8_t COPROCESSOR_ENDPOINT_APP = ::COPROCESSOR_ENDPOINT_APP;
+static constexpr uint8_t COPROCESSOR_FLAG_APP_VALID = ::COPROCESSOR_FLAG_APP_VALID;
+static constexpr uint8_t COPROCESSOR_FLAG_CAN_JUMP_TO_APP = ::COPROCESSOR_FLAG_CAN_JUMP_TO_APP;
+static constexpr uint8_t COPROCESSOR_FLAG_CAN_ENTER_BOOTLOADER = ::COPROCESSOR_FLAG_CAN_ENTER_BOOTLOADER;
+static constexpr uint8_t kEndpointBootloader = COPROCESSOR_ENDPOINT_BOOTLOADER;
+static constexpr uint8_t kEndpointApp = COPROCESSOR_ENDPOINT_APP;
+
+enum Command : uint8_t {
+  kCmdGetStatus = COPROCESSOR_CMD_GET_STATUS_REQ,
+  kCmdAppJump = COPROCESSOR_CMD_APP_JUMP_REQ,
+  kCmdReset = COPROCESSOR_CMD_RESET_REQ,
+  kCmdEnterBootloader = COPROCESSOR_CMD_ENTER_BOOTLOADER_REQ,
+  kCmdOtaBegin = COPROCESSOR_CMD_OTA_BEGIN_REQ,
+  kCmdOtaData = COPROCESSOR_CMD_OTA_DATA_REQ,
+  kCmdOtaEnd = COPROCESSOR_CMD_OTA_END_REQ,
+};
+
+enum Status : uint8_t {
+  kStatusOk = COPROCESSOR_STATUS_OK,
+  kStatusErrCmd = COPROCESSOR_STATUS_ERR_CMD,
+  kStatusErrState = COPROCESSOR_STATUS_ERR_STATE,
+  kStatusErrLen = COPROCESSOR_STATUS_ERR_LEN,
+  kStatusErrOffset = COPROCESSOR_STATUS_ERR_OFFSET,
+  kStatusErrFlash = COPROCESSOR_STATUS_ERR_FLASH,
+  kStatusErrCrc = COPROCESSOR_STATUS_ERR_CRC,
+  kStatusErrCrc32 = COPROCESSOR_STATUS_ERR_CRC32,
+  kStatusErrAppInvalid = COPROCESSOR_STATUS_ERR_APP_INVALID,
+  kStatusErrBusy = COPROCESSOR_STATUS_ERR_BUSY,
+  kStatusErrNotSupported = COPROCESSOR_STATUS_ERR_NOT_SUPPORTED,
+};
+
+using FrameHeader = coprocessor_frame_header_t;
+using StatusMinResponse = coprocessor_status_min_rsp_t;
+using StatusResponse = coprocessor_status_rsp_t;
+using OtaBeginRequest = coprocessor_ota_begin_req_t;
+using OtaBeginResponse = coprocessor_ota_begin_rsp_t;
+using OtaDataResponse = coprocessor_ota_data_rsp_t;
+using Frame = coprocessor_frame_t;
+
+struct StatusInfo {
+  uint8_t status = 0xFFU;
+  uint8_t protoVersion = 0U;
+  uint8_t endpoint = 0xFFU;
+  uint8_t flags = 0U;
+  uint32_t bootloaderCrc32 = 0U;
+  uint32_t appCrc32 = 0U;
+  uint32_t appSize = 0U;
+  uint32_t appMaxSize = 0U;
+  bool hasExtendedStatus = false;
+};
+
+using QueryResponse = StatusInfo;
+
+static constexpr uint8_t MakeResponseCommand(uint8_t requestCmd) {
+  return (uint8_t) ((requestCmd & (uint8_t) ~COPROCESSOR_CMD_DIR_MASK) | COPROCESSOR_CMD_DIR_RESPONSE);
+}
+
+}  // namespace CoprocessorLink

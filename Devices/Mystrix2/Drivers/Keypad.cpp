@@ -2,10 +2,16 @@
 #include "Device.h"
 #include "timers.h"
 #include "driver/gpio.h"
+#include "esp_log.h"
 #include "MatrixOSConfig.h"
 
 namespace Device::KeyPad
 {
+  namespace
+  {
+    constexpr char kTag[] = "Mystrix2-KeyPad";
+  }
+
   StaticTimer_t keypad_timer_def;
   TimerHandle_t keypad_timer;
 
@@ -36,6 +42,7 @@ namespace Device::KeyPad
   }
 
   void InitKeyPad() {
+    ESP_LOGI(kTag, "InitKeyPad: keypad_type=%d", (int)keypad_type);
     switch (keypad_type)
     {
       case FSRKeypad:
