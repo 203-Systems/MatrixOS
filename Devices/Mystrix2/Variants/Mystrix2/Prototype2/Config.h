@@ -26,13 +26,11 @@ namespace PT2
 namespace Device
 {
 inline void LoadPT2() {
-  ESP_LOGI("Device Init", "Mystrix 2 PT2 Config Loaded");
+  ESP_LOGI("Device Init", "Mystrix 2 Ultra PT2 Config Loaded");
   LED::led_pin = PT2::LED_PIN;
 
+  KeyPad::keypad_type = KeyPad::KeypadType::MPEKeypad;
   KeyPad::fn_pin = PT2::FN_PIN;
-
-  uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
-  memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
   i2c_sda_pin = PT2::I2C_SDA_PIN;
   i2c_scl_pin = PT2::I2C_SCL_PIN;
 

@@ -36,10 +36,17 @@ namespace Device::KeyPad
   }
 
   void InitKeyPad() {
-    if (!velocity_sensitivity)
-    { Binary::Init(); }
-    else
-    { FSR::Init(); }
+    switch (keypad_type)
+    {
+      case FSRKeypad:
+        FSR::Init();
+        break;
+      case MPEKeypad:
+        MPE::Init();
+        break;
+      default:
+        break;
+    }
   }
 
   // Timer callback wrapper with correct signature
@@ -49,13 +56,16 @@ namespace Device::KeyPad
   }
 
   void StartKeyPad() {
-    if (!velocity_sensitivity)
+    switch (keypad_type)
     {
-      Binary::Start();
-    }
-    else
-    {
-      FSR::Start();
+      case FSRKeypad:
+        FSR::Start();
+        break;
+      case MPEKeypad:
+        MPE::Start();
+        break;
+      default:
+        break;
     }
 
     keypad_timer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / keypad_scanrate, true, NULL, KeypadTimerCallback, &keypad_timer_def);
@@ -74,10 +84,15 @@ namespace Device::KeyPad
   }
 
   IRAM_ATTR bool ScanKeyPad() {
-    if (!velocity_sensitivity)
-    { return Binary::Scan(); }
-    else
-    { return FSR::Scan(); }
+    switch (keypad_type)
+    {
+      case FSRKeypad:
+        return FSR::Scan();
+      case MPEKeypad:
+        return MPE::Scan();
+      default:
+        return false;
+    }
   }
 
   IRAM_ATTR bool ScanFN() {

@@ -75,6 +75,8 @@ namespace Device
 
   namespace KeyPad
   {
+    enum KeypadType {BinaryKeypad, FSRKeypad, MPEKeypad};
+
     void Init();
     void InitFN();
     void InitKeyPad();
@@ -91,7 +93,8 @@ namespace Device
     bool ScanTouchBar();
 
     inline gpio_num_t fn_pin;
-    inline bool velocity_sensitivity = false;
+    inline bool velocity_sensitivity = true;
+    inline KeypadType keypad_type = KeypadType::MPEKeypad;
 
     inline KeyConfig binary_config = {
         .apply_curve = false,
@@ -116,14 +119,14 @@ namespace Device
     inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
     inline KeyInfo touchbar_state[16]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
 
-    namespace Binary
+    namespace FSR
     {
       void Init();
       void Start();
       bool Scan();
     }
 
-    namespace FSR
+    namespace MPE
     {
       void Init();
       void Start();
