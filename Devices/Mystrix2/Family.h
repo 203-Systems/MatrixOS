@@ -112,16 +112,12 @@ namespace Device
         .debounce = 10,
     };
 
-    inline uint16_t keypad_scanrate = 240;
-
-    inline const uint8_t touchbar_size = 16;
+    inline const uint16_t keypad_scanrate = 240;
     inline const uint16_t touchbar_scanrate = 120;
-    inline uint8_t touchbar_map[touchbar_size];  // Touch number as index and touch location as value (Left touch down
-                                                 // and then right touch down)
                                                  
     inline KeyInfo fn_state;
     inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
-    inline KeyInfo touchbar_state[touchbar_size];
+    inline KeyInfo touchbar_state[16]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
 
     namespace Binary
     {
