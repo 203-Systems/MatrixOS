@@ -20,21 +20,21 @@
 
 // Factory configuration
 // #define FACTORY_CONFIG //Global switch for using factory config
-// #define FACTORY_DEVICE_VERSION 'S' // Standard
 // #define FACTORY_DEVICE_VERSION 'P' // Pro
+// #define FACTORY_DEVICE_VERSION 'U' // Ultra
 #ifdef FACTORY_CONFIG
-#if FACTORY_DEVICE_VERSION == 'S'
-#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
-#elif FACTORY_DEVICE_VERSION == 'P'
-#define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
+#if FACTORY_DEVICE_VERSION == 'P'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '2', 'P'}
+#elif FACTORY_DEVICE_VERSION == 'U'
+#define FACTORY_DEVICE_MODEL {'M', 'X', '2', 'U'}
 #else 
 #error "FACTORY_DEVICE_VERSION is not correct"
 #endif
 #endif
 
-#define FACTORY_DEVICE_REVISION {'R', 'E', 'V', 'C'}
+#define FACTORY_DEVICE_REVISION {'P', 'T', '0', '2'}
 
-#define FACTORY_MFG_YEAR 23
+#define FACTORY_MFG_YEAR 26
 #define FACTORY_MFG_MONTH 03
 
 struct DeviceInfo {

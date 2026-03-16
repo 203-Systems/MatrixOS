@@ -1,4 +1,4 @@
-namespace REVC
+namespace PT2
 {
   const gpio_num_t FN_Pin = GPIO_NUM_16;
 
@@ -56,43 +56,43 @@ namespace REVC
 
 namespace Device
 {
-inline void LoadRevC() {
-  ESP_LOGI("Device Init", "Mystrix Rev C Config Loaded");
-  LED::led_pin = REVC::LED_Pin;
+inline void LoadPT2() {
+  ESP_LOGI("Device Init", "Mystrix 2 PT2 Config Loaded");
+  LED::led_pin = PT2::LED_Pin;
 
-  KeyPad::fn_pin = REVC::FN_Pin;
+  KeyPad::fn_pin = PT2::FN_Pin;
 
   gpio_num_t _keypad_write_pins[X_SIZE] = {
-      REVC::Key1_Pin, REVC::Key2_Pin, REVC::Key3_Pin, REVC::Key4_Pin,
-      REVC::Key5_Pin, REVC::Key6_Pin, REVC::Key7_Pin, REVC::Key8_Pin,
+      PT2::Key1_Pin, PT2::Key2_Pin, PT2::Key3_Pin, PT2::Key4_Pin,
+      PT2::Key5_Pin, PT2::Key6_Pin, PT2::Key7_Pin, PT2::Key8_Pin,
   };
   memcpy(KeyPad::keypad_write_pins, _keypad_write_pins, sizeof(_keypad_write_pins));
 
   gpio_num_t _keypad_read_pins[Y_SIZE] = {
-      REVC::KeyRead1_Pin, REVC::KeyRead2_Pin, REVC::KeyRead3_Pin, REVC::KeyRead4_Pin,
-      REVC::KeyRead5_Pin, REVC::KeyRead6_Pin, REVC::KeyRead7_Pin, REVC::KeyRead8_Pin,
+      PT2::KeyRead1_Pin, PT2::KeyRead2_Pin, PT2::KeyRead3_Pin, PT2::KeyRead4_Pin,
+      PT2::KeyRead5_Pin, PT2::KeyRead6_Pin, PT2::KeyRead7_Pin, PT2::KeyRead8_Pin,
   };
   memcpy(KeyPad::keypad_read_pins, _keypad_read_pins, sizeof(_keypad_read_pins));
 
   adc_channel_t _keypad_read_adc_channel[Y_SIZE] = {
-      REVC::KeyRead1_ADC_CHANNEL, REVC::KeyRead2_ADC_CHANNEL, REVC::KeyRead3_ADC_CHANNEL, REVC::KeyRead4_ADC_CHANNEL,
-      REVC::KeyRead5_ADC_CHANNEL, REVC::KeyRead6_ADC_CHANNEL, REVC::KeyRead7_ADC_CHANNEL, REVC::KeyRead8_ADC_CHANNEL,
+      PT2::KeyRead1_ADC_CHANNEL, PT2::KeyRead2_ADC_CHANNEL, PT2::KeyRead3_ADC_CHANNEL, PT2::KeyRead4_ADC_CHANNEL,
+      PT2::KeyRead5_ADC_CHANNEL, PT2::KeyRead6_ADC_CHANNEL, PT2::KeyRead7_ADC_CHANNEL, PT2::KeyRead8_ADC_CHANNEL,
   };
   memcpy(KeyPad::keypad_read_adc_channel, _keypad_read_adc_channel, sizeof(_keypad_read_adc_channel));
 
-  KeyPad::touchData_Pin = REVC::TouchData_Pin;
-  KeyPad::touchClock_Pin = REVC::TouchClock_Pin;
+  KeyPad::touchData_Pin = PT2::TouchData_Pin;
+  KeyPad::touchClock_Pin = PT2::TouchClock_Pin;
   uint8_t _touchbar_map[16] = {4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3};
   memcpy(KeyPad::touchbar_map, _touchbar_map, sizeof(_touchbar_map) * sizeof(_touchbar_map[0]));
 
-  Storage::sd_clk_pin = REVC::SD_CLK_Pin;
-  Storage::sd_cmd_pin = REVC::SD_CMD_Pin;
-  Storage::sd_d0_pin = REVC::SD_D0_Pin;
-  Storage::sd_d1_pin = REVC::SD_D1_Pin;
-  Storage::sd_d2_pin = REVC::SD_D2_Pin;
-  Storage::sd_d3_pin = REVC::SD_D3_Pin;
-  Storage::sd_det_pin = REVC::SD_DET_Pin;
-  Storage::sd_4bit_mode = REVC::SD_4bit_mode;
-  Storage::sd_freq_khz = REVC::SD_FREQ_KHZ;
+  Storage::sd_clk_pin = PT2::SD_CLK_Pin;
+  Storage::sd_cmd_pin = PT2::SD_CMD_Pin;
+  Storage::sd_d0_pin = PT2::SD_D0_Pin;
+  Storage::sd_d1_pin = PT2::SD_D1_Pin;
+  Storage::sd_d2_pin = PT2::SD_D2_Pin;
+  Storage::sd_d3_pin = PT2::SD_D3_Pin;
+  Storage::sd_det_pin = PT2::SD_DET_Pin;
+  Storage::sd_4bit_mode = PT2::SD_4bit_mode;
+  Storage::sd_freq_khz = PT2::SD_FREQ_KHZ;
 }
 }
