@@ -4,7 +4,7 @@
 #include "esp_log.h"
 
 // Device Configs
-#include "Prototype2/Config.h"
+#include "UltraProto2/Config.h"
 
 void BurnEFuse();  // This is in device folder, a custom BurnEFuse will be provided
 
@@ -49,14 +49,14 @@ namespace Device
              device_info.production_year, device_info.production_month, GetSerial().c_str());  // It seems excessive but
                                                                                            // device_info.revision does
                                                                                            // not have null terminator
-    if (string(device_info.revision).compare(0, 4, "PT02") == 0)
+    if (string(device_info.revision).compare(0, 4, "MX2U") == 0)
     { 
-      LoadPT2(); 
+      LoadUPT2(); 
     }
     else
     {
-      ESP_LOGE("Device Init", "Failed to find config for %s %.4s, defaulting to PT02", Device::name.c_str(), device_info.revision);
-      LoadPT2();
+      ESP_LOGE("Device Init", "Failed to find config for %s %.4s, defaulting to MX2U", Device::name.c_str(), device_info.revision);
+      LoadUPT2();
     }
   }
 }

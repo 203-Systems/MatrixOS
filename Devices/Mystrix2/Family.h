@@ -33,7 +33,7 @@
 #endif
 #endif
 
-#define FACTORY_DEVICE_REVISION {'P', 'T', '0', '2'}
+#define FACTORY_DEVICE_REVISION {'U', 'P', 'T', '2'}
 
 #define FACTORY_MFG_YEAR 26
 #define FACTORY_MFG_MONTH 03

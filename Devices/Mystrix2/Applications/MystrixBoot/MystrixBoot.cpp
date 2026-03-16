@@ -192,18 +192,8 @@ void MystrixBoot::BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Col
 void MystrixBoot::BootPhase2() {
   float hue[2];
 
-#ifdef FAMILY_MYSTRIX
-    if(Device::device_info.model[3] == 'P')
-    {
-      memcpy(hue, hueList[0], sizeof(hue));
-    }
-    else if(Device::device_info.model[3] == 'S')
-    {
-      memcpy(hue, hueList[1], sizeof(hue));
-    }
-#else
-    memcpy(hue, hueList[1], sizeof(hue));
-#endif
+  // Hard fix as Pro color for Mystrix 2
+  memcpy(hue, hueList[0], sizeof(hue));
 
   const uint16_t start_offset = 150;
   if (timer.Tick(1000 / Device::LED::fps))

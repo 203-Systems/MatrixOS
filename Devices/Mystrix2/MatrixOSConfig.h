@@ -35,8 +35,8 @@ namespace Device
     inline uint8_t brightness_fine_level[16] = {8, 16, 26, 38, 50, 64, 80, 96, 112, 130, 149, 169, 189, 209, 232, 255};
 
     inline vector<LEDPartition> partitions = {
-      {"Grid", 1.0, 0, 64, RGB_24B},
-      {"Underglow", 4.0, 64, 32, RGB_24B},
+      {"Grid", 1.0, 0, 64, RGBW_32B_6K5},
+      {"Underglow", 4.0, 64, 32, RGBW_32B_6K5},
     };
   }
 }
