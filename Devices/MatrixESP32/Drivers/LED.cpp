@@ -6,6 +6,11 @@ namespace Device
 {
   namespace LED
   {
+    static bool HasUnderglow()
+    {
+      return deviceInfo.Model[3] != 'S'; // Not Mystrix Standard
+    }
+
     void Init() {
       WS2812::Init(led_pin, partitions);
     }
@@ -20,7 +25,7 @@ namespace Device
     uint16_t XY2Index(Point xy) {
       if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)  // Main grid
       { return xy.x + xy.y * 8; }
-      else if(underglow)
+      else if(HasUnderglow())
       {
         if (xy.x == 8 && xy.y >= 0 && xy.y < 8)  // Underglow Right Column
         { return 64 + (7 - xy.y); }
@@ -40,15 +45,15 @@ namespace Device
       {
         return Point(index % 8, index / 8);
       }
-      else if (index < 72)
+      else if (HasUnderglow() && index < 72)
       {
         return Point(7 - (index - 64), 8);
       }
-      else if (index < 80)
+      else if (HasUnderglow() && index < 80)
       {
         return Point(-1, index - 72);
       }
-      else if (index < 88)
+      else if (HasUnderglow() && index < 88)
       {
         return Point(index - 80, -1);
       }

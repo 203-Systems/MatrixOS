@@ -29,7 +29,6 @@ namespace Device
       product_name += " Pro";
       model = "MX2P";
       KeyPad::velocity_sensitivity = true;
-      LED::underglow = true;
     }
     else if(deviceInfo.Model[3] == 'U')
     {
@@ -37,7 +36,6 @@ namespace Device
       product_name += " Ultra";
       model = "MX2U";
       KeyPad::velocity_sensitivity = true;
-      LED::underglow = true;
     }
     else
     { 

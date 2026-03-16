@@ -61,7 +61,6 @@ namespace Device
   namespace LED
   {
     inline gpio_num_t led_pin;
-    inline bool underglow;
   }
 
   void LoadDeviceInfo();
