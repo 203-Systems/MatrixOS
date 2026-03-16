@@ -3,14 +3,15 @@
 
 // Run once
 void Dice::Setup(const vector<string>& args) {
-  #ifdef FAMILY_MYSTRIX
-  if(Device::device_info.model[3] == 'P'){
-    underglow_enabled = true;
+  underglow_enabled = false;
+  for (const LEDPartition& partition : Device::LED::partitions)
+  {
+    if (partition.name == "Underglow")
+    {
+      underglow_enabled = true;
+      break;
+    }
   }
-  else if(Device::device_info.model[3] == 'S'){
-    underglow_enabled = false;
-  }
-#endif
   rolling_start_time = MatrixOS::SYS::Millis();
   last_roll_time = MatrixOS::SYS::Millis();
   current_phase = Rolling;
