@@ -4,10 +4,10 @@
 // Run once
 void Dice::Setup(const vector<string>& args) {
   #ifdef FAMILY_MYSTRIX
-  if(Device::deviceInfo.Model[3] == 'P'){
+  if(Device::device_info.model[3] == 'P'){
     underglow_enabled = true;
   }
-  else if(Device::deviceInfo.Model[3] == 'S'){
+  else if(Device::device_info.model[3] == 'S'){
     underglow_enabled = false;
   }
 #endif

@@ -8,7 +8,7 @@ namespace Device
   {
     static bool HasUnderglow()
     {
-      return deviceInfo.Model[3] != 'S'; // Not Mystrix Standard
+      return device_info.model[3] != 'S'; // Not Mystrix Standard
     }
 
     void Init() {

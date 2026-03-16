@@ -193,11 +193,11 @@ void MystrixBoot::BootPhase2() {
   float hue[2];
 
 #ifdef FAMILY_MYSTRIX
-    if(Device::deviceInfo.Model[3] == 'P')
+    if(Device::device_info.model[3] == 'P')
     {
       memcpy(hue, hueList[0], sizeof(hue));
     }
-    else if(Device::deviceInfo.Model[3] == 'S')
+    else if(Device::device_info.model[3] == 'S')
     {
       memcpy(hue, hueList[1], sizeof(hue));
     }

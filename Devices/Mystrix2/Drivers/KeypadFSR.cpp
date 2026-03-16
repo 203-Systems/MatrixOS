@@ -176,13 +176,13 @@ namespace Device::KeyPad::FSR
 
         config.low_threshold = CLAMP(new_low_threshold, 512, UINT16_MAX);
         config.high_threshold = CLAMP(new_high_threshold, 25600, UINT16_MAX);
-        bool updated = keypadState[x][y].Update(config, reading);
+        bool updated = keypad_state[x][y].Update(config, reading);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
-          if (NotifyOS(keyID, &keypadState[x][y]))
+          if (NotifyOS(keyID, &keypad_state[x][y]))
           { return true; }
-          // ESP_LOGI("Keypad ULP", "Key %d,%d (%d) updated: %d (R:%d, L:%d, H:%d)", x, y, keyID, (uint16_t)keypadState[x][y].velocity, (uint16_t)reading, (uint16_t)config.low_threshold, (uint16_t)config.high_threshold);
+          // ESP_LOGI("Keypad ULP", "Key %d,%d (%d) updated: %d (R:%d, L:%d, H:%d)", x, y, keyID, (uint16_t)keypad_state[x][y].velocity, (uint16_t)reading, (uint16_t)config.low_threshold, (uint16_t)config.high_threshold);
         }
       }
     }

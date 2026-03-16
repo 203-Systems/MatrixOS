@@ -38,15 +38,15 @@
 #define FACTORY_MFG_MONTH 03
 
 struct DeviceInfo {
-  char Model[4];
-  char Revision[4];
-  uint8_t ProductionYear;
-  uint8_t ProductionMonth;
+  char model[4];
+  char revision[4];
+  uint8_t production_year;
+  uint8_t production_month;
 };
 
 namespace Device
 {
-  inline DeviceInfo deviceInfo;
+  inline DeviceInfo device_info;
 
   // Device Variable
   inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
@@ -54,7 +54,7 @@ namespace Device
 
   namespace HWMidi
   {
-    inline gpio_num_t tx_gpio = GPIO_NUM_18;
+    inline gpio_num_t tx_gpio = GPIO_NUM_NC;
     inline gpio_num_t rx_gpio = GPIO_NUM_NC;
   }
 
@@ -119,17 +119,17 @@ namespace Device
 
     inline uint16_t keypad_scanrate = 240;
 
-    inline gpio_num_t touchData_Pin;
-    inline gpio_num_t touchClock_Pin;
+    inline gpio_num_t touch_data_pin;
+    inline gpio_num_t touch_clock_pin;
 
     inline const uint8_t touchbar_size = 16;
     inline const uint16_t touchbar_scanrate = 120;
     inline uint8_t touchbar_map[touchbar_size];  // Touch number as index and touch location as value (Left touch down
                                                  // and then right touch down)
                                                  
-    inline KeyInfo fnState;
-    inline KeyInfo keypadState[X_SIZE][Y_SIZE];
-    inline KeyInfo touchbarState[touchbar_size];
+    inline KeyInfo fn_state;
+    inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
+    inline KeyInfo touchbar_state[touchbar_size];
 
     namespace Binary
     {

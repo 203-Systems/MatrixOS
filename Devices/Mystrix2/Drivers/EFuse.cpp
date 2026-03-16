@@ -11,7 +11,7 @@ void BurnEFuse() {
   esp_err_t status;
 
   // Device Info
-  status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::deviceInfo, sizeof(DeviceInfo) * 8);
+  status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::device_info, sizeof(DeviceInfo) * 8);
   MLOGD("BurnEFuse", "Burning Matrix Info - Status: %s", esp_err_to_name(status));
 
   // Write protection for DIS_ICACHE DIS_DCACHE DIS_DOWNLOAD_ICACHE DIS_DOWNLOAD_DCACHE DIS_FORCE_DOWNLOAD DIS_USB

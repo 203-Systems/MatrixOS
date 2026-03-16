@@ -37,11 +37,11 @@ void FactoryMenu::Setup(const vector<string>& args) {
 
   Color deviceColor = Color::White;
   #ifdef FAMILY_MYSTRIX
-  if(Device::deviceInfo.Model[3] == 'S')
+  if(Device::device_info.model[3] == 'S')
   {
     deviceColor = Color(0x00FFFF);
   }
-  else if(Device::deviceInfo.Model[3] == 'P')
+  else if(Device::device_info.model[3] == 'P')
   {
     deviceColor = Color(0xFF00FF);
   }

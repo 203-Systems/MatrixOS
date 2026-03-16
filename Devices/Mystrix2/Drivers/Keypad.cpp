@@ -85,25 +85,25 @@ namespace Device::KeyPad
     // ESP_LOGI("FN", "%d", gpio_get_level(fn_pin));
     if (fn_active_low)
     { read = UINT16_MAX - (uint16_t)read; }
-    if (fnState.Update(binary_config, read))
+    if (fn_state.Update(binary_config, read))
     {
-      if (NotifyOS(0, &fnState))
+      if (NotifyOS(0, &fn_state))
       { return true; }
     }
     return false;
   }
 
   void Clear() {
-    fnState.Clear();
+    fn_state.Clear();
 
     for (uint8_t x = 0; x < X_SIZE; x++)
     {
       for (uint8_t y = 0; y < Y_SIZE; y++)
-      { keypadState[x][y].Clear(); }
+      { keypad_state[x][y].Clear(); }
     }
 
     for (uint8_t i = 0; i < touchbar_size; i++)
-    { touchbarState[i].Clear(); }
+    { touchbar_state[i].Clear(); }
   }
 
   KeyInfo* GetKey(uint16_t keyID) {
@@ -116,7 +116,7 @@ namespace Device::KeyPad
         switch (index)
         {
           case 0:
-            return &fnState;
+            return &fn_state;
         }
         break;
       }
@@ -125,7 +125,7 @@ namespace Device::KeyPad
         int16_t x = (keyID & (0b0000111111000000)) >> 6;
         int16_t y = keyID & (0b0000000000111111);
         if (x < X_SIZE && y < Y_SIZE)
-          return &keypadState[x][y];
+          return &keypad_state[x][y];
         break;
       }
       case 2:  // Touch Bar
@@ -133,7 +133,7 @@ namespace Device::KeyPad
         uint16_t index = keyID & (0b0000111111111111);
         // MLOGD("Keypad", "Read Touch %d", index);
         if (index < touchbar_size)
-          return &touchbarState[index];
+          return &touchbar_state[index];
         break;
       }
     }

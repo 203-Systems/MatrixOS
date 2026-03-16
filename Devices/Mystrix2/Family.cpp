@@ -69,7 +69,7 @@ namespace Device
 
   void LoadDeviceInfo() {
 #ifndef FACTORY_CONFIG
-    esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &deviceInfo, sizeof(deviceInfo) * 8);
+    esp_efuse_read_field_blob(ESP_EFUSE_USER_DATA, &device_info, sizeof(device_info) * 8);
 #endif
     LoadVariantInfo();
   }

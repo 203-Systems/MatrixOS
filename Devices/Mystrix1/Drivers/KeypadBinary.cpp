@@ -51,11 +51,11 @@ namespace Device::KeyPad::Binary
       {
         Fract16 reading = gpio_get_level(keypad_read_pins[y]) * FRACT16_MAX;
         // MLOGD("Keypad", "%d %d Read: %d", x, y, gpio_get_level(keypad_read_pins[y]));
-        bool updated = keypadState[x][y].Update(binary_config, reading);
+        bool updated = keypad_state[x][y].Update(binary_config, reading);
         if (updated)
         {
           uint16_t keyID = (1 << 12) + (x << 6) + y;
-          if (NotifyOS(keyID, &keypadState[x][y]))
+          if (NotifyOS(keyID, &keypad_state[x][y]))
           {
             return true;
           }
