@@ -115,7 +115,7 @@ namespace Device::KeyPad
       { keypad_state[x][y].Clear(); }
     }
 
-    for (uint8_t i = 0; i < touchbar_size; i++)
+    for (uint8_t i = 0; i < TOUCHBAR_SIZE; i++)
     { touchbar_state[i].Clear(); }
   }
 
@@ -145,7 +145,7 @@ namespace Device::KeyPad
       {
         uint16_t index = keyID & (0b0000111111111111);
         // MLOGD("Keypad", "Read Touch %d", index);
-        if (index < touchbar_size)
+        if (index < TOUCHBAR_SIZE)
           return &touchbar_state[index];
         break;
       }
@@ -189,7 +189,7 @@ namespace Device::KeyPad
       case 2:  // TouchBar
       {
         uint16_t index = keyID & (0b0000111111111111);
-        if (index < touchbar_size)
+        if (index < TOUCHBAR_SIZE)
         {
           if (index / 8)  // Right
           { return Point(X_SIZE, index % 8); }

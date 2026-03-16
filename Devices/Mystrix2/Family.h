@@ -15,6 +15,7 @@
 #define GRID_TYPE_8x8
 #define FAMILY_MYSTRIX
 #define MULTIPRESS 10  // Key Press will be process at once
+#define TOUCHBAR_SIZE 16
 
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
@@ -117,7 +118,7 @@ namespace Device
                                                  
     inline KeyInfo fn_state;
     inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
-    inline KeyInfo touchbar_state[16]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
+    inline KeyInfo touchbar_state[TOUCHBAR_SIZE]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
 
     namespace FSR
     {

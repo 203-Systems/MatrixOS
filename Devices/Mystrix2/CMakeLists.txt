@@ -52,13 +52,13 @@ target_include_directories(FreeRTOS INTERFACE
 file(GLOB_RECURSE DEVICE_SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/Family.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix/Device.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix2/Device.cpp"
 )
 
 file(GLOB_RECURSE DEVICE_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/Drivers/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix2/*.h"
 )
 
 add_library(MatrixOSDevice
@@ -68,7 +68,7 @@ add_library(MatrixOSDevice
 
 target_include_directories(MatrixOSDevice PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix
+    ${CMAKE_CURRENT_SOURCE_DIR}/Variants/Mystrix2
     ${CMAKE_SOURCE_DIR}/Platform/ESP32SX
     ${CMAKE_SOURCE_DIR}/Library/FatFs/source
 )
