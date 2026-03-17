@@ -23,6 +23,11 @@ class Host {
                uint32_t* nextOffset = nullptr,
                uint32_t timeoutMs = 800U);
   bool otaEnd(uint8_t* status = nullptr, uint32_t timeoutMs = 800U);
+  bool appTransact(uint8_t commandId,
+                   const void* payload,
+                   uint16_t payloadLen,
+                   Frame& response,
+                   uint32_t timeoutMs = 800U);
   bool programImage(const QueryResponse& query,
                     const uint8_t* image,
                     uint32_t imageSize,

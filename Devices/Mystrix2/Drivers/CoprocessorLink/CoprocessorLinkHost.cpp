@@ -355,6 +355,16 @@ bool Host::otaEnd(uint8_t* status, uint32_t timeoutMs) {
   return response.status == kStatusOk;
 }
 
+bool Host::appTransact(uint8_t commandId,
+                       const void* payload,
+                       uint16_t payloadLen,
+                       Frame& response,
+                       uint32_t timeoutMs) {
+  const uint8_t cmd =
+      COPROCESSOR_MAKE_CMD(COPROCESSOR_CMD_DIR_REQUEST, COPROCESSOR_CMD_SCOPE_APP, commandId);
+  return transact(cmd, payload, payloadLen, response, timeoutMs);
+}
+
 bool Host::programImage(const QueryResponse& query,
                         const uint8_t* image,
                         uint32_t imageSize,
