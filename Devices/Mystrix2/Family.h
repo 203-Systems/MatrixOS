@@ -107,10 +107,19 @@ namespace Device
 
     inline KeyConfig keypad_config = {
         .apply_curve = true,
-        .low_threshold = 1536,
-        .high_threshold = 32767,
-        .activation_offset = 256,
-        .debounce = 10,
+        .low_threshold = 24000,
+        .high_threshold = 53248,
+        .activation_offset = 1024,
+        .debounce = 5,
+    };
+
+
+    inline KeyConfig mpe_config = {
+        .apply_curve = true,
+        .low_threshold = 40000,
+        .high_threshold = 53248,
+        .activation_offset = 2048,
+        .debounce = 5,
     };
 
     inline const uint16_t keypad_scanrate = 240;
@@ -118,6 +127,7 @@ namespace Device
                                                  
     inline KeyInfo fn_state;
     inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
+    inline uint16_t pad_force[X_SIZE][Y_SIZE] = {};
     inline KeyInfo touchbar_state[TOUCHBAR_SIZE]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
 
     namespace FSR
