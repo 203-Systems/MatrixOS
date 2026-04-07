@@ -346,7 +346,7 @@ namespace MidiAction
       case MidiType::SysEx:
       {
         vector<uint8_t> processed_sysex;
-        processed_sysex.reserve(data.sysex_length);
+        processed_sysex.resize(data.sysex_length);
         MLOGD(TAG, "Sysex Length: %d", data.sysex_length);
 
         for (size_t i = 0; i < data.sysex_length; i++)
