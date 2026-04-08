@@ -33,6 +33,7 @@ void DeviceSettings();
 
 InputId GetFunctionKeyId();
 bool IsFunctionKey(InputId id);
+void Rotate(Direction rotation, bool absolute = false);
 
 void Log(string& format, va_list& valst);
 

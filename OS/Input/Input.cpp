@@ -16,9 +16,6 @@ static std::unordered_map<uint32_t, InputSnapshot> stateCache;
 // Cluster registry
 static vector<InputCluster> clusters;
 
-// Rotation callback: device layer sets this to re-register clusters on rotation change
-static void (*rotationCallback)() = nullptr;
-
 // Capabilities storage: maps clusterId -> capabilities struct
 static std::unordered_map<uint8_t, KeypadCapabilities> keypadCapsMap;
 
@@ -294,17 +291,6 @@ KeypadInfo GetKeypadState(Point xy) {
   KeypadInfo empty;
   memset(&empty, 0, sizeof(empty));
   return empty;
-}
-
-void SetRotationCallback(void (*callback)()) {
-  rotationCallback = callback;
-}
-
-void NotifyRotationChanged() {
-  if (rotationCallback)
-  {
-    rotationCallback();
-  }
 }
 
 void RegisterKeypadCapabilities(uint8_t clusterId, const KeypadCapabilities& caps) {

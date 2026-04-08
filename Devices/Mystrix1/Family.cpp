@@ -36,6 +36,29 @@ bool IsFunctionKey(InputId id) {
   return id == GetFunctionKeyId();
 }
 
+void Rotate(Direction newRotation, bool absolute) {
+  if (newRotation != 0 && newRotation != 90 && newRotation != 180 && newRotation != 270)
+  {
+    return;
+  }
+  if (newRotation == 0 && !absolute)
+  {
+    return;
+  }
+
+  // Clear LED layers
+  for (uint8_t ledLayer = 0; ledLayer <= MatrixOS::LED::CurrentLayer(); ledLayer++)
+  {
+    MatrixOS::LED::Fill(0, ledLayer);
+  }
+
+  // Update rotation state
+  MatrixOS::UserVar::rotation = (Direction)((MatrixOS::UserVar::rotation * !absolute + newRotation) % 360);
+
+  // Clear stale input state
+  MatrixOS::Input::ClearState();
+}
+
 void DeviceStart() {
   Device::KeyPad::Start();
   Device::LED::Start();

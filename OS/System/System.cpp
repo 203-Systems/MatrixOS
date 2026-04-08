@@ -205,22 +205,7 @@ void OpenSetting(void) {
 }
 
 void Rotate(Direction newRotation, bool absolute) {
-  if (newRotation == 0 || newRotation == 90 || newRotation == 180 || newRotation == 270)
-  {
-    if (newRotation == 0 && !absolute)
-    {
-      return;
-    }
-    // LED::RotateCanvas(newRotation); //TODO Does not work if absolute is true
-    for (uint8_t ledLayer = 0; ledLayer <= LED::CurrentLayer(); ledLayer++)
-    {
-      LED::Fill(0, ledLayer);
-    }
-    UserVar::rotation = (Direction)((UserVar::rotation * !absolute + newRotation) % 360);
-
-    // Notify the input system so the device layer can update cluster rotation
-    Input::NotifyRotationChanged();
-  }
+  Device::Rotate(newRotation, absolute);
 }
 
 uint32_t GenerateAPPID(string author, string appName) {

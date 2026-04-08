@@ -50,6 +50,34 @@ bool IsFunctionKey(InputId id) {
   return id == GetFunctionKeyId();
 }
 
+void RegisterInputClusters(); // forward declaration
+
+void Rotate(Direction newRotation, bool absolute) {
+  if (newRotation != 0 && newRotation != 90 && newRotation != 180 && newRotation != 270)
+  {
+    return;
+  }
+  if (newRotation == 0 && !absolute)
+  {
+    return;
+  }
+
+  // Clear LED layers
+  for (uint8_t ledLayer = 0; ledLayer <= MatrixOS::LED::CurrentLayer(); ledLayer++)
+  {
+    MatrixOS::LED::Fill(0, ledLayer);
+  }
+
+  // Update rotation state
+  MatrixOS::UserVar::rotation = (Direction)((MatrixOS::UserVar::rotation * !absolute + newRotation) % 360);
+
+  // Rebuild input clusters with new rotation
+  RegisterInputClusters();
+
+  // Clear stale input state
+  MatrixOS::Input::ClearState();
+}
+
 void RegisterInputClusters() {
   Direction rotation = MatrixOS::UserVar::rotation;
   Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
@@ -124,7 +152,6 @@ void RegisterInputClusters() {
 
 void DeviceStart() {
   RegisterInputClusters();
-  MatrixOS::Input::SetRotationCallback(RegisterInputClusters);
   Device::KeyPad::Start();
   Device::LED::Start();
 
