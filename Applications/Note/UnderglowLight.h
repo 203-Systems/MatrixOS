@@ -20,7 +20,7 @@ public:
   }
 
   bool IsUnderglow(Point pos) {
-    return !(pos.x >= 0 && pos.x < Device::xSize && pos.y >= 0 && pos.y < Device::ySize);
+    return !(pos.x >= 0 && pos.x < MatrixOS::Input::GetPrimaryGridSize().x && pos.y >= 0 && pos.y < MatrixOS::Input::GetPrimaryGridSize().y);
   }
 
   virtual bool Render(Point origin) {

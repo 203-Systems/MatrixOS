@@ -408,7 +408,7 @@ Explicitly not in scope right now:
 
 ### Phase 5: Application Migration
 - [x] Migrate `KeyPad` dependencies under `Applications/`
-- [ ] Migrate direct uses of `Device::xSize / ySize`
+- [x] Migrate direct uses of `Device::xSize / ySize`
 - [ ] Migrate direct uses of `Device::KeyPad::*`
 
 ### Phase 6: Cleanup

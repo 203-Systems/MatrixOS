@@ -64,7 +64,7 @@ void Setting::SystemSetting() {
   // Dynamic color based on storage availability
   mscModeBtn.SetColorFunc([]() -> Color { return Color(0xFF8000).DimIfNot(Device::Storage::Available()); });
 
-  systemSetting.AddUIComponent(mscModeBtn, Point(Device::xSize - 1, Device::ySize - 1));
+  systemSetting.AddUIComponent(mscModeBtn, Point(MatrixOS::Input::GetPrimaryGridSize().x - 1, MatrixOS::Input::GetPrimaryGridSize().y - 1));
 #endif
 
   // Device Control
@@ -75,27 +75,27 @@ void Setting::SystemSetting() {
   deviceIdBtn.OnPress([]() -> void {
     MatrixOS::UserVar::deviceId = MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::deviceId, 0x00FFFF, "Device ID", 0, 63);
   });
-  systemSetting.AddUIComponent(deviceIdBtn, Point(Device::xSize - 2, Device::ySize - 1));
+  systemSetting.AddUIComponent(deviceIdBtn, Point(MatrixOS::Input::GetPrimaryGridSize().x - 2, MatrixOS::Input::GetPrimaryGridSize().y - 1));
 
   UIButton enterDfuBtn;
   enterDfuBtn.SetName("Enter Bootloader Mode");
   enterDfuBtn.SetColor(Color(0xFF0000));
   enterDfuBtn.OnPress([]() -> void { MatrixOS::SYS::Bootloader(); });
-  systemSetting.AddUIComponent(enterDfuBtn, Point(0, Device::ySize - 1));
+  systemSetting.AddUIComponent(enterDfuBtn, Point(0, MatrixOS::Input::GetPrimaryGridSize().y - 1));
 
   UIButton resetDevice;
   resetDevice.SetName("Factory Reset Device");
   resetDevice.SetColor(Color(0xFF00FF));
   resetDevice.OnPress([]() -> void { Setting::ResetConfirm(); });
   // resetDevice.SetEnabled(MatrixOS::UserVar::developer_mode);
-  systemSetting.AddUIComponent(resetDevice, Point(1, Device::ySize - 1));
+  systemSetting.AddUIComponent(resetDevice, Point(1, MatrixOS::Input::GetPrimaryGridSize().y - 1));
 
   UIButton osVersionBtn;
   osVersionBtn.SetName("Matrix OS Version");
   osVersionBtn.SetColor(Color(0x00FF30));
   osVersionBtn.SetSize(Dimension(2, 1));
   osVersionBtn.OnPress([]() -> void { MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FF30)); });
-  systemSetting.AddUIComponent(osVersionBtn, Point(3, Device::ySize - 1));
+  systemSetting.AddUIComponent(osVersionBtn, Point(3, MatrixOS::Input::GetPrimaryGridSize().y - 1));
 
   UIButton deviceSettingsBtn;
   deviceSettingsBtn.SetName("Device Settings");
