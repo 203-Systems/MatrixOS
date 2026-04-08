@@ -39,9 +39,11 @@ bool NewEvent(const InputEvent& event) {
   InputSnapshot& snap = stateCache[key];
   snap.id = event.id;
   snap.inputClass = event.inputClass;
-  // Copy the union payload by raw copy (all XXXInfo are trivially copyable)
-  static_assert(sizeof(snap.keypad) == sizeof(event.keypad));
-  memcpy(&snap.keypad, &event.keypad, sizeof(event.keypad));
+  // Copy the full union payload by raw copy (all XXXInfo are trivially copyable).
+  // Use the actual union size, not just one member's size, since members may differ in size.
+  constexpr size_t payloadSize = sizeof(InputEvent) - offsetof(InputEvent, keypad);
+  static_assert(payloadSize == sizeof(InputSnapshot) - offsetof(InputSnapshot, keypad));
+  memcpy(&snap.keypad, &event.keypad, payloadSize);
 
   // Enqueue event
   if (uxQueueSpacesAvailable(inputEventQueue) == 0)
@@ -118,7 +120,10 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
     }
 
     uint16_t memberId;
-    if (Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId))
+    bool found = cluster.tryGetMemberId
+      ? cluster.tryGetMemberId(cluster, xy, &memberId)
+      : Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId);
+    if (found)
     {
       ids->push_back(InputId{cluster.clusterId, memberId});
     }
@@ -126,16 +131,25 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
 }
 
 bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
+  const InputCluster* cluster = GetCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates()) return false;
+
   uint16_t memberId;
-  if (!Device::Input::TryGetMemberId(clusterId, xy, &memberId))
-  {
-    return false;
-  }
+  bool found = cluster->tryGetMemberId
+    ? cluster->tryGetMemberId(*cluster, xy, &memberId)
+    : Device::Input::TryGetMemberId(clusterId, xy, &memberId);
+  if (!found) return false;
+
   *id = InputId{clusterId, memberId};
   return true;
 }
 
 bool TryGetPoint(InputId id, Point* xy) {
+  const InputCluster* cluster = GetCluster(id.clusterId);
+  if (cluster && cluster->tryGetPoint)
+  {
+    return cluster->tryGetPoint(*cluster, id.memberId, xy);
+  }
   return Device::Input::TryGetPoint(id.clusterId, id.memberId, xy);
 }
 

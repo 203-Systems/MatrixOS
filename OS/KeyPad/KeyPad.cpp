@@ -117,13 +117,16 @@ uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping 
 {
   if (!xy)
     return UINT16_MAX;
-  // Try all coordinate-capable clusters via device handlers
+  // Try all coordinate-capable clusters, preferring cluster function pointers
   for (const auto& cluster : Device::Input::clusters)
   {
     if (!cluster.HasCoordinates())
       continue;
     uint16_t memberId;
-    if (Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId))
+    bool found = cluster.tryGetMemberId
+      ? cluster.tryGetMemberId(cluster, xy, &memberId)
+      : Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId);
+    if (found)
     {
       return InputIdToLegacyKeyId(InputId{cluster.clusterId, memberId});
     }
@@ -134,6 +137,20 @@ uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping 
 Point ID2XY(uint16_t keyID) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)
 {
   InputId id = BridgeKeyId(keyID);
+  // Prefer cluster function pointer, fall back to device-level free function
+  const auto& clusters = Device::Input::clusters;
+  for (const auto& cluster : clusters)
+  {
+    if (cluster.clusterId == id.clusterId && cluster.tryGetPoint)
+    {
+      Point point;
+      if (cluster.tryGetPoint(cluster, id.memberId, &point))
+      {
+        return point;
+      }
+      return Point(INT16_MIN, INT16_MIN);
+    }
+  }
   Point point;
   if (Device::Input::TryGetPoint(id.clusterId, id.memberId, &point))
   {

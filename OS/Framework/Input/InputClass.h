@@ -19,4 +19,5 @@ enum class InputClusterShape : uint8_t {
   Scalar = 0,
   Linear1D,
   Grid2D,
+  Area2D,
 };

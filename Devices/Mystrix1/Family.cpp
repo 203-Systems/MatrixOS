@@ -36,18 +36,94 @@ bool IsFunctionKey(InputId id) {
   return id == GetFunctionKeyId();
 }
 
+void RegisterInputClusters(); // forward declaration
+
 namespace Input
 {
 vector<InputCluster> clusters;
 
+static const InputCluster* FindCluster(uint8_t clusterId) {
+  for (const auto& c : clusters)
+  {
+    if (c.clusterId == clusterId) return &c;
+  }
+  return nullptr;
+}
+
+// Generic Grid2D mapping handler
+static bool Grid2D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+  if (memberId >= cluster.inputCount) return false;
+  int16_t localX = memberId % cluster.dimension.x;
+  int16_t localY = memberId / cluster.dimension.x;
+  Point hwPoint(cluster.rootPoint.x + localX, cluster.rootPoint.y + localY);
+  if (cluster.rotation != TOP)
+  {
+    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
+  }
+  *point = hwPoint;
+  return true;
+}
+
+static bool Grid2D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point hwPoint = point;
+  if (cluster.rotation != TOP)
+  {
+    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
+  }
+  if (!cluster.Contains(hwPoint)) return false;
+  Point local = hwPoint - cluster.rootPoint;
+  uint16_t id = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
+  if (id >= cluster.inputCount) return false;
+  *memberId = id;
+  return true;
+}
+
+// Generic Linear1D mapping handler
+static bool Linear1D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+  if (memberId >= cluster.inputCount) return false;
+  Point hwPoint;
+  if (cluster.dimension.x > 1)
+  {
+    hwPoint = Point(cluster.rootPoint.x + memberId, cluster.rootPoint.y);
+  }
+  else
+  {
+    hwPoint = Point(cluster.rootPoint.x, cluster.rootPoint.y + memberId);
+  }
+  if (cluster.rotation != TOP)
+  {
+    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
+  }
+  *point = hwPoint;
+  return true;
+}
+
+static bool Linear1D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point hwPoint = point;
+  if (cluster.rotation != TOP)
+  {
+    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
+  }
+  if (!cluster.Contains(hwPoint)) return false;
+  Point local = hwPoint - cluster.rootPoint;
+  uint16_t id = (cluster.dimension.x > 1) ? local.x : local.y;
+  if (id >= cluster.inputCount) return false;
+  *memberId = id;
+  return true;
+}
+
 bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
-  (void)clusterId; (void)memberId; (void)point;
-  return false; // Mystrix1 uses legacy KeyPad path only
+  const InputCluster* cluster = FindCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates()) return false;
+  if (!cluster->tryGetPoint) return false;
+  return cluster->tryGetPoint(*cluster, memberId, point);
 }
 
 bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
-  (void)clusterId; (void)point; (void)memberId;
-  return false; // Mystrix1 uses legacy KeyPad path only
+  const InputCluster* cluster = FindCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates()) return false;
+  if (!cluster->tryGetMemberId) return false;
+  return cluster->tryGetMemberId(*cluster, point, memberId);
 }
 } // namespace Input
 
@@ -70,11 +146,78 @@ void Rotate(Direction newRotation, bool absolute) {
   // Update rotation state
   MatrixOS::UserVar::rotation = (Direction)((MatrixOS::UserVar::rotation * !absolute + newRotation) % 360);
 
+  // Rebuild input clusters with new rotation
+  RegisterInputClusters();
+
   // Clear stale input state
   MatrixOS::Input::ClearState();
 }
 
+void RegisterInputClusters() {
+  Direction rotation = MatrixOS::UserVar::rotation;
+  Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
+
+  Input::clusters.clear();
+
+  // Cluster 0: System (FN button) — no coordinates, no rotation
+  InputCluster fnCluster;
+  fnCluster.clusterId = 0;
+  fnCluster.name = "System";
+  fnCluster.inputClass = InputClass::Keypad;
+  fnCluster.shape = InputClusterShape::Scalar;
+  fnCluster.rootPoint = Point::Invalid();
+  fnCluster.dimension = Dimension(1, 1);
+  fnCluster.inputCount = 1;
+  Input::clusters.push_back(fnCluster);
+
+  // Cluster 1: Main 8x8 Grid
+  InputCluster gridCluster;
+  gridCluster.clusterId = 1;
+  gridCluster.name = "Grid";
+  gridCluster.inputClass = InputClass::Keypad;
+  gridCluster.shape = InputClusterShape::Grid2D;
+  gridCluster.rootPoint = Point(0, 0);
+  gridCluster.dimension = Dimension(X_SIZE, Y_SIZE);
+  gridCluster.inputCount = X_SIZE * Y_SIZE;
+  gridCluster.rotation = rotation;
+  gridCluster.rotationDimension = rotDim;
+  gridCluster.tryGetPoint = Input::Grid2D_TryGetPoint;
+  gridCluster.tryGetMemberId = Input::Grid2D_TryGetMemberId;
+  Input::clusters.push_back(gridCluster);
+
+  // Cluster 2: TouchBar Left (8 keys along left edge, x = -1 in hardware space)
+  InputCluster touchbarLeftCluster;
+  touchbarLeftCluster.clusterId = 2;
+  touchbarLeftCluster.name = "TouchBarLeft";
+  touchbarLeftCluster.inputClass = InputClass::Keypad;
+  touchbarLeftCluster.shape = InputClusterShape::Linear1D;
+  touchbarLeftCluster.rootPoint = Point(-1, 0);
+  touchbarLeftCluster.dimension = Dimension(1, Y_SIZE);
+  touchbarLeftCluster.inputCount = KeyPad::touchbarSize / 2;
+  touchbarLeftCluster.rotation = rotation;
+  touchbarLeftCluster.rotationDimension = rotDim;
+  touchbarLeftCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarLeftCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
+  Input::clusters.push_back(touchbarLeftCluster);
+
+  // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE in hardware space)
+  InputCluster touchbarRightCluster;
+  touchbarRightCluster.clusterId = 3;
+  touchbarRightCluster.name = "TouchBarRight";
+  touchbarRightCluster.inputClass = InputClass::Keypad;
+  touchbarRightCluster.shape = InputClusterShape::Linear1D;
+  touchbarRightCluster.rootPoint = Point(X_SIZE, 0);
+  touchbarRightCluster.dimension = Dimension(1, Y_SIZE);
+  touchbarRightCluster.inputCount = KeyPad::touchbarSize / 2;
+  touchbarRightCluster.rotation = rotation;
+  touchbarRightCluster.rotationDimension = rotDim;
+  touchbarRightCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
+  Input::clusters.push_back(touchbarRightCluster);
+}
+
 void DeviceStart() {
+  RegisterInputClusters();
   Device::KeyPad::Start();
   Device::LED::Start();
 
