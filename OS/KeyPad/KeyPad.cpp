@@ -7,27 +7,11 @@ namespace MatrixOS::KeyPad
 {
 QueueHandle_t keyeventQueue;
 
-// Bridge: convert old KeyState to new KeypadState
-static KeypadState BridgeKeyState(KeyState state) {
-  switch (state)
-  {
-  case IDLE: return KeypadState::Idle;
-  case ACTIVATED: return KeypadState::Activated;
-  case PRESSED: return KeypadState::Pressed;
-  case HOLD: return KeypadState::Hold;
-  case AFTERTOUCH: return KeypadState::Aftertouch;
-  case RELEASED: return KeypadState::Released;
-  case DEBOUNCING: return KeypadState::Debouncing;
-  case RELEASE_DEBOUNCING: return KeypadState::ReleaseDebouncing;
-  default: return KeypadState::Idle;
-  }
-}
-
 // Bridge: decode old keyID into InputId
 // Old encoding: CCCC IIIIIIIIIIII (C=class 4 bits, I=index 12 bits)
 // Class 0 = System → clusterId 0
-// Class 1 = Grid (XXXXXX YYYYYY) → clusterId 1, localIndex = x * Y_SIZE + y
-// Class 2 = TouchBar → clusterId 2, localIndex = raw index
+// Class 1 = Grid (XXXXXX YYYYYY) → clusterId 1, localIndex = y * xSize + x
+// Class 2 = TouchBar → cluster 2 (left 0-7) or cluster 3 (right 8-15)
 static InputId BridgeKeyId(uint16_t keyID) {
   uint8_t keyClass = keyID >> 12;
   switch (keyClass)
@@ -59,13 +43,7 @@ IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
   InputEvent inputEvent;
   inputEvent.id = BridgeKeyId(keyevent->id);
   inputEvent.inputClass = InputClass::Keypad;
-  inputEvent.keypad.lastEventTime = keyevent->info.lastEventTime;
-  inputEvent.keypad.pressure = keyevent->info.Force();
-  inputEvent.keypad.velocity = keyevent->info.Value(1);
-  inputEvent.keypad.state = BridgeKeyState(keyevent->info.State());
-  inputEvent.keypad.hold = keyevent->info.Hold() ? 1 : 0;
-  inputEvent.keypad.cleared = keyevent->info.cleared ? 1 : 0;
-  inputEvent.keypad.reserved = 0;
+  inputEvent.keypad = KeyInfoToKeypadInfo(keyevent->info);
   MatrixOS::Input::NewEvent(inputEvent);
 }
 

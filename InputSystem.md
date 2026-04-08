@@ -397,9 +397,9 @@ Explicitly not in scope right now:
 - [x] Implement capabilities query APIs for existing devices
 
 ### Phase 3: Compatibility Layer
-- [ ] Keep the old `MatrixOS::KeyPad` API as a transition layer
-- [ ] Allow old `KeyEvent / KeyInfo` to be converted from the new input service
-- [ ] Keep existing logic such as `FUNCTION_KEY` working during migration
+- [x] Keep the old `MatrixOS::KeyPad` API as a transition layer
+- [x] Allow old `KeyEvent / KeyInfo` to be converted from the new input service
+- [x] Keep existing logic such as `FUNCTION_KEY` working during migration
 
 ### Phase 4: UI Migration
 - [ ] Move `UI` from `KeyEvent` to `InputEvent`

@@ -14,6 +14,15 @@ struct InputId {
     return InputId{invalidClusterId, invalidLocalIndex};
   }
 
+  // The system function key (maps to old FUNCTION_KEY = 0)
+  static constexpr InputId FunctionKey() {
+    return InputId{0, 0};
+  }
+
+  bool IsFunctionKey() const {
+    return clusterId == 0 && localIndex == 0;
+  }
+
   bool operator==(const InputId& target) const {
     return clusterId == target.clusterId && localIndex == target.localIndex;
   }
