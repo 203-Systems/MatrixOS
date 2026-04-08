@@ -36,7 +36,7 @@ void Init() {
 
   // Config Input Pins
   adc_oneshot_unit_init_cfg_t initConfig = {
-      .unitId = ADC_UNIT_1,
+      .unit_id = ADC_UNIT_1,
       .ulp_mode = ADC_ULP_MODE_RISCV,
   };
   adc_oneshot_new_unit(&initConfig, &adc_handle);
