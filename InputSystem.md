@@ -387,7 +387,7 @@ Explicitly not in scope right now:
 - [x] Add the input event queue and state cache
 - [x] Implement `Get()` / `GetState()` / `GetClusters()` / `GetCluster()`
 - [x] Implement `GetPrimaryGridCluster()` / `GetPrimaryGridSize()`
-- [ ] Implement `GetInputsAt()` / `GetInputAt()` / `TryGetPoint()`
+- [x] Implement `GetInputsAt()` / `GetInputAt()` / `TryGetPoint()`
 
 ### Phase 2: Device Bridge
 - [ ] Build the new `InputEvent` reporting path between device drivers and `OS`

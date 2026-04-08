@@ -131,6 +131,107 @@ Dimension GetPrimaryGridSize() {
   return Dimension(0, 0);
 }
 
+void GetInputsAt(Point xy, vector<InputId>* ids) {
+  ids->clear();
+  for (const auto& cluster : clusters)
+  {
+    if (!cluster.HasCoordinates())
+    {
+      continue;
+    }
+    if (!cluster.Contains(xy))
+    {
+      continue;
+    }
+
+    Point local = xy - cluster.rootPoint;
+    uint16_t localIndex;
+    if (cluster.shape == InputClusterShape::Grid2D)
+    {
+      localIndex = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
+    }
+    else if (cluster.shape == InputClusterShape::Linear1D)
+    {
+      localIndex = (cluster.dimension.x > 1) ? local.x : local.y;
+    }
+    else
+    {
+      continue;
+    }
+
+    if (localIndex < cluster.inputCount)
+    {
+      ids->push_back(InputId{cluster.clusterId, localIndex});
+    }
+  }
+}
+
+bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
+  const InputCluster* cluster = GetCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates() || !cluster->Contains(xy))
+  {
+    return false;
+  }
+
+  Point local = xy - cluster->rootPoint;
+  uint16_t localIndex;
+  if (cluster->shape == InputClusterShape::Grid2D)
+  {
+    localIndex = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
+  }
+  else if (cluster->shape == InputClusterShape::Linear1D)
+  {
+    localIndex = (cluster->dimension.x > 1) ? local.x : local.y;
+  }
+  else
+  {
+    return false;
+  }
+
+  if (localIndex >= cluster->inputCount)
+  {
+    return false;
+  }
+
+  *id = InputId{clusterId, localIndex};
+  return true;
+}
+
+bool TryGetPoint(InputId id, Point* xy) {
+  const InputCluster* cluster = GetCluster(id.clusterId);
+  if (!cluster || !cluster->HasCoordinates())
+  {
+    return false;
+  }
+
+  if (id.localIndex >= cluster->inputCount)
+  {
+    return false;
+  }
+
+  if (cluster->shape == InputClusterShape::Grid2D)
+  {
+    int16_t localX = id.localIndex % cluster->dimension.x;
+    int16_t localY = id.localIndex / cluster->dimension.x;
+    *xy = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
+    return true;
+  }
+  else if (cluster->shape == InputClusterShape::Linear1D)
+  {
+    if (cluster->dimension.x > 1)
+    {
+      *xy = Point(cluster->rootPoint.x + id.localIndex, cluster->rootPoint.y);
+    }
+    else
+    {
+      *xy = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.localIndex);
+    }
+    return true;
+  }
+
+  return false;
+}
+
 void ClearQueue() {
   if (inputEventQueue)
   {
