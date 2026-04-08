@@ -2,7 +2,7 @@
 #include "PolyPad.h"
 
 class PolyOctaveShifter : public UIComponent {
- public:
+public:
   uint8_t count;
   PolyPadConfig* config;
 
@@ -14,8 +14,12 @@ class PolyOctaveShifter : public UIComponent {
     this->config = config;
   }
 
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(1, count); }
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(1, count);
+  }
 
   virtual bool Render(Point origin) {
     for (uint16_t octave = 0; octave < count; octave++)
@@ -35,7 +39,9 @@ class PolyOctaveShifter : public UIComponent {
     // }
     int8_t octave = count - xy.y - 1;
     if (keyInfo->State() == PRESSED)
-    { config->octave = octave; }
+    {
+      config->octave = octave;
+    }
     return true;
   }
 };

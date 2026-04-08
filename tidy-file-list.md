@@ -192,10 +192,10 @@
 - OS\LED\LED.h - NOT FORMATTED
 - OS\LED\LED.cpp - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\V100\Config.h - NOT FORMATTED
-- Applications\PolyPlayground\PolyPlayground.h - NOT FORMATTED
-- Applications\PolyPlayground\PolyPlayground.cpp - NOT FORMATTED
-- Applications\PolyPlayground\PolyPad.h - NOT FORMATTED
-- Applications\PolyPlayground\PolyOctaveShifter.h - NOT FORMATTED
+- Applications\PolyPlayground\PolyPlayground.h - FORMATTED
+- Applications\PolyPlayground\PolyPlayground.cpp - FORMATTED
+- Applications\PolyPlayground\PolyPad.h - FORMATTED
+- Applications\PolyPlayground\PolyOctaveShifter.h - FORMATTED
 - Applications\CustomControlMap\Actions\keyboard\KeyboardAction.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\LowCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED

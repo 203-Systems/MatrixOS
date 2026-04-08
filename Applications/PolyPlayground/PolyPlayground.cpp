@@ -7,9 +7,11 @@ void PolyPlayground::Setup(const vector<string>& args) {
 
   // Load From NVS
   if (nvsVersion == (uint32_t)POLY_PLAYGROUND_APP_VERSION)
-  { MatrixOS::NVS::GetVariable(POLY_CONFIGS_HASH, &polyPadConfig, sizeof(polyPadConfig)); }
+  {
+    MatrixOS::NVS::GetVariable(POLY_CONFIGS_HASH, &polyPadConfig, sizeof(polyPadConfig));
+  }
   else
-  { 
+  {
     MatrixOS::NVS::SetVariable(POLY_CONFIGS_HASH, &polyPadConfig, sizeof(polyPadConfig));
     nvsVersion = POLY_PLAYGROUND_APP_VERSION;
   }
@@ -23,7 +25,6 @@ void PolyPlayground::Setup(const vector<string>& args) {
   rootSelectorBtn.OnPress([&]() -> void { RootSelector(); });
   actionMenu.AddUIComponent(rootSelectorBtn, Point(7, 2));
 
-
   UIButton channelSelectorBtn;
   channelSelectorBtn.SetName("Channel Selector");
   channelSelectorBtn.SetColor(Color(0x60FF00));
@@ -32,9 +33,12 @@ void PolyPlayground::Setup(const vector<string>& args) {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(polyPadConfig.forceSensitive); });
+  forceSensitiveToggle.SetColorFunc([&]() -> Color { return Color(0x00FFB0).DimIfNot(polyPadConfig.forceSensitive); });
   forceSensitiveToggle.OnPress([&]() -> void { polyPadConfig.forceSensitive = !polyPadConfig.forceSensitive; });
-  forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (polyPadConfig.forceSensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
+  forceSensitiveToggle.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (polyPadConfig.forceSensitive ? "On" : "Off"),
+                                    forceSensitiveToggle.GetColor());
+  });
   forceSensitiveToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(forceSensitiveToggle, Point(6, 7));
 
@@ -52,31 +56,32 @@ void PolyPlayground::Setup(const vector<string>& args) {
     if (keyEvent->id == FUNCTION_KEY)
     {
       if (keyEvent->info.state == HOLD)
-      { Exit(); }
+      {
+        Exit();
+      }
       else if (keyEvent->info.state == RELEASED)
       {
         MatrixOS::NVS::SetVariable(POLY_CONFIGS_HASH, &polyPadConfig, sizeof(polyPadConfig));
         PolyView();
       }
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });
   actionMenu.AllowExit(false);
-  actionMenu.SetSetupFunc([&]() -> void {PolyView();});
+  actionMenu.SetSetupFunc([&]() -> void { PolyView(); });
   actionMenu.Start();
 
   Exit(); // This should never be reached
 }
 
 void PolyPlayground::PolyView() {
-  UI PolyView("Poly View", PolyPlayground::info.color, false);
+  UI polyView("Poly View", PolyPlayground::info.color, false);
 
   PolyPad polyPad(Dimension(8, 8), &polyPadConfig);
-  PolyView.AddUIComponent(polyPad, Point(0, 0));
+  polyView.AddUIComponent(polyPad, Point(0, 0));
 
-
-  PolyView.Start();
+  polyView.Start();
 }
 
 void PolyPlayground::ChannelSelector() {

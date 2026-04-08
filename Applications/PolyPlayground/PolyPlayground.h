@@ -12,16 +12,16 @@
 #define POLY_CONFIGS_HASH StaticHash("203 Systems-PolyPlayground-Configs")
 
 class PolyPlayground : public Application {
- public:
+public:
   inline static Application_Info info = {
       .name = "Poly Playground",
       .author = "203 Systems",
-      .color =  Color(0xAEFF00),
+      .color = Color(0xAEFF00),
       .version = POLY_PLAYGROUND_APP_VERSION,
       .visibility = true,
   };
 
-  CreateSavedVar(TAG, nvsVersion, uint32_t, POLY_PLAYGROUND_APP_VERSION);  // In case NoteLayoutConfig got changed
+  CreateSavedVar(TAG, nvsVersion, uint32_t, POLY_PLAYGROUND_APP_VERSION); // In case NoteLayoutConfig got changed
 
   void Setup(const vector<string>& args) override;
 
@@ -38,5 +38,3 @@ class PolyPlayground : public Application {
 
   PolyPadConfig polyPadConfig;
 };
-
-

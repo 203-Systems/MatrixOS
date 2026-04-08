@@ -14,31 +14,23 @@ struct PolyPadConfig {
 };
 
 class PolyPad : public UIComponent {
- public:
+public:
   Dimension dimension;
   PolyPadConfig* config;
   std::vector<uint8_t> noteMap;
   std::unordered_map<uint8_t, uint8_t> activeNotes;
   int8_t lastNote = -1;
 
-  const Color noteColor[12] = {
-      Color(0x00FFD9),
-      Color(0xFF0097),
-      Color(0xFFFB00),
-      Color(0x5D00FF),
-      Color(0xFF4B00),
-      Color(0x009BFF),
-      Color(0xFF003E),
-      Color(0xAEFF00),
-      Color(0xED00FF),
-      Color(0xFFAE00),
-      Color(0x1000FF),
-      Color(0xFF1D00)
-  };
+  const Color noteColor[12] = {Color(0x00FFD9), Color(0xFF0097), Color(0xFFFB00), Color(0x5D00FF), Color(0xFF4B00), Color(0x009BFF),
+                               Color(0xFF003E), Color(0xAEFF00), Color(0xED00FF), Color(0xFFAE00), Color(0x1000FF), Color(0xFF1D00)};
 
-  virtual Color GetColor() { return Color(0xAEFF00); }
+  virtual Color GetColor() {
+    return Color(0xAEFF00);
+  }
 
-  virtual Dimension GetSize() { return dimension; }
+  virtual Dimension GetSize() {
+    return dimension;
+  }
 
   void GenerateKeymap() {
     noteMap.reserve(dimension.Area());
@@ -47,7 +39,7 @@ class PolyPad : public UIComponent {
 
     for (int8_t y = 0; y < dimension.y; y++)
     {
-      int8_t ui_y = dimension.y - y - 1; 
+      int8_t ui_y = dimension.y - y - 1;
 
       uint8_t note = root + y * config->ySpacing;
 
@@ -57,12 +49,12 @@ class PolyPad : public UIComponent {
 
         if (note > 127)
         {
-          noteMap[id] = 255;  // Mark as invalid
+          noteMap[id] = 255; // Mark as invalid
           continue;
         }
 
         noteMap[id] = note;
-        note += config->xSpacing;  // Increment by xSpacing for each column
+        note += config->xSpacing; // Increment by xSpacing for each column
       }
     }
   }
@@ -79,7 +71,7 @@ class PolyPad : public UIComponent {
         {
           MatrixOS::LED::SetColor(globalPos, Color(0));
         }
-        else if (activeNotes.find(note) != activeNotes.end())  // If find the note is currently active. Show it as white
+        else if (activeNotes.find(note) != activeNotes.end()) // If find the note is currently active. Show it as white
         {
           MatrixOS::LED::SetColor(globalPos, Color::White);
         }
@@ -94,7 +86,7 @@ class PolyPad : public UIComponent {
 
     if (lastNote != -1)
     {
-      MatrixOS::LED::FillPartition("Underglow",  noteColor[lastNote % 12]);
+      MatrixOS::LED::FillPartition("Underglow", noteColor[lastNote % 12]);
     }
     return true;
   }
@@ -109,7 +101,7 @@ class PolyPad : public UIComponent {
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
       lastNote = note;
-      activeNotes[note]++;  // If this key doesn't exist, unordered_map will auto assign it to 0.
+      activeNotes[note]++; // If this key doesn't exist, unordered_map will auto assign it to 0.
     }
     else if (config->forceSensitive && keyInfo->State() == AFTERTOUCH)
     {
@@ -134,6 +126,6 @@ class PolyPad : public UIComponent {
   }
 
   ~PolyPad() {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0));  // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(config->channel, 123, 0)); // All notes off
   }
 };
