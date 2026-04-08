@@ -120,7 +120,7 @@ namespace WrapAction
         {
             newAction.coord = newAction.coord + Point(data.x, data.y);
         }
-        else if(!data.relativePos == false)
+        else if(data.relativePos == false)
         {
             newAction.coord = Point(data.x, data.y);
         }
