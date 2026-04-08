@@ -1,6 +1,7 @@
 #include "Device.h"
 #include "MatrixOS.h"
 #include "UI/UI.h"
+#include "Input/Input.h"
 
 #include "esp_private/system_internal.h" // For esp_reset_reason_set_hint
 #include "esp_timer.h"                   // esp_timer_get_time
@@ -41,7 +42,43 @@ void DeviceInit() {
   MLOGI("Mystrix2", "DeviceInit: BLEMIDI init done");
 }
 
+void RegisterInputClusters() {
+  // Cluster 0: System (FN button)
+  InputCluster fnCluster;
+  fnCluster.clusterId = 0;
+  fnCluster.name = "System";
+  fnCluster.inputClass = InputClass::Keypad;
+  fnCluster.shape = InputClusterShape::Scalar;
+  fnCluster.rootPoint = Point::Invalid();
+  fnCluster.dimension = Dimension(1, 1);
+  fnCluster.inputCount = 1;
+  MatrixOS::Input::RegisterCluster(fnCluster);
+
+  // Cluster 1: Main 8x8 Grid
+  InputCluster gridCluster;
+  gridCluster.clusterId = 1;
+  gridCluster.name = "Grid";
+  gridCluster.inputClass = InputClass::Keypad;
+  gridCluster.shape = InputClusterShape::Grid2D;
+  gridCluster.rootPoint = Point(0, 0);
+  gridCluster.dimension = Dimension(X_SIZE, Y_SIZE);
+  gridCluster.inputCount = X_SIZE * Y_SIZE;
+  MatrixOS::Input::RegisterCluster(gridCluster);
+
+  // Cluster 2: TouchBar (16 virtual keys, 8 on each side)
+  InputCluster touchbarCluster;
+  touchbarCluster.clusterId = 2;
+  touchbarCluster.name = "TouchBar";
+  touchbarCluster.inputClass = InputClass::Keypad;
+  touchbarCluster.shape = InputClusterShape::Linear1D;
+  touchbarCluster.rootPoint = Point(-1, 0);
+  touchbarCluster.dimension = Dimension(1, 8);
+  touchbarCluster.inputCount = TOUCHBAR_SIZE;
+  MatrixOS::Input::RegisterCluster(touchbarCluster);
+}
+
 void DeviceStart() {
+  RegisterInputClusters();
   Device::KeyPad::Start();
   Device::LED::Start();
 

@@ -15,6 +15,7 @@ target_include_directories(MatrixOSFramework PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Midi
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging
     ${CMAKE_CURRENT_SOURCE_DIR}/KeyEvent
+    ${CMAKE_CURRENT_SOURCE_DIR}/Input
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry
     ${CMAKE_CURRENT_SOURCE_DIR}/Commands
     ${CMAKE_CURRENT_SOURCE_DIR}/Color

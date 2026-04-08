@@ -3,6 +3,7 @@
 // Custom Data Type
 #include "Fract16.h"
 #include "Point.h"
+#include "PointFloat.h"
 #include "Direction.h"
 #include "Dimension.h"
 #include "Color.h"
@@ -10,6 +11,7 @@
 
 // Custom Data Struct
 #include "KeyEvent.h"
+#include "InputEvent.h"
 #include "MidiPacket.h"
 
 // Definition
