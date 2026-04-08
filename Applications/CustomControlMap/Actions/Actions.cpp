@@ -34,11 +34,21 @@ bool UADRuntime::ExecuteAction(ActionInfo* actionInfo, cb0r_t actionData, Action
 
     if(actionInfo->actionType == ActionType::ACTION)
     {
+        if (action_index.value >= actionList.size())
+        {
+            MLOGE(TAG, "Action index out of range: %d (size=%d)", action_index.value, actionList.size());
+            return false;
+        }
         action_signature = actionList[action_index.value];
         MLOGV(TAG, "Executing action - %d", action_signature);
     }
     else if(actionInfo->actionType == ActionType::EFFECT)
     {
+        if (action_index.value >= effectList.size())
+        {
+            MLOGE(TAG, "Effect index out of range: %d (size=%d)", action_index.value, effectList.size());
+            return false;
+        }
         action_signature = effectList[action_index.value];
         MLOGV(TAG, "Executing effect - %d", action_signature);
     }
