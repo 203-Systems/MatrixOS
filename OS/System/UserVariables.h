@@ -9,12 +9,12 @@
 namespace MatrixOS::UserVar
 {
 // variable name, variable type, variable default
-UserVar(device_id, uint16_t, 0);
+UserVar(deviceId, uint16_t, 0);
 
 UserVar(rotation, Direction, TOP);
 UserVar(brightness, uint8_t, 64);
-UserVar(ui_animation, bool, true);
-UserVar(secret_menu_en, bool, false);
+UserVar(uiAnimation, bool, true);
+UserVar(secretMenuEn, bool, false);
 
-UserVar(fast_scroll, bool, false);
+UserVar(fastScroll, bool, false);
 } // namespace MatrixOS::UserVar

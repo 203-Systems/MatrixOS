@@ -13,7 +13,7 @@ struct Application_Info {
   Color color;
   uint32_t version;
   bool visibility = true;
-  bool is_system = false; // System privilege flag
+  bool isSystem = false; // System privilege flag
   std::function<Application*()> factory = nullptr;
   std::function<void(Application*)> destructor = nullptr;
 };
@@ -62,7 +62,7 @@ inline std::map<uint32_t, uint32_t>& GetApplicationIDs() {
 }
 
 template <typename APPLICATION_CLASS> static inline void RegisterApplication(uint32_t order, bool isSystem) {
-  APPLICATION_CLASS::info.is_system = isSystem; // Set system flag
+  APPLICATION_CLASS::info.isSystem = isSystem; // Set system flag
   APPLICATION_CLASS::info.factory = []() -> Application* {
     void* mem = pvPortMalloc(sizeof(APPLICATION_CLASS));
     if (mem == nullptr)

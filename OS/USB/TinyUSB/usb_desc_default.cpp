@@ -185,7 +185,7 @@ uint8_t const* default_device_descriptor_cb(void) {
     .bNumConfigurations = 0x01
   };
 
-  uint8_t deviceID = MatrixOS::UserVar::device_id.Get();
+  uint8_t deviceID = MatrixOS::UserVar::deviceId.Get();
   if (deviceID > 0 && deviceID < 64)
   {
     desc_device.idProduct = (Device::usb_pid & 0xFFC0) + deviceID;
@@ -213,10 +213,10 @@ uint16_t const* default_string_descriptor_cb(uint8_t index, uint16_t langid) {
 
   string product_name = Device::product_name;
 
-  if (MatrixOS::UserVar::device_id.Get())
+  if (MatrixOS::UserVar::deviceId.Get())
   {
     product_name += " ";
-    product_name += std::to_string(MatrixOS::UserVar::device_id.Get());
+    product_name += std::to_string(MatrixOS::UserVar::deviceId.Get());
   }
 
   // array of pointer to string descriptors

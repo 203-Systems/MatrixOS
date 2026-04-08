@@ -73,7 +73,7 @@ void Setting::SystemSetting() {
   deviceIdBtn.SetColor(Color(0x00FFFF));
   deviceIdBtn.SetSize(Dimension(1, 1));
   deviceIdBtn.OnPress([]() -> void {
-    MatrixOS::UserVar::device_id = MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 63);
+    MatrixOS::UserVar::deviceId = MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::deviceId, 0x00FFFF, "Device ID", 0, 63);
   });
   systemSetting.AddUIComponent(deviceIdBtn, Point(Device::x_size - 2, Device::y_size - 1));
 
@@ -106,8 +106,8 @@ void Setting::SystemSetting() {
   UIToggle uiAnimationToggle;
   uiAnimationToggle.SetName("UI Animation");
   uiAnimationToggle.SetColor(Color(0xFFFF00));
-  uiAnimationToggle.SetValuePointer(&MatrixOS::UserVar::ui_animation);
-  uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::ui_animation.Save(); });
+  uiAnimationToggle.SetValuePointer(&MatrixOS::UserVar::uiAnimation);
+  uiAnimationToggle.OnPress([]() -> void { MatrixOS::UserVar::uiAnimation.Save(); });
   systemSetting.AddUIComponent(uiAnimationToggle, Point(7, 0));
 
   UIButton secretMenuBtn;
@@ -115,7 +115,7 @@ void Setting::SystemSetting() {
   secretMenuBtn.SetColorFunc([]() -> Color { return ColorEffects::Rainbow(3000); });
   secretMenuBtn.SetSize(Dimension(4, 1));
   secretMenuBtn.OnPress([&]() -> void { SecretMenu(); });
-  secretMenuBtn.SetEnableFunc([]() -> bool { return MatrixOS::UserVar::secret_menu_en; });
+  secretMenuBtn.SetEnableFunc([]() -> bool { return MatrixOS::UserVar::secretMenuEn; });
   systemSetting.AddUIComponent(secretMenuBtn, Point(2, 0));
 
   systemSetting.Start();
@@ -129,8 +129,8 @@ void Setting::SecretMenu() {
   UIToggle fastScrollToggle;
   fastScrollToggle.SetName("Fast Text");
   fastScrollToggle.SetColor(Color(0x5A39BD));
-  fastScrollToggle.SetValuePointer(&MatrixOS::UserVar::fast_scroll);
-  fastScrollToggle.OnPress([]() -> void { MatrixOS::UserVar::fast_scroll.Save(); });
+  fastScrollToggle.SetValuePointer(&MatrixOS::UserVar::fastScroll);
+  fastScrollToggle.OnPress([]() -> void { MatrixOS::UserVar::fastScroll.Save(); });
   secretMenu.AddUIComponent(fastScrollToggle, Point(0, 0));
 
   secretMenu.Start();
@@ -170,7 +170,7 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
         aBtn.OnPress([&]() -> void {
           if (konami == 9)
           {
-            MatrixOS::UserVar::secret_menu_en = true;
+            MatrixOS::UserVar::secretMenuEn = true;
             MatrixOS::SYS::ExecuteAPP("203 Systems", "REDACTED");
           }
           else

@@ -221,7 +221,7 @@ bool LoadApp(const string& directoryPath, const string& jsonFilepath, vector<Pyt
   info.color = appInfo.color;
   info.version = appInfo.version;
   info.visibility = true;    // Python apps are visible by default
-  info.is_system = false;    // Python apps are not system apps
+  info.isSystem = false;    // Python apps are not system apps
   info.factory = nullptr;    // Not used for Python apps
   info.destructor = nullptr; // Not used for Python apps
 

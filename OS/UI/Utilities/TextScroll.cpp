@@ -301,7 +301,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
 
 void TextScroll(string text, Color color, uint16_t speed, bool loop) {
 
-  if (MatrixOS::UserVar::fast_scroll)
+  if (MatrixOS::UserVar::fastScroll)
   {
     TextScrollFast(text, color, speed, loop);
   }
