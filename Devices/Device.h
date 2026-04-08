@@ -31,6 +31,9 @@ uint64_t Micros();
 
 void DeviceSettings();
 
+InputId GetFunctionKeyId();
+bool IsFunctionKey(InputId id);
+
 void Log(string& format, va_list& valst);
 
 string GetSerial();

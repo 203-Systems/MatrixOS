@@ -191,7 +191,7 @@ void ForceCalibration::ForceGridVisualizer() {
   });
 
   forceGridVisualizer.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    return !inputEvent->id.IsFunctionKey(); // Skip all keys except function key
+    return !MatrixOS::Input::IsFunctionKey(inputEvent->id); // Skip all keys except function key
   });
 
   forceGridVisualizer.Start();

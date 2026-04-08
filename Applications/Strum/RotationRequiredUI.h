@@ -114,7 +114,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   // Second, set the key event handler to match the intended behavior
   rotationRequiredUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (inputEvent->id.IsFunctionKey())
+    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
     {
       if (inputEvent->keypad.state == KeypadState::Released)
       {

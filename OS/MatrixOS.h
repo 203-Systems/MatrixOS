@@ -80,6 +80,9 @@ KeypadInfo GetKeypadState(Point xy);
 
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps);
 bool HasVelocitySensitivity(); // Convenience: checks primary grid cluster
+
+InputId GetFunctionKeyId();
+bool IsFunctionKey(InputId id);
 } // namespace Input
 
 namespace KeyPad

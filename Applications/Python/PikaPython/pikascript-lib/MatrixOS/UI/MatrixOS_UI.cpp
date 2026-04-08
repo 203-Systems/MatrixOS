@@ -174,7 +174,7 @@ extern "C" {
         ui->SetKeyEventHandler([self](InputEvent* inputEvent) -> bool {
             // Convert InputEvent to legacy KeyEvent for Python API compatibility
             KeyEvent keyEvent;
-            if (inputEvent->id.IsFunctionKey())
+            if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
             {
                 keyEvent.id = FUNCTION_KEY;
             }

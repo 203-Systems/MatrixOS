@@ -53,7 +53,7 @@ void PolyPlayground::Setup(const vector<string>& args) {
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (inputEvent->id.IsFunctionKey())
+    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

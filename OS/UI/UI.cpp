@@ -102,7 +102,7 @@ void UI::GetKey() {
 }
 
 void UI::UIKeyEvent(InputEvent* inputEvent) {
-  if (inputEvent->id.IsFunctionKey())
+  if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
   {
     if (!disableExit && inputEvent->keypad.state == KeypadState::Released)
     {

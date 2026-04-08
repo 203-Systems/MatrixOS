@@ -42,6 +42,14 @@ void DeviceInit() {
   MLOGI("Mystrix2", "DeviceInit: BLEMIDI init done");
 }
 
+InputId GetFunctionKeyId() {
+  return InputId{0, 0};
+}
+
+bool IsFunctionKey(InputId id) {
+  return id == GetFunctionKeyId();
+}
+
 void RegisterInputClusters() {
   Direction rotation = MatrixOS::UserVar::rotation;
   Dimension rotDim = Dimension(X_SIZE, Y_SIZE);

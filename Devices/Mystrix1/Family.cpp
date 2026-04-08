@@ -28,6 +28,14 @@ void DeviceInit() {
   BLEMIDI::Init(name);
 }
 
+InputId GetFunctionKeyId() {
+  return InputId{0, 0};
+}
+
+bool IsFunctionKey(InputId id) {
+  return id == GetFunctionKeyId();
+}
+
 void DeviceStart() {
   Device::KeyPad::Start();
   Device::LED::Start();

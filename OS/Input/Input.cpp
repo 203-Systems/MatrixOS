@@ -329,4 +329,12 @@ bool HasVelocitySensitivity() {
   return caps.hasVelocity;
 }
 
+InputId GetFunctionKeyId() {
+  return Device::GetFunctionKeyId();
+}
+
+bool IsFunctionKey(InputId id) {
+  return Device::IsFunctionKey(id);
+}
+
 } // namespace MatrixOS::Input

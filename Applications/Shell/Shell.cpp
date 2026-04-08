@@ -457,7 +457,7 @@ void Shell::ApplicationLauncher() {
   applicationLauncher.AddUIComponent(&appLauncherBar, Point(0, 7));
 
   applicationLauncher.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (inputEvent->id.IsFunctionKey() && inputEvent->keypad.state == KeypadState::Hold)
+    if (MatrixOS::Input::IsFunctionKey(inputEvent->id) && inputEvent->keypad.state == KeypadState::Hold)
     {
       ApplicationLauncherEditing();
       return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
@@ -490,7 +490,7 @@ void Shell::ApplicationLauncherEditing() {
   applicationLauncherEdit.AddUIComponent(&appLauncherBarEdit, Point(0, 7));
 
   applicationLauncherEdit.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (inputEvent->id.IsFunctionKey() && inputEvent->keypad.state == KeypadState::Released)
+    if (MatrixOS::Input::IsFunctionKey(inputEvent->id) && inputEvent->keypad.state == KeypadState::Released)
     {
       // Exit edit mode
       applicationLauncherEdit.Exit();
