@@ -88,7 +88,7 @@ private:
 
   void RenderUI();
   void UIEnd();
-  void UIKeyEvent(KeyEvent* keyEvent);
+  void UIKeyEvent(InputEvent* inputEvent);
   void PostCallbackCleanUp();
 
   static std::vector<UI*> uiList;

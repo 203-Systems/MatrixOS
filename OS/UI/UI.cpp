@@ -41,6 +41,7 @@ void UI::Start() {
   }
 
   MatrixOS::KeyPad::Clear();
+  MatrixOS::Input::ClearQueue();
   Setup();
   while (status >= 0)
   {
@@ -86,28 +87,55 @@ void UI::RenderUI() {
 }
 
 void UI::GetKey() {
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
+    // Only handle keypad events for now
+    if (inputEvent.inputClass != InputClass::Keypad)
+      continue;
+
+    // Synthesize legacy KeyEvent for CustomKeyEvent handler
+    KeyEvent keyEvent;
+    if (inputEvent.id.IsFunctionKey())
+    {
+      keyEvent.id = FUNCTION_KEY;
+    }
+    else
+    {
+      Point xy;
+      if (MatrixOS::Input::TryGetPoint(inputEvent.id, &xy))
+      {
+        keyEvent.id = MatrixOS::KeyPad::XY2ID(xy);
+      }
+      else
+      {
+        keyEvent.id = UINT16_MAX;
+      }
+    }
+    keyEvent.info = KeypadInfoToKeyInfo(inputEvent.keypad);
+
     if (!CustomKeyEvent(&keyEvent)) // Run Custom Key Event first. Check if UI event is blocked
     {
-      UIKeyEvent(&keyEvent);
+      UIKeyEvent(&inputEvent);
     }
   }
 }
 
-void UI::UIKeyEvent(KeyEvent* keyEvent) {
-  // MLOGD("UI Key Event", "%d - %d", keyID, keyInfo->State();
-  if (keyEvent->id == FUNCTION_KEY)
+void UI::UIKeyEvent(InputEvent* inputEvent) {
+  if (inputEvent->id.IsFunctionKey())
   {
-    if (!disableExit && keyEvent->info.state == RELEASED)
+    if (!disableExit && inputEvent->keypad.state == KeypadState::Released)
     {
       MLOGD("UI", "Function Key Exit");
       Exit();
       return;
     }
   }
-  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+  Point xy;
+  if (!MatrixOS::Input::TryGetPoint(inputEvent->id, &xy))
+  {
+    return;
+  }
   if (xy)
   {
     bool hasAction = false;
@@ -121,14 +149,15 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       UIComponent* uiComponent = it->second;
       if (uiComponent->GetSize().Contains(relativeXy)) // Key Found
       {
-        hasAction |= uiComponent->KeyEvent(relativeXy, &keyEvent->info);
+        KeyInfo keyInfo = KeypadInfoToKeyInfo(inputEvent->keypad);
+        hasAction |= uiComponent->KeyEvent(relativeXy, &keyInfo);
       }
       if (hasAction)
       {
         break;
       }
     }
-    if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD &&
+    if (this->name.empty() == false && hasAction == false && inputEvent->keypad.state == KeypadState::Hold &&
         Dimension(Device::xSize, Device::ySize).Contains(xy))
     {
       MatrixOS::UIUtility::TextScroll(this->name, this->nameColor);
@@ -187,6 +216,7 @@ void UI::UIEnd() {
   MLOGD("UI", "UI %s Exited", name.c_str());
 
   MatrixOS::KeyPad::Clear();
+  MatrixOS::Input::ClearQueue();
   uiComponents.clear();
 
   if (newLEDLayer)
@@ -246,6 +276,7 @@ void UI::ExitAllUIs() {
     }
   }
   MatrixOS::KeyPad::Clear();
+  MatrixOS::Input::ClearQueue();
   UI::uiList.clear();
 }
 

@@ -402,7 +402,7 @@ Explicitly not in scope right now:
 - [x] Keep existing logic such as `FUNCTION_KEY` working during migration
 
 ### Phase 4: UI Migration
-- [ ] Move `UI` from `KeyEvent` to `InputEvent`
+- [x] Move `UI` from `KeyEvent` to `InputEvent`
 - [ ] Move `UIComponent` from `KeyInfo*` to the new input model
 - [ ] Keep current grid UI behavior unchanged
 
