@@ -163,6 +163,8 @@ void ClearQueue() {
 void ClearState() {
   stateCache.clear();
   ClearQueue();
+  // Also clear legacy KeyPad queue so stale events don't survive across stacks
+  MatrixOS::KeyPad::ClearList();
 }
 
 KeypadInfo GetKeypadState(Point xy) {

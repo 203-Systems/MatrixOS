@@ -204,6 +204,8 @@ void OpenSetting(void) {
   setting.SystemSetting();
 }
 
+// Transitional wrapper — forwards to Device::Rotate().
+// New code should call Device::Rotate() directly.
 void Rotate(Direction newRotation, bool absolute) {
   Device::Rotate(newRotation, absolute);
 }

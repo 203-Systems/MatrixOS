@@ -66,6 +66,11 @@ uint16_t XY2ID(Point xy);    // Not sure if this is required by Matrix OS, added
                              // ID is assigned to given XY
 Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
                              // given ID;
+
+// Legacy bridge: device-owned decoding of old keyID encoding into InputId.
+// Moves topology knowledge (cluster IDs, memberId formulas) to the device layer.
+InputId BridgeKeyId(uint16_t keyID);
+uint16_t InputIdToLegacyKeyId(InputId id);
 } // namespace KeyPad
 
 namespace Input

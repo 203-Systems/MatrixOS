@@ -64,91 +64,80 @@ static const InputCluster* FindCluster(uint8_t clusterId) {
   return nullptr;
 }
 
-bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
-  const InputCluster* cluster = FindCluster(clusterId);
-  if (!cluster || !cluster->HasCoordinates())
+// Grid2D mapping handler
+static bool Grid2D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+  if (memberId >= cluster.inputCount) return false;
+  int16_t localX = memberId % cluster.dimension.x;
+  int16_t localY = memberId / cluster.dimension.x;
+  Point hwPoint(cluster.rootPoint.x + localX, cluster.rootPoint.y + localY);
+  if (cluster.rotation != TOP)
   {
-    return false;
+    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
   }
-  if (memberId >= cluster->inputCount)
-  {
-    return false;
-  }
-
-  Point hwPoint;
-  if (cluster->shape == InputClusterShape::Grid2D)
-  {
-    int16_t localX = memberId % cluster->dimension.x;
-    int16_t localY = memberId / cluster->dimension.x;
-    hwPoint = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
-  }
-  else if (cluster->shape == InputClusterShape::Linear1D)
-  {
-    if (cluster->dimension.x > 1)
-    {
-      hwPoint = Point(cluster->rootPoint.x + memberId, cluster->rootPoint.y);
-    }
-    else
-    {
-      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + memberId);
-    }
-  }
-  else
-  {
-    return false;
-  }
-
-  // Forward-rotate from hardware space to visual space
-  if (cluster->rotation != TOP)
-  {
-    hwPoint = hwPoint.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y));
-  }
-
   *point = hwPoint;
   return true;
 }
 
-bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
-  const InputCluster* cluster = FindCluster(clusterId);
-  if (!cluster || !cluster->HasCoordinates())
-  {
-    return false;
-  }
-
-  // Reverse-rotate from visual space to hardware space
+static bool Grid2D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
   Point hwPoint = point;
-  if (cluster->rotation != TOP)
+  if (cluster.rotation != TOP)
   {
-    hwPoint = point.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y), true);
+    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
   }
+  if (!cluster.Contains(hwPoint)) return false;
+  Point local = hwPoint - cluster.rootPoint;
+  uint16_t id = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
+  if (id >= cluster.inputCount) return false;
+  *memberId = id;
+  return true;
+}
 
-  if (!cluster->Contains(hwPoint))
+// Linear1D mapping handler
+static bool Linear1D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+  if (memberId >= cluster.inputCount) return false;
+  Point hwPoint;
+  if (cluster.dimension.x > 1)
   {
-    return false;
-  }
-
-  Point local = hwPoint - cluster->rootPoint;
-  uint16_t id;
-  if (cluster->shape == InputClusterShape::Grid2D)
-  {
-    id = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
-  }
-  else if (cluster->shape == InputClusterShape::Linear1D)
-  {
-    id = (cluster->dimension.x > 1) ? local.x : local.y;
+    hwPoint = Point(cluster.rootPoint.x + memberId, cluster.rootPoint.y);
   }
   else
   {
-    return false;
+    hwPoint = Point(cluster.rootPoint.x, cluster.rootPoint.y + memberId);
   }
-
-  if (id >= cluster->inputCount)
+  if (cluster.rotation != TOP)
   {
-    return false;
+    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
   }
+  *point = hwPoint;
+  return true;
+}
 
+static bool Linear1D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point hwPoint = point;
+  if (cluster.rotation != TOP)
+  {
+    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
+  }
+  if (!cluster.Contains(hwPoint)) return false;
+  Point local = hwPoint - cluster.rootPoint;
+  uint16_t id = (cluster.dimension.x > 1) ? local.x : local.y;
+  if (id >= cluster.inputCount) return false;
   *memberId = id;
   return true;
+}
+
+bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
+  const InputCluster* cluster = FindCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates()) return false;
+  if (!cluster->tryGetPoint) return false;
+  return cluster->tryGetPoint(*cluster, memberId, point);
+}
+
+bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
+  const InputCluster* cluster = FindCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates()) return false;
+  if (!cluster->tryGetMemberId) return false;
+  return cluster->tryGetMemberId(*cluster, point, memberId);
 }
 } // namespace Input
 
@@ -206,6 +195,8 @@ void RegisterInputClusters() {
   gridCluster.inputCount = X_SIZE * Y_SIZE;
   gridCluster.rotation = rotation;
   gridCluster.rotationDimension = rotDim;
+  gridCluster.tryGetPoint = Input::Grid2D_TryGetPoint;
+  gridCluster.tryGetMemberId = Input::Grid2D_TryGetMemberId;
   Input::clusters.push_back(gridCluster);
 
   // Cluster 2: TouchBar Left (8 keys along left edge, x = -1 in hardware space)
@@ -219,6 +210,8 @@ void RegisterInputClusters() {
   touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarLeftCluster.rotation = rotation;
   touchbarLeftCluster.rotationDimension = rotDim;
+  touchbarLeftCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarLeftCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
   Input::clusters.push_back(touchbarLeftCluster);
 
   // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE in hardware space)
@@ -232,14 +225,16 @@ void RegisterInputClusters() {
   touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarRightCluster.rotation = rotation;
   touchbarRightCluster.rotationDimension = rotDim;
+  touchbarRightCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
   Input::clusters.push_back(touchbarRightCluster);
 
   // Register keypad capabilities
-  // Grid: FSR pressure sensing, aftertouch
+  // Grid: FSR pressure sensing, aftertouch, velocity
   KeypadCapabilities gridCaps = {};
   gridCaps.hasPressure = true;
   gridCaps.hasAftertouch = true;
-  gridCaps.hasVelocity = false;
+  gridCaps.hasVelocity = KeyPad::velocitySensitivity;
   gridCaps.hasPosition = true;
   MatrixOS::Input::RegisterKeypadCapabilities(1, gridCaps);
 
@@ -251,6 +246,59 @@ void RegisterInputClusters() {
   fnCaps.hasPosition = false;
   MatrixOS::Input::RegisterKeypadCapabilities(0, fnCaps);
 }
+
+namespace KeyPad
+{
+// Device-owned legacy keyID → InputId bridge.
+// Encoding: bits [15:12] = class, bits [11:0] = payload.
+// Class 0 = System, Class 1 = Grid (bits [11:6]=x, [5:0]=y), Class 2 = TouchBar.
+InputId BridgeKeyId(uint16_t keyID) {
+  uint8_t keyClass = keyID >> 12;
+  switch (keyClass)
+  {
+  case 0: // System
+    return InputId{0, static_cast<uint16_t>(keyID & 0x0FFF)};
+  case 1: // Grid
+  {
+    uint16_t x = (keyID >> 6) & 0x3F;
+    uint16_t y = keyID & 0x3F;
+    return InputId{1, static_cast<uint16_t>(y * X_SIZE + x)};
+  }
+  case 2: // TouchBar: left (0-7) → cluster 2, right (8-15) → cluster 3
+  {
+    uint16_t index = keyID & 0x0FFF;
+    if (index >= 8)
+    {
+      return InputId{3, static_cast<uint16_t>(index - 8)};
+    }
+    return InputId{2, static_cast<uint16_t>(index)};
+  }
+  default:
+    return InputId{static_cast<uint8_t>(keyClass), static_cast<uint16_t>(keyID & 0x0FFF)};
+  }
+}
+
+// Inverse: InputId → legacy keyID encoding.
+uint16_t InputIdToLegacyKeyId(InputId id) {
+  switch (id.clusterId)
+  {
+  case 0: // System
+    return id.memberId;
+  case 1: // Grid: memberId = y * X_SIZE + x
+  {
+    uint16_t x = id.memberId % X_SIZE;
+    uint16_t y = id.memberId / X_SIZE;
+    return (1 << 12) | (x << 6) | y;
+  }
+  case 2: // TouchBar Left
+    return (2 << 12) | id.memberId;
+  case 3: // TouchBar Right
+    return (2 << 12) | (id.memberId + 8);
+  default:
+    return UINT16_MAX;
+  }
+}
+} // namespace KeyPad
 
 void DeviceStart() {
   RegisterInputClusters();

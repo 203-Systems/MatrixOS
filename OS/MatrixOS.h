@@ -27,6 +27,7 @@ void Bootloader(void);
 
 void OpenSetting(void);
 
+// Transitional: forwards to Device::Rotate(). New code should call Device::Rotate() directly.
 void Rotate(Direction rotation, bool absolute = false);
 
 void ExecuteAPP(uint32_t appId, const vector<string>& args = {});
