@@ -115,14 +115,14 @@
 - Applications\BrightnessControl\UI4pxFloat.h - FORMATTED
 - Applications\BrightnessControl\BrightnessControl.h - FORMATTED
 - Applications\BrightnessControl\BrightnessControl.cpp - FORMATTED
-- Applications\CustomControlMap\UILayerControl.h - NOT FORMATTED
-- Applications\CustomControlMap\UADruntime.cpp - NOT FORMATTED
-- Applications\CustomControlMap\UADloader.cpp - NOT FORMATTED
-- Applications\CustomControlMap\UADapi.cpp - NOT FORMATTED
-- Applications\CustomControlMap\UAD.h - NOT FORMATTED
-- Applications\CustomControlMap\CustomControlMap.h - NOT FORMATTED
-- Applications\CustomControlMap\CustomControlMap.cpp - NOT FORMATTED
-- Applications\CustomControlMap\cb0r_utils.h - NOT FORMATTED
+- Applications\CustomControlMap\UILayerControl.h - FORMATTED
+- Applications\CustomControlMap\UADruntime.cpp - FORMATTED
+- Applications\CustomControlMap\UADloader.cpp - FORMATTED
+- Applications\CustomControlMap\UADapi.cpp - FORMATTED
+- Applications\CustomControlMap\UAD.h - FORMATTED
+- Applications\CustomControlMap\CustomControlMap.h - FORMATTED
+- Applications\CustomControlMap\CustomControlMap.cpp - FORMATTED
+- Applications\CustomControlMap\cb0r_utils.h - FORMATTED
 - Applications\Gamepad\UIKeyboardKey.h - FORMATTED
 - Applications\Gamepad\UIGamepadKey.h - FORMATTED
 - Applications\Gamepad\UIGamepadAxis.h - FORMATTED
@@ -170,13 +170,13 @@
 - OS\Logging\Logging.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.cpp - NOT FORMATTED
-- Applications\CustomControlMap\Actions\wrap\WrapAction.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\wrap\WrapAction.h - FORMATTED
 - Applications\Lighting\TemperatureColorPicker.h - FORMATTED
 - Applications\Lighting\Lighting.h - FORMATTED
 - Applications\Lighting\Lighting.cpp - FORMATTED
 - Applications\Lighting\BPMTapper.h - FORMATTED
-- Applications\CustomControlMap\Actions\color\ColorEffect.h - NOT FORMATTED
-- Applications\CustomControlMap\Actions\Actions.cpp - NOT FORMATTED
+- Applications\CustomControlMap\Actions\color\ColorEffect.h - FORMATTED
+- Applications\CustomControlMap\Actions\Actions.cpp - FORMATTED
 - Devices\Mystrix1\ULP\fsr_keypad.c - NOT FORMATTED
 - Applications\Python\Python.h - FORMATTED
 - Applications\Python\Python.cpp - FORMATTED
@@ -185,8 +185,8 @@
 - Devices\Mystrix1\Variants\Mystrix\V110\Config.h - NOT FORMATTED
 - Applications\MSC\MSC.cpp - FORMATTED
 - Applications\MSC\MSC.h - FORMATTED
-- Applications\CustomControlMap\Actions\actioncolor\ActionColorEffect.h - NOT FORMATTED
-- Applications\CustomControlMap\Action.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\actioncolor\ActionColorEffect.h - FORMATTED
+- Applications\CustomControlMap\Action.h - FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\RevC\Config.h - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\Device.cpp - NOT FORMATTED
 - OS\LED\LED.h - NOT FORMATTED
@@ -196,21 +196,21 @@
 - Applications\PolyPlayground\PolyPlayground.cpp - FORMATTED
 - Applications\PolyPlayground\PolyPad.h - FORMATTED
 - Applications\PolyPlayground\PolyOctaveShifter.h - FORMATTED
-- Applications\CustomControlMap\Actions\keyboard\KeyboardAction.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\keyboard\KeyboardAction.h - FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\LowCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.cpp - NOT FORMATTED
 - OS\KeyPad\KeyPad.h - NOT FORMATTED
 - OS\KeyPad\KeyPad.cpp - NOT FORMATTED
-- Applications\CustomControlMap\Actions\gamepad\GamepadAction.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\gamepad\GamepadAction.h - FORMATTED
 - OS\HID\RawHID.cpp - NOT FORMATTED
 - OS\HID\Keyboard.cpp - NOT FORMATTED
 - OS\HID\HIDSpecs.h - NOT FORMATTED
 - OS\HID\HID.h - NOT FORMATTED
 - OS\HID\HID.cpp - NOT FORMATTED
 - OS\HID\Gamepad.cpp - NOT FORMATTED
-- Applications\CustomControlMap\Actions\layer\LayerAction.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\layer\LayerAction.h - FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\EFuseBurner.cpp - NOT FORMATTED
@@ -268,7 +268,7 @@
 - OS\Framework\Color\Color.cpp - NOT FORMATTED
 - OS\Framework\Framework.h - NOT FORMATTED
 - OS\Framework\Commands\CommandSpecs.h - NOT FORMATTED
-- Applications\CustomControlMap\Actions\midi\MidiAction.h - NOT FORMATTED
+- Applications\CustomControlMap\Actions\midi\MidiAction.h - FORMATTED
 - OS\Framework\Types\Fract16.h - NOT FORMATTED
 - OS\Framework\Types\LEDPartition.h - NOT FORMATTED
 - OS\Framework\Types\Types.h - NOT FORMATTED

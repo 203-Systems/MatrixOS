@@ -3,14 +3,14 @@
 #include "UI/UI.h"
 
 class UILayerControl : public UIComponent {
- public:
+public:
   string name;
   Color color;
   Dimension dimension;
   UADRuntime* uadRT;
   UADRuntime::LayerInfoType type;
 
-  UILayerControl (string name, Color color, Dimension dimension, UADRuntime* uadRT, UADRuntime::LayerInfoType type) {
+  UILayerControl(string name, Color color, Dimension dimension, UADRuntime* uadRT, UADRuntime::LayerInfoType type) {
     this->name = name;
     this->color = color;
     this->dimension = dimension;
@@ -18,19 +18,24 @@ class UILayerControl : public UIComponent {
     this->type = type;
   }
 
-  virtual string GetName() { return name; }
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return dimension; }
-
+  virtual string GetName() {
+    return name;
+  }
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return dimension;
+  }
 
   virtual bool Render(Point origin) {
     uint8_t layerCount = uadRT->layerCount;
     uint16_t bitmap = 0;
-    if(type == UADRuntime::LayerInfoType::ACTIVE)
+    if (type == UADRuntime::LayerInfoType::ACTIVE)
     {
       bitmap = uadRT->layerEnabled;
     }
-    else if(type == UADRuntime::LayerInfoType::PASSTHROUGH)
+    else if (type == UADRuntime::LayerInfoType::PASSTHROUGH)
     {
       bitmap = uadRT->layerPassthrough;
     }
@@ -41,13 +46,13 @@ class UILayerControl : public UIComponent {
       {
         uint8_t id = y * dimension.x + x;
         Color layerColor = Color(0x101010);
-        if(uadRT->loaded == false)
+        if (uadRT->loaded == false)
         {
           layerColor = Color(0xFF0000).Dim();
         }
-        if(id < layerCount)
+        if (id < layerCount)
         {
-          if(bitmap & (1 << id))
+          if (bitmap & (1 << id))
           {
             layerColor = color;
           }
@@ -64,15 +69,17 @@ class UILayerControl : public UIComponent {
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
-    { 
+    {
       uint8_t layer = xy.y * dimension.x + xy.x;
-      if(layer == 0) return true; // Can't change root layer
-      if(layer >= uadRT->layerCount) return true;
+      if (layer == 0)
+        return true; // Can't change root layer
+      if (layer >= uadRT->layerCount)
+        return true;
       uadRT->SetLayerState(layer, type, !uadRT->GetLayerState(layer, type));
     }
     else if (keyInfo->State() == HOLD)
     {
-        MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
+      MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
     }
     return true;
   }

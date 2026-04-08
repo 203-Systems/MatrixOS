@@ -1,8 +1,9 @@
 #include "CustomControlMap.h"
 #include "UI/UI.h"
 
-namespace {
-  const string c_uad_storage_path = "/map.uad";
+namespace
+{
+const string cUadStoragePath = "/map.uad";
 }
 
 size_t CustomControlMap::GetCurrentMaxUADSize() const {
@@ -22,7 +23,9 @@ void CustomControlMap::Setup(const vector<string>& args) {
 void CustomControlMap::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent); }
+  {
+    KeyEventHandler(keyEvent);
+  }
 
   HIDReportHandler();
 }
@@ -45,7 +48,7 @@ bool CustomControlMap::LoadUADfromStorage() {
     return false;
   }
 
-  if (!MatrixOS::FileSystem::Exists(c_uad_storage_path))
+  if (!MatrixOS::FileSystem::Exists(cUadStoragePath))
   {
     MLOGD("CustomControlMap", "No map found in storage");
     return false;
@@ -57,25 +60,26 @@ bool CustomControlMap::LoadUADfromStorage() {
 
   uadSize = 0;
 
-  File file = MatrixOS::FileSystem::Open(c_uad_storage_path, "rb");
-  size_t new_uad_size = file.Size();
-  MLOGD("CustomControlMap", "Storage map size: %d", new_uad_size);
-  if (new_uad_size == 0 || new_uad_size > MAX_UAD_SIZE_STORAGE)
+  File file = MatrixOS::FileSystem::Open(cUadStoragePath, "rb");
+  size_t newUadSize = file.Size();
+  MLOGD("CustomControlMap", "Storage map size: %d", newUadSize);
+  if (newUadSize == 0 || newUadSize > MAX_UAD_SIZE_STORAGE)
   {
-    MLOGE("CustomControlMap", "Invalid map size in storage (%d bytes)", new_uad_size);
+    MLOGE("CustomControlMap", "Invalid map size in storage (%d bytes)", newUadSize);
     file.Close();
     return false;
   }
 
-  uadData = (uint8_t*)pvPortMalloc(new_uad_size);
+  uadData = (uint8_t*)pvPortMalloc(newUadSize);
   if (uadData == nullptr)
   {
-    MLOGE("CustomControlMap", "Failed to allocate memory for map from storage (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
+    MLOGE("CustomControlMap", "Failed to allocate memory for map from storage (%d bytes requested, %d bytes free)", newUadSize,
+          xPortGetFreeHeapSize());
     file.Close();
     return false;
   }
 
-  if (file.Read(uadData, new_uad_size) != new_uad_size)
+  if (file.Read(uadData, newUadSize) != newUadSize)
   {
     MLOGE("CustomControlMap", "Failed to read map from storage");
     file.Close();
@@ -85,7 +89,7 @@ bool CustomControlMap::LoadUADfromStorage() {
   }
   file.Close();
 
-  if (!uadRT.LoadUAD(uadData, new_uad_size))
+  if (!uadRT.LoadUAD(uadData, newUadSize))
   {
     MLOGE("CustomControlMap", "Failed to load map from storage");
     vPortFree(uadData);
@@ -93,7 +97,7 @@ bool CustomControlMap::LoadUADfromStorage() {
     return false;
   }
 
-  uadSize = new_uad_size;
+  uadSize = newUadSize;
   return true;
 }
 #endif
@@ -104,29 +108,30 @@ void CustomControlMap::LoadUADfromNVS() {
   uadData = nullptr;
 
   uadSize = 0;
-  
-  size_t new_uad_size = MatrixOS::NVS::GetSize(UAD_NVS_HASH);
 
-  MLOGD("CustomControlMap", "NVS map size: %d", new_uad_size);
-  if (new_uad_size == -1 || new_uad_size == 0)
+  size_t newUadSize = MatrixOS::NVS::GetSize(UAD_NVS_HASH);
+
+  MLOGD("CustomControlMap", "NVS map size: %d", newUadSize);
+  if (newUadSize == -1 || newUadSize == 0)
   {
     MLOGD("CustomControlMap", "No map found in NVS");
     return;
   }
-  if (new_uad_size > MAX_UAD_SIZE_NVS)
+  if (newUadSize > MAX_UAD_SIZE_NVS)
   {
-    MLOGE("CustomControlMap", "Map in NVS exceeds NVS limit (%d > %d)", new_uad_size, MAX_UAD_SIZE_NVS);
+    MLOGE("CustomControlMap", "Map in NVS exceeds NVS limit (%d > %d)", newUadSize, MAX_UAD_SIZE_NVS);
     return;
   }
 
-  uadData = (uint8_t*)pvPortMalloc(new_uad_size);
+  uadData = (uint8_t*)pvPortMalloc(newUadSize);
   if (uadData == nullptr)
   {
-    MLOGE("CustomControlMap", "Failed to allocate memory for map from NVS (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
+    MLOGE("CustomControlMap", "Failed to allocate memory for map from NVS (%d bytes requested, %d bytes free)", newUadSize,
+          xPortGetFreeHeapSize());
     return;
   }
 
-  if (MatrixOS::NVS::GetVariable(UAD_NVS_HASH, uadData, new_uad_size) != 0)
+  if (MatrixOS::NVS::GetVariable(UAD_NVS_HASH, uadData, newUadSize) != 0)
   {
     MLOGE("CustomControlMap", "Failed to read map from NVS");
     vPortFree(uadData);
@@ -134,7 +139,7 @@ void CustomControlMap::LoadUADfromNVS() {
     return;
   }
 
-  if (!uadRT.LoadUAD(uadData, new_uad_size))
+  if (!uadRT.LoadUAD(uadData, newUadSize))
   {
     MLOGE("CustomControlMap", "Failed to load map from NVS");
     vPortFree(uadData);
@@ -142,7 +147,7 @@ void CustomControlMap::LoadUADfromNVS() {
     return;
   }
 
-  uadSize = new_uad_size;
+  uadSize = newUadSize;
 }
 
 #if DEVICE_STORAGE == 1
@@ -152,16 +157,16 @@ bool CustomControlMap::SaveUADtoStorage() {
     return false;
   }
 
-  File file = MatrixOS::FileSystem::Open(c_uad_storage_path, "wb");
+  File file = MatrixOS::FileSystem::Open(cUadStoragePath, "wb");
   if (file.Write(uadData, uadSize) != uadSize)
   {
     file.Close();
     return false;
   }
 
-  bool flush_ok = file.Flush();
+  bool flushOk = file.Flush();
   file.Close();
-  return flush_ok;
+  return flushOk;
 }
 #endif
 
@@ -171,13 +176,13 @@ bool CustomControlMap::SaveUADtoNVS() {
 
 void CustomControlMap::HIDReportHandler() {
   uint8_t* report;
-  uint8_t report_size;
+  uint8_t reportSize;
 
   while (1)
   {
-    report_size = MatrixOS::HID::RawHID::Get(&report);
-    
-    if (report_size == 0)
+    reportSize = MatrixOS::HID::RawHID::Get(&report);
+
+    if (reportSize == 0)
     {
       return;
     }
@@ -185,62 +190,61 @@ void CustomControlMap::HIDReportHandler() {
     bool write = report[0] & 0x80;
     uint8_t command = report[0] & 0x7F;
 
-    
-    MLOGD("CustomControlMap", "HID Report Size: %d - Command: %d - Write: %d", report_size, command, write);
+    MLOGD("CustomControlMap", "HID Report Size: %d - Command: %d - Write: %d", reportSize, command, write);
 
     if (write)
     {
       switch (command)
       {
-        case UAD_STATUS: // Get Ready for new UAD
-          PrepNewUAD(report);
-          break;
-        case UAD_DATA: // Load UAD Payload
-          LoadNewUADPayload(report);
-          break;
-        case UAD_SAVE: // Save UAD to NVS
-          SaveUAD();  
-          break;
-        case UAD_LOAD: // Load UAD from NVS
-          LoadUAD();
-          break;
-        case UAD_BEGIN: // Start UAD Runtime
-          BeginUAD();
-          break;
-        default:
-          SendError(report[0], 0); // Command not found, return command with error code 0
-          break;
+      case UAD_STATUS: // Get Ready for new UAD
+        PrepNewUAD(report);
+        break;
+      case UAD_DATA: // Load UAD Payload
+        LoadNewUADPayload(report);
+        break;
+      case UAD_SAVE: // Save UAD to NVS
+        SaveUAD();
+        break;
+      case UAD_LOAD: // Load UAD from NVS
+        LoadUAD();
+        break;
+      case UAD_BEGIN: // Start UAD Runtime
+        BeginUAD();
+        break;
+      default:
+        SendError(report[0], 0); // Command not found, return command with error code 0
+        break;
       }
     }
     else // Read Command
     {
       switch (command)
       {
-        case DEVICE_DESCRIPTOR:
-          SendDeviceDescriptor();
-          break;
-        case UAD_STATUS:
-          SendUADStatus();
-          break;
-        case UAD_DATA:
-          SendUADPayload(report);
-          break;
-        default:
-          SendError(report[0], 0); // Command not found, return command with error code 0
-          break;
+      case DEVICE_DESCRIPTOR:
+        SendDeviceDescriptor();
+        break;
+      case UAD_STATUS:
+        SendUADStatus();
+        break;
+      case UAD_DATA:
+        SendUADPayload(report);
+        break;
+      default:
+        SendError(report[0], 0); // Command not found, return command with error code 0
+        break;
       }
     }
   }
 }
 
 void CustomControlMap::PrepNewUAD(const uint8_t* report) {
-  uint32_t new_uad_size = (report[2] << 24) | (report[3] << 16) | (report[4] << 8) | report[5];
-  size_t max_uad_size = GetCurrentMaxUADSize();
-  MLOGD("CustomControlMap", "Prep New UAD with Size: %d", new_uad_size);
+  uint32_t newUadSize = (report[2] << 24) | (report[3] << 16) | (report[4] << 8) | report[5];
+  size_t maxUadSize = GetCurrentMaxUADSize();
+  MLOGD("CustomControlMap", "Prep New UAD with Size: %d", newUadSize);
 
-  if (new_uad_size > max_uad_size)
+  if (newUadSize > maxUadSize)
   {
-    MLOGE("CustomControlMap", "UAD size exceeds limit (%d > %d)", new_uad_size, max_uad_size);
+    MLOGE("CustomControlMap", "UAD size exceeds limit (%d > %d)", newUadSize, maxUadSize);
     SendError(report[0], 3); // UAD Size too large
     return;
   }
@@ -251,15 +255,16 @@ void CustomControlMap::PrepNewUAD(const uint8_t* report) {
   uadSize = 0;
   vPortFree(uadData);
 
-  uadData = (uint8_t*)pvPortMalloc(new_uad_size);
+  uadData = (uint8_t*)pvPortMalloc(newUadSize);
   if (uadData == nullptr)
   {
-    MLOGE("CustomControlMap", "Failed to allocate memory for new UAD (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
+    MLOGE("CustomControlMap", "Failed to allocate memory for new UAD (%d bytes requested, %d bytes free)", newUadSize,
+          xPortGetFreeHeapSize());
     MatrixOS::SYS::ErrorHandler("Failed to allocate memory for new UAD");
     SendError(report[0], 4); // Failed to allocate memory for new UAD
     return;
   }
-  uadSize = new_uad_size;
+  uadSize = newUadSize;
 
   SendAck(report[0]);
 }
@@ -276,14 +281,14 @@ void CustomControlMap::LoadNewUADPayload(const uint8_t* report) {
   uint32_t offset = section * MAX_HID_TRANSFER_SIZE;
   uint8_t size = report[3];
 
-  if(size > MAX_HID_TRANSFER_SIZE)
+  if (size > MAX_HID_TRANSFER_SIZE)
   {
     MLOGE("CustomControlMap", "Size too large - Max is %d but got %d", MAX_HID_TRANSFER_SIZE, size);
     SendError(report[0], 3); // Size too large
     return;
   }
 
-  if(offset + size > uadSize)
+  if (offset + size > uadSize)
   {
     MLOGE("CustomControlMap", "Offset out of range - Section: %d - Offset: %d - Size: %d - UAD Size: %d", section, offset, size, uadSize);
     SendError(report[0], 1); // Offset out of range
@@ -302,24 +307,24 @@ void CustomControlMap::SaveUAD() {
     return;
   }
 
-  if(uadSize == 0)
+  if (uadSize == 0)
   {
     SendError(UAD_SAVE, 2); // UAD Size is 0
     return;
   }
 
-  bool save_ok = false;
+  bool saveOk = false;
   if (uadSize <= MAX_UAD_SIZE_NVS)
   {
-    save_ok = SaveUADtoNVS();
-    if (!save_ok)
+    saveOk = SaveUADtoNVS();
+    if (!saveOk)
     {
       MLOGE("CustomControlMap", "Failed to save map to NVS (%d bytes)", uadSize);
     }
 #if DEVICE_STORAGE == 1
-    else if (MatrixOS::FileSystem::Available() && MatrixOS::FileSystem::Exists(c_uad_storage_path))
+    else if (MatrixOS::FileSystem::Available() && MatrixOS::FileSystem::Exists(cUadStoragePath))
     {
-      if (!MatrixOS::FileSystem::Remove(c_uad_storage_path))
+      if (!MatrixOS::FileSystem::Remove(cUadStoragePath))
       {
         MLOGE("CustomControlMap", "Failed to remove stale map from storage");
       }
@@ -331,8 +336,8 @@ void CustomControlMap::SaveUAD() {
 #if DEVICE_STORAGE == 1
     if (MatrixOS::FileSystem::Available())
     {
-      save_ok = SaveUADtoStorage();
-      if (!save_ok)
+      saveOk = SaveUADtoStorage();
+      if (!saveOk)
       {
         MLOGE("CustomControlMap", "Failed to save map to storage (%d bytes)", uadSize);
       }
@@ -342,13 +347,13 @@ void CustomControlMap::SaveUAD() {
       }
     }
 #endif
-    if (!save_ok)
+    if (!saveOk)
     {
       MLOGE("CustomControlMap", "Map exceeds NVS limit and no storage is available (%d bytes)", uadSize);
     }
   }
 
-  if (!save_ok)
+  if (!saveOk)
   {
     SendError(UAD_SAVE, 3); // Failed to save map
     return;
@@ -369,7 +374,7 @@ void CustomControlMap::BeginUAD() {
     return;
   }
 
-  if(uadSize == 0)
+  if (uadSize == 0)
   {
     SendError(UAD_BEGIN, 2); // UAD Size is 0
     return;
@@ -385,31 +390,31 @@ void CustomControlMap::BeginUAD() {
 }
 
 void CustomControlMap::SendDeviceDescriptor() {
-  size_t max_uad_size = GetCurrentMaxUADSize();
+  size_t maxUadSize = GetCurrentMaxUADSize();
   MLOGD("CustomControlMap", "Send Device Descriptor");
   vector<uint8_t> payload = {
-    DEVICE_DESCRIPTOR | HID_RESPONSE,                    // Response to DEVICE_DESCRIPTOR
-    UADRuntime::UAD_MAJOR_VERSION,  // UAD Major Version 0
-    UADRuntime::UAD_MINOR_VERSION,  // UAD Minor Version 1
-    0x00,                    // Vendor ID 0x00 - Basiclly the same as Sysex header. Change to dynamic linked later
-    0x02,                    // Vendor ID 0x02
-    0x03,                    // Vendor ID 0x03
-    0x4D,                    // Family ID 0x4D
-    0x58,                    // Family ID 0x58
-    0x11,                    // Model ID 0x11
-    Device::x_size,          // Device X 8
-    Device::y_size,          // Device Y 8
-    MAX_UAD_LAYER,           // Max Layers
-    (uint8_t)((max_uad_size >> 24) & 0xFF), // UAD Size MSB1
-    (uint8_t)((max_uad_size >> 16) & 0xFF), // UAD Size MSB2
-    (uint8_t)((max_uad_size >> 8) & 0xFF),  // UAD Size MSB3
-    (uint8_t)((max_uad_size) & 0xFF),       // UAD Size MSB4
-    (uint8_t)MAX_HID_TRANSFER_SIZE,   // Max HID Transfer Size
+      DEVICE_DESCRIPTOR | HID_RESPONSE,       // Response to DEVICE_DESCRIPTOR
+      UADRuntime::UAD_MAJOR_VERSION,          // UAD Major Version 0
+      UADRuntime::UAD_MINOR_VERSION,          // UAD Minor Version 1
+      0x00,                                   // Vendor ID 0x00 - Basiclly the same as Sysex header. Change to dynamic linked later
+      0x02,                                   // Vendor ID 0x02
+      0x03,                                   // Vendor ID 0x03
+      0x4D,                                   // Family ID 0x4D
+      0x58,                                   // Family ID 0x58
+      0x11,                                   // Model ID 0x11
+      Device::x_size,                         // Device X 8
+      Device::y_size,                         // Device Y 8
+      MAX_UAD_LAYER,                          // Max Layers
+      (uint8_t)((maxUadSize >> 24) & 0xFF), // UAD Size MSB1
+      (uint8_t)((maxUadSize >> 16) & 0xFF), // UAD Size MSB2
+      (uint8_t)((maxUadSize >> 8) & 0xFF),  // UAD Size MSB3
+      (uint8_t)((maxUadSize) & 0xFF),       // UAD Size MSB4
+      (uint8_t)MAX_HID_TRANSFER_SIZE,         // Max HID Transfer Size
   };
 
   MLOGD("CustomControlMap", "Device Descriptor Created");
 
-  if(!SendHID(payload))
+  if (!SendHID(payload))
   {
     MLOGE("CustomControlMap", "Failed to send device descriptor");
   }
@@ -418,20 +423,20 @@ void CustomControlMap::SendDeviceDescriptor() {
 void CustomControlMap::SendUADStatus() {
   MLOGD("CustomControlMap", "Send UAD Status");
   vector<uint8_t> payload = {
-    UAD_STATUS | HID_RESPONSE,             // Response to UAD_STATUS
-    (uint8_t)uadRT.loaded,    // UAD Loaded
-    (uint8_t)((uadRT.uadSize >> 24) & 0xFF), // UAD Size MSB1
-    (uint8_t)((uadRT.uadSize >> 16) & 0xFF), // UAD Size MSB2
-    (uint8_t)((uadRT.uadSize >> 8) & 0xFF),  // UAD Size MSB3
-    (uint8_t)((uadRT.uadSize) & 0xFF),       // UAD Size MSB4
-    uadRT.layerCount,          // Layer Count
-    (uint8_t)((uadRT.layerEnabled >> 8) & 0xFF), // Enabled Layers MSB
-    (uint8_t)(uadRT.layerEnabled & 0xFF),        // Enabled Layers LSB
-    (uint8_t)((uadRT.layerPassthrough >> 8) & 0xFF), // Passthrough Layers MSB
-    (uint8_t)(uadRT.layerPassthrough & 0xFF),        // Passthrough Layers LSB
+      UAD_STATUS | HID_RESPONSE,                       // Response to UAD_STATUS
+      (uint8_t)uadRT.loaded,                           // UAD Loaded
+      (uint8_t)((uadRT.uadSize >> 24) & 0xFF),         // UAD Size MSB1
+      (uint8_t)((uadRT.uadSize >> 16) & 0xFF),         // UAD Size MSB2
+      (uint8_t)((uadRT.uadSize >> 8) & 0xFF),          // UAD Size MSB3
+      (uint8_t)((uadRT.uadSize) & 0xFF),               // UAD Size MSB4
+      uadRT.layerCount,                                // Layer Count
+      (uint8_t)((uadRT.layerEnabled >> 8) & 0xFF),     // Enabled Layers MSB
+      (uint8_t)(uadRT.layerEnabled & 0xFF),            // Enabled Layers LSB
+      (uint8_t)((uadRT.layerPassthrough >> 8) & 0xFF), // Passthrough Layers MSB
+      (uint8_t)(uadRT.layerPassthrough & 0xFF),        // Passthrough Layers LSB
   };
 
-  if(!SendHID(payload))
+  if (!SendHID(payload))
   {
     MLOGE("CustomControlMap", "Failed to send device descriptor");
   };
@@ -444,78 +449,77 @@ void CustomControlMap::SendUADPayload(const uint8_t* report) {
 
   MLOGD("CustomControlMap", "Send UAD Payload #%d - Offset: %d - Size: %d", section + 1, offset, size);
 
-  if(offset >= uadRT.uadSize)
+  if (offset >= uadRT.uadSize)
   {
     SendError(report[0], 1); // Offset out of range
     return;
   }
 
-  if(size > MAX_HID_TRANSFER_SIZE)
+  if (size > MAX_HID_TRANSFER_SIZE)
   {
     SendError(report[0], 2); // Transfer size too large
     return;
   }
 
-  if(offset + size > uadRT.uadSize)
+  if (offset + size > uadRT.uadSize)
   {
     size = uadRT.uadSize - offset;
   }
 
   vector<uint8_t> payload = {
-    UAD_DATA | HID_RESPONSE, // Response to UAD_DATA
-    (uint8_t)((section >> 8) & 0xFF), // Section MSB
-    (uint8_t)(section & 0xFF),        // Section LSB
-    size,                             // Size
+      UAD_DATA | HID_RESPONSE,          // Response to UAD_DATA
+      (uint8_t)((section >> 8) & 0xFF), // Section MSB
+      (uint8_t)(section & 0xFF),        // Section LSB
+      size,                             // Size
   };
 
   payload.insert(payload.end(), uadRT.uad + offset, uadRT.uad + offset + size);
 
-  if(!SendHID(payload))
+  if (!SendHID(payload))
   {
     MLOGE("CustomControlMap", "Failed to send uad payload #%d", offset);
   }
 }
 
-void CustomControlMap::SendError(uint8_t command, uint8_t error_code) {
-  MLOGD("CustomControlMap", "Send Command Error %d - %d", command, error_code);
+void CustomControlMap::SendError(uint8_t command, uint8_t errorCode) {
+  MLOGD("CustomControlMap", "Send Command Error %d - %d", command, errorCode);
   vector<uint8_t> payload = {
-    HIDCommand::ERR,          // ERR Command
-    command,                 // Command
-    error_code,              // Error Code
+      HIDCommand::ERR, // ERR Command
+      command,         // Command
+      errorCode,      // Error Code
   };
 
-  if(!SendHID(payload))
+  if (!SendHID(payload))
   {
     MLOGE("CustomControlMap", "Failed to send device descriptor");
   }
 }
 
-void CustomControlMap::SendAck(uint8_t command, uint8_t ack_code) {
-  MLOGD("CustomControlMap", "Send Command Ack %d - %d", command, ack_code);
+void CustomControlMap::SendAck(uint8_t command, uint8_t ackCode) {
+  MLOGD("CustomControlMap", "Send Command Ack %d - %d", command, ackCode);
   vector<uint8_t> payload = {
-    HIDCommand::ACK,          // ACK Command
-    command,                 // Command
-    ack_code,              // Ack Code. Not used for now
+      HIDCommand::ACK, // ACK Command
+      command,         // Command
+      ackCode,        // Ack Code. Not used for now
   };
 
-  if(!SendHID(payload))
+  if (!SendHID(payload))
   {
     MLOGE("CustomControlMap", "Failed to send device descriptor");
   }
 }
 
+bool CustomControlMap::SendHID(const vector<uint8_t>& report, uint8_t retry) {
 
-bool CustomControlMap::SendHID(const vector<uint8_t> &report, uint8_t retry) {
-
-  if(retry == 0)
+  if (retry == 0)
   {
     retry = 1;
   }
 
-  for(uint8_t i = 0; i < retry; i++)
+  for (uint8_t i = 0; i < retry; i++)
   {
     MLOGD("CustomControlMap", "Send HID Report - Retry: %d", i);
-    if(MatrixOS::HID::RawHID::Send(report))
+    if (MatrixOS::HID::RawHID::Send(report))
     {
       return true;
     }
@@ -533,8 +537,7 @@ void CustomControlMap::KeyEventHandler(KeyEvent& keyEvent) {
   uadRT.KeyEvent(keyEvent.ID(), &keyEvent.info);
 }
 
-void CustomControlMap::Reload()
-{
+void CustomControlMap::Reload() {
   MatrixOS::SYS::ExecuteAPP(info.author, info.name); // Just relaunch the APP for now lol
 }
 
@@ -562,30 +565,33 @@ void CustomControlMap::ActionMenu() {
   menuLockToggle.SetValuePointer(&menuLock);
   menuLockToggle.OnPress([&]() -> void { menuLock.Save(); });
   actionMenu.AddUIComponent(menuLockToggle, Point(0, 2));
-  
 
   UILayerControl layerControl("Activated Layers", Color(0x00FFFF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::ACTIVE);
   actionMenu.AddUIComponent(layerControl, Point(0, 0));
 
-  UILayerControl passthroughControl("Layer Passthrough", Color(0xFF00FF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::PASSTHROUGH);                       
-  actionMenu.AddUIComponent(passthroughControl, Point(0, 6));                                        
+  UILayerControl passthroughControl("Layer Passthrough", Color(0xFF00FF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::PASSTHROUGH);
+  actionMenu.AddUIComponent(passthroughControl, Point(0, 6));
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool { 
-    if(keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+    if (keyEvent->id == FUNCTION_KEY)
     {
-      if(keyEvent->info.state == HOLD)
-      { Exit(); }
-      else if(keyEvent->info.state == RELEASED)
-      { actionMenu.Exit(); }
-      return true; //Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      if (keyEvent->info.state == HOLD)
+      {
+        Exit();
+      }
+      else if (keyEvent->info.state == RELEASED)
+      {
+        actionMenu.Exit();
+      }
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
-   });
+  });
 
   actionMenu.Start();
   MatrixOS::LED::CopyLayer(1, 0);
-  
-  if(uadRT.loaded)
+
+  if (uadRT.loaded)
   {
     uadRT.InitializeLayer(); // Reinitialize layer after exit action menu so layer led update correctly
   }
