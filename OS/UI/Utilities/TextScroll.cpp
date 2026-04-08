@@ -108,15 +108,12 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
             while (!textScrollTimer.Tick(speed))
             {
               UI::GlobalLoops();
-              // MatrixOS::KeyPad::Scan(true);
-              MatrixOS::KeyPad::ClearList(); // Keypad will scan itself after list is cleared
-              // MLOGD("Text Scroll Slow", "FN Velocity %d",
-              // (uint16_t)MatrixOS::KeyPad::GetKey(FUNCTION_KEY).state);
-              // Let's assume we don't use FN to trigger a text scroll
-              if (MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->state == PRESSED)
+              MatrixOS::Input::ClearQueue();
+              InputSnapshot fnSnap;
+              if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+                  fnSnap.keypad.state == KeypadState::Pressed)
               {
-                MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Clear();
-                MatrixOS::KeyPad::ClearList();
+                MatrixOS::Input::ClearQueue();
                 MatrixOS::LED::DestroyLayer();
                 MatrixOS::LED::Update();
                 return;
@@ -234,15 +231,12 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed))
           {
             UI::GlobalLoops();
-            // MatrixOS::KeyPad::Scan(true);
-            MatrixOS::KeyPad::ClearList(); // Keypad will scan itself after list is cleared
-            // MLOGD("Text Scroll Fast", "FN Velocity %d",
-            // (uint16_t)MatrixOS::KeyPad::GetKey(FUNCTION_KEY).state);
-            // Let's assume we don't use FN to trigger a text scroll
-            if (MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->state == PRESSED)
+            MatrixOS::Input::ClearQueue();
+            InputSnapshot fnSnap;
+            if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+                fnSnap.keypad.state == KeypadState::Pressed)
             {
-              MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Clear();
-              MatrixOS::KeyPad::ClearList();
+              MatrixOS::Input::ClearQueue();
               MatrixOS::LED::DestroyLayer();
               MatrixOS::LED::Update();
               return;
@@ -273,15 +267,12 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed * 4))
           {
             UI::GlobalLoops();
-            // MatrixOS::KeyPad::Scan(true);
-            MatrixOS::KeyPad::ClearList(); // Keypad will scan itself after list is cleared
-            // MLOGD("Text Scroll Fast", "FN Velocity %d",
-            // (uint16_t)MatrixOS::KeyPad::GetKey(FUNCTION_KEY).state);
-            // Let's assume we don't use FN to trigger a text scroll
-            if (MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->state == PRESSED)
+            MatrixOS::Input::ClearQueue();
+            InputSnapshot fnSnap;
+            if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+                fnSnap.keypad.state == KeypadState::Pressed)
             {
-              MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Clear();
-              MatrixOS::KeyPad::ClearList();
+              MatrixOS::Input::ClearQueue();
               MatrixOS::LED::DestroyLayer();
               MatrixOS::LED::Update();
               return;

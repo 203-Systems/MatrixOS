@@ -56,9 +56,8 @@ void ClearList() {
 }
 
 void Clear() {
-  // Delegate to the new input system — ClearState clears device KeyInfo,
-  // input state cache, input queue, and legacy KeyPad queue.
-  MatrixOS::Input::ClearState();
+  Device::KeyPad::Clear();
+  ClearList();
 }
 
 uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)

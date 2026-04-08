@@ -40,7 +40,7 @@ void UI::Start() {
     MatrixOS::LED::Fade();
   }
 
-  MatrixOS::Input::ClearState();
+  MatrixOS::Input::ClearQueue();
   Setup();
   while (status >= 0)
   {
@@ -193,7 +193,7 @@ void UI::UIEnd() {
   End();
   MLOGD("UI", "UI %s Exited", name.c_str());
 
-  MatrixOS::Input::ClearState();
+  MatrixOS::Input::ClearQueue();
   uiComponents.clear();
 
   if (newLEDLayer)
@@ -252,7 +252,7 @@ void UI::ExitAllUIs() {
       (*it)->uiComponents.clear();
     }
   }
-  MatrixOS::Input::ClearState();
+  MatrixOS::Input::ClearQueue();
   UI::uiList.clear();
 }
 
