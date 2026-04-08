@@ -157,7 +157,7 @@ void UI::UIKeyEvent(InputEvent* inputEvent) {
       }
     }
     if (this->name.empty() == false && hasAction == false && inputEvent->keypad.state == KeypadState::Hold &&
-        Dimension(Device::xSize, Device::ySize).Contains(xy))
+        MatrixOS::Input::GetPrimaryGridSize().Contains(xy))
     {
       MatrixOS::UIUtility::TextScroll(this->name, this->nameColor);
     }
