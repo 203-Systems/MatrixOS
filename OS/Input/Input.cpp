@@ -163,7 +163,8 @@ void ClearQueue() {
 void ClearState() {
   stateCache.clear();
   ClearQueue();
-  // Also clear legacy KeyPad queue so stale events don't survive across stacks
+  // Clear device-side KeyInfo state buffers and legacy KeyPad queue
+  Device::KeyPad::Clear();
   MatrixOS::KeyPad::ClearList();
 }
 

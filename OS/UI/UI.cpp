@@ -40,8 +40,7 @@ void UI::Start() {
     MatrixOS::LED::Fade();
   }
 
-  MatrixOS::KeyPad::Clear();
-  MatrixOS::Input::ClearQueue();
+  MatrixOS::Input::ClearState();
   Setup();
   while (status >= 0)
   {
@@ -194,8 +193,7 @@ void UI::UIEnd() {
   End();
   MLOGD("UI", "UI %s Exited", name.c_str());
 
-  MatrixOS::KeyPad::Clear();
-  MatrixOS::Input::ClearQueue();
+  MatrixOS::Input::ClearState();
   uiComponents.clear();
 
   if (newLEDLayer)
@@ -254,8 +252,7 @@ void UI::ExitAllUIs() {
       (*it)->uiComponents.clear();
     }
   }
-  MatrixOS::KeyPad::Clear();
-  MatrixOS::Input::ClearQueue();
+  MatrixOS::Input::ClearState();
   UI::uiList.clear();
 }
 

@@ -56,8 +56,8 @@ void ClearList() {
 }
 
 void Clear() {
-  Device::KeyPad::Clear();
-  // Clear both input stacks — ClearState also drains the legacy KeyPad queue
+  // Delegate to the new input system — ClearState clears device KeyInfo,
+  // input state cache, input queue, and legacy KeyPad queue.
   MatrixOS::Input::ClearState();
 }
 

@@ -99,17 +99,22 @@ void Supervisor(void* param) {
       xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, applicationStack, &applicationTaskdef);
 
   bool exited = false;
+  InputId fnKeyId = MatrixOS::Input::GetFunctionKeyId();
   while (true)
   {
-    // Check if function key is held for more than 3 seconds
-    KeyInfo* fnKeyInfo = MatrixOS::KeyPad::GetKey(FUNCTION_KEY);
-    if (exited == false && (fnKeyInfo->HoldTime() > 3000))
+    // Check if function key is held for more than 3 seconds via new Input API
+    InputSnapshot fnSnap;
+    bool hasFnState = MatrixOS::Input::GetState(fnKeyId, &fnSnap);
+    bool fnActive = hasFnState && fnSnap.keypad.Active();
+    uint32_t fnHoldTime = fnActive ? ((uint32_t)MatrixOS::SYS::Millis() - fnSnap.keypad.lastEventTime) : 0;
+
+    if (exited == false && (fnHoldTime > 3000))
     {
       MLOGD("Supervisor", "Function key held for 3s, force exiting app");
       exited = true;
       ExitAPP();
     }
-    else if (fnKeyInfo->Active() == false)
+    else if (!fnActive)
     {
       exited = false;
     }
