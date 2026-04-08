@@ -36,37 +36,37 @@ bool tud_msc_test_unit_ready_cb(uint8_t lun) {
   // MatrixOS::Logging::LogInfo("MSC", "Storage - Available: %s, Sectors: %d, SectorSize: %d, WriteProtected: %s",
   //   status->available ? "YES" : "NO",
   //   status->sectorCount,
-  //   status->sector_size,
-  //   status->write_protected ? "YES" : "NO");
+  //   status->sectorSize,
+  //   status->writeProtected ? "YES" : "NO");
 
   return status->available;
 }
 
 // Invoked when received SCSI_CMD_READ_CAPACITY_10 and SCSI_CMD_READ_FORMAT_CAPACITY to determine the disk size
 // Application update block count and block size
-void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_size) {
+void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* blockSize) {
   // MatrixOS::Logging::LogInfo("MSC", "CAPACITY - LUN: %d", lun);
 
 #if DEVICE_STORAGE == 1
   const Device::Storage::StorageStatus* status = Device::Storage::Status();
   if (status->available)
   {
-    *block_count = status->sector_count;
-    *block_size = status->sector_size;
-    // MatrixOS::Logging::LogInfo("MSC", "Reporting capacity - Blocks: %d, BlockSize: %d", *block_count, *block_size);
+    *block_count = status->sectorCount;
+    *blockSize = status->sectorSize;
+    // MatrixOS::Logging::LogInfo("MSC", "Reporting capacity - Blocks: %d, BlockSize: %d", *block_count, *blockSize);
   }
   else
   {
     // When no storage available, still report minimal capacity
     // Actual I/O operations will fail with proper error codes
     *block_count = 1; // Minimal 1 sector
-    *block_size = 512;
+    *blockSize = 512;
     // MatrixOS::Logging::LogWarning("MSC", "Storage not available - minimal capacity reported");
   }
 #else
   // Default minimal capacity when storage driver not available
   *block_count = 1; // Minimal 1 sector
-  *block_size = 512;
+  *blockSize = 512;
 // MatrixOS::Logging::LogWarning("MSC", "Storage driver disabled - minimal capacity reported");
 #endif
 }
@@ -199,11 +199,11 @@ bool tud_msc_is_writable_cb(uint8_t lun) {
 #if DEVICE_STORAGE == 1
   const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
-  bool writable = status->available && !status->write_protected;
-  // MatrixOS::Logging::LogInfo("MSC", "Writable: %s (available=%s, write_protected=%s)",
+  bool writable = status->available && !status->writeProtected;
+  // MatrixOS::Logging::LogInfo("MSC", "Writable: %s (available=%s, writeProtected=%s)",
   //   writable ? "YES" : "NO",
   //   status->available ? "YES" : "NO",
-  //   status->write_protected ? "YES" : "NO");
+  //   status->writeProtected ? "YES" : "NO");
 
   return writable;
 #else

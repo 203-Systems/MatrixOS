@@ -230,11 +230,11 @@ MainWindow::onConnect(FXObject *sender, FXSelector sel, void *ptr)
 	FXListItem *item = device_list->getItem(cur_item);
 	if (!item)
 		return -1;
-	struct hid_device_info *device_info = (struct hid_device_info*) item->getData();
-	if (!device_info)
+	struct hid_device_info *deviceInfo = (struct hid_device_info*) item->getData();
+	if (!deviceInfo)
 		return -1;
 	
-	connected_device =  hid_open_path(device_info->path);
+	connected_device =  hid_open_path(deviceInfo->path);
 	
 	if (!connected_device) {
 		FXMessageBox::error(this, MBOX_OK, "Device Error", "Unable To Connect to Device");
@@ -247,9 +247,9 @@ MainWindow::onConnect(FXObject *sender, FXSelector sel, void *ptr)
 		5 * timeout_scalar /*5ms*/);
 	
 	FXString s;
-	s.format("Connected to: %04hx:%04hx -", device_info->vendor_id, device_info->product_id);
-	s += FXString(" ") + device_info->manufacturer_string;
-	s += FXString(" ") + device_info->product_string;
+	s.format("Connected to: %04hx:%04hx -", deviceInfo->vendor_id, deviceInfo->product_id);
+	s += FXString(" ") + deviceInfo->manufacturer_string;
+	s += FXString(" ") + deviceInfo->product_string;
 	connected_label->setText(s);
 	output_button->enable();
 	feature_button->enable();

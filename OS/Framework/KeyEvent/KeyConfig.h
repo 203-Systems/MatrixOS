@@ -3,9 +3,9 @@
 #include "Types.h"
 
 struct KeyConfig {
-  bool apply_curve;
-  Fract16 low_threshold;
-  Fract16 high_threshold;
-  Fract16 activation_offset;
+  bool applyCurve;
+  Fract16 lowThreshold;
+  Fract16 highThreshold;
+  Fract16 activationOffset;
   uint16_t debounce;
 };

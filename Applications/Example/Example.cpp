@@ -122,7 +122,7 @@ void ExampleAPP::UIMenu() {
   });
 
   // Add the UI element to the UI object to top right conner
-  menu.AddUIComponent(colorSelector, Point(Device::x_size - 1, 0));
+  menu.AddUIComponent(colorSelector, Point(Device::xSize - 1, 0));
 
   // A large button that cycles though the brightness of the device
   UIButton brightnessBtn;
@@ -133,7 +133,7 @@ void ExampleAPP::UIMenu() {
   brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });      // Function to call when the button is hold down
 
   // Place this button in the center of the device
-  menu.AddUIComponent(brightnessBtn, Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2));
+  menu.AddUIComponent(brightnessBtn, Point((Device::xSize - 1) / 2, (Device::ySize - 1) / 2));
 
   // Set a key event handler for the UI object
   // By default, the UI exits after the function key is PRESSED.

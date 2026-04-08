@@ -1,10 +1,10 @@
 #include "REDACTED.h"
 
 void REDACTED::Setup(const vector<string>& args) {
-  // x_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeX) - 8) / 2; //TODO, wait for new API to
+  // xOffset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeX) - 8) / 2; //TODO, wait for new API to
   // be implemented y_offset = (MatrixOS::SYS::GetVariable(MatrixOS::SYS::ESysVar::MatrixSizeY) - 8) / 2;
 
-  x_offset = 0;
+  xOffset = 0;
   y_offset = 0;
 
   MatrixOS::LED::Fill(0);
@@ -33,7 +33,7 @@ void REDACTED::Task1() {
       {
         for (uint8_t y = 0; y < 8; y++)
         {
-          MatrixOS::LED::SetColor(Point(x + x_offset, y + y_offset), Color(((data[offset + bufferOffset] >> y) & 0x01) * 0xFFFFFF));
+          MatrixOS::LED::SetColor(Point(x + xOffset, y + y_offset), Color(((data[offset + bufferOffset] >> y) & 0x01) * 0xFFFFFF));
         }
         bufferOffset++;
       }

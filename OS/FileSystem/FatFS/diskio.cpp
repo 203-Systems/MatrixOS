@@ -24,7 +24,7 @@ DSTATUS disk_status (
   if (!status->available)
     return STA_NOINIT;
 
-  if (status->write_protected)
+  if (status->writeProtected)
     return STA_PROTECT;
 
   return 0; // Ready
@@ -112,7 +112,7 @@ DRESULT disk_ioctl (
     case 1: // GET_SECTOR_COUNT
       if (status->available && buff)
       {
-        *(uint32_t*)buff = status->sector_count;
+        *(uint32_t*)buff = status->sectorCount;
         return RES_OK;
       }
       return RES_ERROR;
@@ -120,7 +120,7 @@ DRESULT disk_ioctl (
     case 2: // GET_SECTOR_SIZE
       if (buff)
       {
-        *(uint16_t*)buff = status->sector_size;
+        *(uint16_t*)buff = status->sectorSize;
         return RES_OK;
       }
       return RES_ERROR;
@@ -128,7 +128,7 @@ DRESULT disk_ioctl (
     case 3: // GET_BLOCK_SIZE
       if (status->available && buff)
       {
-        *(uint32_t*)buff = status->block_size;
+        *(uint32_t*)buff = status->blockSize;
         return RES_OK;
       }
       return RES_ERROR;

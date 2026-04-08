@@ -2,11 +2,11 @@
 
 namespace Device::KeyPad
 {
-  void InitTouchBar() {}
+void InitTouchBar() {}
 
-  void StartTouchBar() {}
+void StartTouchBar() {}
 
-  IRAM_ATTR bool ScanTouchBar() {
-    return false;
-  }
+IRAM_ATTR bool ScanTouchBar() {
+  return false;
 }
+} // namespace Device::KeyPad

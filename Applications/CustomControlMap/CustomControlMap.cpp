@@ -402,8 +402,8 @@ void CustomControlMap::SendDeviceDescriptor() {
       0x4D,                                   // Family ID 0x4D
       0x58,                                   // Family ID 0x58
       0x11,                                   // Model ID 0x11
-      Device::x_size,                         // Device X 8
-      Device::y_size,                         // Device Y 8
+      Device::xSize,                         // Device X 8
+      Device::ySize,                         // Device Y 8
       MAX_UAD_LAYER,                          // Max Layers
       (uint8_t)((maxUadSize >> 24) & 0xFF), // UAD Size MSB1
       (uint8_t)((maxUadSize >> 16) & 0xFF), // UAD Size MSB2

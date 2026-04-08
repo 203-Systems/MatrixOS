@@ -52,7 +52,7 @@ struct NotePadConfig {
     };
     struct // Offset Mode
     {
-      uint8_t x_offset : 4; // X offset for the note pad
+      uint8_t xOffset : 4; // X offset for the note pad
       uint8_t y_offset : 4; // Y offset for the note pad
     };
     struct // Piano Mode

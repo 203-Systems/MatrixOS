@@ -290,7 +290,7 @@ void ErrorHandler(string error) {
 
   // Show Blue Screen
   MatrixOS::LED::Fill(0x00adef);
-  if (Device::x_size >= 5 && Device::y_size >= 5)
+  if (Device::xSize >= 5 && Device::ySize >= 5)
   {
     MatrixOS::LED::SetColor(Point(1, 1), 0xFFFFFF);
     MatrixOS::LED::SetColor(Point(1, 3), 0xFFFFFF);

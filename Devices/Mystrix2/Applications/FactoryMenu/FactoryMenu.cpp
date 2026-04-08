@@ -36,16 +36,16 @@ void FactoryMenu::Setup(const vector<string>& args) {
   factoryMenu.AddUIComponent(usbConnection, Point(7, 7));
 
   Color deviceColor = Color::White;
-  #ifdef FAMILY_MYSTRIX
-  if(Device::device_info.model[3] == 'S')
+#ifdef FAMILY_MYSTRIX
+  if (Device::deviceInfo.model[3] == 'S')
   {
     deviceColor = Color(0x00FFFF);
   }
-  else if(Device::device_info.model[3] == 'P')
+  else if (Device::deviceInfo.model[3] == 'P')
   {
     deviceColor = Color(0xFF00FF);
   }
-  #endif
+#endif
 
   UIButton deviceVersionBtn;
   deviceVersionBtn.SetName("Device Version");

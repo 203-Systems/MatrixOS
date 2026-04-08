@@ -2,7 +2,7 @@
 #include "BPMTapper.h"
 
 void Lighting::Setup(const vector<string>& args) {
-  start_time = MatrixOS::SYS::Millis();
+  startTime = MatrixOS::SYS::Millis();
   Update();
 }
 
@@ -24,19 +24,19 @@ void Lighting::Update() {
   {
   case RGB: {
     uint16_t period = 60000 / rgb_effect_bpm; // Convert BPM to period in ms
-    Color color = ApplyColorEffect(this->color, rgb_effect, period, start_time);
+    Color color = ApplyColorEffect(this->color, rgb_effect, period, startTime);
     Render(color);
     break;
   }
   case Temperature: {
     uint16_t period = 60000 / temperature_effect_bpm; // Convert BPM to period in ms
-    Color color = ApplyColorEffect(temperature_color, temperature_effect, period, start_time);
+    Color color = ApplyColorEffect(temperature_color, temperature_effect, period, startTime);
     Render(color);
     break;
   }
     // case Animation:
     // {
-    //   Color color = GetAnimationColor(animation, start_time);
+    //   Color color = GetAnimationColor(animation, startTime);
     //   Render(color);
     //   break;
     // }
@@ -99,7 +99,7 @@ void Lighting::KeyEventHandler(KeyEvent& keyEvent) {
 void Lighting::Settings() {
   UI settingsUI("Settings", Color(0x00FFFF), true);
 
-  start_time = MatrixOS::SYS::Millis();
+  startTime = MatrixOS::SYS::Millis();
 
   // Lighting Mode Selector & chunk selector
   // Selector
@@ -148,7 +148,7 @@ void Lighting::Settings() {
   // Mode & Speed
   UIButton rgbEffectBtn;
   rgbEffectBtn.SetName("Effect & Speed");
-  rgbEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, rgb_effect, 60000 / rgb_effect_bpm, start_time); });
+  rgbEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, rgb_effect, 60000 / rgb_effect_bpm, startTime); });
   rgbEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(RGB); });
   rgbEffectBtn.SetEnableFunc([&]() -> bool { return mode == RGB; });
   rgbEffectBtn.SetSize(Dimension(1, 2));
@@ -173,7 +173,7 @@ void Lighting::Settings() {
   UIButton temperatureEffectBtn;
   temperatureEffectBtn.SetName("Effect & Speed");
   temperatureEffectBtn.SetColorFunc(
-      [&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, 60000 / temperature_effect_bpm, start_time); });
+      [&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, 60000 / temperature_effect_bpm, startTime); });
   temperatureEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(Temperature); });
   temperatureEffectBtn.SetEnableFunc([&]() -> bool { return mode == Temperature; });
   temperatureEffectBtn.SetSize(Dimension(1, 2));
@@ -209,7 +209,7 @@ void Lighting::Settings() {
   settingsUI.Start();
 
   // Reset the start time to help user sync.
-  start_time = MatrixOS::SYS::Millis();
+  startTime = MatrixOS::SYS::Millis();
 }
 
 void Lighting::EffectModeAndSpeedMenu(LightingMode mode) {
@@ -231,32 +231,32 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode) {
 
   // uint16_t period = 60000 / bpm; // Convert BPM to period in ms
 
-  start_time = MatrixOS::SYS::Millis();
+  startTime = MatrixOS::SYS::Millis();
 
   UIButton staticBtn;
   staticBtn.SetName("Static");
   staticBtn.SetColorFunc(
-      [&]() -> Color { return ApplyColorEffect(color, Static, 60000 / bpm, start_time).DimIfNot(effectMode == Static); });
+      [&]() -> Color { return ApplyColorEffect(color, Static, 60000 / bpm, startTime).DimIfNot(effectMode == Static); });
   staticBtn.OnPress([&]() -> void { effectMode = Static; });
   effectUI.AddUIComponent(staticBtn, Point(2, 0));
 
   UIButton breathBtn;
   breathBtn.SetName("Breathing");
   breathBtn.SetColorFunc(
-      [&]() -> Color { return ApplyColorEffect(color, Breath, 60000 / bpm, start_time).DimIfNot(effectMode == Breath); });
+      [&]() -> Color { return ApplyColorEffect(color, Breath, 60000 / bpm, startTime).DimIfNot(effectMode == Breath); });
   breathBtn.OnPress([&]() -> void { effectMode = Breath; });
   effectUI.AddUIComponent(breathBtn, Point(3, 0));
 
   UIButton strobeBtn;
   strobeBtn.SetName("Strobe");
   strobeBtn.SetColorFunc(
-      [&]() -> Color { return ApplyColorEffect(color, Strobe, 60000 / bpm, start_time).DimIfNot(effectMode == Strobe); });
+      [&]() -> Color { return ApplyColorEffect(color, Strobe, 60000 / bpm, startTime).DimIfNot(effectMode == Strobe); });
   strobeBtn.OnPress([&]() -> void { effectMode = Strobe; });
   effectUI.AddUIComponent(strobeBtn, Point(4, 0));
 
   UIButton sawBtn;
   sawBtn.SetName("Saw");
-  sawBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, Saw, 60000 / bpm, start_time).DimIfNot(effectMode == Saw); });
+  sawBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, Saw, 60000 / bpm, startTime).DimIfNot(effectMode == Saw); });
   sawBtn.OnPress([&]() -> void { effectMode = Saw; });
   effectUI.AddUIComponent(sawBtn, Point(5, 0));
 

@@ -53,7 +53,7 @@ uint16_t XY2ID(Point xy) // Not sure if this is required by Matrix OS, added in 
 {
   if (!xy)
     return UINT16_MAX;
-  xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
+  xy = xy.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize));
   return Device::KeyPad::XY2ID(xy);
 }
 
@@ -62,7 +62,7 @@ Point ID2XY(uint16_t keyID) // Locate XY for given key ID, return Point(INT16_MI
 {
   Point point = Device::KeyPad::ID2XY(keyID);
   if (point)
-    return point.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size), true);
+    return point.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize), true);
   return point;
 }
 } // namespace MatrixOS::KeyPad

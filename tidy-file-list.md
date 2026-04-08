@@ -140,9 +140,80 @@
 - Applications\Performance\8x8\Performance8x8.cpp - FORMATTED
 - Applications\Performance\8x8\UINotePad.h - FORMATTED
 - Applications\Performance\8x8\Performance8x8.h - FORMATTED
-
-## NOT FORMATTED
-
+- Devices\Device.h - FORMATTED
+- Devices\DefaultConfigs.h - FORMATTED
+- Devices\Mystrix1\Family.h - FORMATTED
+- Devices\Mystrix1\Family.cpp - FORMATTED
+- Devices\Mystrix1\MatrixOSConfig.h - FORMATTED
+- Devices\Mystrix1\main.c - FORMATTED
+- Devices\Mystrix1\ULP\fsr_keypad.c - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.h - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.cpp - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\EFuseBurner.cpp - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\KeypadTester.cpp - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\LEDTester.cpp - FORMATTED
+- Devices\Mystrix1\Applications\FactoryMenu\TouchBarTester.cpp - FORMATTED
+- Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.h - FORMATTED
+- Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.cpp - FORMATTED
+- Devices\Mystrix1\Applications\ForceCalibration\HighCalibration.cpp - FORMATTED
+- Devices\Mystrix1\Applications\ForceCalibration\LowCalibration.cpp - FORMATTED
+- Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - FORMATTED
+- Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\BLEMIDI.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\EFuse.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\HWMidi.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\Keypad.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\KeypadBinary.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\KeypadFSR.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\LED.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\NVS.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\Storage.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\TouchBar.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\USB.cpp - FORMATTED
+- Devices\Mystrix1\Drivers\WIFI.cpp - FORMATTED
+- Devices\Mystrix1\Variants\Mystrix\Device.cpp - FORMATTED
+- Devices\Mystrix1\Variants\Mystrix\V100\Config.h - FORMATTED
+- Devices\Mystrix1\Variants\Mystrix\RevC\Config.h - FORMATTED
+- Devices\Mystrix1\Variants\Mystrix\V110\Config.h - FORMATTED
+- Devices\Mystrix2\Family.h - FORMATTED
+- Devices\Mystrix2\Family.cpp - FORMATTED
+- Devices\Mystrix2\MatrixOSConfig.h - FORMATTED
+- Devices\Mystrix2\main.c - FORMATTED
+- Devices\Mystrix2\ULP\fsr_keypad.c - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\FactoryMenu.h - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\FactoryMenu.cpp - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\EFuseBurner.cpp - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\KeypadTester.cpp - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\LEDTester.cpp - FORMATTED
+- Devices\Mystrix2\Applications\FactoryMenu\TouchBarTester.cpp - FORMATTED
+- Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.h - FORMATTED
+- Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.cpp - FORMATTED
+- Devices\Mystrix2\Applications\ForceCalibration\HighCalibration.cpp - FORMATTED
+- Devices\Mystrix2\Applications\ForceCalibration\LowCalibration.cpp - FORMATTED
+- Devices\Mystrix2\Applications\MystrixBoot\MystrixBoot.h - FORMATTED
+- Devices\Mystrix2\Applications\MystrixBoot\MystrixBoot.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\BLEMIDI.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\EFuse.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\Keypad.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\KeypadFSR.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\KeypadMPE.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\LED.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\NVS.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\Storage.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\TouchBar.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\USB.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\WIFI.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkHost.h - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkHost.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkProtocol.h - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.h - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.h - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.cpp - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLinkProtocol.h - FORMATTED
+- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\Firmware\mystrix2_mpe_driver.h - FORMATTED
+- Devices\Mystrix2\Variants\Mystrix2\Device.cpp - FORMATTED
+- Devices\Mystrix2\Variants\Mystrix2\UltraProto2\Config.h - FORMATTED
 - OS\USB\USB.h - FORMATTED
 - OS\USB\USB.cpp - FORMATTED
 - OS\USB\MSC.cpp - FORMATTED
@@ -156,10 +227,6 @@
 - OS\UI\UIComponents.h - FORMATTED
 - OS\UI\UI.h - FORMATTED
 - OS\UI\UI.cpp - FORMATTED
-- Devices\Mystrix2\Family.h - NOT FORMATTED
-- Devices\Mystrix2\Family.cpp - NOT FORMATTED
-- Devices\Mystrix2\MatrixOSConfig.h - NOT FORMATTED
-- Devices\Mystrix2\main.c - NOT FORMATTED
 - OS\UI\Data\font.h - FORMATTED
 - OS\UI\Data\4pxNumber.h - FORMATTED
 - OS\UI\Component\UIToggle.h - FORMATTED
@@ -172,72 +239,20 @@
 - OS\UI\Component\UIComponent.h - FORMATTED
 - OS\UI\Component\UIButton.h - FORMATTED
 - OS\UI\Component\UI4pxNumber.h - FORMATTED
-- Devices\Mystrix2\Drivers\WIFI.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\USB.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\TouchBar.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\Storage.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\NVS.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\LED.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\KeypadMPE.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\KeypadFSR.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\Keypad.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\EFuse.cpp - NOT FORMATTED
-- Devices\Mystrix2\Variants\Mystrix2\UltraProto2\Config.h - NOT FORMATTED
-- Devices\Mystrix2\Variants\Mystrix2\Device.cpp - NOT FORMATTED
 - OS\System\UserVariables.h - FORMATTED
 - OS\System\System.h - FORMATTED
 - OS\System\System.cpp - FORMATTED
 - OS\System\ReleaseConfig.h - FORMATTED
 - OS\System\Parameters.h - FORMATTED
-- Devices\Mystrix1\Family.h - NOT FORMATTED
-- Devices\Mystrix1\Family.cpp - NOT FORMATTED
 - OS\NVS\NVS.cpp - FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLinkProtocol.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.cpp - NOT FORMATTED
-- Devices\Mystrix1\MatrixOSConfig.h - NOT FORMATTED
-- Devices\Mystrix1\main.c - NOT FORMATTED
 - OS\MIDI\MIDI.h - FORMATTED
 - OS\MIDI\MIDI.cpp - FORMATTED
 - OS\MatrixOS.h - FORMATTED
 - OS\main.cpp - FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\Firmware\mystrix2_mpe_driver.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkProtocol.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkHost.h - NOT FORMATTED
-- Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkHost.cpp - NOT FORMATTED
-- Devices\Mystrix2\Drivers\BLEMIDI.cpp - NOT FORMATTED
-- Devices\Device.h - NOT FORMATTED
-- Devices\DefaultConfigs.h - NOT FORMATTED
-- Devices\Mystrix1\Drivers\WIFI.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\USB.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\TouchBar.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\Storage.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\NVS.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\LED.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\KeypadFSR.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\KeypadBinary.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\Keypad.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\HWMidi.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\EFuse.cpp - NOT FORMATTED
-- Devices\Mystrix1\Drivers\BLEMIDI.cpp - NOT FORMATTED
 - OS\Logging\Logging.h - FORMATTED
 - OS\Logging\Logging.cpp - FORMATTED
-- Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED
-- Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.cpp - NOT FORMATTED
-- Devices\Mystrix1\ULP\fsr_keypad.c - NOT FORMATTED
-- Devices\Mystrix2\ULP\fsr_keypad.c - NOT FORMATTED
-- Devices\Mystrix1\Variants\Mystrix\V110\Config.h - NOT FORMATTED
-- Devices\Mystrix1\Variants\Mystrix\RevC\Config.h - NOT FORMATTED
-- Devices\Mystrix1\Variants\Mystrix\Device.cpp - NOT FORMATTED
 - OS\LED\LED.h - FORMATTED
 - OS\LED\LED.cpp - FORMATTED
-- Devices\Mystrix1\Variants\Mystrix\V100\Config.h - NOT FORMATTED
-- Devices\Mystrix1\Applications\ForceCalibration\LowCalibration.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.h - NOT FORMATTED
-- Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.cpp - NOT FORMATTED
 - OS\KeyPad\KeyPad.h - FORMATTED
 - OS\KeyPad\KeyPad.cpp - FORMATTED
 - OS\HID\RawHID.cpp - FORMATTED
@@ -246,32 +261,14 @@
 - OS\HID\HID.h - FORMATTED
 - OS\HID\HID.cpp - FORMATTED
 - OS\HID\Gamepad.cpp - FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.h - NOT FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\EFuseBurner.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
-- Devices\Mystrix1\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
 - OS\Framework\Utils\Utilts.h - FORMATTED
 - OS\Framework\Utils\Hash.h - FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\FactoryMenu.h - NOT FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\FactoryMenu.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\FactoryMenu\EFuseBurner.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED
-- Devices\Mystrix2\Applications\MystrixBoot\MystrixBoot.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\ForceCalibration\LowCalibration.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED
-- Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.h - NOT FORMATTED
-- Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.cpp - NOT FORMATTED
 - OS\Framework\Midi\MidiSpecs.h - FORMATTED
 - OS\Framework\Midi\MidiPort.h - FORMATTED
 - OS\Framework\Midi\MidiPort.cpp - FORMATTED
 - OS\Framework\Midi\MidiPacket.h - FORMATTED
-- OS\Framework\Color\ColorEffects.h - FORMATTED
 - OS\Framework\Midi\MidiPacket.cpp - FORMATTED
+- OS\Framework\Color\ColorEffects.h - FORMATTED
 - OS\Framework\Color\ColorEffects.cpp - FORMATTED
 - OS\Framework\Color\Color.h - FORMATTED
 - OS\Framework\Color\Color.cpp - FORMATTED
@@ -295,3 +292,7 @@
 - OS\Framework\KeyEvent\KeyConfig.h - FORMATTED
 - OS\Framework\KeyEvent\KeyInfo.cpp - FORMATTED
 - OS\Framework\KeyEvent\KeyInfo.h - FORMATTED
+
+## NOT FORMATTED
+
+*(none)*`n

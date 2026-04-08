@@ -95,7 +95,7 @@ void Init() {
   {
     // Log storage status for debugging
     const Device::Storage::StorageStatus* storageStatus = Device::Storage::Status();
-    MLOGI("FileSystem", "Storage available - sectors: %lu, size: %u bytes", storageStatus->sector_count, storageStatus->sector_size);
+    MLOGI("FileSystem", "Storage available - sectors: %lu, size: %u bytes", storageStatus->sectorCount, storageStatus->sectorSize);
 
     FRESULT result = f_mount(&fs, "", 1);
 

@@ -7,11 +7,11 @@
 class AppLauncherBarEditMode : public UIComponent {
 public:
   Shell* shell;
-  uint32_t start_time;
+  uint32_t startTime;
 
   AppLauncherBarEditMode(Shell* shell) {
     this->shell = shell;
-    this->start_time = MatrixOS::SYS::Millis();
+    this->startTime = MatrixOS::SYS::Millis();
   }
 
   virtual Dimension GetSize() {
@@ -31,7 +31,7 @@ public:
       else
       {
         // Empty slot - show as dark gray
-        MatrixOS::LED::SetColor(origin + Point(i, 0), ColorEffects::ColorBreathLowBound(Color::White.Dim(), 64, 1000, start_time));
+        MatrixOS::LED::SetColor(origin + Point(i, 0), ColorEffects::ColorBreathLowBound(Color::White.Dim(), 64, 1000, startTime));
       }
     }
 

@@ -2,7 +2,7 @@
 
 /*
  * Device Feature Configuration
- * 
+ *
  * This file contains default values for device feature flags.
  * Device implementations can override these by defining the macros
  * before including Device.h or in their device-specific headers.

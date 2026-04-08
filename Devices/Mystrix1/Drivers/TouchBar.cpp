@@ -4,61 +4,63 @@
 
 namespace Device::KeyPad
 {
-  // TODO Change to use interrupt
+// TODO Change to use interrupt
 
-  StaticTimer_t touchbar_timer_def;
-  TimerHandle_t touchbar_timer;
+StaticTimer_t touchbar_timer_def;
+TimerHandle_t touchbarTimer;
 
-  IRAM_ATTR void TouchBarTimerHandler()  // This exists because return type of TouchBarScan is bool
+IRAM_ATTR void TouchBarTimerHandler() // This exists because return type of TouchBarScan is bool
+{
+  if (touchbarEnable)
+    ScanTouchBar();
+}
+
+void InitTouchBar() {
+  // Set Touch Data Pin
+  gpio_config_t dataIoConf;
+  dataIoConf.intr_type = GPIO_INTR_DISABLE;
+  dataIoConf.mode = GPIO_MODE_INPUT;
+  dataIoConf.pin_bit_mask = (1ULL << touch_data_pin);
+  dataIoConf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+  dataIoConf.pull_up_en = GPIO_PULLUP_DISABLE;
+  gpio_config(&dataIoConf);
+
+  // Set Touch Clock Pin
+  gpio_config_t clockIoConf;
+  clockIoConf.intr_type = GPIO_INTR_DISABLE;
+  clockIoConf.mode = GPIO_MODE_OUTPUT;
+  clockIoConf.pin_bit_mask = (1ULL << touch_clock_pin);
+  clockIoConf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+  clockIoConf.pull_up_en = GPIO_PULLUP_DISABLE;
+  gpio_config(&clockIoConf);
+}
+
+void StartTouchBar() {
+  touchbarTimer = xTimerCreateStatic(NULL, configTICK_RATE_HZ / touchbarScanrate, true, NULL,
+                                      reinterpret_cast<TimerCallbackFunction_t>(TouchBarTimerHandler), &touchbar_timer_def);
+  xTimerStart(touchbarTimer, 0);
+}
+
+IRAM_ATTR bool ScanTouchBar() {
+  for (uint8_t i = 0; i < touchbarSize; i++)
   {
-    if(touchbar_enable) ScanTouchBar();
-  }
+    gpio_set_level(touch_clock_pin, 1);
 
-  void InitTouchBar() {
-    // Set Touch Data Pin
-    gpio_config_t data_io_conf;
-    data_io_conf.intr_type = GPIO_INTR_DISABLE;
-    data_io_conf.mode = GPIO_MODE_INPUT;
-    data_io_conf.pin_bit_mask = (1ULL << touch_data_pin);
-    data_io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-    data_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&data_io_conf);
+    Fract16 reading = gpio_get_level(touch_data_pin) * UINT16_MAX;
 
-    // Set Touch Clock Pin
-    gpio_config_t clock_io_conf;
-    clock_io_conf.intr_type = GPIO_INTR_DISABLE;
-    clock_io_conf.mode = GPIO_MODE_OUTPUT;
-    clock_io_conf.pin_bit_mask = (1ULL << touch_clock_pin);
-    clock_io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    clock_io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-    gpio_config(&clock_io_conf);
-  }
+    gpio_set_level(touch_clock_pin, 0);
 
-  void StartTouchBar() {
-    touchbar_timer =
-        xTimerCreateStatic(NULL, configTICK_RATE_HZ / touchbar_scanrate, true, NULL,
-                           reinterpret_cast<TimerCallbackFunction_t>(TouchBarTimerHandler), &touchbar_timer_def);
-    xTimerStart(touchbar_timer, 0);
-  }
-
-  IRAM_ATTR bool ScanTouchBar() {
-    for (uint8_t i = 0; i < touchbar_size; i++)
+    uint8_t keyId = touchbarMap[i];
+    bool updated = touchbarState[keyId].Update(binaryConfig, reading);
+    if (updated)
     {
-      gpio_set_level(touch_clock_pin, 1);
-
-      Fract16 reading = gpio_get_level(touch_data_pin) * UINT16_MAX;
-
-      gpio_set_level(touch_clock_pin, 0);
-
-      uint8_t key_id = touchbar_map[i];
-      bool updated = touchbar_state[key_id].Update(binary_config, reading);
-      if (updated)
+      uint16_t keyID = (2 << 12) + keyId;
+      if (NotifyOS(keyID, &touchbarState[keyId]))
       {
-        uint16_t keyID = (2 << 12) + key_id;
-        if (NotifyOS(keyID, &touchbar_state[key_id]))
-        { return true; }
+        return true;
       }
     }
-    return false;
   }
+  return false;
 }
+} // namespace Device::KeyPad

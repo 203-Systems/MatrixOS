@@ -14,14 +14,14 @@ void BrightnessControl::Start() {
   nameColor = Color::White;
 
   // Brightness Control
-  threshold = Device::LED::brightness_level[sizeof(Device::LED::brightness_level) / sizeof(Device::LED::brightness_level[0]) -
+  threshold = Device::LED::brightnessLevel[sizeof(Device::LED::brightnessLevel) / sizeof(Device::LED::brightnessLevel[0]) -
                                             1]; // Get the last element
 #ifndef FINE_LED_BRIGHTNESS
-  map = Device::LED::brightness_level;
-  map_length = sizeof(Device::LED::brightness_level) / sizeof(Device::LED::brightness_level[0]);
+  map = Device::LED::brightnessLevel;
+  map_length = sizeof(Device::LED::brightnessLevel) / sizeof(Device::LED::brightnessLevel[0]);
 #else
-  map = Device::LED::brightness_fine_level;
-  map_length = sizeof(Device::LED::brightness_fine_level) / sizeof(Device::LED::brightness_fine_level[0]);
+  map = Device::LED::brightnessFineLevel;
+  map_length = sizeof(Device::LED::brightnessFineLevel) / sizeof(Device::LED::brightnessFineLevel[0]);
 #endif
 
   // Main Brightness Selector

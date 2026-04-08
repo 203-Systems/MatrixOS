@@ -198,7 +198,7 @@ namespace WS2812
         continue;
       }
 
-      uint8_t local_brightness = brightness[partition_index];
+      uint8_t localBrightness = brightness[partition_index];
 
       for (uint16_t i = 0; i < WS2812::partitions->at(partition_index).size; i++)
       {
@@ -208,13 +208,13 @@ namespace WS2812
         uint16_t data_index_b = data_index_g + 2;
         uint16_t data_index_w = data_index_g + 3;
 
-        led_data[data_index_g] = Color::Scale8Video(buffer[buffer_index].G, local_brightness);
-        led_data[data_index_r] = Color::Scale8Video(buffer[buffer_index].R, local_brightness);
-        led_data[data_index_b] = Color::Scale8Video(buffer[buffer_index].B, local_brightness);
+        led_data[data_index_g] = Color::Scale8Video(buffer[buffer_index].G, localBrightness);
+        led_data[data_index_r] = Color::Scale8Video(buffer[buffer_index].R, localBrightness);
+        led_data[data_index_b] = Color::Scale8Video(buffer[buffer_index].B, localBrightness);
 
         if (byte_per_pixel == 4)
         {
-          led_data[data_index_w] = Color::Scale8Video(buffer[buffer_index].W, local_brightness);
+          led_data[data_index_w] = Color::Scale8Video(buffer[buffer_index].W, localBrightness);
         }
 
         if(dithering && dither_error != NULL) {
@@ -236,7 +236,7 @@ namespace WS2812
             if(led_data[channels[ch].data_index] >= dithering_threshold)
             {
               // Calculate error more efficiently using 16-bit intermediate
-              uint16_t expected = (uint16_t)channels[ch].original * local_brightness;
+              uint16_t expected = (uint16_t)channels[ch].original * localBrightness;
               uint16_t actual = (uint16_t)led_data[channels[ch].data_index] << 8;
 
               if (expected > actual) {

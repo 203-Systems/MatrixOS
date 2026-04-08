@@ -22,7 +22,7 @@ public:
 
   void KeyEventHandler(KeyEvent* keyEvent);
 
-  uint8_t x_offset;
+  uint8_t xOffset;
   uint8_t y_offset;
   uint16_t offset = 0;
   int16_t progress = -10;

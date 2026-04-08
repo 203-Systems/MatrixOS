@@ -11,24 +11,24 @@
 #define EFUSE_BURNER
 #endif
 
-#if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+#if MLOG_LEVEL == LOG_LEVEL_VERBOSE // When in debug mode, show factory app
 #define APPLICATION_VISIBLITY true
 #else
 #define APPLICATION_VISIBLITY false
 #endif
 
 class FactoryMenu : public Application {
-  public:
+public:
   inline static Application_Info info = {
       .name = "Factory Menu",
       .author = "203 Systems",
-      .color =  Color::White,
+      .color = Color::White,
       .version = 1,
-      #if MLOG_LEVEL == LOG_LEVEL_VERBOSE  // When in debug mode, show factory app 
+#if MLOG_LEVEL == LOG_LEVEL_VERBOSE // When in debug mode, show factory app
       .visibility = true,
-      #else
+#else
       .visibility = false,
-      #endif
+#endif
   };
   void Setup(const vector<string>& args) override;
 
@@ -40,5 +40,3 @@ class FactoryMenu : public Application {
 
   void EFuseBurner();
 };
-
-

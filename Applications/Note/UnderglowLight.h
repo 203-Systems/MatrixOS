@@ -20,7 +20,7 @@ public:
   }
 
   bool IsUnderglow(Point pos) {
-    return !(pos.x >= 0 && pos.x < Device::x_size && pos.y >= 0 && pos.y < Device::y_size);
+    return !(pos.x >= 0 && pos.x < Device::xSize && pos.y >= 0 && pos.y < Device::ySize);
   }
 
   virtual bool Render(Point origin) {

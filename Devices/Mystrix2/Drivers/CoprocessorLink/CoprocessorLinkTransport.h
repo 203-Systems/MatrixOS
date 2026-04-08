@@ -5,10 +5,11 @@
 
 #include "driver/uart.h"
 
-namespace CoprocessorLink {
+namespace CoprocessorLink
+{
 
 class Transport {
- public:
+public:
   virtual ~Transport() = default;
 
   virtual bool begin() = 0;
@@ -18,13 +19,8 @@ class Transport {
 };
 
 class UartTransport final : public Transport {
- public:
-  UartTransport(uart_port_t uartNum,
-                int txPin,
-                int rxPin,
-                uint32_t baudRate,
-                int rxBufferSize = 2048,
-                int txBufferSize = 0);
+public:
+  UartTransport(uart_port_t uartNum, int txPin, int rxPin, uint32_t baudRate, int rxBufferSize = 2048, int txBufferSize = 0);
 
   bool begin() override;
   bool write(const uint8_t* data, size_t len) override;
@@ -32,7 +28,7 @@ class UartTransport final : public Transport {
   void clearRx() override;
   size_t readAvailable(uint8_t* data, size_t maxLen);
 
- private:
+private:
   uart_port_t uartNum_;
   int txPin_;
   int rxPin_;
@@ -42,4 +38,4 @@ class UartTransport final : public Transport {
   bool started_ = false;
 };
 
-}  // namespace CoprocessorLink
+} // namespace CoprocessorLink

@@ -7,8 +7,8 @@ inline uint16_t MAX(uint16_t a, uint16_t b) {
   return ((a) > (b) ? a : b);
 }
 
-#define BELOW_VALUE_THRESHOLD newValue <= config.low_threshold
-#define ABOVE_THRESHOLD newValue > config.low_threshold
+#define BELOW_VALUE_THRESHOLD newValue <= config.lowThreshold
+#define ABOVE_THRESHOLD newValue > config.lowThreshold
 
 // Constructor is defined in the header file
 
@@ -32,15 +32,15 @@ uint32_t KeyInfo::HoldTime(void) {
 }
 
 IRAM_ATTR Fract16 KeyInfo::ApplyForceCurve(KeyConfig& config, Fract16 value) {
-  if (!config.apply_curve)
+  if (!config.applyCurve)
   {
     return value;
   }
-  if (value < config.low_threshold)
+  if (value < config.lowThreshold)
   {
     value = 0;
   }
-  else if (value >= config.high_threshold)
+  else if (value >= config.highThreshold)
   {
     // uint32_t source = value;
     value = FRACT16_MAX;
@@ -49,8 +49,8 @@ IRAM_ATTR Fract16 KeyInfo::ApplyForceCurve(KeyConfig& config, Fract16 value) {
   else
   {
     // uint32_t source = value;
-    uint32_t preDivisionValue = ((uint16_t)value - (uint16_t)config.low_threshold) * UINT16_MAX;
-    value = (Fract16)(preDivisionValue / ((uint16_t)config.high_threshold - (uint16_t)config.low_threshold));
+    uint32_t preDivisionValue = ((uint16_t)value - (uint16_t)config.lowThreshold) * UINT16_MAX;
+    value = (Fract16)(preDivisionValue / ((uint16_t)config.highThreshold - (uint16_t)config.lowThreshold));
     // MatrixOS::Logging::LogDebug("Velocity Curve", "%d - %d", source, value);
   }
   return value;
@@ -80,7 +80,7 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 newValue) {
     hold = false;
     [[fallthrough]];
   case IDLE:
-    if (newValue > config.low_threshold + config.activation_offset)
+    if (newValue > config.lowThreshold + config.activationOffset)
     {
       if (config.debounce > 0)
       {
@@ -94,13 +94,13 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 newValue) {
         state = PRESSED;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "IDLE -> PRESSED");
         lastEventTime = timeNow;
-        values[0] = config.apply_curve ? ApplyForceCurve(config, newValue) : newValue;
+        values[0] = config.applyCurve ? ApplyForceCurve(config, newValue) : newValue;
         return true & !cleared;
       }
     }
     break;
   case DEBOUNCING:
-    if (newValue <= config.low_threshold + config.activation_offset)
+    if (newValue <= config.lowThreshold + config.activationOffset)
     {
       // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBOUNCING -> IDLE");
       state = IDLE;
@@ -112,7 +112,7 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 newValue) {
       state = PRESSED;
       // MatrixOS::Logging::LogVerbose("KeyInfo", "DEBOUNCING -> PRESSED");
       lastEventTime = timeNow;
-      values[0] = config.apply_curve ? ApplyForceCurve(config, newValue) : newValue;
+      values[0] = config.applyCurve ? ApplyForceCurve(config, newValue) : newValue;
       return true & !cleared; // I know just return "!cleared" works but I want to make it clear this is suppose to return true
     }
     return false;
@@ -156,7 +156,7 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 newValue) {
       }
     }
     // Apply force Curve
-    newValue = config.apply_curve ? ApplyForceCurve(config, newValue) : newValue;
+    newValue = config.applyCurve ? ApplyForceCurve(config, newValue) : newValue;
 
     if (timeNow - lastEventTime > holdThreshold && !hold)
     {

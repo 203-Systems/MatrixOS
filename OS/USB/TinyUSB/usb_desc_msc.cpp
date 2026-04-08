@@ -77,10 +77,10 @@ uint16_t const* msc_string_descriptor_cb(uint8_t index, uint16_t langid) {
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
       (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
-      Device::manufacturer_name.c_str(),        // 1: Manufacturer
-      Device::product_name.c_str(),                    // 2: Product (with MSC suffix)
+      Device::manufacturerName.c_str(),        // 1: Manufacturer
+      Device::productName.c_str(),                    // 2: Product (with MSC suffix)
       Device::GetSerial().c_str(),                   // 3: Serials, should use chip ID
-      (Device::product_name + " MSC").c_str()  // 4: MSC Interface
+      (Device::productName + " MSC").c_str()  // 4: MSC Interface
   };
 
   if (index == 0)

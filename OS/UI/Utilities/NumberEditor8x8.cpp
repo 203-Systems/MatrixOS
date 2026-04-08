@@ -5,7 +5,7 @@ namespace MatrixOS::UIUtility
 {
 // Three digit max
 int32_t NumberSelector8x8(int32_t value, Color color, string name, int32_t lowerLimit, int32_t upperLimit, int32_t* customModifier) {
-  Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
+  Point origin = Point((Device::xSize - 1) / 2, (Device::ySize - 1) / 2);
 
   UI numberSelector(name, color);
 

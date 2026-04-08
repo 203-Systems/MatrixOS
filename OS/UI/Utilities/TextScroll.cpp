@@ -12,7 +12,7 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
   // Log the text we're about to scroll
   MLOGD("Text Scroll Slow", "Printing %s", text.c_str());
 
-  if (Device::y_size < 8)
+  if (Device::ySize < 8)
   {
     MLOGE("Text Scroll Slow", "Not enough vertical space, abort");
     return;
@@ -25,12 +25,12 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
   MatrixOS::LED::CreateLayer();
 
   // Create a buffer to store the state of each LED
-  bool buffer[Device::x_size][Device::y_size]; // TODO Check Device Rotation
+  bool buffer[Device::xSize][Device::ySize]; // TODO Check Device Rotation
 
   // Clear the buffer
-  for (uint8_t x = 0; x < Device::x_size; x++)
+  for (uint8_t x = 0; x < Device::xSize; x++)
   {
-    for (uint8_t y = 0; y < Device::y_size; y++)
+    for (uint8_t y = 0; y < Device::ySize; y++)
     {
       buffer[x][y] = 0;
     }
@@ -71,7 +71,7 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
                currentCharProgress++)
           {
             // Shift the buffer to the left
-            for (uint8_t x = 1; x < Device::x_size; x++)
+            for (uint8_t x = 1; x < Device::xSize; x++)
             {
               memcpy(buffer[x - 1], buffer[x], 8);
             }
@@ -83,19 +83,19 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
               {
                 // Set the state of the LED at the end of the buffer to the corresponding bit in the character's
                 // column
-                buffer[Device::x_size - 1][y] = bitRead(font8[currentChar - 32][currentCharProgress + 1], 7 - y);
+                buffer[Device::xSize - 1][y] = bitRead(font8[currentChar - 32][currentCharProgress + 1], 7 - y);
               }
             }
             else // Render Spacing
             {
               for (uint8_t y = 0; y < 8; y++)
               {
-                buffer[Device::x_size - 1][y] = 0;
+                buffer[Device::xSize - 1][y] = 0;
               }
             }
 
             // Render the buffer to the LED screen
-            for (uint8_t x = 0; x < Device::x_size; x++)
+            for (uint8_t x = 0; x < Device::xSize; x++)
             {
               for (uint8_t y = 0; y < 8; y++)
               {
@@ -141,7 +141,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
   // Log the text we're about to scroll
   MLOGD("Text Scroll Fast", "Printing %s", text.c_str());
 
-  if (Device::y_size < 8)
+  if (Device::ySize < 8)
   {
     MLOGE("Text Scroll Fast", "Not enough vertical space, abort");
     return;
@@ -154,12 +154,12 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
   MatrixOS::LED::CreateLayer();
 
   // Create a buffer to store the state of each LED
-  bool buffer[Device::x_size][Device::y_size]; // TODO Check Device Rotation
+  bool buffer[Device::xSize][Device::ySize]; // TODO Check Device Rotation
 
   // Clear the buffer
-  for (uint8_t x = 0; x < Device::x_size; x++)
+  for (uint8_t x = 0; x < Device::xSize; x++)
   {
-    for (uint8_t y = 0; y < Device::y_size; y++)
+    for (uint8_t y = 0; y < Device::ySize; y++)
     {
       buffer[x][y] = 0;
     }
@@ -196,11 +196,11 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
         else // Regular text
         {
           // Left shift buffer by font8[currentChar - 32][0] + TEXT_SCROLL_SPACING
-          // for (uint8_t x = 0; x < Device::x_size; x++)
+          // for (uint8_t x = 0; x < Device::xSize; x++)
           // {
           //   for (uint8_t y = 0; y < 8; y++)
           //   {
-          //     if ((x + font8[currentChar - 32][0] + TEXT_SCROLL_SPACING) < Device::x_size)
+          //     if ((x + font8[currentChar - 32][0] + TEXT_SCROLL_SPACING) < Device::xSize)
           //     {
           //       buffer[x][y] = buffer[x + font8[currentChar - 32][0] + TEXT_SCROLL_SPACING][y];
           //     }
@@ -212,16 +212,16 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           // }
 
           // Clear the buffer
-          for (uint8_t x = 0; x < Device::x_size; x++)
+          for (uint8_t x = 0; x < Device::xSize; x++)
           {
-            for (uint8_t y = 0; y < Device::y_size; y++)
+            for (uint8_t y = 0; y < Device::ySize; y++)
             {
               buffer[x][y] = 0;
             }
           }
 
           // Render the buffer to the LED screen
-          for (uint8_t x = 0; x < Device::x_size; x++)
+          for (uint8_t x = 0; x < Device::xSize; x++)
           {
             for (uint8_t y = 0; y < 8; y++)
             {
@@ -252,7 +252,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           // Draw new character
           for (uint8_t x = 0; x < font8[currentChar - 32][0]; x++)
           {
-            uint8_t canvasX = Device::x_size - font8[currentChar - 32][0] + x - 1;
+            uint8_t canvasX = Device::xSize - font8[currentChar - 32][0] + x - 1;
             for (uint8_t y = 0; y < 8; y++)
             {
               buffer[canvasX][y] = bitRead(font8[currentChar - 32][x + 1], 7 - y);
@@ -260,7 +260,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           }
 
           // Render the buffer to the LED screen
-          for (uint8_t x = 0; x < Device::x_size; x++)
+          for (uint8_t x = 0; x < Device::xSize; x++)
           {
             for (uint8_t y = 0; y < 8; y++)
             {

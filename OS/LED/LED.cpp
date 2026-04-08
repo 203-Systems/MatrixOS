@@ -123,7 +123,7 @@ void Init() {
 void NextBrightness() {
   MLOGD("LED", "Next Brightness");
   MLOGD("LED", "Current Brightness %d", UserVar::brightness.value);
-  for (uint8_t newBrightness : Device::LED::brightness_level)
+  for (uint8_t newBrightness : Device::LED::brightnessLevel)
   {
     MLOGD("LED", "Check Brightness Level  %d", newBrightness);
     if (newBrightness > UserVar::brightness)
@@ -134,7 +134,7 @@ void NextBrightness() {
     }
   }
   MLOGD("LED", "Lowest Level Selected");
-  SetBrightness(Device::LED::brightness_level[0]);
+  SetBrightness(Device::LED::brightnessLevel[0]);
 }
 
 void SetBrightness(uint8_t brightness) {
@@ -175,7 +175,7 @@ void SetColor(Point xy, Color color, uint8_t layer) {
     return;
   }
 
-  xy = xy.Rotate(UserVar::rotation, Point(Device::x_size, Device::y_size));
+  xy = xy.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize));
   uint16_t index = Device::LED::XY2Index(xy);
   // MLOGI("LED", "Set Color #%.2X%.2X%.2X to %d %d at Layer %d (index %d)", color.R, color.G, color.B, xy.x, xy.y, layer, index);
   if (index == UINT16_MAX)

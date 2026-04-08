@@ -55,5 +55,5 @@ public:
 
   Timer renderTimer;
   uint8_t base_layer;
-  uint32_t start_time;
+  uint32_t startTime;
 };

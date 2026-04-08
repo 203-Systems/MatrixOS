@@ -14,11 +14,11 @@
 #define MATRIXOS_COMMAND_GET_DEVICE_MODEL_ID                                                                                               \
   0x02 // Returns [MATRIXOS_COMMAND_GET_DEVICE_MODEL_ID, Device::model_id] model id as null terminated array
 #define MATRIXOS_COMMAND_GET_DEVICE_SERIAL                                                                                                 \
-  0x03 // Returns [MATRIXOS_COMMAND_GET_DEVICE_SERIAL, Device::serial_number] serial number as null terminated array
+  0x03 // Returns [MATRIXOS_COMMAND_GET_DEVICE_SERIAL, Device::serialNumber] serial number as null terminated array
 #define MATRIXOS_COMMAND_GET_DEVICE_ID                                                                                                     \
   0x04 // Returns [MATRIXOS_COMMAND_GET_DEVICE_ID, Device::device_id] device id as null terminated array
 #define MATRIXOS_COMMAND_GET_DEVICE_SIZE                                                                                                   \
-  0x05 // Returns [MATRIXOS_COMMAND_GET_DEVICE_SIZE, Device::x_size, Device::y_size] device size as null terminated array
+  0x05 // Returns [MATRIXOS_COMMAND_GET_DEVICE_SIZE, Device::xSize, Device::ySize] device size as null terminated array
 #define MATRIXOS_COMMAND_GET_DEVICE_LED_COUNT                                                                                              \
   0x06 // Returns [MATRIXOS_COMMAND_GET_DEVICE_LED_COUNT, Device::LED::count] led count as null terminated array
 #define MATRIXOS_COMMAND_SET_DEVICE_ID 0x0B // [MATRIXOS_COMMAND_SET_DEVICE_ID, device_id] Sets the device id

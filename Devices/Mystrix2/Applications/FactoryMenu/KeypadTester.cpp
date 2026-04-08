@@ -1,9 +1,9 @@
 #include "FactoryMenu.h"
 void FactoryMenu::KeyPadTester() {
-  bool keypad_tested[X_SIZE][Y_SIZE];
-  memset(keypad_tested, false, X_SIZE * Y_SIZE);
+  bool keypadTested[X_SIZE][Y_SIZE];
+  memset(keypadTested, false, X_SIZE * Y_SIZE);
   MatrixOS::LED::Fill(0);
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())  // Break when fn pressed
+  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active()) // Break when fn pressed
   {
     for (uint8_t x = 0; x < X_SIZE; x++)
     {
@@ -13,11 +13,13 @@ void FactoryMenu::KeyPadTester() {
 
         if (keyInfo->Active())
         {
-          keypad_tested[x][y] = true;
+          keypadTested[x][y] = true;
           MatrixOS::LED::SetColor(Point(x, y), Color(0x00FF00));
         }
         else
-        { MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF * keypad_tested[x][y])); }
+        {
+          MatrixOS::LED::SetColor(Point(x, y), Color(0xFFFFFF * keypadTested[x][y]));
+        }
       }
     }
     MatrixOS::LED::Update();

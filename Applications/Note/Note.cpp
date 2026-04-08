@@ -80,7 +80,7 @@ void Note::Setup(const vector<string>& args) {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if (Device::KeyPad::velocity_sensitivity)
+  if (Device::KeyPad::velocitySensitivity)
   {
     forceSensitiveToggle.SetColorFunc(
         [&]() -> Color { return Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
@@ -689,7 +689,7 @@ void Note::LayoutSelector() {
   UI layoutSelector("Layout Selector", color, false);
   bool configModified = false;
 
-  int32_t xOffset = notePadConfigs[activeConfig].x_offset;
+  int32_t xOffset = notePadConfigs[activeConfig].xOffset;
   int32_t yOffset = notePadConfigs[activeConfig].y_offset;
 
   UIButton octaveModeBtn;
@@ -717,7 +717,7 @@ void Note::LayoutSelector() {
       notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
       xOffset = 1;
       yOffset = 3;
-      notePadConfigs[activeConfig].x_offset = xOffset;
+      notePadConfigs[activeConfig].xOffset = xOffset;
       notePadConfigs[activeConfig].y_offset = yOffset;
     }
   });
@@ -849,7 +849,7 @@ void Note::LayoutSelector() {
   xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   xOffsetInput.OnChange([&](uint16_t val) -> void {
     configModified = true;
-    notePadConfigs[activeConfig].x_offset = val;
+    notePadConfigs[activeConfig].xOffset = val;
     ofsTextDisplay.Disable();
   });
   layoutSelector.AddUIComponent(xOffsetInput, Point(0, 7));

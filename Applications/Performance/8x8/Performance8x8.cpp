@@ -636,7 +636,7 @@ void Performance::ActionMenu() {
   velocityToggle.SetColor(Color(0x00FFFF));
   velocityToggle.SetValuePointer(&forceSensitive);
   velocityToggle.OnPress([&]() -> void { forceSensitive.Save(); });
-  velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
+  velocityToggle.SetEnabled(Device::KeyPad::velocitySensitivity);
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
   UIButton systemSettingBtn;

@@ -1,6 +1,6 @@
 #include "FactoryMenu.h"
 
-void BurnEFuse();  // This is in device folder, a custom BurnEFuse will be provided
+void BurnEFuse(); // This is in device folder, a custom BurnEFuse will be provided
 
 void FactoryMenu::EFuseBurner() {
 #ifdef EFUSE_BURNER
@@ -45,7 +45,7 @@ void FactoryMenu::EFuseBurner() {
     MatrixOS::SYS::DelayMs(2000);
     MatrixOS::LED::Fill(0);
   }
-#else  // Not in factory mode or not ESP32
+#else // Not in factory mode or not ESP32
   MatrixOS::LED::Fill(0);
   MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF00FF));
   MatrixOS::LED::SetColor(Point(3, 2), Color(0xFF00FF));

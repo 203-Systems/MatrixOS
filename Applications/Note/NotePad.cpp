@@ -237,7 +237,7 @@ void NotePad::GenerateOffsetKeymap() {
       int8_t uiY = dimension.y - y - 1;
       for (int8_t x = 0; x < dimension.x; x++)
       {
-        int16_t note = root + rt->config->x_offset * x + rt->config->y_offset * y;
+        int16_t note = root + rt->config->xOffset * x + rt->config->y_offset * y;
         if (note > 127 || note < 0)
         {
           noteMap[uiY * dimension.x + x] = 255;
@@ -266,7 +266,7 @@ void NotePad::GenerateOffsetKeymap() {
         {
           noteMap[uiY * dimension.x + x] = note;
         }
-        for (uint8_t i = 0; i < rt->config->x_offset; i++)
+        for (uint8_t i = 0; i < rt->config->xOffset; i++)
         {
           int16_t nextNote = GetNextInScaleNote(note);
           if (nextNote == INT16_MAX)

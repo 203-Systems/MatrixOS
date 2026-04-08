@@ -11,7 +11,7 @@ void BurnEFuse() {
   esp_err_t status;
 
   // Device Info
-  status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::device_info, sizeof(DeviceInfo) * 8);
+  status = esp_efuse_write_field_blob(ESP_EFUSE_USER_DATA, (void*)&Device::deviceInfo, sizeof(DeviceInfo) * 8);
   MLOGD("BurnEFuse", "Burning Matrix Info - Status: %s", esp_err_to_name(status));
 
   // Write protection for DIS_ICACHE DIS_DCACHE DIS_DOWNLOAD_ICACHE DIS_DOWNLOAD_DCACHE DIS_FORCE_DOWNLOAD DIS_USB
@@ -30,18 +30,15 @@ void BurnEFuse() {
 
   // Write protection for SPI_BOOT_CRYPT_CNT
   status = esp_efuse_write_field_bit(ESP_EFUSE_WR_DIS_SPI_BOOT_CRYPT_CNT);
-  MLOGD("BurnEFuse", "Burning EFUSE_WR_DIS_SPI_BOOT_CRYPT_CNT - Status: %s",
-                              esp_err_to_name(status));
+  MLOGD("BurnEFuse", "Burning EFUSE_WR_DIS_SPI_BOOT_CRYPT_CNT - Status: %s", esp_err_to_name(status));
 
   // Write protection for USB_EXCHG_PINS,
   status = esp_efuse_write_field_bit(ESP_EFUSE_WR_DIS_USB_EXCHG_PINS);
-  MLOGD("BurnEFuse", "Burning ESP_EFUSE_WR_DIS_USB_EXCHG_PINS - Status: %s",
-                              esp_err_to_name(status));
+  MLOGD("BurnEFuse", "Burning ESP_EFUSE_WR_DIS_USB_EXCHG_PINS - Status: %s", esp_err_to_name(status));
 
   // Write protection for Matrix Info
   status = esp_efuse_set_write_protect(EFUSE_BLK3);
-  MLOGD("BurnEFuse", "Block 3 (Matrix Info) write protected - Status: %s",
-                              esp_err_to_name(status));
+  MLOGD("BurnEFuse", "Block 3 (Matrix Info) write protected - Status: %s", esp_err_to_name(status));
   esp_efuse_batch_write_commit();
 }
 

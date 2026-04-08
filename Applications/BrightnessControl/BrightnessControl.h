@@ -12,7 +12,7 @@ public:
   uint16_t map_length;
   uint16_t threshold;
 
-  const Point origin = Point((Device::x_size - 1) / 2, (Device::y_size - 1) / 2);
+  const Point origin = Point((Device::xSize - 1) / 2, (Device::ySize - 1) / 2);
 
   void Start();
 };

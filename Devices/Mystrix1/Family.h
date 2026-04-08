@@ -14,7 +14,7 @@
 // Family-specific defines
 #define GRID_TYPE_8x8
 #define FAMILY_MYSTRIX
-#define MULTIPRESS 10  // Key Press will be process at once
+#define MULTIPRESS 10 // Key Press will be process at once
 
 #define DEVICE_SAVED_VAR_SCOPE "Device"
 
@@ -27,7 +27,7 @@
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'S'}
 #elif FACTORY_DEVICE_VERSION == 'P'
 #define FACTORY_DEVICE_MODEL {'M', 'X', '1', 'P'}
-#else 
+#else
 #error "FACTORY_DEVICE_VERSION is not correct"
 #endif
 #endif
@@ -40,149 +40,149 @@
 struct DeviceInfo {
   char model[4];
   char revision[4];
-  uint8_t production_year;
-  uint8_t production_month;
+  uint8_t productionYear;
+  uint8_t productionMonth;
 };
 
 namespace Device
 {
-  inline DeviceInfo device_info;
+inline DeviceInfo deviceInfo;
 
-  // Device Variable
-  inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbar_enable, bool, true);
-  inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
+// Device Variable
+inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbarEnable, bool, true);
+inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 
-  namespace HWMidi
-  {
-    inline gpio_num_t tx_gpio = GPIO_NUM_NC;
-    inline gpio_num_t rx_gpio = GPIO_NUM_NC;
-  }
+namespace HWMidi
+{
+inline gpio_num_t txGpio = GPIO_NUM_NC;
+inline gpio_num_t rxGpio = GPIO_NUM_NC;
+} // namespace HWMidi
 
-  namespace LED
-  {
-    inline gpio_num_t led_pin;
-  }
-
-  void LoadDeviceInfo();
-  void LoadVariantInfo();
-
-  namespace USB
-  {
-    void Init();
-  }
-  namespace LED
-  {
-    void Init();
-    void Start();
-  }
-
-  namespace KeyPad
-  {
-    void Init();
-    void InitFN();
-    void InitKeyPad();
-    void InitTouchBar();
-
-    void Start();
-    void StartKeyPad();
-    void StartTouchBar();
-
-    // If return true, meaning the scan in interrupted
-    void Scan();
-    bool ScanKeyPad();
-    bool ScanFN();
-    bool ScanTouchBar();
-
-    inline gpio_num_t fn_pin;
-    inline bool velocity_sensitivity = false;
-
-    inline KeyConfig binary_config = {
-        .apply_curve = false,
-        .low_threshold = 0,
-        .high_threshold = 65535,
-        .activation_offset = 0,
-        .debounce = 3,
-    };
-
-    inline KeyConfig keypad_config = {
-        .apply_curve = true,
-        .low_threshold = 1536,
-        .high_threshold = 32767,
-        .activation_offset = 256,
-        .debounce = 10,
-    };
-
-    inline gpio_num_t keypad_write_pins[X_SIZE];
-    inline gpio_num_t keypad_read_pins[Y_SIZE];
-    inline adc_channel_t keypad_read_adc_channel[Y_SIZE];
-
-    inline uint16_t keypad_scanrate = 240;
-
-    inline gpio_num_t touch_data_pin;
-    inline gpio_num_t touch_clock_pin;
-
-    inline const uint8_t touchbar_size = 16;
-    inline const uint16_t touchbar_scanrate = 120;
-    inline uint8_t touchbar_map[touchbar_size];  // Touch number as index and touch location as value (Left touch down
-                                                 // and then right touch down)
-                                                 
-    inline KeyInfo fn_state;
-    inline KeyInfo keypad_state[X_SIZE][Y_SIZE];
-    inline KeyInfo touchbar_state[touchbar_size];
-
-    namespace Binary
-    {
-      void Init();
-      void Start();
-      bool Scan();
-    }
-
-    namespace FSR
-    {
-      void Init();
-      void Start();
-      bool Scan();
-    }
-
-    bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo);  // Passthrough MatrixOS::KeyPad::NewEvent() result
-  }
-
-  namespace NVS
-  {
-    void Init();
-  }
-
-  namespace WIFI
-  {
-    void Init();
-  }
-
-  namespace BLEMIDI
-  {
-    extern bool started;
-    void Init(string name);
-    void Start();
-    void Stop();
-  }
-
-  namespace HWMidi
-  {
-    void Init();
-  }
-
-  namespace Storage
-  {
-    inline gpio_num_t sd_clk_pin;
-    inline gpio_num_t sd_cmd_pin;
-    inline gpio_num_t sd_d0_pin;
-    inline gpio_num_t sd_d1_pin;
-    inline gpio_num_t sd_d2_pin;
-    inline gpio_num_t sd_d3_pin;
-    inline gpio_num_t sd_det_pin;
-
-    inline bool sd_4bit_mode;
-    inline uint32_t sd_freq_khz;
-
-    void Init();
-  }
+namespace LED
+{
+inline gpio_num_t ledPin;
 }
+
+void LoadDeviceInfo();
+void LoadVariantInfo();
+
+namespace USB
+{
+void Init();
+}
+namespace LED
+{
+void Init();
+void Start();
+} // namespace LED
+
+namespace KeyPad
+{
+void Init();
+void InitFN();
+void InitKeyPad();
+void InitTouchBar();
+
+void Start();
+void StartKeyPad();
+void StartTouchBar();
+
+// If return true, meaning the scan in interrupted
+void Scan();
+bool ScanKeyPad();
+bool ScanFN();
+bool ScanTouchBar();
+
+inline gpio_num_t fnPin;
+inline bool velocitySensitivity = false;
+
+inline KeyConfig binaryConfig = {
+    .applyCurve = false,
+    .lowThreshold = 0,
+    .highThreshold = 65535,
+    .activationOffset = 0,
+    .debounce = 3,
+};
+
+inline KeyConfig keypadConfig = {
+    .applyCurve = true,
+    .lowThreshold = 1536,
+    .highThreshold = 32767,
+    .activationOffset = 256,
+    .debounce = 10,
+};
+
+inline gpio_num_t keypadWritePins[X_SIZE];
+inline gpio_num_t keypadReadPins[Y_SIZE];
+inline adc_channel_t keypadReadAdcChannel[Y_SIZE];
+
+inline uint16_t keypadScanrate = 240;
+
+inline gpio_num_t touch_data_pin;
+inline gpio_num_t touch_clock_pin;
+
+inline const uint8_t touchbarSize = 16;
+inline const uint16_t touchbarScanrate = 120;
+inline uint8_t touchbarMap[touchbarSize]; // Touch number as index and touch location as value (Left touch down
+                                            // and then right touch down)
+
+inline KeyInfo fnState;
+inline KeyInfo keypadState[X_SIZE][Y_SIZE];
+inline KeyInfo touchbarState[touchbarSize];
+
+namespace Binary
+{
+void Init();
+void Start();
+bool Scan();
+} // namespace Binary
+
+namespace FSR
+{
+void Init();
+void Start();
+bool Scan();
+} // namespace FSR
+
+bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); // Passthrough MatrixOS::KeyPad::NewEvent() result
+} // namespace KeyPad
+
+namespace NVS
+{
+void Init();
+}
+
+namespace WIFI
+{
+void Init();
+}
+
+namespace BLEMIDI
+{
+extern bool started;
+void Init(string name);
+void Start();
+void Stop();
+} // namespace BLEMIDI
+
+namespace HWMidi
+{
+void Init();
+}
+
+namespace Storage
+{
+inline gpio_num_t sdClkPin;
+inline gpio_num_t sdCmdPin;
+inline gpio_num_t sdD0Pin;
+inline gpio_num_t sdD1Pin;
+inline gpio_num_t sdD2Pin;
+inline gpio_num_t sdD3Pin;
+inline gpio_num_t sdDetPin;
+
+inline bool sd4BitMode;
+inline uint32_t sdFreqKhz;
+
+void Init();
+} // namespace Storage
+} // namespace Device

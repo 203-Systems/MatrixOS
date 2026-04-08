@@ -472,14 +472,14 @@ void Shell::ApplicationLauncher() {
 void Shell::ApplicationLauncherEditing() {
   UI applicationLauncherEdit("Edit Mode", Color(0xFF0000), false);
 
-  uint32_t start_time = MatrixOS::SYS::Millis();
+  uint32_t startTime = MatrixOS::SYS::Millis();
 
   // Clear any previous selection
   selected_app_id = 0;
 
   UIButton exitEditing;
   exitEditing.SetName("Exit Editing");
-  exitEditing.SetColorFunc([&]() -> Color { return ColorEffects::ColorStrobe(Color(0xFF0000), 1000, start_time); });
+  exitEditing.SetColorFunc([&]() -> Color { return ColorEffects::ColorStrobe(Color(0xFF0000), 1000, startTime); });
   exitEditing.OnPress([&]() -> void { applicationLauncherEdit.Exit(); });
   applicationLauncherEdit.AddUIComponent(exitEditing, Point(7, 7));
 

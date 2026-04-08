@@ -129,7 +129,7 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
       }
     }
     if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD &&
-        Dimension(Device::x_size, Device::y_size).Contains(xy))
+        Dimension(Device::xSize, Device::ySize).Contains(xy))
     {
       MatrixOS::UIUtility::TextScroll(this->name, this->nameColor);
     }
