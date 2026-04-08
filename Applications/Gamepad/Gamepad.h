@@ -8,9 +8,8 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #include "MatrixOS.h"
 #include "Application.h"
 
-
 class Gamepad : public Application {
- public:
+public:
   inline static Application_Info info = {
       .name = "Gamepad",
       .author = "203 Systems",
@@ -25,5 +24,3 @@ class Gamepad : public Application {
 
   void ActionMenu();
 };
-
-

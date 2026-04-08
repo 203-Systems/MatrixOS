@@ -123,12 +123,12 @@
 - Applications\CustomControlMap\CustomControlMap.h - NOT FORMATTED
 - Applications\CustomControlMap\CustomControlMap.cpp - NOT FORMATTED
 - Applications\CustomControlMap\cb0r_utils.h - NOT FORMATTED
-- Applications\Gamepad\UIKeyboardKey.h - NOT FORMATTED
-- Applications\Gamepad\UIGamepadKey.h - NOT FORMATTED
-- Applications\Gamepad\UIGamepadAxis.h - NOT FORMATTED
-- Applications\Gamepad\UIDPad.h - NOT FORMATTED
-- Applications\Gamepad\Gamepad.h - NOT FORMATTED
-- Applications\Gamepad\Gamepad.cpp - NOT FORMATTED
+- Applications\Gamepad\UIKeyboardKey.h - FORMATTED
+- Applications\Gamepad\UIGamepadKey.h - FORMATTED
+- Applications\Gamepad\UIGamepadAxis.h - FORMATTED
+- Applications\Gamepad\UIDPad.h - FORMATTED
+- Applications\Gamepad\Gamepad.h - FORMATTED
+- Applications\Gamepad\Gamepad.cpp - FORMATTED
 - OS\NVS\NVS.cpp - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLinkProtocol.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.h - NOT FORMATTED

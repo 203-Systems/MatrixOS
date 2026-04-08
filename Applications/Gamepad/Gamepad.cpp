@@ -5,75 +5,74 @@
 #include "UIGamepadAxis.h"
 
 void Gamepad::Setup(const vector<string>& args) {
-    UI gamepadUI("", Color::White);
+  UI gamepadUI("", Color::White);
 
-    UIKeyboardKey Skey(Color(0xFF0000), KEY_S);
-    gamepadUI.AddUIComponent(Skey, Point(0, 1));
+  UIKeyboardKey sKey(Color(0xFF0000), KEY_S);
+  gamepadUI.AddUIComponent(sKey, Point(0, 1));
 
-    UIKeyboardKey Dkey(Color(0xFF0000), KEY_D);
-    gamepadUI.AddUIComponent(Dkey, Point(1, 1));
+  UIKeyboardKey dKey(Color(0xFF0000), KEY_D);
+  gamepadUI.AddUIComponent(dKey, Point(1, 1));
 
-    UIKeyboardKey Fkey(Color(0xFF0000), KEY_F);
-    gamepadUI.AddUIComponent(Fkey, Point(2, 1));
+  UIKeyboardKey fKey(Color(0xFF0000), KEY_F);
+  gamepadUI.AddUIComponent(fKey, Point(2, 1));
 
-    UIKeyboardKey Jkey(Color(0xFF0000), KEY_J);
-    gamepadUI.AddUIComponent(Jkey, Point(5, 1));
+  UIKeyboardKey jKey(Color(0xFF0000), KEY_J);
+  gamepadUI.AddUIComponent(jKey, Point(5, 1));
 
-    UIKeyboardKey Kkey(Color(0xFF0000), KEY_K);
-    gamepadUI.AddUIComponent(Kkey, Point(6, 1));
+  UIKeyboardKey kKey(Color(0xFF0000), KEY_K);
+  gamepadUI.AddUIComponent(kKey, Point(6, 1));
 
-    UIKeyboardKey Lkey(Color(0xFF0000), KEY_L);
-    gamepadUI.AddUIComponent(Lkey, Point(7, 1));
+  UIKeyboardKey lKey(Color(0xFF0000), KEY_L);
+  gamepadUI.AddUIComponent(lKey, Point(7, 1));
 
-    UIDPad Dpad(Color(0x00FF00));
-    gamepadUI.AddUIComponent(Dpad, Point(0, 4));
+  UIDPad dPad(Color(0x00FF00));
+  gamepadUI.AddUIComponent(dPad, Point(0, 4));
 
-    UIGamepadKey Akey(Color(0x00FF00), 0);
-    gamepadUI.AddUIComponent(Akey, Point(6, 6));
+  UIGamepadKey aKey(Color(0x00FF00), 0);
+  gamepadUI.AddUIComponent(aKey, Point(6, 6));
 
-    UIGamepadKey Bkey(Color(0x00FF00), 1);
-    gamepadUI.AddUIComponent(Bkey, Point(7, 5));
+  UIGamepadKey bKey(Color(0x00FF00), 1);
+  gamepadUI.AddUIComponent(bKey, Point(7, 5));
 
-    UIGamepadKey Xkey(Color(0x00FF00), 2);
-    gamepadUI.AddUIComponent(Xkey, Point(5, 5));
+  UIGamepadKey xKey(Color(0x00FF00), 2);
+  gamepadUI.AddUIComponent(xKey, Point(5, 5));
 
-    UIGamepadKey Ykey(Color(0x00FF00), 3);
-    gamepadUI.AddUIComponent(Ykey, Point(6, 4));
+  UIGamepadKey yKey(Color(0x00FF00), 3);
+  gamepadUI.AddUIComponent(yKey, Point(6, 4));
 
-    UIGamepadKey L1key(Color(0x00FFFF), 10);
-    gamepadUI.AddUIComponent(L1key, Point(0, 3));
+  UIGamepadKey l1Key(Color(0x00FFFF), 10);
+  gamepadUI.AddUIComponent(l1Key, Point(0, 3));
 
-    UIGamepadKey R1key(Color(0x00FFFF), 11);
-    gamepadUI.AddUIComponent(R1key, Point(7, 3));
+  UIGamepadKey r1Key(Color(0x00FFFF), 11);
+  gamepadUI.AddUIComponent(r1Key, Point(7, 3));
 
-    UIGamepadAxis L2pad(Color(0x00FFFF), GAMEPAD_AXIS_LEFT_TRIGGER, 32767);
-    gamepadUI.AddUIComponent(L2pad, Point(1, 3));
+  UIGamepadAxis l2Pad(Color(0x00FFFF), GAMEPAD_AXIS_LEFT_TRIGGER, 32767);
+  gamepadUI.AddUIComponent(l2Pad, Point(1, 3));
 
-    UIGamepadAxis R2pad(Color(0x00FFFF), GAMEPAD_AXIS_RIGHT_TRIGGER, 32767);
-    gamepadUI.AddUIComponent(R2pad, Point(6, 3));
+  UIGamepadAxis r2Pad(Color(0x00FFFF), GAMEPAD_AXIS_RIGHT_TRIGGER, 32767);
+  gamepadUI.AddUIComponent(r2Pad, Point(6, 3));
 
-    UIGamepadKey Selectkey(Color(0x0000FF), 6);
-    gamepadUI.AddUIComponent(Selectkey, Point(3, 7));    
+  UIGamepadKey selectKey(Color(0x0000FF), 6);
+  gamepadUI.AddUIComponent(selectKey, Point(3, 7));
 
-    UIGamepadKey Startkey(Color(0x0000FF), 7);
-    gamepadUI.AddUIComponent(Startkey, Point(4, 7));
-    
-    gamepadUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  UIGamepadKey startKey(Color(0x0000FF), 7);
+  gamepadUI.AddUIComponent(startKey, Point(4, 7));
+
+  gamepadUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
     if (keyEvent->id == FUNCTION_KEY)
     {
       if (keyEvent->info.state == PRESSED)
       {
         ActionMenu();
       }
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });
 
-    gamepadUI.Start();
-    Exit();
+  gamepadUI.Start();
+  Exit();
 }
-
 
 void Gamepad::ActionMenu() {
   UI actionMenu("Action Menu", Color(0x00FF00), true);
@@ -95,7 +94,7 @@ void Gamepad::ActionMenu() {
       {
         actionMenu.Exit();
       }
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });
@@ -104,5 +103,5 @@ void Gamepad::ActionMenu() {
 }
 
 void Gamepad::Loop() {
-    // Do nothing
+  // Do nothing
 }

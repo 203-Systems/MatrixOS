@@ -2,7 +2,7 @@
 #include "UI/UI.h"
 
 class UIKeyboardKey : public UIComponent {
- public:
+public:
   Color color;
   KeyboardKeycode keycode;
   bool active = false;
@@ -11,11 +11,14 @@ class UIKeyboardKey : public UIComponent {
     this->color = color;
     this->keycode = keycode;
   }
-  
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(1, 1); }
 
-  
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(1, 1);
+  }
+
   virtual bool Render(Point origin) {
     MatrixOS::LED::SetColor(origin, active ? Color::White : GetColor());
     return true;
@@ -25,7 +28,7 @@ class UIKeyboardKey : public UIComponent {
     if (keyInfo->State() == PRESSED)
     {
       active = true;
-      MatrixOS::HID::Keyboard::Press(keycode); 
+      MatrixOS::HID::Keyboard::Press(keycode);
     }
     else if (keyInfo->State() == RELEASED)
     {

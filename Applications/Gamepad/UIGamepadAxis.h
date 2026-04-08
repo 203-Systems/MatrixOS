@@ -11,7 +11,7 @@ enum GamepadAxis {
 };
 
 class UIGamepadAxis : public UIComponent {
- public:
+public:
   Color color;
   GamepadAxis axis;
   int16_t range = 32767;
@@ -22,9 +22,13 @@ class UIGamepadAxis : public UIComponent {
     this->axis = axis;
     this->range = range;
   }
-  
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(1,1); }
+
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(1, 1);
+  }
 
   virtual bool Render(Point origin) {
     if (value)
@@ -35,32 +39,31 @@ class UIGamepadAxis : public UIComponent {
     {
       MatrixOS::LED::SetColor(origin, color);
     }
-    
+
     return true;
   }
 
-  void SetAxis(GamepadAxis axis, int16_t value)
-  {
-    switch(axis)
+  void SetAxis(GamepadAxis axis, int16_t value) {
+    switch (axis)
     {
-      case GAMEPAD_AXIS_LEFT_X:
-        MatrixOS::HID::Gamepad::XAxis(value);
-        break;
-      case GAMEPAD_AXIS_LEFT_Y:
-        MatrixOS::HID::Gamepad::YAxis(value);
-        break;
-      case GAMEPAD_AXIS_RIGHT_X:
-        MatrixOS::HID::Gamepad::RXAxis(value);
-        break;
-      case GAMEPAD_AXIS_RIGHT_Y:
-        MatrixOS::HID::Gamepad::RYAxis(value);
-        break;
-      case GAMEPAD_AXIS_LEFT_TRIGGER:
-        MatrixOS::HID::Gamepad::ZAxis(value);
-        break;
-      case GAMEPAD_AXIS_RIGHT_TRIGGER:
-        MatrixOS::HID::Gamepad::RZAxis(value);
-        break;
+    case GAMEPAD_AXIS_LEFT_X:
+      MatrixOS::HID::Gamepad::XAxis(value);
+      break;
+    case GAMEPAD_AXIS_LEFT_Y:
+      MatrixOS::HID::Gamepad::YAxis(value);
+      break;
+    case GAMEPAD_AXIS_RIGHT_X:
+      MatrixOS::HID::Gamepad::RXAxis(value);
+      break;
+    case GAMEPAD_AXIS_RIGHT_Y:
+      MatrixOS::HID::Gamepad::RYAxis(value);
+      break;
+    case GAMEPAD_AXIS_LEFT_TRIGGER:
+      MatrixOS::HID::Gamepad::ZAxis(value);
+      break;
+    case GAMEPAD_AXIS_RIGHT_TRIGGER:
+      MatrixOS::HID::Gamepad::RZAxis(value);
+      break;
     }
   }
 
@@ -68,15 +71,14 @@ class UIGamepadAxis : public UIComponent {
     if (keyInfo->State() == PRESSED || keyInfo->State() == AFTERTOUCH)
     {
       value = keyInfo->Force();
-
     }
     else if (keyInfo->State() == RELEASED)
     {
       value = 0;
     }
-  
+
     SetAxis(axis, range * (uint32_t)value / FRACT16_MAX);
-    
+
     return true;
   }
 };
