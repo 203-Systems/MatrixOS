@@ -75,8 +75,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       int64_t newValue = *valuePtr;
       newValue += modifiers[xy.x];

@@ -145,7 +145,7 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     return true;
   };
 };

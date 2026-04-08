@@ -91,23 +91,23 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     uint8_t note = noteMap[xy.y * dimension.x + xy.x];
     if (note == 255)
     {
       return false;
     }
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
-      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keyInfo->Force().to7bits() : 0x7F));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keypadInfo->pressure.to7bits() : 0x7F));
       lastNote = note;
       activeNotes[note]++; // If this key doesn't exist, unordered_map will auto assign it to 0.
     }
-    else if (config->forceSensitive && keyInfo->State() == AFTERTOUCH)
+    else if (config->forceSensitive && keypadInfo->state == KeypadState::Aftertouch)
     {
-      MatrixOS::MIDI::Send(MidiPacket::AfterTouch(config->channel, note, keyInfo->Force().to7bits()));
+      MatrixOS::MIDI::Send(MidiPacket::AfterTouch(config->channel, note, keypadInfo->pressure.to7bits()));
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, 0));
       if (activeNotes[note]-- <= 1)

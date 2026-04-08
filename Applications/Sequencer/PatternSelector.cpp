@@ -16,12 +16,12 @@ Dimension PatternSelector::GetSize() {
   return Dimension(8, lengthAdjustmentMode ? 4 : 2);
 }
 
-bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool PatternSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   if (xy.y < 2) // Selector part
   {
     uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
 
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       uint8_t track = sequencer->track;
       SequencePosition* pos = sequencer->sequence.GetPosition(track);
@@ -137,7 +137,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
         lengthAdjustmentMode = false; // Just turn off Length Adjustment Mode
       }
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       uint8_t track = sequencer->track;
       uint8_t clip = sequencer->sequence.GetPosition(track)->clip;
@@ -150,9 +150,9 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
         lengthAdjustmentMode = true;
       }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
-      if (keyInfo->Hold() == true && patternIdx == sequencer->sequence.GetPosition(sequencer->track)->pattern && lengthAdjustmentMode)
+      if (keypadInfo->hold == true && patternIdx == sequencer->sequence.GetPosition(sequencer->track)->pattern && lengthAdjustmentMode)
       {
         lengthAdjustmentMode = false;
       }
@@ -161,7 +161,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
   }
   else // Length Adjustment Mode
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       uint8_t track = sequencer->track;
       SequencePosition* pos = sequencer->sequence.GetPosition(track);
@@ -181,7 +181,7 @@ bool PatternSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
         sequencer->sequence.PatternSetLength(pattern, newLength);
       }
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       uint8_t lengthIdx = xy.x + (xy.y - 2) * 8;
       uint8_t newLength = lengthIdx + 1;

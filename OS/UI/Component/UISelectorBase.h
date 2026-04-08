@@ -206,17 +206,17 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     uint16_t id = PointToIndex(xy);
     if (id >= count)
     {
       return false;
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       Selected(id);
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       if (nameFunc == nullptr)
       {

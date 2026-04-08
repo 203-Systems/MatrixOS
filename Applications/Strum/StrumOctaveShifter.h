@@ -34,14 +34,14 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == HOLD)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
       return true;
     }
 
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       *this->octave = xy.x;
     }

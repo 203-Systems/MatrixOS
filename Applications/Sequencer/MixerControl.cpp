@@ -12,8 +12,8 @@ bool MixerControl::IsEnabled() {
   return sequencer->currentView == Sequencer::ViewMode::Mixer;
 }
 
-bool MixerControl::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->State() == HOLD)
+bool MixerControl::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     uint8_t track = xy.x;
     uint8_t row = xy.y;
@@ -33,7 +33,7 @@ bool MixerControl::KeyEvent(Point xy, KeyInfo* keyInfo) {
       MatrixOS::UIUtility::TextScroll("Record", Color(0xFF0000));
     }
   }
-  else if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = xy.x;
     uint8_t row = xy.y;

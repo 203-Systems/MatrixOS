@@ -24,13 +24,13 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       active = true;
       MatrixOS::HID::Keyboard::Press(keycode);
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       active = false;
       MatrixOS::HID::Keyboard::Release(keycode);

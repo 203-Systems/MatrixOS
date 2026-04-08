@@ -46,29 +46,29 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     uint8_t note = map[xy.y * dimension.x + xy.x];
-    Fract16 force = keyInfo->Force();
+    Fract16 force = keypadInfo->pressure;
     if (!forceSensitive)
     {
-      if (keyInfo->State() == AFTERTOUCH)
+      if (keypadInfo->state == KeypadState::Aftertouch)
       {
         return true;
       };
-      if (keyInfo->Force() > 0)
+      if (keypadInfo->pressure > 0)
       {
         force = FRACT16_MAX;
       };
     }
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, force.to7bits()), MIDI_PORT_ALL);
     }
-    else if (keyInfo->State() == AFTERTOUCH)
+    else if (keypadInfo->state == KeypadState::Aftertouch)
     {
       MatrixOS::MIDI::Send(MidiPacket::AfterTouch(channel, note, force.to7bits()), MIDI_PORT_ALL);
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, 0), MIDI_PORT_ALL);
     }

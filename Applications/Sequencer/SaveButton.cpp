@@ -69,7 +69,7 @@ bool SaveButton::Render(Point origin) {
   return true;
 }
 
-bool SaveButton::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool SaveButton::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   if ((MatrixOS::SYS::Millis() - createTime) < 300) // Add dead frame to prevent accidential click
   {
     return true;
@@ -77,7 +77,7 @@ bool SaveButton::KeyEvent(Point xy, KeyInfo* keyInfo) {
 
   if (!MatrixOS::FileSystem::Available())
   {
-    if (keyInfo->state == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       MatrixOS::UIUtility::TextScroll("No SD Card", Color::Red);
     }
@@ -91,12 +91,12 @@ bool SaveButton::KeyEvent(Point xy, KeyInfo* keyInfo) {
         return false;
     }
 
-    if (keyInfo->state == HOLD)
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll("Save", sequencer->meta.color);
     }
 
-    if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+    if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
     {
       if (sequencer->sequence.GetDirty())
       {

@@ -28,5 +28,5 @@ private:
   virtual Color GetColor();
   virtual Dimension GetSize();
   virtual bool Render(Point origin);
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
 };

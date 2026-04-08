@@ -14,21 +14,21 @@ class SequencerControlBar : public UIComponent {
 
   const uint8_t OctaveGradient[8] = {0, 16, 42, 68, 124, 182, 255};
 
-  bool HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyInfo);
-  bool HandlePlayKey(KeyInfo* keyInfo);
-  bool HandleTrackPlayKey(KeyInfo* keyInfo);
-  bool HandleStepPlayKey(KeyInfo* keyInfo);
-  bool HandleResumeKey(KeyInfo* keyInfo);
-  bool HandleRecordKey(KeyInfo* keyInfo);
-  bool HandleSessionKey(KeyInfo* keyInfo);
-  bool HandleMixerKey(KeyInfo* keyInfo);
-  bool HandleClearKey(KeyInfo* keyInfo);
-  bool HandleCopyKey(KeyInfo* keyInfo);
-  bool HandleNudgeKey(bool positive, KeyInfo* keyInfo);
-  bool HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo);
-  bool HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo);
-  bool HandleQuantizeKey(KeyInfo* keyInfo);
-  bool HandleTwoPatternToggleKey(KeyInfo* keyInfo);
+  bool HandleShiftKey(uint8_t idx, bool right, KeypadInfo* keypadInfo);
+  bool HandlePlayKey(KeypadInfo* keypadInfo);
+  bool HandleTrackPlayKey(KeypadInfo* keypadInfo);
+  bool HandleStepPlayKey(KeypadInfo* keypadInfo);
+  bool HandleResumeKey(KeypadInfo* keypadInfo);
+  bool HandleRecordKey(KeypadInfo* keypadInfo);
+  bool HandleSessionKey(KeypadInfo* keypadInfo);
+  bool HandleMixerKey(KeypadInfo* keypadInfo);
+  bool HandleClearKey(KeypadInfo* keypadInfo);
+  bool HandleCopyKey(KeypadInfo* keypadInfo);
+  bool HandleNudgeKey(bool positive, KeypadInfo* keypadInfo);
+  bool HandleOctaveOffsetKey(bool positive, KeypadInfo* keypadInfo);
+  bool HandleStepOctaveOffsetKey(bool positive, KeypadInfo* keypadInfo);
+  bool HandleQuantizeKey(KeypadInfo* keypadInfo);
+  bool HandleTwoPatternToggleKey(KeypadInfo* keypadInfo);
 
 public:
   SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad);
@@ -36,6 +36,6 @@ public:
   Dimension GetSize();
   Color GetOctavePlusColor();
   Color GetOctaveMinusColor();
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
   virtual bool Render(Point origin);
 };

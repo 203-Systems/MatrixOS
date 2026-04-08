@@ -403,7 +403,7 @@ Explicitly not in scope right now:
 
 ### Phase 4: UI Migration
 - [x] Move `UI` from `KeyEvent` to `InputEvent`
-- [ ] Move `UIComponent` from `KeyInfo*` to the new input model
+- [x] Move `UIComponent` from `KeyInfo*` to the new input model
 - [ ] Keep current grid UI behavior unchanged
 
 ### Phase 5: Application Migration

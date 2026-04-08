@@ -29,7 +29,7 @@ public:
   virtual bool IsEnabled();
   Dimension GetSize();
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
 
   virtual bool Render(Point origin);
 
@@ -38,23 +38,23 @@ private:
 
   // Event selector (Y=0 row)
   void RenderEventSelector(Point origin);
-  bool EventSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool EventSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
 
   // Micro step selector (Y=1 row)
   void RenderMicroStepSelector(Point origin);
-  bool MicroStepSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
-  bool DeleteEventKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool MicroStepSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
+  bool DeleteEventKeyHandler(Point xy, KeypadInfo* keypadInfo);
 
   // Note event configuration
   void RenderNoteConfig(Point origin);
-  bool NoteConfigKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool NoteConfigKeyHandler(Point xy, KeypadInfo* keypadInfo);
 
   void RenderLengthSelector(Point origin);
-  bool LengthSelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool LengthSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
   void RenderVelocitySelector(Point origin);
-  bool VelocitySelectorKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool VelocitySelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
 
   // CC event configuration
   void RenderCCConfig(Point origin);
-  bool CCConfigKeyHandler(Point xy, KeyInfo* keyInfo);
+  bool CCConfigKeyHandler(Point xy, KeypadInfo* keypadInfo);
 };

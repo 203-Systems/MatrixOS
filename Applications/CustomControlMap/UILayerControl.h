@@ -67,8 +67,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
     {
       uint8_t layer = xy.y * dimension.x + xy.x;
       if (layer == 0)
@@ -77,7 +77,7 @@ public:
         return true;
       uadRT->SetLayerState(layer, type, !uadRT->GetLayerState(layer, type));
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
     }

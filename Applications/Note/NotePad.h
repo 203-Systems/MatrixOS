@@ -135,7 +135,7 @@ public:
   void FirstScan(Point origin);
 
   virtual bool Render(Point origin) override;
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
 
   void SetDimension(Dimension dimension);
   void SetPadRuntime(NotePadRuntime* rt);

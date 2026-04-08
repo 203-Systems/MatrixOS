@@ -97,8 +97,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED && disableOnTap)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed && disableOnTap)
     {
       Disable();
     }

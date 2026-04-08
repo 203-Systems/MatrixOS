@@ -15,7 +15,7 @@ public:
   virtual Dimension GetSize() {
     return Dimension(0, 0);
   }
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     return false;
   } //
 

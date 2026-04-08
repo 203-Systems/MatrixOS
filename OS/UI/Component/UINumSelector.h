@@ -76,13 +76,13 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     uint16_t id = PointToIndex(xy, dimension, direction);
     if (id > count)
     {
       return false;
     }
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       *output = items[id];
       OnChangeCallback(*output);

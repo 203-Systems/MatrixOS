@@ -17,6 +17,6 @@ public:
 
   Dimension GetSize();
   void OnChange(std::function<void(uint8_t)> callback);
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
   virtual bool Render(Point origin);
 };

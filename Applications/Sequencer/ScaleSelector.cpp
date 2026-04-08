@@ -54,8 +54,8 @@ bool ScaleSelector::Render(Point origin) {
   return true;
 }
 
-bool ScaleSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->State() == HOLD)
+bool ScaleSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     uint16_t idx = xy.x + xy.y * 8;
     if (idx < 16)
@@ -65,7 +65,7 @@ bool ScaleSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
     }
   }
 
-  if (keyInfo->State() == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     uint16_t idx = xy.x + xy.y * 8;
     if (idx < 16 && onChange)

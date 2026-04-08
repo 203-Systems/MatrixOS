@@ -149,8 +149,7 @@ void UI::UIKeyEvent(InputEvent* inputEvent) {
       UIComponent* uiComponent = it->second;
       if (uiComponent->GetSize().Contains(relativeXy)) // Key Found
       {
-        KeyInfo keyInfo = KeypadInfoToKeyInfo(inputEvent->keypad);
-        hasAction |= uiComponent->KeyEvent(relativeXy, &keyInfo);
+        hasAction |= uiComponent->KeyEvent(relativeXy, &inputEvent->keypad);
       }
       if (hasAction)
       {

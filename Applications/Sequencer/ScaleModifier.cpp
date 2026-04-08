@@ -53,12 +53,12 @@ bool SequenceScaleModifier::Render(Point origin) {
   return true;
 }
 
-bool SequenceScaleModifier::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->State() == HOLD)
+bool SequenceScaleModifier::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     MatrixOS::UIUtility::TextScroll("Custom Scale Modifier", color);
   }
-  else if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
 

@@ -86,8 +86,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
     {
       if (PressCallback())
       {
@@ -96,7 +96,7 @@ public:
         return true;
       }
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       if (HoldCallback())
       {

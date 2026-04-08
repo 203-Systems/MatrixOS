@@ -33,13 +33,13 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == HOLD)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
       return true;
     }
-    else if (keyInfo->State() == PRESSED)
+    else if (keypadInfo->state == KeypadState::Pressed)
     {
       *this->note_length = (xy.x + 1) * step;
       return true;

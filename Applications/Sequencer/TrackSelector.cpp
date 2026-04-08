@@ -15,8 +15,8 @@ void TrackSelector::OnChange(std::function<void(uint8_t)> callback) {
   changeCallback = callback;
 }
 
-bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->State() == PRESSED)
+bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     bool clear;
     if (sequencer->ClearActive())
@@ -59,7 +59,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
       }
     }
   }
-  else if (keyInfo->State() == HOLD)
+  else if (keypadInfo->state == KeypadState::Hold)
   {
     if (textScroll)
     {
@@ -67,7 +67,7 @@ bool TrackSelector::KeyEvent(Point xy, KeyInfo* keyInfo) {
       MatrixOS::UIUtility::TextScroll("Track " + std::to_string(xy.x + 1), color);
     }
   }
-  else if (keyInfo->State() == RELEASED && xy.x == sequencer->track)
+  else if (keypadInfo->state == KeypadState::Released && xy.x == sequencer->track)
   {
     sequencer->activeTrackSelected = false;
   }

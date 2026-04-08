@@ -33,7 +33,7 @@ Dimension SequencerMessageDisplay::GetSize() {
   return Dimension(8, 4);
 }
 
-bool SequencerMessageDisplay::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool SequencerMessageDisplay::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   return false;
 }
 

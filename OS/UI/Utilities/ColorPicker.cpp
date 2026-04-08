@@ -35,8 +35,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       float hue = std::fmod(begin + step * index, 1.0);
@@ -87,8 +87,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       int16_t uiY = dimension.y - xy.y - 1;
       float v = vBegin + uiY * vStep;

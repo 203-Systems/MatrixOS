@@ -158,15 +158,15 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       uint16_t temp = begin + step * index;
       Color color = TemperatureToRGB(temp);
       callback(color);
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       uint16_t temp = begin + step * index;

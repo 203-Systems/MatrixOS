@@ -137,8 +137,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released)
     {
       tap_times.push_back(MatrixOS::SYS::Micros());
       if (tap_times.size() > TAP_HISTORY_SIZE)
@@ -147,7 +147,7 @@ public:
       }
       CalculateBPM();
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(name, color);
       tap_times.clear();

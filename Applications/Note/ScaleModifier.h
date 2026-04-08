@@ -59,15 +59,15 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     if (xy == Point(0, 0) || xy == Point(3, 0))
       return false;
 
-    if (keyInfo->State() == HOLD)
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll("Custom Scale Modifier", color);
     }
-    else if (keyInfo->State() == RELEASED && keyInfo->Hold() == false)
+    else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
     {
       uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
 

@@ -125,13 +125,13 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     if (name.empty())
     {
       return false;
     }
 
-    if (keyInfo->State() == HOLD)
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(name, GetColor(UINT16_MAX));
     }

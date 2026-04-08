@@ -48,9 +48,9 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     // No key interaction for visualizer
-    if (keyInfo->State() == RELEASED && keyInfo->hold == false)
+    if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
     {
       uint8_t i = xy.x + xy.y * 8;
       if (i < arp->config->euclideanLengths)

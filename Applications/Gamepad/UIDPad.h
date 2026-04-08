@@ -93,13 +93,13 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     GamepadDPadDirection direction = GAMEPAD_DPAD_CENTERED;
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       direction = PointToDirection(xy);
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if (xy == DirectionToPoint(lastDirection))
       {

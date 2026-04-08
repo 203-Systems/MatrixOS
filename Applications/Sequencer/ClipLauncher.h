@@ -17,7 +17,7 @@ public:
   Dimension GetSize();
 
   virtual bool IsEnabled() override;
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
 
   virtual bool Render(Point origin);
 };

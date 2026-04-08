@@ -37,9 +37,9 @@ private:
   Color GetOctavePlusColor();
   Color GetOctaveMinusColor();
 
-  bool ChordControlKeyEvent(Point xy, KeyInfo* keyInfo);
-  bool ArpControlKeyEvent(Point xy, KeyInfo* keyInfo);
-  bool KeyControlKeyEvent(Point xy, KeyInfo* keyInfo);
+  bool ChordControlKeyEvent(Point xy, KeypadInfo* keypadInfo);
+  bool ArpControlKeyEvent(Point xy, KeypadInfo* keypadInfo);
+  bool KeyControlKeyEvent(Point xy, KeypadInfo* keypadInfo);
 
   void RenderChordControl(Point origin);
   void RenderArpControl(Point origin);
@@ -51,6 +51,6 @@ public:
   virtual Dimension GetSize() override {
     return Dimension(8, CTL_BAR_Y);
   }
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
   virtual bool Render(Point origin) override;
 };

@@ -10,7 +10,7 @@ public:
   explicit SaveButton(Sequencer* sequencer);
   Dimension GetSize() override;
   bool Render(Point origin) override;
-  bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
+  bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
   bool IsEnabled() override;
   uint32_t LastEnableTime() const {
     return lastEnableTime;

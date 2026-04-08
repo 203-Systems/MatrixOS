@@ -11,7 +11,7 @@ Dimension SequencerControlBar::GetSize() {
   return Dimension(8, 1);
 }
 
-bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool SequencerControlBar::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   bool stepSelected = !sequencer->stepSelected.empty();
   bool patternSelected = !sequencer->patternSelected.empty();
   bool trackSelected = sequencer->activeTrackSelected;
@@ -24,14 +24,14 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     switch (xy.x)
     {
     case 0:
-      return HandleResumeKey(keyInfo);
+      return HandleResumeKey(keypadInfo);
     case 1:
     case 2:
     case 3:
     case 4:
       return true;
     case 5:
-      return HandleTwoPatternToggleKey(keyInfo);
+      return HandleTwoPatternToggleKey(keypadInfo);
     default:
       break;
     }
@@ -41,7 +41,7 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     switch (xy.x)
     {
     case 0:
-      return HandleResumeKey(keyInfo);
+      return HandleResumeKey(keypadInfo);
     case 1:
     case 2:
     case 3:
@@ -57,13 +57,13 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     switch (xy.x)
     {
     case 0:
-      return HandleStepPlayKey(keyInfo);
+      return HandleStepPlayKey(keypadInfo);
     case 1:
-      return HandleQuantizeKey(keyInfo);
+      return HandleQuantizeKey(keypadInfo);
     case 2:
-      return HandleStepOctaveOffsetKey(false, keyInfo);
+      return HandleStepOctaveOffsetKey(false, keypadInfo);
     case 3:
-      return HandleStepOctaveOffsetKey(true, keyInfo);
+      return HandleStepOctaveOffsetKey(true, keypadInfo);
     default:
       break;
     }
@@ -73,13 +73,13 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     switch (xy.x)
     {
     case 0:
-      return HandleNudgeKey(false, keyInfo);
+      return HandleNudgeKey(false, keypadInfo);
     case 1:
-      return HandleNudgeKey(true, keyInfo);
+      return HandleNudgeKey(true, keypadInfo);
     case 2:
-      return HandleOctaveOffsetKey(false, keyInfo);
+      return HandleOctaveOffsetKey(false, keypadInfo);
     case 3:
-      return HandleOctaveOffsetKey(true, keyInfo);
+      return HandleOctaveOffsetKey(true, keypadInfo);
     default:
       break;
     }
@@ -89,7 +89,7 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     switch (xy.x)
     {
     case 0:
-      return HandleTrackPlayKey(keyInfo);
+      return HandleTrackPlayKey(keypadInfo);
     case 4:
     case 1:
     case 2:
@@ -103,36 +103,36 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   switch (xy.x)
   {
   case 0:
-    return HandlePlayKey(keyInfo);
+    return HandlePlayKey(keypadInfo);
   case 1:
-    return HandleRecordKey(keyInfo);
+    return HandleRecordKey(keypadInfo);
   case 2:
-    return HandleSessionKey(keyInfo);
+    return HandleSessionKey(keypadInfo);
   case 3:
-    return HandleMixerKey(keyInfo);
+    return HandleMixerKey(keypadInfo);
   case 4:
-    return HandleClearKey(keyInfo);
+    return HandleClearKey(keypadInfo);
   case 5:
-    return HandleCopyKey(keyInfo);
+    return HandleCopyKey(keypadInfo);
   case 6:
-    return HandleShiftKey(0, /*right*/ false, keyInfo);
+    return HandleShiftKey(0, /*right*/ false, keypadInfo);
   case 7:
-    return HandleShiftKey(1, /*right*/ true, keyInfo);
+    return HandleShiftKey(1, /*right*/ true, keypadInfo);
   default:
     return true;
   }
 }
 
-bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandlePlayKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::PLAY)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::PLAY)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     if (sequencer->sequence.Playing())
     {
@@ -150,16 +150,16 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleTrackPlayKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleTrackPlayKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::PLAY)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::PLAY)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
     if (trackPlaying)
@@ -178,16 +178,16 @@ bool SequencerControlBar::HandleTrackPlayKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleStepPlayKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleStepPlayKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::PLAY)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::PLAY)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     if (sequencer->sequence.Playing(sequencer->track))
     {
@@ -220,16 +220,16 @@ bool SequencerControlBar::HandleStepPlayKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleResumeKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleResumeKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::RESUME, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::RESUME)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::RESUME)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     sequencer->ShiftEventOccured();
     if (sequencer->sequence.Playing() == false)
@@ -244,17 +244,17 @@ bool SequencerControlBar::HandleResumeKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleRecordKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleRecordKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(sequencer->ClearActive() ? SequencerMessage::UNDO : SequencerMessage::RECORD, true);
   }
-  else if (keyInfo->state == RELEASED &&
+  else if (keypadInfo->state == KeypadState::Released &&
            (sequencer->lastMessage == SequencerMessage::RECORD || sequencer->lastMessage == SequencerMessage::UNDO))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     if (sequencer->ClearActive())
     {
@@ -272,17 +272,17 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleSessionKey(KeyInfo* keyInfo) {
+bool SequencerControlBar::HandleSessionKey(KeypadInfo* keypadInfo) {
 
-  if (keyInfo->state == HOLD)
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::CLIP, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::CLIP)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::CLIP)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     if (sequencer->currentView == Sequencer::ViewMode::Session)
     {
@@ -296,16 +296,16 @@ bool SequencerControlBar::HandleSessionKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleMixerKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleMixerKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::MIX, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::MIX)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::MIX)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     if (sequencer->currentView == Sequencer::ViewMode::Mixer)
     {
@@ -319,8 +319,8 @@ bool SequencerControlBar::HandleMixerKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == PRESSED)
+bool SequencerControlBar::HandleClearKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     sequencer->clear = true;
     sequencer->copy = false;
@@ -405,15 +405,15 @@ bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo) {
       sequencer->SetMessage(SequencerMessage::CLEARED);
     }
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     sequencer->clear = false;
   }
   return true;
 }
 
-bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == PRESSED)
+bool SequencerControlBar::HandleCopyKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     sequencer->copy = true;
     sequencer->clear = false;
@@ -421,23 +421,23 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo) {
     sequencer->stepSelected.clear();
     sequencer->patternSelected.clear();
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     sequencer->copy = false;
   }
   return true;
 }
 
-bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleNudgeKey(bool positive, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::NUDGE, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::NUDGE)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::NUDGE)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = sequencer->track;
 
@@ -473,17 +473,17 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
   }
-  else if (keyInfo->state == RELEASED &&
+  else if (keypadInfo->state == KeypadState::Released &&
            (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = sequencer->track;
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
@@ -506,17 +506,17 @@ bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
   }
-  else if (keyInfo->state == RELEASED &&
+  else if (keypadInfo->state == KeypadState::Released &&
            (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = sequencer->track;
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
@@ -577,16 +577,16 @@ bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyI
   return true;
 }
 
-bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleTwoPatternToggleKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::TWO_PATTERN_VIEW, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = sequencer->track;
     sequencer->meta.tracks[track].twoPatternMode = !sequencer->meta.tracks[track].twoPatternMode;
@@ -598,16 +598,16 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleQuantizeKey(KeyInfo* keyInfo) {
-  if (keyInfo->state == HOLD)
+bool SequencerControlBar::HandleQuantizeKey(KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Hold)
   {
     sequencer->SetMessage(SequencerMessage::QUANTIZE, true);
   }
-  else if (keyInfo->state == RELEASED && sequencer->lastMessage == SequencerMessage::QUANTIZE)
+  else if (keypadInfo->state == KeypadState::Released && sequencer->lastMessage == SequencerMessage::QUANTIZE)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
-  else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
+  else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
     uint8_t track = sequencer->track;
     if (sequencer->sequence.Playing(track))
@@ -646,11 +646,11 @@ bool SequencerControlBar::HandleQuantizeKey(KeyInfo* keyInfo) {
   return true;
 }
 
-bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyInfo) {
+bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeypadInfo* keypadInfo) {
   uint8_t track = sequencer->track;
   uint8_t shiftIndex = right ? 1 : 0;
 
-  if (keyInfo->state == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     if (sequencer->ShiftActive())
     {
@@ -691,7 +691,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyIn
       }
     }
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     if (sequencer->ShiftActive() == false)
     {
@@ -699,7 +699,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyIn
     }
 
     bool shiftEvent = sequencer->shiftEventOccured[0] || sequencer->shiftEventOccured[1];
-    if (keyInfo->hold == false && !shiftEvent)
+    if (keypadInfo->hold == false && !shiftEvent)
     {
       if (sequencer->currentView == Sequencer::ViewMode::Session)
       {

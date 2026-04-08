@@ -31,8 +31,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED || keyInfo->State() == HOLD)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released || keypadInfo->state == KeypadState::Hold)
     {
       uint8_t folderIdx = xy.x;
 
@@ -51,12 +51,12 @@ public:
         }
       }
 
-      if (keyInfo->State() == RELEASED)
+      if (keypadInfo->state == KeypadState::Released)
       {
         shell->current_folder = folderRealIdx;
         return true;
       }
-      else if (keyInfo->State() == HOLD)
+      else if (keypadInfo->state == KeypadState::Hold)
       {
         MatrixOS::UIUtility::TextScroll("Group " + std::to_string(folderRealIdx + 1), shell->folder_colors[folderRealIdx]);
         return true;

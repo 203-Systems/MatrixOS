@@ -67,12 +67,12 @@ public:
     }
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == PRESSED || keyInfo->State() == AFTERTOUCH)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Pressed || keypadInfo->state == KeypadState::Aftertouch)
     {
-      value = keyInfo->Force();
+      value = keypadInfo->pressure;
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       value = 0;
     }

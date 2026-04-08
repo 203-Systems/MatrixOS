@@ -15,7 +15,7 @@ public:
   PatternPad(Sequencer* sequencer);
 
   Dimension GetSize();
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
   virtual bool Render(Point origin);
   virtual bool IsEnabled();
   bool TwoPatternMode();

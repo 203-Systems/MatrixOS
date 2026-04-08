@@ -31,14 +31,14 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    // if (keyInfo->State() == HOLD)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    // if (keypadInfo->state == KeypadState::Hold)
     // {
     //   MatrixOS::UIUtility::TextScroll(name, GetColor());
     //   return true;
     // }
     int8_t octave = count - xy.y - 1;
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       config->octave = octave;
     }

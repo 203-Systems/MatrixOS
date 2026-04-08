@@ -122,8 +122,8 @@ public:
     folderSettingsUI.Start();
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released)
     {
       if (xy.x < 7)
       {
@@ -158,7 +158,7 @@ public:
         return true;
       }
     }
-    else if (keyInfo->State() == HOLD && xy.x < 6)
+    else if (keypadInfo->state == KeypadState::Hold && xy.x < 6)
     {
       if (shell->folder_colors[xy.x] == Color(0x000000))
       {
@@ -173,7 +173,7 @@ public:
       }
       return true;
     }
-    else if (keyInfo->State() == HOLD && xy.x == 6)
+    else if (keypadInfo->state == KeypadState::Hold && xy.x == 6)
     {
       // Show hidden folder info on hold
       MatrixOS::UIUtility::TextScroll("Hidden Apps", Color(0xFF00FF));

@@ -46,8 +46,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED || keyInfo->State() == HOLD)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released || keypadInfo->state == KeypadState::Hold)
     {
       uint8_t index = xy.y * 8 + xy.x;
       if (index >= shell->folders[shell->current_folder].app_ids.size())
@@ -66,7 +66,7 @@ public:
       Application_Info* application =
           (applicationEntry.type == ApplicationType::Native) ? applicationEntry.native.info : &(applicationEntry.python.info->info);
 
-      if (keyInfo->State() == RELEASED)
+      if (keypadInfo->state == KeypadState::Released)
       {
         MLOGD("Shell", "Launching App ID: %X", appId);
         shell->LaunchAnimation(xy, application->color);
@@ -84,7 +84,7 @@ public:
         }
         return true;
       }
-      else if (keyInfo->State() == HOLD)
+      else if (keypadInfo->state == KeypadState::Hold)
       {
         MatrixOS::UIUtility::TextScroll(application->name, application->color);
         return true;

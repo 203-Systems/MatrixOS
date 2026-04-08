@@ -29,8 +29,8 @@ bool ClipLauncher::IsEnabled() {
   return sequencer->currentView == Sequencer::ViewMode::Session;
 }
 
-bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->State() == PRESSED)
+bool ClipLauncher::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
     uint8_t track = pair.first;

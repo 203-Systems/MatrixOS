@@ -17,8 +17,8 @@ bool PatternPad::TwoPatternMode() {
   return sequencer->meta.tracks[sequencer->track].twoPatternMode && !sequencer->patternViewActive;
 }
 
-bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (keyInfo->state != PRESSED && keyInfo->state != RELEASED)
+bool PatternPad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
   {
     return true;
   }
@@ -68,7 +68,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo) {
   uint16_t startTime = step * pulsesPerStep;
   uint16_t endTime = startTime + pulsesPerStep - 1;
 
-  if (keyInfo->state == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     bool hasEvent = sequencer->sequence.PatternHasEventInRange(pattern, startTime, endTime);
     if (sequencer->CopyActive())
@@ -215,7 +215,7 @@ bool PatternPad::KeyEvent(Point xy, KeyInfo* keyInfo) {
       }
     }
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     // Remove step from selection
     auto stepIt = sequencer->stepSelected.find(std::make_pair(patternIdx, step));

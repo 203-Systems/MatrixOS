@@ -56,7 +56,7 @@ void NoteControlBar::ShiftClear() {
   shift[1] = 0;
 }
 
-bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool NoteControlBar::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   if (xy.y < CTL_BAR_Y - 1)
   {
     switch (mode)
@@ -64,11 +64,11 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     case OFF_MODE:
       return false;
     case CHORD_MODE:
-      return ChordControlKeyEvent(xy, keyInfo);
+      return ChordControlKeyEvent(xy, keypadInfo);
     case ARP_MODE:
-      return ArpControlKeyEvent(xy, keyInfo);
+      return ArpControlKeyEvent(xy, keypadInfo);
     case KEY_MODE:
-      return KeyControlKeyEvent(xy, keyInfo);
+      return KeyControlKeyEvent(xy, keypadInfo);
     }
   }
 
@@ -76,7 +76,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Pitch Down
   else if (xy == Point(0, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -88,11 +88,11 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         pitch_down = MatrixOS::SYS::Millis();
       }
     }
-    else if (keyInfo->State() == AFTERTOUCH)
+    else if (keypadInfo->state == KeypadState::Aftertouch)
     {
       if (pitch_down != 0 && pitch_down > pitch_up)
       {
-        int32_t pitchVal = 8192 - (((uint16_t)keyInfo->Force() * 8192) >> 16);
+        int32_t pitchVal = 8192 - (((uint16_t)keypadInfo->pressure * 8192) >> 16);
         if (pitchVal < 0)
         {
           pitchVal = 0;
@@ -101,7 +101,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitchVal), MIDI_PORT_ALL);
       }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if (pitch_down != 0 && pitch_down > pitch_up)
       {
@@ -114,7 +114,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
 
   else if (xy == Point(1, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -126,11 +126,11 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         pitch_up = MatrixOS::SYS::Millis();
       }
     }
-    else if (keyInfo->State() == AFTERTOUCH)
+    else if (keypadInfo->state == KeypadState::Aftertouch)
     {
       if (pitch_up != 0 && pitch_up >= pitch_down)
       {
-        int32_t pitchVal = 8192 + (((uint16_t)keyInfo->Force() * 8191) >> 16);
+        int32_t pitchVal = 8192 + (((uint16_t)keypadInfo->pressure * 8191) >> 16);
         if (pitchVal > 16383)
         {
           pitchVal = 16383;
@@ -138,7 +138,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         MatrixOS::MIDI::Send(MidiPacket::PitchBend(notePad[0]->rt->config->channel, pitchVal), MIDI_PORT_ALL);
       }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if (pitch_up != 0 && pitch_up >= pitch_down)
       {
@@ -151,7 +151,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
 
   else if (xy == Point(2, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -170,7 +170,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Chord Mode
   else if (xy == Point(3, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (mode == CHORD_MODE)
       {
@@ -189,7 +189,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Arp Mode
   else if (xy == Point(4, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -211,7 +211,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Key Mode
   else if (xy == Point(5, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -234,7 +234,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Octave Down
   else if (xy == Point(6, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -246,7 +246,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         shift[0] = MatrixOS::SYS::Millis();
       }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if ((MatrixOS::SYS::Millis() - shift[0] < holdThreshold) && shift_event[0] == false)
       {
@@ -263,7 +263,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   // Octave Up
   else if (xy == Point(7, CTL_BAR_Y - 1))
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       if (ShiftActive())
       {
@@ -275,7 +275,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
         shift[1] = MatrixOS::SYS::Millis();
       }
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if ((MatrixOS::SYS::Millis() - shift[1] < holdThreshold) && shift_event[1] == false)
       {
@@ -291,7 +291,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   return false;
 }
 
-bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+bool NoteControlBar::ChordControlKeyEvent(Point xy, KeypadInfo* keypadInfo) {
   if (xy.y < CTL_BAR_Y - 3 || xy.y > CTL_BAR_Y - 2)
   {
     return false;
@@ -300,7 +300,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
   // Section 1: Top left 4 buttons (CTL_BAR_Y - 3, x0-x3) - Basic chord types
   if (xy.y == CTL_BAR_Y - 3 && xy.x <= 3)
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
       combo.dim = false;
@@ -334,7 +334,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
       notePad[0]->rt->chordEffect.SetChordCombo(combo);
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       if (ShiftActive() == false)
       {
@@ -364,7 +364,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
   // Section 2: Bottom left 4 buttons (CTL_BAR_Y - 2, x0-x3) - Extensions
   if (xy.y == CTL_BAR_Y - 2 && xy.x <= 3)
   {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       ChordCombo combo = notePad[0]->rt->chordEffect.chordCombo;
 
@@ -421,7 +421,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
       chordExtKeyOn[xy.x] = true;
       notePad[0]->rt->chordEffect.SetChordCombo(combo);
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       // Clear the pressed flag but don't turn off the extension
       chordExtKeyOn[xy.x] = false;
@@ -454,7 +454,7 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
   }
 
   // Section 3: Right 8 buttons (x4-x7 on both rows) - Inversion controls (0-7)
-  if (xy.x >= 4 && xy.x <= 7 && keyInfo->State() == PRESSED)
+  if (xy.x >= 4 && xy.x <= 7 && keypadInfo->state == KeypadState::Pressed)
   {
     uint8_t inversion;
     if (xy.y == CTL_BAR_Y - 3)
@@ -478,8 +478,8 @@ bool NoteControlBar::ChordControlKeyEvent(Point xy, KeyInfo* keyInfo) {
 
   return false;
 }
-bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
-  if (xy.y != CTL_BAR_Y - 2 || keyInfo->State() != PRESSED)
+bool NoteControlBar::ArpControlKeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (xy.y != CTL_BAR_Y - 2 || keypadInfo->state != KeypadState::Pressed)
   {
     return false;
   }
@@ -510,13 +510,13 @@ bool NoteControlBar::ArpControlKeyEvent(Point xy, KeyInfo* keyInfo) {
   return false;
 }
 
-bool NoteControlBar::KeyControlKeyEvent(Point xy, KeyInfo* keyInfo) {
+bool NoteControlBar::KeyControlKeyEvent(Point xy, KeypadInfo* keypadInfo) {
   if (xy.y < CTL_BAR_Y - 3)
   {
     return false;
   }
 
-  if (keyInfo->State() != PRESSED)
+  if (keypadInfo->state != KeypadState::Pressed)
   {
     return true;
   }

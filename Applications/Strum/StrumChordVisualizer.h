@@ -44,7 +44,7 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     if (xy == Point(0, 0) || xy == Point(3, 0))
       return false;
     *rootKey = xy.x * 2 + xy.y - 1 - (xy.x > 2);

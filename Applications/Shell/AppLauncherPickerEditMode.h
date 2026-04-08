@@ -87,8 +87,8 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if (keyInfo->State() == RELEASED)
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+    if (keypadInfo->state == KeypadState::Released)
     {
       uint8_t index = xy.y * 8 + xy.x;
 
@@ -136,7 +136,7 @@ public:
         return true;
       }
     }
-    else if (keyInfo->State() == HOLD)
+    else if (keypadInfo->state == KeypadState::Hold)
     {
       uint8_t index = xy.y * 8 + xy.x;
 

@@ -193,9 +193,9 @@ public:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     // No key interaction for visualizer
-    if (keyInfo->State() == HOLD)
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll(arpDirectionNames[*direction], color);
     }

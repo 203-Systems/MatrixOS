@@ -378,7 +378,7 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet) {
   }
 }
 
-bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool SequencerNotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   uint8_t note = noteMap[xy.y * 8 + xy.x];
   if (note == 255)
   {
@@ -390,26 +390,26 @@ bool SequencerNotePad::KeyEvent(Point xy, KeyInfo* keyInfo) {
 
   MidiPacket packet = MidiPacket();
 
-  if (keyInfo->state == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     uint8_t velocity = 127;
     if (sequencer->meta.tracks[track].velocitySensitive)
     {
-      velocity = keyInfo->Value().to7bits();
+      velocity = keypadInfo->pressure.to7bits();
     }
     sequencer->noteSelected[note] = velocity;
     packet = MidiPacket::NoteOn(channel, note, velocity);
   }
-  else if (keyInfo->state == AFTERTOUCH && sequencer->meta.tracks[track].velocitySensitive)
+  else if (keypadInfo->state == KeypadState::Aftertouch && sequencer->meta.tracks[track].velocitySensitive)
   {
     if (sequencer->noteSelected.count(note) != 0) // Incase we need to do first scan first
     {
-      uint8_t velocity = keyInfo->Value().to7bits();
+      uint8_t velocity = keypadInfo->pressure.to7bits();
       sequencer->noteSelected[note] = velocity;
       packet = MidiPacket::AfterTouch(channel, note, velocity);
     }
   }
-  else if (keyInfo->state == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     // Remove note from selection
     sequencer->noteSelected.erase(note);
@@ -623,7 +623,7 @@ void SequencerNotePad::Rescan(Point origin) {
           uint8_t velocity = 127;
           if (sequencer->meta.tracks[track].velocitySensitive)
           {
-            velocity = keyInfo->Value().to7bits();
+            velocity = keyInfo->Force().to7bits();
           }
           sequencer->noteSelected[note] = velocity;
           MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);

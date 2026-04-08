@@ -535,26 +535,26 @@ bool NotePad::Render(Point origin) {
   return false;
 }
 
-bool NotePad::KeyEvent(Point xy, KeyInfo* keyInfo) {
+bool NotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   uint8_t note = noteMap[xy.y * dimension.x + xy.x];
   if (note == 255)
   {
     return true;
   }
-  if (keyInfo->State() == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
-    Fract16 velocity = rt->config->forceSensitive ? keyInfo->Force() : Fract16(0x7F << 9);
+    Fract16 velocity = rt->config->forceSensitive ? keypadInfo->pressure : Fract16(0x7F << 9);
     rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, velocity.to7bits()));
     AddActiveKey(xy, velocity);
     IncrementActiveNote(note);
   }
-  else if (rt->config->forceSensitive && keyInfo->State() == AFTERTOUCH)
+  else if (rt->config->forceSensitive && keypadInfo->state == KeypadState::Aftertouch)
   {
-    Fract16 velocity = keyInfo->Force();
+    Fract16 velocity = keypadInfo->pressure;
     rt->midiPipeline.Send(MidiPacket::AfterTouch(rt->config->channel, note, velocity.to7bits()));
     UpdateActiveKeyVelocity(xy, velocity);
   }
-  else if (keyInfo->State() == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     rt->midiPipeline.Send(MidiPacket::NoteOff(rt->config->channel, note, 0));
     RemoveActiveKey(xy);

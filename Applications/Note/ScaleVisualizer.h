@@ -61,16 +61,16 @@ private:
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     if (xy == Point(0, 0) || xy == Point(3, 0))
       return false;
 
-    if (keyInfo->State() == HOLD)
+    if (keypadInfo->state == KeypadState::Hold)
     {
       MatrixOS::UIUtility::TextScroll("Scale Visualizer", color);
     }
 
-    if (keyInfo->State() != PRESSED)
+    if (keypadInfo->state != KeypadState::Pressed)
     {
       return true;
     }
