@@ -59,6 +59,11 @@ void PauseUpdate(bool pause = true);
 uint32_t GetLEDCount(void);
 } // namespace LED
 
+namespace Input
+{
+bool Get(InputEvent* event, uint32_t timeoutMs = 0);
+} // namespace Input
+
 namespace KeyPad
 {
 uint16_t Scan(); // Return # of changed key

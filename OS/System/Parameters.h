@@ -36,6 +36,7 @@
 #define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 64)
 
 #define KEYEVENT_QUEUE_SIZE 16
+#define INPUT_EVENT_QUEUE_SIZE 32
 #define MIDI_QUEUE_SIZE 128
 
 inline const uint16_t holdThreshold = 400;
