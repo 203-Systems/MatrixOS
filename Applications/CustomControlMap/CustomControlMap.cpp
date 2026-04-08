@@ -1,8 +1,22 @@
 #include "CustomControlMap.h"
 #include "UI/UI.h"
 
+namespace {
+  const string c_uad_storage_path = "/map.uad";
+}
+
+size_t CustomControlMap::GetCurrentMaxUADSize() const {
+#if DEVICE_STORAGE == 1
+  if (MatrixOS::FileSystem::Available())
+  {
+    return MAX_UAD_SIZE_STORAGE;
+  }
+#endif
+  return MAX_UAD_SIZE_NVS;
+}
+
 void CustomControlMap::Setup(const vector<string>& args) {
-  LoadUADfromNVS();
+  LoadSavedUAD();
 }
 
 void CustomControlMap::Loop() {
@@ -13,31 +27,108 @@ void CustomControlMap::Loop() {
   HIDReportHandler();
 }
 
+void CustomControlMap::LoadSavedUAD() {
+#if DEVICE_STORAGE == 1
+  if (MatrixOS::FileSystem::Available() && LoadUADfromStorage())
+  {
+    return;
+  }
+#endif
+
+  LoadUADfromNVS();
+}
+
+#if DEVICE_STORAGE == 1
+bool CustomControlMap::LoadUADfromStorage() {
+  if (!MatrixOS::FileSystem::Available())
+  {
+    return false;
+  }
+
+  if (!MatrixOS::FileSystem::Exists(c_uad_storage_path))
+  {
+    MLOGD("CustomControlMap", "No map found in storage");
+    return false;
+  }
+
+  uadRT.UnloadUAD();
+  vPortFree(uadData);
+  uadData = nullptr;
+
+  uadSize = 0;
+
+  File file = MatrixOS::FileSystem::Open(c_uad_storage_path, "rb");
+  size_t new_uad_size = file.Size();
+  MLOGD("CustomControlMap", "Storage map size: %d", new_uad_size);
+  if (new_uad_size == 0 || new_uad_size > MAX_UAD_SIZE_STORAGE)
+  {
+    MLOGE("CustomControlMap", "Invalid map size in storage (%d bytes)", new_uad_size);
+    file.Close();
+    return false;
+  }
+
+  uadData = (uint8_t*)pvPortMalloc(new_uad_size);
+  if (uadData == nullptr)
+  {
+    MLOGE("CustomControlMap", "Failed to allocate memory for map from storage (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
+    file.Close();
+    return false;
+  }
+
+  if (file.Read(uadData, new_uad_size) != new_uad_size)
+  {
+    MLOGE("CustomControlMap", "Failed to read map from storage");
+    file.Close();
+    vPortFree(uadData);
+    uadData = nullptr;
+    return false;
+  }
+  file.Close();
+
+  if (!uadRT.LoadUAD(uadData, new_uad_size))
+  {
+    MLOGE("CustomControlMap", "Failed to load map from storage");
+    vPortFree(uadData);
+    uadData = nullptr;
+    return false;
+  }
+
+  uadSize = new_uad_size;
+  return true;
+}
+#endif
+
 void CustomControlMap::LoadUADfromNVS() {
   uadRT.UnloadUAD();
   vPortFree(uadData);
+  uadData = nullptr;
 
   uadSize = 0;
   
   size_t new_uad_size = MatrixOS::NVS::GetSize(UAD_NVS_HASH);
 
-  MLOGD("CustomControlMap", "NVS UAD Size: %d", new_uad_size);
+  MLOGD("CustomControlMap", "NVS map size: %d", new_uad_size);
   if (new_uad_size == -1 || new_uad_size == 0)
   {
-    MLOGD("CustomControlMap", "No UAD found in NVS");
+    MLOGD("CustomControlMap", "No map found in NVS");
+    return;
+  }
+  if (new_uad_size > MAX_UAD_SIZE_NVS)
+  {
+    MLOGE("CustomControlMap", "Map in NVS exceeds NVS limit (%d > %d)", new_uad_size, MAX_UAD_SIZE_NVS);
     return;
   }
 
   uadData = (uint8_t*)pvPortMalloc(new_uad_size);
   if (uadData == nullptr)
   {
-    MLOGE("CustomControlMap", "Failed to allocate memory for UAD (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
+    MLOGE("CustomControlMap", "Failed to allocate memory for map from NVS (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
     return;
   }
 
   if (MatrixOS::NVS::GetVariable(UAD_NVS_HASH, uadData, new_uad_size) != 0)
   {
-    MLOGE("CustomControlMap", "Failed to read UAD from NVS");
+    MLOGE("CustomControlMap", "Failed to read map from NVS");
     vPortFree(uadData);
     uadData = nullptr;
     return;
@@ -45,7 +136,7 @@ void CustomControlMap::LoadUADfromNVS() {
 
   if (!uadRT.LoadUAD(uadData, new_uad_size))
   {
-    MLOGE("CustomControlMap", "Failed to load UAD");
+    MLOGE("CustomControlMap", "Failed to load map from NVS");
     vPortFree(uadData);
     uadData = nullptr;
     return;
@@ -53,6 +144,26 @@ void CustomControlMap::LoadUADfromNVS() {
 
   uadSize = new_uad_size;
 }
+
+#if DEVICE_STORAGE == 1
+bool CustomControlMap::SaveUADtoStorage() {
+  if (!MatrixOS::FileSystem::Available())
+  {
+    return false;
+  }
+
+  File file = MatrixOS::FileSystem::Open(c_uad_storage_path, "wb");
+  if (file.Write(uadData, uadSize) != uadSize)
+  {
+    file.Close();
+    return false;
+  }
+
+  bool flush_ok = file.Flush();
+  file.Close();
+  return flush_ok;
+}
+#endif
 
 bool CustomControlMap::SaveUADtoNVS() {
   return MatrixOS::NVS::SetVariable(UAD_NVS_HASH, uadData, uadSize);
@@ -124,11 +235,12 @@ void CustomControlMap::HIDReportHandler() {
 
 void CustomControlMap::PrepNewUAD(const uint8_t* report) {
   uint32_t new_uad_size = (report[2] << 24) | (report[3] << 16) | (report[4] << 8) | report[5];
+  size_t max_uad_size = GetCurrentMaxUADSize();
   MLOGD("CustomControlMap", "Prep New UAD with Size: %d", new_uad_size);
 
-  if (new_uad_size > MAX_UAD_SIZE)
+  if (new_uad_size > max_uad_size)
   {
-    MLOGE("CustomControlMap", "UAD size exceeds limit (%d > %d)", new_uad_size, MAX_UAD_SIZE);
+    MLOGE("CustomControlMap", "UAD size exceeds limit (%d > %d)", new_uad_size, max_uad_size);
     SendError(report[0], 3); // UAD Size too large
     return;
   }
@@ -196,10 +308,49 @@ void CustomControlMap::SaveUAD() {
     return;
   }
 
-  if (!SaveUADtoNVS())
+  bool save_ok = false;
+  if (uadSize <= MAX_UAD_SIZE_NVS)
   {
-    MLOGE("CustomControlMap", "Failed to save UAD to NVS (%d bytes)", uadSize);
-    SendError(UAD_SAVE, 3); // Failed to save UAD to NVS
+    save_ok = SaveUADtoNVS();
+    if (!save_ok)
+    {
+      MLOGE("CustomControlMap", "Failed to save map to NVS (%d bytes)", uadSize);
+    }
+#if DEVICE_STORAGE == 1
+    else if (MatrixOS::FileSystem::Available() && MatrixOS::FileSystem::Exists(c_uad_storage_path))
+    {
+      if (!MatrixOS::FileSystem::Remove(c_uad_storage_path))
+      {
+        MLOGE("CustomControlMap", "Failed to remove stale map from storage");
+      }
+    }
+#endif
+  }
+  else
+  {
+#if DEVICE_STORAGE == 1
+    if (MatrixOS::FileSystem::Available())
+    {
+      save_ok = SaveUADtoStorage();
+      if (!save_ok)
+      {
+        MLOGE("CustomControlMap", "Failed to save map to storage (%d bytes)", uadSize);
+      }
+      else if (MatrixOS::NVS::GetSize(UAD_NVS_HASH) > 0 && !MatrixOS::NVS::DeleteVariable(UAD_NVS_HASH))
+      {
+        MLOGE("CustomControlMap", "Failed to remove stale map from NVS");
+      }
+    }
+#endif
+    if (!save_ok)
+    {
+      MLOGE("CustomControlMap", "Map exceeds NVS limit and no storage is available (%d bytes)", uadSize);
+    }
+  }
+
+  if (!save_ok)
+  {
+    SendError(UAD_SAVE, 3); // Failed to save map
     return;
   }
 
@@ -207,7 +358,7 @@ void CustomControlMap::SaveUAD() {
 }
 
 void CustomControlMap::LoadUAD() {
-  LoadUADfromNVS();
+  LoadSavedUAD();
   SendAck(UAD_LOAD | HID_RESPONSE);
 }
 
@@ -234,6 +385,7 @@ void CustomControlMap::BeginUAD() {
 }
 
 void CustomControlMap::SendDeviceDescriptor() {
+  size_t max_uad_size = GetCurrentMaxUADSize();
   MLOGD("CustomControlMap", "Send Device Descriptor");
   vector<uint8_t> payload = {
     DEVICE_DESCRIPTOR | HID_RESPONSE,                    // Response to DEVICE_DESCRIPTOR
@@ -248,10 +400,10 @@ void CustomControlMap::SendDeviceDescriptor() {
     Device::x_size,          // Device X 8
     Device::y_size,          // Device Y 8
     MAX_UAD_LAYER,           // Max Layers
-    (uint8_t)((MAX_UAD_SIZE >> 24) & 0xFF), // UAD Size MSB1
-    (uint8_t)((MAX_UAD_SIZE >> 16) & 0xFF), // UAD Size MSB2
-    (uint8_t)((MAX_UAD_SIZE >> 8) & 0xFF),  // UAD Size MSB3
-    (uint8_t)((MAX_UAD_SIZE) & 0xFF),       // UAD Size MSB4
+    (uint8_t)((max_uad_size >> 24) & 0xFF), // UAD Size MSB1
+    (uint8_t)((max_uad_size >> 16) & 0xFF), // UAD Size MSB2
+    (uint8_t)((max_uad_size >> 8) & 0xFF),  // UAD Size MSB3
+    (uint8_t)((max_uad_size) & 0xFF),       // UAD Size MSB4
     (uint8_t)MAX_HID_TRANSFER_SIZE,   // Max HID Transfer Size
   };
 

@@ -19,7 +19,8 @@ class CustomControlMap : public Application {
   void Loop() override;
 
   const uint8_t MAX_UAD_LAYER = 16;
-  const size_t MAX_UAD_SIZE = 8196; // 8KB
+  const size_t MAX_UAD_SIZE_NVS = 8196; // 8KB
+  const size_t MAX_UAD_SIZE_STORAGE = 32768; // 32KB
   const uint32_t UAD_NVS_HASH = StaticHash("CustomControlMap-UAD");
   const uint16_t MAX_HID_TRANSFER_SIZE = 28; // 28 bytes
  private:
@@ -31,7 +32,13 @@ class CustomControlMap : public Application {
   void KeyEventHandler(KeyEvent& keyEvent);
   void Reload();
   void ActionMenu();
+  size_t GetCurrentMaxUADSize() const;
 
+  void LoadSavedUAD();
+#if DEVICE_STORAGE == 1
+  bool LoadUADfromStorage();
+  bool SaveUADtoStorage();
+#endif
   void LoadUADfromNVS();
   bool SaveUADtoNVS();
 
