@@ -21,26 +21,26 @@ struct TaskPermissions {
   TaskPermissions(uint32_t value = 0) : raw(value) {}
 };
 
-inline StackType_t application_stack[APPLICATION_STACK_SIZE];
-inline StaticTask_t application_taskdef;
+inline StackType_t applicationStack[APPLICATION_STACK_SIZE];
+inline StaticTask_t applicationTaskdef;
 
-inline StackType_t supervisor_stack[configMINIMAL_STACK_SIZE * 4];
-inline StaticTask_t supervisor_taskdef;
+inline StackType_t supervisorStack[configMINIMAL_STACK_SIZE * 4];
+inline StaticTask_t supervisorTaskdef;
 
 inline bool inited = false;
-inline Application* active_app = NULL;
-inline TaskHandle_t active_app_task = NULL;
-inline uint32_t active_app_id = 0;
-inline Application_Info* active_app_info = NULL;
-inline uint32_t next_app_id = 0;
+inline Application* activeApp = NULL;
+inline TaskHandle_t activeAppTask = NULL;
+inline uint32_t activeAppId = 0;
+inline Application_Info* activeAppInfo = NULL;
+inline uint32_t nextAppId = 0;
 
-inline SavedVar<uint32_t> prev_system_version = SavedVar<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
+inline SavedVar<uint32_t> prevSystemVersion = SavedVar<uint32_t>(SYSTEM_VAR_NAMESPACE, "PREV_OS_VERSION", MATRIXOS_VERSION_ID);
 
 void Begin(void);
 
 void InitSysModules(void);
 
-uint32_t GenerateAPPID(string author, string app_name);
+uint32_t GenerateAPPID(string author, string appName);
 
 uint16_t GetApplicationCount();
 

@@ -40,7 +40,7 @@ public:
   };
 
   // Folder system constants
-  static constexpr uint8_t folderCount = 6;       // Folders 0-5
+  static constexpr uint8_t FOLDER_COUNT = 6;      // Folders 0-5
   static constexpr uint8_t FOLDER_HIDDEN = 254;    // User hidden apps folder
   static constexpr uint8_t FOLDER_INVISIBLE = 255; // System invisible apps folder
 
@@ -48,7 +48,7 @@ public:
     std::vector<uint32_t> app_ids;
   };
 
-  Color folder_colors[folderCount] = {// If color is not set, that means folder is not created
+  Color folder_colors[FOLDER_COUNT] = {// If color is not set, that means folder is not created
                                        Color(0x00FFFF), Color(0x000000), Color(0x000000),
                                        Color(0x000000), Color(0x000000), Color(0x000000)};
 

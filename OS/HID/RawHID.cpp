@@ -37,8 +37,8 @@ bool HandleMatrixOSHID(const uint8_t* report, size_t size) {
     return Send(reply);
   }
   case MATRIXOS_COMMAND_GET_APP_ID: {
-    vector<uint8_t> reply = {MATRIXOS_COMMAND_GET_APP_ID | 0x80, (uint8_t)(SYS::active_app_id >> 24), (uint8_t)(SYS::active_app_id >> 16),
-                             (uint8_t)(SYS::active_app_id >> 8), (uint8_t)(SYS::active_app_id)};
+    vector<uint8_t> reply = {MATRIXOS_COMMAND_GET_APP_ID | 0x80, (uint8_t)(SYS::activeAppId >> 24), (uint8_t)(SYS::activeAppId >> 16),
+                             (uint8_t)(SYS::activeAppId >> 8), (uint8_t)(SYS::activeAppId)};
     return Send(reply);
   }
   case MATRIXOS_COMMAND_ENTER_APP_VIA_ID: {

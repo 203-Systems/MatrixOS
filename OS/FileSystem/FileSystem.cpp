@@ -11,9 +11,9 @@ static bool filesystemMounted = false;
 
 // Helper function to get app sandbox path
 string GetAppSandboxPath() {
-  if (MatrixOS::SYS::active_app_info)
+  if (MatrixOS::SYS::activeAppInfo)
   {
-    return "/MatrixOS/AppData/" + MatrixOS::SYS::active_app_info->author + "-" + MatrixOS::SYS::active_app_info->name;
+    return "/MatrixOS/AppData/" + MatrixOS::SYS::activeAppInfo->author + "-" + MatrixOS::SYS::activeAppInfo->name;
   }
   return "";
 }
@@ -42,7 +42,7 @@ string TranslatePath(const string& path) {
   }
 
   // Sandbox application paths
-  if (MatrixOS::SYS::active_app_info && xTaskGetCurrentTaskHandle() == MatrixOS::SYS::active_app_task)
+  if (MatrixOS::SYS::activeAppInfo && xTaskGetCurrentTaskHandle() == MatrixOS::SYS::activeAppTask)
   {
     string sandboxBase = GetAppSandboxPath();
     string result;
@@ -62,7 +62,7 @@ string TranslatePath(const string& path) {
 
 // Ensure app directory exists
 void EnsureAppDirectory() {
-  if (MatrixOS::SYS::active_app_info)
+  if (MatrixOS::SYS::activeAppInfo)
   {
     string sandboxPath = GetAppSandboxPath();
 
@@ -107,16 +107,16 @@ void Init() {
       // Try a simple format first (let FatFS choose the best format)
       BYTE work[FF_MAX_SS]; // Work area for f_mkfs
 
-      MKFS_PARM mkfs_opt = {0}; // Initialize to zero
-      mkfs_opt.fmt = FS_FAT32;  // Let FatFS choose format (FAT12/16/32)
-      mkfs_opt.n_fat = 0;       // Number of FAT copies
-      mkfs_opt.align = 0;       // Data area alignment (0 = auto)
-      mkfs_opt.n_root = 0;      // Number of root directory entries (0 = auto)
-      mkfs_opt.au_size = 0;     // Allocation unit size (0 = auto)
+      MKFS_PARM mkfsOpt = {0}; // Initialize to zero
+      mkfsOpt.fmt = FS_FAT32;  // Let FatFS choose format (FAT12/16/32)
+      mkfsOpt.n_fat = 0;       // Number of FAT copies
+      mkfsOpt.align = 0;       // Data area alignment (0 = auto)
+      mkfsOpt.n_root = 0;      // Number of root directory entries (0 = auto)
+      mkfsOpt.au_size = 0;     // Allocation unit size (0 = auto)
 
-      FRESULT mkfs_result = f_mkfs("", &mkfs_opt, work, sizeof(work));
+      FRESULT mkfsResult = f_mkfs("", &mkfsOpt, work, sizeof(work));
 
-      if (mkfs_result == FR_OK)
+      if (mkfsResult == FR_OK)
       {
         MLOGI("FileSystem", "Format successful, mounting filesystem...");
         // Format successful, try to mount again
@@ -132,7 +132,7 @@ void Init() {
       }
       else
       {
-        MLOGE("FileSystem", "Format failed (code %d)", mkfs_result);
+        MLOGE("FileSystem", "Format failed (code %d)", mkfsResult);
       }
     }
     else

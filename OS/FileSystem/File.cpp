@@ -145,32 +145,32 @@ bool File::_Open(const string& path, const string& mode) {
   }
 
   // Convert mode string to FatFS access mode
-  BYTE access_mode = 0;
+  BYTE accessMode = 0;
 
   if (mode.find('r') != string::npos)
   {
-    access_mode |= FA_READ;
+    accessMode |= FA_READ;
   }
   if (mode.find('w') != string::npos)
   {
-    access_mode |= FA_WRITE | FA_CREATE_ALWAYS;
+    accessMode |= FA_WRITE | FA_CREATE_ALWAYS;
   }
   if (mode.find('a') != string::npos)
   {
-    access_mode |= FA_WRITE | FA_OPEN_APPEND;
+    accessMode |= FA_WRITE | FA_OPEN_APPEND;
   }
   if (mode.find('+') != string::npos)
   {
-    access_mode |= FA_READ | FA_WRITE;
+    accessMode |= FA_READ | FA_WRITE;
   }
 
   // Default to read if no mode specified
-  if (access_mode == 0)
+  if (accessMode == 0)
   {
-    access_mode = FA_READ;
+    accessMode = FA_READ;
   }
 
-  FRESULT result = f_open(&fileHandle, path.c_str(), access_mode);
+  FRESULT result = f_open(&fileHandle, path.c_str(), accessMode);
 
   if (result == FR_OK)
   {

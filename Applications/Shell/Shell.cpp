@@ -59,7 +59,7 @@ void Shell::InitializeFolderSystem() {
   // Initialize folder structures
   folders[FOLDER_HIDDEN] = {{}};
   folders[FOLDER_INVISIBLE] = {{}};
-  for (uint8_t i = 0; i < folderCount; i++)
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++)
   {
     folders[i] = {{}};
   }
@@ -78,7 +78,7 @@ void Shell::InitializeFolderSystem() {
 
   // Try to load existing folder vectors from NVS
   bool foldersLoaded = false;
-  for (uint8_t i = 0; i < folderCount; i++)
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++)
   {
     LoadFolderVector(i);
     if (!folders[i].app_ids.empty())
@@ -162,7 +162,7 @@ void Shell::InitializeFolderSystem() {
 
 bool Shell::EnableFolder(uint8_t folderIdx, Color color) {
   // Check if folder index is valid
-  if (folderIdx >= folderCount)
+  if (folderIdx >= FOLDER_COUNT)
   {
     MLOGW("Shell", "Invalid folder index: %d", folderIdx);
     return false;
@@ -184,7 +184,7 @@ bool Shell::EnableFolder(uint8_t folderIdx, Color color) {
 }
 
 void Shell::DisableFolder(uint8_t folderId) {
-  if (folderId >= folderCount)
+  if (folderId >= FOLDER_COUNT)
   {
     MLOGW("Shell", "Invalid folder ID: %d", folderId);
     return;
@@ -211,7 +211,7 @@ void Shell::DisableFolder(uint8_t folderId) {
 }
 
 void Shell::DeleteFolder(uint8_t folderId) {
-  if (folderId >= folderCount)
+  if (folderId >= FOLDER_COUNT)
   {
     MLOGW("Shell", "Invalid folder ID: %d", folderId);
     return;
@@ -238,7 +238,7 @@ void Shell::MoveAppToFolder(uint32_t appId, uint8_t folderId) {
     MLOGW("Shell", "Folder %d does not exist. Cannot move app %d.", folderId, appId);
     return;
   }
-  else if (folderId < folderCount && folder_colors[folderId] == Color(0x000000))
+  else if (folderId < FOLDER_COUNT && folder_colors[folderId] == Color(0x000000))
   {
     MLOGW("Shell", "Folder %d is not enabled. Cannot move app %d.", folderId, appId);
     return;
@@ -272,7 +272,7 @@ void Shell::MoveAppToFolder(uint32_t appId, uint8_t folderId) {
 }
 
 void Shell::SaveFolderVector(uint8_t folderId) {
-  if (folderId >= folderCount && folderId != FOLDER_HIDDEN && folderId != FOLDER_INVISIBLE)
+  if (folderId >= FOLDER_COUNT && folderId != FOLDER_HIDDEN && folderId != FOLDER_INVISIBLE)
   {
     return;
   }
@@ -292,7 +292,7 @@ void Shell::SaveFolderVector(uint8_t folderId) {
 }
 
 void Shell::LoadFolderVector(uint8_t folderId) {
-  if (folderId >= folderCount && folderId != FOLDER_HIDDEN && folderId != FOLDER_INVISIBLE)
+  if (folderId >= FOLDER_COUNT && folderId != FOLDER_HIDDEN && folderId != FOLDER_INVISIBLE)
   {
     return;
   }
@@ -322,7 +322,7 @@ void Shell::LoadFolderVector(uint8_t folderId) {
 }
 
 void Shell::SaveAllFolderVectors() {
-  for (uint8_t i = 0; i < folderCount; i++)
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++)
   {
     SaveFolderVector(i);
   }
@@ -335,7 +335,7 @@ void Shell::CleanupInvalidApps() {
 
   // Clean up all folders including special ones
   std::vector<uint8_t> all_folders;
-  for (uint8_t i = 0; i < folderCount; i++)
+  for (uint8_t i = 0; i < FOLDER_COUNT; i++)
   {
     all_folders.push_back(i);
   }
@@ -501,14 +501,14 @@ void Shell::ApplicationLauncherEditing() {
 
   applicationLauncherEdit.Start();
 
-  if (current_folder >= folderCount || folder_colors[current_folder] == Color(0x000000))
+  if (current_folder >= FOLDER_COUNT || folder_colors[current_folder] == Color(0x000000))
   {
     current_folder = 0; // Reset to folder 0 if current folder is invalid
   }
 }
 
 void Shell::LaunchAnimation(Point origin, Color color) {
-  if (!MatrixOS::UserVar::ui_animation)
+  if (!MatrixOS::UserVar::uiAnimation)
   {
     return;
   }

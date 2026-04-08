@@ -6,8 +6,8 @@ bool ledInited = false;
 uint32_t ledCount = 0;
 
 // static timer
-StaticTimer_t led_tmdef;
-TimerHandle_t led_tm;
+StaticTimer_t ledTmdef;
+TimerHandle_t ledTm;
 
 SemaphoreHandle_t activeBufferSemaphore;
 vector<Color*> frameBuffers; // 0 is the active layer
@@ -113,8 +113,8 @@ void Init() {
 
   if (ledInited == false)
   {
-    led_tm = xTimerCreateStatic("LED Timer", 1000 / Device::LED::fps, pdTRUE, (void*)0, LEDTimerCallback, &led_tmdef);
-    xTimerStart(led_tm, 0);
+    ledTm = xTimerCreateStatic("LED Timer", 1000 / Device::LED::fps, pdTRUE, (void*)0, LEDTimerCallback, &ledTmdef);
+    xTimerStart(ledTm, 0);
   }
 
   ledInited = true;
@@ -375,7 +375,7 @@ void Update(uint8_t layer) {
 }
 
 void Fade(uint16_t crossfade, Color* sourceBuffer) {
-  if (!UserVar::ui_animation)
+  if (!UserVar::uiAnimation)
   {
     return;
   }
@@ -487,11 +487,11 @@ IRAM_ATTR void RenderCrossfade() {
 void PauseUpdate(bool pause) {
   if (pause)
   {
-    xTimerStop(led_tm, 0);
+    xTimerStop(ledTm, 0);
   }
   else
   {
-    xTimerStart(led_tm, 0);
+    xTimerStart(ledTm, 0);
   }
 }
 

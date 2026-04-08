@@ -20,7 +20,7 @@ public:
 
   virtual bool Render(Point origin) {
     // Render existing folders
-    for (uint8_t i = 0; i < Shell::folderCount; i++)
+    for (uint8_t i = 0; i < Shell::FOLDER_COUNT; i++)
     {
       Color color = shell->folder_colors[i];
       if (color != Color(0x000000)) // Folder exists

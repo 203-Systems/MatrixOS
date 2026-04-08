@@ -236,11 +236,11 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
     uint8_t reply[] = {MIDIv1_SYSEX_START,
                        MATRIXOS_SYSEX_RESPONSE,
                        MATRIXOS_COMMAND_GET_APP_ID,
-                       (uint8_t)((SYS::active_app_id >> 25) & 0x7F),
-                       (uint8_t)((SYS::active_app_id >> 18) & 0x7F),
-                       (uint8_t)((SYS::active_app_id >> 11) & 0x7F),
-                       (uint8_t)((SYS::active_app_id >> 4) & 0x7F),
-                       (uint8_t)((SYS::active_app_id << 3) & 0x7F),
+                       (uint8_t)((SYS::activeAppId >> 25) & 0x7F),
+                       (uint8_t)((SYS::activeAppId >> 18) & 0x7F),
+                       (uint8_t)((SYS::activeAppId >> 11) & 0x7F),
+                       (uint8_t)((SYS::activeAppId >> 4) & 0x7F),
+                       (uint8_t)((SYS::activeAppId << 3) & 0x7F),
                        MIDIv1_SYSEX_END};
     SendSysEx(port, sizeof(reply), reply, false);
   }

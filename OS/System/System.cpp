@@ -16,69 +16,69 @@ extern std::unordered_map<uint32_t, Application_Info*> applications;
 namespace MatrixOS::SYS
 {
 // Application argument storage
-static vector<string> next_app_args;
+static vector<string> nextAppArgs;
 
 // Thread Local Storage indices
-enum TLS_Index {
+enum TLSIndex {
   TLS_PERMISSIONS_INDEX = 0, // Stores TaskPermissions bitmap
   TLS_MAX_INDEX = 1          // Reserve for future use
 };
 
 void ApplicationFactory(void* param) {
-  MLOGD("Application Factory", "App ID %X", next_app_id);
+  MLOGD("Application Factory", "App ID %X", nextAppId);
 
-  active_app = NULL;
+  activeApp = NULL;
 
-  if (next_app_id != 0)
+  if (nextAppId != 0)
   {
     auto& applications = GetApplications();
-    auto application = applications.find(next_app_id);
+    auto application = applications.find(nextAppId);
     if (application != applications.end())
     {
       MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(), application->second->name.c_str());
-      active_app_id = next_app_id;
-      active_app = application->second->factory();
-      if (active_app == NULL)
+      activeAppId = nextAppId;
+      activeApp = application->second->factory();
+      if (activeApp == NULL)
       {
         MLOGE("Application Factory", "Factory returned NULL - allocation failed!");
         ErrorHandler("App allocation failed");
       }
-      active_app_info = application->second;
+      activeAppInfo = application->second;
     }
   }
 
-  if (active_app == NULL) // Default to launch shell
+  if (activeApp == NULL) // Default to launch shell
   {
-    if (next_app_id != 0)
+    if (nextAppId != 0)
     {
       MLOGD("Application Factory", "Can't find target app.");
     }
     MLOGD("Application Factory", "Launching Shell");
     MLOGD("Application Factory", "Free heap before Shell factory: %d bytes", xPortGetFreeHeapSize());
-    next_app_id = OS_SHELL;
+    nextAppId = OS_SHELL;
     auto& applications = GetApplications();
-    auto application = applications.find(next_app_id);
+    auto application = applications.find(nextAppId);
     if (application != applications.end())
     {
       MLOGD("Application Factory", "Launching %s-%s", application->second->author.c_str(), application->second->name.c_str());
-      active_app = application->second->factory();
-      if (active_app == NULL)
+      activeApp = application->second->factory();
+      if (activeApp == NULL)
       {
         MLOGE("Application Factory", "Shell factory returned NULL - allocation failed!");
         ErrorHandler("Shell allocation failed");
       }
-      active_app_id = next_app_id;
-      active_app_info = application->second;
+      activeAppId = nextAppId;
+      activeAppInfo = application->second;
     }
   }
 
-  next_app_id = 0; // Reset active_app_id so when active app exits it will default to shell again.
+  nextAppId = 0; // Reset activeAppId so when active app exits it will default to shell again.
 
   // Update task permissions based on app info
-  if (active_app_info != nullptr)
+  if (activeAppInfo != nullptr)
   {
     TaskPermissions perms;
-    perms.privileged = active_app_info->is_system;
+    perms.privileged = activeAppInfo->isSystem;
     SetTaskPermissions(perms); // Uses current task (which IS the app task)
     MLOGD("Application Factory", "Set app permissions: %s", perms.privileged ? "Privileged" : "Not Privileged");
   }
@@ -87,15 +87,15 @@ void ApplicationFactory(void* param) {
   MatrixOS::LED::Fade();
 
   // Pass arguments to application
-  active_app->Start(next_app_args);
+  activeApp->Start(nextAppArgs);
 }
 
 void Supervisor(void* param) {
 
   MLOGD("Supervisor", "%d Apps registered", GetApplications().size());
 
-  active_app_task =
-      xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+  activeAppTask =
+      xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, applicationStack, &applicationTaskdef);
 
   bool exited = false;
   while (true)
@@ -113,10 +113,10 @@ void Supervisor(void* param) {
       exited = false;
     }
 
-    if (active_app_task == NULL || eTaskGetState(active_app_task) == eTaskState::eDeleted)
+    if (activeAppTask == NULL || eTaskGetState(activeAppTask) == eTaskState::eDeleted)
     {
-      active_app_task =
-          xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, application_stack, &application_taskdef);
+      activeAppTask =
+          xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, applicationStack, &applicationTaskdef);
     }
     DelayMs(100);
   }
@@ -158,9 +158,9 @@ void Begin(void) {
 
   Device::DeviceStart(); // App won't run till supervisor is running
 
-  (void)xTaskCreateStatic(Supervisor, "supervisor", configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
+  (void)xTaskCreateStatic(Supervisor, "supervisor", configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisorStack, &supervisorTaskdef);
 
-  // next_app_id = GenerateAPPID("203 Systems", "Performance Mode");  // Launch Performance mode by default for now
+  // nextAppId = GenerateAPPID("203 Systems", "Performance Mode");  // Launch Performance mode by default for now
 }
 
 void InitSysModules(void) {
@@ -202,19 +202,19 @@ void OpenSetting(void) {
   setting.SystemSetting();
 }
 
-void Rotate(Direction new_rotation, bool absolute) {
-  if (new_rotation == 0 || new_rotation == 90 || new_rotation == 180 || new_rotation == 270)
+void Rotate(Direction newRotation, bool absolute) {
+  if (newRotation == 0 || newRotation == 90 || newRotation == 180 || newRotation == 270)
   {
-    if (new_rotation == 0 && !absolute)
+    if (newRotation == 0 && !absolute)
     {
       return;
     }
-    // LED::RotateCanvas(new_rotation); //TODO Does not work if absolute is true
+    // LED::RotateCanvas(newRotation); //TODO Does not work if absolute is true
     for (uint8_t ledLayer = 0; ledLayer <= LED::CurrentLayer(); ledLayer++)
     {
       LED::Fill(0, ledLayer);
     }
-    UserVar::rotation = (Direction)((UserVar::rotation * !absolute + new_rotation) % 360);
+    UserVar::rotation = (Direction)((UserVar::rotation * !absolute + newRotation) % 360);
   }
 }
 
@@ -224,28 +224,28 @@ uint32_t GenerateAPPID(string author, string appName) {
 }
 
 void ExecuteAPP(uint32_t appId, const vector<string>& args) {
-  next_app_args = args;
-  next_app_id = appId;
+  nextAppArgs = args;
+  nextAppId = appId;
 
-  if (active_app_task != NULL)
+  if (activeAppTask != NULL)
   {
     ExitAPP();
   }
 }
 
 void ExecuteAPP(string author, string appName, const vector<string>& args) {
-  next_app_args = args;
+  nextAppArgs = args;
   MLOGD("System", "Launching APP\t%s - %s", author.c_str(), appName.c_str());
-  next_app_id = GenerateAPPID(author, appName);
+  nextAppId = GenerateAPPID(author, appName);
 
-  if (active_app_task != NULL)
+  if (activeAppTask != NULL)
   {
     ExitAPP();
   }
 }
 
 void ExitAPP() {
-  if (MatrixOS::UserVar::ui_animation)
+  if (MatrixOS::UserVar::uiAnimation)
   {
     MatrixOS::LED::Fade();
     MatrixOS::LED::Fill(0, 0);
@@ -254,30 +254,30 @@ void ExitAPP() {
     MatrixOS::SYS::DelayMs(crossfadeDuration);
   }
 
-  if (xTaskGetCurrentTaskHandle() != active_app_task)
+  if (xTaskGetCurrentTaskHandle() != activeAppTask)
   {
-    vTaskSuspend(active_app_task);
+    vTaskSuspend(activeAppTask);
   }
 
   // Safeguard against nullptr before calling End()
-  if (active_app != nullptr)
+  if (activeApp != nullptr)
   {
-    active_app->End();
+    activeApp->End();
   }
 
   // Safeguard destructor call
-  if (active_app_info != nullptr && active_app_info->destructor != nullptr && active_app != nullptr)
+  if (activeAppInfo != nullptr && activeAppInfo->destructor != nullptr && activeApp != nullptr)
   {
-    active_app_info->destructor(active_app);
+    activeAppInfo->destructor(activeApp);
   }
 
-  if (active_app_task != NULL)
+  if (activeAppTask != NULL)
   {
     UI::ExitAllUIs();
-    active_app = NULL;
-    vTaskDelete(active_app_task);
+    activeApp = NULL;
+    vTaskDelete(activeAppTask);
   }
-  active_app_task = NULL;
+  activeAppTask = NULL;
 }
 
 void ErrorHandler(string error) {
@@ -312,24 +312,24 @@ uint16_t GetApplicationCount() // Used by shell, for some reason shell can not a
 
 #define SYSTEM_VERSION_ID(major, minor, patch) ((major << 16) | (minor << 8) | patch)
 void UpdateSystemNVS() {
-  if (!prev_system_version.Load() ||
-      (prev_system_version & 0xFFFFFF00) > (MATRIXOS_VERSION_ID & 0xFFFFFF00)) // System version is not set or is newer than current
+  if (!prevSystemVersion.Load() ||
+      (prevSystemVersion & 0xFFFFFF00) > (MATRIXOS_VERSION_ID & 0xFFFFFF00)) // System version is not set or is newer than current
   {
     // Wipe NVS
     Device::NVS::Clear();
-    prev_system_version.Set(MATRIXOS_VERSION_ID);
+    prevSystemVersion.Set(MATRIXOS_VERSION_ID);
     return;
   }
 
-  if (prev_system_version == MATRIXOS_VERSION_ID) // System version is up to date
+  if (prevSystemVersion == MATRIXOS_VERSION_ID) // System version is up to date
   {
     // We are all good here
     return;
   }
 
   // System version is older, update here
-  uint32_t prevVer = prev_system_version >> 8;
-  prev_system_version.Set(MATRIXOS_VERSION_ID);
+  uint32_t prevVer = prevSystemVersion >> 8;
+  prevSystemVersion.Set(MATRIXOS_VERSION_ID);
 
   // Code for demo purposes, pre_system_version var is introduced in 2.5.0
   // if(prevVer == SYSTEM_VERSION_ID(2, 5, 0))

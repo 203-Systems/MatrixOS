@@ -13,12 +13,12 @@ public:
   }
 
   virtual Dimension GetSize() {
-    return Dimension(Shell::folderCount, 1);
+    return Dimension(Shell::FOLDER_COUNT, 1);
   }
 
   virtual bool Render(Point origin) {
     uint8_t folderCount = 0;
-    for (uint8_t i = 0; i < Shell::folderCount; i++)
+    for (uint8_t i = 0; i < Shell::FOLDER_COUNT; i++)
     {
       Color color = shell->folder_colors[i];
       if (color == Color(0x000000)) // Folder not created
@@ -38,7 +38,7 @@ public:
 
       // Find the actual folder index
       uint8_t folderRealIdx = 0;
-      for (uint8_t i = 0; i < Shell::folderCount; i++)
+      for (uint8_t i = 0; i < Shell::FOLDER_COUNT; i++)
       {
         if (shell->folder_colors[i] != Color(0x000000)) // Folder not created
         {
