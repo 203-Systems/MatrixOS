@@ -1,0 +1,10 @@
+CompileFlags:
+  Add:
+    - -std=gnu++17
+Diagnostics:
+  ClangTidy:
+    Add:
+      - modernize-use-nullptr
+      - readability-identifier-naming
+Format:
+  Style: file
