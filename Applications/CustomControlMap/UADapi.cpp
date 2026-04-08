@@ -2,7 +2,8 @@
 
 bool UADRuntime::SetRegister(ActionInfo* actionInfo, uint32_t value)
 {
-    return registers.insert_or_assign(actionInfo->Hash(), value).second;
+    registers.insert_or_assign(actionInfo->Hash(), value);
+    return true;
 }
 
 bool UADRuntime::GetRegister(ActionInfo* actionInfo, uint32_t* value)
