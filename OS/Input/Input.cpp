@@ -13,9 +13,6 @@ QueueHandle_t inputEventQueue = nullptr;
 // Packed key = (clusterId << 16) | memberId
 static std::unordered_map<uint32_t, InputSnapshot> stateCache;
 
-// Cluster registry
-static vector<InputCluster> clusters;
-
 // Capabilities storage: maps clusterId -> capabilities struct
 static std::unordered_map<uint8_t, KeypadCapabilities> keypadCapsMap;
 
@@ -34,29 +31,6 @@ void Init() {
   }
   stateCache.clear();
   MLOGI(TAG, "Input system initialized");
-}
-
-void RegisterCluster(const InputCluster& cluster) {
-  // Replace if a cluster with the same ID already exists
-  for (auto& existing : clusters)
-  {
-    if (existing.clusterId == cluster.clusterId)
-    {
-      existing = cluster;
-      MLOGI(TAG, "Cluster %d (%s) updated", cluster.clusterId, cluster.name.c_str());
-      return;
-    }
-  }
-  clusters.push_back(cluster);
-  MLOGI(TAG, "Cluster %d (%s) registered: %s %dx%d count=%d",
-        cluster.clusterId, cluster.name.c_str(),
-        cluster.shape == InputClusterShape::Grid2D ? "Grid2D" :
-        cluster.shape == InputClusterShape::Linear1D ? "Linear1D" : "Scalar",
-        cluster.dimension.x, cluster.dimension.y, cluster.inputCount);
-}
-
-void ClearClusters() {
-  clusters.clear();
 }
 
 bool NewEvent(const InputEvent& event) {
@@ -100,11 +74,11 @@ bool GetState(InputId id, InputSnapshot* snapshot) {
 }
 
 const vector<InputCluster>& GetClusters() {
-  return clusters;
+  return Device::Input::clusters;
 }
 
 const InputCluster* GetCluster(uint8_t clusterId) {
-  for (const auto& cluster : clusters)
+  for (const auto& cluster : Device::Input::clusters)
   {
     if (cluster.clusterId == clusterId)
     {
@@ -115,7 +89,7 @@ const InputCluster* GetCluster(uint8_t clusterId) {
 }
 
 const InputCluster* GetPrimaryGridCluster() {
-  for (const auto& cluster : clusters)
+  for (const auto& cluster : Device::Input::clusters)
   {
     if (cluster.inputClass == InputClass::Keypad && cluster.shape == InputClusterShape::Grid2D)
     {
@@ -136,7 +110,7 @@ Dimension GetPrimaryGridSize() {
 
 void GetInputsAt(Point xy, vector<InputId>* ids) {
   ids->clear();
-  for (const auto& cluster : clusters)
+  for (const auto& cluster : Device::Input::clusters)
   {
     if (!cluster.HasCoordinates())
     {

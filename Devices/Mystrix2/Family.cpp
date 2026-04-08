@@ -54,8 +54,18 @@ void RegisterInputClusters(); // forward declaration
 
 namespace Input
 {
+vector<InputCluster> clusters;
+
+static const InputCluster* FindCluster(uint8_t clusterId) {
+  for (const auto& c : clusters)
+  {
+    if (c.clusterId == clusterId) return &c;
+  }
+  return nullptr;
+}
+
 bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
-  const InputCluster* cluster = MatrixOS::Input::GetCluster(clusterId);
+  const InputCluster* cluster = FindCluster(clusterId);
   if (!cluster || !cluster->HasCoordinates())
   {
     return false;
@@ -99,7 +109,7 @@ bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
 }
 
 bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
-  const InputCluster* cluster = MatrixOS::Input::GetCluster(clusterId);
+  const InputCluster* cluster = FindCluster(clusterId);
   if (!cluster || !cluster->HasCoordinates())
   {
     return false;
@@ -172,6 +182,8 @@ void RegisterInputClusters() {
   Direction rotation = MatrixOS::UserVar::rotation;
   Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
 
+  Input::clusters.clear();
+
   // Cluster 0: System (FN button) — no coordinates, no rotation
   InputCluster fnCluster;
   fnCluster.clusterId = 0;
@@ -181,7 +193,7 @@ void RegisterInputClusters() {
   fnCluster.rootPoint = Point::Invalid();
   fnCluster.dimension = Dimension(1, 1);
   fnCluster.inputCount = 1;
-  MatrixOS::Input::RegisterCluster(fnCluster);
+  Input::clusters.push_back(fnCluster);
 
   // Cluster 1: Main 8x8 Grid
   InputCluster gridCluster;
@@ -194,7 +206,7 @@ void RegisterInputClusters() {
   gridCluster.inputCount = X_SIZE * Y_SIZE;
   gridCluster.rotation = rotation;
   gridCluster.rotationDimension = rotDim;
-  MatrixOS::Input::RegisterCluster(gridCluster);
+  Input::clusters.push_back(gridCluster);
 
   // Cluster 2: TouchBar Left (8 keys along left edge, x = -1 in hardware space)
   InputCluster touchbarLeftCluster;
@@ -207,7 +219,7 @@ void RegisterInputClusters() {
   touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarLeftCluster.rotation = rotation;
   touchbarLeftCluster.rotationDimension = rotDim;
-  MatrixOS::Input::RegisterCluster(touchbarLeftCluster);
+  Input::clusters.push_back(touchbarLeftCluster);
 
   // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE in hardware space)
   InputCluster touchbarRightCluster;
@@ -220,7 +232,7 @@ void RegisterInputClusters() {
   touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarRightCluster.rotation = rotation;
   touchbarRightCluster.rotationDimension = rotDim;
-  MatrixOS::Input::RegisterCluster(touchbarRightCluster);
+  Input::clusters.push_back(touchbarRightCluster);
 
   // Register keypad capabilities
   // Grid: FSR pressure sensing, aftertouch

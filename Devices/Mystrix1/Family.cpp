@@ -38,6 +38,8 @@ bool IsFunctionKey(InputId id) {
 
 namespace Input
 {
+vector<InputCluster> clusters;
+
 bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
   (void)clusterId; (void)memberId; (void)point;
   return false; // Mystrix1 uses legacy KeyPad path only

@@ -70,6 +70,9 @@ Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_M
 
 namespace Input
 {
+// Device-owned cluster data. The device layer populates and maintains this.
+extern vector<InputCluster> clusters;
+
 // Device-owned coordinate mapping handlers.
 // The device layer defines how memberId maps to visual coordinates and vice versa.
 bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point);
