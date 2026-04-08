@@ -1,7 +1,7 @@
 #include "Setting.h"
 #include "BrightnessControl.h"
 
-#include "USB/USB.h" 
+#include "USB/USB.h"
 
 void Setting::SystemSetting() {
   // TODO: Let's assume all dimension are even atm. (No device with odd dimension should exist. Srsly why does Samson
@@ -55,15 +55,14 @@ void Setting::SystemSetting() {
   mscModeBtn.SetName("USB Storage Mode");
   mscModeBtn.SetSize(Dimension(1, 1));
   mscModeBtn.OnPress([]() -> void {
-    if (Device::Storage::Available()) {
+    if (Device::Storage::Available())
+    {
       MatrixOS::SYS::ExecuteAPP("203 Systems", "MSC Mode");
     }
   });
 
   // Dynamic color based on storage availability
-  mscModeBtn.SetColorFunc([]() -> Color {
-    return Color(0xFF8000).DimIfNot(Device::Storage::Available());
-  });
+  mscModeBtn.SetColorFunc([]() -> Color { return Color(0xFF8000).DimIfNot(Device::Storage::Available()); });
 
   systemSetting.AddUIComponent(mscModeBtn, Point(Device::x_size - 1, Device::y_size - 1));
 #endif
@@ -74,8 +73,7 @@ void Setting::SystemSetting() {
   deviceIdBtn.SetColor(Color(0x00FFFF));
   deviceIdBtn.SetSize(Dimension(1, 1));
   deviceIdBtn.OnPress([]() -> void {
-    MatrixOS::UserVar::device_id =
-        MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 63);
+    MatrixOS::UserVar::device_id = MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::device_id, 0x00FFFF, "Device ID", 0, 63);
   });
   systemSetting.AddUIComponent(deviceIdBtn, Point(Device::x_size - 2, Device::y_size - 1));
 
@@ -93,20 +91,16 @@ void Setting::SystemSetting() {
   systemSetting.AddUIComponent(resetDevice, Point(1, Device::y_size - 1));
 
   UIButton osVersionBtn;
-    osVersionBtn.SetName("Matrix OS Version");
-    osVersionBtn.SetColor(Color(0x00FF30));
-    osVersionBtn.SetSize(Dimension(2, 1));
-    osVersionBtn.OnPress([]() -> void {
-      MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FF30));
-    });
+  osVersionBtn.SetName("Matrix OS Version");
+  osVersionBtn.SetColor(Color(0x00FF30));
+  osVersionBtn.SetSize(Dimension(2, 1));
+  osVersionBtn.OnPress([]() -> void { MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FF30)); });
   systemSetting.AddUIComponent(osVersionBtn, Point(3, Device::y_size - 1));
 
   UIButton deviceSettingsBtn;
   deviceSettingsBtn.SetName("Device Settings");
   deviceSettingsBtn.SetColor(Color::White);
-  deviceSettingsBtn.OnPress([]() -> void {
-    Device::DeviceSettings();
-  });
+  deviceSettingsBtn.OnPress([]() -> void { Device::DeviceSettings(); });
   systemSetting.AddUIComponent(deviceSettingsBtn, Point(0, 0));
 
   UIToggle uiAnimationToggle;
@@ -121,14 +115,13 @@ void Setting::SystemSetting() {
   secretMenuBtn.SetColorFunc([]() -> Color { return ColorEffects::Rainbow(3000); });
   secretMenuBtn.SetSize(Dimension(4, 1));
   secretMenuBtn.OnPress([&]() -> void { SecretMenu(); });
-  secretMenuBtn.SetEnableFunc([]() -> bool {return MatrixOS::UserVar::secret_menu_en;});
+  secretMenuBtn.SetEnableFunc([]() -> bool { return MatrixOS::UserVar::secret_menu_en; });
   systemSetting.AddUIComponent(secretMenuBtn, Point(2, 0));
 
   systemSetting.Start();
 }
 
-void Setting::SecretMenu()
-{
+void Setting::SecretMenu() {
   UI secretMenu;
   secretMenu.SetName("Secret Menu");
   secretMenu.SetColor(Color(0xFFFFFF));
@@ -143,10 +136,10 @@ void Setting::SecretMenu()
   secretMenu.Start();
 }
 
-bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
+bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
   Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
 
-  if (xy && keyEvent->info.state == RELEASED)  // IF XY is valid, means it's on the main grid
+  if (xy && keyEvent->info.state == RELEASED) // IF XY is valid, means it's on the main grid
   {
     if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
     {
@@ -211,7 +204,6 @@ bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {;
   }
   return false;
 }
-
 
 void Setting::ResetConfirm() {
   UI confirmResetUI("Confirm Factory Reset", Color(0xFF00FF));

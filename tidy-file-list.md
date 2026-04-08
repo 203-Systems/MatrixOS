@@ -22,8 +22,8 @@
 - Applications\Shell\AppLauncherPicker.h - NOT FORMATTED
 - Applications\Shell\AppLauncherBarEditMode.h - NOT FORMATTED
 - Applications\Shell\AppLauncherBar.h - NOT FORMATTED
-- Applications\Setting\Setting.h - NOT FORMATTED
-- Applications\Setting\Setting.cpp - NOT FORMATTED
+- Applications\Setting\Setting.h - FORMATTED
+- Applications\Setting\Setting.cpp - FORMATTED
 - OS\UI\Utilities\TextScroll.cpp - NOT FORMATTED
 - OS\UI\Utilities\NumberEditor8x8.cpp - NOT FORMATTED
 - OS\UI\Utilities\ColorPicker.cpp - NOT FORMATTED
