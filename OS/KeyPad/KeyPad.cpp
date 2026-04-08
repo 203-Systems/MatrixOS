@@ -40,8 +40,15 @@ static InputId BridgeKeyId(uint16_t keyID) {
     uint16_t y = keyID & 0x3F;
     return InputId{1, static_cast<uint16_t>(y * Device::xSize + x)};
   }
-  case 2: // TouchBar
-    return InputId{2, static_cast<uint16_t>(keyID & 0x0FFF)};
+  case 2: // TouchBar: left side (0-7) → cluster 2, right side (8-15) → cluster 3
+  {
+    uint16_t index = keyID & 0x0FFF;
+    if (index >= 8)
+    {
+      return InputId{3, static_cast<uint16_t>(index - 8)};
+    }
+    return InputId{2, static_cast<uint16_t>(index)};
+  }
   default:
     return InputId{static_cast<uint8_t>(keyClass), static_cast<uint16_t>(keyID & 0x0FFF)};
   }

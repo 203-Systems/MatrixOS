@@ -65,16 +65,27 @@ void RegisterInputClusters() {
   gridCluster.inputCount = X_SIZE * Y_SIZE;
   MatrixOS::Input::RegisterCluster(gridCluster);
 
-  // Cluster 2: TouchBar (16 virtual keys, 8 on each side)
-  InputCluster touchbarCluster;
-  touchbarCluster.clusterId = 2;
-  touchbarCluster.name = "TouchBar";
-  touchbarCluster.inputClass = InputClass::Keypad;
-  touchbarCluster.shape = InputClusterShape::Linear1D;
-  touchbarCluster.rootPoint = Point(-1, 0);
-  touchbarCluster.dimension = Dimension(1, 8);
-  touchbarCluster.inputCount = TOUCHBAR_SIZE;
-  MatrixOS::Input::RegisterCluster(touchbarCluster);
+  // Cluster 2: TouchBar Left (8 keys along left edge, x = -1)
+  InputCluster touchbarLeftCluster;
+  touchbarLeftCluster.clusterId = 2;
+  touchbarLeftCluster.name = "TouchBarLeft";
+  touchbarLeftCluster.inputClass = InputClass::Keypad;
+  touchbarLeftCluster.shape = InputClusterShape::Linear1D;
+  touchbarLeftCluster.rootPoint = Point(-1, 0);
+  touchbarLeftCluster.dimension = Dimension(1, Y_SIZE);
+  touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
+  MatrixOS::Input::RegisterCluster(touchbarLeftCluster);
+
+  // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE)
+  InputCluster touchbarRightCluster;
+  touchbarRightCluster.clusterId = 3;
+  touchbarRightCluster.name = "TouchBarRight";
+  touchbarRightCluster.inputClass = InputClass::Keypad;
+  touchbarRightCluster.shape = InputClusterShape::Linear1D;
+  touchbarRightCluster.rootPoint = Point(X_SIZE, 0);
+  touchbarRightCluster.dimension = Dimension(1, Y_SIZE);
+  touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
+  MatrixOS::Input::RegisterCluster(touchbarRightCluster);
 }
 
 void DeviceStart() {
