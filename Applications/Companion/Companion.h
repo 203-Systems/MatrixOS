@@ -9,9 +9,8 @@ Remember to include this header file in the UserApplications.h in the Applicatio
 #include "Application.h"
 #include "UI/UI.h"
 
-
 class Companion : public Application {
- public:
+public:
   inline static Application_Info info = {
       .name = "Companion",
       .author = "203 Systems",
@@ -32,5 +31,3 @@ class Companion : public Application {
   void HIDReportHandler();
   void ActionMenu();
 };
-
-

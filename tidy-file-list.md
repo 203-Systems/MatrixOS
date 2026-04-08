@@ -98,8 +98,8 @@
 - Devices\Mystrix2\Drivers\KeypadFSR.cpp - NOT FORMATTED
 - Devices\Mystrix2\Drivers\Keypad.cpp - NOT FORMATTED
 - Devices\Mystrix2\Drivers\EFuse.cpp - NOT FORMATTED
-- Applications\Companion\Companion.h - NOT FORMATTED
-- Applications\Companion\Companion.cpp - NOT FORMATTED
+- Applications\Companion\Companion.h - FORMATTED
+- Applications\Companion\Companion.cpp - FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\UltraProto2\Config.h - NOT FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\Device.cpp - NOT FORMATTED
 - Applications\Application.h - NOT FORMATTED
