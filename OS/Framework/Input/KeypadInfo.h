@@ -44,10 +44,8 @@ struct KeypadInfo {
 struct KeypadCapabilities {
   bool hasPressure;
   bool hasAftertouch;
-  uint16_t pressureMax;  // Maximum pressure value (e.g. 65535 for Fract16)
   bool hasVelocity;
   bool hasPosition;      // Supports sub-key position tracking
-  uint16_t scanRateHz;   // Key scan rate in Hz
 };
 
 static_assert(sizeof(KeypadInfo) <= inputInfoMaxSize, "KeypadInfo must be <= 16 bytes");
