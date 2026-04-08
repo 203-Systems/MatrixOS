@@ -1,0 +1,15 @@
+#pragma once
+
+#include "InputConstants.h"
+#include "InputId.h"
+#include "InputClass.h"
+#include "InputCluster.h"
+#include "KeypadInfo.h"
+#include "FaderInfo.h"
+#include "EncoderInfo.h"
+#include "TouchPointInfo.h"
+#include "GyroInfo.h"
+#include "AccelerometerInfo.h"
+#include "TemperatureInfo.h"
+#include "BatteryInfo.h"
+#include "GenericInfo.h"

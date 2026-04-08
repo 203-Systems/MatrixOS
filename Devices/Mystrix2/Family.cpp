@@ -95,6 +95,27 @@ void RegisterInputClusters() {
   touchbarRightCluster.rotation = rotation;
   touchbarRightCluster.rotationDimension = rotDim;
   MatrixOS::Input::RegisterCluster(touchbarRightCluster);
+
+  // Register keypad capabilities
+  // Grid: FSR pressure sensing, aftertouch, 240Hz scan rate
+  KeypadCapabilities gridCaps = {};
+  gridCaps.hasPressure = true;
+  gridCaps.hasAftertouch = true;
+  gridCaps.pressureMax = UINT16_MAX; // Fract16 full range
+  gridCaps.hasVelocity = false;
+  gridCaps.hasPosition = true;
+  gridCaps.scanRateHz = 240;
+  MatrixOS::Input::RegisterKeypadCapabilities(1, gridCaps);
+
+  // FN button: binary only
+  KeypadCapabilities fnCaps = {};
+  fnCaps.hasPressure = false;
+  fnCaps.hasAftertouch = false;
+  fnCaps.pressureMax = 0;
+  fnCaps.hasVelocity = false;
+  fnCaps.hasPosition = false;
+  fnCaps.scanRateHz = 240;
+  MatrixOS::Input::RegisterKeypadCapabilities(0, fnCaps);
 }
 
 void DeviceStart() {

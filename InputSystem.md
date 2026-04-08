@@ -394,7 +394,7 @@ Explicitly not in scope right now:
 - [x] Register cluster descriptions for existing devices
 - [x] Implement cluster coordinate mapping for existing devices
 - [x] Move input coordinate rotation logic from `OS` into the device layer
-- [ ] Implement capabilities query APIs for existing devices
+- [x] Implement capabilities query APIs for existing devices
 
 ### Phase 3: Compatibility Layer
 - [ ] Keep the old `MatrixOS::KeyPad` API as a transition layer

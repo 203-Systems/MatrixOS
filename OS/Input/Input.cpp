@@ -19,6 +19,9 @@ static vector<InputCluster> clusters;
 // Rotation callback: device layer sets this to re-register clusters on rotation change
 static void (*rotationCallback)() = nullptr;
 
+// Capabilities storage: maps clusterId -> capabilities struct
+static std::unordered_map<uint8_t, KeypadCapabilities> keypadCapsMap;
+
 static uint32_t PackId(InputId id) {
   return (static_cast<uint32_t>(id.clusterId) << 16) | id.localIndex;
 }
@@ -286,6 +289,20 @@ void NotifyRotationChanged() {
   {
     rotationCallback();
   }
+}
+
+void RegisterKeypadCapabilities(uint8_t clusterId, const KeypadCapabilities& caps) {
+  keypadCapsMap[clusterId] = caps;
+}
+
+bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
+  auto it = keypadCapsMap.find(clusterId);
+  if (it == keypadCapsMap.end())
+  {
+    return false;
+  }
+  *caps = it->second;
+  return true;
 }
 
 } // namespace MatrixOS::Input

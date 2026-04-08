@@ -75,6 +75,8 @@ bool TryGetPoint(InputId id, Point* xy);
 
 void ClearQueue();
 void ClearState();
+
+bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps);
 } // namespace Input
 
 namespace KeyPad
