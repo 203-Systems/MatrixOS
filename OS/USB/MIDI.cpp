@@ -4,149 +4,156 @@
 
 namespace MatrixOS::MIDI
 {
-  extern MidiPort* osPort;
+extern MidiPort* osPort;
 }
 
 namespace MatrixOS::USB::MIDI
 {
-  std::vector<MidiPort> ports;
-  std::vector<TaskHandle_t> portTasks;
-  std::vector<string> portTaskNames;
-  SemaphoreHandle_t usbMidiMutex;
+std::vector<MidiPort> ports;
+std::vector<TaskHandle_t> portTasks;
+std::vector<string> portTaskNames;
+SemaphoreHandle_t usbMidiMutex;
 
-  std::vector<uint8_t> sysex_buffer;
+std::vector<uint8_t> sysexBuffer;
 
-  void portTask(void* param) {
-    uint8_t itf = (uint8_t)(uintptr_t)param;
-    MidiPacket packet;
-    while (true)
+void portTask(void* param) {
+  uint8_t itf = (uint8_t)(uintptr_t)param;
+  MidiPacket packet;
+  while (true)
+  {
+    if (ports[itf].Get(&packet, portMAX_DELAY))
     {
-      if (ports[itf].Get(&packet, portMAX_DELAY))
-      { 
-        if (usbMidiMutex) { xSemaphoreTake(usbMidiMutex, portMAX_DELAY); }
-        tud_midi_stream_write(ports[itf].id % 0x100, packet.data, packet.Length()); 
-        if (usbMidiMutex) { xSemaphoreGive(usbMidiMutex); }
+      if (usbMidiMutex)
+      {
+        xSemaphoreTake(usbMidiMutex, portMAX_DELAY);
       }
-    }
-  }
-
-  void Init() {
-    for (TaskHandle_t portTask : portTasks)
-    {
-      vTaskDelete(portTask);
-    }
-    portTasks.clear();
-    portTaskNames.clear();
-    ports.clear();
-    if (usbMidiMutex) {
-      vSemaphoreDelete(usbMidiMutex);
-      usbMidiMutex = nullptr;
-    }
-
-    // Create ports and tasks
-    ports.reserve(USB_MIDI_COUNT);
-    portTasks.reserve(USB_MIDI_COUNT);
-    usbMidiMutex = xSemaphoreCreateMutex();
-
-    for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
-    {
-      string portname = "USB MIDI " + std::to_string(i + 1);
-      ports.emplace_back(portname, MIDI_PORT_USB + i);
-
-      portTasks.push_back(NULL);
-      portTaskNames.push_back(portname);
-      xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, (void*)(uintptr_t)i, configMAX_PRIORITIES - 2,
-                  &portTasks.back());
+      tud_midi_stream_write(ports[itf].id % 0x100, packet.data, packet.Length());
+      if (usbMidiMutex)
+      {
+        xSemaphoreGive(usbMidiMutex);
+      }
     }
   }
 }
 
-void tud_midi_rx_cb(uint8_t itf) {
-  uint8_t raw_packet[4];
-  while (tud_midi_n_packet_read(itf, raw_packet))
+void Init() {
+  for (TaskHandle_t portTask : portTasks)
   {
-    uint16_t port = MIDI_PORT_USB + (raw_packet[0] >> 4);
-    MidiPacket packet = MidiPacket(EMidiStatus::None);
-    raw_packet[0] &= 0x0F;
-    switch (raw_packet[0])
-    {
-      case CIN_3BYTE_SYS_COMMON:
-        if (raw_packet[1] == MIDIv1_SONG_POSITION_PTR)
-          packet = MidiPacket::SongPosition(raw_packet[2] | (raw_packet[3] << 7));
-        break;
+    vTaskDelete(portTask);
+  }
+  portTasks.clear();
+  portTaskNames.clear();
+  ports.clear();
+  if (usbMidiMutex)
+  {
+    vSemaphoreDelete(usbMidiMutex);
+    usbMidiMutex = nullptr;
+  }
 
-      case CIN_2BYTE_SYS_COMMON:
-        switch (raw_packet[1])
-        {
-          case MIDIv1_SONG_SELECT:
-            packet = MidiPacket::SongSelect(raw_packet[2]);
-            break;
-          case MIDIv1_MTC_QUARTER_FRAME:
-            packet = MidiPacket::MTCQuarterFrame(raw_packet[2]);
-            break;
-        }
+  // Create ports and tasks
+  ports.reserve(USB_MIDI_COUNT);
+  portTasks.reserve(USB_MIDI_COUNT);
+  usbMidiMutex = xSemaphoreCreateMutex();
+
+  for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
+  {
+    string portname = "USB MIDI " + std::to_string(i + 1);
+    ports.emplace_back(portname, MIDI_PORT_USB + i);
+
+    portTasks.push_back(NULL);
+    portTaskNames.push_back(portname);
+    xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, (void*)(uintptr_t)i, configMAX_PRIORITIES - 2,
+                &portTasks.back());
+  }
+}
+} // namespace MatrixOS::USB::MIDI
+
+void tud_midi_rx_cb(uint8_t itf) {
+  uint8_t rawPacket[4];
+  while (tud_midi_n_packet_read(itf, rawPacket))
+  {
+    uint16_t port = MIDI_PORT_USB + (rawPacket[0] >> 4);
+    MidiPacket packet = MidiPacket(EMidiStatus::None);
+    rawPacket[0] &= 0x0F;
+    switch (rawPacket[0])
+    {
+    case CIN_3BYTE_SYS_COMMON:
+      if (rawPacket[1] == MIDIv1_SONG_POSITION_PTR)
+        packet = MidiPacket::SongPosition(rawPacket[2] | (rawPacket[3] << 7));
+      break;
+
+    case CIN_2BYTE_SYS_COMMON:
+      switch (rawPacket[1])
+      {
+      case MIDIv1_SONG_SELECT:
+        packet = MidiPacket::SongSelect(rawPacket[2]);
         break;
-      case CIN_NOTE_OFF:
-        packet = MidiPacket::NoteOff(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
+      case MIDIv1_MTC_QUARTER_FRAME:
+        packet = MidiPacket::MTCQuarterFrame(rawPacket[2]);
         break;
-      case CIN_NOTE_ON:
-        packet = MidiPacket::NoteOn(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
+      }
+      break;
+    case CIN_NOTE_OFF:
+      packet = MidiPacket::NoteOff(rawPacket[1] & 0x0F, rawPacket[2], rawPacket[3]);
+      break;
+    case CIN_NOTE_ON:
+      packet = MidiPacket::NoteOn(rawPacket[1] & 0x0F, rawPacket[2], rawPacket[3]);
+      break;
+    case CIN_AFTER_TOUCH:
+      packet = MidiPacket::AfterTouch(rawPacket[1] & 0x0F, rawPacket[2], rawPacket[3]);
+      break;
+    case CIN_CONTROL_CHANGE:
+      packet = MidiPacket::ControlChange(rawPacket[1] & 0x0F, rawPacket[2], rawPacket[3]);
+      break;
+    case CIN_PROGRAM_CHANGE:
+      packet = MidiPacket::ProgramChange(rawPacket[1] & 0x0F, rawPacket[2]);
+      break;
+    case CIN_CHANNEL_PRESSURE:
+      packet = MidiPacket::ChannelPressure(rawPacket[1] & 0x0F, rawPacket[2]);
+      break;
+    case CIN_PITCH_WHEEL:
+      packet = MidiPacket::PitchBend(rawPacket[1] & 0x0F, rawPacket[2] | (rawPacket[3] << 7));
+      break;
+    case CIN_1BYTE:
+      switch (rawPacket[1])
+      {
+      case MIDIv1_CLOCK:
+        packet = MidiPacket::Clock();
         break;
-      case CIN_AFTER_TOUCH:
-        packet = MidiPacket::AfterTouch(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
+      case MIDIv1_TICK:
+        packet = MidiPacket::Tick();
         break;
-      case CIN_CONTROL_CHANGE:
-        packet = MidiPacket::ControlChange(raw_packet[1] & 0x0F, raw_packet[2], raw_packet[3]);
+      case MIDIv1_START:
+        packet = MidiPacket::Start();
         break;
-      case CIN_PROGRAM_CHANGE:
-        packet = MidiPacket::ProgramChange(raw_packet[1] & 0x0F, raw_packet[2]);
+      case MIDIv1_CONTINUE:
+        packet = MidiPacket::Continue();
         break;
-      case CIN_CHANNEL_PRESSURE:
-        packet = MidiPacket::ChannelPressure(raw_packet[1] & 0x0F, raw_packet[2]);
+      case MIDIv1_STOP:
+        packet = MidiPacket::Stop();
         break;
-      case CIN_PITCH_WHEEL:
-        packet = MidiPacket::PitchBend(raw_packet[1] & 0x0F, raw_packet[2] | (raw_packet[3] << 7));
+      case MIDIv1_ACTIVE_SENSE:
+        packet = MidiPacket::ActiveSense();
         break;
-      case CIN_1BYTE:
-        switch (raw_packet[1])
-        {
-          case MIDIv1_CLOCK:
-            packet = MidiPacket::Clock();
-            break;
-          case MIDIv1_TICK:
-            packet = MidiPacket::Tick();
-            break;
-          case MIDIv1_START:
-            packet = MidiPacket::Start();
-            break;
-          case MIDIv1_CONTINUE:
-            packet = MidiPacket::Continue();
-            break;
-          case MIDIv1_STOP:
-            packet = MidiPacket::Stop();
-            break;
-          case MIDIv1_ACTIVE_SENSE:
-            packet = MidiPacket::ActiveSense();
-            break;
-          case MIDIv1_RESET:
-            packet = MidiPacket::Reset();
-            break;
-          case MIDIv1_TUNE_REQUEST:
-            packet = MidiPacket::TuneRequest();
-            break;
-        }
+      case MIDIv1_RESET:
+        packet = MidiPacket::Reset();
         break;
-      case CIN_SYSEX:
-        packet = MidiPacket(EMidiStatus::SysExData, raw_packet[1], raw_packet[2], raw_packet[3]);
+      case MIDIv1_TUNE_REQUEST:
+        packet = MidiPacket::TuneRequest();
         break;
-      case CIN_SYSEX_ENDS_IN_1:
-      case CIN_SYSEX_ENDS_IN_2:
-      case CIN_SYSEX_ENDS_IN_3:
-        packet = MidiPacket(EMidiStatus::SysExEnd, raw_packet[1], raw_packet[2], raw_packet[3]);
-        break;
-      default: 
-        return;
-    }  
+      }
+      break;
+    case CIN_SYSEX:
+      packet = MidiPacket(EMidiStatus::SysExData, rawPacket[1], rawPacket[2], rawPacket[3]);
+      break;
+    case CIN_SYSEX_ENDS_IN_1:
+    case CIN_SYSEX_ENDS_IN_2:
+    case CIN_SYSEX_ENDS_IN_3:
+      packet = MidiPacket(EMidiStatus::SysExEnd, rawPacket[1], rawPacket[2], rawPacket[3]);
+      break;
+    default:
+      return;
+    }
 
     // Since we know what we are doing here, just gonna skip the wrapper
     // MatrixOS::USB::MIDI::ports[itf]->Send(packet); // Wrapped implementation

@@ -143,12 +143,12 @@
 
 ## NOT FORMATTED
 
-- OS\USB\USB.h - NOT FORMATTED
-- OS\USB\USB.cpp - NOT FORMATTED
-- OS\USB\MSC.cpp - NOT FORMATTED
-- OS\USB\MIDI.cpp - NOT FORMATTED
-- OS\USB\HID.cpp - NOT FORMATTED
-- OS\USB\CDC.cpp - NOT FORMATTED
+- OS\USB\USB.h - FORMATTED
+- OS\USB\USB.cpp - FORMATTED
+- OS\USB\MSC.cpp - FORMATTED
+- OS\USB\MIDI.cpp - FORMATTED
+- OS\USB\HID.cpp - FORMATTED
+- OS\USB\CDC.cpp - FORMATTED
 - OS\UI\Utilities\TextScroll.cpp - FORMATTED
 - OS\UI\Utilities\NumberEditor8x8.cpp - FORMATTED
 - OS\UI\Utilities\ColorPicker.cpp - FORMATTED
@@ -282,10 +282,10 @@
 - OS\Framework\Types\Types.h - NOT FORMATTED
 - OS\Framework\Logging\LogLevel.h - NOT FORMATTED
 - OS\Framework\Storage\SavedVar.h - NOT FORMATTED
-- OS\FileSystem\File.h - NOT FORMATTED
-- OS\FileSystem\File.cpp - NOT FORMATTED
-- OS\FileSystem\FileSystem.h - NOT FORMATTED
-- OS\FileSystem\FileSystem.cpp - NOT FORMATTED
+- OS\FileSystem\File.h - FORMATTED
+- OS\FileSystem\File.cpp - FORMATTED
+- OS\FileSystem\FileSystem.h - FORMATTED
+- OS\FileSystem\FileSystem.cpp - FORMATTED
 - OS\Framework\Geometry\Direction.h - NOT FORMATTED
 - OS\Framework\Geometry\Dimension.h - NOT FORMATTED
 - OS\Framework\Geometry\Point.h - NOT FORMATTED

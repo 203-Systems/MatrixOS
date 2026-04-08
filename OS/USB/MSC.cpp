@@ -18,8 +18,8 @@ uint32_t tud_msc_inquiry2_cb(uint8_t lun, scsi_inquiry_resp_t* inquiry_resp) {
   const char pid[] = "Mass Storage";
   const char rev[] = "1.0";
 
-  memcpy(inquiry_resp->vendor_id  , vid, strlen(vid));
-  memcpy(inquiry_resp->product_id , pid, strlen(pid));
+  memcpy(inquiry_resp->vendor_id, vid, strlen(vid));
+  memcpy(inquiry_resp->product_id, pid, strlen(pid));
   memcpy(inquiry_resp->product_rev, rev, strlen(rev));
 
   // MatrixOS::Logging::LogInfo("MSC", "INQUIRY response sent");
@@ -35,7 +35,7 @@ bool tud_msc_test_unit_ready_cb(uint8_t lun) {
 
   // MatrixOS::Logging::LogInfo("MSC", "Storage - Available: %s, Sectors: %d, SectorSize: %d, WriteProtected: %s",
   //   status->available ? "YES" : "NO",
-  //   status->sector_count,
+  //   status->sectorCount,
   //   status->sector_size,
   //   status->write_protected ? "YES" : "NO");
 
@@ -47,25 +47,28 @@ bool tud_msc_test_unit_ready_cb(uint8_t lun) {
 void tud_msc_capacity_cb(uint8_t lun, uint32_t* block_count, uint16_t* block_size) {
   // MatrixOS::Logging::LogInfo("MSC", "CAPACITY - LUN: %d", lun);
 
-  #if DEVICE_STORAGE == 1
+#if DEVICE_STORAGE == 1
   const Device::Storage::StorageStatus* status = Device::Storage::Status();
-  if (status->available) {
+  if (status->available)
+  {
     *block_count = status->sector_count;
     *block_size = status->sector_size;
     // MatrixOS::Logging::LogInfo("MSC", "Reporting capacity - Blocks: %d, BlockSize: %d", *block_count, *block_size);
-  } else {
+  }
+  else
+  {
     // When no storage available, still report minimal capacity
     // Actual I/O operations will fail with proper error codes
     *block_count = 1; // Minimal 1 sector
     *block_size = 512;
     // MatrixOS::Logging::LogWarning("MSC", "Storage not available - minimal capacity reported");
   }
-  #else
+#else
   // Default minimal capacity when storage driver not available
   *block_count = 1; // Minimal 1 sector
   *block_size = 512;
-  // MatrixOS::Logging::LogWarning("MSC", "Storage driver disabled - minimal capacity reported");
-  #endif
+// MatrixOS::Logging::LogWarning("MSC", "Storage driver disabled - minimal capacity reported");
+#endif
 }
 
 // Invoked when received Start Stop Unit command
@@ -75,11 +78,15 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
   // MatrixOS::Logging::LogInfo("MSC", "START_STOP - LUN: %d, PowerCond: %d, Start: %s, LoadEject: %s",
   //   lun, power_condition, start ? "YES" : "NO", load_eject ? "YES" : "NO");
 
-  if (load_eject) {
-    if (start) {
+  if (load_eject)
+  {
+    if (start)
+    {
       // Load disk storage - nothing to do as our storage is always available
       // MatrixOS::Logging::LogInfo("MSC", "Load disk requested");
-    } else {
+    }
+    else
+    {
       // Unload disk storage - nothing to do as we don't support ejection
       // MatrixOS::Logging::LogInfo("MSC", "Unload disk requested");
     }
@@ -91,44 +98,46 @@ bool tud_msc_start_stop_cb(uint8_t lun, uint8_t power_condition, bool start, boo
 // Callback invoked when received READ10 command.
 // Copy disk's data to buffer (up to bufsize) and return number of copied bytes.
 int32_t tud_msc_read10_cb(uint8_t lun, uint32_t lba, uint32_t offset, void* buffer, uint32_t bufsize) {
-  #if DEVICE_STORAGE == 1
+#if DEVICE_STORAGE == 1
   // Simple passthrough to Storage layer - ESP-IDF style
-  uint32_t sector_count = bufsize / 512;  // Convert bytes to sector count (Hard code this for now to improve performance)
-  if (!Device::Storage::ReadSectors(lba, sector_count, buffer)) {
+  uint32_t sectorCount = bufsize / 512; // Convert bytes to sector count (Hard code this for now to improve performance)
+  if (!Device::Storage::ReadSectors(lba, sectorCount, buffer))
+  {
     tud_msc_set_sense(lun, SCSI_SENSE_MEDIUM_ERROR, 0x11, 0x00);
     return -1;
   }
 
   return bufsize;
-  #else
+#else
   // Return dummy data (all zeros) for debugging
   memset(buffer, 0, bufsize);
   return bufsize;
-  #endif
+#endif
 }
 
 // Callback invoked when received WRITE10 command.
 // Process data in buffer to disk's storage and return number of written bytes
 int32_t tud_msc_write10_cb(uint8_t lun, uint32_t lba, uint32_t offset, uint8_t* buffer, uint32_t bufsize) {
-  #if DEVICE_STORAGE == 1
+#if DEVICE_STORAGE == 1
   // Simple passthrough to Storage layer - ESP-IDF style
-  uint32_t sector_count = bufsize / 512;  // Convert bytes to sector count (Hard code this for now to improve performance)
-  if (!Device::Storage::WriteSectors(lba, sector_count, buffer)) {
+  uint32_t sectorCount = bufsize / 512; // Convert bytes to sector count (Hard code this for now to improve performance)
+  if (!Device::Storage::WriteSectors(lba, sectorCount, buffer))
+  {
     tud_msc_set_sense(lun, SCSI_SENSE_MEDIUM_ERROR, 0x11, 0x00);
     return -1;
   }
 
   return bufsize;
-  #else
+#else
   // Pretend write succeeded for debugging
   return bufsize;
-  #endif
+#endif
 }
 
 // Callback invoked when received an SCSI command not in built-in list below
 // - READ_CAPACITY10, READ_FORMAT_CAPACITY, INQUIRY, MODE_SENSE6, REQUEST_SENSE
 // - READ10 and WRITE10 has their own callbacks
-int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, uint16_t bufsize) {
+int32_t tud_msc_scsi_cb(uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, uint16_t bufsize) {
   // MatrixOS::Logging::LogInfo("MSC", "SCSI_CMD - LUN: %d, CMD: 0x%02X, BufSize: %d", lun, scsi_cmd[0], bufsize);
 
   // read10 & write10 has their own callback and MUST not be handled here
@@ -137,30 +146,36 @@ int32_t tud_msc_scsi_cb (uint8_t lun, uint8_t const scsi_cmd[16], void* buffer, 
   int32_t resplen = 0;
 
   // most scsi handled is input
-  bool in_xfer = true;
+  bool inXfer = true;
 
-  switch (scsi_cmd[0]) {
-    default:
-      // Set Sense = Invalid Command Operation
-      // MatrixOS::Logging::LogWarning("MSC", "Unknown SCSI command: 0x%02X", scsi_cmd[0]);
-      tud_msc_set_sense(lun, SCSI_SENSE_ILLEGAL_REQUEST, 0x20, 0x00);
-      resplen = -1;
+  switch (scsi_cmd[0])
+  {
+  default:
+    // Set Sense = Invalid Command Operation
+    // MatrixOS::Logging::LogWarning("MSC", "Unknown SCSI command: 0x%02X", scsi_cmd[0]);
+    tud_msc_set_sense(lun, SCSI_SENSE_ILLEGAL_REQUEST, 0x20, 0x00);
+    resplen = -1;
     break;
   }
 
   // return resplen must not larger than bufsize
-  if (resplen > bufsize) resplen = bufsize;
+  if (resplen > bufsize)
+    resplen = bufsize;
 
-  if (response && (resplen > 0)) {
-    if (in_xfer) {
-      memcpy(buffer, response, (size_t) resplen);
-    } else {
+  if (response && (resplen > 0))
+  {
+    if (inXfer)
+    {
+      memcpy(buffer, response, (size_t)resplen);
+    }
+    else
+    {
       // SCSI output
     }
   }
 
   // MatrixOS::Logging::LogInfo("MSC", "SCSI_CMD response length: %d", resplen);
-  return (int32_t) resplen;
+  return (int32_t)resplen;
 }
 
 // Callback invoked when WRITE10 command is completed (status received and accepted by host).
@@ -178,10 +193,10 @@ uint8_t tud_msc_get_maxlun_cb(void) {
 }
 
 // Invoked to check if device is writable as part of SCSI WRITE10
-bool tud_msc_is_writable_cb (uint8_t lun) {
+bool tud_msc_is_writable_cb(uint8_t lun) {
   // MatrixOS::Logging::LogInfo("MSC", "IS_WRITABLE - LUN: %d", lun);
 
-  #if DEVICE_STORAGE == 1
+#if DEVICE_STORAGE == 1
   const Device::Storage::StorageStatus* status = Device::Storage::Status();
 
   bool writable = status->available && !status->write_protected;
@@ -191,8 +206,8 @@ bool tud_msc_is_writable_cb (uint8_t lun) {
   //   status->write_protected ? "YES" : "NO");
 
   return writable;
-  #else
+#else
   // MatrixOS::Logging::LogWarning("MSC", "Storage disabled - not writable");
   return false;
-  #endif
+#endif
 }

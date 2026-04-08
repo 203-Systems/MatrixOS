@@ -5,16 +5,16 @@
 
 namespace MatrixOS::FileSystem
 {
-  // System initialization
-  void Init();
+// System initialization
+void Init();
 
-  // Filesystem operations
-  bool Available(void);
-  bool Exists(const string& path);
-  bool MakeDir(const string& path);
-  File Open(const string& path, const string& mode);
-  bool Remove(const string& path);
-  bool RemoveDir(const string& path);
-  bool Rename(const string& from, const string& to);
-  vector<string> ListDir(const string& path);
-}
+// Filesystem operations
+bool Available(void);
+bool Exists(const string& path);
+bool MakeDir(const string& path);
+File Open(const string& path, const string& mode);
+bool Remove(const string& path);
+bool RemoveDir(const string& path);
+bool Rename(const string& from, const string& to);
+vector<string> ListDir(const string& path);
+} // namespace MatrixOS::FileSystem

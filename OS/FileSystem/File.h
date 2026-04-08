@@ -11,12 +11,11 @@ enum SeekMode : int {
 };
 
 // File class wrapper around FatFS FIL
-class File
-{
+class File {
 private:
-  FIL file_handle;
-  string file_path;
-  bool is_open;
+  FIL fileHandle;
+  string filePath;
+  bool isOpen;
 
 public:
   File();
@@ -39,5 +38,7 @@ public:
 
   // Internal methods (for FileSystem use)
   bool _Open(const string& path, const string& mode);
-  FIL* _GetHandle() { return &file_handle; }
+  FIL* _GetHandle() {
+    return &fileHandle;
+  }
 };

@@ -6,8 +6,8 @@
 
 // USB mode definitions
 enum USB_MODE {
-  USB_MODE_NORMAL = 0,  // MIDI + CDC + HID
-  USB_MODE_MSC = 1      // MSC only
+  USB_MODE_NORMAL = 0, // MIDI + CDC + HID
+  USB_MODE_MSC = 1     // MSC only
 };
 
 // Undefine STM32 peripheral macros that conflict with C++ namespace names
@@ -17,12 +17,12 @@ enum USB_MODE {
 
 namespace MatrixOS::USB
 {
-  void Init(USB_MODE mode = USB_MODE_NORMAL);
-  void SetMode(USB_MODE mode);
-  uint8_t GetMode();
+void Init(USB_MODE mode = USB_MODE_NORMAL);
+void SetMode(USB_MODE mode);
+uint8_t GetMode();
 
-  namespace MIDI
-  {
-    void Init();
-  }
+namespace MIDI
+{
+void Init();
 }
+} // namespace MatrixOS::USB

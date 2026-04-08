@@ -1,71 +1,78 @@
 #include "File.h"
 
 // File class implementation
-File::File() : is_open(false), file_path("") {
-}
+File::File() : isOpen(false), filePath("") {}
 
 File::~File() {
-  if (is_open) {
+  if (isOpen)
+  {
     Close();
   }
 }
 
 string File::Name() {
-  return file_path;
+  return filePath;
 }
 
 bool File::Available() {
-  if (!is_open) return false;
-  return !f_eof(&file_handle);
+  if (!isOpen)
+    return false;
+  return !f_eof(&fileHandle);
 }
 
 bool File::Close() {
-  if (!is_open) return false;
+  if (!isOpen)
+    return false;
 
-  FRESULT result = f_close(&file_handle);
-  is_open = false;
-  file_path = "";
+  FRESULT result = f_close(&fileHandle);
+  isOpen = false;
+  filePath = "";
 
   return (result == FR_OK);
 }
 
 bool File::Flush() {
-  if (!is_open) return false;
+  if (!isOpen)
+    return false;
 
-  FRESULT result = f_sync(&file_handle);
+  FRESULT result = f_sync(&fileHandle);
   return (result == FR_OK);
 }
 
 int File::Peek() {
-  if (!is_open) return -1;
+  if (!isOpen)
+    return -1;
 
   // Save current position
-  FSIZE_t current_pos = f_tell(&file_handle);
+  FSIZE_t currentPos = f_tell(&fileHandle);
 
   // Read one byte
-  UINT bytes_read;
+  UINT bytesRead;
   unsigned char byte;
-  FRESULT result = f_read(&file_handle, &byte, 1, &bytes_read);
+  FRESULT result = f_read(&fileHandle, &byte, 1, &bytesRead);
 
   // Restore position
-  f_lseek(&file_handle, current_pos);
+  f_lseek(&fileHandle, currentPos);
 
-  if (result == FR_OK && bytes_read == 1) {
+  if (result == FR_OK && bytesRead == 1)
+  {
     return byte;
   }
   return -1;
 }
 
 size_t File::Position() {
-  if (!is_open) return 0;
-  return f_tell(&file_handle);
+  if (!isOpen)
+    return 0;
+  return f_tell(&fileHandle);
 }
 
 void File::Print(const string& data) {
-  if (!is_open) return;
+  if (!isOpen)
+    return;
 
-  UINT bytes_written;
-  f_write(&file_handle, data.c_str(), data.length(), &bytes_written);
+  UINT bytesWritten;
+  f_write(&fileHandle, data.c_str(), data.length(), &bytesWritten);
 }
 
 void File::Println(const string& data) {
@@ -73,45 +80,54 @@ void File::Println(const string& data) {
 }
 
 bool File::Seek(size_t position, SeekMode whence) {
-  if (!is_open) return false;
+  if (!isOpen)
+    return false;
 
-  FSIZE_t target_pos = position;
+  FSIZE_t targetPos = position;
 
-  if (whence == FROM_CURRENT) {
-    target_pos = f_tell(&file_handle) + position;
-  } else if (whence == FROM_END) {
-    target_pos = f_size(&file_handle) + position;
+  if (whence == FROM_CURRENT)
+  {
+    targetPos = f_tell(&fileHandle) + position;
+  }
+  else if (whence == FROM_END)
+  {
+    targetPos = f_size(&fileHandle) + position;
   }
 
-  FRESULT result = f_lseek(&file_handle, target_pos);
+  FRESULT result = f_lseek(&fileHandle, targetPos);
   return (result == FR_OK);
 }
 
 size_t File::Size() {
-  if (!is_open) return 0;
-  return f_size(&file_handle);
+  if (!isOpen)
+    return 0;
+  return f_size(&fileHandle);
 }
 
 size_t File::Read(void* buffer, size_t length) {
-  if (!is_open || !buffer) return 0;
+  if (!isOpen || !buffer)
+    return 0;
 
-  UINT bytes_read;
-  FRESULT result = f_read(&file_handle, buffer, length, &bytes_read);
+  UINT bytesRead;
+  FRESULT result = f_read(&fileHandle, buffer, length, &bytesRead);
 
-  if (result == FR_OK) {
-    return bytes_read;
+  if (result == FR_OK)
+  {
+    return bytesRead;
   }
   return 0;
 }
 
 size_t File::Write(const void* buffer, size_t length) {
-  if (!is_open || !buffer) return 0;
+  if (!isOpen || !buffer)
+    return 0;
 
-  UINT bytes_written;
-  FRESULT result = f_write(&file_handle, buffer, length, &bytes_written);
+  UINT bytesWritten;
+  FRESULT result = f_write(&fileHandle, buffer, length, &bytesWritten);
 
-  if (result == FR_OK) {
-    return bytes_written;
+  if (result == FR_OK)
+  {
+    return bytesWritten;
   }
   return 0;
 }
@@ -123,36 +139,43 @@ bool File::IsDirectory() {
 }
 
 bool File::_Open(const string& path, const string& mode) {
-  if (is_open) {
+  if (isOpen)
+  {
     Close();
   }
 
   // Convert mode string to FatFS access mode
   BYTE access_mode = 0;
 
-  if (mode.find('r') != string::npos) {
+  if (mode.find('r') != string::npos)
+  {
     access_mode |= FA_READ;
   }
-  if (mode.find('w') != string::npos) {
+  if (mode.find('w') != string::npos)
+  {
     access_mode |= FA_WRITE | FA_CREATE_ALWAYS;
   }
-  if (mode.find('a') != string::npos) {
+  if (mode.find('a') != string::npos)
+  {
     access_mode |= FA_WRITE | FA_OPEN_APPEND;
   }
-  if (mode.find('+') != string::npos) {
+  if (mode.find('+') != string::npos)
+  {
     access_mode |= FA_READ | FA_WRITE;
   }
 
   // Default to read if no mode specified
-  if (access_mode == 0) {
+  if (access_mode == 0)
+  {
     access_mode = FA_READ;
   }
 
-  FRESULT result = f_open(&file_handle, path.c_str(), access_mode);
+  FRESULT result = f_open(&fileHandle, path.c_str(), access_mode);
 
-  if (result == FR_OK) {
-    is_open = true;
-    file_path = path;
+  if (result == FR_OK)
+  {
+    isOpen = true;
+    filePath = path;
     return true;
   }
 
