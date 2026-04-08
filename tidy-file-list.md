@@ -178,9 +178,9 @@
 - Applications\CustomControlMap\Actions\color\ColorEffect.h - NOT FORMATTED
 - Applications\CustomControlMap\Actions\Actions.cpp - NOT FORMATTED
 - Devices\Mystrix1\ULP\fsr_keypad.c - NOT FORMATTED
-- Applications\Python\Python.h - NOT FORMATTED
-- Applications\Python\Python.cpp - NOT FORMATTED
-- Applications\Python\pika_config.h - NOT FORMATTED
+- Applications\Python\Python.h - FORMATTED
+- Applications\Python\Python.cpp - FORMATTED
+- Applications\Python\pika_config.h - FORMATTED
 - Devices\Mystrix2\ULP\fsr_keypad.c - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\V110\Config.h - NOT FORMATTED
 - Applications\MSC\MSC.cpp - FORMATTED
