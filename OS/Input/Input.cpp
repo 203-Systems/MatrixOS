@@ -321,4 +321,12 @@ bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
   return true;
 }
 
+bool HasVelocitySensitivity() {
+  const InputCluster* cluster = GetPrimaryGridCluster();
+  if (!cluster) return false;
+  KeypadCapabilities caps;
+  if (!GetKeypadCapabilities(cluster->clusterId, &caps)) return false;
+  return caps.hasVelocity;
+}
+
 } // namespace MatrixOS::Input

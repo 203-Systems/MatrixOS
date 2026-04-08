@@ -39,7 +39,7 @@ void PolyPlayground::Setup(const vector<string>& args) {
     MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (polyPadConfig.forceSensitive ? "On" : "Off"),
                                     forceSensitiveToggle.GetColor());
   });
-  forceSensitiveToggle.SetEnabled(Device::KeyPad::velocitySensitivity);
+  forceSensitiveToggle.SetEnabled(MatrixOS::Input::HasVelocitySensitivity());
   actionMenu.AddUIComponent(forceSensitiveToggle, Point(6, 7));
 
   PolyOctaveShifter octaveShifter(8, &polyPadConfig);

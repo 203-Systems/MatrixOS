@@ -80,7 +80,7 @@ void Note::Setup(const vector<string>& args) {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if (Device::KeyPad::velocitySensitivity)
+  if (MatrixOS::Input::HasVelocitySensitivity())
   {
     forceSensitiveToggle.SetColorFunc(
         [&]() -> Color { return Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });

@@ -172,7 +172,7 @@ void Sequencer::SequencerMenu() {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if (Device::KeyPad::velocitySensitivity)
+  if (MatrixOS::Input::HasVelocitySensitivity())
   {
     forceSensitiveToggle.SetColorFunc([&]() -> Color { return Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
     forceSensitiveToggle.OnPress([&]() -> void {

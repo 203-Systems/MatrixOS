@@ -409,7 +409,7 @@ Explicitly not in scope right now:
 ### Phase 5: Application Migration
 - [x] Migrate `KeyPad` dependencies under `Applications/`
 - [x] Migrate direct uses of `Device::xSize / ySize`
-- [ ] Migrate direct uses of `Device::KeyPad::*`
+- [x] Migrate direct uses of `Device::KeyPad::*`
 
 ### Phase 6: Cleanup
 - [ ] Remove the old public `MatrixOS::KeyPad` input model
