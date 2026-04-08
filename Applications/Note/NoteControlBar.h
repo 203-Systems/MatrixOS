@@ -16,38 +16,41 @@ enum NoteControlBarMode : uint8_t {
 };
 
 class NoteControlBar : public UIComponent {
-  private:
-    Note* note;
-    NotePad* notePad[2];
-    UnderglowLight* underglow[2];
-    uint32_t shift[2];
-    bool shift_event[2];
-    static const uint32_t hold_threshold = 500; // Define hold threshold
-    NoteControlBarMode mode = OFF_MODE;
-    bool keyOffsetMode = false;
-    uint32_t pitch_down = 0;
-    uint32_t pitch_up = 0;
-    bool chordExtKeyOn[4] = {false, false, false, false}; // Track which extension keys are pressed
-    uint32_t latchToggleModeOnTime = 0;
+private:
+  Note* note;
+  NotePad* notePad[2];
+  UnderglowLight* underglow[2];
+  uint32_t shift[2];
+  bool shift_event[2];
+  static const uint32_t hold_threshold = 500; // Define hold threshold
+  NoteControlBarMode mode = OFF_MODE;
+  bool keyOffsetMode = false;
+  uint32_t pitch_down = 0;
+  uint32_t pitch_up = 0;
+  bool chordExtKeyOn[4] = {false, false, false, false}; // Track which extension keys are pressed
+  uint32_t latchToggleModeOnTime = 0;
 
-    void SwapActiveConfig();
-    bool ShiftActive();
-    void ShiftEventOccured();
-    void ShiftClear();
-    Color GetOctavePlusColor();
-    Color GetOctaveMinusColor();
+  void SwapActiveConfig();
+  bool ShiftActive();
+  void ShiftEventOccured();
+  void ShiftClear();
+  Color GetOctavePlusColor();
+  Color GetOctaveMinusColor();
 
-    bool ChordControlKeyEvent(Point xy, KeyInfo* keyInfo);
-    bool ArpControlKeyEvent(Point xy, KeyInfo* keyInfo);
-    bool KeyControlKeyEvent(Point xy, KeyInfo* keyInfo);
+  bool ChordControlKeyEvent(Point xy, KeyInfo* keyInfo);
+  bool ArpControlKeyEvent(Point xy, KeyInfo* keyInfo);
+  bool KeyControlKeyEvent(Point xy, KeyInfo* keyInfo);
 
-    void RenderChordControl(Point origin);
-    void RenderArpControl(Point origin);
-    void RenderKeyControl(Point origin);
-  public:
-    NoteControlBar(Note* notePtr, NotePad* notepad1, NotePad* notepad2, UnderglowLight* underglow1, UnderglowLight* underglow2);
+  void RenderChordControl(Point origin);
+  void RenderArpControl(Point origin);
+  void RenderKeyControl(Point origin);
 
-    virtual Dimension GetSize() override { return Dimension(8, CTL_BAR_Y); }
-    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
-    virtual bool Render(Point origin) override;
+public:
+  NoteControlBar(Note* notePtr, NotePad* notepad1, NotePad* notepad2, UnderglowLight* underglow1, UnderglowLight* underglow2);
+
+  virtual Dimension GetSize() override {
+    return Dimension(8, CTL_BAR_Y);
+  }
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
+  virtual bool Render(Point origin) override;
 };

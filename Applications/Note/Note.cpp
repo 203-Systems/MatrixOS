@@ -22,9 +22,12 @@ void Note::Setup(const vector<string>& args) {
     size_t storedSize = MatrixOS::NVS::GetSize(NOTE_CONFIGS_HASH);
 
     // Check if stored size matches current structure size
-    if (storedSize == sizeof(notePadConfigs)) {
+    if (storedSize == sizeof(notePadConfigs))
+    {
       MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
-    } else {
+    }
+    else
+    {
       // Size mismatch - structure has changed, use defaults and save them
       MLOGD("Note", "Config size mismatch: stored=%d, expected=%d. Using defaults.", storedSize, sizeof(notePadConfigs));
       SaveConfigs();
@@ -40,7 +43,7 @@ void Note::Setup(const vector<string>& args) {
   MatrixOS::NVS::GetVariable(CUSTOM_SCALES_HASH, custom_scales, sizeof(custom_scales));
 
   // Initialize runtimes
-  for(uint8_t i = 0; i < 2; i++)
+  for (uint8_t i = 0; i < 2; i++)
   {
     runtimes[i].config = &notePadConfigs[i];
     runtimes[i].arpeggiator = Arpeggiator(&runtimes[i].config->arpConfig);
@@ -77,11 +80,19 @@ void Note::Setup(const vector<string>& args) {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if(Device::KeyPad::velocity_sensitivity)
+  if (Device::KeyPad::velocity_sensitivity)
   {
-    forceSensitiveToggle.SetColorFunc([&]() -> Color { return  Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
-    forceSensitiveToggle.OnPress([&]() -> void { notePadConfigs[activeConfig.Get()].forceSensitive = !notePadConfigs[activeConfig.Get()].forceSensitive; configModified = true; });
-    forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (notePadConfigs[activeConfig.Get()].forceSensitive ? "On" : "Off"), forceSensitiveToggle.GetColor()); });
+    forceSensitiveToggle.SetColorFunc(
+        [&]() -> Color { return Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
+    forceSensitiveToggle.OnPress([&]() -> void {
+      notePadConfigs[activeConfig.Get()].forceSensitive = !notePadConfigs[activeConfig.Get()].forceSensitive;
+      configModified = true;
+    });
+    forceSensitiveToggle.OnHold([&]() -> void {
+      MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " +
+                                          (notePadConfigs[activeConfig.Get()].forceSensitive ? "On" : "Off"),
+                                      forceSensitiveToggle.GetColor());
+    });
   }
   else
   {
@@ -119,7 +130,8 @@ void Note::Setup(const vector<string>& args) {
   // Octave Control
 
   UI4pxNumber octaveDisplay;
-  octaveDisplay.SetColorFunc([&](uint16_t digit) -> Color { return digit % 2 ? notePadConfigs[activeConfig].rootColor : notePadConfigs[activeConfig].color; });
+  octaveDisplay.SetColorFunc(
+      [&](uint16_t digit) -> Color { return digit % 2 ? notePadConfigs[activeConfig].rootColor : notePadConfigs[activeConfig].color; });
   octaveDisplay.SetDigits(2);
   octaveDisplay.SetValuePointer(&octaveAbs);
   actionMenu.AddUIComponent(octaveDisplay, Point(0, 2));
@@ -135,7 +147,7 @@ void Note::Setup(const vector<string>& args) {
   octavePlusBtn.SetSize(Dimension(2, 1));
   octavePlusBtn.SetColorFunc([&]() -> Color { return Color(0x80FF00).DimIfNot(notePadConfigs[activeConfig].octave < 12); });
   octavePlusBtn.OnPress([&]() -> void {
-    if(notePadConfigs[activeConfig].octave < 12)
+    if (notePadConfigs[activeConfig].octave < 12)
     {
       notePadConfigs[activeConfig].octave++;
       octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
@@ -149,7 +161,7 @@ void Note::Setup(const vector<string>& args) {
   octaveMinusBtn.SetSize(Dimension(2, 1));
   octaveMinusBtn.SetColorFunc([&]() -> Color { return Color(0xFF0060).DimIfNot(notePadConfigs[activeConfig].octave > -2); });
   octaveMinusBtn.OnPress([&]() -> void {
-    if(notePadConfigs[activeConfig].octave > -2)
+    if (notePadConfigs[activeConfig].octave > -2)
     {
       notePadConfigs[activeConfig].octave--;
       octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
@@ -162,52 +174,63 @@ void Note::Setup(const vector<string>& args) {
   UITimedDisplay spiltDisplay;
   spiltDisplay.SetDimension(Dimension(4, 4));
   spiltDisplay.SetRenderFunc([&](Point origin) -> void {
-        for(uint8_t x = 0; x < 4; x++)
+    for (uint8_t x = 0; x < 4; x++)
+    {
+      for (uint8_t y = 0; y < 4; y++)
+      {
+        Color color = notePadConfigs[activeConfig].color;
+        if (splitView == SINGLE_VIEW)
         {
-          for(uint8_t y = 0; y < 4; y++)
-          {
-            Color color = notePadConfigs[activeConfig].color;
-            if (splitView == SINGLE_VIEW)
-            {
-              // color = notePadConfigs[activeConfig].color;
-            }
-            else if (splitView == VERT_SPLIT)
-            {
-              color = x < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
-            }
-            else if (splitView == HORIZ_SPLIT)
-            {
-              color = y < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
-            }
-            MatrixOS::LED::SetColor(origin + Point(x, y), color);
-          }
+          // color = notePadConfigs[activeConfig].color;
         }
-    });
+        else if (splitView == VERT_SPLIT)
+        {
+          color = x < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
+        }
+        else if (splitView == HORIZ_SPLIT)
+        {
+          color = y < 2 ? notePadConfigs[activeConfig].color : notePadConfigs[(1 == activeConfig) ? 0 : 1].color;
+        }
+        MatrixOS::LED::SetColor(origin + Point(x, y), color);
+      }
+    }
+  });
   spiltDisplay.Disable();
   actionMenu.AddUIComponent(spiltDisplay, Point(2, 2));
 
   UIButton splitViewToggle;
   splitViewToggle.SetName("Split View");
-  splitViewToggle.SetColorFunc([&]() -> Color { 
-    switch(splitView)
+  splitViewToggle.SetColorFunc([&]() -> Color {
+    switch (splitView)
     {
 
-      case VERT_SPLIT: return Color(0x00FFFF);
-      case HORIZ_SPLIT: return Color(0xFF00FF);
-      default: return Color::White.Dim();
+    case VERT_SPLIT:
+      return Color(0x00FFFF);
+    case HORIZ_SPLIT:
+      return Color(0xFF00FF);
+    default:
+      return Color::White.Dim();
     }
   });
-  splitViewToggle.OnPress([&]() -> void { splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3); spiltDisplay.Enable();});
-  splitViewToggle.OnHold([&]() -> void { 
-    switch(splitView)
+  splitViewToggle.OnPress([&]() -> void {
+    splitView = (ESpiltView)(((uint8_t)splitView + 1) % 3);
+    spiltDisplay.Enable();
+  });
+  splitViewToggle.OnHold([&]() -> void {
+    switch (splitView)
     {
-      case SINGLE_VIEW: MatrixOS::UIUtility::TextScroll("Single View", Color::White); break;
-      case VERT_SPLIT: MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF)); break;
-      case HORIZ_SPLIT: MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF)); break;
+    case SINGLE_VIEW:
+      MatrixOS::UIUtility::TextScroll("Single View", Color::White);
+      break;
+    case VERT_SPLIT:
+      MatrixOS::UIUtility::TextScroll("Vertical Split", Color(0x00FFFF));
+      break;
+    case HORIZ_SPLIT:
+      MatrixOS::UIUtility::TextScroll("Horizontal Split", Color(0xFF00FF));
+      break;
     }
   });
   actionMenu.AddUIComponent(splitViewToggle, Point(0, 0));
-
 
   // Control Bar
   UIToggle controlBarToggle;
@@ -216,20 +239,20 @@ void Note::Setup(const vector<string>& args) {
   controlBarToggle.SetValuePointer(&controlBar);
   controlBarToggle.OnPress([&]() -> void {
     controlBar.Save();
-    if(controlBar == false)
+    if (controlBar == false)
     {
       runtimes[0].midiPipeline.Reset();
       runtimes[1].midiPipeline.Reset();
     }
   });
   actionMenu.AddUIComponent(controlBarToggle, Point(0, 7));
-  
+
   UIButton arpConfigBtn;
   arpConfigBtn.SetName("Arpeggiator Config");
   arpConfigBtn.SetSize(Dimension(1, 4));
   arpConfigBtn.SetColor(Color(0x80FF00));
-  arpConfigBtn.OnPress([&]() -> void {ArpConfigMenu();});
-  arpConfigBtn.SetEnableFunc([&]() -> bool {return controlBar;});
+  arpConfigBtn.OnPress([&]() -> void { ArpConfigMenu(); });
+  arpConfigBtn.SetEnableFunc([&]() -> bool { return controlBar; });
   actionMenu.AddUIComponent(arpConfigBtn, Point(0, 2));
 
   // Other Controls
@@ -243,32 +266,32 @@ void Note::Setup(const vector<string>& args) {
     if (keyEvent->id == FUNCTION_KEY)
     {
       if (keyEvent->info.state == HOLD)
-      { 
-        if (configModified) {
+      {
+        if (configModified)
+        {
           SaveConfigs();
         }
-        Exit(); 
+        Exit();
       }
       else if (keyEvent->info.state == RELEASED)
       {
-        if (configModified) {
+        if (configModified)
+        {
           SaveConfigs();
           configModified = false;
         }
         PlayView();
         octaveAbs = (int32_t)abs(notePadConfigs[activeConfig].octave);
       }
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });
 
-  actionMenu.SetGlobalLoopFunc([&]() -> void {
-    Tick();
-  });
+  actionMenu.SetGlobalLoopFunc([&]() -> void { Tick(); });
 
   actionMenu.AllowExit(false);
-  actionMenu.SetSetupFunc([&]() -> void {PlayView();});
+  actionMenu.SetSetupFunc([&]() -> void { PlayView(); });
   actionMenu.Start();
 
   Exit(); // This should never be reached
@@ -282,18 +305,18 @@ void Note::PlayView() {
 
   switch (splitView)
   {
-    case SINGLE_VIEW:
-      padSize = Dimension(8, 8 - (controlBar ? 1 : 0));
-      underglowSize = Dimension(10, 10);
-      break;
-    case VERT_SPLIT:
-      padSize = Dimension(4, 8 - (controlBar ? 1 : 0));
-      underglowSize = Dimension(5, 10);
-      break;
-    case HORIZ_SPLIT:
-      padSize = Dimension(8, 4);
-      underglowSize = Dimension(10, 5);
-      break;
+  case SINGLE_VIEW:
+    padSize = Dimension(8, 8 - (controlBar ? 1 : 0));
+    underglowSize = Dimension(10, 10);
+    break;
+  case VERT_SPLIT:
+    padSize = Dimension(4, 8 - (controlBar ? 1 : 0));
+    underglowSize = Dimension(5, 10);
+    break;
+  case HORIZ_SPLIT:
+    padSize = Dimension(8, 4);
+    underglowSize = Dimension(10, 5);
+    break;
   }
 
   NotePad notePad1(padSize, &runtimes[(0 == activeConfig) ? 0 : 1]);
@@ -304,38 +327,45 @@ void Note::PlayView() {
 
   NotePad notePad2(padSize, &runtimes[(1 == activeConfig) ? 0 : 1]);
   UnderglowLight underglow2(underglowSize, notePadConfigs[(1 == activeConfig) ? 0 : 1].color);
-  
-  if (splitView == VERT_SPLIT) { 
-    playView.AddUIComponent(notePad2, Point(4, 0)); 
+
+  if (splitView == VERT_SPLIT)
+  {
+    playView.AddUIComponent(notePad2, Point(4, 0));
     playView.AddUIComponent(underglow2, Point(4, -1));
   }
-  else if (
-    splitView == HORIZ_SPLIT) { 
-    playView.AddUIComponent(notePad2, Point(0, 4)); 
+  else if (splitView == HORIZ_SPLIT)
+  {
+    playView.AddUIComponent(notePad2, Point(0, 4));
     playView.AddUIComponent(underglow2, Point(-1, 4));
   }
-  
+
   NoteControlBar noteControlBar(this, &notePad1, &notePad2, &underglow1, &underglow2);
-  
-  if(controlBar)
+
+  if (controlBar)
   {
     playView.AddUIComponent(noteControlBar, Point(0, 8 - CTL_BAR_Y));
   }
 
-  playView.SetLoopFunc([&]() -> void {  // Update Note Highlight (external MIDI input)
-
+  playView.SetLoopFunc([&]() -> void { // Update Note Highlight (external MIDI input)
     MidiPacket midiPacket;
     while (MatrixOS::MIDI::Get(&midiPacket))
     {
       auto handlePadHighlight = [&](NotePad& notePad) -> void {
-        if (!notePad.rt || !notePad.rt->config) return;
-        if (midiPacket.Channel() != notePad.rt->config->channel) return;
+        if (!notePad.rt || !notePad.rt->config)
+          return;
+        if (midiPacket.Channel() != notePad.rt->config->channel)
+          return;
 
-        if (midiPacket.status == NoteOn) {
+        if (midiPacket.status == NoteOn)
+        {
           notePad.SetNoteHighlight(midiPacket.Note(), midiPacket.Velocity() != 0);
-        } else if (midiPacket.status == NoteOff) {
+        }
+        else if (midiPacket.status == NoteOff)
+        {
           notePad.SetNoteHighlight(midiPacket.Note(), false);
-        } else if (midiPacket.status == ControlChange && midiPacket.Controller() == 123) { // All notes off
+        }
+        else if (midiPacket.status == ControlChange && midiPacket.Controller() == 123)
+        { // All notes off
           notePad.ClearNoteHighlight();
         }
       };
@@ -347,12 +377,12 @@ void Note::PlayView() {
 
   playView.Start();
 
-  if(runtimes[0].noteLatch.IsEnabled())
+  if (runtimes[0].noteLatch.IsEnabled())
   {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(runtimes[0].config->channel, 123, 0), MIDI_PORT_ALL); // All notes off
   }
 
-  if(runtimes[1].noteLatch.IsEnabled())
+  if (runtimes[1].noteLatch.IsEnabled())
   {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(runtimes[1].config->channel, 123, 0), MIDI_PORT_ALL); // All notes off
   }
@@ -364,7 +394,8 @@ void Note::ScaleSelector() {
   bool configModified = false;
   uint8_t customScaleSlotSelected = 255;
 
-  NoteScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset, &notePadConfigs[activeConfig].scale);
+  NoteScaleVisualizer scaleVisualizer(&notePadConfigs[activeConfig].rootKey, &notePadConfigs[activeConfig].rootOffset,
+                                      &notePadConfigs[activeConfig].scale);
   scaleVisualizer.OnChange([&]() -> void { configModified = true; });
   scaleSelector.AddUIComponent(scaleVisualizer, Point(0, 0));
 
@@ -415,22 +446,24 @@ void Note::ScaleSelector() {
   UISelector customScaleSelector;
   customScaleSelector.SetDimension(Dimension(8, 2));
   customScaleSelector.SetIndividualColorFunc([&](uint16_t index) -> Color {
-    if (customScaleSlotSelected == index) {
+    if (customScaleSlotSelected == index)
+    {
       return Color::White;
     }
-    if (custom_scales[index] == notePadConfigs[activeConfig].scale && custom_scales[index] != 0) {
+    if (custom_scales[index] == notePadConfigs[activeConfig].scale && custom_scales[index] != 0)
+    {
       return Color(0xFFFF00);
     }
-    if (custom_scales[index] != 0) {
+    if (custom_scales[index] != 0)
+    {
       return Color(0xFFFF00).Dim();
     }
     return Color::White.Dim();
   });
-  customScaleSelector.SetIndividualNameFunc([&](uint16_t index) -> string {
-    return "Custom Scale " + std::to_string(index + 1);
-  });
+  customScaleSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return "Custom Scale " + std::to_string(index + 1); });
   customScaleSelector.OnChange([&](uint16_t index) -> void {
-    if (custom_scales[index] == 0) {
+    if (custom_scales[index] == 0)
+    {
       custom_scales[index] = 0b1101010110101; // Default major
       customScaleModified = true;
     }
@@ -443,11 +476,13 @@ void Note::ScaleSelector() {
 
   scaleSelector.Start();
 
-  if (customScaleModified) {
+  if (customScaleModified)
+  {
     MatrixOS::NVS::SetVariable(CUSTOM_SCALES_HASH, custom_scales, sizeof(custom_scales));
   }
 
-  if (configModified) {
+  if (configModified)
+  {
     SaveConfigs();
   }
 }
@@ -455,7 +490,7 @@ void Note::ScaleSelector() {
 void Note::ColorSelector() {
   UI colorSelector("Color Selector", notePadConfigs[activeConfig].color, false);
   bool configModified = false;
-  uint8_t page = 0;  // 0 = Preset, 1 = Customize
+  uint8_t page = 0; // 0 = Preset, 1 = Customize
 
   // Create NotePadRuntime structure for color selector
   NotePadRuntime colorSelectorData;
@@ -466,27 +501,22 @@ void Note::ColorSelector() {
 
   UIButton presetsBtn;
   presetsBtn.SetName("Preset");
-  presetsBtn.SetColorFunc([&]() -> Color {
-    return Color::White.DimIfNot(page == 0);
-  });
+  presetsBtn.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(page == 0); });
   presetsBtn.OnPress([&]() -> void { page = 0; });
   colorSelector.AddUIComponent(presetsBtn, Point(0, 5));
 
   UIButton customizeBtn;
   customizeBtn.SetName("Customize");
-  customizeBtn.SetColorFunc([&]() -> Color {
-    return Color::White.DimIfNot(page == 1);
-  });
+  customizeBtn.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(page == 1); });
   customizeBtn.OnPress([&]() -> void { page = 1; });
   colorSelector.AddUIComponent(customizeBtn, Point(0, 6));
 
   UIButton preset1Btn;
   preset1Btn.SetName("Preset1");
   preset1Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[0][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[0][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[0][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[0][1]);
     return Color(colorPresets[0][1]).DimIfNot(selected);
   });
   preset1Btn.OnPress([&]() -> void {
@@ -501,10 +531,9 @@ void Note::ColorSelector() {
   UIButton preset2Btn;
   preset2Btn.SetName("Preset2");
   preset2Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[1][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[1][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[1][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[1][1]);
     return Color(colorPresets[1][1]).DimIfNot(selected);
   });
   preset2Btn.OnPress([&]() -> void {
@@ -519,10 +548,9 @@ void Note::ColorSelector() {
   UIButton preset3Btn;
   preset3Btn.SetName("Preset3");
   preset3Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[2][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[2][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[2][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[2][1]);
     return Color(colorPresets[2][1]).DimIfNot(selected);
   });
   preset3Btn.OnPress([&]() -> void {
@@ -537,10 +565,9 @@ void Note::ColorSelector() {
   UIButton preset4Btn;
   preset4Btn.SetName("Preset4");
   preset4Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[3][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[3][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[3][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[3][1]);
     return Color(colorPresets[3][1]).DimIfNot(selected);
   });
   preset4Btn.OnPress([&]() -> void {
@@ -555,10 +582,9 @@ void Note::ColorSelector() {
   UIButton preset5Btn;
   preset5Btn.SetName("Preset5");
   preset5Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[4][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[4][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[4][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[4][1]);
     return Color(colorPresets[4][1]).DimIfNot(selected);
   });
   preset5Btn.OnPress([&]() -> void {
@@ -573,10 +599,9 @@ void Note::ColorSelector() {
   UIButton preset6Btn;
   preset6Btn.SetName("Preset6");
   preset6Btn.SetColorFunc([&]() -> Color {
-    bool selected =
-      (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
-      (notePadConfigs[activeConfig].rootColor == colorPresets[5][0]) &&
-      (notePadConfigs[activeConfig].color == colorPresets[5][1]);
+    bool selected = (notePadConfigs[activeConfig].colorMode == ROOT_N_SCALE) &&
+                    (notePadConfigs[activeConfig].rootColor == colorPresets[5][0]) &&
+                    (notePadConfigs[activeConfig].color == colorPresets[5][1]);
     return Color(colorPresets[5][1]).DimIfNot(selected);
   });
   preset6Btn.OnPress([&]() -> void {
@@ -592,7 +617,7 @@ void Note::ColorSelector() {
   rainbowColorBtn.SetName("Rainbow Color");
   rainbowColorBtn.SetColorFunc([&]() -> Color {
     bool selected = (notePadConfigs[activeConfig].colorMode == COLOR_PER_KEY_RAINBOW);
-    return  ColorEffects::Rainbow(2000).DimIfNot(selected);
+    return ColorEffects::Rainbow(2000).DimIfNot(selected);
   });
   rainbowColorBtn.OnPress([&]() -> void {
     configModified = true;
@@ -615,7 +640,6 @@ void Note::ColorSelector() {
   });
   polyColorBtn.SetEnableFunc([&]() -> bool { return page == 0; });
   colorSelector.AddUIComponent(polyColorBtn, Point(5, 6));
-
 
   // Customize
   UIButton rootColorSelectorBtn;
@@ -654,7 +678,8 @@ void Note::ColorSelector() {
 
   colorSelector.Start();
 
-  if (configModified) {
+  if (configModified)
+  {
     SaveConfigs();
   }
 }
@@ -664,12 +689,15 @@ void Note::LayoutSelector() {
   UI layoutSelector("Layout Selector", color, false);
   bool configModified = false;
 
-  int32_t x_offset = notePadConfigs[activeConfig].x_offset;
-  int32_t y_offset = notePadConfigs[activeConfig].y_offset;
+  int32_t xOffset = notePadConfigs[activeConfig].x_offset;
+  int32_t yOffset = notePadConfigs[activeConfig].y_offset;
 
   UIButton octaveModeBtn;
   octaveModeBtn.SetName("Octave Mode");
-  octaveModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT); });
+  octaveModeBtn.SetColorFunc([&]() -> Color {
+    Color c = color;
+    return c.DimIfNot(notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT);
+  });
   octaveModeBtn.OnPress([&]() -> void {
     configModified = true;
     notePadConfigs[activeConfig].mode = OCTAVE_LAYOUT;
@@ -678,23 +706,29 @@ void Note::LayoutSelector() {
 
   UIButton offsetModeBtn;
   offsetModeBtn.SetName("Offset Mode");
-  offsetModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT); });
+  offsetModeBtn.SetColorFunc([&]() -> Color {
+    Color c = color;
+    return c.DimIfNot(notePadConfigs[activeConfig].mode == OFFSET_LAYOUT);
+  });
   offsetModeBtn.OnPress([&]() -> void {
-    if(notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
+    if (notePadConfigs[activeConfig].mode != OFFSET_LAYOUT)
     {
       configModified = true;
       notePadConfigs[activeConfig].mode = OFFSET_LAYOUT;
-      x_offset = 1;
-      y_offset = 3;
-      notePadConfigs[activeConfig].x_offset = x_offset;
-      notePadConfigs[activeConfig].y_offset = y_offset;
+      xOffset = 1;
+      yOffset = 3;
+      notePadConfigs[activeConfig].x_offset = xOffset;
+      notePadConfigs[activeConfig].y_offset = yOffset;
     }
   });
   layoutSelector.AddUIComponent(offsetModeBtn, Point(3, 0));
 
   UIButton chromaticModeBtn;
   chromaticModeBtn.SetName("Chromatic Mode");
-  chromaticModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT); });
+  chromaticModeBtn.SetColorFunc([&]() -> Color {
+    Color c = color;
+    return c.DimIfNot(notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT);
+  });
   chromaticModeBtn.OnPress([&]() -> void {
     configModified = true;
     notePadConfigs[activeConfig].mode = CHROMATIC_LAYOUT;
@@ -703,7 +737,10 @@ void Note::LayoutSelector() {
 
   UIButton pianoModeBtn;
   pianoModeBtn.SetName("Piano Keyboard");
-  pianoModeBtn.SetColorFunc([&]() -> Color { Color c = color; return c.DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT); });
+  pianoModeBtn.SetColorFunc([&]() -> Color {
+    Color c = color;
+    return c.DimIfNot(notePadConfigs[activeConfig].mode == PIANO_LAYOUT);
+  });
   pianoModeBtn.OnPress([&]() -> void {
     configModified = true;
     notePadConfigs[activeConfig].mode = PIANO_LAYOUT;
@@ -746,7 +783,6 @@ void Note::LayoutSelector() {
   octTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT; });
   layoutSelector.AddUIComponent(octTextDisplay, Point(0, 2));
 
-
   // Offset Mode
   const Color xColor = Color(0x00FFFF);
   const Color yColor = Color(0xFF00FF);
@@ -754,7 +790,7 @@ void Note::LayoutSelector() {
   UI4pxNumber yOffsetDisplay;
   yOffsetDisplay.SetColor(yColor);
   yOffsetDisplay.SetDigits(1);
-  yOffsetDisplay.SetValuePointer((int32_t*)&y_offset);
+  yOffsetDisplay.SetValuePointer((int32_t*)&yOffset);
   yOffsetDisplay.SetAlternativeColor(yColor);
   yOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(yOffsetDisplay, Point(2, 2));
@@ -762,7 +798,7 @@ void Note::LayoutSelector() {
   UI4pxNumber xOffsetDisplay;
   xOffsetDisplay.SetColor(xColor);
   xOffsetDisplay.SetDigits(1);
-  xOffsetDisplay.SetValuePointer((int32_t*)&x_offset);
+  xOffsetDisplay.SetValuePointer((int32_t*)&xOffset);
   xOffsetDisplay.SetAlternativeColor(xColor);
   xOffsetDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   layoutSelector.AddUIComponent(xOffsetDisplay, Point(5, 2));
@@ -793,7 +829,7 @@ void Note::LayoutSelector() {
   yOffsetInput.SetDimension(Dimension(1, 8));
   yOffsetInput.SetName("Y Offset");
   yOffsetInput.SetColor(yColor);
-  yOffsetInput.SetValuePointer((uint16_t*)&y_offset);
+  yOffsetInput.SetValuePointer((uint16_t*)&yOffset);
   yOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   yOffsetInput.SetDirection(UISelectorDirection::UP_THEN_RIGHT);
   yOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
@@ -808,7 +844,7 @@ void Note::LayoutSelector() {
   xOffsetInput.SetDimension(Dimension(8, 1));
   xOffsetInput.SetName("X Offset");
   xOffsetInput.SetColor(xColor);
-  xOffsetInput.SetValuePointer((uint16_t*)&x_offset);
+  xOffsetInput.SetValuePointer((uint16_t*)&xOffset);
   xOffsetInput.SetLitMode(UISelectorLitMode::LIT_LESS_EQUAL_THAN);
   xOffsetInput.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OFFSET_LAYOUT; });
   xOffsetInput.OnChange([&](uint16_t val) -> void {
@@ -878,7 +914,6 @@ void Note::LayoutSelector() {
     MatrixOS::LED::SetColor(origin + Point(4, 2), Color::White);
     MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
 
-
     // O
     MatrixOS::LED::SetColor(origin + Point(5, 0), color);
     MatrixOS::LED::SetColor(origin + Point(5, 1), color);
@@ -903,12 +938,17 @@ void Note::LayoutSelector() {
     configModified = true;
     notePadConfigs[activeConfig].enforceScale = !notePadConfigs[activeConfig].enforceScale;
   });
-  enforceScaleToggle.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT || notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;; });
+  enforceScaleToggle.SetEnableFunc([&]() -> bool {
+    return notePadConfigs[activeConfig].mode == OCTAVE_LAYOUT || notePadConfigs[activeConfig].mode == OFFSET_LAYOUT ||
+           notePadConfigs[activeConfig].mode == CHROMATIC_LAYOUT;
+    ;
+  });
   layoutSelector.AddUIComponent(enforceScaleToggle, Point(0, 7));
 
   layoutSelector.Start();
 
-  if (configModified) {
+  if (configModified)
+  {
     SaveConfigs();
   }
 }
@@ -949,9 +989,9 @@ void Note::ChannelSelector() {
     MatrixOS::LED::SetColor(Point(1, 0), color);
     MatrixOS::LED::SetColor(Point(1, 3), color);
 
-    if(notePadConfigs[activeConfig].channel < 9)
+    if (notePadConfigs[activeConfig].channel < 9)
     {
-      //h
+      // h
       MatrixOS::LED::SetColor(Point(2, 0), Color::White);
       MatrixOS::LED::SetColor(Point(2, 1), Color::White);
       MatrixOS::LED::SetColor(Point(2, 2), Color::White);
@@ -966,7 +1006,8 @@ void Note::ChannelSelector() {
 
   channelSelector.Start();
 
-  if (configModified) {
+  if (configModified)
+  {
     SaveConfigs();
   }
 }
@@ -976,40 +1017,21 @@ void Note::ArpConfigMenu() {
   bool configModified = false;
   uint64_t menuOpenTime = MatrixOS::SYS::Millis();
 
-  enum ArpConfigType:uint16_t
-  {
-    ARP_BPM,
-    ARP_SWING,
-    ARP_GATE,
-    ARP_DIRECTION,
-    ARP_STEP,
-    ARP_STEP_OFFSET,
-    ARP_REPEAT,
-    ARP_RHYTHM
+  enum ArpConfigType : uint16_t { ARP_BPM, ARP_SWING, ARP_GATE, ARP_DIRECTION, ARP_STEP, ARP_STEP_OFFSET, ARP_REPEAT, ARP_RHYTHM };
+
+  Color arpConfigColor[8]{
+      Color(0xFF0000), // Red - BPM
+      Color(0xFF8000), // Orange - Swing
+      Color(0xFFFF00), // Yellow - Gate
+      Color(0x00FF00), // Green - Direction
+      Color(0x00FFFF), // Cyan - Step
+      Color(0x4000FF), // Blue - Step Offset
+      Color(0xFF00FF), // Magenta - Repeat
+      Color(0xFF0040)  // Hot Pink - Rhythm
   };
 
-  Color arpConfigColor[8]
-  {
-    Color(0xFF0000), // Red - BPM
-    Color(0xFF8000), // Orange - Swing
-    Color(0xFFFF00), // Yellow - Gate
-    Color(0x00FF00), // Green - Direction
-    Color(0x00FFFF), // Cyan - Step
-    Color(0x4000FF), // Blue - Step Offset
-    Color(0xFF00FF), // Magenta - Repeat
-    Color(0xFF0040) // Hot Pink - Rhythm
-  };
-
-  string arpConfigName[8]
-  {
-    "BPM",
-    "Swing",
-    "Gate",
-    "Direction",
-    "Step",
-    "Step Offset",
-    "Repeat",
-    "Rhythm",
+  string arpConfigName[8]{
+      "BPM", "Swing", "Gate", "Direction", "Step", "Step Offset", "Repeat", "Rhythm",
   };
 
   // Shared arrays for all number modifiers
@@ -1024,7 +1046,8 @@ void Note::ArpConfigMenu() {
   arpConfigSelector.SetIndividualNameFunc([&](uint16_t index) -> string { return arpConfigName[index]; });
   arpConfigSelector.SetValuePointer((uint16_t*)&arpMenuPage);
   arpConfigSelector.OnChange([&](uint16_t val) -> void {
-    if(arpMenuPage != val) {
+    if (arpMenuPage != val)
+    {
       arpMenuPage = val;
       menuOpenTime = MatrixOS::SYS::Millis();
     }
@@ -1076,7 +1099,7 @@ void Note::ArpConfigMenu() {
   bpmDisplay.SetDigits(3);
   bpmDisplay.SetValuePointer(&bpmValue);
   bpmDisplay.SetAlternativeColor(Color::White);
-  bpmDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_BPM) &&  !bpmTextDisplay.IsEnabled(); });
+  bpmDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_BPM) && !bpmTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(bpmDisplay, Point(-1, 2));
 
   // BPM Tapper
@@ -1113,25 +1136,29 @@ void Note::ArpConfigMenu() {
   UIButton clockOutBtn;
   clockOutBtn.SetSize(Dimension(1, 1));
   clockOutBtn.SetColorFunc([&]() -> Color {
-    if(clockMode == CLOCK_EXTERNAL)
+    if (clockMode == CLOCK_EXTERNAL)
     {
       return Color(0xFF00FF);
     }
-    else if(clockMode == CLOCK_INTERNAL_CLOCKOUT)
+    else if (clockMode == CLOCK_INTERNAL_CLOCKOUT)
     {
       return Color(0x80FF00);
     }
-    else if(clockMode == CLOCK_INTERNAL)
+    else if (clockMode == CLOCK_INTERNAL)
     {
       return Color(0x80FF00).Dim();
     }
     return Color(0xFF0000);
   });
   clockOutBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_BPM; });
-  clockOutBtn.OnPress([&]() -> void {;
-    if (clockMode == CLOCK_INTERNAL) {
+  clockOutBtn.OnPress([&]() -> void {
+    ;
+    if (clockMode == CLOCK_INTERNAL)
+    {
       clockMode = CLOCK_INTERNAL_CLOCKOUT;
-    } else {
+    }
+    else
+    {
       clockMode = CLOCK_INTERNAL;
     }
   });
@@ -1254,7 +1281,9 @@ void Note::ArpConfigMenu() {
   arpConfigMenu.AddUIComponent(gateDisplay, Point(-1, 2));
 
   InfDisplay gateInfDisplay(arpConfigColor[ARP_GATE]);
-  gateInfDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_GATE) && notePadConfigs[activeConfig].arpConfig.gateTime == 0 && !gateTextDisplay.IsEnabled(); });
+  gateInfDisplay.SetEnableFunc([&]() -> bool {
+    return (arpMenuPage == ARP_GATE) && notePadConfigs[activeConfig].arpConfig.gateTime == 0 && !gateTextDisplay.IsEnabled();
+  });
   arpConfigMenu.AddUIComponent(gateInfDisplay, Point(0, 2));
 
   UINumberModifier gateNumberModifier;
@@ -1267,7 +1296,7 @@ void Note::ArpConfigMenu() {
   gateNumberModifier.SetUpperLimit(200);
   gateNumberModifier.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_GATE; });
   gateNumberModifier.OnChange([&](int32_t val) -> void {
-    if(notePadConfigs[activeConfig].arpConfig.gateTime == 0) // Was Inf
+    if (notePadConfigs[activeConfig].arpConfig.gateTime == 0) // Was Inf
     {
       gateValue = 50; // Revert to default
     }
@@ -1444,7 +1473,8 @@ void Note::ArpConfigMenu() {
   UIButton stepOffsetNegSign;
   stepOffsetNegSign.SetColor(arpConfigColor[ARP_STEP_OFFSET]);
   stepOffsetNegSign.SetSize(Dimension(2, 1));
-  stepOffsetNegSign.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled() && stepOffsetValue < 0; });
+  stepOffsetNegSign.SetEnableFunc(
+      [&]() -> bool { return (arpMenuPage == ARP_STEP_OFFSET) && !offsetTextDisplay.IsEnabled() && stepOffsetValue < 0; });
   arpConfigMenu.AddUIComponent(stepOffsetNegSign, Point(0, 4));
 
   UI4pxNumber stepOffsetDisplay;
@@ -1523,9 +1553,11 @@ void Note::ArpConfigMenu() {
   repeatDisplay.SetAlternativeColor(Color::White);
   repeatDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_REPEAT) && !repeatTextDisplay.IsEnabled(); });
   arpConfigMenu.AddUIComponent(repeatDisplay, Point(-1, 2));
-  
+
   InfDisplay repeatInfDisplay(arpConfigColor[ARP_REPEAT]);
-  repeatInfDisplay.SetEnableFunc([&]() -> bool { return (arpMenuPage == ARP_REPEAT) && notePadConfigs[activeConfig].arpConfig.repeat == 0 && !repeatTextDisplay.IsEnabled(); });
+  repeatInfDisplay.SetEnableFunc([&]() -> bool {
+    return (arpMenuPage == ARP_REPEAT) && notePadConfigs[activeConfig].arpConfig.repeat == 0 && !repeatTextDisplay.IsEnabled();
+  });
   arpConfigMenu.AddUIComponent(repeatInfDisplay, Point(0, 2));
 
   UINumberModifier repeatNumberModifier;
@@ -1537,7 +1569,7 @@ void Note::ArpConfigMenu() {
   repeatNumberModifier.SetLowerLimit(0);
   repeatNumberModifier.SetUpperLimit(100);
   repeatNumberModifier.OnChange([&](int32_t value) -> void {
-    if(notePadConfigs[activeConfig].arpConfig.repeat == 0) // Was inf
+    if (notePadConfigs[activeConfig].arpConfig.repeat == 0) // Was inf
     {
       repeatValue = 1;
     }
@@ -1594,15 +1626,16 @@ void Note::ArpConfigMenu() {
   UIButton euclideanLengthsDecreaseBtn;
   euclideanLengthsDecreaseBtn.SetName("Rhythm Lengths -1");
   euclideanLengthsDecreaseBtn.SetSize(Dimension(1, 1));
-  euclideanLengthsDecreaseBtn.SetColorFunc([&]() -> Color {
-    return Color(0xFF0000).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1);
-  });
+  euclideanLengthsDecreaseBtn.SetColorFunc(
+      [&]() -> Color { return Color(0xFF0000).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1); });
   euclideanLengthsDecreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
   euclideanLengthsDecreaseBtn.OnPress([&]() -> void {
-    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1) {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths > 1)
+    {
       notePadConfigs[activeConfig].arpConfig.euclideanLengths--;
       // Cap euclideanSteps to new length if needed
-      if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > notePadConfigs[activeConfig].arpConfig.euclideanLengths) {
+      if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > notePadConfigs[activeConfig].arpConfig.euclideanLengths)
+      {
         notePadConfigs[activeConfig].arpConfig.euclideanSteps = notePadConfigs[activeConfig].arpConfig.euclideanLengths;
       }
       configModified = true;
@@ -1615,12 +1648,12 @@ void Note::ArpConfigMenu() {
   UIButton euclideanLengthsIncreaseBtn;
   euclideanLengthsIncreaseBtn.SetName("Rhythm Lengths +1");
   euclideanLengthsIncreaseBtn.SetSize(Dimension(1, 1));
-  euclideanLengthsIncreaseBtn.SetColorFunc([&]() -> Color {
-    return Color(0x00FF00).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32);
-  });
+  euclideanLengthsIncreaseBtn.SetColorFunc(
+      [&]() -> Color { return Color(0x00FF00).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32); });
   euclideanLengthsIncreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
   euclideanLengthsIncreaseBtn.OnPress([&]() -> void {
-    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32) {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanLengths < 32)
+    {
       notePadConfigs[activeConfig].arpConfig.euclideanLengths++;
       configModified = true;
       runtimes[activeConfig].arpeggiator.UpdateConfig();
@@ -1632,12 +1665,12 @@ void Note::ArpConfigMenu() {
   UIButton euclideanStepsDecreaseBtn;
   euclideanStepsDecreaseBtn.SetName("Rhythm Steps -1");
   euclideanStepsDecreaseBtn.SetSize(Dimension(1, 1));
-  euclideanStepsDecreaseBtn.SetColorFunc([&]() -> Color {
-    return Color(0xFF00FF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1);
-  });
+  euclideanStepsDecreaseBtn.SetColorFunc(
+      [&]() -> Color { return Color(0xFF00FF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1); });
   euclideanStepsDecreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
   euclideanStepsDecreaseBtn.OnPress([&]() -> void {
-    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1) {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps > 1)
+    {
       notePadConfigs[activeConfig].arpConfig.euclideanSteps--;
       configModified = true;
       runtimes[activeConfig].arpeggiator.UpdateConfig();
@@ -1650,72 +1683,71 @@ void Note::ArpConfigMenu() {
   euclideanStepsIncreaseBtn.SetName("Rhythm Steps +1");
   euclideanStepsIncreaseBtn.SetSize(Dimension(1, 1));
   euclideanStepsIncreaseBtn.SetColorFunc([&]() -> Color {
-    return Color(0x00FFFF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps < notePadConfigs[activeConfig].arpConfig.euclideanLengths);
+    return Color(0x00FFFF).DimIfNot(notePadConfigs[activeConfig].arpConfig.euclideanSteps <
+                                    notePadConfigs[activeConfig].arpConfig.euclideanLengths);
   });
   euclideanStepsIncreaseBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_RHYTHM; });
   euclideanStepsIncreaseBtn.OnPress([&]() -> void {
-    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps < notePadConfigs[activeConfig].arpConfig.euclideanLengths) {
+    if (notePadConfigs[activeConfig].arpConfig.euclideanSteps < notePadConfigs[activeConfig].arpConfig.euclideanLengths)
+    {
       notePadConfigs[activeConfig].arpConfig.euclideanSteps++;
       configModified = true;
       runtimes[activeConfig].arpeggiator.UpdateConfig();
     }
   });
   arpConfigMenu.AddUIComponent(euclideanStepsIncreaseBtn, Point(7, 7));
-  
 
   // Reset button
   UIButton resetBtn;
   resetBtn.SetName("Reset");
-  resetBtn.SetColorFunc([&]() -> Color {
-
-    return arpMenuPage == ARP_BPM ? Color(0xFF0060) : Color(0xFF0000);
-  });
+  resetBtn.SetColorFunc([&]() -> Color { return arpMenuPage == ARP_BPM ? Color(0xFF0060) : Color(0xFF0000); });
   resetBtn.SetEnableFunc([&]() -> bool { return arpMenuPage != ARP_DIRECTION; });
   resetBtn.OnPress([&]() -> void {
-    switch(arpMenuPage) {
-      case ARP_BPM:
-        bpmValue = 120;
-        bpm = 120;
-        midiClock.SetBPM(120);
-        break;
-      case ARP_SWING:
-        swingValue = 50;
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.swing = 50;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
-      case ARP_GATE:
-        gateValue = 50;
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.gateTime = 50;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
-      case ARP_STEP:
-        stepValue = 1;
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.step = 1;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
-      case ARP_STEP_OFFSET:
-        stepOffsetValue = 12;
-        stepOffsetDisplayValue = 12;
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.stepOffset = 12;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
-      case ARP_REPEAT:
-        repeatValue = 0;
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.repeat = 0;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
-      case ARP_RHYTHM:
-        configModified = true;
-        notePadConfigs[activeConfig].arpConfig.euclideanLengths = 16;
-        notePadConfigs[activeConfig].arpConfig.euclideanSteps = 16;
-        notePadConfigs[activeConfig].arpConfig.euclideanOffset = 0;
-        runtimes[activeConfig].arpeggiator.UpdateConfig();
-        break;
+    switch (arpMenuPage)
+    {
+    case ARP_BPM:
+      bpmValue = 120;
+      bpm = 120;
+      midiClock.SetBPM(120);
+      break;
+    case ARP_SWING:
+      swingValue = 50;
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.swing = 50;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
+    case ARP_GATE:
+      gateValue = 50;
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.gateTime = 50;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
+    case ARP_STEP:
+      stepValue = 1;
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.step = 1;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
+    case ARP_STEP_OFFSET:
+      stepOffsetValue = 12;
+      stepOffsetDisplayValue = 12;
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.stepOffset = 12;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
+    case ARP_REPEAT:
+      repeatValue = 0;
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.repeat = 0;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
+    case ARP_RHYTHM:
+      configModified = true;
+      notePadConfigs[activeConfig].arpConfig.euclideanLengths = 16;
+      notePadConfigs[activeConfig].arpConfig.euclideanSteps = 16;
+      notePadConfigs[activeConfig].arpConfig.euclideanOffset = 0;
+      runtimes[activeConfig].arpeggiator.UpdateConfig();
+      break;
     }
   });
   arpConfigMenu.AddUIComponent(resetBtn, Point(7, 6));
@@ -1724,21 +1756,27 @@ void Note::ArpConfigMenu() {
   UIButton infBtn;
   infBtn.SetName("Inf");
   infBtn.SetColorFunc([&]() -> Color {
-    if (arpMenuPage == ARP_GATE) {
+    if (arpMenuPage == ARP_GATE)
+    {
       return Color::White.DimIfNot(notePadConfigs[activeConfig].arpConfig.gateTime == 0);
-    } else if (arpMenuPage == ARP_REPEAT) {
+    }
+    else if (arpMenuPage == ARP_REPEAT)
+    {
       return Color::White.DimIfNot(notePadConfigs[activeConfig].arpConfig.repeat == 0);
     }
     return Color::White.Dim();
   });
   infBtn.SetEnableFunc([&]() -> bool { return arpMenuPage == ARP_GATE || arpMenuPage == ARP_REPEAT; });
   infBtn.OnPress([&]() -> void {
-    if (arpMenuPage == ARP_GATE) {
+    if (arpMenuPage == ARP_GATE)
+    {
       gateValue = 0;
       configModified = true;
       notePadConfigs[activeConfig].arpConfig.gateTime = 0;
       runtimes[activeConfig].arpeggiator.UpdateConfig();
-    } else if (arpMenuPage == ARP_REPEAT) {
+    }
+    else if (arpMenuPage == ARP_REPEAT)
+    {
       repeatValue = 0;
       configModified = true;
       notePadConfigs[activeConfig].arpConfig.repeat = 0;
@@ -1749,7 +1787,8 @@ void Note::ArpConfigMenu() {
 
   arpConfigMenu.Start();
 
-  if (configModified) {
+  if (configModified)
+  {
     SaveConfigs();
   }
 }
@@ -1759,9 +1798,9 @@ void Note::SaveConfigs() {
 }
 
 void Note::Tick() {
-  if(midiClock.Tick())
+  if (midiClock.Tick())
   {
-    if(clockMode == CLOCK_INTERNAL_CLOCKOUT && midiClock.TickCount() % (EFFECT_TPQN / 24) == 0)
+    if (clockMode == CLOCK_INTERNAL_CLOCKOUT && midiClock.TickCount() % (EFFECT_TPQN / 24) == 0)
     {
       MatrixOS::MIDI::Send(MidiPacket::Clock(), MIDI_PORT_ALL);
     }

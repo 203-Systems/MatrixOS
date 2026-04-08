@@ -221,31 +221,31 @@
 - OS\Framework\Utils\Utilts.h - NOT FORMATTED
 - OS\Framework\Utils\Hash.h - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
-- Applications\Note\UnderglowLight.h - NOT FORMATTED
-- Applications\Note\ScaleVisualizer.h - NOT FORMATTED
-- Applications\Note\Scales.h - NOT FORMATTED
-- Applications\Note\ScaleModifier.h - NOT FORMATTED
-- Applications\Note\RhythmVisualizer.h - NOT FORMATTED
-- Applications\Note\NotePad.h - NOT FORMATTED
-- Applications\Note\NotePad.cpp - NOT FORMATTED
-- Applications\Note\NoteLatch.h - NOT FORMATTED
-- Applications\Note\NoteLatch.cpp - NOT FORMATTED
-- Applications\Note\NoteControlBar.h - NOT FORMATTED
-- Applications\Note\NoteControlBar.cpp - NOT FORMATTED
-- Applications\Note\Note.h - NOT FORMATTED
-- Applications\Note\Note.cpp - NOT FORMATTED
-- Applications\Note\MidiPipeline.h - NOT FORMATTED
-- Applications\Note\MidiPipeline.cpp - NOT FORMATTED
-- Applications\Note\MidiEffect.h - NOT FORMATTED
-- Applications\Note\MidiClock.h - NOT FORMATTED
-- Applications\Note\MidiClock.cpp - NOT FORMATTED
-- Applications\Note\InfDisplay.h - NOT FORMATTED
-- Applications\Note\ChordEffect.h - NOT FORMATTED
-- Applications\Note\ChordEffect.cpp - NOT FORMATTED
-- Applications\Note\BPMTapper.h - NOT FORMATTED
-- Applications\Note\Arpeggiator.h - NOT FORMATTED
-- Applications\Note\Arpeggiator.cpp - NOT FORMATTED
-- Applications\Note\ArpDirVisualizer.h - NOT FORMATTED
+- Applications\Note\UnderglowLight.h - FORMATTED
+- Applications\Note\ScaleVisualizer.h - FORMATTED
+- Applications\Note\Scales.h - FORMATTED
+- Applications\Note\ScaleModifier.h - FORMATTED
+- Applications\Note\RhythmVisualizer.h - FORMATTED
+- Applications\Note\NotePad.h - FORMATTED
+- Applications\Note\NotePad.cpp - FORMATTED
+- Applications\Note\NoteLatch.h - FORMATTED
+- Applications\Note\NoteLatch.cpp - FORMATTED
+- Applications\Note\NoteControlBar.h - FORMATTED
+- Applications\Note\NoteControlBar.cpp - FORMATTED
+- Applications\Note\Note.h - FORMATTED
+- Applications\Note\Note.cpp - FORMATTED
+- Applications\Note\MidiPipeline.h - FORMATTED
+- Applications\Note\MidiPipeline.cpp - FORMATTED
+- Applications\Note\MidiEffect.h - FORMATTED
+- Applications\Note\MidiClock.h - FORMATTED
+- Applications\Note\MidiClock.cpp - FORMATTED
+- Applications\Note\InfDisplay.h - FORMATTED
+- Applications\Note\ChordEffect.h - FORMATTED
+- Applications\Note\ChordEffect.cpp - FORMATTED
+- Applications\Note\BPMTapper.h - FORMATTED
+- Applications\Note\Arpeggiator.h - FORMATTED
+- Applications\Note\Arpeggiator.cpp - FORMATTED
+- Applications\Note\ArpDirVisualizer.h - FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\FactoryMenu.h - NOT FORMATTED

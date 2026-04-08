@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 
 class NoteScaleVisualizer : public UIComponent {
- public:
+public:
   uint8_t* rootKey;
   uint8_t* rootOffset;
   uint16_t* scale;
@@ -10,7 +10,8 @@ class NoteScaleVisualizer : public UIComponent {
   Color rootOffsetColor;
   bool offsetMode = false;
 
-  NoteScaleVisualizer(uint8_t* rootKey, uint8_t* rootOffset, uint16_t* scale, Color color = Color(0xFF00FF), Color rootColor = Color(0x8000FF), Color rootOffsetColor = Color(0xFF0090)) {
+  NoteScaleVisualizer(uint8_t* rootKey, uint8_t* rootOffset, uint16_t* scale, Color color = Color(0xFF00FF),
+                      Color rootColor = Color(0x8000FF), Color rootOffsetColor = Color(0xFF0090)) {
     this->rootKey = rootKey;
     this->rootOffset = rootOffset;
     this->scale = scale;
@@ -19,29 +20,43 @@ class NoteScaleVisualizer : public UIComponent {
     this->rootOffsetColor = rootOffsetColor;
   }
 
-  void OnChange(std::function<void()> callback) { onChange = callback; }
+  void OnChange(std::function<void()> callback) {
+    onChange = callback;
+  }
 
- private:
+private:
   std::function<void()> onChange;
 
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(7, 2); }
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(7, 2);
+  }
 
   virtual bool Render(Point origin) {
-    uint16_t c_aligned_scale_map =
-        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;  // Root key should always < 12,
-                                                                                      // might add an assert later
+    uint16_t cAlignedScaleMap =
+        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF; // Root key should always < 12,
+                                                                                     // might add an assert later
     for (uint8_t note = 0; note < 12; note++)
     {
       Point xy = origin + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
       if (note == *rootKey)
-      { MatrixOS::LED::SetColor(xy, rootColor); }
+      {
+        MatrixOS::LED::SetColor(xy, rootColor);
+      }
       else if (*rootOffset != 0 && note == (*rootOffset + *rootKey) % 12)
-      { MatrixOS::LED::SetColor(xy, rootOffsetColor); }
-      else if (bitRead(c_aligned_scale_map, note))
-      { MatrixOS::LED::SetColor(xy, color); }
+      {
+        MatrixOS::LED::SetColor(xy, rootOffsetColor);
+      }
+      else if (bitRead(cAlignedScaleMap, note))
+      {
+        MatrixOS::LED::SetColor(xy, color);
+      }
       else
-      { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
+      {
+        MatrixOS::LED::SetColor(xy, color.DimIfNot());
+      }
     }
     return true;
   }
@@ -62,19 +77,28 @@ class NoteScaleVisualizer : public UIComponent {
 
     uint8_t note = xy.x * 2 + xy.y - 1 - (xy.x > 2);
 
-    if (offsetMode) {
+    if (offsetMode)
+    {
       // Only allow setting rootOffset if the note is in the scale
-      uint16_t c_aligned_scale_map =
-          ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;
+      uint16_t cAlignedScaleMap = ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;
 
-      if (bitRead(c_aligned_scale_map, note)) {
+      if (bitRead(cAlignedScaleMap, note))
+      {
         *rootOffset = ((note + 12) - *rootKey) % 12;
-        if (onChange) { onChange(); }
+        if (onChange)
+        {
+          onChange();
+        }
       }
-    } else {
+    }
+    else
+    {
       *rootKey = note;
       *rootOffset = 0;
-      if (onChange) { onChange(); }
+      if (onChange)
+      {
+        onChange();
+      }
     }
 
     return true;

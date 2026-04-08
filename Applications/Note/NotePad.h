@@ -52,8 +52,8 @@ struct NotePadConfig {
     };
     struct // Offset Mode
     {
-      uint8_t x_offset : 4;     // X offset for the note pad
-      uint8_t y_offset : 4;     // Y offset for the note pad
+      uint8_t x_offset : 4; // X offset for the note pad
+      uint8_t y_offset : 4; // Y offset for the note pad
     };
     struct // Piano Mode
     {
@@ -68,8 +68,7 @@ struct NotePadConfig {
   ArpeggiatorConfig arpConfig;
 };
 
-struct NotePadRuntime
-{
+struct NotePadRuntime {
   NotePadConfig* config = nullptr;
   NoteLatch noteLatch;
   ChordEffect chordEffect;
@@ -79,18 +78,18 @@ struct NotePadRuntime
 
   NotePadRuntime() : arpeggiator(nullptr) {}
 
-  void Tick()
-  {
+  void Tick() {
     midiPipeline.Tick();
     MidiPacket midiPacket;
-    while (midiPipeline.Get(midiPacket)) {
-        MatrixOS::MIDI::Send(midiPacket, MIDI_PORT_ALL);
+    while (midiPipeline.Get(midiPacket))
+    {
+      MatrixOS::MIDI::Send(midiPacket, MIDI_PORT_ALL);
     }
   }
 };
 
 class NotePad : public UIComponent {
- public:
+public:
   Dimension dimension;
   std::vector<uint8_t> noteMap;
   uint16_t c_aligned_scale_map;
@@ -134,7 +133,7 @@ class NotePad : public UIComponent {
   bool RenderColorPerKey(Point origin);
 
   void FirstScan(Point origin);
-  
+
   virtual bool Render(Point origin) override;
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
 

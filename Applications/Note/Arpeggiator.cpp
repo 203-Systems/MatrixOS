@@ -3,742 +3,868 @@
 #include <cstdlib>
 
 Arpeggiator::Arpeggiator(ArpeggiatorConfig* cfg) {
-    if(cfg != nullptr)
-    {
-        UpdateConfig(cfg);
-    }
+  if (cfg != nullptr)
+  {
+    UpdateConfig(cfg);
+  }
 }
 
 void Arpeggiator::Tick(deque<MidiPacket>& input, deque<MidiPacket>& output) {
-    if (disableOnNextTick) {
-        disableOnNextTick = false;
-        enabled = false;
-        Reset();
+  if (disableOnNextTick)
+  {
+    disableOnNextTick = false;
+    enabled = false;
+    Reset();
 
-        for (const MidiPacket& packet : input) {
-            output.push_back(packet);
-        }
-        return;
+    for (const MidiPacket& packet : input)
+    {
+      output.push_back(packet);
+    }
+    return;
+  }
+
+  // Track if notePool was empty at the start of this tick
+  bool wasEmpty = notePool.empty();
+
+  // Process input packets - always track notes even when division is OFF
+  for (const MidiPacket& packet : input)
+  {
+    if (packet.status == NoteOn || packet.status == NoteOff || packet.status == AfterTouch)
+    {
+      if (packet.status == NoteOn && packet.Velocity() > 0)
+      {
+        ProcessNoteOn(packet, output);
+      }
+      else if (packet.status == AfterTouch)
+      {
+        ProcessAfterTouch(packet, output);
+      }
+      else
+      {
+        ProcessNoteOff(packet, output);
+      }
     }
 
-    // Track if notePool was empty at the start of this tick
-    bool wasEmpty = notePool.empty();
+    // Pass through all packets when division is OFF
+    if (division == DIV_OFF)
+    {
+      output.push_back(packet);
+    }
+    else if (packet.status != NoteOn && packet.status != NoteOff && packet.status != AfterTouch)
+    {
+      output.push_back(packet);
+    }
+  }
 
-    // Process input packets - always track notes even when division is OFF
-    for (const MidiPacket& packet : input) {
-        if (packet.status == NoteOn || packet.status == NoteOff || packet.status == AfterTouch) {
-            if (packet.status == NoteOn && packet.Velocity() > 0) {
-                ProcessNoteOn(packet, output);
-            } else if (packet.status == AfterTouch) {
-                ProcessAfterTouch(packet, output);
-            } else {
-                ProcessNoteOff(packet, output);
-            }
-        }
+  // Only do arpeggiator logic when division is not OFF
+  if (division != DIV_OFF)
+  {
+    // Increment tick counter (Tick() is called on each clock pulse)
+    tickCounter++;
 
-        // Pass through all packets when division is OFF
-        if (division == DIV_OFF) {
-            output.push_back(packet);
-        } else if (packet.status != NoteOn && packet.status != NoteOff && packet.status != AfterTouch) {
-            output.push_back(packet);
-        }
+    // Check for gate off timing - process from front of queue
+    while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTick <= tickCounter && gateOffQueue.front().gateOffTick != UINT32_MAX)
+    {
+      const GateOffEvent& event = gateOffQueue.front();
+      output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0));
+      gateOffQueue.pop_front();
     }
 
-    // Only do arpeggiator logic when division is not OFF
-    if (division != DIV_OFF) {
-        // Increment tick counter (Tick() is called on each clock pulse)
-        tickCounter++;
-
-        // Check for gate off timing - process from front of queue
-        while (!gateOffQueue.empty() && gateOffQueue.front().gateOffTick <= tickCounter &&
-               gateOffQueue.front().gateOffTick != UINT32_MAX) {
-            const GateOffEvent& event = gateOffQueue.front();
-            output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0));
-            gateOffQueue.pop_front();
-        }
-
-        // If notePool was empty but now has notes, force start
-        if (wasEmpty && !notePool.empty()) {
-            nextIndex = 0;
-            currentRepeat = 0;  // Reset repeat counter when starting fresh
-            lastSequenceIndex = 0;
-            nextStepTick = 0;
-            euclideanIndex = -1;
-        }
-
-        // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
-        if (!notePool.empty() && tickCounter >= nextStepTick &&
-            (config->repeat == 0 || currentRepeat < config->repeat)) {
-    
-            euclideanIndex = (euclideanIndex + 1) % config->euclideanLengths;
-
-            if ((euclideanMap >> euclideanIndex) & 1) {
-                StepArpeggiator(output);
-            }
-
-            nextStepTick = tickCounter + ticksPerStep[nextIndex % 2];
-        }
-        // If notePool becomes empty, turn off any sustained notes (for inf gate mode)
-        else if (!wasEmpty && notePool.empty()) {
-            for (const auto& event : gateOffQueue) {
-                output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0)); // Turn off all sustained notes
-            }
-            gateOffQueue.clear(); // Clear all gate timers
-        }
+    // If notePool was empty but now has notes, force start
+    if (wasEmpty && !notePool.empty())
+    {
+      nextIndex = 0;
+      currentRepeat = 0; // Reset repeat counter when starting fresh
+      lastSequenceIndex = 0;
+      nextStepTick = 0;
+      euclideanIndex = -1;
     }
+
+    // Step arpeggiator if it's time (using swing timing) and not exceeded repeat limit
+    if (!notePool.empty() && tickCounter >= nextStepTick && (config->repeat == 0 || currentRepeat < config->repeat))
+    {
+
+      euclideanIndex = (euclideanIndex + 1) % config->euclideanLengths;
+
+      if ((euclideanMap >> euclideanIndex) & 1)
+      {
+        StepArpeggiator(output);
+      }
+
+      nextStepTick = tickCounter + ticksPerStep[nextIndex % 2];
+    }
+    // If notePool becomes empty, turn off any sustained notes (for inf gate mode)
+    else if (!wasEmpty && notePool.empty())
+    {
+      for (const auto& event : gateOffQueue)
+      {
+        output.push_back(MidiPacket::NoteOff(event.channel, event.note, 0)); // Turn off all sustained notes
+      }
+      gateOffQueue.clear(); // Clear all gate timers
+    }
+  }
 }
 
 void Arpeggiator::ProcessNoteOn(const MidiPacket& packet, deque<MidiPacket>& output) {
-    uint8_t note = packet.Note();
-    uint8_t velocity = packet.Velocity();
-    uint8_t channel = packet.Channel();
+  uint8_t note = packet.Note();
+  uint8_t velocity = packet.Velocity();
+  uint8_t channel = packet.Channel();
 
-    // Add to note pool if not already present
-    bool found = false;
-    for (const ArpNote& arpNote : notePool) {
-        if (arpNote.note == note) {
-            found = true;
-            break;
-        }
+  // Add to note pool if not already present
+  bool found = false;
+  for (const ArpNote& arpNote : notePool)
+  {
+    if (arpNote.note == note)
+    {
+      found = true;
+      break;
     }
+  }
 
-    if (!found) {
-        ArpNote arpNote = {note, velocity, channel, tickCounter};
-        notePool.push_back(arpNote);
-        UpdateSequence();
-    }
+  if (!found)
+  {
+    ArpNote arpNote = {note, velocity, channel, tickCounter};
+    notePool.push_back(arpNote);
+    UpdateSequence();
+  }
 }
 
 void Arpeggiator::ProcessNoteOff(const MidiPacket& packet, deque<MidiPacket>& output) {
-    uint8_t note = packet.Note();
+  uint8_t note = packet.Note();
 
-    // Remove from note pool
-    notePool.erase(std::remove_if(notePool.begin(), notePool.end(),
-        [note](const ArpNote& arpNote) { return arpNote.note == note; }),
-        notePool.end());
+  // Remove from note pool
+  notePool.erase(std::remove_if(notePool.begin(), notePool.end(), [note](const ArpNote& arpNote) { return arpNote.note == note; }),
+                 notePool.end());
 
-    // If this note is being sustained by the arpeggiator, turn it off immediately
-    // Find all instances of this note (there may be multiple with different gate times)
-    auto it = gateOffQueue.begin();
-    while (it != gateOffQueue.end()) {
-        if (it->note == note) {
-            output.push_back(MidiPacket::NoteOff(it->channel, note, 0));
-            it = gateOffQueue.erase(it);
-        } else {
-            ++it;
-        }
+  // If this note is being sustained by the arpeggiator, turn it off immediately
+  // Find all instances of this note (there may be multiple with different gate times)
+  auto it = gateOffQueue.begin();
+  while (it != gateOffQueue.end())
+  {
+    if (it->note == note)
+    {
+      output.push_back(MidiPacket::NoteOff(it->channel, note, 0));
+      it = gateOffQueue.erase(it);
     }
-
-    UpdateSequence();
-
-    // Reset index if we've gone beyond the sequence
-    if (nextIndex >= arpSequence.size() && !arpSequence.empty()) {
-        nextIndex = 0;
+    else
+    {
+      ++it;
     }
+  }
+
+  UpdateSequence();
+
+  // Reset index if we've gone beyond the sequence
+  if (nextIndex >= arpSequence.size() && !arpSequence.empty())
+  {
+    nextIndex = 0;
+  }
 }
 
 void Arpeggiator::ProcessAfterTouch(const MidiPacket& packet, deque<MidiPacket>& output) {
-    uint8_t note = packet.Note();
-    uint8_t velocity = packet.Velocity();
+  uint8_t note = packet.Note();
+  uint8_t velocity = packet.Velocity();
 
-    // Update velocity for the note in notePool
-    for (ArpNote& arpNote : notePool) {
-        if (arpNote.note == note) {
-            arpNote.velocity = velocity;
-            break;
-        }
+  // Update velocity for the note in notePool
+  for (ArpNote& arpNote : notePool)
+  {
+    if (arpNote.note == note)
+    {
+      arpNote.velocity = velocity;
+      break;
     }
+  }
 
-    // Update velocity in arpSequence as well
-    for (ArpNote& seqNote : arpSequence) {
-        if (seqNote.note == note) {
-            seqNote.velocity = velocity;
-        }
+  // Update velocity in arpSequence as well
+  for (ArpNote& seqNote : arpSequence)
+  {
+    if (seqNote.note == note)
+    {
+      seqNote.velocity = velocity;
     }
+  }
 }
-
 
 void Arpeggiator::UpdateSequence() {
-    arpSequence.clear();
+  arpSequence.clear();
 
-    if (notePool.empty()) {
-        return;
-    }
+  if (notePool.empty())
+  {
+    return;
+  }
 
-    // For RANDOM mode, just copy the pool - we'll pick randomly in StepArpeggiator
-    if (config->direction == ARP_RANDOM) {
-        // Build sequence with octave steps and offset for random selection
-        uint8_t actualSteps = config->step == 0 ? 1 : config->step;
-        for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-            for (const ArpNote& note : notePool) {
-                ArpNote stepNote = note;
-                stepNote.note += stepNum * config->stepOffset;
-                if (stepNote.note < 128 && stepNote.note >= 0) {
-                    arpSequence.push_back(stepNote);
-                }
-            }
-        }
-        return;
-    }
-
-    // Sort notes based on direction
-    vector<ArpNote> sortedNotes = notePool;
-
-    switch (config->direction) {
-        case ARP_UP:
-        case ARP_UP_DOWN:
-        case ARP_UP_N_DOWN:
-        case ARP_CONVERGE:
-        case ARP_CON_DIVERGE:
-        case ARP_PINKY_UP:
-        case ARP_PINKY_UP_DOWN:
-        case ARP_THUMB_UP:
-        case ARP_THUMB_UP_DOWN:
-            std::sort(sortedNotes.begin(), sortedNotes.end(),
-                [](const ArpNote& a, const ArpNote& b) { return a.note < b.note; });
-            break;
-        case ARP_DOWN:
-        case ARP_DOWN_UP:
-        case ARP_DOWN_N_UP:
-        case ARP_DIVERGE:
-        case ARP_DIV_CONVERGE:
-            std::sort(sortedNotes.begin(), sortedNotes.end(),
-                [](const ArpNote& a, const ArpNote& b) { return a.note > b.note; });
-            break;
-        case ARP_PLAY_ORDER:
-            std::sort(sortedNotes.begin(), sortedNotes.end(),
-                [](const ArpNote& a, const ArpNote& b) { return a.timestamp < b.timestamp; });
-            break;
-    }
-
-    // Build base sequence based on direction
+  // For RANDOM mode, just copy the pool - we'll pick randomly in StepArpeggiator
+  if (config->direction == ARP_RANDOM)
+  {
+    // Build sequence with octave steps and offset for random selection
     uint8_t actualSteps = config->step == 0 ? 1 : config->step;
-
-    switch (config->direction) {
-        case ARP_UP:
-        case ARP_DOWN:
-        case ARP_PLAY_ORDER:
-            // Simple sequential patterns
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
-                    }
-                }
-            }
-            break;
-
-        case ARP_UP_DOWN:
-            // Up then down without repeating endpoints
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
-                    }
-                }
-            }
-            if (arpSequence.size() > 1) {
-                for (int i = arpSequence.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(arpSequence[i]);
-                }
-            }
-            break;
-
-        case ARP_DOWN_UP:
-            // Down then up without repeating endpoints
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
-                    }
-                }
-            }
-            if (arpSequence.size() > 1) {
-                for (int i = arpSequence.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(arpSequence[i]);
-                }
-            }
-            break;
-
-        case ARP_UP_N_DOWN:
-            // Up then down WITH repeating endpoints
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
-                    }
-                }
-            }
-            if (arpSequence.size() > 0) {
-                for (int i = arpSequence.size() - 1; i >= 0; i--) {
-                    arpSequence.push_back(arpSequence[i]);
-                }
-            }
-            break;
-
-        case ARP_DOWN_N_UP:
-            // Down then up WITH repeating endpoints
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        arpSequence.push_back(stepNote);
-                    }
-                }
-            }
-            if (arpSequence.size() > 0) {
-                for (int i = arpSequence.size() - 1; i >= 0; i--) {
-                    arpSequence.push_back(arpSequence[i]);
-                }
-            }
-            break;
-
-        case ARP_CONVERGE:
-            // Play from outside to inside
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                vector<ArpNote> stepNotes;
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        stepNotes.push_back(stepNote);
-                    }
-                }
-                // Add notes alternating from ends toward middle
-                int left = 0, right = stepNotes.size() - 1;
-                while (left <= right) {
-                    arpSequence.push_back(stepNotes[left++]);
-                    if (left <= right) {
-                        arpSequence.push_back(stepNotes[right--]);
-                    }
-                }
-            }
-            break;
-
-        case ARP_DIVERGE:
-            // Play from inside to outside
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                vector<ArpNote> stepNotes;
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        stepNotes.push_back(stepNote);
-                    }
-                }
-                // Add notes from middle toward ends
-                int mid = stepNotes.size() / 2;
-                for (int i = 0; i <= mid && i < stepNotes.size(); i++) {
-                    if (mid - i >= 0) {
-                        arpSequence.push_back(stepNotes[mid - i]);
-                    }
-                    if (mid + i < stepNotes.size() && i > 0) {
-                        arpSequence.push_back(stepNotes[mid + i]);
-                    }
-                }
-            }
-            break;
-
-        case ARP_CON_DIVERGE:
-            // Converge then diverge
-            {
-                vector<ArpNote> convergeSeq;
-                for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    vector<ArpNote> stepNotes;
-                    for (const ArpNote& note : sortedNotes) {
-                        ArpNote stepNote = note;
-                        stepNote.note += stepNum * config->stepOffset;
-                        if (stepNote.note < 128 && stepNote.note >= 0) {
-                            stepNotes.push_back(stepNote);
-                        }
-                    }
-                    int left = 0, right = stepNotes.size() - 1;
-                    while (left <= right) {
-                        convergeSeq.push_back(stepNotes[left++]);
-                        if (left <= right) {
-                            convergeSeq.push_back(stepNotes[right--]);
-                        }
-                    }
-                }
-                // Add converge sequence
-                arpSequence = convergeSeq;
-                // Add diverge sequence (reverse of converge)
-                for (int i = convergeSeq.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(convergeSeq[i]);
-                }
-            }
-            break;
-
-        case ARP_DIV_CONVERGE:
-            // Diverge then converge
-            {
-                vector<ArpNote> divergeSeq;
-                for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    vector<ArpNote> stepNotes;
-                    for (const ArpNote& note : sortedNotes) {
-                        ArpNote stepNote = note;
-                        stepNote.note += stepNum * config->stepOffset;
-                        if (stepNote.note < 128 && stepNote.note >= 0) {
-                            stepNotes.push_back(stepNote);
-                        }
-                    }
-                    int mid = stepNotes.size() / 2;
-                    for (int i = 0; i <= mid && i < stepNotes.size(); i++) {
-                        if (mid - i >= 0) {
-                            divergeSeq.push_back(stepNotes[mid - i]);
-                        }
-                        if (mid + i < stepNotes.size() && i > 0) {
-                            divergeSeq.push_back(stepNotes[mid + i]);
-                        }
-                    }
-                }
-                // Add diverge sequence
-                arpSequence = divergeSeq;
-                // Add converge sequence (reverse of diverge)
-                for (int i = divergeSeq.size() - 2; i > 0; i--) {
-                    arpSequence.push_back(divergeSeq[i]);
-                }
-            }
-            break;
-
-        case ARP_PINKY_UP:
-            // Play each note ascending with highest note in between: 1 4 2 4 3 4
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                vector<ArpNote> stepNotes;
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        stepNotes.push_back(stepNote);
-                    }
-                }
-                if (stepNotes.size() > 0) {
-                    for (size_t i = 0; i < stepNotes.size() - 1; i++) {
-                        arpSequence.push_back(stepNotes[i]);  // Lower note
-                        arpSequence.push_back(stepNotes[stepNotes.size() - 1]);  // Highest note (pinky)
-                    }
-                }
-            }
-            break;
-
-        case ARP_PINKY_UP_DOWN:
-            // Play pinky up then pinky down: 1 4 2 4 3 4 2 4
-            {
-                vector<ArpNote> upSeq;
-                for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    vector<ArpNote> stepNotes;
-                    for (const ArpNote& note : sortedNotes) {
-                        ArpNote stepNote = note;
-                        stepNote.note += stepNum * config->stepOffset;
-                        if (stepNote.note < 128 && stepNote.note >= 0) {
-                            stepNotes.push_back(stepNote);
-                        }
-                    }
-                    if (stepNotes.size() > 0) {
-                        // Ascending with pinky in between
-                        for (size_t i = 0; i < stepNotes.size() - 1; i++) {
-                            upSeq.push_back(stepNotes[i]);
-                            upSeq.push_back(stepNotes[stepNotes.size() - 1]);
-                        }
-                    }
-                }
-                arpSequence = upSeq;
-                // Add descending (reverse without first and last pairs to avoid duplication)
-                for (int i = upSeq.size() - 4; i >= 2; i -= 2) {
-                    arpSequence.push_back(upSeq[i]);
-                    arpSequence.push_back(upSeq[i + 1]);
-                }
-            }
-            break;
-
-        case ARP_THUMB_UP:
-            // Play each note ascending with lowest note in between: 1 2 1 3 1 4
-            for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                vector<ArpNote> stepNotes;
-                for (const ArpNote& note : sortedNotes) {
-                    ArpNote stepNote = note;
-                    stepNote.note += stepNum * config->stepOffset;
-                    if (stepNote.note < 128 && stepNote.note >= 0) {
-                        stepNotes.push_back(stepNote);
-                    }
-                }
-                if (stepNotes.size() > 0) {
-                    for (size_t i = 1; i < stepNotes.size(); i++) {
-                        arpSequence.push_back(stepNotes[0]);  // Lowest note (thumb)
-                        arpSequence.push_back(stepNotes[i]);  // Higher note
-                    }
-                }
-            }
-            break;
-
-        case ARP_THUMB_UP_DOWN:
-            // Play thumb up then thumb down: 1 2 1 3 1 4 1 3
-            {
-                vector<ArpNote> upSeq;
-                for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++) {
-                    vector<ArpNote> stepNotes;
-                    for (const ArpNote& note : sortedNotes) {
-                        ArpNote stepNote = note;
-                        stepNote.note += stepNum * config->stepOffset;
-                        if (stepNote.note < 128 && stepNote.note >= 0) {
-                            stepNotes.push_back(stepNote);
-                        }
-                    }
-                    if (stepNotes.size() > 0) {
-                        // Ascending with thumb in between
-                        for (size_t i = 1; i < stepNotes.size(); i++) {
-                            upSeq.push_back(stepNotes[0]);
-                            upSeq.push_back(stepNotes[i]);
-                        }
-                    }
-                }
-                arpSequence = upSeq;
-                // Add descending (reverse without first and last pairs to avoid duplication)
-                for (int i = upSeq.size() - 4; i >= 2; i -= 2) {
-                    arpSequence.push_back(upSeq[i]);
-                    arpSequence.push_back(upSeq[i + 1]);
-                }
-            }
-            break;
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : notePool)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
     }
+    return;
+  }
+
+  // Sort notes based on direction
+  vector<ArpNote> sortedNotes = notePool;
+
+  switch (config->direction)
+  {
+  case ARP_UP:
+  case ARP_UP_DOWN:
+  case ARP_UP_N_DOWN:
+  case ARP_CONVERGE:
+  case ARP_CON_DIVERGE:
+  case ARP_PINKY_UP:
+  case ARP_PINKY_UP_DOWN:
+  case ARP_THUMB_UP:
+  case ARP_THUMB_UP_DOWN:
+    std::sort(sortedNotes.begin(), sortedNotes.end(), [](const ArpNote& a, const ArpNote& b) { return a.note < b.note; });
+    break;
+  case ARP_DOWN:
+  case ARP_DOWN_UP:
+  case ARP_DOWN_N_UP:
+  case ARP_DIVERGE:
+  case ARP_DIV_CONVERGE:
+    std::sort(sortedNotes.begin(), sortedNotes.end(), [](const ArpNote& a, const ArpNote& b) { return a.note > b.note; });
+    break;
+  case ARP_PLAY_ORDER:
+    std::sort(sortedNotes.begin(), sortedNotes.end(), [](const ArpNote& a, const ArpNote& b) { return a.timestamp < b.timestamp; });
+    break;
+  }
+
+  // Build base sequence based on direction
+  uint8_t actualSteps = config->step == 0 ? 1 : config->step;
+
+  switch (config->direction)
+  {
+  case ARP_UP:
+  case ARP_DOWN:
+  case ARP_PLAY_ORDER:
+    // Simple sequential patterns
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
+    }
+    break;
+
+  case ARP_UP_DOWN:
+    // Up then down without repeating endpoints
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
+    }
+    if (arpSequence.size() > 1)
+    {
+      for (int i = arpSequence.size() - 2; i > 0; i--)
+      {
+        arpSequence.push_back(arpSequence[i]);
+      }
+    }
+    break;
+
+  case ARP_DOWN_UP:
+    // Down then up without repeating endpoints
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
+    }
+    if (arpSequence.size() > 1)
+    {
+      for (int i = arpSequence.size() - 2; i > 0; i--)
+      {
+        arpSequence.push_back(arpSequence[i]);
+      }
+    }
+    break;
+
+  case ARP_UP_N_DOWN:
+    // Up then down WITH repeating endpoints
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
+    }
+    if (arpSequence.size() > 0)
+    {
+      for (int i = arpSequence.size() - 1; i >= 0; i--)
+      {
+        arpSequence.push_back(arpSequence[i]);
+      }
+    }
+    break;
+
+  case ARP_DOWN_N_UP:
+    // Down then up WITH repeating endpoints
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          arpSequence.push_back(stepNote);
+        }
+      }
+    }
+    if (arpSequence.size() > 0)
+    {
+      for (int i = arpSequence.size() - 1; i >= 0; i--)
+      {
+        arpSequence.push_back(arpSequence[i]);
+      }
+    }
+    break;
+
+  case ARP_CONVERGE:
+    // Play from outside to inside
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      vector<ArpNote> stepNotes;
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          stepNotes.push_back(stepNote);
+        }
+      }
+      // Add notes alternating from ends toward middle
+      int left = 0, right = stepNotes.size() - 1;
+      while (left <= right)
+      {
+        arpSequence.push_back(stepNotes[left++]);
+        if (left <= right)
+        {
+          arpSequence.push_back(stepNotes[right--]);
+        }
+      }
+    }
+    break;
+
+  case ARP_DIVERGE:
+    // Play from inside to outside
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      vector<ArpNote> stepNotes;
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          stepNotes.push_back(stepNote);
+        }
+      }
+      // Add notes from middle toward ends
+      int mid = stepNotes.size() / 2;
+      for (int i = 0; i <= mid && i < stepNotes.size(); i++)
+      {
+        if (mid - i >= 0)
+        {
+          arpSequence.push_back(stepNotes[mid - i]);
+        }
+        if (mid + i < stepNotes.size() && i > 0)
+        {
+          arpSequence.push_back(stepNotes[mid + i]);
+        }
+      }
+    }
+    break;
+
+  case ARP_CON_DIVERGE:
+    // Converge then diverge
+    {
+      vector<ArpNote> convergeSeq;
+      for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+      {
+        vector<ArpNote> stepNotes;
+        for (const ArpNote& note : sortedNotes)
+        {
+          ArpNote stepNote = note;
+          stepNote.note += stepNum * config->stepOffset;
+          if (stepNote.note < 128 && stepNote.note >= 0)
+          {
+            stepNotes.push_back(stepNote);
+          }
+        }
+        int left = 0, right = stepNotes.size() - 1;
+        while (left <= right)
+        {
+          convergeSeq.push_back(stepNotes[left++]);
+          if (left <= right)
+          {
+            convergeSeq.push_back(stepNotes[right--]);
+          }
+        }
+      }
+      // Add converge sequence
+      arpSequence = convergeSeq;
+      // Add diverge sequence (reverse of converge)
+      for (int i = convergeSeq.size() - 2; i > 0; i--)
+      {
+        arpSequence.push_back(convergeSeq[i]);
+      }
+    }
+    break;
+
+  case ARP_DIV_CONVERGE:
+    // Diverge then converge
+    {
+      vector<ArpNote> divergeSeq;
+      for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+      {
+        vector<ArpNote> stepNotes;
+        for (const ArpNote& note : sortedNotes)
+        {
+          ArpNote stepNote = note;
+          stepNote.note += stepNum * config->stepOffset;
+          if (stepNote.note < 128 && stepNote.note >= 0)
+          {
+            stepNotes.push_back(stepNote);
+          }
+        }
+        int mid = stepNotes.size() / 2;
+        for (int i = 0; i <= mid && i < stepNotes.size(); i++)
+        {
+          if (mid - i >= 0)
+          {
+            divergeSeq.push_back(stepNotes[mid - i]);
+          }
+          if (mid + i < stepNotes.size() && i > 0)
+          {
+            divergeSeq.push_back(stepNotes[mid + i]);
+          }
+        }
+      }
+      // Add diverge sequence
+      arpSequence = divergeSeq;
+      // Add converge sequence (reverse of diverge)
+      for (int i = divergeSeq.size() - 2; i > 0; i--)
+      {
+        arpSequence.push_back(divergeSeq[i]);
+      }
+    }
+    break;
+
+  case ARP_PINKY_UP:
+    // Play each note ascending with highest note in between: 1 4 2 4 3 4
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      vector<ArpNote> stepNotes;
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          stepNotes.push_back(stepNote);
+        }
+      }
+      if (stepNotes.size() > 0)
+      {
+        for (size_t i = 0; i < stepNotes.size() - 1; i++)
+        {
+          arpSequence.push_back(stepNotes[i]);                    // Lower note
+          arpSequence.push_back(stepNotes[stepNotes.size() - 1]); // Highest note (pinky)
+        }
+      }
+    }
+    break;
+
+  case ARP_PINKY_UP_DOWN:
+    // Play pinky up then pinky down: 1 4 2 4 3 4 2 4
+    {
+      vector<ArpNote> upSeq;
+      for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+      {
+        vector<ArpNote> stepNotes;
+        for (const ArpNote& note : sortedNotes)
+        {
+          ArpNote stepNote = note;
+          stepNote.note += stepNum * config->stepOffset;
+          if (stepNote.note < 128 && stepNote.note >= 0)
+          {
+            stepNotes.push_back(stepNote);
+          }
+        }
+        if (stepNotes.size() > 0)
+        {
+          // Ascending with pinky in between
+          for (size_t i = 0; i < stepNotes.size() - 1; i++)
+          {
+            upSeq.push_back(stepNotes[i]);
+            upSeq.push_back(stepNotes[stepNotes.size() - 1]);
+          }
+        }
+      }
+      arpSequence = upSeq;
+      // Add descending (reverse without first and last pairs to avoid duplication)
+      for (int i = upSeq.size() - 4; i >= 2; i -= 2)
+      {
+        arpSequence.push_back(upSeq[i]);
+        arpSequence.push_back(upSeq[i + 1]);
+      }
+    }
+    break;
+
+  case ARP_THUMB_UP:
+    // Play each note ascending with lowest note in between: 1 2 1 3 1 4
+    for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+    {
+      vector<ArpNote> stepNotes;
+      for (const ArpNote& note : sortedNotes)
+      {
+        ArpNote stepNote = note;
+        stepNote.note += stepNum * config->stepOffset;
+        if (stepNote.note < 128 && stepNote.note >= 0)
+        {
+          stepNotes.push_back(stepNote);
+        }
+      }
+      if (stepNotes.size() > 0)
+      {
+        for (size_t i = 1; i < stepNotes.size(); i++)
+        {
+          arpSequence.push_back(stepNotes[0]); // Lowest note (thumb)
+          arpSequence.push_back(stepNotes[i]); // Higher note
+        }
+      }
+    }
+    break;
+
+  case ARP_THUMB_UP_DOWN:
+    // Play thumb up then thumb down: 1 2 1 3 1 4 1 3
+    {
+      vector<ArpNote> upSeq;
+      for (uint8_t stepNum = 0; stepNum < actualSteps; stepNum++)
+      {
+        vector<ArpNote> stepNotes;
+        for (const ArpNote& note : sortedNotes)
+        {
+          ArpNote stepNote = note;
+          stepNote.note += stepNum * config->stepOffset;
+          if (stepNote.note < 128 && stepNote.note >= 0)
+          {
+            stepNotes.push_back(stepNote);
+          }
+        }
+        if (stepNotes.size() > 0)
+        {
+          // Ascending with thumb in between
+          for (size_t i = 1; i < stepNotes.size(); i++)
+          {
+            upSeq.push_back(stepNotes[0]);
+            upSeq.push_back(stepNotes[i]);
+          }
+        }
+      }
+      arpSequence = upSeq;
+      // Add descending (reverse without first and last pairs to avoid duplication)
+      for (int i = upSeq.size() - 4; i >= 2; i -= 2)
+      {
+        arpSequence.push_back(upSeq[i]);
+        arpSequence.push_back(upSeq[i + 1]);
+      }
+    }
+    break;
+  }
 }
 
-
 void Arpeggiator::StepArpeggiator(deque<MidiPacket>& output) {
-    if (arpSequence.empty()) {
-        return;
-    }
+  if (arpSequence.empty())
+  {
+    return;
+  }
 
-    // Check if nextIndex is out of bounds (sequence changed) or needs wrapping
-    if (nextIndex >= arpSequence.size()) {
-        // Detect sequence completion when wrapping
-        // lastSequenceIndex holds the last valid index we played
-        if (config->repeat != 0 && lastSequenceIndex < arpSequence.size()) {
-            currentRepeat++;
+  // Check if nextIndex is out of bounds (sequence changed) or needs wrapping
+  if (nextIndex >= arpSequence.size())
+  {
+    // Detect sequence completion when wrapping
+    // lastSequenceIndex holds the last valid index we played
+    if (config->repeat != 0 && lastSequenceIndex < arpSequence.size())
+    {
+      currentRepeat++;
 
-            // If we've reached the repeat limit, stop
-            if (currentRepeat >= config->repeat) {
-                // Turn off all sustained notes
-                for (const auto& gateEvent : gateOffQueue) {
-                    output.push_back(MidiPacket::NoteOff(gateEvent.channel, gateEvent.note, 0));
-                }
-                gateOffQueue.clear();
-                return;
-            }
+      // If we've reached the repeat limit, stop
+      if (currentRepeat >= config->repeat)
+      {
+        // Turn off all sustained notes
+        for (const auto& gateEvent : gateOffQueue)
+        {
+          output.push_back(MidiPacket::NoteOff(gateEvent.channel, gateEvent.note, 0));
         }
-
-        nextIndex = 0;
+        gateOffQueue.clear();
+        return;
+      }
     }
 
-    // For random mode, pick a random note from the sequence
-    if (config->direction == ARP_RANDOM) {
-        nextIndex = rand() % arpSequence.size();
-    }
+    nextIndex = 0;
+  }
 
-    // Play current note
-    const ArpNote& currentNote = arpSequence[nextIndex];
-    output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
+  // For random mode, pick a random note from the sequence
+  if (config->direction == ARP_RANDOM)
+  {
+    nextIndex = rand() % arpSequence.size();
+  }
 
+  // Play current note
+  const ArpNote& currentNote = arpSequence[nextIndex];
+  output.push_back(MidiPacket::NoteOn(currentNote.channel, currentNote.note, currentNote.velocity));
 
-    // Calculate gate off time based on gate percentage and BASE step time (not swing-modified)
-    if (config->gateTime == 0) {
-        // Gate time 0 = always on until arp stops
-        // Use UINT32_MAX to indicate infinite gate time
-        gateOffQueue.push_back({UINT32_MAX, currentNote.note, currentNote.channel});
-    } else {
-        // Gate duration is based on baseTicksPerStep (consistent note length regardless of swing)
-        uint32_t gateTicks = (baseTicksPerStep * config->gateTime) / 100;
-        uint32_t gateOffTick = tickCounter + gateTicks;
+  // Calculate gate off time based on gate percentage and BASE step time (not swing-modified)
+  if (config->gateTime == 0)
+  {
+    // Gate time 0 = always on until arp stops
+    // Use UINT32_MAX to indicate infinite gate time
+    gateOffQueue.push_back({UINT32_MAX, currentNote.note, currentNote.channel});
+  }
+  else
+  {
+    // Gate duration is based on baseTicksPerStep (consistent note length regardless of swing)
+    uint32_t gateTicks = (baseTicksPerStep * config->gateTime) / 100;
+    uint32_t gateOffTick = tickCounter + gateTicks;
 
-        // Add this note to the gate off queue
-        gateOffQueue.push_back({gateOffTick, currentNote.note, currentNote.channel});
-    }
+    // Add this note to the gate off queue
+    gateOffQueue.push_back({gateOffTick, currentNote.note, currentNote.channel});
+  }
 
-    // Store last index before advancing
-    lastSequenceIndex = nextIndex;
+  // Store last index before advancing
+  lastSequenceIndex = nextIndex;
 
-    // Advance to next note (just increment, will wrap on next call if needed)
-    nextIndex++;
+  // Advance to next note (just increment, will wrap on next call if needed)
+  nextIndex++;
 }
 
 void Arpeggiator::CalculateTicksPerStep() {
-    if (division == DIV_OFF || division == 0) {
-        baseTicksPerStep = UINT32_MAX;
-        ticksPerStep[0] = ticksPerStep[1] = UINT32_MAX;
-        return;
-    }
+  if (division == DIV_OFF || division == 0)
+  {
+    baseTicksPerStep = UINT32_MAX;
+    ticksPerStep[0] = ticksPerStep[1] = UINT32_MAX;
+    return;
+  }
 
-    // Calculate base ticks based on TPQN and division
-    // division = how many of this note per whole note
-    // TPQN = ticks per quarter note
-    // baseTicksPerStep = (TPQN * 4) / division
-    baseTicksPerStep = (EFFECT_TPQN * 4) / division;
+  // Calculate base ticks based on TPQN and division
+  // division = how many of this note per whole note
+  // TPQN = ticks per quarter note
+  // baseTicksPerStep = (TPQN * 4) / division
+  baseTicksPerStep = (EFFECT_TPQN * 4) / division;
 
-    // Apply swing based on 20-80 range with 50 as center (no swing)
-    // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
-    float swingRatio = (config->swing - 50) / 100.0f;
+  // Apply swing based on 20-80 range with 50 as center (no swing)
+  // Convert swing amount (20-80) to ratio (-0.3 to +0.3)
+  float swingRatio = (config->swing - 50) / 100.0f;
 
-    // Swing modifies the timing between note triggers (not gate length)
-    // On-beat gets longer by swing amount, off-beat gets shorter
-    // This maintains total duration: ticksPerStep[0] + ticksPerStep[1] = 2 * baseTicksPerStep
-    uint32_t swingTicks = (uint32_t)(baseTicksPerStep * swingRatio);
+  // Swing modifies the timing between note triggers (not gate length)
+  // On-beat gets longer by swing amount, off-beat gets shorter
+  // This maintains total duration: ticksPerStep[0] + ticksPerStep[1] = 2 * baseTicksPerStep
+  uint32_t swingTicks = (uint32_t)(baseTicksPerStep * swingRatio);
 
-    ticksPerStep[0] = baseTicksPerStep + swingTicks;  // On-beat (longer with positive swing)
-    ticksPerStep[1] = baseTicksPerStep - swingTicks;  // Off-beat (shorter with positive swing)
+  ticksPerStep[0] = baseTicksPerStep + swingTicks; // On-beat (longer with positive swing)
+  ticksPerStep[1] = baseTicksPerStep - swingTicks; // Off-beat (shorter with positive swing)
 
-    MLOGD("Arp", "CalculateTicksPerStep: baseTicksPerStep=%u, swing=%u, swingRatio=%.2f, swingTicks=%u, ticksPerStep[0]=%u, ticksPerStep[1]=%u",
-          baseTicksPerStep, config->swing, swingRatio, swingTicks, ticksPerStep[0], ticksPerStep[1]);
+  MLOGD("Arp",
+        "CalculateTicksPerStep: baseTicksPerStep=%u, swing=%u, swingRatio=%.2f, swingTicks=%u, ticksPerStep[0]=%u, ticksPerStep[1]=%u",
+        baseTicksPerStep, config->swing, swingRatio, swingTicks, ticksPerStep[0], ticksPerStep[1]);
 }
 
-void Arpeggiator::GenerateEuclideanMap()
-{
-    uint32_t pulses = config->euclideanSteps;
-    uint32_t steps = config->euclideanLengths;
-    uint32_t offset = config->euclideanOffset;
+void Arpeggiator::GenerateEuclideanMap() {
+  uint32_t pulses = config->euclideanSteps;
+  uint32_t steps = config->euclideanLengths;
+  uint32_t offset = config->euclideanOffset;
 
-    // Handle edge cases
-    if (steps > 32) {
-        euclideanMap = 0;
-        MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d > 32", steps);
-        return;
-    }
-    if (steps == 0 || pulses == 0) {
-        euclideanMap = 0;
-        MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d, pulses=%d", steps, pulses);
-        return;
-    }
-    if (pulses >= steps) {
-        euclideanMap = (steps == 32) ? 0xFFFFFFFF : ((1 << steps) - 1);
-        MLOGD("Arpeggiator", "Euclidean map generated (full pattern): steps=%d, length=%d, offset=%d, map=0x%08X",
-              pulses, steps, offset, euclideanMap);
-        return;
-    }
+  // Handle edge cases
+  if (steps > 32)
+  {
+    euclideanMap = 0;
+    MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d > 32", steps);
+    return;
+  }
+  if (steps == 0 || pulses == 0)
+  {
+    euclideanMap = 0;
+    MLOGD("Arpeggiator", "Euclidean map generation failed: steps=%d, pulses=%d", steps, pulses);
+    return;
+  }
+  if (pulses >= steps)
+  {
+    euclideanMap = (steps == 32) ? 0xFFFFFFFF : ((1 << steps) - 1);
+    MLOGD("Arpeggiator", "Euclidean map generated (full pattern): steps=%d, length=%d, offset=%d, map=0x%08X", pulses, steps, offset,
+          euclideanMap);
+    return;
+  }
 
-    // Simplified Bjorklund algorithm
-    std::vector<std::vector<int>> seq;
+  // Simplified Bjorklund algorithm
+  std::vector<std::vector<int>> seq;
 
-    // Initialize sequence with pulses and rests
-    for (uint32_t i = 0; i < pulses; i++) {
-        seq.push_back({1});
-    }
-    for (uint32_t i = 0; i < steps - pulses; i++) {
-        seq.push_back({0});
-    }
+  // Initialize sequence with pulses and rests
+  for (uint32_t i = 0; i < pulses; i++)
+  {
+    seq.push_back({1});
+  }
+  for (uint32_t i = 0; i < steps - pulses; i++)
+  {
+    seq.push_back({0});
+  }
 
-    // Bjorklund algorithm
-    while (true) {
-        // Find first element that's different from the first
-        size_t remainder_start = 1;
-        for (; remainder_start < seq.size(); remainder_start++) {
-            if (seq[remainder_start] != seq[0]) {
-                break;
-            }
-        }
-
-        // If remainder is too small, we're done
-        if (remainder_start >= seq.size() - 1) {
-            break;
-        }
-
-        // Split into head and remainder
-        std::vector<std::vector<int>> head(seq.begin(), seq.begin() + remainder_start);
-        std::vector<std::vector<int>> remainder(seq.begin() + remainder_start, seq.end());
-
-        // Distribute remainder elements to head
-        size_t distribute_count = std::min(head.size(), remainder.size());
-        for (size_t i = 0; i < distribute_count; i++) {
-            head[i].insert(head[i].end(), remainder[i].begin(), remainder[i].end());
-        }
-
-        // Update sequence
-        seq = head;
-        if (distribute_count < remainder.size()) {
-            seq.insert(seq.end(), remainder.begin() + distribute_count, remainder.end());
-        }
+  // Bjorklund algorithm
+  while (true)
+  {
+    // Find first element that's different from the first
+    size_t remainderStart = 1;
+    for (; remainderStart < seq.size(); remainderStart++)
+    {
+      if (seq[remainderStart] != seq[0])
+      {
+        break;
+      }
     }
 
-    // Flatten the sequence
-    std::vector<int> pattern;
-    for (const auto& group : seq) {
-        pattern.insert(pattern.end(), group.begin(), group.end());
+    // If remainder is too small, we're done
+    if (remainderStart >= seq.size() - 1)
+    {
+      break;
     }
 
-    // Pack into uint32_t (LSB = first step)
-    uint32_t bitmap = 0u;
-    for (size_t i = 0; i < pattern.size() && i < 32; ++i) {
-        if (pattern[i]) {
-            bitmap |= (1u << i);
-        }
+    // Split into head and remainder
+    std::vector<std::vector<int>> head(seq.begin(), seq.begin() + remainderStart);
+    std::vector<std::vector<int>> remainder(seq.begin() + remainderStart, seq.end());
+
+    // Distribute remainder elements to head
+    size_t distributeCount = std::min(head.size(), remainder.size());
+    for (size_t i = 0; i < distributeCount; i++)
+    {
+      head[i].insert(head[i].end(), remainder[i].begin(), remainder[i].end());
     }
 
-    // Apply offset (circular left rotation)
-    offset %= steps;
-    bitmap = (bitmap << offset) | (bitmap >> (steps - offset));
+    // Update sequence
+    seq = head;
+    if (distributeCount < remainder.size())
+    {
+      seq.insert(seq.end(), remainder.begin() + distributeCount, remainder.end());
+    }
+  }
 
-    euclideanMap = bitmap;
-    MLOGD("Arpeggiator", "Euclidean map generated: steps=%d, length=%d, offset=%d, map=0x%08X",
-          pulses, steps, offset, euclideanMap);
+  // Flatten the sequence
+  std::vector<int> pattern;
+  for (const auto& group : seq)
+  {
+    pattern.insert(pattern.end(), group.begin(), group.end());
+  }
+
+  // Pack into uint32_t (LSB = first step)
+  uint32_t bitmap = 0u;
+  for (size_t i = 0; i < pattern.size() && i < 32; ++i)
+  {
+    if (pattern[i])
+    {
+      bitmap |= (1u << i);
+    }
+  }
+
+  // Apply offset (circular left rotation)
+  offset %= steps;
+  bitmap = (bitmap << offset) | (bitmap >> (steps - offset));
+
+  euclideanMap = bitmap;
+  MLOGD("Arpeggiator", "Euclidean map generated: steps=%d, length=%d, offset=%d, map=0x%08X", pulses, steps, offset, euclideanMap);
 }
 
 void Arpeggiator::Reset() {
-    notePool.clear();
-    arpSequence.clear();
-    nextIndex = 0;
-    tickCounter = 0;
-    nextStepTick = ticksPerStep[0];  // Initialize to first step duration, not 0
-    gateOffQueue.clear(); // Clear all gate timers
-    disableOnNextTick = false;
-    currentRepeat = 0;  // Reset repeat counter
-    lastSequenceIndex = 0;
+  notePool.clear();
+  arpSequence.clear();
+  nextIndex = 0;
+  tickCounter = 0;
+  nextStepTick = ticksPerStep[0]; // Initialize to first step duration, not 0
+  gateOffQueue.clear();           // Clear all gate timers
+  disableOnNextTick = false;
+  currentRepeat = 0; // Reset repeat counter
+  lastSequenceIndex = 0;
 }
 
 void Arpeggiator::SetEnabled(bool state) {
-    if (!state && enabled) {
-        disableOnNextTick = true;
-    } else {
-        enabled = state;
-        if (state) {
-            disableOnNextTick = false;
-        }
+  if (!state && enabled)
+  {
+    disableOnNextTick = true;
+  }
+  else
+  {
+    enabled = state;
+    if (state)
+    {
+      disableOnNextTick = false;
     }
+  }
 }
 
 void Arpeggiator::UpdateConfig(ArpeggiatorConfig* cfg) {
-    if(cfg != nullptr)
-    {
-        config = cfg;
-    }
-    GenerateEuclideanMap();
-    CalculateTicksPerStep(); // Recalculate timings when config changes
-    
-    UpdateSequence();
+  if (cfg != nullptr)
+  {
+    config = cfg;
+  }
+  GenerateEuclideanMap();
+  CalculateTicksPerStep(); // Recalculate timings when config changes
+
+  UpdateSequence();
 }
 
 void Arpeggiator::SetDivision(ArpDivision div) {
-    ArpDivision oldDivision = division;
-    division = div;
-    CalculateTicksPerStep();
+  ArpDivision oldDivision = division;
+  division = div;
+  CalculateTicksPerStep();
 
-    // If turning on arpeggiator with notes already held, start immediately
-    if (oldDivision == DIV_OFF && div != DIV_OFF && !notePool.empty()) {
-        nextIndex = 0;
-        currentRepeat = 0;  // Reset repeat counter when restarting
-        lastSequenceIndex = 0;
-        nextStepTick = tickCounter;
-        // Note: We can't call StepArpeggiator here since we don't have output queue
-        // The force start will happen on the next Tick()
-    }
+  // If turning on arpeggiator with notes already held, start immediately
+  if (oldDivision == DIV_OFF && div != DIV_OFF && !notePool.empty())
+  {
+    nextIndex = 0;
+    currentRepeat = 0; // Reset repeat counter when restarting
+    lastSequenceIndex = 0;
+    nextStepTick = tickCounter;
+    // Note: We can't call StepArpeggiator here since we don't have output queue
+    // The force start will happen on the next Tick()
+  }
 }
 
-bool Arpeggiator::Active(){
-    return enabled && division != DIV_OFF && !notePool.empty();
+bool Arpeggiator::Active() {
+  return enabled && division != DIV_OFF && !notePool.empty();
 }
