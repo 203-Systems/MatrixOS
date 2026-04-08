@@ -16,10 +16,10 @@ Midi signal received will be echoed back to the host
 
 #include "MatrixOS.h"
 #include "Application.h"
-#include "BrightnessControl.h" 
+#include "BrightnessControl.h"
 
 class ExampleAPP : public Application {
- public:
+public:
   inline static Application_Info info = {
       .name = "Example",
       .author = "203 Systems",
@@ -32,9 +32,7 @@ class ExampleAPP : public Application {
   void Loop() override;
   void End() override;
 
-
-
-  // Wanna make your number and color saves between restarts? Comment out the define below. 
+  // Wanna make your number and color saves between restarts? Comment out the define below.
   // This macro change the code that will the color variable to a saved variable
   // And replace part of the code to support it
 
@@ -46,17 +44,17 @@ class ExampleAPP : public Application {
 #else
   CreateSavedVar("Example", number, uint8_t, 0);
   CreateSavedVar("Example", color, Color, Color::White);
-  
-  // Namespace (This namespace only applies to this application. So even if two different applications have the same variable name, they won't conflict)， variable name (no ""), variable type, default value
+
+  // Namespace (This namespace only applies to this application. So even if two different applications have the same variable name, they won't conflict)
+  // variable name (no ""), variable type, default value
   // And then just use the variable as a normal variable. The value will be saved & loaded automatically!
   // However, not all variable type and operator is supported. If that is the case, you have to get the variable via .Get() and .Set()
   // For more, see /OS/Framework/SavedVar.h
-  #endif
+#endif
 
   void UIMenu();
   void KeyEventHandler(KeyEvent& keyEvent);
   void MidiEventHandler(MidiPacket& midiPacket);
 };
-
 
 // Register this Application to the OS (Use the class name of your application as the variable)

@@ -137,8 +137,8 @@
 - Applications\BootAnimation\BootAnimation.cpp - FORMATTED
 - Devices\Mystrix1\MatrixOSConfig.h - NOT FORMATTED
 - Devices\Mystrix1\main.c - NOT FORMATTED
-- Applications\Example\Example.h - NOT FORMATTED
-- Applications\Example\Example.cpp - NOT FORMATTED
+- Applications\Example\Example.h - FORMATTED
+- Applications\Example\Example.cpp - FORMATTED
 - OS\MIDI\MIDI.h - NOT FORMATTED
 - OS\MIDI\MIDI.cpp - NOT FORMATTED
 - OS\MatrixOS.h - NOT FORMATTED
