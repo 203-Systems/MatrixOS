@@ -241,7 +241,22 @@ bool UADRuntime::ExecuteEffects(ActionInfo* effectInfo, ActionEvent* effectEvent
 }
 
 uint8_t UADRuntime::GetTopLayer() {
-  return std::log2(layerEnabled);
+  if (layerEnabled == 0)
+  {
+    MLOGE(TAG, "layerEnabled is 0, falling back to layer 0");
+    return 0;
+  }
+
+  for (int8_t layer = layerCount - 1; layer >= 0; layer--)
+  {
+    if (IsBitSet(layerEnabled, layer))
+    {
+      return layer;
+    }
+  }
+
+  MLOGE(TAG, "No enabled layer found in bitmap 0x%X, falling back to layer 0", layerEnabled);
+  return 0;
 }
 
 void UADRuntime::InitializeLayer(uint8_t layer) {

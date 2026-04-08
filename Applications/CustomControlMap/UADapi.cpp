@@ -38,6 +38,13 @@ bool UADRuntime::ClearRegister(ActionInfo* actionInfo)
         {
             layerEnabled &= ~(1 << layer);
         }
+
+        if (layerEnabled == 0)
+        {
+            MLOGE("UAD Runtime", "All layers disabled, restoring layer 0");
+            layerEnabled = 1;
+        }
+
         uint8_t newTopLayer = GetTopLayer();
 
         if(oldTopLayer != newTopLayer)
