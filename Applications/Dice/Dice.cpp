@@ -1,5 +1,5 @@
 #include "Dice.h"
-#include "UI/UI.h"  // Include the UI Framework
+#include "UI/UI.h" // Include the UI Framework
 
 // Run once
 void Dice::Setup(const vector<string>& args) {
@@ -22,16 +22,16 @@ void Dice::Setup(const vector<string>& args) {
 // Run in a loop after Setup()
 void Dice::Loop() {
   // Set up key event handler
-  struct KeyEvent keyEvent;                 // Variable for the latest key event to be stored at
-  while (MatrixOS::KeyPad::Get(&keyEvent))  // While there is still keyEvent in the queue
+  struct KeyEvent keyEvent;                // Variable for the latest key event to be stored at
+  while (MatrixOS::KeyPad::Get(&keyEvent)) // While there is still keyEvent in the queue
   {
     KeyEventHandler(keyEvent);
-  }  // Handle them
+  } // Handle them
 
   if (!renderTimer.Tick(1000 / Device::LED::fps))
   {
     return;
-  }  // Render at 100fps
+  } // Render at 100fps
 
   if (current_phase == Rolling)
   {
@@ -51,7 +51,7 @@ void Dice::Loop() {
       {
         RenderDots(rolled_number, color);
       }
-      else if(mode == Number)
+      else if (mode == Number)
       {
         RenderNumbers(rolled_number, color);
       }
@@ -66,25 +66,25 @@ void Dice::Loop() {
     {
       RenderDots(rolled_number, color);
     }
-    else if(mode == Number)
+    else if (mode == Number)
     {
       RenderNumbers(rolled_number, color);
     }
     RenderUnderglow(confirmed_underglow_mode, color, confirmed_underglow_effect_period);
   }
 
-  MatrixOS::LED::Update();  // Update the LED
+  MatrixOS::LED::Update(); // Update the LED
 }
 
 // Handle the key event from the OS
 void Dice::KeyEventHandler(KeyEvent& keyEvent) {
-  if (keyEvent.ID() == FUNCTION_KEY)  // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+  if (keyEvent.ID() == FUNCTION_KEY) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
   {
     if (keyEvent.State() == HOLD)
     {
-      Settings();  // Open UI Menu
+      Settings(); // Open UI Menu
     }
-    else if (keyEvent.State() == RELEASED)  // If the function key is released and not hold
+    else if (keyEvent.State() == RELEASED) // If the function key is released and not hold
     {
       rolling_start_time = MatrixOS::SYS::Millis();
       current_phase = Rolling;
@@ -98,7 +98,8 @@ void Dice::Settings() {
   //   MLOGI("Example", "Enter UI Menu");
 
   //   // Create a UI Object
-  //   // UI Name, Color (as the text scroll color). and new led layer (Set as true, the UI will render on a new led layer. Persevere what was rendered before after UI exits)
+  //   // UI Name, Color (as the text scroll color). and new led layer (Set as true, the UI will render on a new led layer. Persevere what
+  //   was rendered before after UI exits)
   UI settingsUI("Settings", Color(0x00FFFF), true);
 
   UIButton rollingColorSelectorBtn;
@@ -121,10 +122,13 @@ void Dice::Settings() {
   rollingRainbowModeToggle.SetValuePointer(&rolling_rainbow_mode);
   rollingRainbowModeToggle.OnPress([&]() -> void { rolling_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(rollingRainbowModeToggle, Point(0, 0));
-  
+
   UIButton rollingUnderglowEffectMenuBtn;
   rollingUnderglowEffectMenuBtn.SetName("Rolling Underglow Effect");
-  rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color, rolling_underglow_mode, rolling_underglow_effect_period, timestamp); });
+  rollingUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color {
+    return ApplyColorEffect(rolling_rainbow_mode ? ColorEffects::Rainbow() : rolling_color, rolling_underglow_mode,
+                            rolling_underglow_effect_period, timestamp);
+  });
   rollingUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Rolling); });
   rollingUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
   settingsUI.AddUIComponent(rollingUnderglowEffectMenuBtn, Point(0, 7));
@@ -148,11 +152,13 @@ void Dice::Settings() {
   confirmedRainbowModeToggle.SetValuePointer(&confirmed_rainbow_mode);
   confirmedRainbowModeToggle.OnPress([&]() -> void { confirmed_rainbow_mode.Save(); });
   settingsUI.AddUIComponent(confirmedRainbowModeToggle, Point(7, 0));
-  
 
   UIButton confirmedUnderglowEffectMenuBtn;
   confirmedUnderglowEffectMenuBtn.SetName("Confirmed Underglow Effect");
-  confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color, confirmed_underglow_mode, confirmed_underglow_effect_period, timestamp); });
+  confirmedUnderglowEffectMenuBtn.SetColorFunc([&]() -> Color {
+    return ApplyColorEffect(confirmed_rainbow_mode ? ColorEffects::Rainbow() : confirmed_color, confirmed_underglow_mode,
+                            confirmed_underglow_effect_period, timestamp);
+  });
   confirmedUnderglowEffectMenuBtn.OnPress([&]() -> void { UnderglowEffectModeAndSpeedMenu(Confirmed); });
   confirmedUnderglowEffectMenuBtn.SetEnabled(underglow_enabled);
   settingsUI.AddUIComponent(confirmedUnderglowEffectMenuBtn, Point(7, 7));
@@ -183,7 +189,8 @@ void Dice::Settings() {
   numberFacesSelectorBtn.SetName("Faces");
   numberFacesSelectorBtn.SetColor(Color(0x00FFFF));
   numberFacesSelectorBtn.SetSize(Dimension(4, 1));
-  numberFacesSelectorBtn.OnPress([&]() -> void { number_faces = MatrixOS::UIUtility::NumberSelector8x8(number_faces, Color(0x00FFFF), "Face Selector", 1, 99); });
+  numberFacesSelectorBtn.OnPress(
+      [&]() -> void { number_faces = MatrixOS::UIUtility::NumberSelector8x8(number_faces, Color(0x00FFFF), "Face Selector", 1, 99); });
   numberFacesSelectorBtn.SetEnableFunc([&]() -> bool { return mode == Number; });
   settingsUI.AddUIComponent(numberFacesSelectorBtn, Point(2, 7));
 
@@ -194,16 +201,16 @@ void Dice::Settings() {
     {
       if (keyEvent->info.state == HOLD)
       {
-        Exit();  // Exit the application.
+        Exit(); // Exit the application.
       }
       else if (keyEvent->info.state == RELEASED)
       {
-        settingsUI.Exit();  // Exit the UI
+        settingsUI.Exit(); // Exit the UI
       }
 
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
-    return false;  // Nothing happened. Let the UI handle the key event
+    return false; // Nothing happened. Let the UI handle the key event
   });
 
   //   // The UI object is now fully set up. Let the UI runtime to start and take over.
@@ -222,7 +229,7 @@ void Dice::RenderDot(Point point, Color color) {
 }
 
 void Dice::RenderDots(uint8_t number, Color color) {
-  MatrixOS::LED::Fill(0);  // Clear the LED
+  MatrixOS::LED::Fill(0); // Clear the LED
   if (number > 9)
   {
     return;
@@ -231,69 +238,69 @@ void Dice::RenderDots(uint8_t number, Color color) {
   // Render the dots
   switch (number)
   {
-    case 1:
-      RenderDot(Point(3, 3), color);
-      break;
-    case 2:
-      RenderDot(Point(1, 3), color);
-      RenderDot(Point(5, 3), color);
-      break;
-    case 3:
-      RenderDot(Point(0, 3), color);
-      RenderDot(Point(3, 3), color);
-      RenderDot(Point(6, 3), color);
-      break;
-    case 4:
-      RenderDot(Point(1, 1), color);
-      RenderDot(Point(5, 1), color);
-      RenderDot(Point(1, 5), color);
-      RenderDot(Point(5, 5), color);
-      break;
-    case 5:
-      RenderDot(Point(1, 1), color);
-      RenderDot(Point(5, 1), color);
-      RenderDot(Point(1, 5), color);
-      RenderDot(Point(5, 5), color);
-      RenderDot(Point(3, 3), color);
-      break;
-    case 6:
-      RenderDot(Point(0, 1), color);
-      RenderDot(Point(3, 1), color);
-      RenderDot(Point(6, 1), color);
-      RenderDot(Point(0, 5), color);
-      RenderDot(Point(3, 5), color);
-      RenderDot(Point(6, 5), color);
-      break;
-    case 7:
-      RenderDot(Point(0, 0), color);
-      RenderDot(Point(3, 0), color);
-      RenderDot(Point(6, 0), color);
-      RenderDot(Point(3, 3), color);
-      RenderDot(Point(0, 6), color);
-      RenderDot(Point(3, 6), color);
-      RenderDot(Point(6, 6), color);
-      break;
-    case 8:
-      RenderDot(Point(0, 0), color);
-      RenderDot(Point(3, 0), color);
-      RenderDot(Point(6, 0), color);
-      RenderDot(Point(0, 3), color);
-      RenderDot(Point(6, 3), color);
-      RenderDot(Point(0, 6), color);
-      RenderDot(Point(3, 6), color);
-      RenderDot(Point(6, 6), color);
-      break;
-    case 9:
-      RenderDot(Point(0, 0), color);
-      RenderDot(Point(3, 0), color);
-      RenderDot(Point(6, 0), color);
-      RenderDot(Point(0, 3), color);
-      RenderDot(Point(3, 3), color);
-      RenderDot(Point(6, 3), color);
-      RenderDot(Point(0, 6), color);
-      RenderDot(Point(3, 6), color);
-      RenderDot(Point(6, 6), color);
-      break;
+  case 1:
+    RenderDot(Point(3, 3), color);
+    break;
+  case 2:
+    RenderDot(Point(1, 3), color);
+    RenderDot(Point(5, 3), color);
+    break;
+  case 3:
+    RenderDot(Point(0, 3), color);
+    RenderDot(Point(3, 3), color);
+    RenderDot(Point(6, 3), color);
+    break;
+  case 4:
+    RenderDot(Point(1, 1), color);
+    RenderDot(Point(5, 1), color);
+    RenderDot(Point(1, 5), color);
+    RenderDot(Point(5, 5), color);
+    break;
+  case 5:
+    RenderDot(Point(1, 1), color);
+    RenderDot(Point(5, 1), color);
+    RenderDot(Point(1, 5), color);
+    RenderDot(Point(5, 5), color);
+    RenderDot(Point(3, 3), color);
+    break;
+  case 6:
+    RenderDot(Point(0, 1), color);
+    RenderDot(Point(3, 1), color);
+    RenderDot(Point(6, 1), color);
+    RenderDot(Point(0, 5), color);
+    RenderDot(Point(3, 5), color);
+    RenderDot(Point(6, 5), color);
+    break;
+  case 7:
+    RenderDot(Point(0, 0), color);
+    RenderDot(Point(3, 0), color);
+    RenderDot(Point(6, 0), color);
+    RenderDot(Point(3, 3), color);
+    RenderDot(Point(0, 6), color);
+    RenderDot(Point(3, 6), color);
+    RenderDot(Point(6, 6), color);
+    break;
+  case 8:
+    RenderDot(Point(0, 0), color);
+    RenderDot(Point(3, 0), color);
+    RenderDot(Point(6, 0), color);
+    RenderDot(Point(0, 3), color);
+    RenderDot(Point(6, 3), color);
+    RenderDot(Point(0, 6), color);
+    RenderDot(Point(3, 6), color);
+    RenderDot(Point(6, 6), color);
+    break;
+  case 9:
+    RenderDot(Point(0, 0), color);
+    RenderDot(Point(3, 0), color);
+    RenderDot(Point(6, 0), color);
+    RenderDot(Point(0, 3), color);
+    RenderDot(Point(3, 3), color);
+    RenderDot(Point(6, 3), color);
+    RenderDot(Point(0, 6), color);
+    RenderDot(Point(3, 6), color);
+    RenderDot(Point(6, 6), color);
+    break;
   }
 }
 
@@ -311,95 +318,97 @@ void Dice::RenderNumber(Point point, uint8_t number, Color color) {
 }
 
 void Dice::RenderNumbers(uint8_t number, Color color) {
-  MatrixOS::LED::Fill(0);  // Fill the LED with the color
+  MatrixOS::LED::Fill(0); // Fill the LED with the color
   if (number > 99)
   {
     return;
-  }  // If the number is greater than 99, abort
+  } // If the number is greater than 99, abort
 
-  uint8_t digit1 = number / 10;  // Get the first digit
-  uint8_t digit2 = number % 10;  // Get the second digit
+  uint8_t digit1 = number / 10; // Get the first digit
+  uint8_t digit2 = number % 10; // Get the second digit
 
-  if (digit1 > 0)  // If the first digit is greater than 0
+  if (digit1 > 0) // If the first digit is greater than 0
   {
-    RenderNumber(Point(0, 1), digit1, color);  // Render the first digit
-    RenderNumber(Point(4, 1), digit2, color);  // Render the second digit
+    RenderNumber(Point(0, 1), digit1, color); // Render the first digit
+    RenderNumber(Point(4, 1), digit2, color); // Render the second digit
   }
   else
   {
-    RenderNumber(Point(2, 1), digit2, color);  // Render the second digit
+    RenderNumber(Point(2, 1), digit2, color); // Render the second digit
   }
 }
 
 void Dice::RollDice() {
   uint8_t faces = 0;
 
-  if(mode == Dot)
+  if (mode == Dot)
   {
     faces = dot_faces;
   }
-  else if(mode == Number)
+  else if (mode == Number)
   {
     faces = number_faces;
   }
   last_roll_time = MatrixOS::SYS::Millis();
-  uint8_t last_rolled_number = rolled_number;
+  uint8_t lastRolledNumber = rolled_number;
 
   do
   {
     rolled_number = GetRandomNumber(faces);
-  } while (rolled_number == last_rolled_number);
+  } while (rolled_number == lastRolledNumber);
 }
 
 void Dice::RenderUnderglow(UnderglowEffectMode mode, Color color, uint16_t period) {
-  if (!underglow_enabled) { return; }
+  if (!underglow_enabled)
+  {
+    return;
+  }
   MatrixOS::LED::FillPartition("Underglow", ApplyColorEffect(color, mode, period, timestamp), 1);
 }
 
-Color Dice::ApplyColorEffect(Color color, UnderglowEffectMode effect, uint16_t period, uint16_t start_time) {
+Color Dice::ApplyColorEffect(Color color, UnderglowEffectMode effect, uint16_t period, uint16_t startTime) {
   switch (effect)
   {
-    case Static:
-      break;
-    case Off:
-      color = Color(0);
-      break;
-    case Breath:
-      color = ColorEffects::ColorBreath(color, period, start_time);
-      break;
-    case Strobe:
-      color = ColorEffects::ColorStrobe(color, period, start_time);
-      break;
-    case Saw:
-      color = ColorEffects::ColorSaw(color, period, start_time);
-      break;
+  case Static:
+    break;
+  case Off:
+    color = Color(0);
+    break;
+  case Breath:
+    color = ColorEffects::ColorBreath(color, period, startTime);
+    break;
+  case Strobe:
+    color = ColorEffects::ColorStrobe(color, period, startTime);
+    break;
+  case Saw:
+    color = ColorEffects::ColorSaw(color, period, startTime);
+    break;
   }
   return color;
 }
 
 void Dice::DotFaceSelector() {
-  int32_t dot_faces_num = dot_faces;
-  int32_t selector_dot_faces = dot_faces_num - 2;
+  int32_t dotFacesNum = dot_faces;
+  int32_t selectorDotFaces = dotFacesNum - 2;
   UI dotFaceSelector("Face Selector", Color(0x00FFFF));
 
   UI4pxNumber numDisplay;
   numDisplay.SetColor(Color(0x00FFFF));
   numDisplay.SetDigits(1);
-  numDisplay.SetValuePointer((int32_t*)&dot_faces_num);
+  numDisplay.SetValuePointer((int32_t*)&dotFacesNum);
   dotFaceSelector.AddUIComponent(numDisplay, Point(5, 0));
-  
 
   UISelector overlapInput;
   overlapInput.SetDimension(Dimension(8, 1));
   overlapInput.SetName("Faces");
   overlapInput.SetColor(Color(0x00FFFF));
   overlapInput.SetCount(8);
-  overlapInput.SetValuePointer((uint16_t*)&selector_dot_faces);
-  overlapInput.OnChange([&](uint16_t val) -> void { dot_faces_num = val + 2; });
+  overlapInput.SetValuePointer((uint16_t*)&selectorDotFaces);
+  overlapInput.OnChange([&](uint16_t val) -> void { dotFacesNum = val + 2; });
   dotFaceSelector.AddUIComponent(overlapInput, Point(0, 7));
 
   dotFaceSelector.Start();
-  dot_faces = dot_faces_num;
+  dot_faces = dotFacesNum;
 }
 
 void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
@@ -447,7 +456,8 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
   UIButton staticBtn;
   staticBtn.SetName("Static");
   staticBtn.SetColorFunc([&]() -> Color {
-    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Static, period * 100 + 200, timestamp).DimIfNot(effectMode == Static);
+    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Static, period * 100 + 200, timestamp)
+        .DimIfNot(effectMode == Static);
   });
   staticBtn.OnPress([&]() -> void { effectMode = Static; });
   effectUI.AddUIComponent(staticBtn, Point(2, 0));
@@ -455,7 +465,8 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
   UIButton breathBtn;
   breathBtn.SetName("Breathing");
   breathBtn.SetColorFunc([&]() -> Color {
-    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Breath, period * 100 + 200, timestamp).DimIfNot(effectMode == Breath);
+    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Breath, period * 100 + 200, timestamp)
+        .DimIfNot(effectMode == Breath);
   });
   breathBtn.OnPress([&]() -> void { effectMode = Breath; });
   effectUI.AddUIComponent(breathBtn, Point(3, 0));
@@ -463,14 +474,17 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
   UIButton strobeBtn;
   strobeBtn.SetName("Strobe");
   strobeBtn.SetColorFunc([&]() -> Color {
-    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Strobe, period * 100 + 200, timestamp).DimIfNot(effectMode == Strobe);
+    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Strobe, period * 100 + 200, timestamp)
+        .DimIfNot(effectMode == Strobe);
   });
   strobeBtn.OnPress([&]() -> void { effectMode = Strobe; });
   effectUI.AddUIComponent(strobeBtn, Point(4, 0));
 
   UIButton sawBtn;
   sawBtn.SetName("Saw");
-  sawBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Saw, period * 100 + 200, timestamp).DimIfNot(effectMode == Saw); });
+  sawBtn.SetColorFunc([&]() -> Color {
+    return ApplyColorEffect(rainbow ? ColorEffects::Rainbow() : color, Saw, period * 100 + 200, timestamp).DimIfNot(effectMode == Saw);
+  });
   sawBtn.OnPress([&]() -> void { effectMode = Saw; });
   effectUI.AddUIComponent(sawBtn, Point(5, 0));
 
@@ -494,6 +508,5 @@ void Dice::UnderglowEffectModeAndSpeedMenu(DicePhase phase) {
   {
     confirmed_underglow_mode = effectMode;
     confirmed_underglow_effect_period = period * 100 + 200;
-    
   }
 }

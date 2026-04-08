@@ -108,8 +108,8 @@
 - OS\System\System.cpp - NOT FORMATTED
 - OS\System\ReleaseConfig.h - NOT FORMATTED
 - OS\System\Parameters.h - NOT FORMATTED
-- Applications\Dice\Dice.h - NOT FORMATTED
-- Applications\Dice\Dice.cpp - NOT FORMATTED
+- Applications\Dice\Dice.h - FORMATTED
+- Applications\Dice\Dice.cpp - FORMATTED
 - Devices\Mystrix1\Family.h - NOT FORMATTED
 - Devices\Mystrix1\Family.cpp - NOT FORMATTED
 - Applications\BrightnessControl\UI4pxFloat.h - NOT FORMATTED
