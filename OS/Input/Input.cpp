@@ -143,34 +143,8 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
       continue;
     }
 
-    // Reverse-rotate from visual space to hardware space
-    Point hwPoint = xy;
-    if (cluster.rotation != TOP)
-    {
-      hwPoint = xy.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
-    }
-
-    if (!cluster.Contains(hwPoint))
-    {
-      continue;
-    }
-
-    Point local = hwPoint - cluster.rootPoint;
     uint16_t memberId;
-    if (cluster.shape == InputClusterShape::Grid2D)
-    {
-      memberId = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
-    }
-    else if (cluster.shape == InputClusterShape::Linear1D)
-    {
-      memberId = (cluster.dimension.x > 1) ? local.x : local.y;
-    }
-    else
-    {
-      continue;
-    }
-
-    if (memberId < cluster.inputCount)
+    if (Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId))
     {
       ids->push_back(InputId{cluster.clusterId, memberId});
     }
@@ -178,91 +152,17 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
 }
 
 bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
-  const InputCluster* cluster = GetCluster(clusterId);
-  if (!cluster || !cluster->HasCoordinates())
-  {
-    return false;
-  }
-
-  // Reverse-rotate from visual space to hardware space
-  Point hwPoint = xy;
-  if (cluster->rotation != TOP)
-  {
-    hwPoint = xy.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y), true);
-  }
-
-  if (!cluster->Contains(hwPoint))
-  {
-    return false;
-  }
-
-  Point local = hwPoint - cluster->rootPoint;
   uint16_t memberId;
-  if (cluster->shape == InputClusterShape::Grid2D)
-  {
-    memberId = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
-  }
-  else if (cluster->shape == InputClusterShape::Linear1D)
-  {
-    memberId = (cluster->dimension.x > 1) ? local.x : local.y;
-  }
-  else
+  if (!Device::Input::TryGetMemberId(clusterId, xy, &memberId))
   {
     return false;
   }
-
-  if (memberId >= cluster->inputCount)
-  {
-    return false;
-  }
-
   *id = InputId{clusterId, memberId};
   return true;
 }
 
 bool TryGetPoint(InputId id, Point* xy) {
-  const InputCluster* cluster = GetCluster(id.clusterId);
-  if (!cluster || !cluster->HasCoordinates())
-  {
-    return false;
-  }
-
-  if (id.memberId >= cluster->inputCount)
-  {
-    return false;
-  }
-
-  Point hwPoint;
-  if (cluster->shape == InputClusterShape::Grid2D)
-  {
-    int16_t localX = id.memberId % cluster->dimension.x;
-    int16_t localY = id.memberId / cluster->dimension.x;
-    hwPoint = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
-  }
-  else if (cluster->shape == InputClusterShape::Linear1D)
-  {
-    if (cluster->dimension.x > 1)
-    {
-      hwPoint = Point(cluster->rootPoint.x + id.memberId, cluster->rootPoint.y);
-    }
-    else
-    {
-      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.memberId);
-    }
-  }
-  else
-  {
-    return false;
-  }
-
-  // Forward-rotate from hardware space to visual space
-  if (cluster->rotation != TOP)
-  {
-    hwPoint = hwPoint.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y));
-  }
-
-  *xy = hwPoint;
-  return true;
+  return Device::Input::TryGetPoint(id.clusterId, id.memberId, xy);
 }
 
 void ClearQueue() {

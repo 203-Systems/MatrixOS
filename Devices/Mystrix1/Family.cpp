@@ -36,6 +36,19 @@ bool IsFunctionKey(InputId id) {
   return id == GetFunctionKeyId();
 }
 
+namespace Input
+{
+bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
+  (void)clusterId; (void)memberId; (void)point;
+  return false; // Mystrix1 uses legacy KeyPad path only
+}
+
+bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
+  (void)clusterId; (void)point; (void)memberId;
+  return false; // Mystrix1 uses legacy KeyPad path only
+}
+} // namespace Input
+
 void Rotate(Direction newRotation, bool absolute) {
   if (newRotation != 0 && newRotation != 90 && newRotation != 180 && newRotation != 270)
   {

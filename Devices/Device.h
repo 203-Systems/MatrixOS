@@ -68,6 +68,14 @@ Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_M
                              // given ID;
 } // namespace KeyPad
 
+namespace Input
+{
+// Device-owned coordinate mapping handlers.
+// The device layer defines how memberId maps to visual coordinates and vice versa.
+bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point);
+bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId);
+} // namespace Input
+
 namespace NVS // Device should also implements duplication check. If new value is equal to the old one, then skip the write.
 {
 size_t Size(uint32_t hash);

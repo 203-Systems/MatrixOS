@@ -52,6 +52,96 @@ bool IsFunctionKey(InputId id) {
 
 void RegisterInputClusters(); // forward declaration
 
+namespace Input
+{
+bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
+  const InputCluster* cluster = MatrixOS::Input::GetCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates())
+  {
+    return false;
+  }
+  if (memberId >= cluster->inputCount)
+  {
+    return false;
+  }
+
+  Point hwPoint;
+  if (cluster->shape == InputClusterShape::Grid2D)
+  {
+    int16_t localX = memberId % cluster->dimension.x;
+    int16_t localY = memberId / cluster->dimension.x;
+    hwPoint = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
+  }
+  else if (cluster->shape == InputClusterShape::Linear1D)
+  {
+    if (cluster->dimension.x > 1)
+    {
+      hwPoint = Point(cluster->rootPoint.x + memberId, cluster->rootPoint.y);
+    }
+    else
+    {
+      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + memberId);
+    }
+  }
+  else
+  {
+    return false;
+  }
+
+  // Forward-rotate from hardware space to visual space
+  if (cluster->rotation != TOP)
+  {
+    hwPoint = hwPoint.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y));
+  }
+
+  *point = hwPoint;
+  return true;
+}
+
+bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
+  const InputCluster* cluster = MatrixOS::Input::GetCluster(clusterId);
+  if (!cluster || !cluster->HasCoordinates())
+  {
+    return false;
+  }
+
+  // Reverse-rotate from visual space to hardware space
+  Point hwPoint = point;
+  if (cluster->rotation != TOP)
+  {
+    hwPoint = point.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y), true);
+  }
+
+  if (!cluster->Contains(hwPoint))
+  {
+    return false;
+  }
+
+  Point local = hwPoint - cluster->rootPoint;
+  uint16_t id;
+  if (cluster->shape == InputClusterShape::Grid2D)
+  {
+    id = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
+  }
+  else if (cluster->shape == InputClusterShape::Linear1D)
+  {
+    id = (cluster->dimension.x > 1) ? local.x : local.y;
+  }
+  else
+  {
+    return false;
+  }
+
+  if (id >= cluster->inputCount)
+  {
+    return false;
+  }
+
+  *memberId = id;
+  return true;
+}
+} // namespace Input
+
 void Rotate(Direction newRotation, bool absolute) {
   if (newRotation != 0 && newRotation != 90 && newRotation != 180 && newRotation != 270)
   {
