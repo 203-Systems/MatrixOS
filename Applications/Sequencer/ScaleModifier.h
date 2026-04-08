@@ -6,7 +6,7 @@
 #include <memory>
 
 class SequenceScaleModifier : public UIComponent {
- public:
+public:
   std::function<uint16_t()> getScale;
   std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
   Color color;

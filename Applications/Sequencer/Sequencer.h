@@ -7,68 +7,57 @@
 #include "Sequence.h"
 #include "SequenceMeta.h"
 
-enum class SequencerMessage
-{
-    NONE,
-    CLEAR,
-    CLEARED,
-    COPY,
-    COPIED,
-    NUDGE,
-    QUANTIZE,
-    QUANTIZED,
-    TWO_PATTERN_VIEW,
-    CLIP,
-    MIX,
-    PLAY,
-    RECORD,
-    RESUME,
-    UNDO,
-    UNDONE,
-    OCTAVE_PLUS,
-    OCTAVE_PLUS_DONE,
-    OCTAVE_MINUS,
-    OCTAVE_MINUS_DONE,
+enum class SequencerMessage {
+  NONE,
+  CLEAR,
+  CLEARED,
+  COPY,
+  COPIED,
+  NUDGE,
+  QUANTIZE,
+  QUANTIZED,
+  TWO_PATTERN_VIEW,
+  CLIP,
+  MIX,
+  PLAY,
+  RECORD,
+  RESUME,
+  UNDO,
+  UNDONE,
+  OCTAVE_PLUS,
+  OCTAVE_PLUS_DONE,
+  OCTAVE_MINUS,
+  OCTAVE_MINUS_DONE,
 };
 
-enum class SequenceSelectionType
-{
-    NONE,
-    STEP,
-    PATTERN,
-    CLIP
-};
+enum class SequenceSelectionType { NONE, STEP, PATTERN, CLIP };
 
-struct SequenceCopySource
-{
-    SequenceSelectionType type = SequenceSelectionType::NONE;
-    int8_t track = -1;
-    int8_t clip = -1;
-    int8_t pattern = -1;
-    int8_t step = -1;
+struct SequenceCopySource {
+  SequenceSelectionType type = SequenceSelectionType::NONE;
+  int8_t track = -1;
+  int8_t clip = -1;
+  int8_t pattern = -1;
+  int8_t step = -1;
 
-    void Clear()
-    {
-        type = SequenceSelectionType::NONE;
-        track = -1;
-        clip = -1;
-        pattern = -1;
-        step = -1;
-    }
+  void Clear() {
+    type = SequenceSelectionType::NONE;
+    track = -1;
+    clip = -1;
+    pattern = -1;
+    step = -1;
+  }
 
-    bool Selected() const
-    {
-        return type != SequenceSelectionType::NONE;
-    }
+  bool Selected() const {
+    return type != SequenceSelectionType::NONE;
+  }
 
-    bool IsType(SequenceSelectionType selectionType) const
-    {
-        return type == selectionType;
-    }
+  bool IsType(SequenceSelectionType selectionType) const {
+    return type == selectionType;
+  }
 };
 
 class Sequencer : public Application {
- public:
+public:
   inline static Application_Info info = {
       .name = "Sequencer",
       .author = "203 Systems",
@@ -103,13 +92,7 @@ class Sequencer : public Application {
   SequencerMessage lastMessage = SequencerMessage::NONE;
   uint32_t lastMessageTime = 0;
 
-  enum class ViewMode
-  {
-    Sequencer,
-    StepDetail,
-    Mixer,
-    Session
-  };
+  enum class ViewMode { Sequencer, StepDetail, Mixer, Session };
 
   ViewMode currentView = ViewMode::Sequencer;
 
@@ -157,6 +140,6 @@ class Sequencer : public Application {
   bool ClearSlot(uint16_t slot);
   bool CopySlot(uint16_t from, uint16_t to);
   bool BackupSlot(uint16_t slot);
-  
+
   static void SequenceTask(void* ctx);
 };

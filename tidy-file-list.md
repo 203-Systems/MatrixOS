@@ -33,47 +33,47 @@
 - OS\UI\UI.cpp - NOT FORMATTED
 - Devices\Mystrix2\Family.h - NOT FORMATTED
 - Devices\Mystrix2\Family.cpp - NOT FORMATTED
-- Applications\Sequencer\TrackSelector.h - NOT FORMATTED
-- Applications\Sequencer\TrackSelector.cpp - NOT FORMATTED
-- Applications\Sequencer\Sequencer.h - NOT FORMATTED
-- Applications\Sequencer\Sequencer.cpp - NOT FORMATTED
-- Applications\Sequencer\SequenceMeta.h - NOT FORMATTED
-- Applications\Sequencer\SequenceMeta.cpp - NOT FORMATTED
-- Applications\Sequencer\SequenceEvent.h - NOT FORMATTED
-- Applications\Sequencer\SequenceEvent.cpp - NOT FORMATTED
-- Applications\Sequencer\SequenceData.h - NOT FORMATTED
-- Applications\Sequencer\SequenceData.cpp - NOT FORMATTED
-- Applications\Sequencer\Sequence.h - NOT FORMATTED
-- Applications\Sequencer\Sequence.cpp - NOT FORMATTED
-- Applications\Sequencer\ScaleVisualizer.h - NOT FORMATTED
-- Applications\Sequencer\ScaleVisualizer.cpp - NOT FORMATTED
-- Applications\Sequencer\ScaleSelector.h - NOT FORMATTED
-- Applications\Sequencer\ScaleSelector.cpp - NOT FORMATTED
-- Applications\Sequencer\Scales.h - NOT FORMATTED
-- Applications\Sequencer\ScaleModifier.h - NOT FORMATTED
-- Applications\Sequencer\ScaleModifier.cpp - NOT FORMATTED
-- Applications\Sequencer\SaveButton.h - NOT FORMATTED
-- Applications\Sequencer\SaveButton.cpp - NOT FORMATTED
-- Applications\Sequencer\PatternSelector.h - NOT FORMATTED
+- Applications\Sequencer\TrackSelector.h - FORMATTED
+- Applications\Sequencer\TrackSelector.cpp - FORMATTED
+- Applications\Sequencer\Sequencer.h - FORMATTED
+- Applications\Sequencer\Sequencer.cpp - FORMATTED
+- Applications\Sequencer\SequenceMeta.h - FORMATTED
+- Applications\Sequencer\SequenceMeta.cpp - FORMATTED
+- Applications\Sequencer\SequenceEvent.h - FORMATTED
+- Applications\Sequencer\SequenceEvent.cpp - FORMATTED
+- Applications\Sequencer\SequenceData.h - FORMATTED
+- Applications\Sequencer\SequenceData.cpp - FORMATTED
+- Applications\Sequencer\Sequence.h - FORMATTED
+- Applications\Sequencer\Sequence.cpp - FORMATTED
+- Applications\Sequencer\ScaleVisualizer.h - FORMATTED
+- Applications\Sequencer\ScaleVisualizer.cpp - FORMATTED
+- Applications\Sequencer\ScaleSelector.h - FORMATTED
+- Applications\Sequencer\ScaleSelector.cpp - FORMATTED
+- Applications\Sequencer\Scales.h - FORMATTED
+- Applications\Sequencer\ScaleModifier.h - FORMATTED
+- Applications\Sequencer\ScaleModifier.cpp - FORMATTED
+- Applications\Sequencer\SaveButton.h - FORMATTED
+- Applications\Sequencer\SaveButton.cpp - FORMATTED
+- Applications\Sequencer\PatternSelector.h - FORMATTED
 - Devices\Mystrix2\MatrixOSConfig.h - NOT FORMATTED
-- Applications\Sequencer\PatternSelector.cpp - NOT FORMATTED
-- Applications\Sequencer\PatternPad.h - NOT FORMATTED
-- Applications\Sequencer\PatternPad.cpp - NOT FORMATTED
-- Applications\Sequencer\NotePad.h - NOT FORMATTED
+- Applications\Sequencer\PatternSelector.cpp - FORMATTED
+- Applications\Sequencer\PatternPad.h - FORMATTED
+- Applications\Sequencer\PatternPad.cpp - FORMATTED
+- Applications\Sequencer\NotePad.h - FORMATTED
 - Devices\Mystrix2\main.c - NOT FORMATTED
-- Applications\Sequencer\NotePad.cpp - NOT FORMATTED
-- Applications\Sequencer\MixerControl.h - NOT FORMATTED
-- Applications\Sequencer\MixerControl.cpp - NOT FORMATTED
-- Applications\Sequencer\MessageDisplay.h - NOT FORMATTED
-- Applications\Sequencer\MessageDisplay.cpp - NOT FORMATTED
-- Applications\Sequencer\EventDetailView.h - NOT FORMATTED
-- Applications\Sequencer\EventDetailView.cpp - NOT FORMATTED
-- Applications\Sequencer\ControlBar.h - NOT FORMATTED
-- Applications\Sequencer\ControlBar.cpp - NOT FORMATTED
-- Applications\Sequencer\ClipLauncher.h - NOT FORMATTED
-- Applications\Sequencer\ClipLauncher.cpp - NOT FORMATTED
-- Applications\Sequencer\cb0rHelper.h - NOT FORMATTED
-- Applications\Sequencer\BPMTapper.h - NOT FORMATTED
+- Applications\Sequencer\NotePad.cpp - FORMATTED
+- Applications\Sequencer\MixerControl.h - FORMATTED
+- Applications\Sequencer\MixerControl.cpp - FORMATTED
+- Applications\Sequencer\MessageDisplay.h - FORMATTED
+- Applications\Sequencer\MessageDisplay.cpp - FORMATTED
+- Applications\Sequencer\EventDetailView.h - FORMATTED
+- Applications\Sequencer\EventDetailView.cpp - FORMATTED
+- Applications\Sequencer\ControlBar.h - FORMATTED
+- Applications\Sequencer\ControlBar.cpp - FORMATTED
+- Applications\Sequencer\ClipLauncher.h - FORMATTED
+- Applications\Sequencer\ClipLauncher.cpp - FORMATTED
+- Applications\Sequencer\cb0rHelper.h - FORMATTED
+- Applications\Sequencer\BPMTapper.h - FORMATTED
 - OS\UI\Data\font.h - NOT FORMATTED
 - OS\UI\Data\4pxNumber.h - NOT FORMATTED
 - Applications\Reversi\Reversi.h - FORMATTED

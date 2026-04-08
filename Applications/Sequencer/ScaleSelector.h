@@ -5,7 +5,7 @@
 #include <functional>
 
 class ScaleSelector : public UIComponent {
- public:
+public:
   ScaleSelector(Color color);
 
   void SetScaleFunc(std::function<uint16_t()> func);
@@ -16,7 +16,7 @@ class ScaleSelector : public UIComponent {
   bool Render(Point origin) override;
   bool KeyEvent(Point xy, KeyInfo* keyInfo) override;
 
- private:
+private:
   Color color;
   std::function<uint16_t()> getScale;
   std::function<void(uint16_t)> onChange;

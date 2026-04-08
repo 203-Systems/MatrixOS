@@ -6,8 +6,7 @@ SequenceScaleModifier::SequenceScaleModifier(Color color, Color rootColor) {
   this->rootColor = rootColor;
 }
 
-void SequenceScaleModifier::SetScaleFunc(std::function<uint16_t()> getScale)
-{
+void SequenceScaleModifier::SetScaleFunc(std::function<uint16_t()> getScale) {
   this->getScale = std::move(getScale);
 }
 
@@ -16,7 +15,8 @@ void SequenceScaleModifier::OnChange(std::function<void(uint16_t)> changeCallbac
 }
 
 void SequenceScaleModifier::OnChangeCallback(uint16_t newScale) {
-  if (changeCallback != nullptr) {
+  if (changeCallback != nullptr)
+  {
     (*changeCallback)(newScale);
   }
 }
@@ -31,24 +31,30 @@ Dimension SequenceScaleModifier::GetSize() {
 
 bool SequenceScaleModifier::Render(Point origin) {
   // Root is always 0, so we just use the scale directly
-  uint16_t scale_map = getScale() & 0xFFF;
+  uint16_t scaleMap = getScale() & 0xFFF;
 
   for (uint8_t note = 0; note < 12; note++)
   {
     Point xy = origin + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
     if (note == 0)
-    { MatrixOS::LED::SetColor(xy, rootColor); }
-    else if (bitRead(scale_map, note))
-    { MatrixOS::LED::SetColor(xy, color); }
+    {
+      MatrixOS::LED::SetColor(xy, rootColor);
+    }
+    else if (bitRead(scaleMap, note))
+    {
+      MatrixOS::LED::SetColor(xy, color);
+    }
     else
-    { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
+    {
+      MatrixOS::LED::SetColor(xy, color.DimIfNot());
+    }
   }
   MatrixOS::LED::SetColor(origin + Point(7, 1), rootColor);
   return true;
 }
 
 bool SequenceScaleModifier::KeyEvent(Point xy, KeyInfo* keyInfo) {
-  if(keyInfo->State() == HOLD)
+  if (keyInfo->State() == HOLD)
   {
     MatrixOS::UIUtility::TextScroll("Custom Scale Modifier", color);
   }

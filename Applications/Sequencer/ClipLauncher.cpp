@@ -1,298 +1,300 @@
 #include "ClipLauncher.h"
 
-ClipLauncher::ClipLauncher(Sequencer* sequencer)
-{
-    this->sequencer = sequencer;
+ClipLauncher::ClipLauncher(Sequencer* sequencer) {
+  this->sequencer = sequencer;
 }
 
-std::pair<uint8_t, uint8_t> ClipLauncher::XY2Clip(Point xy) const
-{
-    uint8_t track, clip;
+std::pair<uint8_t, uint8_t> ClipLauncher::XY2Clip(Point xy) const {
+  uint8_t track, clip;
 
-    if (sequencer->wideClipMode) {
-        track = sequencer->clipWindow * 4 + xy.x / 2;
-        clip = xy.y * 2 + xy.x % 2;
+  if (sequencer->wideClipMode)
+  {
+    track = sequencer->clipWindow * 4 + xy.x / 2;
+    clip = xy.y * 2 + xy.x % 2;
+  }
+  else
+  {
+    track = xy.x;
+    clip = xy.y + (sequencer->clipWindow * 7);
+  }
 
-    } else {
-        track = xy.x;
-        clip = xy.y + (sequencer->clipWindow * 7);
-    }
-
-    return std::make_pair(track, clip);
+  return std::make_pair(track, clip);
 }
 
-Dimension ClipLauncher::GetSize() { return Dimension(8, 7); }
-
-bool ClipLauncher::IsEnabled()
-{
-    return sequencer->currentView == Sequencer::ViewMode::Session;
+Dimension ClipLauncher::GetSize() {
+  return Dimension(8, 7);
 }
 
-bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo)
-{
-    if(keyInfo->State() == PRESSED)
+bool ClipLauncher::IsEnabled() {
+  return sequencer->currentView == Sequencer::ViewMode::Session;
+}
+
+bool ClipLauncher::KeyEvent(Point xy, KeyInfo* keyInfo) {
+  if (keyInfo->State() == PRESSED)
+  {
+    std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
+    uint8_t track = pair.first;
+    uint8_t clip = pair.second;
+
+    // Handle copy mode
+    if (sequencer->CopyActive())
     {
-        std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
-        uint8_t track = pair.first;
-        uint8_t clip = pair.second;
-
-        // Handle copy mode
-        if(sequencer->CopyActive())
+      // Source selection if none yet
+      if (!sequencer->copySource.Selected())
+      {
+        // Only allow selecting existing clips as source
+        if (sequencer->sequence.ClipExists(track, clip))
         {
-            // Source selection if none yet
-            if(!sequencer->copySource.Selected())
-            {
-                // Only allow selecting existing clips as source
-                if(sequencer->sequence.ClipExists(track, clip))
-                {
-                    sequencer->copySource.type = SequenceSelectionType::CLIP;
-                    sequencer->copySource.track = track;
-                    sequencer->copySource.clip = clip;
-                }
-                return true;
-            }
-            else
-            {
-                // Copy from existing source to this location
-                uint8_t sourceTrack = sequencer->copySource.track;
-                uint8_t sourceClip = sequencer->copySource.clip;
-
-                // Copy clip (includes all patterns and enabled state)
-                sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
-            }
+          sequencer->copySource.type = SequenceSelectionType::CLIP;
+          sequencer->copySource.track = track;
+          sequencer->copySource.clip = clip;
         }
-        // If clip exists and Clear is active, delete it
-        else if(sequencer->ClearActive())
+        return true;
+      }
+      else
+      {
+        // Copy from existing source to this location
+        uint8_t sourceTrack = sequencer->copySource.track;
+        uint8_t sourceClip = sequencer->copySource.clip;
+
+        // Copy clip (includes all patterns and enabled state)
+        sequencer->sequence.CopyClip(sourceTrack, sourceClip, track, clip);
+      }
+    }
+    // If clip exists and Clear is active, delete it
+    else if (sequencer->ClearActive())
+    {
+      sequencer->sequence.DeleteClip(track, clip);
+
+      // Update selection if we deleted the current clip
+      if (sequencer->sequence.GetPosition(track)->clip == clip)
+      {
+        // Find first available clip or default to 0
+        sequencer->sequence.SetClip(track, 0);
+      }
+    }
+    // If clip doesn't exist, create it or stop track
+    else if (!sequencer->sequence.ClipExists(track, clip))
+    {
+      if (sequencer->ClearActive())
+      {
+        // Don't create clip if Clear is active
+        return true;
+      }
+
+      // If track is playing, stop it when clicking empty slot
+      if (sequencer->sequence.Playing())
+      {
+        if (sequencer->sequence.GetNextClip(track) == 254)
         {
-            sequencer->sequence.DeleteClip(track, clip);
-
-            // Update selection if we deleted the current clip
-            if(sequencer->sequence.GetPosition(track)->clip == clip)
-            {
-                // Find first available clip or default to 0
-                sequencer->sequence.SetClip(track, 0);
-            }
+          sequencer->sequence.PlayClipForAllTracks(clip);
         }
-        // If clip doesn't exist, create it or stop track
-        else if(!sequencer->sequence.ClipExists(track, clip))
-        {
-            if(sequencer->ClearActive())
-            {
-                // Don't create clip if Clear is active
-                return true;
-            }
-
-            // If track is playing, stop it when clicking empty slot
-            if(sequencer->sequence.Playing())
-            {   
-                if(sequencer->sequence.GetNextClip(track) == 254)
-                {
-                    sequencer->sequence.PlayClipForAllTracks(clip);
-                }
-                else
-                {
-                    sequencer->sequence.PlayClip(track, 254); // Force into wait to stop
-                }
-            }
-            else
-            {
-                sequencer->sequence.NewClip(track, clip);
-
-                // Select the newly created clip
-                sequencer->track = track;
-                sequencer->sequence.SetClip(track, clip);
-            }
-        }
-        // Select clip
         else
         {
-            sequencer->track = track;
-            if(sequencer->sequence.Playing())
-            {
-                if(clip == sequencer->sequence.GetNextClip(track))
-                {
-                    sequencer->sequence.PlayClipForAllTracks(clip);
-                }
-                else
-                {
-                    sequencer->sequence.PlayClip(track, clip);
-                }
-            }
-            else
-            {   
-                if(sequencer->ShiftActive())
-                {
-                    sequencer->sequence.PlayClip(track, clip);
-                }
-                else
-                {
-                    sequencer->sequence.SetClip(track, clip);
-                }   
-            }
+          sequencer->sequence.PlayClip(track, 254); // Force into wait to stop
         }
+      }
+      else
+      {
+        sequencer->sequence.NewClip(track, clip);
+
+        // Select the newly created clip
+        sequencer->track = track;
+        sequencer->sequence.SetClip(track, clip);
+      }
     }
-    return true;
+    // Select clip
+    else
+    {
+      sequencer->track = track;
+      if (sequencer->sequence.Playing())
+      {
+        if (clip == sequencer->sequence.GetNextClip(track))
+        {
+          sequencer->sequence.PlayClipForAllTracks(clip);
+        }
+        else
+        {
+          sequencer->sequence.PlayClip(track, clip);
+        }
+      }
+      else
+      {
+        if (sequencer->ShiftActive())
+        {
+          sequencer->sequence.PlayClip(track, clip);
+        }
+        else
+        {
+          sequencer->sequence.SetClip(track, clip);
+        }
+      }
+    }
+  }
+  return true;
 }
 
-bool ClipLauncher::Render(Point origin)
-{
-    uint8_t trackCount = sequencer->sequence.GetTrackCount();
+bool ClipLauncher::Render(Point origin) {
+  uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
-    Fract16 quarterNoteProgress = sequencer->sequence.GetQuarterNoteProgress();
-    uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
+  Fract16 quarterNoteProgress = sequencer->sequence.GetQuarterNoteProgress();
+  uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
 
-    vector<uint8_t> activeClips;
-    vector<uint8_t> nextClips;
-    activeClips.reserve(trackCount);
-    nextClips.reserve(trackCount);
+  vector<uint8_t> activeClips;
+  vector<uint8_t> nextClips;
+  activeClips.reserve(trackCount);
+  nextClips.reserve(trackCount);
 
-    Color waveColor[8];
+  Color waveColor[8];
 
-    if(sequencer->ClearActive() || sequencer->CopyActive())
+  if (sequencer->ClearActive() || sequencer->CopyActive())
+  {
+    Color color;
+    uint16_t period = 600;
+    uint16_t xDelay = 80;
+    if (sequencer->ClearActive())
     {
-        Color color;
-        uint16_t period = 600;
-        uint16_t xDelay = 80;
-        if(sequencer->ClearActive()) 
-        {
-            color = Color(0xFF0080);
-        }
-        else if(sequencer->CopyActive())
-        {
-            if(sequencer->copySource.Selected())
-            {
-                color = Color(0xFFD000);
-                period = 300;
-                xDelay = 40;
-            }
-            else
-            {
-                color = Color(0x0080FF);
-            }
-        }
-        for(uint8_t x = 0; x < 8; x++)
-        {
-            uint8_t scale = ColorEffects::Breath(600, 80 * x);
-            waveColor[x] = Color::Crossfade(color, Color::White, Fract16(scale, 8)).Dim(64);
-        }
+      color = Color(0xFF0080);
     }
-
-    for(uint8_t track = 0; track < trackCount; track++)
+    else if (sequencer->CopyActive())
     {
-        uint8_t activeClip = sequencer->sequence.GetPosition(track)->clip;
-        activeClips.push_back(activeClip);
-        uint8_t nextClip = sequencer->sequence.GetNextClip(track);
-        nextClips.push_back(nextClip);
+      if (sequencer->copySource.Selected())
+      {
+        color = Color(0xFFD000);
+        period = 300;
+        xDelay = 40;
+      }
+      else
+      {
+        color = Color(0x0080FF);
+      }
     }
-
-    // Render all clip slots
-    for(uint8_t x = 0; x < GetSize().x; x++)
+    for (uint8_t x = 0; x < 8; x++)
     {
-        for(uint8_t y = 0; y < GetSize().y; y++)
-        {
-            Point xy = Point(x, y);
-            
-            std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
-            uint8_t track = pair.first;
-            uint8_t clip = pair.second;
-
-            Point point = origin + xy;
-            Color color;
-
-            if(track >= trackCount)
-            {
-                color = Color::Black;
-            }
-            else if(!sequencer->sequence.ClipExists(track, clip))
-            {
-                if(sequencer->ClearActive())
-                {
-                    color = waveColor[x];
-                }
-                else if(sequencer->CopyActive())
-                {
-                    if(sequencer->copySource.Selected() && sequencer->copySource.IsType(SequenceSelectionType::CLIP))
-                    {
-                        Color trackColor = sequencer->meta.tracks[track].color;
-                        color = trackColor.Dim(32);
-                    }
-                    else
-                    {
-                        color = waveColor[x];
-                    }
-                }
-                else if(sequencer->sequence.Playing())
-                {
-                    if(nextClips[track] == 254) // About to stop
-                    {
-                        color = (quarterNoteProgress < 0x8000) ? Color(0x600000) : Color::Black;
-                    }
-                    else
-                    {
-                        color = Color::Black;
-                    }
-                }
-                else
-                {
-                    Color trackColor = sequencer->meta.tracks[track].color;
-                    color = trackColor.Dim(32);
-                }
-            }
-            else
-            {
-                Color trackColor = sequencer->meta.tracks[track].color;
-                bool isCurrentTrack = (sequencer->track == track);
-                bool isSelectedInTrack = (activeClips[track] == clip);
-                bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
-                bool isNextClip = (nextClips[track] == clip);
-                bool isCopySourceSelected = sequencer->CopyActive() && sequencer->copySource.Selected();
-                bool isCopySource = isCopySourceSelected && (sequencer->copySource.track == track && sequencer->copySource.clip == clip);
-                bool isWrongCopyType = sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::CLIP);
-
-
-                    if(isWrongCopyType)
-                    {
-                        // Gray out when wrong copy type is selected
-                        color = Color::White.Dim(127);
-                    }
-                    else if(isCopySource)
-                    {
-                        color = Color::White;
-                    }
-                    else if (isCopySourceSelected)
-                    {
-                        color = trackColor;
-                    }
-                    else if(isPlaying)
-                    {
-                        // Playing clip pulse toward white
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 2, 8));
-                    }
-                    else if(isNextClip)
-                    {
-                        color = (quarterNoteProgress < 0x8000) ? Color(0x00FF00) : trackColor;
-                    }
-                    else if(isCurrentTrack && isSelectedInTrack)
-                    {
-                        color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
-                    }
-                    else if(isSelectedInTrack)
-                    {
-                        // Selected clip in other tracks shows red
-                        uint16_t brightness = breathingScale / 2 + 128;
-                        if(brightness > 255) { brightness = 255; }
-                        color = trackColor.Scale(brightness);
-                    }
-                    else
-                    {
-                        // Clip exists - show track color
-                        color = trackColor;
-                    }
-            }
-
-            MatrixOS::LED::SetColor(point, color);
-        }
+      uint8_t scale = ColorEffects::Breath(600, 80 * x);
+      waveColor[x] = Color::Crossfade(color, Color::White, Fract16(scale, 8)).Dim(64);
     }
+  }
 
-    return true;
+  for (uint8_t track = 0; track < trackCount; track++)
+  {
+    uint8_t activeClip = sequencer->sequence.GetPosition(track)->clip;
+    activeClips.push_back(activeClip);
+    uint8_t nextClip = sequencer->sequence.GetNextClip(track);
+    nextClips.push_back(nextClip);
+  }
+
+  // Render all clip slots
+  for (uint8_t x = 0; x < GetSize().x; x++)
+  {
+    for (uint8_t y = 0; y < GetSize().y; y++)
+    {
+      Point xy = Point(x, y);
+
+      std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
+      uint8_t track = pair.first;
+      uint8_t clip = pair.second;
+
+      Point point = origin + xy;
+      Color color;
+
+      if (track >= trackCount)
+      {
+        color = Color::Black;
+      }
+      else if (!sequencer->sequence.ClipExists(track, clip))
+      {
+        if (sequencer->ClearActive())
+        {
+          color = waveColor[x];
+        }
+        else if (sequencer->CopyActive())
+        {
+          if (sequencer->copySource.Selected() && sequencer->copySource.IsType(SequenceSelectionType::CLIP))
+          {
+            Color trackColor = sequencer->meta.tracks[track].color;
+            color = trackColor.Dim(32);
+          }
+          else
+          {
+            color = waveColor[x];
+          }
+        }
+        else if (sequencer->sequence.Playing())
+        {
+          if (nextClips[track] == 254) // About to stop
+          {
+            color = (quarterNoteProgress < 0x8000) ? Color(0x600000) : Color::Black;
+          }
+          else
+          {
+            color = Color::Black;
+          }
+        }
+        else
+        {
+          Color trackColor = sequencer->meta.tracks[track].color;
+          color = trackColor.Dim(32);
+        }
+      }
+      else
+      {
+        Color trackColor = sequencer->meta.tracks[track].color;
+        bool isCurrentTrack = (sequencer->track == track);
+        bool isSelectedInTrack = (activeClips[track] == clip);
+        bool isPlaying = sequencer->sequence.Playing(track) && isSelectedInTrack;
+        bool isNextClip = (nextClips[track] == clip);
+        bool isCopySourceSelected = sequencer->CopyActive() && sequencer->copySource.Selected();
+        bool isCopySource = isCopySourceSelected && (sequencer->copySource.track == track && sequencer->copySource.clip == clip);
+        bool isWrongCopyType =
+            sequencer->CopyActive() && sequencer->copySource.Selected() && !sequencer->copySource.IsType(SequenceSelectionType::CLIP);
+
+        if (isWrongCopyType)
+        {
+          // Gray out when wrong copy type is selected
+          color = Color::White.Dim(127);
+        }
+        else if (isCopySource)
+        {
+          color = Color::White;
+        }
+        else if (isCopySourceSelected)
+        {
+          color = trackColor;
+        }
+        else if (isPlaying)
+        {
+          // Playing clip pulse toward white
+          color = Color::Crossfade(trackColor, Color::White, Fract16(breathingScale / 2, 8));
+        }
+        else if (isNextClip)
+        {
+          color = (quarterNoteProgress < 0x8000) ? Color(0x00FF00) : trackColor;
+        }
+        else if (isCurrentTrack && isSelectedInTrack)
+        {
+          color = Color::Crossfade(trackColor, Color::White, Fract16(0x9000));
+        }
+        else if (isSelectedInTrack)
+        {
+          // Selected clip in other tracks shows red
+          uint16_t brightness = breathingScale / 2 + 128;
+          if (brightness > 255)
+          {
+            brightness = 255;
+          }
+          color = trackColor.Scale(brightness);
+        }
+        else
+        {
+          // Clip exists - show track color
+          color = trackColor;
+        }
+      }
+
+      MatrixOS::LED::SetColor(point, color);
+    }
+  }
+
+  return true;
 }

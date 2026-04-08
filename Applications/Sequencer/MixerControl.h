@@ -6,13 +6,13 @@
 #include "Sequencer.h"
 
 class MixerControl : public UIComponent {
-    Sequencer* sequencer;
+  Sequencer* sequencer;
 
-    public:
-    MixerControl(Sequencer* sequencer);
+public:
+  MixerControl(Sequencer* sequencer);
 
-    Dimension GetSize();
-    virtual bool IsEnabled() override;
-    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
-    virtual bool Render(Point origin);
+  Dimension GetSize();
+  virtual bool IsEnabled() override;
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool Render(Point origin);
 };

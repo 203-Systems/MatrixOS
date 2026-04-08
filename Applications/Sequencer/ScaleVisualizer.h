@@ -5,7 +5,7 @@
 #include <functional>
 
 class SequencerScaleVisualizer : public UIComponent {
- public:
+public:
   std::function<uint8_t()> getRootKey;
   std::function<uint8_t()> getRootOffset;
   std::function<uint16_t()> getScale;
@@ -22,7 +22,7 @@ class SequencerScaleVisualizer : public UIComponent {
 
   void OnChange(std::function<void(uint8_t root, uint8_t offset, uint16_t scale)> callback);
 
- private:
+private:
   std::function<void(uint8_t, uint8_t, uint16_t)> onChange;
 
   virtual Color GetColor();

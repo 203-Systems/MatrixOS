@@ -7,14 +7,14 @@
 #include "Sequencer.h"
 
 class PatternSelector : public UIComponent {
-    Sequencer* sequencer;
-    bool lengthAdjustmentMode = false;
+  Sequencer* sequencer;
+  bool lengthAdjustmentMode = false;
 
-    public:
-    PatternSelector(Sequencer* sequencer);
+public:
+  PatternSelector(Sequencer* sequencer);
 
-    virtual bool IsEnabled();
-    Dimension GetSize();
-    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
-    virtual bool Render(Point origin);
+  virtual bool IsEnabled();
+  Dimension GetSize();
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool Render(Point origin);
 };

@@ -7,17 +7,17 @@
 #include "Sequencer.h"
 
 class ClipLauncher : public UIComponent {
-    Sequencer* sequencer;
+  Sequencer* sequencer;
 
-    std::pair<uint8_t, uint8_t> XY2Clip(Point xy) const;
+  std::pair<uint8_t, uint8_t> XY2Clip(Point xy) const;
 
-    public:
-    ClipLauncher(Sequencer* sequencer);
+public:
+  ClipLauncher(Sequencer* sequencer);
 
-    Dimension GetSize();
+  Dimension GetSize();
 
-    virtual bool IsEnabled() override;
-    virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
+  virtual bool IsEnabled() override;
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo);
 
-    virtual bool Render(Point origin);
+  virtual bool Render(Point origin);
 };

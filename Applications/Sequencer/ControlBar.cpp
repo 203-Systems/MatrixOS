@@ -2,100 +2,101 @@
 #include "NotePad.h"
 #include <algorithm>
 
-SequencerControlBar::SequencerControlBar(Sequencer *sequencer, SequencerNotePad *notePad)
-{
+SequencerControlBar::SequencerControlBar(Sequencer* sequencer, SequencerNotePad* notePad) {
   this->sequencer = sequencer;
   this->notePad = notePad;
 }
 
-Dimension SequencerControlBar::GetSize() { return Dimension(8, 1); }
+Dimension SequencerControlBar::GetSize() {
+  return Dimension(8, 1);
+}
 
-bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
-{
+bool SequencerControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
   bool stepSelected = !sequencer->stepSelected.empty();
   bool patternSelected = !sequencer->patternSelected.empty();
   bool trackSelected = sequencer->activeTrackSelected;
-  bool sequencerShift = (sequencer->currentView == Sequencer::ViewMode::Sequencer) && (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
+  bool sequencerShift = (sequencer->currentView == Sequencer::ViewMode::Sequencer) &&
+                        (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
   bool otherShift = (sequencer->currentView != Sequencer::ViewMode::Sequencer) && sequencer->ShiftActive();
 
   if (sequencerShift)
   {
     switch (xy.x)
     {
-      case 0:
-        return HandleResumeKey(keyInfo);
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        return true;
-      case 5:
-        return HandleTwoPatternToggleKey(keyInfo);
-      default:
-        break;
+    case 0:
+      return HandleResumeKey(keyInfo);
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return true;
+    case 5:
+      return HandleTwoPatternToggleKey(keyInfo);
+    default:
+      break;
     }
   }
   else if (otherShift)
   {
     switch (xy.x)
     {
-      case 0:
-        return HandleResumeKey(keyInfo);
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-      case 5:
-        return true;
-      default:
-        break;
+    case 0:
+      return HandleResumeKey(keyInfo);
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+      return true;
+    default:
+      break;
     }
   }
   else if (stepSelected)
   {
     switch (xy.x)
     {
-      case 0:
-        return HandleStepPlayKey(keyInfo);
-      case 1:
-        return HandleQuantizeKey(keyInfo);
-      case 2:
-        return HandleStepOctaveOffsetKey(false, keyInfo);
-      case 3:
-        return HandleStepOctaveOffsetKey(true, keyInfo);
-      default:
-        break;
+    case 0:
+      return HandleStepPlayKey(keyInfo);
+    case 1:
+      return HandleQuantizeKey(keyInfo);
+    case 2:
+      return HandleStepOctaveOffsetKey(false, keyInfo);
+    case 3:
+      return HandleStepOctaveOffsetKey(true, keyInfo);
+    default:
+      break;
     }
   }
   else if (patternSelected)
   {
     switch (xy.x)
     {
-      case 0:
-        return HandleNudgeKey(false, keyInfo);
-      case 1:
-        return HandleNudgeKey(true, keyInfo);
-      case 2:
-        return HandleOctaveOffsetKey(false, keyInfo);
-      case 3:
-        return HandleOctaveOffsetKey(true, keyInfo);
-      default:
-        break;
+    case 0:
+      return HandleNudgeKey(false, keyInfo);
+    case 1:
+      return HandleNudgeKey(true, keyInfo);
+    case 2:
+      return HandleOctaveOffsetKey(false, keyInfo);
+    case 3:
+      return HandleOctaveOffsetKey(true, keyInfo);
+    default:
+      break;
     }
   }
   else if (trackSelected)
   {
     switch (xy.x)
     {
-      case 0:
-        return HandleTrackPlayKey(keyInfo);
-      case 4:
-      case 1:
-      case 2:
-      case 3:
-      case 5:
-      default:
-        break;
+    case 0:
+      return HandleTrackPlayKey(keyInfo);
+    case 4:
+    case 1:
+    case 2:
+    case 3:
+    case 5:
+    default:
+      break;
     }
   }
 
@@ -122,8 +123,7 @@ bool SequencerControlBar::KeyEvent(Point xy, KeyInfo *keyInfo)
   }
 }
 
-bool SequencerControlBar::HandlePlayKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandlePlayKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
@@ -134,24 +134,23 @@ bool SequencerControlBar::HandlePlayKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-      if (sequencer->sequence.Playing())
+    if (sequencer->sequence.Playing())
+    {
+      sequencer->sequence.Stop();
+    }
+    else
+    {
+      sequencer->sequence.Play();
+      if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
       {
-        sequencer->sequence.Stop();
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
       }
-      else
-      {
-        sequencer->sequence.Play();
-        if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
-        {
-          sequencer->SetView(Sequencer::ViewMode::Sequencer);
-        }
-      }
+    }
   }
   return true;
 }
 
-bool SequencerControlBar::HandleTrackPlayKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleTrackPlayKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
@@ -162,25 +161,24 @@ bool SequencerControlBar::HandleTrackPlayKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-      bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
-      if (trackPlaying)
+    bool trackPlaying = sequencer->sequence.Playing(sequencer->track);
+    if (trackPlaying)
+    {
+      sequencer->sequence.StopAfter(sequencer->track);
+    }
+    else
+    {
+      sequencer->sequence.Play(sequencer->track);
+      if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
       {
-        sequencer->sequence.StopAfter(sequencer->track);
+        sequencer->SetView(Sequencer::ViewMode::Sequencer);
       }
-      else
-      {
-        sequencer->sequence.Play(sequencer->track);
-        if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
-        {
-          sequencer->SetView(Sequencer::ViewMode::Sequencer);
-        }
-      }
+    }
   }
   return true;
 }
 
-bool SequencerControlBar::HandleStepPlayKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleStepPlayKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::PLAY, true);
@@ -191,40 +189,38 @@ bool SequencerControlBar::HandleStepPlayKey(KeyInfo *keyInfo)
   }
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
-      if (sequencer->sequence.Playing(sequencer->track))
+    if (sequencer->sequence.Playing(sequencer->track))
+    {
+      sequencer->sequence.StopAfter(sequencer->track);
+    }
+    else if (sequencer->sequence.Playing())
+    {
+      // Launch track in next possible bar
+      sequencer->sequence.Play(sequencer->track);
+      uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
+      SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
+      if (pattern != pos->pattern)
       {
-        sequencer->sequence.StopAfter(sequencer->track);
+        sequencer->stepSelected.clear();
+        sequencer->ClearActiveNotes();
       }
-      else if(sequencer->sequence.Playing())
+    }
+    else
+    {
+      if (sequencer->stepSelected.size() == 1)
       {
-        // Launch track in next possible bar
-        sequencer->sequence.Play(sequencer->track);
-        uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
         SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
-        if(pattern != pos->pattern)
-        {
-          sequencer->stepSelected.clear();
-          sequencer->ClearActiveNotes();
-        }
+        uint8_t currentPattern = pos->pattern;
+        uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
+        uint8_t step = std::get<1>(*sequencer->stepSelected.begin());
+        sequencer->sequence.PlayFrom(sequencer->track, pos->clip, pattern, step);
       }
-      else
-      {
-        if(sequencer->stepSelected.size() == 1)
-        {
-          SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
-          uint8_t currentPattern = pos->pattern;
-          uint8_t pattern = std::get<0>(*sequencer->stepSelected.begin());
-          uint8_t step = std::get<1>(*sequencer->stepSelected.begin());
-          sequencer->sequence.PlayFrom(sequencer->track, pos->clip, pattern, step);
-        }
-      }
+    }
   }
   return true;
 }
 
-
-bool SequencerControlBar::HandleResumeKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleResumeKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::RESUME, true);
@@ -236,7 +232,7 @@ bool SequencerControlBar::HandleResumeKey(KeyInfo *keyInfo)
   else if (keyInfo->state == RELEASED && keyInfo->Hold() == false)
   {
     sequencer->ShiftEventOccured();
-    if(sequencer->sequence.Playing() == false)
+    if (sequencer->sequence.Playing() == false)
     {
       sequencer->sequence.Resume();
       if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
@@ -248,13 +244,13 @@ bool SequencerControlBar::HandleResumeKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleRecordKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleRecordKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(sequencer->ClearActive() ? SequencerMessage::UNDO : SequencerMessage::RECORD, true);
   }
-  else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::RECORD || sequencer->lastMessage == SequencerMessage::UNDO))
+  else if (keyInfo->state == RELEASED &&
+           (sequencer->lastMessage == SequencerMessage::RECORD || sequencer->lastMessage == SequencerMessage::UNDO))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
@@ -262,22 +258,21 @@ bool SequencerControlBar::HandleRecordKey(KeyInfo *keyInfo)
   {
     if (sequencer->ClearActive())
     {
-      if(!sequencer->sequence.Playing() && sequencer->sequence.CanUndoLastRecord())
+      if (!sequencer->sequence.Playing() && sequencer->sequence.CanUndoLastRecord())
       {
         sequencer->sequence.UndoLastRecorded();
         sequencer->SetMessage(SequencerMessage::UNDONE);
       }
     }
     else
-    { 
+    {
       sequencer->sequence.EnableRecord(!sequencer->sequence.RecordEnabled());
     }
   }
   return true;
 }
 
-bool SequencerControlBar::HandleSessionKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleSessionKey(KeyInfo* keyInfo) {
 
   if (keyInfo->state == HOLD)
   {
@@ -301,8 +296,7 @@ bool SequencerControlBar::HandleSessionKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleMixerKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleMixerKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::MIX, true);
@@ -325,8 +319,7 @@ bool SequencerControlBar::HandleMixerKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleClearKey(KeyInfo* keyInfo) {
   if (keyInfo->state == PRESSED)
   {
     sequencer->clear = true;
@@ -345,11 +338,11 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
       uint8_t track = sequencer->track;
       uint8_t clip = pos->clip;
       uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
-      for (const auto &selection : sequencer->stepSelected)
+      for (const auto& selection : sequencer->stepSelected)
       {
         uint8_t patternIdx = selection.first;
         uint8_t step = selection.second;
-        SequencePattern *pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+        SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
         if (!pattern)
         {
           return true;
@@ -364,7 +357,7 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
         {
           if (it->second.eventType == SequenceEventType::NoteEvent)
           {
-            const SequenceEventNote &noteData = std::get<SequenceEventNote>(it->second.data);
+            const SequenceEventNote& noteData = std::get<SequenceEventNote>(it->second.data);
             auto activeIt = sequencer->noteActive.find(noteData.note);
             if (activeIt != sequencer->noteActive.end())
             {
@@ -374,8 +367,8 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
           }
           ++it;
         }
-        
-        if(sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep))
+
+        if (sequencer->sequence.PatternClearStepEvents(pattern, step, pulsesPerStep))
         {
           sequencer->SetMessage(SequencerMessage::CLEARED);
         }
@@ -419,8 +412,7 @@ bool SequencerControlBar::HandleClearKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleCopyKey(KeyInfo* keyInfo) {
   if (keyInfo->state == PRESSED)
   {
     sequencer->copy = true;
@@ -436,8 +428,7 @@ bool SequencerControlBar::HandleCopyKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::NUDGE, true);
@@ -450,10 +441,13 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
   {
     uint8_t track = sequencer->track;
 
-    if(sequencer->sequence.Playing(track)) {return true;} // Can't nudge in play mode
+    if (sequencer->sequence.Playing(track))
+    {
+      return true;
+    } // Can't nudge in play mode
 
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
-    SequencePattern *pattern = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern);
+    SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern);
 
     if (!pattern)
     {
@@ -471,7 +465,7 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
     }
     else
     {
-      SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern + 1);
+      SequencePattern* patternNext = sequencer->sequence.GetPattern(track, pos->clip, pos->pattern + 1);
       sequencer->sequence.DualPatternNudge(pattern, patternNext, offset);
     }
     sequencer->ClearActiveNotes();
@@ -479,13 +473,13 @@ bool SequencerControlBar::HandleNudgeKey(bool positive, KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
-{
+bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
   }
-  else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
+  else if (keyInfo->state == RELEASED &&
+           (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
@@ -499,7 +493,8 @@ bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
     for (uint8_t patternIdx : sequencer->patternSelected)
     {
       SequencePattern* pattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
-      if (!pattern) continue;
+      if (!pattern)
+        continue;
 
       uint16_t patternLengthPulses = pattern->steps * sequencer->sequence.GetPulsesPerStep();
       sequencer->sequence.PatternOffsetNotesInRange(pattern, 0, patternLengthPulses - 1, offset);
@@ -511,13 +506,13 @@ bool SequencerControlBar::HandleOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo)
-{
+bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(positive ? SequencerMessage::OCTAVE_PLUS : SequencerMessage::OCTAVE_MINUS, true);
   }
-  else if (keyInfo->state == RELEASED && (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
+  else if (keyInfo->state == RELEASED &&
+           (sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS || sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS))
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
@@ -526,7 +521,7 @@ bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyI
     uint8_t track = sequencer->track;
     SequencePosition* pos = sequencer->sequence.GetPosition(track);
 
-    if(!sequencer->stepSelected.empty())
+    if (!sequencer->stepSelected.empty())
     {
       uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
       int8_t offset = positive ? 12 : -12;
@@ -535,7 +530,8 @@ bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyI
       for (const auto& [patternIdx, stepIdx] : sequencer->stepSelected)
       {
         SequencePattern* targetPattern = sequencer->sequence.GetPattern(track, pos->clip, patternIdx);
-        if (!targetPattern) continue;
+        if (!targetPattern)
+          continue;
 
         // Calculate time range for this step
         uint16_t startTime = stepIdx * pulsesPerStep;
@@ -581,8 +577,7 @@ bool SequencerControlBar::HandleStepOctaveOffsetKey(bool positive, KeyInfo* keyI
   return true;
 }
 
-bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::TWO_PATTERN_VIEW, true);
@@ -603,8 +598,7 @@ bool SequencerControlBar::HandleTwoPatternToggleKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleQuantizeKey(KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleQuantizeKey(KeyInfo* keyInfo) {
   if (keyInfo->state == HOLD)
   {
     sequencer->SetMessage(SequencerMessage::QUANTIZE, true);
@@ -641,9 +635,9 @@ bool SequencerControlBar::HandleQuantizeKey(KeyInfo *keyInfo)
       patternNextIdx = (pattern2Idx + 1) >= sequencer->sequence.GetPatternCount(track, pos->clip) ? 0 : pattern2Idx + 1;
     }
 
-    SequencePattern *pattern1 = sequencer->sequence.GetPattern(track, pos->clip, pattern1Idx);
-    SequencePattern *pattern2 = sequencer->sequence.GetPattern(track, pos->clip, pattern2Idx); // Will return nullptr if pattern2Idx == 255
-    SequencePattern *patternNext = sequencer->sequence.GetPattern(track, pos->clip, patternNextIdx);
+    SequencePattern* pattern1 = sequencer->sequence.GetPattern(track, pos->clip, pattern1Idx);
+    SequencePattern* pattern2 = sequencer->sequence.GetPattern(track, pos->clip, pattern2Idx); // Will return nullptr if pattern2Idx == 255
+    SequencePattern* patternNext = sequencer->sequence.GetPattern(track, pos->clip, patternNextIdx);
 
     sequencer->sequence.DualPatternQuantize(pattern1, pattern2, patternNext, sequencer->sequence.GetPulsesPerStep());
 
@@ -652,8 +646,7 @@ bool SequencerControlBar::HandleQuantizeKey(KeyInfo *keyInfo)
   return true;
 }
 
-bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyInfo)
-{
+bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo* keyInfo) {
   uint8_t track = sequencer->track;
   uint8_t shiftIndex = right ? 1 : 0;
 
@@ -661,11 +654,11 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
   {
     if (sequencer->ShiftActive())
     {
-      if(sequencer->currentView == Sequencer::ViewMode::Sequencer)
+      if (sequencer->currentView == Sequencer::ViewMode::Sequencer)
       {
         sequencer->patternView = !sequencer->patternView;
       }
-      else if(sequencer->currentView == Sequencer::ViewMode::Session)
+      else if (sequencer->currentView == Sequencer::ViewMode::Session)
       {
         sequencer->wideClipMode = !sequencer->wideClipMode;
         sequencer->clipWindow = 0;
@@ -677,13 +670,14 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
     sequencer->shift[shiftIndex] = true;
     sequencer->shiftEventOccured[shiftIndex] = false;
 
-    if (sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->sequence.Playing() == false && sequencer->stepSelected.size() == 1)
+    if (sequencer->currentView == Sequencer::ViewMode::Sequencer && sequencer->sequence.Playing() == false &&
+        sequencer->stepSelected.size() == 1)
     {
       uint8_t clip = sequencer->sequence.GetPosition(track)->clip;
       auto selection = *sequencer->stepSelected.begin();
       uint8_t patternIdx = selection.first;
       uint8_t step = selection.second;
-      SequencePattern *pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
+      SequencePattern* pattern = sequencer->sequence.GetPattern(track, clip, patternIdx);
 
       uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
       uint16_t startTime = step * pulsesPerStep;
@@ -715,7 +709,7 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
       {
         if (sequencer->meta.tracks[track].mode == SequenceTrackMode::NoteTrack)
         {
-          auto &noteCfg = sequencer->meta.tracks[track].config.note;
+          auto& noteCfg = sequencer->meta.tracks[track].config.note;
           if (right)
           {
             if (noteCfg.octave < 9)
@@ -753,15 +747,14 @@ bool SequencerControlBar::HandleShiftKey(uint8_t idx, bool right, KeyInfo *keyIn
   return true;
 }
 
-Color SequencerControlBar::GetOctavePlusColor()
-{
+Color SequencerControlBar::GetOctavePlusColor() {
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
   if (sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
   {
     return color;
   }
-  else if(!sequencer->stepSelected.empty())
+  else if (!sequencer->stepSelected.empty())
   {
     return color;
   }
@@ -783,15 +776,14 @@ Color SequencerControlBar::GetOctavePlusColor()
   return color.Scale(brightness);
 }
 
-Color SequencerControlBar::GetOctaveMinusColor()
-{
+Color SequencerControlBar::GetOctaveMinusColor() {
   Color color = sequencer->meta.tracks[sequencer->track].color;
 
   if (sequencer->meta.tracks[sequencer->track].mode != SequenceTrackMode::NoteTrack)
   {
     return color;
   }
-  else if(!sequencer->stepSelected.empty())
+  else if (!sequencer->stepSelected.empty())
   {
     return color;
   }
@@ -813,68 +805,64 @@ Color SequencerControlBar::GetOctaveMinusColor()
   return color.Scale(brightness);
 }
 
-bool SequencerControlBar::Render(Point origin)
-{
+bool SequencerControlBar::Render(Point origin) {
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
   bool patternSelected = !sequencer->patternSelected.empty();
   bool stepSelected = !sequencer->stepSelected.empty();
   bool trackSelected = sequencer->activeTrackSelected;
-  bool sequencerShift = (sequencer->currentView == Sequencer::ViewMode::Sequencer) && (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
+  bool sequencerShift = (sequencer->currentView == Sequencer::ViewMode::Sequencer) &&
+                        (sequencer->ShiftActive() && ((MatrixOS::SYS::Millis() - sequencer->shiftOnTime) > 150));
   bool otherShift = (sequencer->currentView != Sequencer::ViewMode::Sequencer) && sequencer->ShiftActive();
 
-  
-
-  if(stepSelected == false)
+  if (stepSelected == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::QUANTIZE)
+    if (sequencer->lastMessage == SequencerMessage::QUANTIZE)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
 
-  if(patternSelected == false)
+  if (patternSelected == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::NUDGE)
+    if (sequencer->lastMessage == SequencerMessage::NUDGE)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
-  else if(sequencer->lastMessage == SequencerMessage::PLAY)
+  else if (sequencer->lastMessage == SequencerMessage::PLAY)
   {
     sequencer->SetMessage(SequencerMessage::NONE);
   }
 
-  if(stepSelected == false && patternSelected == false)
+  if (stepSelected == false && patternSelected == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS ||
-       sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS)
+    if (sequencer->lastMessage == SequencerMessage::OCTAVE_MINUS || sequencer->lastMessage == SequencerMessage::OCTAVE_PLUS)
 
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
 
-  if(stepSelected || patternSelected || trackSelected)
+  if (stepSelected || patternSelected || trackSelected)
   {
-    if(sequencer->lastMessage == SequencerMessage::RECORD ||
-       sequencer->lastMessage == SequencerMessage::MIX ||
-       sequencer->lastMessage == SequencerMessage::CLIP)
+    if (sequencer->lastMessage == SequencerMessage::RECORD || sequencer->lastMessage == SequencerMessage::MIX ||
+        sequencer->lastMessage == SequencerMessage::CLIP)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
 
-  if(sequencerShift == false)
+  if (sequencerShift == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
+    if (sequencer->lastMessage == SequencerMessage::TWO_PATTERN_VIEW)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
   }
 
-  if(sequencerShift == false && otherShift == false)
+  if (sequencerShift == false && otherShift == false)
   {
-    if(sequencer->lastMessage == SequencerMessage::RESUME)
+    if (sequencer->lastMessage == SequencerMessage::RESUME)
     {
       sequencer->SetMessage(SequencerMessage::NONE);
     }
@@ -928,7 +916,7 @@ bool SequencerControlBar::Render(Point origin)
     }
   }
   else if (stepSelected) // Step Specific
-  { 
+  {
     barRenderMask = 0b10001111;
     // Quantize
     {
@@ -956,16 +944,28 @@ bool SequencerControlBar::Render(Point origin)
     {
       Point point = origin + Point(0, 0);
       Color color = Color(0xFF0040);
-      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xFF0040).Dim();}
-      else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
+      if (sequencer->sequence.Playing(sequencer->track))
+      {
+        color = Color(0xFF0040).Dim();
+      }
+      else if (MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        color = Color::White;
+      }
       MatrixOS::LED::SetColor(point, color);
     }
     // Nudge Right
     {
       Point point = origin + Point(1, 0);
       Color color = Color(0xFF0040);
-      if(sequencer->sequence.Playing(sequencer->track)) {color = Color(0xFF0040).Dim();}
-      else if(MatrixOS::KeyPad::GetKey(point)->Active()) {color = Color::White;}
+      if (sequencer->sequence.Playing(sequencer->track))
+      {
+        color = Color(0xFF0040).Dim();
+      }
+      else if (MatrixOS::KeyPad::GetKey(point)->Active())
+      {
+        color = Color::White;
+      }
       MatrixOS::LED::SetColor(point, color);
     }
     // Octave Up
@@ -984,7 +984,7 @@ bool SequencerControlBar::Render(Point origin)
 
   // Left 4 General Bar
   // Play
-  if(barRenderMask & 0b10000000)
+  if (barRenderMask & 0b10000000)
   {
     Point point = origin + Point(0, 0);
     if (sequencer->sequence.Playing() == false && sequencer->stepSelected.size() > 1)
@@ -1007,7 +1007,7 @@ bool SequencerControlBar::Render(Point origin)
   }
 
   // Record
-  if(barRenderMask & 0b01000000)
+  if (barRenderMask & 0b01000000)
   {
     Point point = origin + Point(1, 0);
     if (MatrixOS::KeyPad::GetKey(point)->Active())
@@ -1031,7 +1031,7 @@ bool SequencerControlBar::Render(Point origin)
   }
 
   // Session View
-  if(barRenderMask & 0b00100000)
+  if (barRenderMask & 0b00100000)
   {
     Point point = origin + Point(2, 0);
     Color color;
@@ -1051,7 +1051,7 @@ bool SequencerControlBar::Render(Point origin)
   }
 
   // Mixer View
-  if(barRenderMask & 0b00010000)
+  if (barRenderMask & 0b00010000)
   {
     Point point = origin + Point(3, 0);
     Color color;
@@ -1072,7 +1072,7 @@ bool SequencerControlBar::Render(Point origin)
 
   // Right 4 - Constent UI
   // Clear
-  if(barRenderMask & 0b00001000)
+  if (barRenderMask & 0b00001000)
   {
     Point point = origin + Point(4, 0);
     Color color;
@@ -1088,7 +1088,7 @@ bool SequencerControlBar::Render(Point origin)
   }
 
   // Copy
-  if(barRenderMask & 0b00000100)
+  if (barRenderMask & 0b00000100)
   {
     Point point = origin + Point(5, 0);
     Color color;
@@ -1103,10 +1103,10 @@ bool SequencerControlBar::Render(Point origin)
     MatrixOS::LED::SetColor(point, color);
   }
 
-  if(sequencer->currentView == Sequencer::ViewMode::Sequencer)
+  if (sequencer->currentView == Sequencer::ViewMode::Sequencer)
   {
     // Octave -
-    if(barRenderMask & 0b00000010)
+    if (barRenderMask & 0b00000010)
     {
       Point point = origin + Point(6, 0);
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctaveMinusColor();
@@ -1114,14 +1114,14 @@ bool SequencerControlBar::Render(Point origin)
     }
 
     // Octave +
-    if(barRenderMask & 0b00000001)
+    if (barRenderMask & 0b00000001)
     {
       Point point = origin + Point(7, 0);
       Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctavePlusColor();
       MatrixOS::LED::SetColor(point, color);
     }
   }
-  else if(sequencer->currentView == Sequencer::ViewMode::Session)
+  else if (sequencer->currentView == Sequencer::ViewMode::Session)
   {
     Point point1 = origin + Point(6, 0);
     Point point2 = origin + Point(7, 0);
