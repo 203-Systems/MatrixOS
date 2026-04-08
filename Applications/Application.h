@@ -13,13 +13,13 @@ struct Application_Info {
   Color color;
   uint32_t version;
   bool visibility = true;
-  bool is_system = false;  // System privilege flag
+  bool is_system = false; // System privilege flag
   std::function<Application*()> factory = nullptr;
   std::function<void(Application*)> destructor = nullptr;
 };
 
 class Application {
- public:
+public:
   void Start(const vector<string>& args) {
     Setup(args);
     while (true)
@@ -35,9 +35,11 @@ class Application {
 
   // Override these functions to implement your application
   virtual void Setup(const vector<string>& args) {};
-  virtual void Loop() { Exit(); }; //If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
+  virtual void Loop() {
+    Exit();
+  }; // If the Loop func didn't get overriden, it will just exit. This prevents infinity loop.
   virtual void End() {};
-  
+
   virtual ~Application() = default;
 };
 
@@ -55,38 +57,39 @@ inline std::unordered_map<uint32_t, Application_Info*>& GetApplications() {
 
 // Store all the application id in order of registration - Preserves order and is optimal for iteration
 inline std::map<uint32_t, uint32_t>& GetApplicationIDs() {
-  static std::map<uint32_t, uint32_t> application_ids;
-  return application_ids;
+  static std::map<uint32_t, uint32_t> applicationIds;
+  return applicationIds;
 }
 
-template <typename APPLICATION_CLASS>
-static inline void register_application(uint32_t order, bool is_system) {
-    APPLICATION_CLASS::info.is_system = is_system;  // Set system flag
-    APPLICATION_CLASS::info.factory = []() -> Application* {
-      void* mem = pvPortMalloc(sizeof(APPLICATION_CLASS));
-      if (mem == nullptr) {
-        return nullptr;
-      }
-      return new(mem) APPLICATION_CLASS();  // Placement new
-    };
-    APPLICATION_CLASS::info.destructor = [](Application* app) {
-      if (app != nullptr) {
-        app->~Application();  // Call destructor
-        vPortFree(app);       // Free memory
-      }
-    };
-    MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), is_system ? " (system)" : "");
-    uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name);
-    auto& applications = GetApplications();
-    if (applications.find(app_id) != applications.end()) {
-      return;
+template <typename APPLICATION_CLASS> static inline void RegisterApplication(uint32_t order, bool isSystem) {
+  APPLICATION_CLASS::info.is_system = isSystem; // Set system flag
+  APPLICATION_CLASS::info.factory = []() -> Application* {
+    void* mem = pvPortMalloc(sizeof(APPLICATION_CLASS));
+    if (mem == nullptr)
+    {
+      return nullptr;
     }
-    applications.insert({app_id, &APPLICATION_CLASS::info});
-    GetApplicationIDs()[order] = app_id;
+    return new (mem) APPLICATION_CLASS(); // Placement new
+  };
+  APPLICATION_CLASS::info.destructor = [](Application* app) {
+    if (app != nullptr)
+    {
+      app->~Application(); // Call destructor
+      vPortFree(app);      // Free memory
+    }
+  };
+  MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), isSystem ? " (system)" : "");
+  uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name);
+  auto& applications = GetApplications();
+  if (applications.find(app_id) != applications.end())
+  {
+    return;
+  }
+  applications.insert({app_id, &APPLICATION_CLASS::info});
+  GetApplicationIDs()[order] = app_id;
 }
 
-
-#define REGISTER_APPLICATION(APPLICATION_CLASS, IS_SYSTEM)                                         \
-  __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) { \
-    register_application<APPLICATION_CLASS>(__COUNTER__, IS_SYSTEM);      \
+#define REGISTER_APPLICATION(APPLICATION_CLASS, IS_SYSTEM)                                                                                 \
+  __attribute__((__constructor__)) inline void APPLICATION_HELPER_CLASS(APPLICATION_CLASS)(void) {                                         \
+    RegisterApplication<APPLICATION_CLASS>(__COUNTER__, IS_SYSTEM);                                                                       \
   }

@@ -102,7 +102,7 @@
 - Applications\Companion\Companion.cpp - FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\UltraProto2\Config.h - NOT FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\Device.cpp - NOT FORMATTED
-- Applications\Application.h - NOT FORMATTED
+- Applications\Application.h - FORMATTED
 - OS\System\UserVariables.h - NOT FORMATTED
 - OS\System\System.h - NOT FORMATTED
 - OS\System\System.cpp - NOT FORMATTED
