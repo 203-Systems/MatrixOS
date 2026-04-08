@@ -6,36 +6,31 @@
 #include "PythonAppDiscovery.h"
 
 // Shell-specific application management structures
-enum class ApplicationType : uint8_t {
-    Native = 0,
-    Python = 1
-};
+enum class ApplicationType : uint8_t { Native = 0, Python = 1 };
 
 struct ApplicationEntry {
   ApplicationType type;
 
   union {
     struct {
-      Application_Info* info;  // Points to Application_Info regardless of type
+      Application_Info* info; // Points to Application_Info regardless of type
     } native;
     struct {
-      PythonAppDiscovery::PythonAppInfo* info;  // Points to PythonAppInfo for Python apps
+      PythonAppDiscovery::PythonAppInfo* info; // Points to PythonAppInfo for Python apps
     } python;
   };
 
-  ApplicationEntry(Application_Info* native_app_info)
-    : type(ApplicationType::Native) {
-      native.info = native_app_info;
-    }
+  ApplicationEntry(Application_Info* nativeAppInfo) : type(ApplicationType::Native) {
+    native.info = nativeAppInfo;
+  }
 
-  ApplicationEntry(PythonAppDiscovery::PythonAppInfo* py_app_info)
-    : type(ApplicationType::Python) {
-      python.info = py_app_info;
-    }
+  ApplicationEntry(PythonAppDiscovery::PythonAppInfo* pyAppInfo) : type(ApplicationType::Python) {
+    python.info = pyAppInfo;
+  }
 };
 
 class Shell : public Application {
-  public:
+public:
   inline static Application_Info info = {
       .name = "Shell",
       .author = "203 Systems",
@@ -45,19 +40,17 @@ class Shell : public Application {
   };
 
   // Folder system constants
-  static constexpr uint8_t FOLDER_COUNT = 6;  // Folders 0-5
-  static constexpr uint8_t FOLDER_HIDDEN = 254;  // User hidden apps folder
-  static constexpr uint8_t FOLDER_INVISIBLE = 255;  // System invisible apps folder
-  
-  struct Folder
-  {
+  static constexpr uint8_t folderCount = 6;       // Folders 0-5
+  static constexpr uint8_t FOLDER_HIDDEN = 254;    // User hidden apps folder
+  static constexpr uint8_t FOLDER_INVISIBLE = 255; // System invisible apps folder
+
+  struct Folder {
     std::vector<uint32_t> app_ids;
   };
 
-  Color folder_colors[FOLDER_COUNT] = { // If color is not set, that means folder is not created
-      Color(0x00FFFF), Color(0x000000), Color(0x000000),
-      Color(0x000000), Color(0x000000), Color(0x000000)
-  };
+  Color folder_colors[folderCount] = {// If color is not set, that means folder is not created
+                                       Color(0x00FFFF), Color(0x000000), Color(0x000000),
+                                       Color(0x000000), Color(0x000000), Color(0x000000)};
 
   // Folder definitions (0-5)
   std::unordered_map<uint8_t, Folder> folders;
@@ -68,7 +61,7 @@ class Shell : public Application {
   // Shell's view of all applications (native + Python)
   std::unordered_map<uint32_t, ApplicationEntry> all_applications;
 
-  uint8_t current_folder = 0; // Start with folder 0
+  uint8_t current_folder = 0;   // Start with folder 0
   uint32_t selected_app_id = 0; // Currently selected app in edit mode (0 = none)
 
   void Setup(const vector<string>& args) override;
@@ -77,11 +70,11 @@ class Shell : public Application {
   // Folder system functions
   void InitializeFolderSystem();
   void TestFileSystem();
-  uint8_t GetAppFolder(uint32_t app_id, const ApplicationEntry& app_entry);
-  bool EnableFolder(uint8_t folder_idx, Color color);
-  void DisableFolder(uint8_t folder_id);
-  void DeleteFolder(uint8_t folder_id);
-  void MoveAppToFolder(uint32_t app_id, uint8_t folder_id);
+  uint8_t GetAppFolder(uint32_t appId, const ApplicationEntry& app_entry);
+  bool EnableFolder(uint8_t folderIdx, Color color);
+  void DisableFolder(uint8_t folderId);
+  void DeleteFolder(uint8_t folderId);
+  void MoveAppToFolder(uint32_t appId, uint8_t folderId);
 
   // Python application discovery
 #if DEVICE_STORAGE
@@ -89,16 +82,14 @@ class Shell : public Application {
 #endif
 
   // Helper functions for NVS
-  void SaveFolderVector(uint8_t folder_id);
-  void LoadFolderVector(uint8_t folder_id);
+  void SaveFolderVector(uint8_t folderId);
+  void LoadFolderVector(uint8_t folderId);
   void SaveAllFolderVectors();
   void CleanupInvalidApps();
-  
+
   // Application launcher functions
   void ApplicationLauncher();
   void ApplicationLauncherEditing();
   void HiddenApplicationLauncher();
   void LaunchAnimation(Point origin, Color color);
 };
-
-

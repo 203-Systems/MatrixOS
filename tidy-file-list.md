@@ -14,14 +14,14 @@
 - OS\USB\MIDI.cpp - NOT FORMATTED
 - OS\USB\HID.cpp - NOT FORMATTED
 - OS\USB\CDC.cpp - NOT FORMATTED
-- Applications\Shell\Shell.h - NOT FORMATTED
-- Applications\Shell\Shell.cpp - NOT FORMATTED
-- Applications\Shell\PythonAppDiscovery.h - NOT FORMATTED
-- Applications\Shell\PythonAppDiscovery.cpp - NOT FORMATTED
-- Applications\Shell\AppLauncherPickerEditMode.h - NOT FORMATTED
-- Applications\Shell\AppLauncherPicker.h - NOT FORMATTED
-- Applications\Shell\AppLauncherBarEditMode.h - NOT FORMATTED
-- Applications\Shell\AppLauncherBar.h - NOT FORMATTED
+- Applications\Shell\Shell.h - FORMATTED
+- Applications\Shell\Shell.cpp - FORMATTED
+- Applications\Shell\PythonAppDiscovery.h - FORMATTED
+- Applications\Shell\PythonAppDiscovery.cpp - FORMATTED
+- Applications\Shell\AppLauncherPickerEditMode.h - FORMATTED
+- Applications\Shell\AppLauncherPicker.h - FORMATTED
+- Applications\Shell\AppLauncherBarEditMode.h - FORMATTED
+- Applications\Shell\AppLauncherBar.h - FORMATTED
 - Applications\Setting\Setting.h - FORMATTED
 - Applications\Setting\Setting.cpp - FORMATTED
 - OS\UI\Utilities\TextScroll.cpp - NOT FORMATTED
