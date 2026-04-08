@@ -84,16 +84,6 @@ namespace WrapAction
             MLOGE(TAG, "Failed to load action");
             return false;
         }
-        
-
-        // If index type is via ID. Only different layer of same ID is supported! No relative position!
-        if(actionInfo->indexType == ActionIndexType::ID && data.relativePos == true && data.x == 0 && data.y == 0)
-        {
-            MLOGE(TAG, "Invalid action");
-            return false;
-        }
-        
-
         ActionInfo newAction = *actionInfo;
 
         if(data.relativeLayer == true)
