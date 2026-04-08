@@ -4,8 +4,8 @@
 #include "Application.h"
 
 class MSC : public Application {
-  public:
-    inline static Application_Info info = {
+public:
+  inline static Application_Info info = {
       .name = "MSC Mode",
       .author = "203 Systems",
       .color = Color(0xFF8000),
@@ -13,5 +13,5 @@ class MSC : public Application {
       .visibility = false,
   };
 
-    void Setup(const vector<string>& args) override;
+  void Setup(const vector<string>& args) override;
 };

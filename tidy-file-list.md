@@ -183,8 +183,8 @@
 - Applications\Python\pika_config.h - NOT FORMATTED
 - Devices\Mystrix2\ULP\fsr_keypad.c - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\V110\Config.h - NOT FORMATTED
-- Applications\MSC\MSC.cpp - NOT FORMATTED
-- Applications\MSC\MSC.h - NOT FORMATTED
+- Applications\MSC\MSC.cpp - FORMATTED
+- Applications\MSC\MSC.h - FORMATTED
 - Applications\CustomControlMap\Actions\actioncolor\ActionColorEffect.h - NOT FORMATTED
 - Applications\CustomControlMap\Action.h - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\RevC\Config.h - NOT FORMATTED

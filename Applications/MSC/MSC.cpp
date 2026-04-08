@@ -3,7 +3,8 @@
 #include "USB/USB.h"
 
 void MSC::Setup(const vector<string>& args) {
-  if (!Device::Storage::Available()) {
+  if (!Device::Storage::Available())
+  {
     MLOGW("MSC", "Storage not available - cannot enter USB storage mode");
     Exit();
     return;
@@ -27,7 +28,7 @@ void MSC::Setup(const vector<string>& args) {
     MatrixOS::LED::SetColor(Point(5, 4), Color(0xFF8000));
   });
 
-// Start the MSC UI
+  // Start the MSC UI
   mscUI.Start();
 
   MatrixOS::USB::SetMode(USB_MODE_NORMAL);
