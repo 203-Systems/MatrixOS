@@ -1,10 +1,66 @@
 #include "MatrixOS.h"
 #include "KeyPad.h"
+#include "../Input/Input.h"
 #include <string>
 
 namespace MatrixOS::KeyPad
 {
 QueueHandle_t keyeventQueue;
+
+// Bridge: convert old KeyState to new KeypadState
+static KeypadState BridgeKeyState(KeyState state) {
+  switch (state)
+  {
+  case IDLE: return KeypadState::Idle;
+  case ACTIVATED: return KeypadState::Activated;
+  case PRESSED: return KeypadState::Pressed;
+  case HOLD: return KeypadState::Hold;
+  case AFTERTOUCH: return KeypadState::Aftertouch;
+  case RELEASED: return KeypadState::Released;
+  case DEBOUNCING: return KeypadState::Debouncing;
+  case RELEASE_DEBOUNCING: return KeypadState::ReleaseDebouncing;
+  default: return KeypadState::Idle;
+  }
+}
+
+// Bridge: decode old keyID into InputId
+// Old encoding: CCCC IIIIIIIIIIII (C=class 4 bits, I=index 12 bits)
+// Class 0 = System → clusterId 0
+// Class 1 = Grid (XXXXXX YYYYYY) → clusterId 1, localIndex = x * Y_SIZE + y
+// Class 2 = TouchBar → clusterId 2, localIndex = raw index
+static InputId BridgeKeyId(uint16_t keyID) {
+  uint8_t keyClass = keyID >> 12;
+  switch (keyClass)
+  {
+  case 0: // System
+    return InputId{0, static_cast<uint16_t>(keyID & 0x0FFF)};
+  case 1: // Grid
+  {
+    uint16_t x = (keyID >> 6) & 0x3F;
+    uint16_t y = keyID & 0x3F;
+    return InputId{1, static_cast<uint16_t>(y * Device::xSize + x)};
+  }
+  case 2: // TouchBar
+    return InputId{2, static_cast<uint16_t>(keyID & 0x0FFF)};
+  default:
+    return InputId{static_cast<uint8_t>(keyClass), static_cast<uint16_t>(keyID & 0x0FFF)};
+  }
+}
+
+// Bridge: forward KeyEvent as InputEvent to the new input system
+IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
+  InputEvent inputEvent;
+  inputEvent.id = BridgeKeyId(keyevent->id);
+  inputEvent.inputClass = InputClass::Keypad;
+  inputEvent.keypad.lastEventTime = keyevent->info.lastEventTime;
+  inputEvent.keypad.pressure = keyevent->info.Force();
+  inputEvent.keypad.velocity = keyevent->info.Value(1);
+  inputEvent.keypad.state = BridgeKeyState(keyevent->info.State());
+  inputEvent.keypad.hold = keyevent->info.Hold() ? 1 : 0;
+  inputEvent.keypad.cleared = keyevent->info.cleared ? 1 : 0;
+  inputEvent.keypad.reserved = 0;
+  MatrixOS::Input::NewEvent(inputEvent);
+}
 
 void Init() {
   if (!keyeventQueue)
@@ -18,6 +74,8 @@ void Init() {
 }
 
 IRAM_ATTR bool NewEvent(KeyEvent* keyevent) {
+  // Bridge to new input system
+  BridgeToInput(keyevent);
 
   if (uxQueueSpacesAvailable(keyeventQueue) == 0)
   {

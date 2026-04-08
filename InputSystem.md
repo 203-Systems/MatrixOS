@@ -390,7 +390,7 @@ Explicitly not in scope right now:
 - [x] Implement `GetInputsAt()` / `GetInputAt()` / `TryGetPoint()`
 
 ### Phase 2: Device Bridge
-- [ ] Build the new `InputEvent` reporting path between device drivers and `OS`
+- [x] Build the new `InputEvent` reporting path between device drivers and `OS`
 - [ ] Register cluster descriptions for existing devices
 - [ ] Implement cluster coordinate mapping for existing devices
 - [ ] Move input coordinate rotation logic from `OS` into the device layer

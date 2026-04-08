@@ -6,6 +6,7 @@
 #include "../USB/USB.h"
 #include "../LED/LED.h"
 #include "../KeyPad/KeyPad.h"
+#include "../Input/Input.h"
 #include "../FileSystem/File.h"
 #include "../FileSystem/FileSystem.h"
 #include "../MIDI/MIDI.h"
@@ -164,6 +165,7 @@ void Begin(void) {
 }
 
 void InitSysModules(void) {
+  MatrixOS::Input::Init();
   MatrixOS::KeyPad::Init();
   MatrixOS::LED::Init();
 #if DEVICE_STORAGE
