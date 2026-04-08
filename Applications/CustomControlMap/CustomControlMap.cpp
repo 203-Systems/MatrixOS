@@ -31,7 +31,7 @@ void CustomControlMap::LoadUADfromNVS() {
   uadData = (uint8_t*)pvPortMalloc(new_uad_size);
   if (uadData == nullptr)
   {
-    MLOGE("CustomControlMap", "Failed to allocate memory for UAD");
+    MLOGE("CustomControlMap", "Failed to allocate memory for UAD (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
     return;
   }
 
@@ -54,8 +54,8 @@ void CustomControlMap::LoadUADfromNVS() {
   uadSize = new_uad_size;
 }
 
-void CustomControlMap::SaveUADtoNVS() {
-  MatrixOS::NVS::SetVariable(UAD_NVS_HASH, uadData, uadSize);
+bool CustomControlMap::SaveUADtoNVS() {
+  return MatrixOS::NVS::SetVariable(UAD_NVS_HASH, uadData, uadSize);
 }
 
 void CustomControlMap::HIDReportHandler() {
@@ -128,6 +128,7 @@ void CustomControlMap::PrepNewUAD(const uint8_t* report) {
 
   if (new_uad_size > MAX_UAD_SIZE)
   {
+    MLOGE("CustomControlMap", "UAD size exceeds limit (%d > %d)", new_uad_size, MAX_UAD_SIZE);
     SendError(report[0], 3); // UAD Size too large
     return;
   }
@@ -141,6 +142,7 @@ void CustomControlMap::PrepNewUAD(const uint8_t* report) {
   uadData = (uint8_t*)pvPortMalloc(new_uad_size);
   if (uadData == nullptr)
   {
+    MLOGE("CustomControlMap", "Failed to allocate memory for new UAD (%d bytes requested, %d bytes free)", new_uad_size, xPortGetFreeHeapSize());
     MatrixOS::SYS::ErrorHandler("Failed to allocate memory for new UAD");
     SendError(report[0], 4); // Failed to allocate memory for new UAD
     return;
@@ -194,7 +196,13 @@ void CustomControlMap::SaveUAD() {
     return;
   }
 
-  SaveUADtoNVS();
+  if (!SaveUADtoNVS())
+  {
+    MLOGE("CustomControlMap", "Failed to save UAD to NVS (%d bytes)", uadSize);
+    SendError(UAD_SAVE, 3); // Failed to save UAD to NVS
+    return;
+  }
+
   SendAck(UAD_SAVE | HID_RESPONSE);
 }
 

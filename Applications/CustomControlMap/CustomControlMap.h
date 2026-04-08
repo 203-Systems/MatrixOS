@@ -33,7 +33,7 @@ class CustomControlMap : public Application {
   void ActionMenu();
 
   void LoadUADfromNVS();
-  void SaveUADtoNVS();
+  bool SaveUADtoNVS();
 
   void HIDReportHandler();
 
