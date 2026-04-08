@@ -43,7 +43,10 @@ void DeviceInit() {
 }
 
 void RegisterInputClusters() {
-  // Cluster 0: System (FN button)
+  Direction rotation = MatrixOS::UserVar::rotation;
+  Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
+
+  // Cluster 0: System (FN button) — no coordinates, no rotation
   InputCluster fnCluster;
   fnCluster.clusterId = 0;
   fnCluster.name = "System";
@@ -63,9 +66,11 @@ void RegisterInputClusters() {
   gridCluster.rootPoint = Point(0, 0);
   gridCluster.dimension = Dimension(X_SIZE, Y_SIZE);
   gridCluster.inputCount = X_SIZE * Y_SIZE;
+  gridCluster.rotation = rotation;
+  gridCluster.rotationDimension = rotDim;
   MatrixOS::Input::RegisterCluster(gridCluster);
 
-  // Cluster 2: TouchBar Left (8 keys along left edge, x = -1)
+  // Cluster 2: TouchBar Left (8 keys along left edge, x = -1 in hardware space)
   InputCluster touchbarLeftCluster;
   touchbarLeftCluster.clusterId = 2;
   touchbarLeftCluster.name = "TouchBarLeft";
@@ -74,9 +79,11 @@ void RegisterInputClusters() {
   touchbarLeftCluster.rootPoint = Point(-1, 0);
   touchbarLeftCluster.dimension = Dimension(1, Y_SIZE);
   touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
+  touchbarLeftCluster.rotation = rotation;
+  touchbarLeftCluster.rotationDimension = rotDim;
   MatrixOS::Input::RegisterCluster(touchbarLeftCluster);
 
-  // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE)
+  // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE in hardware space)
   InputCluster touchbarRightCluster;
   touchbarRightCluster.clusterId = 3;
   touchbarRightCluster.name = "TouchBarRight";
@@ -85,11 +92,14 @@ void RegisterInputClusters() {
   touchbarRightCluster.rootPoint = Point(X_SIZE, 0);
   touchbarRightCluster.dimension = Dimension(1, Y_SIZE);
   touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
+  touchbarRightCluster.rotation = rotation;
+  touchbarRightCluster.rotationDimension = rotDim;
   MatrixOS::Input::RegisterCluster(touchbarRightCluster);
 }
 
 void DeviceStart() {
   RegisterInputClusters();
+  MatrixOS::Input::SetRotationCallback(RegisterInputClusters);
   Device::KeyPad::Start();
   Device::LED::Start();
 

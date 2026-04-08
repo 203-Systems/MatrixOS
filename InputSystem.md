@@ -393,7 +393,7 @@ Explicitly not in scope right now:
 - [x] Build the new `InputEvent` reporting path between device drivers and `OS`
 - [x] Register cluster descriptions for existing devices
 - [x] Implement cluster coordinate mapping for existing devices
-- [ ] Move input coordinate rotation logic from `OS` into the device layer
+- [x] Move input coordinate rotation logic from `OS` into the device layer
 - [ ] Implement capabilities query APIs for existing devices
 
 ### Phase 3: Compatibility Layer

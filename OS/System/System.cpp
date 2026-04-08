@@ -217,6 +217,9 @@ void Rotate(Direction newRotation, bool absolute) {
       LED::Fill(0, ledLayer);
     }
     UserVar::rotation = (Direction)((UserVar::rotation * !absolute + newRotation) % 360);
+
+    // Notify the input system so the device layer can update cluster rotation
+    Input::NotifyRotationChanged();
   }
 }
 

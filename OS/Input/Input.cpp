@@ -16,6 +16,9 @@ static std::unordered_map<uint32_t, InputSnapshot> stateCache;
 // Cluster registry
 static vector<InputCluster> clusters;
 
+// Rotation callback: device layer sets this to re-register clusters on rotation change
+static void (*rotationCallback)() = nullptr;
+
 static uint32_t PackId(InputId id) {
   return (static_cast<uint32_t>(id.clusterId) << 16) | id.localIndex;
 }
@@ -139,12 +142,20 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
     {
       continue;
     }
-    if (!cluster.Contains(xy))
+
+    // Reverse-rotate from visual space to hardware space
+    Point hwPoint = xy;
+    if (cluster.rotation != TOP)
+    {
+      hwPoint = xy.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
+    }
+
+    if (!cluster.Contains(hwPoint))
     {
       continue;
     }
 
-    Point local = xy - cluster.rootPoint;
+    Point local = hwPoint - cluster.rootPoint;
     uint16_t localIndex;
     if (cluster.shape == InputClusterShape::Grid2D)
     {
@@ -168,12 +179,24 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
 
 bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
   const InputCluster* cluster = GetCluster(clusterId);
-  if (!cluster || !cluster->HasCoordinates() || !cluster->Contains(xy))
+  if (!cluster || !cluster->HasCoordinates())
   {
     return false;
   }
 
-  Point local = xy - cluster->rootPoint;
+  // Reverse-rotate from visual space to hardware space
+  Point hwPoint = xy;
+  if (cluster->rotation != TOP)
+  {
+    hwPoint = xy.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y), true);
+  }
+
+  if (!cluster->Contains(hwPoint))
+  {
+    return false;
+  }
+
+  Point local = hwPoint - cluster->rootPoint;
   uint16_t localIndex;
   if (cluster->shape == InputClusterShape::Grid2D)
   {
@@ -209,27 +232,37 @@ bool TryGetPoint(InputId id, Point* xy) {
     return false;
   }
 
+  Point hwPoint;
   if (cluster->shape == InputClusterShape::Grid2D)
   {
     int16_t localX = id.localIndex % cluster->dimension.x;
     int16_t localY = id.localIndex / cluster->dimension.x;
-    *xy = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
-    return true;
+    hwPoint = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
   }
   else if (cluster->shape == InputClusterShape::Linear1D)
   {
     if (cluster->dimension.x > 1)
     {
-      *xy = Point(cluster->rootPoint.x + id.localIndex, cluster->rootPoint.y);
+      hwPoint = Point(cluster->rootPoint.x + id.localIndex, cluster->rootPoint.y);
     }
     else
     {
-      *xy = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.localIndex);
+      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.localIndex);
     }
-    return true;
+  }
+  else
+  {
+    return false;
   }
 
-  return false;
+  // Forward-rotate from hardware space to visual space
+  if (cluster->rotation != TOP)
+  {
+    hwPoint = hwPoint.Rotate(cluster->rotation, Point(cluster->rotationDimension.x, cluster->rotationDimension.y));
+  }
+
+  *xy = hwPoint;
+  return true;
 }
 
 void ClearQueue() {
@@ -242,6 +275,17 @@ void ClearQueue() {
 void ClearState() {
   stateCache.clear();
   ClearQueue();
+}
+
+void SetRotationCallback(void (*callback)()) {
+  rotationCallback = callback;
+}
+
+void NotifyRotationChanged() {
+  if (rotationCallback)
+  {
+    rotationCallback();
+  }
 }
 
 } // namespace MatrixOS::Input
