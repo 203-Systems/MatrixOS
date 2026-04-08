@@ -2,20 +2,23 @@
 
 namespace MatrixOS::SYS
 {
-    void Begin(void);
+void Begin(void);
 }
 
-int main()
-{
-    MatrixOS::SYS::Begin();
+int main() {
+  MatrixOS::SYS::Begin();
 
-    if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED) {
-        vTaskStartScheduler();
-        while(1);
-    } else {
-        // ESP32: Scheduler already running, delete this task
-        vTaskDelete(NULL);
-    }
+  if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)
+  {
+    vTaskStartScheduler();
+    while (1)
+      ;
+  }
+  else
+  {
+    // ESP32: Scheduler already running, delete this task
+    vTaskDelete(NULL);
+  }
 
-    return 0;
+  return 0;
 }

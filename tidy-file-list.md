@@ -199,8 +199,8 @@
 - Devices\Mystrix1\main.c - NOT FORMATTED
 - OS\MIDI\MIDI.h - FORMATTED
 - OS\MIDI\MIDI.cpp - FORMATTED
-- OS\MatrixOS.h - NOT FORMATTED
-- OS\main.cpp - NOT FORMATTED
+- OS\MatrixOS.h - FORMATTED
+- OS\main.cpp - FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\Firmware\mystrix2_mpe_driver.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\CoprocessorLinkTransport.cpp - NOT FORMATTED

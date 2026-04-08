@@ -374,7 +374,7 @@ void Update(uint8_t layer) {
   xSemaphoreGive(activeBufferSemaphore);
 }
 
-void Fade(uint16_t crossfade, Color* source_buffer) {
+void Fade(uint16_t crossfade, Color* sourceBuffer) {
   if (!UserVar::ui_animation)
   {
     return;
@@ -409,7 +409,7 @@ void Fade(uint16_t crossfade, Color* source_buffer) {
     crossfadeDestroySourceBuffer = true;
     xSemaphoreGive(activeBufferSemaphore);
   }
-  else if (source_buffer == nullptr)
+  else if (sourceBuffer == nullptr)
   {
     // Create a copy of the current buffer
     crossfadeSourceBuffer = (Color*)pvPortMalloc(ledCount * sizeof(Color));
@@ -425,7 +425,7 @@ void Fade(uint16_t crossfade, Color* source_buffer) {
   {
     // This is used in the case of creating a new layer
     // No New buffer is created, the source buffer is used directly
-    crossfadeSourceBuffer = source_buffer;
+    crossfadeSourceBuffer = sourceBuffer;
     crossfadeDestroySourceBuffer = false;
   }
 
