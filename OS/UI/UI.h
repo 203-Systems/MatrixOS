@@ -13,7 +13,7 @@
 #define UI_DEFAULT_MAX_FPS 100
 
 class UI {
- public:
+public:
   string name;
   Color nameColor;
 
@@ -47,7 +47,7 @@ class UI {
 
   static void ExitAllUIs();
 
- private:
+private:
   int8_t status = 0;
 
   bool newLEDLayer = true;
@@ -80,12 +80,11 @@ class UI {
 
   void GetKey();
 
-  virtual bool CustomKeyEvent(KeyEvent* keyEvent) { 
+  virtual bool CustomKeyEvent(KeyEvent* keyEvent) {
     if (key_event_handler)
       return (*key_event_handler)(keyEvent);
-    return false; 
-  };  // Return true to skip UIKeyEvent
-
+    return false;
+  }; // Return true to skip UIKeyEvent
 
   void RenderUI();
   void UIEnd();

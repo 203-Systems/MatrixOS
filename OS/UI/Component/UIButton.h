@@ -3,7 +3,7 @@
 #include "../UIUtilities.h"
 
 class UIButton : public UIComponent {
- public:
+public:
   string name;
   Color color = Color(0);
   std::unique_ptr<std::function<void()>> pressCallback;
@@ -19,24 +19,34 @@ class UIButton : public UIComponent {
     this->holdCallback = nullptr;
     this->colorFunc = nullptr;
   }
-  
-  virtual string GetName() { return name; }
-  void SetName(string name) { this->name = name; }
 
-  virtual Color GetColor() { 
+  virtual string GetName() {
+    return name;
+  }
+  void SetName(string name) {
+    this->name = name;
+  }
+
+  virtual Color GetColor() {
     if (colorFunc)
     {
       return (*colorFunc)();
     }
     return color;
   }
-  void SetColor(Color color) { this->color = color; }
+  void SetColor(Color color) {
+    this->color = color;
+  }
   void SetColorFunc(std::function<Color()> colorFunc) {
     this->colorFunc = std::make_unique<std::function<Color()>>(colorFunc);
   }
 
-  virtual Dimension GetSize() { return dimension; }
-  void SetSize(Dimension dimension) { this->dimension = dimension; }
+  virtual Dimension GetSize() {
+    return dimension;
+  }
+  void SetSize(Dimension dimension) {
+    this->dimension = dimension;
+  }
 
   virtual bool PressCallback() {
     if (pressCallback)
@@ -47,7 +57,9 @@ class UIButton : public UIComponent {
     return false;
   }
 
-  void OnPress(std::function<void()> pressCallback) { this->pressCallback = std::make_unique<std::function<void()>>(pressCallback); }
+  void OnPress(std::function<void()> pressCallback) {
+    this->pressCallback = std::make_unique<std::function<void()>>(pressCallback);
+  }
 
   virtual bool HoldCallback() {
     if (holdCallback)
@@ -57,8 +69,9 @@ class UIButton : public UIComponent {
     }
     return false;
   }
-  void OnHold(std::function<void()> holdCallback) { this->holdCallback = std::make_unique<std::function<void()>>(holdCallback); }
-
+  void OnHold(std::function<void()> holdCallback) {
+    this->holdCallback = std::make_unique<std::function<void()>>(holdCallback);
+  }
 
   virtual bool Render(Point origin) {
     Dimension dimension = GetSize();
@@ -90,7 +103,7 @@ class UIButton : public UIComponent {
         MatrixOS::KeyPad::Clear();
         return true;
       }
-      else if(!GetName().empty())
+      else if (!GetName().empty())
       {
         MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
         return true;
@@ -99,5 +112,5 @@ class UIButton : public UIComponent {
     return false;
   }
 
-  virtual ~UIButton(){};
+  virtual ~UIButton() {};
 };

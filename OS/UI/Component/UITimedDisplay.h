@@ -2,9 +2,8 @@
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
-
 class UITimedDisplay : public UIComponent {
- public:
+public:
   uint32_t lastEnabledTime = 0;
   uint32_t enableLength;
   bool disableOnTap = true;
@@ -25,66 +24,66 @@ class UITimedDisplay : public UIComponent {
     this->dimension = dimension;
   }
 
-  virtual Dimension GetSize() { return dimension; }
+  virtual Dimension GetSize() {
+    return dimension;
+  }
 
   bool IsEnabled() {
     uint32_t currentTime = (uint32_t)MatrixOS::SYS::Millis();
-    if (enableFunc) {
+    if (enableFunc)
+    {
       enabled = (*enableFunc)();
     }
 
     // If already timed out, force disabled
-    if(enabled && lastEnabledTime == UINT32_MAX)
+    if (enabled && lastEnabledTime == UINT32_MAX)
     {
       enabled = false;
       return enabled;
     }
 
     // Detect rising edge: lastEnabledTime == 0 means was disabled, now enabled
-    if(enabled && lastEnabledTime == 0)
+    if (enabled && lastEnabledTime == 0)
     {
       lastEnabledTime = currentTime;
       return enabled;
     }
 
     // If disabled externally, reset timer
-    if(!enabled)
+    if (!enabled)
     {
       lastEnabledTime = 0;
       return enabled;
     }
 
     // Check timeout - only if we have a valid start time
-    if(currentTime - lastEnabledTime > enableLength)
+    if (currentTime - lastEnabledTime > enableLength)
     {
-      lastEnabledTime = UINT32_MAX;  // Mark as timed out (not 0 to avoid re-triggering)
-      enabled = false;  // Override to disabled due to timeout
+      lastEnabledTime = UINT32_MAX; // Mark as timed out (not 0 to avoid re-triggering)
+      enabled = false;              // Override to disabled due to timeout
     }
 
     return enabled;
   }
 
-  void Enable()
-  {
+  void Enable() {
     lastEnabledTime = 0;
     enabled = true;
   }
 
-  void Disable()
-  {
+  void Disable() {
     lastEnabledTime = UINT32_MAX;
     enabled = false;
   }
 
-  void SetDisableOnTap(bool disableOnTap)
-  {
+  void SetDisableOnTap(bool disableOnTap) {
     this->disableOnTap = disableOnTap;
   }
 
   virtual bool Render(Point origin) {
-    for(int8_t y = 0; y < dimension.y; y++)
+    for (int8_t y = 0; y < dimension.y; y++)
     {
-      for(int8_t x = 0; x < dimension.x; x++)
+      for (int8_t x = 0; x < dimension.x; x++)
       {
         MatrixOS::LED::SetColor(origin + Point(x, y), Color(0));
       }
@@ -99,10 +98,10 @@ class UITimedDisplay : public UIComponent {
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
-    if(keyInfo->State() == PRESSED && disableOnTap)
+    if (keyInfo->State() == PRESSED && disableOnTap)
     {
       Disable();
     }
-    return true;// Block keypress
+    return true; // Block keypress
   }
 };

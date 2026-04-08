@@ -39,7 +39,7 @@ void UI::Start() {
     current_layer = MatrixOS::LED::CurrentLayer();
     MatrixOS::LED::Fade();
   }
-  
+
   MatrixOS::KeyPad::Clear();
   Setup();
   while (status >= 0)
@@ -54,7 +54,7 @@ void UI::Start() {
 }
 
 void UI::Exit() {
-  if(status != INT8_MIN)
+  if (status != INT8_MIN)
   {
     status = -1;
   }
@@ -72,7 +72,10 @@ void UI::RenderUI() {
     PreRender();
     for (auto const& uiComponentPair : uiComponents)
     {
-      if (uiComponentPair.second->IsEnabled() == false) { continue; }
+      if (uiComponentPair.second->IsEnabled() == false)
+      {
+        continue;
+      }
       Point xy = uiComponentPair.first;
       UIComponent* uiComponent = uiComponentPair.second;
       uiComponent->Render(xy);
@@ -86,7 +89,7 @@ void UI::GetKey() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
   {
-    if (!CustomKeyEvent(&keyEvent)) //Run Custom Key Event first. Check if UI event is blocked
+    if (!CustomKeyEvent(&keyEvent)) // Run Custom Key Event first. Check if UI event is blocked
     {
       UIKeyEvent(&keyEvent);
     }
@@ -110,15 +113,26 @@ void UI::UIKeyEvent(KeyEvent* keyEvent) {
     bool hasAction = false;
     for (auto it = uiComponents.rbegin(); it != uiComponents.rend(); ++it)
     {
-      if (it->second->IsEnabled() == false) { continue; }
-      Point relative_xy = xy - it->first;
+      if (it->second->IsEnabled() == false)
+      {
+        continue;
+      }
+      Point relativeXy = xy - it->first;
       UIComponent* uiComponent = it->second;
-      if (uiComponent->GetSize().Contains(relative_xy))  // Key Found
-      { hasAction |= uiComponent->KeyEvent(relative_xy, &keyEvent->info); }
-      if (hasAction) { break; }
+      if (uiComponent->GetSize().Contains(relativeXy)) // Key Found
+      {
+        hasAction |= uiComponent->KeyEvent(relativeXy, &keyEvent->info);
+      }
+      if (hasAction)
+      {
+        break;
+      }
     }
-    if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD && Dimension(Device::x_size, Device::y_size).Contains(xy))
-    { MatrixOS::UIUtility::TextScroll(this->name, this->nameColor); }
+    if (this->name.empty() == false && hasAction == false && keyEvent->info.state == HOLD &&
+        Dimension(Device::x_size, Device::y_size).Contains(xy))
+    {
+      MatrixOS::UIUtility::TextScroll(this->name, this->nameColor);
+    }
   }
 }
 
@@ -154,7 +168,7 @@ void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
   UI::post_render_func = std::make_unique<std::function<void()>>(post_render_func);
 }
 
-void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler){
+void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler) {
   UI::key_event_handler = std::make_unique<std::function<bool(KeyEvent*)>>(key_event_handler);
 }
 
@@ -164,7 +178,10 @@ void UI::ClearUIComponents() {
 
 void UI::UIEnd() {
   // Check if UI is already exited
-  if(status == INT8_MIN) { return; }
+  if (status == INT8_MIN)
+  {
+    return;
+  }
 
   End();
   MLOGD("UI", "UI %s Exited", name.c_str());
@@ -173,8 +190,9 @@ void UI::UIEnd() {
   uiComponents.clear();
 
   if (newLEDLayer)
-  { 
-    MatrixOS::LED::DestroyLayer(); }
+  {
+    MatrixOS::LED::DestroyLayer();
+  }
   else
   {
     MatrixOS::LED::Fade();
@@ -183,8 +201,7 @@ void UI::UIEnd() {
   status = INT8_MIN;
 }
 
-void UI::SetFPS(uint16_t fps)
-{
+void UI::SetFPS(uint16_t fps) {
   if (fps == 0)
   {
     uiUpdateMS = UINT32_MAX;
@@ -203,24 +220,27 @@ void UI::RegisterUI(UI* ui) {
 void UI::UnregisterUI(UI* ui) {
   MLOGD("UI", "Unregister UI %s", ui->name.c_str());
   auto it = std::find(UI::uiList.begin(), UI::uiList.end(), ui);
-  if (it != UI::uiList.end()) {
+  if (it != UI::uiList.end())
+  {
     (*it)->ClearUIComponents();
     UI::uiList.erase(it);
   }
 }
 
 void UI::GlobalLoops() {
-  for (UI* ui : uiList) {
+  for (UI* ui : uiList)
+  {
     ui->GlobalLoop();
   }
 }
 
 void UI::ExitAllUIs() {
   auto uiListCopy = UI::uiList;
-  
+
   for (auto it = uiListCopy.rbegin(); it != uiListCopy.rend(); ++it)
   {
-    if (*it != nullptr) {
+    if (*it != nullptr)
+    {
       (*it)->status = INT8_MIN;
       (*it)->uiComponents.clear();
     }

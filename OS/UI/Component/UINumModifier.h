@@ -6,7 +6,7 @@
 
 // TODO add negative support?
 class UINumberModifier : public UIComponent {
- public:
+public:
   Color color;
   uint8_t length;
   int32_t* valuePtr;
@@ -27,47 +27,74 @@ class UINumberModifier : public UIComponent {
     this->changeCallback = nullptr;
   }
 
-  virtual Dimension GetSize() { return Dimension(length, 1); }
-  virtual Color GetColor() { return color; }
+  virtual Dimension GetSize() {
+    return Dimension(length, 1);
+  }
+  virtual Color GetColor() {
+    return color;
+  }
 
-  void SetColor(Color color) { this->color = color; }
-  void SetLength(uint8_t length) { this->length = length; }
-  void SetValuePointer(int32_t* valuePtr) { this->valuePtr = valuePtr; }
-  void SetModifiers(const int32_t* modifiers) { this->modifiers = modifiers; }
-  void SetControlGradient(const uint8_t* controlGradient) { this->controlGradient = controlGradient; }
-  void SetLowerLimit(int32_t lowerLimit) { this->lowerLimit = lowerLimit; }
-  void SetUpperLimit(int32_t upperLimit) { this->upperLimit = upperLimit; }
+  void SetColor(Color color) {
+    this->color = color;
+  }
+  void SetLength(uint8_t length) {
+    this->length = length;
+  }
+  void SetValuePointer(int32_t* valuePtr) {
+    this->valuePtr = valuePtr;
+  }
+  void SetModifiers(const int32_t* modifiers) {
+    this->modifiers = modifiers;
+  }
+  void SetControlGradient(const uint8_t* controlGradient) {
+    this->controlGradient = controlGradient;
+  }
+  void SetLowerLimit(int32_t lowerLimit) {
+    this->lowerLimit = lowerLimit;
+  }
+  void SetUpperLimit(int32_t upperLimit) {
+    this->upperLimit = upperLimit;
+  }
 
-  void OnChange(std::function<void(int32_t)> changeCallback) { this->changeCallback = std::make_unique<std::function<void(int32_t)>>(changeCallback); }
+  void OnChange(std::function<void(int32_t)> changeCallback) {
+    this->changeCallback = std::make_unique<std::function<void(int32_t)>>(changeCallback);
+  }
 
   virtual void OnChangeCallback(int32_t value) {
-    if (changeCallback != nullptr) {
+    if (changeCallback != nullptr)
+    {
       (*changeCallback)(value);
     }
   }
 
   virtual bool Render(Point origin) {
     for (uint8_t i = 0; i < length; i++)
-    { MatrixOS::LED::SetColor(origin + Point(i, 0), color.Scale(controlGradient[i])); }
+    {
+      MatrixOS::LED::SetColor(origin + Point(i, 0), color.Scale(controlGradient[i]));
+    }
     return true;
   }
 
   virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if (keyInfo->State() == PRESSED)
     {
-      int64_t new_value = *valuePtr;
-      new_value += modifiers[xy.x];
-      if (new_value > upperLimit)
-      { new_value = upperLimit; }
-      else if (new_value < lowerLimit)
-      { new_value = lowerLimit; }
+      int64_t newValue = *valuePtr;
+      newValue += modifiers[xy.x];
+      if (newValue > upperLimit)
+      {
+        newValue = upperLimit;
+      }
+      else if (newValue < lowerLimit)
+      {
+        newValue = lowerLimit;
+      }
 
-      int32_t final_value = (int32_t)new_value;
-      *valuePtr = final_value;
+      int32_t finalValue = (int32_t)newValue;
+      *valuePtr = finalValue;
 
       // Trigger the callback if set
-      OnChangeCallback(final_value);
+      OnChangeCallback(finalValue);
     }
-    return true;  // Prevent leak though to cause UI text scroll
+    return true; // Prevent leak though to cause UI text scroll
   }
 };

@@ -2,17 +2,22 @@
 #include "../UIUtilities.h"
 
 class UIToggle : public UIButton {
- public:
+public:
   bool* valuePtr;
 
   UIToggle() {}
 
-  void SetValuePointer(bool* valuePtr) { this->valuePtr = valuePtr; }
+  void SetValuePointer(bool* valuePtr) {
+    this->valuePtr = valuePtr;
+  }
 
-  string GetName() override { return name + " " + (*valuePtr ? "On" : "Off"); }
+  string GetName() override {
+    return name + " " + (*valuePtr ? "On" : "Off");
+  }
 
   Color GetColor() override {
-    if (colorFunc) {
+    if (colorFunc)
+    {
       return (*colorFunc)();
     }
     return color.DimIfNot(*valuePtr);
@@ -20,7 +25,8 @@ class UIToggle : public UIButton {
 
   bool PressCallback() override {
     *valuePtr = !*valuePtr;
-    if (pressCallback) {
+    if (pressCallback)
+    {
       (*pressCallback)();
       return true;
     }
