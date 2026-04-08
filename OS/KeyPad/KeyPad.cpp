@@ -10,7 +10,7 @@ QueueHandle_t keyeventQueue;
 // Bridge: decode old keyID into InputId
 // Old encoding: CCCC IIIIIIIIIIII (C=class 4 bits, I=index 12 bits)
 // Class 0 = System → clusterId 0
-// Class 1 = Grid (XXXXXX YYYYYY) → clusterId 1, localIndex = y * xSize + x
+// Class 1 = Grid (XXXXXX YYYYYY) → clusterId 1, memberId = y * xSize + x
 // Class 2 = TouchBar → cluster 2 (left 0-7) or cluster 3 (right 8-15)
 static InputId BridgeKeyId(uint16_t keyID) {
   uint8_t keyClass = keyID >> 12;

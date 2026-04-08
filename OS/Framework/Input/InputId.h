@@ -5,13 +5,13 @@
 
 struct InputId {
   uint8_t clusterId;
-  uint16_t localIndex;
+  uint16_t memberId;
 
   static constexpr uint8_t invalidClusterId = UINT8_MAX;
-  static constexpr uint16_t invalidLocalIndex = UINT16_MAX;
+  static constexpr uint16_t invalidMemberId = UINT16_MAX;
 
   static constexpr InputId Invalid() {
-    return InputId{invalidClusterId, invalidLocalIndex};
+    return InputId{invalidClusterId, invalidMemberId};
   }
 
   // The system function key (maps to old FUNCTION_KEY = 0)
@@ -20,11 +20,11 @@ struct InputId {
   }
 
   bool IsFunctionKey() const {
-    return clusterId == 0 && localIndex == 0;
+    return clusterId == 0 && memberId == 0;
   }
 
   bool operator==(const InputId& target) const {
-    return clusterId == target.clusterId && localIndex == target.localIndex;
+    return clusterId == target.clusterId && memberId == target.memberId;
   }
 
   bool operator!=(const InputId& target) const {

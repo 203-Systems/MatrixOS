@@ -10,7 +10,7 @@ namespace MatrixOS::Input
 QueueHandle_t inputEventQueue = nullptr;
 
 // State cache: maps packed InputId -> latest snapshot
-// Packed key = (clusterId << 16) | localIndex
+// Packed key = (clusterId << 16) | memberId
 static std::unordered_map<uint32_t, InputSnapshot> stateCache;
 
 // Cluster registry
@@ -23,7 +23,7 @@ static void (*rotationCallback)() = nullptr;
 static std::unordered_map<uint8_t, KeypadCapabilities> keypadCapsMap;
 
 static uint32_t PackId(InputId id) {
-  return (static_cast<uint32_t>(id.clusterId) << 16) | id.localIndex;
+  return (static_cast<uint32_t>(id.clusterId) << 16) | id.memberId;
 }
 
 void Init() {
@@ -159,23 +159,23 @@ void GetInputsAt(Point xy, vector<InputId>* ids) {
     }
 
     Point local = hwPoint - cluster.rootPoint;
-    uint16_t localIndex;
+    uint16_t memberId;
     if (cluster.shape == InputClusterShape::Grid2D)
     {
-      localIndex = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
+      memberId = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
     }
     else if (cluster.shape == InputClusterShape::Linear1D)
     {
-      localIndex = (cluster.dimension.x > 1) ? local.x : local.y;
+      memberId = (cluster.dimension.x > 1) ? local.x : local.y;
     }
     else
     {
       continue;
     }
 
-    if (localIndex < cluster.inputCount)
+    if (memberId < cluster.inputCount)
     {
-      ids->push_back(InputId{cluster.clusterId, localIndex});
+      ids->push_back(InputId{cluster.clusterId, memberId});
     }
   }
 }
@@ -200,26 +200,26 @@ bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
   }
 
   Point local = hwPoint - cluster->rootPoint;
-  uint16_t localIndex;
+  uint16_t memberId;
   if (cluster->shape == InputClusterShape::Grid2D)
   {
-    localIndex = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
+    memberId = static_cast<uint16_t>(local.y) * cluster->dimension.x + local.x;
   }
   else if (cluster->shape == InputClusterShape::Linear1D)
   {
-    localIndex = (cluster->dimension.x > 1) ? local.x : local.y;
+    memberId = (cluster->dimension.x > 1) ? local.x : local.y;
   }
   else
   {
     return false;
   }
 
-  if (localIndex >= cluster->inputCount)
+  if (memberId >= cluster->inputCount)
   {
     return false;
   }
 
-  *id = InputId{clusterId, localIndex};
+  *id = InputId{clusterId, memberId};
   return true;
 }
 
@@ -230,7 +230,7 @@ bool TryGetPoint(InputId id, Point* xy) {
     return false;
   }
 
-  if (id.localIndex >= cluster->inputCount)
+  if (id.memberId >= cluster->inputCount)
   {
     return false;
   }
@@ -238,19 +238,19 @@ bool TryGetPoint(InputId id, Point* xy) {
   Point hwPoint;
   if (cluster->shape == InputClusterShape::Grid2D)
   {
-    int16_t localX = id.localIndex % cluster->dimension.x;
-    int16_t localY = id.localIndex / cluster->dimension.x;
+    int16_t localX = id.memberId % cluster->dimension.x;
+    int16_t localY = id.memberId / cluster->dimension.x;
     hwPoint = Point(cluster->rootPoint.x + localX, cluster->rootPoint.y + localY);
   }
   else if (cluster->shape == InputClusterShape::Linear1D)
   {
     if (cluster->dimension.x > 1)
     {
-      hwPoint = Point(cluster->rootPoint.x + id.localIndex, cluster->rootPoint.y);
+      hwPoint = Point(cluster->rootPoint.x + id.memberId, cluster->rootPoint.y);
     }
     else
     {
-      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.localIndex);
+      hwPoint = Point(cluster->rootPoint.x, cluster->rootPoint.y + id.memberId);
     }
   }
   else
