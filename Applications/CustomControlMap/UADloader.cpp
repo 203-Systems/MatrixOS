@@ -99,7 +99,7 @@ bool UADRuntime::CreateActionLUT(cb0r_t actionMatrix, uint16_t*** lut, Dimension
   cb0r_s y_array = x_bitmap;
   for (uint8_t x = 0; x < lutSize.x; x++)
   {
-    (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t*));
+    (*lut)[x] = (uint16_t*)pvPortMalloc(lutSize.y * sizeof(uint16_t));
 
     for (uint8_t y = 0; y < lutSize.y; y++)
     {
