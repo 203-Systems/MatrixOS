@@ -252,8 +252,8 @@
 - Devices\Mystrix1\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
-- OS\Framework\Utils\Utilts.h - NOT FORMATTED
-- OS\Framework\Utils\Hash.h - NOT FORMATTED
+- OS\Framework\Utils\Utilts.h - FORMATTED
+- OS\Framework\Utils\Hash.h - FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
@@ -266,32 +266,32 @@
 - Devices\Mystrix2\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.h - NOT FORMATTED
 - Devices\Mystrix2\Applications\ForceCalibration\ForceCalibration.cpp - NOT FORMATTED
-- OS\Framework\Midi\MidiSpecs.h - NOT FORMATTED
-- OS\Framework\Midi\MidiPort.h - NOT FORMATTED
-- OS\Framework\Midi\MidiPort.cpp - NOT FORMATTED
-- OS\Framework\Midi\MidiPacket.h - NOT FORMATTED
-- OS\Framework\Color\ColorEffects.h - NOT FORMATTED
-- OS\Framework\Midi\MidiPacket.cpp - NOT FORMATTED
-- OS\Framework\Color\ColorEffects.cpp - NOT FORMATTED
-- OS\Framework\Color\Color.h - NOT FORMATTED
-- OS\Framework\Color\Color.cpp - NOT FORMATTED
-- OS\Framework\Framework.h - NOT FORMATTED
-- OS\Framework\Commands\CommandSpecs.h - NOT FORMATTED
-- OS\Framework\Types\Fract16.h - NOT FORMATTED
-- OS\Framework\Types\LEDPartition.h - NOT FORMATTED
-- OS\Framework\Types\Types.h - NOT FORMATTED
-- OS\Framework\Logging\LogLevel.h - NOT FORMATTED
-- OS\Framework\Storage\SavedVar.h - NOT FORMATTED
+- OS\Framework\Midi\MidiSpecs.h - FORMATTED
+- OS\Framework\Midi\MidiPort.h - FORMATTED
+- OS\Framework\Midi\MidiPort.cpp - FORMATTED
+- OS\Framework\Midi\MidiPacket.h - FORMATTED
+- OS\Framework\Color\ColorEffects.h - FORMATTED
+- OS\Framework\Midi\MidiPacket.cpp - FORMATTED
+- OS\Framework\Color\ColorEffects.cpp - FORMATTED
+- OS\Framework\Color\Color.h - FORMATTED
+- OS\Framework\Color\Color.cpp - FORMATTED
+- OS\Framework\Framework.h - FORMATTED
+- OS\Framework\Commands\CommandSpecs.h - FORMATTED
+- OS\Framework\Types\Fract16.h - FORMATTED
+- OS\Framework\Types\LEDPartition.h - FORMATTED
+- OS\Framework\Types\Types.h - FORMATTED
+- OS\Framework\Logging\LogLevel.h - FORMATTED
+- OS\Framework\Storage\SavedVar.h - FORMATTED
 - OS\FileSystem\File.h - FORMATTED
 - OS\FileSystem\File.cpp - FORMATTED
 - OS\FileSystem\FileSystem.h - FORMATTED
 - OS\FileSystem\FileSystem.cpp - FORMATTED
-- OS\Framework\Geometry\Direction.h - NOT FORMATTED
-- OS\Framework\Geometry\Dimension.h - NOT FORMATTED
-- OS\Framework\Geometry\Point.h - NOT FORMATTED
-- OS\Framework\Timer\Timer.h - NOT FORMATTED
-- OS\Framework\Timer\Timer.cpp - NOT FORMATTED
-- OS\Framework\KeyEvent\KeyEvent.h - NOT FORMATTED
-- OS\Framework\KeyEvent\KeyConfig.h - NOT FORMATTED
-- OS\Framework\KeyEvent\KeyInfo.cpp - NOT FORMATTED
-- OS\Framework\KeyEvent\KeyInfo.h - NOT FORMATTED
+- OS\Framework\Geometry\Direction.h - FORMATTED
+- OS\Framework\Geometry\Dimension.h - FORMATTED
+- OS\Framework\Geometry\Point.h - FORMATTED
+- OS\Framework\Timer\Timer.h - FORMATTED
+- OS\Framework\Timer\Timer.cpp - FORMATTED
+- OS\Framework\KeyEvent\KeyEvent.h - FORMATTED
+- OS\Framework\KeyEvent\KeyConfig.h - FORMATTED
+- OS\Framework\KeyEvent\KeyInfo.cpp - FORMATTED
+- OS\Framework\KeyEvent\KeyInfo.h - FORMATTED

@@ -208,13 +208,13 @@ namespace WS2812
         uint16_t data_index_b = data_index_g + 2;
         uint16_t data_index_w = data_index_g + 3;
 
-        led_data[data_index_g] = Color::scale8_video(buffer[buffer_index].G, local_brightness);
-        led_data[data_index_r] = Color::scale8_video(buffer[buffer_index].R, local_brightness);
-        led_data[data_index_b] = Color::scale8_video(buffer[buffer_index].B, local_brightness);
+        led_data[data_index_g] = Color::Scale8Video(buffer[buffer_index].G, local_brightness);
+        led_data[data_index_r] = Color::Scale8Video(buffer[buffer_index].R, local_brightness);
+        led_data[data_index_b] = Color::Scale8Video(buffer[buffer_index].B, local_brightness);
 
         if (byte_per_pixel == 4)
         {
-          led_data[data_index_w] = Color::scale8_video(buffer[buffer_index].W, local_brightness);
+          led_data[data_index_w] = Color::Scale8Video(buffer[buffer_index].W, local_brightness);
         }
 
         if(dithering && dither_error != NULL) {

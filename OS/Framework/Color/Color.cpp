@@ -2,13 +2,19 @@
 #include <cmath>
 #include <algorithm>
 
-float fract(float x) { return x - int(x); }
+float fract(float x) {
+  return x - int(x);
+}
 
-float mix(float a, float b, float t) { return a + (b - a) * t; }
+float mix(float a, float b, float t) {
+  return a + (b - a) * t;
+}
 
-float step(float e, float x) { return x < e ? 0.0 : 1.0; }
+float step(float e, float x) {
+  return x < e ? 0.0 : 1.0;
+}
 
-#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
 
 Color::Color() {
   W = 0;
@@ -33,38 +39,43 @@ Color::Color(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nW) {
 
 uint32_t Color::RGB(uint8_t brightness) const {
   if (brightness != 255)
-    return (scale8_video(R, brightness) << 16) | (scale8_video(G, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
+    return (Scale8Video(R, brightness) << 16) | (Scale8Video(G, brightness) << 8) |
+           Scale8Video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (R << 16) | (G << 8) | B;
 }
 
 uint32_t Color::GRB(uint8_t brightness) const {
   if (brightness != 255)
-    return (scale8_video(G, brightness) << 16) | (scale8_video(R, brightness) << 8) | scale8_video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
+    return (Scale8Video(G, brightness) << 16) | (Scale8Video(R, brightness) << 8) |
+           Scale8Video(B, brightness); // Use scale_video to ensure it doesn't get completely removed
   return (G << 16) | (R << 8) | B;
 }
 
 Color Color::Scale(uint8_t brightness) const {
-  return Color(scale8_video(R, brightness), scale8_video(G, brightness), scale8_video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
+  return Color(Scale8Video(R, brightness), Scale8Video(G, brightness),
+               Scale8Video(B, brightness)); // Use scale_video to ensure it doesn't get completely removed
 }
 Color Color::Dim(uint8_t scale) const {
-  return Scale(scale); 
+  return Scale(scale);
 }
 
-Color Color::DimIfNot(bool not_dim, uint8_t scale) const {
-  if (!not_dim)
-  { return Scale(scale); }
+Color Color::DimIfNot(bool notDim, uint8_t scale) const {
+  if (!notDim)
+  {
+    return Scale(scale);
+  }
   return Color(R, G, B, W);
 }
 
 Color Color::Gamma() const {
-  return Color(led_gamma[R], led_gamma[G], led_gamma[B]);
+  return Color(LED_GAMMA[R], LED_GAMMA[G], LED_GAMMA[B]);
 }
 
-uint8_t Color::scale8(uint8_t i, uint8_t scale) {
+uint8_t Color::Scale8(uint8_t i, uint8_t scale) {
   return ((uint16_t)i * (uint16_t)scale) >> 8;
 }
 
-uint8_t Color::scale8_video(uint8_t i, uint8_t scale) {
+uint8_t Color::Scale8Video(uint8_t i, uint8_t scale) {
   return (((uint16_t)i * (uint16_t)scale) >> 8) + ((i && scale) ? 1 : 0);
 }
 
@@ -75,8 +86,7 @@ Color Color::HsvToRgb(float h, float s, float v) {
   return Color(r, g, b);
 }
 
-void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
-{
+void Color::RgbToHsv(Color rgb, float* h, float* s, float* v) {
   float r = rgb.R / 255.0;
   float g = rgb.G / 255.0;
   float b = rgb.B / 255.0;
@@ -101,7 +111,7 @@ void Color::RgbToHsv(Color rgb, float* h, float* s, float* v)
     *h = 2 + (b - r) / delta; // between cyan & yellow
   else
     *h = 4 + (r - g) / delta; // between magenta & cyan
-  *h *= 1.0/6; // degrees
+  *h *= 1.0 / 6;              // degrees
   if (*h < 0)
     *h += 1.0;
 }

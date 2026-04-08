@@ -29,8 +29,8 @@ enum EMidiStatus : uint8_t {
 
 // Port number can be any of the following class + 0~0xFF
 enum EMidiPortID : uint16_t {
-  MIDI_PORT_EACH_CLASS = 0x0,  // This is the default midi out mode, it will send midi from first of all output type
-  MIDI_PORT_ALL = 0x01, // Send to all ports
+  MIDI_PORT_EACH_CLASS = 0x0, // This is the default midi out mode, it will send midi from first of all output type
+  MIDI_PORT_ALL = 0x01,       // Send to all ports
   MIDI_PORT_USB = 0x100,
   MIDI_PORT_PHYSICAL = 0x200,
   MIDI_PORT_BLUETOOTH = 0x300,
@@ -44,11 +44,12 @@ enum EMidiPortID : uint16_t {
 
 struct MidiPacket {
   uint16_t port = MIDI_PORT_INVALID; // Where the packet is coming from
-  EMidiStatus status = None;  // We need this just in case we are in SysEx transfer. We can't tell if the payload is SysEx or message purely though data[0]
+  EMidiStatus status =
+      None; // We need this just in case we are in SysEx transfer. We can't tell if the payload is SysEx or message purely though data[0]
   uint8_t data[3] = {0, 0, 0};
 
   // Constructors
-  MidiPacket();  // Place Holder data
+  MidiPacket(); // Place Holder data
   MidiPacket(EMidiStatus status, ...);
 
   // Static factory methods for channel messages
@@ -81,7 +82,7 @@ struct MidiPacket {
 
   // Port methods
   uint16_t Port() const;
-  void SetPort(uint16_t port_id);
+  void SetPort(uint16_t portId);
 
   // Channel methods
   uint8_t Channel() const;
@@ -92,7 +93,7 @@ struct MidiPacket {
   bool SetNote(uint8_t note);
 
   // Controller methods
-  uint8_t Controller() const;  // Just an alias for Note(), specially build for Program Change
+  uint8_t Controller() const; // Just an alias for Note(), specially build for Program Change
   bool SetController(uint8_t controller);
 
   // Velocity methods
@@ -100,11 +101,11 @@ struct MidiPacket {
   bool SetVelocity(uint8_t velocity);
 
   // Value methods
-  uint16_t Value() const;  // Get value all type, basically a generic getter
+  uint16_t Value() const; // Get value all type, basically a generic getter
   bool SetValue(uint16_t value);
 
   // Helper methods
   uint8_t Length() const;
-  bool SysEx() const; // Checks if packet is part of SysEx transfer - Terrible name
+  bool SysEx() const;      // Checks if packet is part of SysEx transfer - Terrible name
   bool SysExStart() const; // Checks if packet is start of SysEx transfer - Terrible name as well
 };

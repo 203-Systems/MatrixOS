@@ -3,26 +3,25 @@
 
 namespace MatrixOS::NVS
 {
-  int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length);
-  bool SetVariable(uint32_t hash, void* pointer, uint16_t length);
-  bool DeleteVariable(uint32_t hash);
-}
+int8_t GetVariable(uint32_t hash, void* pointer, uint16_t length);
+bool SetVariable(uint32_t hash, void* pointer, uint16_t length);
+bool DeleteVariable(uint32_t hash);
+} // namespace MatrixOS::NVS
 
 enum SavedVarState { NotInited, Inited, Loaded, Deleted };
 
-#define CreateSavedVar(scope, name, type, default_value) \
+#define CreateSavedVar(scope, name, type, default_value)                                                                                   \
   SavedVar<type> name = SavedVar<type>(StaticHash(scope "-" #name), (type)default_value)
-  
-template <class T>
-class SavedVar {
- public:
+
+template <class T> class SavedVar {
+public:
   uint32_t hash;
   SavedVarState state = SavedVarState::NotInited;
   T value;
 
-  SavedVar(string scope, string name, T default_value)  // Scope is basically namespace for the variable. I can't
-                                                             // use "namespace" or "class" as variable name but you get
-                                                             // the point
+  SavedVar(string scope, string name, T default_value) // Scope is basically namespace for the variable. I can't
+                                                       // use "namespace" or "class" as variable name but you get
+                                                       // the point
   {
     this->hash = StringHash(scope + "-" + name);
     this->value = default_value;
@@ -44,7 +43,9 @@ class SavedVar {
     return false;
   }
 
-  bool Loaded() { return state == SavedVarState::Loaded; }
+  bool Loaded() {
+    return state == SavedVarState::Loaded;
+  }
 
   bool Set(T new_value) {
     if (MatrixOS::NVS::SetVariable(hash, &new_value, sizeof(T)))
@@ -56,18 +57,22 @@ class SavedVar {
     return false;
   }
 
-  bool TempSet(T new_value)  // Update the variable but do not save it.
+  bool TempSet(T new_value) // Update the variable but do not save it.
   {
     value = new_value;
     state = SavedVarState::Loaded;
     return true;
   }
 
-  bool Save() { return Set(value); }
+  bool Save() {
+    return Set(value);
+  }
 
   T& Get() {
-    if (!Loaded())  // If not yet loaded, it will try to update current cache with NVS data
-    { Load(); }
+    if (!Loaded()) // If not yet loaded, it will try to update current cache with NVS data
+    {
+      Load();
+    }
     // Even if it didn't load, the default value will be used.
     return value;
   }
@@ -81,21 +86,45 @@ class SavedVar {
     return false;
   }
 
-  SavedVar& operator=(T new_value) { Set(new_value); return *this; }
+  SavedVar& operator=(T new_value) {
+    Set(new_value);
+    return *this;
+  }
 
-  bool operator==(T new_value) { return Get() == new_value; }
-  bool operator!=(T new_value) { return Get() != new_value; }
-  bool operator>(T new_value) { return Get() > new_value; }
-  bool operator<(T new_value) { return Get() < new_value; }
-  bool operator>=(T new_value) { return Get() >= new_value; }
-  bool operator<=(T new_value) { return Get() <= new_value; }
+  bool operator==(T new_value) {
+    return Get() == new_value;
+  }
+  bool operator!=(T new_value) {
+    return Get() != new_value;
+  }
+  bool operator>(T new_value) {
+    return Get() > new_value;
+  }
+  bool operator<(T new_value) {
+    return Get() < new_value;
+  }
+  bool operator>=(T new_value) {
+    return Get() >= new_value;
+  }
+  bool operator<=(T new_value) {
+    return Get() <= new_value;
+  }
 
-  T operator+(T operation_value) { return Get() + operation_value; }
-  T operator-(T operation_value) { return Get() - operation_value; }
-  T operator*(T operation_value) { return Get() * operation_value; }
-  T operator/(T operation_value) { return Get() / operation_value; }
-  T operator%(T operation_value) { return Get() % operation_value; }
-
+  T operator+(T operation_value) {
+    return Get() + operation_value;
+  }
+  T operator-(T operation_value) {
+    return Get() - operation_value;
+  }
+  T operator*(T operation_value) {
+    return Get() * operation_value;
+  }
+  T operator/(T operation_value) {
+    return Get() / operation_value;
+  }
+  T operator%(T operation_value) {
+    return Get() % operation_value;
+  }
 
   T& operator+=(T operation_value) {
     Set(Get() + operation_value);
@@ -139,7 +168,11 @@ class SavedVar {
     return temp_value;
   };
 
-  T* operator&() { return &Get(); }
+  T* operator&() {
+    return &Get();
+  }
 
-  operator T&() { return Get(); }
+  operator T&() {
+    return Get();
+  }
 };

@@ -12,9 +12,9 @@ enum LEDType {
 };
 
 struct LEDPartition {
-    std::string name;
-    float default_multiplier;
-    uint16_t start;
-    uint16_t size;
-    LEDType type;
+  std::string name;
+  float default_multiplier;
+  uint16_t start;
+  uint16_t size;
+  LEDType type;
 };

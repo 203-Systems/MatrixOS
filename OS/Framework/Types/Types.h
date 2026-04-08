@@ -22,19 +22,18 @@ using std::list;
 using std::map;
 using std::multimap;
 using std::multiset;
+using std::pair;
 using std::priority_queue;
 using std::queue;
 using std::set;
 using std::stack;
+using std::string;
+using std::tuple;
 using std::unordered_map;
 using std::unordered_multimap;
 using std::unordered_multiset;
 using std::unordered_set;
 using std::vector;
-using std::pair;
-using std::string;
-using std::tuple;
-
 
 #ifdef __cplusplus
 extern "C"

@@ -11,21 +11,20 @@
 #define KEY_INFO_VALUE_COUNT 3
 
 enum KeyState : uint8_t {
-    /*Status Keys*/
-    IDLE,
-    ACTIVATED,
-    /*Event Keys*/
-    PRESSED,
-    HOLD,
-    AFTERTOUCH,
-    RELEASED,
-    /*Special*/
-    DEBOUNCING = 240u,
-    RELEASE_DEBOUNCING = 241u,
-    /*Placeholder Keys*/
-    INVALID = 255u
+  /*Status Keys*/
+  IDLE,
+  ACTIVATED,
+  /*Event Keys*/
+  PRESSED,
+  HOLD,
+  AFTERTOUCH,
+  RELEASED,
+  /*Special*/
+  DEBOUNCING = 240u,
+  RELEASE_DEBOUNCING = 241u,
+  /*Placeholder Keys*/
+  INVALID = 255u
 };
-
 
 struct KeyInfo {
   // Bit-packed structure for state and flags
@@ -40,8 +39,8 @@ struct KeyInfo {
   // Constructor
   KeyInfo() : state(IDLE), hold(0), cleared(0), values{0, 0, 0} {}
   Fract16 ApplyForceCurve(KeyConfig& config, Fract16 value);
-  bool Update(KeyConfig& config, Fract16 new_value);    // Convenience method for single value
-  bool UpdateRaw(uint8_t index, Fract16 new_value);    // Update raw value
+  bool Update(KeyConfig& config, Fract16 newValue); // Convenience method for single value
+  bool UpdateRaw(uint8_t index, Fract16 newValue);  // Update raw value
   void Clear();
 
   // User access methods

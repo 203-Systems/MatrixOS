@@ -41,7 +41,7 @@
 // rework this for the different architectures....
 #if defined(__GNUC__)
 typedef struct {
-  unsigned cin : 4;  // this is the low nibble.
+  unsigned cin : 4; // this is the low nibble.
   unsigned cable : 4;
   //    uint8_t  cin;
   uint8_t midi0;
@@ -49,7 +49,7 @@ typedef struct {
   uint8_t midi2;
 } __attribute__((__packed__)) MIDI_EVENT_PACKET_t;
 #else
-typedef struct  // may need to be adjusted for other compilers and bitfield order...
+typedef struct // may need to be adjusted for other compilers and bitfield order...
 {
   unsigned cable : 4;
   unsigned cin : 4;
@@ -75,9 +75,9 @@ typedef struct  // may need to be adjusted for other compilers and bitfield orde
 #define CIN_CHANNEL_PRESSURE 0x0D /* 2Bytes */
 #define CIN_PITCH_WHEEL 0x0E      /* 3Bytes */
 #define CIN_1BYTE 0x0F            /* 1Bytes */
-//#define CIN_IS_SYSEX(cin) ((cin == CIN_SYSEX)||(cin == CIN_SYSEX_ENDS_IN_1)||(cin == CIN_SYSEX_ENDS_IN_2)||(cin ==
-//CIN_SYSEX_ENDS_IN_3))
-#define CIN_IS_SYSEX(cin) (((cin) & ~(0x08)) && ((cin)&0x04))
+// #define CIN_IS_SYSEX(cin) ((cin == CIN_SYSEX)||(cin == CIN_SYSEX_ENDS_IN_1)||(cin == CIN_SYSEX_ENDS_IN_2)||(cin ==
+// CIN_SYSEX_ENDS_IN_3))
+#define CIN_IS_SYSEX(cin) (((cin) & ~(0x08)) && ((cin) & 0x04))
 
 /*
  * MIDI V1 message definitions these are from the MMA document
@@ -88,10 +88,10 @@ typedef struct  // may need to be adjusted for other compilers and bitfield orde
 /*
  * parse midi (v1) message macros
  */
-#define MIDIv1_IS_STATUS(b) ((b)&0x80)
+#define MIDIv1_IS_STATUS(b) ((b) & 0x80)
 #define MIDIv1_IS_VOICE(b) ((b) <= 0xEF)
-#define MIDIv1_VOICE_COMMAND(b) ((b)&0xF0)
-#define MIDIv1_VOICE_CHANNEL(b) ((b)&0x0F)
+#define MIDIv1_VOICE_COMMAND(b) ((b) & 0xF0)
+#define MIDIv1_VOICE_CHANNEL(b) ((b) & 0x0F)
 #define MIDIv1_IS_SYSCOMMON(b) (((b) >= 0xF0) & ((b) < 0xF8))
 #define MIDIv1_IS_REALTIME(b) ((b) >= 0xF8)
 

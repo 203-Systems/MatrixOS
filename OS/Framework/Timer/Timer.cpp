@@ -4,19 +4,23 @@ Timer::Timer() {
   Timer::RecordCurrent();
 }
 
-bool Timer::Tick(uint32_t ms, bool continuous_mode) {
+bool Timer::Tick(uint32_t ms, bool continuousMode) {
 
-  if(ms == UINT32_MAX)
+  if (ms == UINT32_MAX)
     return false;
   if (MatrixOS::SYS::Millis() < previous)
     previous = 0;
 
   if (Timer::IsLonger(ms))
   {
-    if (continuous_mode)
-    { previous += ms; }
+    if (continuousMode)
+    {
+      previous += ms;
+    }
     else
-    { Timer::RecordCurrent(); }
+    {
+      Timer::RecordCurrent();
+    }
     return true;
   }
   return false;

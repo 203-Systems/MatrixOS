@@ -5,18 +5,18 @@
 // Avoid recursive include
 namespace MatrixOS::SYS
 {
-  uint64_t Millis(void);
+uint64_t Millis(void);
 }
 
 class Timer {
- public:
+public:
   Timer();
-  bool Tick(uint32_t ms, bool continuous_mode = false);
+  bool Tick(uint32_t ms, bool continuousMode = false);
   bool IsLonger(uint32_t ms);
   uint32_t SinceLastTick();
   void RecordCurrent();
 
- private:
+private:
   uint32_t previous = 0;
 };
 
