@@ -47,103 +47,99 @@ void Performance::MidiEventHandler(MidiPacket& midiPacket) {
   // midiPacket.data[1], midiPacket.data[2]);
   switch (midiPacket.status)
   {
-    case NoteOn:
-    case ControlChange:
-      NoteHandler(midiPacket.Channel(), midiPacket.Note(), midiPacket.Velocity());
-      break;
-    case NoteOff:
-      NoteHandler(midiPacket.Channel(), midiPacket.Note(), 0);
-      break;
-    case SysExData:
-    case SysExEnd:
-      SysExHandler(midiPacket);
-      break;
-    default:
-      break;
+  case NoteOn:
+  case ControlChange:
+    NoteHandler(midiPacket.Channel(), midiPacket.Note(), midiPacket.Velocity());
+    break;
+  case NoteOff:
+    NoteHandler(midiPacket.Channel(), midiPacket.Note(), 0);
+    break;
+  case SysExData:
+  case SysExEnd:
+    SysExHandler(midiPacket);
+    break;
+  default:
+    break;
   }
 }
 
 Point Performance::NoteToXY(uint8_t note) {
   switch (currentKeymap)
   {
-    case 0:
+  case 0: {
+    if (note > 35 && note < 100)
     {
-      if (note > 35 && note < 100)
-      {
-        uint8_t xy_raw = user1_keymap_optimized[note - 36];
-        return Point(xy_raw >> 4, xy_raw & 0x0f);
-      }
-      else if (note > 99 && note < 108)  // Side Light Right Column
-      {
-        return Point(8, note - 100);
-      }
-      else if (note > 115 && note < 124)  // Side Light Bottom Row
-      {
-        return Point(note - 116, 8);
-      }
-      else if (note > 107 && note < 116)  // Side Light Left Column
-      {
-        return Point(-1, note - 108);
-      }
-      else if (note > 27 && note < 36)  // Side Light Top Row
-      {
-        return Point(note - 28, -1);
-      }
-      break;
+      uint8_t xyRaw = user1_keymap_optimized[note - 36];
+      return Point(xyRaw >> 4, xyRaw & 0x0f);
     }
-    case 1:
+    else if (note > 99 && note < 108) // Side Light Right Column
     {
-      int8_t x = (note % 10) - 1;
-      int8_t y = 8 - ((note / 10));
-      return Point(x, y);
+      return Point(8, note - 100);
     }
+    else if (note > 115 && note < 124) // Side Light Bottom Row
+    {
+      return Point(note - 116, 8);
+    }
+    else if (note > 107 && note < 116) // Side Light Left Column
+    {
+      return Point(-1, note - 108);
+    }
+    else if (note > 27 && note < 36) // Side Light Top Row
+    {
+      return Point(note - 28, -1);
+    }
+    break;
+  }
+  case 1: {
+    int8_t x = (note % 10) - 1;
+    int8_t y = 8 - ((note / 10));
+    return Point(x, y);
+  }
   }
   return Point::Invalid();
 }
 
 // Returns -1 when no note
-int8_t Performance::XYToNote(Point xy, bool combo_key) {
+int8_t Performance::XYToNote(Point xy, bool comboKey) {
   switch (currentKeymap)
   {
-    case 0:
+  case 0: {
+    if (comboKey && xy.x == 0 && xy.y >= 0 && xy.y < 8) // Combo map left
     {
-      if(combo_key && xy.x == 0 && xy.y >= 0 && xy.y < 8) // Combo map left
-      {
-        return touch_keymap[currentKeymap][3][xy.y];
-      }
-      else if(combo_key && xy.x == 7 && xy.y >= 0 && xy.y < 8)// Combo map right
-      {
-        return touch_keymap[currentKeymap][1][xy.y];
-      }
-      else if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
-      {
-        return keymap[currentKeymap][xy.y][xy.x];
-      }
-      else if (xy.y == -1 && xy.x >= 0 && xy.x < 8)  // TouchBar Top Row
-      {
-        return touch_keymap[currentKeymap][0][xy.x];
-      }
-      else if (xy.x == 8 && xy.y >= 0 && xy.y < 8)  // TouchBar Right Column
-      {
-        return touch_keymap[currentKeymap][1][xy.y];
-      }
-      else if (xy.y == 8 && xy.x >= 0 && xy.x < 8)  // TouchBar Bottom Row
-      {
-        return touch_keymap[currentKeymap][2][xy.x];
-      }
-      else if (xy.x == -1 && xy.y >= 0 && xy.y < 8)  // TouchBar Left Column
-      {
-        return touch_keymap[currentKeymap][3][xy.y];
-      }
-      else
-      {
-        return -1;  // No suitable keymap
-      }
+      return touch_keymap[currentKeymap][3][xy.y];
     }
-    case 1:
+    else if (comboKey && xy.x == 7 && xy.y >= 0 && xy.y < 8) // Combo map right
     {
-      return (8 - xy.y) * 10 + (xy.x + 1);
+      return touch_keymap[currentKeymap][1][xy.y];
     }
+    else if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+    {
+      return keymap[currentKeymap][xy.y][xy.x];
+    }
+    else if (xy.y == -1 && xy.x >= 0 && xy.x < 8) // TouchBar Top Row
+    {
+      return touch_keymap[currentKeymap][0][xy.x];
+    }
+    else if (xy.x == 8 && xy.y >= 0 && xy.y < 8) // TouchBar Right Column
+    {
+      return touch_keymap[currentKeymap][1][xy.y];
+    }
+    else if (xy.y == 8 && xy.x >= 0 && xy.x < 8) // TouchBar Bottom Row
+    {
+      return touch_keymap[currentKeymap][2][xy.x];
+    }
+    else if (xy.x == -1 && xy.y >= 0 && xy.y < 8) // TouchBar Left Column
+    {
+      return touch_keymap[currentKeymap][3][xy.y];
+    }
+    else
+    {
+      return -1; // No suitable keymap
+    }
+  }
+  case 1: {
+    return (8 - xy.y) * 10 + (xy.x + 1);
+  }
   }
   return -1;
 }
@@ -202,192 +198,194 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
   // Parsing because sysex is completed
   switch (sysExBuffer[0])
   {
-    case 0x5f:  // Apollo batch fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L54-L120
+  case 0x5f: // Apollo batch fill -
+             // https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L54-L120
+  {
+    // MLOGD("Performance", "Apollo batch Fill");
+    if (sysExBuffer.size() < 5)
     {
-      // MLOGD("Performance", "Apollo batch Fill");
-      if (sysExBuffer.size() < 5)
-      {
-        return;
-      }
-
-      uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
-
-      uint16_t ptr = 1;  // Index 0 is the command 0x5f, we start ptr at 1
-      while (ptr < sysExBuffer.size())
-      {
-        // Extract the color data
-        uint8_t colorR = (sysExBuffer[ptr] & 0x3F);
-        uint8_t colorG = (sysExBuffer[ptr + 1] & 0x3F);
-        uint8_t colorB = (sysExBuffer[ptr + 2] & 0x3F);
-
-        // Remapped color from 6 bit to 8 bit
-        colorR = (colorR << 2) + (colorR >> 4);
-        colorG = (colorG << 2) + (colorG >> 4);
-        colorB = (colorB << 2) + (colorB >> 4);
-
-        // Create the color
-        Color color = Color(colorR, colorG, colorB);
-
-        // Get how many NN (Note Numbers) follows
-        uint8_t n_count = ((sysExBuffer[ptr] & 0x40) >> 4) | ((sysExBuffer[ptr + 1] & 0x40) >> 5) | ((sysExBuffer[ptr + 2] & 0x40) >> 6);
-
-        ptr += 3;  // We finish reading the first 3 bit, inc the ptr by 3
-
-        // If nums of NN is 0, then the next byte is the number of NN
-        if (n_count == 0)
-        {
-          n_count = sysExBuffer[ptr++];
-        }  // If all 3 bits are 0, then it's 64 (0b111111
-
-        // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
-
-        // Goes through all N
-        for (uint16_t n = 0; n < n_count; n++)
-        {
-          if (sysExBuffer[ptr] == 0)  // Global full
-          {
-            MatrixOS::LED::Fill(color, targetLayer);
-          }
-          else if (sysExBuffer[ptr] < 99)  // Grid
-          {
-            Point xy = Point(sysExBuffer[ptr] % 10 - 1, 8 - (sysExBuffer[ptr] / 10));
-            // MLOGD("Performance", "Grid %d %d", xy.x, xy.y);
-            MatrixOS::LED::SetColor(xy, color, targetLayer);
-          }
-          else if (sysExBuffer[ptr] == 99)  // Mode Light
-          {
-            // Not implemented - Maybe a TODO
-          }
-          else if (sysExBuffer[ptr] < 110)  // Row Fill
-          {
-            int8_t row = 108 - sysExBuffer[ptr];
-            for (int8_t x = 0; x < 10; x++)
-            {
-              MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
-            }
-          }
-          else if (sysExBuffer[ptr] < 120)  // Column Fill
-          {
-            int8_t column = sysExBuffer[ptr] - 111;
-            for (int8_t y = 0; y < 10; y++)
-            {
-              MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
-            }
-          }
-          ptr++;  // Since ptr is the pointer of in vector, we need to read the next NN, inc the ptr by 1
-        }
-      }
-      break;
+      return;
     }
-    case 0x5e:  // Apollo regular fill - https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L115
+
+    uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+
+    uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
+    while (ptr < sysExBuffer.size())
     {
-      // MLOGD("Performance", "Apollo batch Fill");
-      if (sysExBuffer.size() < 5)
+      // Extract the color data
+      uint8_t colorR = (sysExBuffer[ptr] & 0x3F);
+      uint8_t colorG = (sysExBuffer[ptr + 1] & 0x3F);
+      uint8_t colorB = (sysExBuffer[ptr + 2] & 0x3F);
+
+      // Remapped color from 6 bit to 8 bit
+      colorR = (colorR << 2) + (colorR >> 4);
+      colorG = (colorG << 2) + (colorG >> 4);
+      colorB = (colorB << 2) + (colorB >> 4);
+
+      // Create the color
+      Color color = Color(colorR, colorG, colorB);
+
+      // Get how many NN (Note Numbers) follows
+      uint8_t nCount = ((sysExBuffer[ptr] & 0x40) >> 4) | ((sysExBuffer[ptr + 1] & 0x40) >> 5) | ((sysExBuffer[ptr + 2] & 0x40) >> 6);
+
+      ptr += 3; // We finish reading the first 3 bit, inc the ptr by 3
+
+      // If nums of NN is 0, then the next byte is the number of NN
+      if (nCount == 0)
       {
-        return;
-      }
+        nCount = sysExBuffer[ptr++];
+      } // If all 3 bits are 0, then it's 64 (0b111111
 
-      uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+      // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, nCount);
 
-      uint16_t ptr = 1;  // Index 0 is the command 0x5f, we start ptr at 1
-      while (ptr < sysExBuffer.size())
+      // Goes through all N
+      for (uint16_t n = 0; n < nCount; n++)
       {
-        // Extract the color data
-        uint8_t index = sysExBuffer[ptr];
-        uint8_t colorR = (sysExBuffer[ptr + 1] & 0x3F);
-        uint8_t colorG = (sysExBuffer[ptr + 2] & 0x3F);
-        uint8_t colorB = (sysExBuffer[ptr + 3] & 0x3F);
-
-        // Remapped color from 6 bit to 8 bit
-        colorR = (colorR << 2) + (colorR >> 4);
-        colorG = (colorG << 2) + (colorG >> 4);
-        colorB = (colorB << 2) + (colorB >> 4);
-
-        // Create the color
-        Color color = Color(colorR, colorG, colorB);
-
-        ptr += 4;  // We finish reading the first 3 bit, inc the ptr by 3
-
-        // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, n_count);
-
-        if (index == 0)  // Global full
+        if (sysExBuffer[ptr] == 0) // Global full
         {
           MatrixOS::LED::Fill(color, targetLayer);
         }
-        else if (index < 99)  // Grid
+        else if (sysExBuffer[ptr] < 99) // Grid
         {
-          Point xy = Point(index % 10 - 1, 8 - (index / 10));
+          Point xy = Point(sysExBuffer[ptr] % 10 - 1, 8 - (sysExBuffer[ptr] / 10));
+          // MLOGD("Performance", "Grid %d %d", xy.x, xy.y);
           MatrixOS::LED::SetColor(xy, color, targetLayer);
         }
-        else if (index == 99)  // Mode Light
+        else if (sysExBuffer[ptr] == 99) // Mode Light
         {
           // Not implemented - Maybe a TODO
         }
-        else if (index < 110)  // Row Fill
+        else if (sysExBuffer[ptr] < 110) // Row Fill
         {
-          int8_t row = 108 - index;
+          int8_t row = 108 - sysExBuffer[ptr];
           for (int8_t x = 0; x < 10; x++)
           {
             MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
           }
         }
-        else if (index < 120)  // Column Fill
+        else if (sysExBuffer[ptr] < 120) // Column Fill
         {
-          int8_t column = index - 111;
+          int8_t column = sysExBuffer[ptr] - 111;
           for (int8_t y = 0; y < 10; y++)
           {
             MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
           }
         }
+        ptr++; // Since ptr is the pointer of in vector, we need to read the next NN, inc the ptr by 1
       }
-      break;
     }
-    case 0x41:  // Retina Custom Palette
+    break;
+  }
+  case 0x5e: // Apollo regular fill -
+             // https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L115
+  {
+    // MLOGD("Performance", "Apollo batch Fill");
+    if (sysExBuffer.size() < 5)
     {
-      if (sysExBuffer[1] == 0x7B)  // Uploading Start
+      return;
+    }
+
+    uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
+
+    uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
+    while (ptr < sysExBuffer.size())
+    {
+      // Extract the color data
+      uint8_t index = sysExBuffer[ptr];
+      uint8_t colorR = (sysExBuffer[ptr + 1] & 0x3F);
+      uint8_t colorG = (sysExBuffer[ptr + 2] & 0x3F);
+      uint8_t colorB = (sysExBuffer[ptr + 3] & 0x3F);
+
+      // Remapped color from 6 bit to 8 bit
+      colorR = (colorR << 2) + (colorR >> 4);
+      colorG = (colorG << 2) + (colorG >> 4);
+      colorB = (colorB << 2) + (colorB >> 4);
+
+      // Create the color
+      Color color = Color(colorR, colorG, colorB);
+
+      ptr += 4; // We finish reading the first 3 bit, inc the ptr by 3
+
+      // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, nCount);
+
+      if (index == 0) // Global full
       {
-        MLOGD("Performance", "Retina Custom Palette Uploading Start");
-        // I really don't think I have to do anything here. I want to set custom_palette_available to false, but I don't think it's necessary & we don't know which palette is gonna
-        // be write to
+        MatrixOS::LED::Fill(color, targetLayer);
       }
-      else if (sysExBuffer[1] == 0x3D)  // Uploading Write
+      else if (index < 99) // Grid
       {
-        MLOGD("Performance", "Retina Custom Palette Uploading Write");
-        uint8_t palette_to_write = sysExBuffer[2];
-        // Read 4 byte at once
-        for (uint16_t i = 3; i < sysExBuffer.size(); i += 4)
-        {
-          uint8_t index = sysExBuffer[i];
-          uint8_t colorR = (sysExBuffer[i + 1] & 0x3F);
-          uint8_t colorG = (sysExBuffer[i + 2] & 0x3F);
-          uint8_t colorB = (sysExBuffer[i + 3] & 0x3F);
-
-          // Remapped color from 6 bit to 8 bit
-          colorR = (colorR << 2) + (colorR >> 4);
-          colorG = (colorG << 2) + (colorG >> 4);
-          colorB = (colorB << 2) + (colorB >> 4);
-
-          custom_palette[palette_to_write][index] = Color(colorR, colorG, colorB);
-
-          MLOGD("Performance", "Custom Palette %d Index %d Color %d %d %d", palette_to_write, index, colorR, colorG, colorB);
-        }
-        custom_palette_available[palette_to_write] = true;
+        Point xy = Point(index % 10 - 1, 8 - (index / 10));
+        MatrixOS::LED::SetColor(xy, color, targetLayer);
       }
-      else if (sysExBuffer[1] == 0x7D)  // Uploading End
+      else if (index == 99) // Mode Light
       {
-        MLOGD("Performance", "Retina Custom Palette Uploading End");
-        for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
+        // Not implemented - Maybe a TODO
+      }
+      else if (index < 110) // Row Fill
+      {
+        int8_t row = 108 - index;
+        for (int8_t x = 0; x < 10; x++)
         {
-          if (custom_palette_available[i])
-          {
-            MatrixOS::NVS::SetVariable(custom_palette_nvs_hash[i], custom_palette[i], sizeof(custom_palette[i]));
-          }
+          MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
         }
-        MatrixOS::NVS::SetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
+      }
+      else if (index < 120) // Column Fill
+      {
+        int8_t column = index - 111;
+        for (int8_t y = 0; y < 10; y++)
+        {
+          MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
+        }
       }
     }
-    default:
-      break;
+    break;
+  }
+  case 0x41: // Retina Custom Palette
+  {
+    if (sysExBuffer[1] == 0x7B) // Uploading Start
+    {
+      MLOGD("Performance", "Retina Custom Palette Uploading Start");
+      // I really don't think I have to do anything here. I want to set custom_palette_available to false, but I don't think it's necessary
+      // & we don't know which palette is gonna be write to
+    }
+    else if (sysExBuffer[1] == 0x3D) // Uploading Write
+    {
+      MLOGD("Performance", "Retina Custom Palette Uploading Write");
+      uint8_t paletteToWrite = sysExBuffer[2];
+      // Read 4 byte at once
+      for (uint16_t i = 3; i < sysExBuffer.size(); i += 4)
+      {
+        uint8_t index = sysExBuffer[i];
+        uint8_t colorR = (sysExBuffer[i + 1] & 0x3F);
+        uint8_t colorG = (sysExBuffer[i + 2] & 0x3F);
+        uint8_t colorB = (sysExBuffer[i + 3] & 0x3F);
+
+        // Remapped color from 6 bit to 8 bit
+        colorR = (colorR << 2) + (colorR >> 4);
+        colorG = (colorG << 2) + (colorG >> 4);
+        colorB = (colorB << 2) + (colorB >> 4);
+
+        custom_palette[paletteToWrite][index] = Color(colorR, colorG, colorB);
+
+        MLOGD("Performance", "Custom Palette %d Index %d Color %d %d %d", paletteToWrite, index, colorR, colorG, colorB);
+      }
+      custom_palette_available[paletteToWrite] = true;
+    }
+    else if (sysExBuffer[1] == 0x7D) // Uploading End
+    {
+      MLOGD("Performance", "Retina Custom Palette Uploading End");
+      for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
+      {
+        if (custom_palette_available[i])
+        {
+          MatrixOS::NVS::SetVariable(custom_palette_nvs_hash[i], custom_palette[i], sizeof(custom_palette[i]));
+        }
+      }
+      MatrixOS::NVS::SetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
+    }
+  }
+  default:
+    break;
   }
 
   // Clear buffer since we are done parsing SysEx
@@ -396,11 +394,11 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
 
 void Performance::KeyEventHandler(KeyEvent& keyEvent) {
   Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
-  if (xy)  // IF XY is valid, means it's on the main grid
+  if (xy) // IF XY is valid, means it's on the main grid
   {
     GridKeyEvent(xy, &keyEvent.info);
   }
-  else  // XY Not valid,
+  else // XY Not valid,
   {
     IDKeyEvent(keyEvent.ID(), &keyEvent.info);
   }
@@ -409,36 +407,36 @@ void Performance::KeyEventHandler(KeyEvent& keyEvent) {
 void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
   // MLOGD("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
 
-  bool combo_key = false;
-  
+  bool comboKey = false;
+
   // Disable Touchbar for combo key mode
-  if(touch_combo_key && !(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8))
+  if (touch_combo_key && !(xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8))
   {
     return;
   }
 
   // Check if combo key should be used
-  if(touch_combo_key && (xy.x == 0 || xy.x == 7) && xy.y >= 0 && xy.y < 8)
+  if (touch_combo_key && (xy.x == 0 || xy.x == 7) && xy.y >= 0 && xy.y < 8)
   {
-    uint16_t combo_key_id = xy.y + (xy.x == 7) * 8;
+    uint16_t comboKeyId = xy.y + (xy.x == 7) * 8;
 
-    combo_key = was_combo_key & (1 << combo_key_id);
+    comboKey = was_combo_key & (1 << comboKeyId);
 
-    if(combo_key == false) // if this key was not in combo key state
+    if (comboKey == false) // if this key was not in combo key state
     {
       // Check if touchbar is touched
       for (uint8_t i = 0; i < 32; i++)
       {
         Point point;
-        if(i < 8)
+        if (i < 8)
         {
           point = Point(i, -1);
         }
-        else if(i < 16)
+        else if (i < 16)
         {
           point = Point(8, i - 8);
         }
-        else if(i < 24)
+        else if (i < 24)
         {
           point = Point(i - 16, 8);
         }
@@ -448,28 +446,28 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
         }
 
         KeyInfo* touchKey = MatrixOS::KeyPad::GetKey(point);
-        if(touchKey != nullptr && touchKey->Active())
+        if (touchKey != nullptr && touchKey->Active())
         {
-          combo_key = true;
+          comboKey = true;
           break;
         }
       }
     }
 
     // If we are in combo key state and key is pressed, set the combo key state
-    if(combo_key && keyInfo->State() == PRESSED)
+    if (comboKey && keyInfo->State() == PRESSED)
     {
-        was_combo_key |= 1 << combo_key_id;
+      was_combo_key |= 1 << comboKeyId;
     }
 
     // If we was in combo key state and key is released, clear the combo key state
-    if(keyInfo->State() == RELEASED)
+    if (keyInfo->State() == RELEASED)
     {
-      was_combo_key &= ~(1 << combo_key_id);
+      was_combo_key &= ~(1 << comboKeyId);
     }
   }
 
-  int8_t note = XYToNote(xy, combo_key);
+  int8_t note = XYToNote(xy, comboKey);
 
   if (note == -1)
   {
@@ -507,11 +505,11 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
 void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   if (keyID == 0 && keyInfo->State() == (menuLock ? HOLD : PRESSED))
   {
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 127), MIDI_PORT_ALL); 
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 127), MIDI_PORT_ALL);
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0)); // All notes off
     ActionMenu();
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 0), MIDI_PORT_ALL);  // For Apollo Clearing
-    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0)); // All notes off
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 0), MIDI_PORT_ALL); // For Apollo Clearing
+    MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0));                // All notes off
   }
 }
 
@@ -534,8 +532,8 @@ void Performance::stfuScan() {
   }
 }
 
-void Performance::PaletteViewer(uint8_t custom_palette_id) {
-  MLOGD("Performance", "Custom Palette Viewer %d", custom_palette_id);
+void Performance::PaletteViewer(uint8_t customPaletteId) {
+  MLOGD("Performance", "Custom Palette Viewer %d", customPaletteId);
 
   bool modified = false;
   Timer timer;
@@ -545,7 +543,7 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
     MatrixOS::LED::Fade();
     while (true)
     {
-      if(timer.Tick(1000/Device::LED::fps))
+      if (timer.Tick(1000 / Device::LED::fps))
       {
         MatrixOS::LED::Fill(0);
         for (uint8_t y = 0; y < 8; y++)
@@ -553,30 +551,29 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
           for (uint8_t x = 0; x < 8; x++)
           {
             uint8_t id = y * 8 + x + i * 64;
-            MatrixOS::LED::SetColor(Point(x, y), custom_palette[custom_palette_id][id]);
+            MatrixOS::LED::SetColor(Point(x, y), custom_palette[customPaletteId][id]);
           }
         }
         MatrixOS::LED::Update();
       }
-      
+
       struct KeyEvent keyEvent;
       if (MatrixOS::KeyPad::Get(&keyEvent))
       {
         Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
-        if(xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+        if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
           uint8_t id = xy.y * 8 + xy.x + i * 64;
           if (keyEvent.info.state == RELEASED)
           {
-            uint32_t old_color = custom_palette[custom_palette_id][id].RGB();
-            MatrixOS::UIUtility::ColorPicker(custom_palette[custom_palette_id][id]);
-            if (old_color != custom_palette[custom_palette_id][id].RGB())
+            uint32_t oldColor = custom_palette[customPaletteId][id].RGB();
+            MatrixOS::UIUtility::ColorPicker(custom_palette[customPaletteId][id]);
+            if (oldColor != custom_palette[customPaletteId][id].RGB())
             {
-              MatrixOS::LED::SetColor(Point(xy.x, xy.y), custom_palette[custom_palette_id][id]);
+              MatrixOS::LED::SetColor(Point(xy.x, xy.y), custom_palette[customPaletteId][id]);
               MatrixOS::LED::Update();
               modified = true;
             }
-            
           }
           else if (keyEvent.info.state == HOLD)
           {
@@ -591,8 +588,8 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
         if (keyEvent.ID() == FUNCTION_KEY)
         {
           if (keyEvent.info.state == HOLD)
-          { 
-            i = 100;  // Force exit, but still runs the saving routine
+          {
+            i = 100; // Force exit, but still runs the saving routine
             break;
           }
           else if (keyEvent.info.state == RELEASED)
@@ -600,15 +597,15 @@ void Performance::PaletteViewer(uint8_t custom_palette_id) {
             break;
           }
         }
-        
       }
     }
   }
 
   if (modified)
   {
-    custom_palette_available[custom_palette_id] = true;
-    MatrixOS::NVS::SetVariable(custom_palette_nvs_hash[custom_palette_id], custom_palette[custom_palette_id], sizeof(custom_palette[custom_palette_id]));
+    custom_palette_available[customPaletteId] = true;
+    MatrixOS::NVS::SetVariable(custom_palette_nvs_hash[customPaletteId], custom_palette[customPaletteId],
+                               sizeof(custom_palette[customPaletteId]));
     MatrixOS::NVS::SetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
   }
 
@@ -629,7 +626,8 @@ void Performance::ActionMenu() {
   actionMenu.AddUIComponent(clearCanvasBtn, Point(0, 5));
 
   // Note Pad
-  UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap], forceSensitive);
+  UINotePad notePad(Dimension(8, 2), keymap_color[currentKeymap], keymap_channel[currentKeymap], (uint8_t*)note_pad_map[currentKeymap],
+                    forceSensitive);
   actionMenu.AddUIComponent(notePad, Point(0, 6));
 
   // Other Controls
@@ -637,7 +635,7 @@ void Performance::ActionMenu() {
   velocityToggle.SetName("Velocity Sensitive");
   velocityToggle.SetColor(Color(0x00FFFF));
   velocityToggle.SetValuePointer(&forceSensitive);
-  velocityToggle.OnPress([&]() -> void {forceSensitive.Save();});
+  velocityToggle.OnPress([&]() -> void { forceSensitive.Save(); });
   velocityToggle.SetEnabled(Device::KeyPad::velocity_sensitivity);
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
@@ -665,7 +663,9 @@ void Performance::ActionMenu() {
   flickerReductionToggle.SetName("Flicker Reduction");
   flickerReductionToggle.SetColorFunc([&]() -> Color { return Color(0xAAFF00).DimIfNot(stfu); });
   flickerReductionToggle.OnPress([&]() -> void { stfu = (!stfu) * STFU_DEFAULT; }); // The UIToggle already flip the value for us
-  flickerReductionToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor()); });
+  flickerReductionToggle.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(flickerReductionToggle.GetName() + " " + (stfu ? "On" : "Off"), flickerReductionToggle.GetColor());
+  });
   actionMenu.AddUIComponent(flickerReductionToggle, Point(0, 0));
 
   UIButton customPaletteViewer1;
@@ -692,7 +692,7 @@ void Performance::ActionMenu() {
   customPaletteViewer4.OnPress([&]() -> void { PaletteViewer(3); });
   actionMenu.AddUIComponent(customPaletteViewer4, Point(5, 0));
 
-  actionMenu.SetGlobalLoopFunc([&]() -> void {  // Keep buffer updated even when action menu is currently open
+  actionMenu.SetGlobalLoopFunc([&]() -> void { // Keep buffer updated even when action menu is currently open
     struct MidiPacket midiPacket;
     while (MatrixOS::MIDI::Get(&midiPacket))
     {
@@ -711,7 +711,7 @@ void Performance::ActionMenu() {
       {
         actionMenu.Exit();
       }
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
     return false;
   });

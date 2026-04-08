@@ -217,7 +217,7 @@
 - Devices\Mystrix1\Applications\FactoryMenu\LEDTester.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\KeypadTester.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
-- Applications\Performance\Performance.h - NOT FORMATTED
+- Applications\Performance\Performance.h - FORMATTED
 - OS\Framework\Utils\Utilts.h - NOT FORMATTED
 - OS\Framework\Utils\Hash.h - NOT FORMATTED
 - Devices\Mystrix2\Applications\FactoryMenu\TouchBarTester.cpp - NOT FORMATTED
@@ -272,9 +272,9 @@
 - OS\Framework\Types\Fract16.h - NOT FORMATTED
 - OS\Framework\Types\LEDPartition.h - NOT FORMATTED
 - OS\Framework\Types\Types.h - NOT FORMATTED
-- Applications\Performance\8x8\Performance8x8.cpp - NOT FORMATTED
-- Applications\Performance\8x8\UINotePad.h - NOT FORMATTED
-- Applications\Performance\8x8\Performance8x8.h - NOT FORMATTED
+- Applications\Performance\8x8\Performance8x8.cpp - FORMATTED
+- Applications\Performance\8x8\UINotePad.h - FORMATTED
+- Applications\Performance\8x8\Performance8x8.h - FORMATTED
 - OS\Framework\Logging\LogLevel.h - NOT FORMATTED
 - OS\Framework\Storage\SavedVar.h - NOT FORMATTED
 - OS\FileSystem\File.h - NOT FORMATTED
