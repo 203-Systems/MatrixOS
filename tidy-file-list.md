@@ -164,8 +164,8 @@
 - Devices\Mystrix1\Drivers\HWMidi.cpp - NOT FORMATTED
 - Devices\Mystrix1\Drivers\EFuse.cpp - NOT FORMATTED
 - Devices\Mystrix1\Drivers\BLEMIDI.cpp - NOT FORMATTED
-- Applications\REDACTED\REDACTED.h - NOT FORMATTED
-- Applications\REDACTED\REDACTED.cpp - NOT FORMATTED
+- Applications\REDACTED\REDACTED.h - FORMATTED
+- Applications\REDACTED\REDACTED.cpp - FORMATTED
 - OS\Logging\Logging.h - NOT FORMATTED
 - OS\Logging\Logging.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED

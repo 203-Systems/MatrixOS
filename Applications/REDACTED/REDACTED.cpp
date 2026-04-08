@@ -33,8 +33,7 @@ void REDACTED::Task1() {
       {
         for (uint8_t y = 0; y < 8; y++)
         {
-          MatrixOS::LED::SetColor(Point(x + x_offset, y + y_offset),
-                                  Color(((data[offset + bufferOffset] >> y) & 0x01) * 0xFFFFFF));
+          MatrixOS::LED::SetColor(Point(x + x_offset, y + y_offset), Color(((data[offset + bufferOffset] >> y) & 0x01) * 0xFFFFFF));
         }
         bufferOffset++;
       }
@@ -61,13 +60,15 @@ void REDACTED::Task2() {
       for (uint8_t i = 0; i <= (data2[offset2] >> 5); i++)
       {
         uint8_t v = 80 * (data2[offset2 + bufferOffset] >> 7);
-        MatrixOS::MIDI::Send(MidiPacket( v > 0 ? EMidiStatus::NoteOn : EMidiStatus::NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
+        MatrixOS::MIDI::Send(MidiPacket(v > 0 ? EMidiStatus::NoteOn : EMidiStatus::NoteOff, 0, data2[offset2 + bufferOffset] & 0x7F, v));
 
         bufferOffset++;
       }
       offset2 += bufferOffset;
       if (offset2 >= sizeof(data2))
-      { complete2 = true; }
+      {
+        complete2 = true;
+      }
     }
   }
 }
@@ -82,7 +83,9 @@ void REDACTED::Loop() {
 
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(&keyEvent); }
+  {
+    KeyEventHandler(&keyEvent);
+  }
 }
 
 void REDACTED::End() {
