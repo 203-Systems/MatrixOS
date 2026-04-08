@@ -248,7 +248,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     }
     else if (keyInfo->State() == RELEASED)
     {
-      if ((MatrixOS::SYS::Millis() - shift[0] < hold_threshold) && shift_event[0] == false)
+      if ((MatrixOS::SYS::Millis() - shift[0] < holdThreshold) && shift_event[0] == false)
       {
         int8_t newOctave = notePad[0]->rt->config->octave - 1;
         notePad[0]->rt->config->octave = newOctave < -2 ? -2 : newOctave;
@@ -277,7 +277,7 @@ bool NoteControlBar::KeyEvent(Point xy, KeyInfo* keyInfo) {
     }
     else if (keyInfo->State() == RELEASED)
     {
-      if ((MatrixOS::SYS::Millis() - shift[1] < hold_threshold) && shift_event[1] == false)
+      if ((MatrixOS::SYS::Millis() - shift[1] < holdThreshold) && shift_event[1] == false)
       {
         int8_t newOctave = notePad[0]->rt->config->octave + 1;
         notePad[0]->rt->config->octave = newOctave > 12 ? 12 : newOctave;

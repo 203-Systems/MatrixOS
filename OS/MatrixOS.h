@@ -49,11 +49,11 @@ namespace MatrixOS
     void Update(uint8_t layer = 255);
 
     int8_t CurrentLayer();
-    int8_t CreateLayer(uint16_t crossfade = crossfade_duration);
+    int8_t CreateLayer(uint16_t crossfade = crossfadeDuration);
     void CopyLayer(uint8_t dest, uint8_t src);
-    bool DestroyLayer(uint16_t crossfade = crossfade_duration);
+    bool DestroyLayer(uint16_t crossfade = crossfadeDuration);
 
-    void Fade(uint16_t crossfade = crossfade_duration, Color* source_buffer = nullptr);
+    void Fade(uint16_t crossfade = crossfadeDuration, Color* source_buffer = nullptr);
 
     void PauseUpdate(bool pause = true);
     uint32_t GetLEDCount(void);

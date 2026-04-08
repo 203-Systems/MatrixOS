@@ -22,7 +22,7 @@ private:
   UnderglowLight* underglow[2];
   uint32_t shift[2];
   bool shift_event[2];
-  static const uint32_t hold_threshold = 500; // Define hold threshold
+  static const uint32_t holdThreshold = 500; // Define hold threshold
   NoteControlBarMode mode = OFF_MODE;
   bool keyOffsetMode = false;
   uint32_t pitch_down = 0;

@@ -155,7 +155,7 @@ IRAM_ATTR bool KeyInfo::Update(KeyConfig& config, Fract16 new_value) {
       // Apply force Curve
       new_value = config.apply_curve ? ApplyForceCurve(config, new_value) : new_value;
 
-      if (timeNow - lastEventTime > hold_threshold && !hold)
+      if (timeNow - lastEventTime > holdThreshold && !hold)
       {
         state = HOLD;
         // MatrixOS::Logging::LogVerbose("KeyInfo", "ACTIVATED -> HOLD");

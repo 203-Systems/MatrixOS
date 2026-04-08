@@ -22,7 +22,7 @@ namespace MatrixOS::LED
 
   bool crossfade_active = false;
   uint32_t crossfade_start_time = 0;
-  uint16_t crossfade_duration = 0;
+  uint16_t crossfadeDuration = 0;
   Color* crossfade_source_buffer = nullptr;
   bool crossfade_destroy_source_buffer = false;
   Color* crossfade_buffer = nullptr;
@@ -420,11 +420,11 @@ namespace MatrixOS::LED
     }
 
     crossfade_start_time = MatrixOS::SYS::Millis() + crossfade_delay;
-    crossfade_duration = crossfade;
+    crossfadeDuration = crossfade;
     crossfade_active = true;
   }
 
-  // If any layer is 0, it will be show up as black（or lightless)
+  // If any layer is 0, it will be show up as blackï¼ˆor lightless)
   // If layer 2 is 255, it will be using the top layer
   IRAM_ATTR void RenderCrossfade() {
     Fract16 ratio = 0;
@@ -440,16 +440,16 @@ namespace MatrixOS::LED
     {
       ratio = 0;
     }
-    else if(currentTime < crossfade_start_time + crossfade_duration)
+    else if(currentTime < crossfade_start_time + crossfadeDuration)
     {
-      ratio = (currentTime - crossfade_start_time) * FRACT16_MAX / crossfade_duration;
+      ratio = (currentTime - crossfade_start_time) * FRACT16_MAX / crossfadeDuration;
     }
     else
     {
       ratio = FRACT16_MAX;
     }
 
-    // MLOGD("LED", "Crossfade %d %d %d", currentTime - crossfade_start_time, crossfade_duration, ratio);
+    // MLOGD("LED", "Crossfade %d %d %d", currentTime - crossfade_start_time, crossfadeDuration, ratio);
 
     if(ratio < FRACT16_MAX)
     {

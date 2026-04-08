@@ -184,11 +184,11 @@
 - Devices\Mystrix2\Drivers\EFuse.cpp - NOT FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\UltraProto2\Config.h - NOT FORMATTED
 - Devices\Mystrix2\Variants\Mystrix2\Device.cpp - NOT FORMATTED
-- OS\System\UserVariables.h - NOT FORMATTED
-- OS\System\System.h - NOT FORMATTED
-- OS\System\System.cpp - NOT FORMATTED
-- OS\System\ReleaseConfig.h - NOT FORMATTED
-- OS\System\Parameters.h - NOT FORMATTED
+- OS\System\UserVariables.h - FORMATTED
+- OS\System\System.h - FORMATTED
+- OS\System\System.cpp - FORMATTED
+- OS\System\ReleaseConfig.h - FORMATTED
+- OS\System\Parameters.h - FORMATTED
 - Devices\Mystrix1\Family.h - NOT FORMATTED
 - Devices\Mystrix1\Family.cpp - NOT FORMATTED
 - OS\NVS\NVS.cpp - NOT FORMATTED
