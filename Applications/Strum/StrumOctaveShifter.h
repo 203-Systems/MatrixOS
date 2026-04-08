@@ -2,7 +2,7 @@
 #include "UI/UI.h"
 
 class StrumOctaveShifter : public UIComponent {
- public:
+public:
   uint8_t count;
   uint8_t* octave;
 
@@ -14,9 +14,15 @@ class StrumOctaveShifter : public UIComponent {
     this->octave = octave;
   }
 
-  virtual string GetName() { return "Octave Shifter"; }
-  virtual Color GetColor() { return Color(0xFF00FF); }
-  virtual Dimension GetSize() { return Dimension(count, 1); }
+  virtual string GetName() {
+    return "Octave Shifter";
+  }
+  virtual Color GetColor() {
+    return Color(0xFF00FF);
+  }
+  virtual Dimension GetSize() {
+    return Dimension(count, 1);
+  }
 
   virtual bool Render(Point origin) {
     for (uint16_t octave = 0; octave < count; octave++)
@@ -36,7 +42,9 @@ class StrumOctaveShifter : public UIComponent {
     }
 
     if (keyInfo->State() == PRESSED)
-    { *this->octave = xy.x; }
+    {
+      *this->octave = xy.x;
+    }
     return true;
   }
 };

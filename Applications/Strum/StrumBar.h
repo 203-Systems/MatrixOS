@@ -4,8 +4,7 @@
 #include "Chord.h"
 #include "UI/UI.h"
 
-struct StrumBarConfig
-{
+struct StrumBarConfig {
   Color color = Color(0x00FFFF);
   EChord chord = EChord::MAJOR_TRIAD;
   uint8_t root = 0;
@@ -16,24 +15,23 @@ struct StrumBarConfig
 };
 
 class StrumBar : public UIComponent {
- public:
+public:
   StrumBarConfig* config;
   uint8_t keycache = 0;
   uint8_t activeNote = 255;
   queue<pair<uint32_t, uint8_t>> note_queue;
 
-  uint8_t calculate_note_offset(EChord chord, uint8_t pos)
-  {
-    uint8_t notes_in_chord = __builtin_popcount(chord);
-    uint8_t offset = 12 * (pos / notes_in_chord);
-    
-    uint8_t remaining_bits = pos % notes_in_chord + 1;
+  uint8_t CalculateNoteOffset(EChord chord, uint8_t pos) {
+    uint8_t notesInChord = __builtin_popcount(chord);
+    uint8_t offset = 12 * (pos / notesInChord);
+
+    uint8_t remainingBits = pos % notesInChord + 1;
     for (uint8_t i = 0; i < 12; i++)
     {
       if (chord & (1 << i))
       {
-        remaining_bits--;
-        if (remaining_bits == 0)
+        remainingBits--;
+        if (remainingBits == 0)
         {
           return i + offset;
         }
@@ -42,16 +40,18 @@ class StrumBar : public UIComponent {
     return 255; // Really should never happen
   }
 
-  StrumBar(StrumBarConfig* config)
-  {
+  StrumBar(StrumBarConfig* config) {
     this->config = config;
   }
 
-  virtual Color GetColor() { return config->color; }
-  virtual Dimension GetSize() { return Dimension(1, 8); }
+  virtual Color GetColor() {
+    return config->color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(1, 8);
+  }
 
-  void checkForExpiredNotes()
-  {
+  void checkForExpiredNotes() {
     while (!note_queue.empty())
     {
       if (MatrixOS::SYS::Millis() - note_queue.front().first > config->note_length)
@@ -67,62 +67,62 @@ class StrumBar : public UIComponent {
   }
 
   virtual bool Render(Point origin) {
-    uint8_t new_key_bitmap = 0;
+    uint8_t newKeyBitmap = 0;
     for (uint8_t i = 0; i < 8; i++)
     {
       Point xy = origin + Point(0, i);
-      bool key_state = MatrixOS::KeyPad::GetKey(xy)->Active();
-      if (key_state)
+      bool keyState = MatrixOS::KeyPad::GetKey(xy)->Active();
+      if (keyState)
       {
-        new_key_bitmap |= 1 << i;
+        newKeyBitmap |= 1 << i;
         MatrixOS::LED::SetColor(xy, config->color);
       }
     }
 
     checkForExpiredNotes();
 
-    if(new_key_bitmap == keycache)
+    if (newKeyBitmap == keycache)
     {
       return true;
     }
 
-    keycache = new_key_bitmap;
+    keycache = newKeyBitmap;
 
     uint8_t start = 0;
     uint8_t size = 0;
-    uint8_t current_start = 0;
-    uint8_t current_size = 0;
+    uint8_t currentStart = 0;
+    uint8_t currentSize = 0;
     bool prev = false;
-    for(uint8_t i = 0; i < 9; i++)
+    for (uint8_t i = 0; i < 9; i++)
     {
-      bool key_state = i == 8 ? 0 : new_key_bitmap & (1 << i);
-      if(key_state)
+      bool keyState = i == 8 ? 0 : newKeyBitmap & (1 << i);
+      if (keyState)
       {
-        if(!prev)
+        if (!prev)
         {
-          current_start = i;
-          current_size = 1;
+          currentStart = i;
+          currentSize = 1;
         }
         else
         {
-          current_size++;
+          currentSize++;
         }
       }
       else
       {
-        if(prev)
+        if (prev)
         {
-          if(current_size > size)
+          if (currentSize > size)
           {
-            start = current_start;
-            size = current_size;
+            start = currentStart;
+            size = currentSize;
           }
         }
       }
-      prev = key_state;
+      prev = keyState;
     }
 
-    if(size == 0)
+    if (size == 0)
     {
       MLOGW("StrumBar", "No active keys");
       return true;
@@ -133,7 +133,7 @@ class StrumBar : public UIComponent {
 
     MLOGD("StrumBar", "Start %d Size %d Pos %d", start, size, pos);
 
-    uint8_t note = config->root + 12 * (config->octave) + calculate_note_offset(config->chord, pos);
+    uint8_t note = config->root + 12 * (config->octave) + CalculateNoteOffset(config->chord, pos);
 
     if ((activeNote != note) && (note < 128))
     {
@@ -145,6 +145,7 @@ class StrumBar : public UIComponent {
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) { return true; };
-
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
+    return true;
+  };
 };

@@ -2,14 +2,14 @@
 
 - OS\USB\USB.h - NOT FORMATTED
 - OS\USB\USB.cpp - NOT FORMATTED
-- Applications\Strum\StrumOctaveShifter.h - NOT FORMATTED
-- Applications\Strum\StrumDurationModifier.h - NOT FORMATTED
-- Applications\Strum\StrumChordVisualizer.h - NOT FORMATTED
-- Applications\Strum\StrumBar.h - NOT FORMATTED
-- Applications\Strum\Strum.h - NOT FORMATTED
-- Applications\Strum\Strum.cpp - NOT FORMATTED
-- Applications\Strum\RotationRequiredUI.h - NOT FORMATTED
-- Applications\Strum\Chord.h - NOT FORMATTED
+- Applications\Strum\StrumOctaveShifter.h - FORMATTED
+- Applications\Strum\StrumDurationModifier.h - FORMATTED
+- Applications\Strum\StrumChordVisualizer.h - FORMATTED
+- Applications\Strum\StrumBar.h - FORMATTED
+- Applications\Strum\Strum.h - FORMATTED
+- Applications\Strum\Strum.cpp - FORMATTED
+- Applications\Strum\RotationRequiredUI.h - FORMATTED
+- Applications\Strum\Chord.h - FORMATTED
 - OS\USB\MSC.cpp - NOT FORMATTED
 - OS\USB\MIDI.cpp - NOT FORMATTED
 - OS\USB\HID.cpp - NOT FORMATTED

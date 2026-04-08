@@ -1,7 +1,7 @@
 #include "MatrixOS.h"
 
 class StrumChordVisualizer : public UIComponent {
- public:
+public:
   uint8_t* rootKey;
   uint16_t* scale;
   Color color;
@@ -14,22 +14,32 @@ class StrumChordVisualizer : public UIComponent {
     this->rootColor = rootColor;
   }
 
-  virtual Color GetColor() { return color; }
-  virtual Dimension GetSize() { return Dimension(7, 2); }
+  virtual Color GetColor() {
+    return color;
+  }
+  virtual Dimension GetSize() {
+    return Dimension(7, 2);
+  }
 
   virtual bool Render(Point origin) {
-    uint16_t c_aligned_scale_map =
-        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF;  // Root key should always < 12,
-                                                                                      // might add an assert later
+    uint16_t cAlignedScaleMap =
+        ((*scale << *rootKey) + ((*scale & 0xFFF) >> (12 - *rootKey % 12))) & 0xFFF; // Root key should always < 12,
+                                                                                     // might add an assert later
     for (uint8_t note = 0; note < 12; note++)
     {
       Point xy = origin + ((note < 5) ? Point((note + 1) / 2, (note + 1) % 2) : Point((note + 2) / 2, note % 2));
       if (note == *rootKey)
-      { MatrixOS::LED::SetColor(xy, rootColor); }
-      else if (bitRead(c_aligned_scale_map, note))
-      { MatrixOS::LED::SetColor(xy, color); }
+      {
+        MatrixOS::LED::SetColor(xy, rootColor);
+      }
+      else if (bitRead(cAlignedScaleMap, note))
+      {
+        MatrixOS::LED::SetColor(xy, color);
+      }
       else
-      { MatrixOS::LED::SetColor(xy, color.DimIfNot()); }
+      {
+        MatrixOS::LED::SetColor(xy, color.DimIfNot());
+      }
     }
     return true;
   }

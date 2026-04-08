@@ -1,8 +1,8 @@
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
-class StrumDurationModifier: public UIComponent {
- public:
+class StrumDurationModifier : public UIComponent {
+public:
   uint8_t count;
   uint16_t* note_length;
 
@@ -13,9 +13,15 @@ class StrumDurationModifier: public UIComponent {
     this->note_length = note_length;
   }
 
-  virtual string GetName() { return "Duration Modifier"; }
-  virtual Color GetColor() { return Color(0xFFB000); }
-  virtual Dimension GetSize() { return Dimension(count, 1); }
+  virtual string GetName() {
+    return "Duration Modifier";
+  }
+  virtual Color GetColor() {
+    return Color(0xFFB000);
+  }
+  virtual Dimension GetSize() {
+    return Dimension(count, 1);
+  }
 
   virtual bool Render(Point origin) {
     for (uint8_t duration = 0; duration < count; duration++)
@@ -27,15 +33,14 @@ class StrumDurationModifier: public UIComponent {
     return true;
   }
 
-  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) 
-  {
+  virtual bool KeyEvent(Point xy, KeyInfo* keyInfo) {
     if (keyInfo->State() == HOLD)
     {
-        MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
-        return true;
+      MatrixOS::UIUtility::TextScroll(GetName(), GetColor());
+      return true;
     }
     else if (keyInfo->State() == PRESSED)
-    { 
+    {
       *this->note_length = (xy.x + 1) * step;
       return true;
     }
