@@ -5,23 +5,15 @@
 #include "UI/UIUtilities.h"
 #include "Application.h"
 
-
 class Reversi : public Application {
- public:
-  enum GameState {
-    Waiting,
-    NoValidMoves,
-    Moving,
-    Intermission,
-    WinnerUnveil,
-    Ended
-  };
+public:
+  enum GameState { Waiting, NoValidMoves, Moving, Intermission, WinnerUnveil, Ended };
 
   struct boardInfo {
-    uint8_t player : 2; // 0 = empty, 1 = player 1, 2 = player 2
-    uint8_t wasPlayer : 2; // 0 = empty, 1 = player 1, 2 = player 2
+    uint8_t player : 2;      // 0 = empty, 1 = player 1, 2 = player 2
+    uint8_t wasPlayer : 2;   // 0 = empty, 1 = player 1, 2 = player 2
     uint8_t newlyPlaced : 1; // 0 = no, 1 = yes
-    uint8_t validMove : 1; // 0 = no, 1 = yes
+    uint8_t validMove : 1;   // 0 = no, 1 = yes
   };
 
   Timer renderTimer;
@@ -74,6 +66,3 @@ class Reversi : public Application {
   CreateSavedVar("Reversi", firstPlayer, uint8_t, 1);
   CreateSavedVar("Reversi", hint, bool, true);
 };
-
-
-

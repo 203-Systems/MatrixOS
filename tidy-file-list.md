@@ -76,8 +76,8 @@
 - Applications\Sequencer\BPMTapper.h - NOT FORMATTED
 - OS\UI\Data\font.h - NOT FORMATTED
 - OS\UI\Data\4pxNumber.h - NOT FORMATTED
-- Applications\Reversi\Reversi.h - NOT FORMATTED
-- Applications\Reversi\Reversi.cpp - NOT FORMATTED
+- Applications\Reversi\Reversi.h - FORMATTED
+- Applications\Reversi\Reversi.cpp - FORMATTED
 - OS\UI\Component\UIToggle.h - NOT FORMATTED
 - OS\UI\Component\UITimedDisplay.h - NOT FORMATTED
 - OS\UI\Component\UISelectorBase.h - NOT FORMATTED

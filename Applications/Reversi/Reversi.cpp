@@ -4,103 +4,101 @@ void Reversi::Setup(const vector<string>& args) {
   ResetGame(true);
 }
 
-void Reversi::Loop()
-{
+void Reversi::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent); }
+  {
+    KeyEventHandler(keyEvent);
+  }
 
-  if(renderTimer.Tick(1000/Device::LED::fps))
+  if (renderTimer.Tick(1000 / Device::LED::fps))
   {
     Render();
   }
 }
 
-uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update)
-{
+uint8_t Reversi::Flip(Point pos, uint8_t currentPlayer, bool update) {
   uint8_t opponentPlayer = (1 == currentPlayer) ? 2 : 1;
   uint8_t flipped = 0;
 
-    // Check all 8 directions
-    for(int8_t dy = -1; dy <= 1; dy++)
+  // Check all 8 directions
+  for (int8_t dy = -1; dy <= 1; dy++)
+  {
+    for (int8_t dx = -1; dx <= 1; dx++)
     {
-        for(int8_t dx = -1; dx <= 1; dx++)
+      if (dy == 0 && dx == 0)
+      {
+        continue;
+      }
+
+      int distance = 1;
+      int checkY = pos.y + dy * distance;
+      int checkX = pos.x + dx * distance;
+
+      // Immediate neighbor check
+      if (checkY >= 0 && checkY < 8 && checkX >= 0 && checkX < 8 && board[checkY][checkX].player == opponentPlayer)
+      {
+        while (true)
         {
-            if(dy == 0 && dx == 0)
+          distance++;
+          checkY = pos.y + dy * distance;
+          checkX = pos.x + dx * distance;
+
+          // Check for board boundaries
+          if (checkY < 0 || checkY >= 8 || checkX < 0 || checkX >= 8)
+          {
+            break;
+          }
+
+          int playerAtPosition = board[checkY][checkX].player;
+
+          if (playerAtPosition == opponentPlayer)
+          {
+            continue;
+          }
+          else if (playerAtPosition == currentPlayer)
+          {
+            // Flip pieces between pos and (checkX, checkY)
+            int flipY = pos.y + dy;
+            int flipX = pos.x + dx;
+            while (flipY != checkY || flipX != checkX)
             {
-                continue;
+              if (update)
+              {
+                board[flipY][flipX].player = currentPlayer;
+              }
+              flipped++;
+              flipY += dy;
+              flipX += dx;
             }
-
-            int distance = 1;
-            int checkY = pos.y + dy * distance;
-            int checkX = pos.x + dx * distance;
-
-            // Immediate neighbor check
-            if(checkY >= 0 && checkY < 8 && checkX >= 0 && checkX < 8 && board[checkY][checkX].player == opponentPlayer)
-            {
-                while(true)
-                {
-                    distance++;
-                    checkY = pos.y + dy * distance;
-                    checkX = pos.x + dx * distance;
-
-                    // Check for board boundaries
-                    if(checkY < 0 || checkY >= 8 || checkX < 0 || checkX >= 8)
-                    {
-                        break;
-                    }
-
-                    int playerAtPosition = board[checkY][checkX].player;
-
-                    if(playerAtPosition == opponentPlayer)
-                    {
-                        continue;
-                    }
-                    else if(playerAtPosition == currentPlayer)
-                    {
-                        // Flip pieces between pos and (checkX, checkY)
-                        int flipY = pos.y + dy;
-                        int flipX = pos.x + dx;
-                        while(flipY != checkY || flipX != checkX)
-                        {
-                            if(update) 
-                            {
-                              board[flipY][flipX].player = currentPlayer;
-                            }
-                            flipped++;
-                            flipY += dy;
-                            flipX += dx;
-                        }
-                        break;
-                    }
-                    else
-                    {
-                        // Empty cell, cannot flip in this direction
-                        break;
-                    }
-                }
-            }
+            break;
+          }
+          else
+          {
+            // Empty cell, cannot flip in this direction
+            break;
+          }
         }
+      }
     }
-    return flipped;
+  }
+  return flipped;
 }
 
-
-void Reversi::Place(Point pos)
-{
+void Reversi::Place(Point pos) {
   invalidPlace = pos;
   invalidPlaceTime = MatrixOS::SYS::Millis();
-  if(pos.x < 0 || pos.x >= 8 || pos.y < 0 || pos.y >= 8)
+  if (pos.x < 0 || pos.x >= 8 || pos.y < 0 || pos.y >= 8)
   {
     return;
   }
 
-  if(gameState != Waiting)
+  if (gameState != Waiting)
   {
     return;
   }
 
-  if(board[pos.y][pos.x].validMove == 0)
+  if (board[pos.y][pos.x].validMove == 0)
   {
     return;
   }
@@ -108,11 +106,11 @@ void Reversi::Place(Point pos)
   invalidPlace = Point::Invalid();
 
   started = true;
-  
+
   // Update board
-  for(uint8_t y = 0; y < 8; y++)
+  for (uint8_t y = 0; y < 8; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for (uint8_t x = 0; x < 8; x++)
     {
       // Copy player to wasPlayer
       board[y][x].wasPlayer = board[y][x].player;
@@ -125,46 +123,44 @@ void Reversi::Place(Point pos)
   placedPos = pos;
 
   Flip(pos, currentPlayer, true);
-  
+
   gameState = Moving;
   MLOGD("Reversi", "Moving");
   lastEventTime = MatrixOS::SYS::Millis();
 }
 
-
-void Reversi::Render()
-{
+void Reversi::Render() {
   uint32_t timeSinceEvent = MatrixOS::SYS::Millis() - lastEventTime;
-  if(gameState == Waiting)
+  if (gameState == Waiting)
   {
 
-    Color hint_move_color;
-    if(hint)
+    Color hintMoveColor;
+    if (hint)
     {
-      uint8_t hint_move_ratio;
-      if(timeSinceEvent <= 750)
+      uint8_t hintMoveRatio;
+      if (timeSinceEvent <= 750)
       {
-        hint_move_ratio = ColorEffects::Breath(1500, lastEventTime);
+        hintMoveRatio = ColorEffects::Breath(1500, lastEventTime);
       }
       else
       {
-        hint_move_ratio = ColorEffects::BreathLowBound(64, 1500, lastEventTime);
+        hintMoveRatio = ColorEffects::BreathLowBound(64, 1500, lastEventTime);
       }
-      hint_move_color = GetPlayerColor(currentPlayer).Dim().Dim(hint_move_ratio);
-      last_breating_brightness = hint_move_color.B; // Hack: Get the channel brightness val
+      hintMoveColor = GetPlayerColor(currentPlayer).Dim().Dim(hintMoveRatio);
+      last_breating_brightness = hintMoveColor.B; // Hack: Get the channel brightness val
     }
     else
     {
       last_breating_brightness = 0;
     }
 
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
-        if(board[y][x].validMove && hint)
+        if (board[y][x].validMove && hint)
         {
-          MatrixOS::LED::SetColor(Point(x, y), hint_move_color);
+          MatrixOS::LED::SetColor(Point(x, y), hintMoveColor);
         }
         else
         {
@@ -174,27 +170,29 @@ void Reversi::Render()
     }
 
     uint32_t timeSinceInvalidPlace = MatrixOS::SYS::Millis() - invalidPlaceTime;
-    if(invalidPlace && timeSinceInvalidPlace < 800)
+    if (invalidPlace && timeSinceInvalidPlace < 800)
     {
-      if(timeSinceInvalidPlace <= 500)
+      if (timeSinceInvalidPlace <= 500)
       {
         MatrixOS::LED::SetColor(invalidPlace, Color(0xFF0000));
       }
       else
       {
-        MatrixOS::LED::SetColor(invalidPlace, Color::Crossfade(Color(0xFF0000), GetPlayerColor(board[invalidPlace.y][invalidPlace.x].player), 255 - ((timeSinceInvalidPlace - 500) * 255 / 300)));
+        MatrixOS::LED::SetColor(invalidPlace,
+                                Color::Crossfade(Color(0xFF0000), GetPlayerColor(board[invalidPlace.y][invalidPlace.x].player),
+                                                 255 - ((timeSinceInvalidPlace - 500) * 255 / 300)));
       }
     }
     MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorBreath(GetPlayerColor(currentPlayer), 2000, lastEventTime - 500));
   }
-  else if(gameState == Moving)
+  else if (gameState == Moving)
   {
     bool done = true;
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
-        if(board[y][x].player != board[y][x].wasPlayer)
+        if (board[y][x].player != board[y][x].wasPlayer)
         {
           int8_t deltaX = x - placedPos.x;
           int16_t powerX = pow(deltaX, 2);
@@ -205,18 +203,18 @@ void Reversi::Render()
 
           uint32_t startTime = distanceFromPlaced * 100 + 200;
 
-          if(board[y][x].newlyPlaced)
+          if (board[y][x].newlyPlaced)
           {
-            MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player));//.Dim(new_piece_ratio));
+            MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(board[y][x].player)); //.Dim(new_piece_ratio));
             continue;
           }
 
-          if(timeSinceEvent <= startTime)
+          if (timeSinceEvent <= startTime)
           {
             ratio = 0;
             done = false;
           }
-          else if(timeSinceEvent - 300 > startTime )
+          else if (timeSinceEvent - 300 > startTime)
           {
             ratio = FRACT16_MAX;
           }
@@ -226,12 +224,13 @@ void Reversi::Render()
             done = false;
           }
 
-          MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(GetPlayerColor(board[y][x].wasPlayer), GetPlayerColor(currentPlayer), ratio));
+          MatrixOS::LED::SetColor(Point(x, y),
+                                  Color::Crossfade(GetPlayerColor(board[y][x].wasPlayer), GetPlayerColor(currentPlayer), ratio));
         }
-        else if(board[y][x].validMove && hint)
+        else if (board[y][x].validMove && hint)
         {
           uint8_t ratio;
-          if(timeSinceEvent <= 200)
+          if (timeSinceEvent <= 200)
           {
             ratio = last_breating_brightness - (timeSinceEvent * last_breating_brightness / 200);
           }
@@ -251,7 +250,7 @@ void Reversi::Render()
 
     MatrixOS::LED::FillPartition("Underglow", GetPlayerColor(currentPlayer));
 
-    if(done && timeSinceEvent >= 250)
+    if (done && timeSinceEvent >= 250)
     {
       winner = 255;
       gameState = Intermission;
@@ -259,13 +258,13 @@ void Reversi::Render()
       lastEventTime = MatrixOS::SYS::Millis();
     }
   }
-  else if(gameState == NoValidMoves)
+  else if (gameState == NoValidMoves)
   {
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
-        if(board[y][x].player == 0)
+        if (board[y][x].player == 0)
         {
           MatrixOS::LED::SetColor(Point(x, y), ColorEffects::ColorStrobe(Color(0xFF0000).Dim(), 500, lastEventTime));
         }
@@ -274,7 +273,7 @@ void Reversi::Render()
 
     MatrixOS::LED::FillPartition("Underglow", ColorEffects::ColorStrobe(GetPlayerColor(currentPlayer), 500, lastEventTime));
 
-    if(timeSinceEvent >= 2000)
+    if (timeSinceEvent >= 2000)
     {
       winner = 255;
       gameState = Intermission;
@@ -282,9 +281,9 @@ void Reversi::Render()
       lastEventTime = MatrixOS::SYS::Millis();
     }
   }
-  else if(gameState == Intermission)
+  else if (gameState == Intermission)
   {
-    if(winner == 255)
+    if (winner == 255)
     {
       winner = CheckGameOver();
     }
@@ -293,11 +292,15 @@ void Reversi::Render()
     Fract16 ratio;
 
     if (timeSinceEvent <= 500)
-    { ratio = timeSinceEvent * FRACT16_MAX / 500;}
+    {
+      ratio = timeSinceEvent * FRACT16_MAX / 500;
+    }
     else
-    { ratio = FRACT16_MAX; }
+    {
+      ratio = FRACT16_MAX;
+    }
 
-    if(winner != 0 && winner != 254)
+    if (winner != 0 && winner != 254)
     {
       MatrixOS::LED::FillPartition("Underglow", Color::Crossfade(GetPlayerColor(currentPlayer), GetPlayerColor(winner), ratio));
     }
@@ -306,15 +309,15 @@ void Reversi::Render()
       MatrixOS::LED::FillPartition("Underglow", Color::Crossfade(GetPlayerColor(currentPlayer), GetPlayerColor(nextPlayer), ratio));
     }
 
-    if(timeSinceEvent >= 500)
+    if (timeSinceEvent >= 500)
     {
-      if(winner == 0)
+      if (winner == 0)
       {
         gameState = Waiting;
         MLOGD("Reversi", "Waiting");
         currentPlayer = nextPlayer;
       }
-      else if(winner == 254)
+      else if (winner == 254)
       {
         gameState = NoValidMoves;
         MLOGD("Reversi", "NoValidMoves");
@@ -328,41 +331,41 @@ void Reversi::Render()
       lastEventTime = MatrixOS::SYS::Millis();
     }
   }
-  else if(gameState == WinnerUnveil)
+  else if (gameState == WinnerUnveil)
   {
     bool done = true;
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
         uint32_t startTime = (y * 8 + x) * 50;
 
-        if(timeSinceEvent >= (startTime + 1000)) // 1000 (Done)
+        if (timeSinceEvent >= (startTime + 1000)) // 1000 (Done)
         {
           uint8_t localWinner = winner;
-          if(winner == 3)
+          if (winner == 3)
           {
             localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
           }
           MatrixOS::LED::SetColor(Point(x, y), GetPlayerColor(localWinner));
         }
-        else if(timeSinceEvent >= (startTime + 700)) // 700 - 1000
+        else if (timeSinceEvent >= (startTime + 700)) // 700 - 1000
         {
           done = false;
           uint8_t localWinner = winner;
-          if(winner == 3)
+          if (winner == 3)
           {
             localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
           }
           Fract16 ratio = (timeSinceEvent - 700 - startTime) * FRACT16_MAX / 300;
           MatrixOS::LED::SetColor(Point(x, y), Color::Crossfade(Color::White, GetPlayerColor(localWinner), ratio));
         }
-        else if(timeSinceEvent >= (startTime + 300)) // 300 - 700
+        else if (timeSinceEvent >= (startTime + 300)) // 300 - 700
         {
           done = false;
           MatrixOS::LED::SetColor(Point(x, y), Color::White);
         }
-        else if(timeSinceEvent >= startTime) // 0 - 300
+        else if (timeSinceEvent >= startTime) // 0 - 300
         {
           done = false;
           Fract16 ratio = (timeSinceEvent - startTime) * FRACT16_MAX / 300;
@@ -376,46 +379,45 @@ void Reversi::Render()
       }
     }
 
-    if(done)
+    if (done)
     {
       gameState = Ended;
       MLOGD("Reversi", "Ended");
     }
   }
-  else if(gameState == Ended)
+  else if (gameState == Ended)
   {
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
         uint8_t localWinner = winner;
-        if(winner == 3)
+        if (winner == 3)
         {
-         localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
+          localWinner = (x + y * 7) % 2 == 0 ? 1 : 2;
         }
-        MatrixOS::LED::SetColor(Point(x,y), ColorEffects::ColorBreathLowBound(GetPlayerColor(localWinner), 64, 2000, lastEventTime + 1000));
+        MatrixOS::LED::SetColor(Point(x, y),
+                                ColorEffects::ColorBreathLowBound(GetPlayerColor(localWinner), 64, 2000, lastEventTime + 1000));
       }
     }
-
   }
 
   MatrixOS::LED::Update();
 }
 
-uint8_t Reversi::CheckGameOver()
-{
+uint8_t Reversi::CheckGameOver() {
   uint8_t opponentPlayer = currentPlayer == 1 ? 2 : 1;
 
   // Check if there are any valid moves
   bool validMove = false;
 
-  for(uint8_t y = 0; y < 8; y++)
+  for (uint8_t y = 0; y < 8; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for (uint8_t x = 0; x < 8; x++)
     {
-      if(board[y][x].player == 0)
+      if (board[y][x].player == 0)
       {
-        if(Flip(Point(x, y), opponentPlayer, false))
+        if (Flip(Point(x, y), opponentPlayer, false))
         {
           board[y][x].validMove = 1;
           validMove = true;
@@ -432,17 +434,17 @@ uint8_t Reversi::CheckGameOver()
     }
   }
 
-  if(!validMove) // Check the current player has valid move
+  if (!validMove) // Check the current player has valid move
   {
     MLOGD("Reversi", "No valid moves for player %d", currentPlayer);
     validMove = false;
-    for(uint8_t y = 0; y < 8; y++)
+    for (uint8_t y = 0; y < 8; y++)
     {
-      for(uint8_t x = 0; x < 8; x++)
+      for (uint8_t x = 0; x < 8; x++)
       {
-        if(board[y][x].player == 0)
+        if (board[y][x].player == 0)
         {
-          if(Flip(Point(x, y), currentPlayer, false))
+          if (Flip(Point(x, y), currentPlayer, false))
           {
             validMove = true;
           }
@@ -450,7 +452,7 @@ uint8_t Reversi::CheckGameOver()
       }
     }
 
-    if(!validMove)
+    if (!validMove)
     {
       MLOGD("Reversi", "No valid moves for both players, forcing a winner");
     }
@@ -466,29 +468,28 @@ uint8_t Reversi::CheckGameOver()
     return 0;
   }
 
-
   uint8_t player1Count = 0;
   uint8_t player2Count = 0;
-  for(uint8_t y = 0; y < 8; y++)
+  for (uint8_t y = 0; y < 8; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for (uint8_t x = 0; x < 8; x++)
     {
-      if(board[y][x].player == 1)
+      if (board[y][x].player == 1)
       {
         player1Count++;
       }
-      else if(board[y][x].player == 2)
+      else if (board[y][x].player == 2)
       {
         player2Count++;
       }
     }
   }
 
-  if(player1Count > player2Count)
+  if (player1Count > player2Count)
   {
     return 1;
   }
-  else if(player2Count > player1Count)
+  else if (player2Count > player1Count)
   {
     return 2;
   }
@@ -498,8 +499,7 @@ uint8_t Reversi::CheckGameOver()
   }
 }
 
-bool Reversi::ConfirmMenu()
-{
+bool Reversi::ConfirmMenu() {
   bool confirmed = false;
   UI confirmUI("Reset Game?", Color(0xFF0000), false);
 
@@ -528,16 +528,15 @@ bool Reversi::ConfirmMenu()
   return confirmed;
 }
 
-bool Reversi::ResetGame(bool confirmed)
-{
-  if(!(gameState == Ended || !started) && (!confirmed && !ConfirmMenu()))
+bool Reversi::ResetGame(bool confirmed) {
+  if (!(gameState == Ended || !started) && (!confirmed && !ConfirmMenu()))
   {
-      return false;
+    return false;
   }
-  
-  for(uint8_t y = 0; y < 8; y++)
+
+  for (uint8_t y = 0; y < 8; y++)
   {
-    for(uint8_t x = 0; x < 8; x++)
+    for (uint8_t x = 0; x < 8; x++)
     {
       board[y][x].newlyPlaced = 0;
       board[y][x].player = 0;
@@ -576,17 +575,16 @@ bool Reversi::ResetGame(bool confirmed)
   return true;
 }
 
-Color Reversi::GetPlayerColor(uint8_t player)
-{
-  if(player == 1)
+Color Reversi::GetPlayerColor(uint8_t player) {
+  if (player == 1)
   {
     return player1Color;
   }
-  else if(player == 2)
+  else if (player == 2)
   {
     return player2Color;
   }
-  else if(player == 3) // Draw
+  else if (player == 3) // Draw
   {
     return Color::White;
   }
@@ -606,17 +604,16 @@ void Reversi::KeyEventHandler(KeyEvent& keyEvent) {
     return;
   }
 
-  if(gameState == Waiting)
+  if (gameState == Waiting)
   {
     Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
 
-    if (xy && keyEvent.State() == RELEASED)  // IF XY is valid, means it's on the main grid
+    if (xy && keyEvent.State() == RELEASED) // IF XY is valid, means it's on the main grid
     {
       Place(xy);
     }
   }
 }
-
 
 void Reversi::Settings() {
   UI settingsUI("Settings", Color(0x00FFFF), true);
@@ -624,27 +621,57 @@ void Reversi::Settings() {
   UIButton player1ColorSelector;
   player1ColorSelector.SetName("Player 1 Color");
   player1ColorSelector.SetColorFunc([&]() -> Color { return player1Color; });
-  player1ColorSelector.SetSize(Dimension(8,1));
-  player1ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player1Color)) { player1Color.Save(); } });
+  player1ColorSelector.SetSize(Dimension(8, 1));
+  player1ColorSelector.OnPress([&]() -> void {
+    if (MatrixOS::UIUtility::ColorPicker(player1Color))
+    {
+      player1Color.Save();
+    }
+  });
   settingsUI.AddUIComponent(player1ColorSelector, Point(0, 7));
 
   UIButton player2ColorSelector;
   player2ColorSelector.SetName("Player 2 Color");
   player2ColorSelector.SetColorFunc([&]() -> Color { return player2Color; });
-  player2ColorSelector.SetSize(Dimension(8,1));
-  player2ColorSelector.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(player2Color)) { player2Color.Save(); } });
+  player2ColorSelector.SetSize(Dimension(8, 1));
+  player2ColorSelector.OnPress([&]() -> void {
+    if (MatrixOS::UIUtility::ColorPicker(player2Color))
+    {
+      player2Color.Save();
+    }
+  });
   settingsUI.AddUIComponent(player2ColorSelector, Point(0, 0));
 
   UIButton player1FirstHand;
   player1FirstHand.SetName("Player 1 First Hand");
   player1FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(1 == firstPlayer); });
-  player1FirstHand.OnPress([&]() -> void { if(1 == firstPlayer) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 1; ResetGame(true);} });
+  player1FirstHand.OnPress([&]() -> void {
+    if (1 == firstPlayer)
+    {
+      return;
+    }
+    if (gameState == Ended || !started || ConfirmMenu())
+    {
+      firstPlayer = 1;
+      ResetGame(true);
+    }
+  });
   settingsUI.AddUIComponent(player1FirstHand, Point(7, 6));
 
   UIButton player2FirstHand;
   player2FirstHand.SetName("Player 2 First Hand");
   player2FirstHand.SetColorFunc([&]() -> Color { return Color::White.DimIfNot(2 == firstPlayer); });
-  player2FirstHand.OnPress([&]() -> void { if(2 == firstPlayer) {return;} if (gameState == Ended || !started || ConfirmMenu()) { firstPlayer = 2; ResetGame(true);} });
+  player2FirstHand.OnPress([&]() -> void {
+    if (2 == firstPlayer)
+    {
+      return;
+    }
+    if (gameState == Ended || !started || ConfirmMenu())
+    {
+      firstPlayer = 2;
+      ResetGame(true);
+    }
+  });
   settingsUI.AddUIComponent(player2FirstHand, Point(0, 1));
 
   UIToggle hintToggle;
@@ -652,19 +679,21 @@ void Reversi::Settings() {
   hintToggle.SetColor(Color(0x00FF00));
   hintToggle.SetSize(Dimension(1, 2));
   hintToggle.SetValuePointer(&hint);
-  hintToggle.OnPress([&]() -> void {hint.Save();});
+  hintToggle.OnPress([&]() -> void { hint.Save(); });
   settingsUI.AddUIComponent(hintToggle, Point(0, 3));
 
   UIButton resetGameBtn;
   resetGameBtn.SetName("Reset Game");
   resetGameBtn.SetColorFunc([&]() -> Color { return Color(0xFF0000); });
   resetGameBtn.OnPress([&]() -> void {
-    if(ResetGame(false)) { settingsUI.Exit(); }
+    if (ResetGame(false))
+    {
+      settingsUI.Exit();
+    }
   });
   resetGameBtn.SetSize(Dimension(1, 2));
   settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
 
-  
   // Second, set the key event handler to match the intended behavior
   settingsUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
     // If function key is hold down. Exit the application
@@ -672,18 +701,18 @@ void Reversi::Settings() {
     {
       if (keyEvent->info.state == HOLD)
       {
-        Exit();  // Exit the application.
+        Exit(); // Exit the application.
       }
       else if (keyEvent->info.state == RELEASED)
       {
-        settingsUI.Exit();  // Exit the UI
+        settingsUI.Exit(); // Exit the UI
       }
 
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
-    return false;  // Nothing happened. Let the UI handle the key event
+    return false; // Nothing happened. Let the UI handle the key event
   });
-  
+
   // The UI object is now fully set up. Let the UI runtime to start and take over.
   settingsUI.Start();
 }
