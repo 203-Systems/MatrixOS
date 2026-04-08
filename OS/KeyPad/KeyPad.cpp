@@ -38,6 +38,28 @@ static InputId BridgeKeyId(uint16_t keyID) {
   }
 }
 
+// Reverse bridge: convert InputId back to legacy keyID encoding
+// This is the inverse of BridgeKeyId.
+static uint16_t InputIdToLegacyKeyId(InputId id) {
+  switch (id.clusterId)
+  {
+  case 0: // System
+    return id.memberId;
+  case 1: // Grid: memberId = y * xSize + x
+  {
+    uint16_t x = id.memberId % Device::xSize;
+    uint16_t y = id.memberId / Device::xSize;
+    return (1 << 12) | (x << 6) | y;
+  }
+  case 2: // TouchBar Left
+    return (2 << 12) | id.memberId;
+  case 3: // TouchBar Right
+    return (2 << 12) | (id.memberId + 8);
+  default:
+    return UINT16_MAX;
+  }
+}
+
 // Bridge: forward KeyEvent as InputEvent to the new input system
 IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
   InputEvent inputEvent;
@@ -91,21 +113,32 @@ void Clear() {
   ClearList();
 }
 
-uint16_t XY2ID(Point xy) // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no ID
-                         // is assigned to given XY //TODO Compensate for rotation
+uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)
 {
   if (!xy)
     return UINT16_MAX;
-  xy = xy.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize));
-  return Device::KeyPad::XY2ID(xy);
+  // Try all coordinate-capable clusters via device handlers
+  for (const auto& cluster : Device::Input::clusters)
+  {
+    if (!cluster.HasCoordinates())
+      continue;
+    uint16_t memberId;
+    if (Device::Input::TryGetMemberId(cluster.clusterId, xy, &memberId))
+    {
+      return InputIdToLegacyKeyId(InputId{cluster.clusterId, memberId});
+    }
+  }
+  return UINT16_MAX;
 }
 
-Point ID2XY(uint16_t keyID) // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
-                            // given ID;
+Point ID2XY(uint16_t keyID) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)
 {
-  Point point = Device::KeyPad::ID2XY(keyID);
-  if (point)
-    return point.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize), true);
-  return point;
+  InputId id = BridgeKeyId(keyID);
+  Point point;
+  if (Device::Input::TryGetPoint(id.clusterId, id.memberId, &point))
+  {
+    return point;
+  }
+  return Point(INT16_MIN, INT16_MIN);
 }
 } // namespace MatrixOS::KeyPad
