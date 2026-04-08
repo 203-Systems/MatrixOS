@@ -6,15 +6,9 @@
 #include "Application.h"
 #include "TemperatureColorPicker.h"
 
-
 class Lighting : public Application {
- public:
-  enum LightingMode {
-    RGB,
-    Temperature,
-    Animation,
-    Gradient
-  };
+public:
+  enum LightingMode { RGB, Temperature, Animation, Gradient };
 
   enum ColorEffectMode {
     Static,
@@ -40,15 +34,14 @@ class Lighting : public Application {
   void KeyEventHandler(KeyEvent& keyEvent);
 
   void Update();
-  Color ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t start_time);
-  Color GetAnimationColor(Animations animation, uint16_t start_time);
+  Color ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t startTime);
+  Color GetAnimationColor(Animations animation, uint16_t startTime);
   void RenderGradient();
   void Render(Color color);
 
   void Settings();
 
   void EffectModeAndSpeedMenu(LightingMode mode);
-
 
   CreateSavedVar("Lighting", mode, LightingMode, RGB);
   CreateSavedVar("Lighting", color, Color, Color::White);
@@ -64,5 +57,3 @@ class Lighting : public Application {
   uint8_t base_layer;
   uint32_t start_time;
 };
-
-

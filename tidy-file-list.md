@@ -171,10 +171,10 @@
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.cpp - NOT FORMATTED
 - Applications\CustomControlMap\Actions\wrap\WrapAction.h - NOT FORMATTED
-- Applications\Lighting\TemperatureColorPicker.h - NOT FORMATTED
-- Applications\Lighting\Lighting.h - NOT FORMATTED
-- Applications\Lighting\Lighting.cpp - NOT FORMATTED
-- Applications\Lighting\BPMTapper.h - NOT FORMATTED
+- Applications\Lighting\TemperatureColorPicker.h - FORMATTED
+- Applications\Lighting\Lighting.h - FORMATTED
+- Applications\Lighting\Lighting.cpp - FORMATTED
+- Applications\Lighting\BPMTapper.h - FORMATTED
 - Applications\CustomControlMap\Actions\color\ColorEffect.h - NOT FORMATTED
 - Applications\CustomControlMap\Actions\Actions.cpp - NOT FORMATTED
 - Devices\Mystrix1\ULP\fsr_keypad.c - NOT FORMATTED

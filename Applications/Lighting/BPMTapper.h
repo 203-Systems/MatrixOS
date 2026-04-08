@@ -6,54 +6,71 @@
 #define TAP_HISTORY_SIZE 10
 
 class UIBPMTapper : public UIComponent {
- public:
-
+public:
   string name;
   Color color;
   Dimension dimension;
   std::function<void(uint16_t)> callback;
 
   std::deque<uint64_t> tap_times;
-  
+
   UIBPMTapper() {
     this->name = "BPM";
   }
 
-  virtual string GetName() { return this->name; }
-  void SetName(string name) { this->name = name; }
+  virtual string GetName() {
+    return this->name;
+  }
+  void SetName(string name) {
+    this->name = name;
+  }
 
-  virtual Color GetColor() { return this->color; }
-  void SetColor(Color color) { this->color = color; }
+  virtual Color GetColor() {
+    return this->color;
+  }
+  void SetColor(Color color) {
+    this->color = color;
+  }
 
-  virtual Dimension GetSize() { return this->dimension; }
-  void SetSize(Dimension dimension) { this->dimension = dimension; }
+  virtual Dimension GetSize() {
+    return this->dimension;
+  }
+  void SetSize(Dimension dimension) {
+    this->dimension = dimension;
+  }
 
-  void OnChange(std::function<void(uint16_t)> callback) { this->callback = callback; } 
+  void OnChange(std::function<void(uint16_t)> callback) {
+    this->callback = callback;
+  }
 
   void CalculateBPM() {
-    if (tap_times.size() < 3) {
+    if (tap_times.size() < 3)
+    {
       return;
     }
-    
-    // Use last 5 taps or all available taps if fewer
-    size_t taps_to_use = std::min(tap_times.size(), (size_t)5);
-    size_t start_index = tap_times.size() - taps_to_use;
-    
-    // Calculate average interval
-    uint64_t total_interval = tap_times[tap_times.size() - 1] - tap_times[start_index];
-    uint64_t num_intervals = taps_to_use - 1;
-    uint64_t avg_interval = total_interval / num_intervals;
-    
-    // BPM = 60 seconds * 1,000,000 microseconds / average interval
-    uint16_t bpm = 60000000 / avg_interval;
 
-    if(bpm > 299) {
+    // Use last 5 taps or all available taps if fewer
+    size_t tapsToUse = std::min(tap_times.size(), (size_t)5);
+    size_t startIndex = tap_times.size() - tapsToUse;
+
+    // Calculate average interval
+    uint64_t totalInterval = tap_times[tap_times.size() - 1] - tap_times[startIndex];
+    uint64_t numIntervals = tapsToUse - 1;
+    uint64_t avgInterval = totalInterval / numIntervals;
+
+    // BPM = 60 seconds * 1,000,000 microseconds / average interval
+    uint16_t bpm = 60000000 / avgInterval;
+
+    if (bpm > 299)
+    {
       bpm = 299;
     }
-    else if(bpm < 30) {
+    else if (bpm < 30)
+    {
       bpm = 30;
     }
-    if (callback) {
+    if (callback)
+    {
       callback(bpm);
     }
   }
@@ -63,18 +80,20 @@ class UIBPMTapper : public UIComponent {
 
     // Clear all taps if no tap for 3 seconds.
     // Prevent only 1/2 left after garbage collection, the TAP is showing again.
-    if(!tap_times.empty() && now - tap_times.back() > 3000000)
+    if (!tap_times.empty() && now - tap_times.back() > 3000000)
     {
-      tap_times.clear(); 
+      tap_times.clear();
     }
     else
     {
-      while (!tap_times.empty() && now - tap_times.front() > 6000000) {
+      while (!tap_times.empty() && now - tap_times.front() > 6000000)
+      {
         tap_times.pop_front(); // Remove taps older than 6 seconds
       }
     }
 
-    if (tap_times.size() > 0 && tap_times.size() < 3) {
+    if (tap_times.size() > 0 && tap_times.size() < 3)
+    {
 
       // Fill with off
       for (int8_t y = 0; y < dimension.y; y++)
@@ -84,7 +103,7 @@ class UIBPMTapper : public UIComponent {
           MatrixOS::LED::SetColor(origin + Point(x, y), Color(0x000000));
         }
       }
-      
+
       // T
       MatrixOS::LED::SetColor(origin + Point(0, 0), color);
       MatrixOS::LED::SetColor(origin + Point(1, 0), color);
@@ -120,12 +139,13 @@ class UIBPMTapper : public UIComponent {
     if (keyInfo->State() == RELEASED)
     {
       tap_times.push_back(MatrixOS::SYS::Micros());
-      if (tap_times.size() > TAP_HISTORY_SIZE) {
+      if (tap_times.size() > TAP_HISTORY_SIZE)
+      {
         tap_times.pop_front();
       }
       CalculateBPM();
     }
-    else if(keyInfo->State() == HOLD)
+    else if (keyInfo->State() == HOLD)
     {
       MatrixOS::UIUtility::TextScroll(name, color);
       tap_times.clear();

@@ -6,36 +6,34 @@ void Lighting::Setup(const vector<string>& args) {
   Update();
 }
 
-void Lighting::Loop()
-{
+void Lighting::Loop() {
   struct KeyEvent keyEvent;
   while (MatrixOS::KeyPad::Get(&keyEvent))
-  { KeyEventHandler(keyEvent); }
+  {
+    KeyEventHandler(keyEvent);
+  }
 
-  if(renderTimer.Tick(1000/Device::LED::fps))
+  if (renderTimer.Tick(1000 / Device::LED::fps))
   {
     Update();
   }
 }
 
-void Lighting::Update()
-{
-  switch(mode)
+void Lighting::Update() {
+  switch (mode)
   {
-   case RGB:
-    {
-      uint16_t period = 60000 / rgb_effect_bpm; // Convert BPM to period in ms
-      Color color = ApplyColorEffect(this->color, rgb_effect, period, start_time);
-      Render(color);
-      break;
-    }
-    case Temperature:
-    {
-      uint16_t period = 60000 / temperature_effect_bpm; // Convert BPM to period in ms
-      Color color = ApplyColorEffect(temperature_color, temperature_effect, period, start_time);
-      Render(color);
-      break;
-    }
+  case RGB: {
+    uint16_t period = 60000 / rgb_effect_bpm; // Convert BPM to period in ms
+    Color color = ApplyColorEffect(this->color, rgb_effect, period, start_time);
+    Render(color);
+    break;
+  }
+  case Temperature: {
+    uint16_t period = 60000 / temperature_effect_bpm; // Convert BPM to period in ms
+    Color color = ApplyColorEffect(temperature_color, temperature_effect, period, start_time);
+    Render(color);
+    break;
+  }
     // case Animation:
     // {
     //   Color color = GetAnimationColor(animation, start_time);
@@ -44,54 +42,49 @@ void Lighting::Update()
     // }
     // case Gradient:
     //   RenderGradient();
-    // break; 
+    // break;
   }
 }
 
-Color Lighting::ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t start_time)
-{
-  switch(effect)
+Color Lighting::ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t startTime) {
+  switch (effect)
   {
-    case Static:
-      break;  
-    case Breath:
-      color = ColorEffects::ColorBreath(color, period, start_time);
-      break;
-    case Strobe:
-      color = ColorEffects::ColorStrobe(color, period, start_time);
-      break;
-    case Saw:
-      color = ColorEffects::ColorSaw(color, period, start_time);
-      break;
+  case Static:
+    break;
+  case Breath:
+    color = ColorEffects::ColorBreath(color, period, startTime);
+    break;
+  case Strobe:
+    color = ColorEffects::ColorStrobe(color, period, startTime);
+    break;
+  case Saw:
+    color = ColorEffects::ColorSaw(color, period, startTime);
+    break;
   }
   return color;
 }
 
-Color Lighting::GetAnimationColor(Animations animation, uint16_t start_time)
-{
+Color Lighting::GetAnimationColor(Animations animation, uint16_t startTime) {
   Color color = Color::White;
-  switch(animation)
+  switch (animation)
   {
-    case PoliceCar:
-      break;
-    case Breathing:
-      break;
+  case PoliceCar:
+    break;
+  case Breathing:
+    break;
   }
 
   return color;
 }
 
-void Lighting::Render(Color color)
-{
+void Lighting::Render(Color color) {
   // TODO: Get chunks, check if should render, render
 
   MatrixOS::LED::Fill(color);
   MatrixOS::LED::Update();
 }
 
-void Lighting::RenderGradient()
-{
-}
+void Lighting::RenderGradient() {}
 
 void Lighting::KeyEventHandler(KeyEvent& keyEvent) {
   if (keyEvent.ID() == FUNCTION_KEY)
@@ -108,8 +101,7 @@ void Lighting::Settings() {
 
   start_time = MatrixOS::SYS::Millis();
 
-  
-// Lighting Mode Selector & chunk selector
+  // Lighting Mode Selector & chunk selector
   // Selector
   UIButton rgbModeBtn;
   rgbModeBtn.SetName("RGB Mode");
@@ -143,8 +135,13 @@ void Lighting::Settings() {
   UIButton colorBtn;
   colorBtn.SetName("Color");
   colorBtn.SetColorFunc([&]() -> Color { return color; });
-  colorBtn.SetSize(Dimension(8,2));
-  colorBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::ColorPicker(color)) { color.Save(); } });
+  colorBtn.SetSize(Dimension(8, 2));
+  colorBtn.OnPress([&]() -> void {
+    if (MatrixOS::UIUtility::ColorPicker(color))
+    {
+      color.Save();
+    }
+  });
   colorBtn.SetEnableFunc([&]() -> bool { return mode == RGB; });
   settingsUI.AddUIComponent(colorBtn, Point(0, 6));
 
@@ -162,27 +159,33 @@ void Lighting::Settings() {
   UIButton temperatureBtn;
   temperatureBtn.SetName("Temperature");
   temperatureBtn.SetColorFunc([&]() -> Color { return temperature_color; });
-  temperatureBtn.SetSize(Dimension(8,2));
-  temperatureBtn.OnPress([&]() -> void { if(MatrixOS::UIUtility::TemperatureColorPicker(temperature_color)) { temperature_color.Save(); } });
+  temperatureBtn.SetSize(Dimension(8, 2));
+  temperatureBtn.OnPress([&]() -> void {
+    if (MatrixOS::UIUtility::TemperatureColorPicker(temperature_color))
+    {
+      temperature_color.Save();
+    }
+  });
   temperatureBtn.SetEnableFunc([&]() -> bool { return mode == Temperature; });
   settingsUI.AddUIComponent(temperatureBtn, Point(0, 6));
 
   // Mode & Speed
   UIButton temperatureEffectBtn;
   temperatureEffectBtn.SetName("Effect & Speed");
-  temperatureEffectBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, 60000 / temperature_effect_bpm, start_time); });
+  temperatureEffectBtn.SetColorFunc(
+      [&]() -> Color { return ApplyColorEffect(temperature_color, temperature_effect, 60000 / temperature_effect_bpm, start_time); });
   temperatureEffectBtn.OnPress([&]() -> void { EffectModeAndSpeedMenu(Temperature); });
   temperatureEffectBtn.SetEnableFunc([&]() -> bool { return mode == Temperature; });
   temperatureEffectBtn.SetSize(Dimension(1, 2));
   settingsUI.AddUIComponent(temperatureEffectBtn, Point(0, 3));
 
   // Animation
-    // Animation
-    // Speed
+  // Animation
+  // Speed
 
   // Gradient
-    // Gradient Selector
-  
+  // Gradient Selector
+
   // Second, set the key event handler to match the intended behavior
   settingsUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
     // If function key is hold down. Exit the application
@@ -190,18 +193,18 @@ void Lighting::Settings() {
     {
       if (keyEvent->info.state == HOLD)
       {
-        Exit();  // Exit the application.
+        Exit(); // Exit the application.
       }
       else if (keyEvent->info.state == RELEASED)
       {
-        settingsUI.Exit();  // Exit the UI
+        settingsUI.Exit(); // Exit the UI
       }
 
-      return true;  // Block UI from to do anything with FN, basically this function control the life cycle of the UI
+      return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
     }
-    return false;  // Nothing happened. Let the UI handle the key event
+    return false; // Nothing happened. Let the UI handle the key event
   });
-  
+
   // The UI object is now fully set up. Let the UI runtime to start and take over.
   settingsUI.Start();
 
@@ -209,15 +212,14 @@ void Lighting::Settings() {
   start_time = MatrixOS::SYS::Millis();
 }
 
-void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
-{
+void Lighting::EffectModeAndSpeedMenu(LightingMode mode) {
   Color color;
 
-  if(mode == RGB)
+  if (mode == RGB)
   {
     color = this->color;
   }
-  else if(mode == Temperature)
+  else if (mode == Temperature)
   {
     color = temperature_color;
   }
@@ -233,19 +235,22 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
 
   UIButton staticBtn;
   staticBtn.SetName("Static");
-  staticBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, Static, 60000 / bpm, start_time).DimIfNot(effectMode == Static); });
+  staticBtn.SetColorFunc(
+      [&]() -> Color { return ApplyColorEffect(color, Static, 60000 / bpm, start_time).DimIfNot(effectMode == Static); });
   staticBtn.OnPress([&]() -> void { effectMode = Static; });
   effectUI.AddUIComponent(staticBtn, Point(2, 0));
 
   UIButton breathBtn;
   breathBtn.SetName("Breathing");
-  breathBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, Breath, 60000 / bpm, start_time).DimIfNot(effectMode == Breath); });
+  breathBtn.SetColorFunc(
+      [&]() -> Color { return ApplyColorEffect(color, Breath, 60000 / bpm, start_time).DimIfNot(effectMode == Breath); });
   breathBtn.OnPress([&]() -> void { effectMode = Breath; });
   effectUI.AddUIComponent(breathBtn, Point(3, 0));
 
   UIButton strobeBtn;
   strobeBtn.SetName("Strobe");
-  strobeBtn.SetColorFunc([&]() -> Color { return ApplyColorEffect(color, Strobe, 60000 / bpm, start_time).DimIfNot(effectMode == Strobe); });
+  strobeBtn.SetColorFunc(
+      [&]() -> Color { return ApplyColorEffect(color, Strobe, 60000 / bpm, start_time).DimIfNot(effectMode == Strobe); });
   strobeBtn.OnPress([&]() -> void { effectMode = Strobe; });
   effectUI.AddUIComponent(strobeBtn, Point(4, 0));
 
@@ -264,10 +269,9 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
 
   UIBPMTapper bpmTapper;
   bpmTapper.SetColor(Color(0xFF00FF));
-  bpmTapper.SetSize(Dimension(8,4));
-  bpmTapper.OnChange([&](uint16_t new_bpm) -> void { bpm = new_bpm; });
+  bpmTapper.SetSize(Dimension(8, 4));
+  bpmTapper.OnChange([&](uint16_t newBpm) -> void { bpm = newBpm; });
   effectUI.AddUIComponent(bpmTapper, Point(0, 2));
-
 
   const int32_t modifier[8] = {-50, -20, -5, -1, 1, 5, 20, 50};
   const uint8_t gradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
@@ -284,12 +288,12 @@ void Lighting::EffectModeAndSpeedMenu(LightingMode mode)
   effectUI.Start();
 
   // Post exit save variable
-  if(mode == RGB)
+  if (mode == RGB)
   {
     rgb_effect = effectMode;
     rgb_effect_bpm = bpm;
   }
-  else if(mode == Temperature)
+  else if (mode == Temperature)
   {
     temperature_effect = effectMode;
     temperature_effect_bpm = bpm;
