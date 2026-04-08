@@ -106,10 +106,10 @@ void Strum::Setup(const vector<string>& args) {
   StrumBar strumBarR(&strumBarConfigs[0]); // Keep as same for now
   strumUI.AddUIComponent(strumBarR, Point(8, 0));
 
-  strumUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  strumUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         ActionMenu();
       }
@@ -137,15 +137,15 @@ void Strum::ActionMenu() {
   });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         MatrixOS::NVS::SetVariable(STRUM_CONFIGS_HASH, strumBarConfigs, sizeof(strumBarConfigs));
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         actionMenu.Exit();
       }

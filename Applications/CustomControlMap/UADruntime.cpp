@@ -18,14 +18,15 @@ int8_t UADRuntime::IndexInBitmap(uint64_t bitmap, uint8_t index) {
   return count + 1;
 }
 
-void UADRuntime::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
+void UADRuntime::KeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
   if (!loaded)
   {
     return;
   }
 
   ActionInfo actionInfo;
-  Point xy = MatrixOS::KeyPad::ID2XY(keyID);
+  Point xy;
+  MatrixOS::Input::TryGetPoint(inputId, &xy);
   if (xy)
   {
     if (xy.x >= mapSize.x || xy.y >= mapSize.y || xy.x < 0 || xy.y < 0)
@@ -43,7 +44,7 @@ void UADRuntime::KeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
   actionInfo.layer = GetTopLayer();
   actionInfo.depth = 0;
 
-  ActionEvent actionEvent = {.type = ActionEventType::KEYEVENT, .keyInfo = keyInfo};
+  ActionEvent actionEvent = {.type = ActionEventType::KEYEVENT, .keyInfo = keypadInfo};
   ExecuteActions(&actionInfo, &actionEvent);
   ExecuteEffects(&actionInfo, &actionEvent);
 }

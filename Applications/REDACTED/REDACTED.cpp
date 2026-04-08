@@ -81,10 +81,10 @@ void REDACTED::Loop() {
   if (complete && complete2)
     Exit();
 
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(&keyEvent);
+    KeyEventHandler(&inputEvent);
   }
 }
 
@@ -97,8 +97,8 @@ void REDACTED::End() {
   MatrixOS::LED::Update();
 }
 
-void REDACTED::KeyEventHandler(KeyEvent* keyEvent) {
-  if (keyEvent->id == 0 && keyEvent->info.state == PRESSED)
+void REDACTED::KeyEventHandler(InputEvent* inputEvent) {
+  if (inputEvent->id.IsFunctionKey() && inputEvent->keypad.state == KeypadState::Pressed)
   {
     Exit();
     return;

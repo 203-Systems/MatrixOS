@@ -16,5 +16,5 @@ public:
   virtual void Boot() {};
 
   virtual void End() {};
-  virtual void KeyEvent(uint16_t keyId, KeyInfo* keyInfo);
+  virtual void KeyEvent(InputId inputId, KeypadInfo* keypadInfo);
 };

@@ -31,7 +31,7 @@ public:
   };
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(KeyEvent& keyEvent);
+  void KeyEventHandler(InputEvent& inputEvent);
 
   void Update();
   Color ApplyColorEffect(Color color, ColorEffectMode effect, uint16_t period, uint16_t startTime);

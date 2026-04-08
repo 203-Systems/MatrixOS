@@ -107,10 +107,10 @@ bool ColorPicker(Color& color, bool shade) {
 
   UI colorPicker("Color Picker", Color(0x000000));
 
-  colorPicker.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  colorPicker.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         aborted = true;
         colorPicker.Exit();

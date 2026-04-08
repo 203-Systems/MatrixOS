@@ -22,10 +22,10 @@ void Dice::Setup(const vector<string>& args) {
 // Run in a loop after Setup()
 void Dice::Loop() {
   // Set up key event handler
-  struct KeyEvent keyEvent;                // Variable for the latest key event to be stored at
-  while (MatrixOS::KeyPad::Get(&keyEvent)) // While there is still keyEvent in the queue
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   } // Handle them
 
   if (!renderTimer.Tick(1000 / Device::LED::fps))
@@ -77,14 +77,14 @@ void Dice::Loop() {
 }
 
 // Handle the key event from the OS
-void Dice::KeyEventHandler(KeyEvent& keyEvent) {
-  if (keyEvent.ID() == FUNCTION_KEY) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+void Dice::KeyEventHandler(InputEvent& inputEvent) {
+  if (inputEvent.id.IsFunctionKey()) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
   {
-    if (keyEvent.State() == HOLD)
+    if (inputEvent.keypad.state == KeypadState::Hold)
     {
       Settings(); // Open UI Menu
     }
-    else if (keyEvent.State() == RELEASED) // If the function key is released and not hold
+    else if (inputEvent.keypad.state == KeypadState::Released) // If the function key is released and not hold
     {
       rolling_start_time = MatrixOS::SYS::Millis();
       current_phase = Rolling;
@@ -195,15 +195,15 @@ void Dice::Settings() {
   settingsUI.AddUIComponent(numberFacesSelectorBtn, Point(2, 7));
 
   // Second, set the key event handler to match the intended behavior
-  settingsUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (keyEvent->id == FUNCTION_KEY)
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit(); // Exit the application.
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         settingsUI.Exit(); // Exit the UI
       }

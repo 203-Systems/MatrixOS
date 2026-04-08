@@ -456,8 +456,8 @@ void Shell::ApplicationLauncher() {
   AppLauncherBar appLauncherBar(this);
   applicationLauncher.AddUIComponent(&appLauncherBar, Point(0, 7));
 
-  applicationLauncher.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY && keyEvent->info.state == HOLD)
+  applicationLauncher.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey() && inputEvent->keypad.state == KeypadState::Hold)
     {
       ApplicationLauncherEditing();
       return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI
@@ -489,8 +489,8 @@ void Shell::ApplicationLauncherEditing() {
   AppLauncherBarEditMode appLauncherBarEdit(this);
   applicationLauncherEdit.AddUIComponent(&appLauncherBarEdit, Point(0, 7));
 
-  applicationLauncherEdit.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY && keyEvent->info.state == RELEASED)
+  applicationLauncherEdit.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey() && inputEvent->keypad.state == KeypadState::Released)
     {
       // Exit edit mode
       applicationLauncherEdit.Exit();

@@ -21,10 +21,10 @@ void CustomControlMap::Setup(const vector<string>& args) {
 }
 
 void CustomControlMap::Loop() {
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   }
 
   HIDReportHandler();
@@ -527,14 +527,14 @@ bool CustomControlMap::SendHID(const vector<uint8_t>& report, uint8_t retry) {
   return false;
 }
 
-void CustomControlMap::KeyEventHandler(KeyEvent& keyEvent) {
+void CustomControlMap::KeyEventHandler(InputEvent& inputEvent) {
   // Reserve Function Key
-  if (keyEvent.ID() == FUNCTION_KEY && keyEvent.State() == (menuLock ? HOLD : PRESSED))
+  if (inputEvent.id.IsFunctionKey() && inputEvent.keypad.state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
   {
     ActionMenu();
   }
 
-  uadRT.KeyEvent(keyEvent.ID(), &keyEvent.info);
+  uadRT.KeyEvent(inputEvent.id, &inputEvent.keypad);
 }
 
 void CustomControlMap::Reload() {
@@ -572,14 +572,14 @@ void CustomControlMap::ActionMenu() {
   UILayerControl passthroughControl("Layer Passthrough", Color(0xFF00FF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::PASSTHROUGH);
   actionMenu.AddUIComponent(passthroughControl, Point(0, 6));
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         actionMenu.Exit();
       }

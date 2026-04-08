@@ -20,7 +20,7 @@ public:
   void Task1();
   void Task2();
 
-  void KeyEventHandler(KeyEvent* keyEvent);
+  void KeyEventHandler(InputEvent* inputEvent);
 
   uint8_t xOffset;
   uint8_t y_offset;

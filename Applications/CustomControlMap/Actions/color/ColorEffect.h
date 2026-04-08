@@ -53,8 +53,8 @@ static bool LoadData(cb0r_t actionData, ColorEffectData* data) {
   return true;
 }
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-  if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
     return false;
 
   struct ColorEffectData data;
@@ -70,7 +70,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
   //     return true;
   // }
 
-  if (keyInfo->State() == KeyState::PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     if (actionInfo->indexType == ActionIndexType::COORD)
     {
@@ -82,7 +82,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     }
     return true;
   }
-  else if (keyInfo->State() == KeyState::RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     if (actionInfo->indexType == ActionIndexType::COORD)
     {

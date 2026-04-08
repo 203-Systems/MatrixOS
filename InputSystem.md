@@ -407,7 +407,7 @@ Explicitly not in scope right now:
 - [x] Keep current grid UI behavior unchanged
 
 ### Phase 5: Application Migration
-- [ ] Migrate `KeyPad` dependencies under `Applications/`
+- [x] Migrate `KeyPad` dependencies under `Applications/`
 - [ ] Migrate direct uses of `Device::xSize / ySize`
 - [ ] Migrate direct uses of `Device::KeyPad::*`
 

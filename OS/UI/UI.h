@@ -32,7 +32,7 @@ public:
   void SetEndFunc(std::function<void()> end_func);
   void SetPreRenderFunc(std::function<void()> pre_render_func);
   void SetPostRenderFunc(std::function<void()> post_render_func);
-  void SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler);
+  void SetKeyEventHandler(std::function<bool(InputEvent*)> key_event_handler);
 
   void AddUIComponent(UIComponent* uiComponent, Point xy);
   void ClearUIComponents();
@@ -63,7 +63,7 @@ private:
   std::unique_ptr<std::function<void()>> pre_render_func = nullptr;
   std::unique_ptr<std::function<void()>> post_render_func = nullptr;
   std::unique_ptr<std::function<void()>> end_func = nullptr;
-  std::unique_ptr<std::function<bool(KeyEvent*)>> key_event_handler = nullptr;
+  std::unique_ptr<std::function<bool(InputEvent*)>> key_event_handler = nullptr;
 
   std::list<pair<Point, UIComponent*>> uiComponents;
   int8_t prev_layer = -1;
@@ -80,9 +80,9 @@ private:
 
   void GetKey();
 
-  virtual bool CustomKeyEvent(KeyEvent* keyEvent) {
+  virtual bool CustomKeyEvent(InputEvent* inputEvent) {
     if (key_event_handler)
-      return (*key_event_handler)(keyEvent);
+      return (*key_event_handler)(inputEvent);
     return false;
   }; // Return true to skip UIKeyEvent
 

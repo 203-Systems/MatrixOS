@@ -6,8 +6,8 @@ const char* TAG = "ActionColorEffect";
 
 constexpr uint32_t signature = StaticHash("actioncolor");
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-  if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
   {
     return false;
   }

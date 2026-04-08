@@ -14,33 +14,33 @@ void Companion::Setup(const vector<string>& args) {
 }
 
 void Companion::Loop() {
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   }
 
   HIDReportHandler();
 }
 
-void Companion::KeyEventHandler(KeyEvent& keyEvent) {
-  if (keyEvent.ID() == FUNCTION_KEY)
+void Companion::KeyEventHandler(InputEvent& inputEvent) {
+  if (inputEvent.id.IsFunctionKey())
   {
-    if (keyEvent.State() == PRESSED)
+    if (inputEvent.keypad.state == KeypadState::Pressed)
     {
       ActionMenu();
     }
   }
 
-  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
+  Point xy; MatrixOS::Input::TryGetPoint(inputEvent.id, &xy);
 
   if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
   {
-    if (keyEvent.State() == PRESSED)
+    if (inputEvent.keypad.state == KeypadState::Pressed)
     {
       MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x10, (uint8_t)xy.x, (uint8_t)xy.y, 0xFF});
     }
-    else if (keyEvent.State() == RELEASED)
+    else if (inputEvent.keypad.state == KeypadState::Released)
     {
       MatrixOS::HID::RawHID::Send(std::vector<uint8_t>{0x10, (uint8_t)xy.x, (uint8_t)xy.y, 0x00});
     }
@@ -105,14 +105,14 @@ void Companion::ActionMenu() {
     HIDReportHandler();
   });
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         actionMenu.Exit();
       }

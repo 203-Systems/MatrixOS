@@ -29,10 +29,10 @@ void Performance::Loop() {
     stfuScan();
   }
 
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   }
 
   struct MidiPacket midiPacket;
@@ -392,19 +392,19 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
   sysExBuffer.clear();
 }
 
-void Performance::KeyEventHandler(KeyEvent& keyEvent) {
-  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
-  if (xy) // IF XY is valid, means it's on the main grid
+void Performance::KeyEventHandler(InputEvent& inputEvent) {
+  Point xy;
+  if (MatrixOS::Input::TryGetPoint(inputEvent.id, &xy)) // IF XY is valid, means it's on the main grid
   {
-    GridKeyEvent(xy, &keyEvent.info);
+    GridKeyEvent(xy, &inputEvent.keypad);
   }
   else // XY Not valid,
   {
-    IDKeyEvent(keyEvent.ID(), &keyEvent.info);
+    IDKeyEvent(inputEvent.id, &inputEvent.keypad);
   }
 }
 
-void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
+void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
   // MLOGD("Performance Mode", "KeyEvent %d %d", xy.x, xy.y);
 
   bool comboKey = false;
@@ -445,8 +445,7 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
           point = Point(-1, i - 24);
         }
 
-        KeyInfo* touchKey = MatrixOS::KeyPad::GetKey(point);
-        if (touchKey != nullptr && touchKey->Active())
+        if (MatrixOS::Input::GetKeypadState(point).Active())
         {
           comboKey = true;
           break;
@@ -455,13 +454,13 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     }
 
     // If we are in combo key state and key is pressed, set the combo key state
-    if (comboKey && keyInfo->State() == PRESSED)
+    if (comboKey && keypadInfo->state == KeypadState::Pressed)
     {
       was_combo_key |= 1 << comboKeyId;
     }
 
     // If we was in combo key state and key is released, clear the combo key state
-    if (keyInfo->State() == RELEASED)
+    if (keypadInfo->state == KeypadState::Released)
     {
       was_combo_key &= ~(1 << comboKeyId);
     }
@@ -474,11 +473,11 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     return;
   }
 
-  Fract16 force = keyInfo->Force();
+  Fract16 force = keypadInfo->pressure;
 
   if (!forceSensitive)
   {
-    if (keyInfo->State() == AFTERTOUCH)
+    if (keypadInfo->state == KeypadState::Aftertouch)
     {
       return;
     };
@@ -488,22 +487,22 @@ void Performance::GridKeyEvent(Point xy, KeyInfo* keyInfo) {
     };
   }
 
-  if (keyInfo->State() == PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, force.to7bits()), MIDI_PORT_ALL);
   }
-  else if (keyInfo->State() == AFTERTOUCH)
+  else if (keypadInfo->state == KeypadState::Aftertouch)
   {
     MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, force.to7bits()), MIDI_PORT_ALL);
   }
-  else if (keyInfo->State() == RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, 0), MIDI_PORT_ALL);
   }
 }
 
-void Performance::IDKeyEvent(uint16_t keyID, KeyInfo* keyInfo) {
-  if (keyID == 0 && keyInfo->State() == (menuLock ? HOLD : PRESSED))
+void Performance::IDKeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
+  if (inputId.IsFunctionKey() && keypadInfo->state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
   {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 127), MIDI_PORT_ALL);
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0)); // All notes off
@@ -557,14 +556,15 @@ void Performance::PaletteViewer(uint8_t customPaletteId) {
         MatrixOS::LED::Update();
       }
 
-      struct KeyEvent keyEvent;
-      if (MatrixOS::KeyPad::Get(&keyEvent))
+      InputEvent inputEvent;
+      if (MatrixOS::Input::Get(&inputEvent))
       {
-        Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID());
-        if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
+        Point xy;
+        bool hasXY = MatrixOS::Input::TryGetPoint(inputEvent.id, &xy);
+        if (hasXY && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
           uint8_t id = xy.y * 8 + xy.x + i * 64;
-          if (keyEvent.info.state == RELEASED)
+          if (inputEvent.keypad.state == KeypadState::Released)
           {
             uint32_t oldColor = custom_palette[customPaletteId][id].RGB();
             MatrixOS::UIUtility::ColorPicker(custom_palette[customPaletteId][id]);
@@ -575,24 +575,24 @@ void Performance::PaletteViewer(uint8_t customPaletteId) {
               modified = true;
             }
           }
-          else if (keyEvent.info.state == HOLD)
+          else if (inputEvent.keypad.state == KeypadState::Hold)
           {
             string text = "Color " + std::to_string(id);
             MatrixOS::UIUtility::TextScroll(text, Color::White);
           }
-          else if (keyEvent.info.state == RELEASED)
+          else if (inputEvent.keypad.state == KeypadState::Released)
           {
             break;
           }
         }
-        if (keyEvent.ID() == FUNCTION_KEY)
+        if (inputEvent.id.IsFunctionKey())
         {
-          if (keyEvent.info.state == HOLD)
+          if (inputEvent.keypad.state == KeypadState::Hold)
           {
             i = 100; // Force exit, but still runs the saving routine
             break;
           }
-          else if (keyEvent.info.state == RELEASED)
+          else if (inputEvent.keypad.state == KeypadState::Released)
           {
             break;
           }
@@ -700,14 +700,14 @@ void Performance::ActionMenu() {
     }
   });
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         actionMenu.Exit();
       }

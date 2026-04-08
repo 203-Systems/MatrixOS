@@ -51,8 +51,8 @@ static bool LoadData(cb0r_t actionData, LayerAction* action) {
   return true;
 }
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-  if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
     return false;
 
   struct LayerAction data;
@@ -98,7 +98,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
   bool targetLayerState;
 
   // Process Key Event
-  if (keyInfo->State() == KeyState::PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     if (data.option == LayerActionOption::ENABLE)
     {
@@ -123,7 +123,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     uadRT->SetLayerState(targetLayer, targetLayerInfo, targetLayerState);
     return true;
   }
-  else if (data.mode == LayerActionMode::MOMENTARY && keyInfo->State() == KeyState::RELEASED)
+  else if (data.mode == LayerActionMode::MOMENTARY && keypadInfo->state == KeypadState::Released)
   {
 
     // Flip Back!

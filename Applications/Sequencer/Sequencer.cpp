@@ -97,10 +97,10 @@ void Sequencer::SequencerUI() {
   sequencerUI.AddUIComponent(messageDisplay, Point(0, 3));
 
   sequencerUI.AllowExit(false);
-  sequencerUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  sequencerUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         if (currentView != ViewMode::Sequencer)
         {
@@ -248,14 +248,14 @@ void Sequencer::SequencerMenu() {
   sequencerMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   sequencerMenu.AllowExit(false);
-  sequencerMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  sequencerMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         sequencerMenu.Exit();
       }
@@ -1588,13 +1588,13 @@ void Sequencer::ConfirmSaveUI() {
     }
   });
 
-  confirmSaveUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  confirmSaveUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     if ((saved || failed))
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         confirmSaveUI.Exit();
-        KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(keyEvent->id);
+        Point _clearPt; KeyInfo* keyInfo = MatrixOS::Input::TryGetPoint(inputEvent->id, &_clearPt) ? MatrixOS::KeyPad::GetKey(_clearPt) : nullptr;
         if (keyInfo)
         {
           keyInfo->Clear();
@@ -1603,10 +1603,10 @@ void Sequencer::ConfirmSaveUI() {
       return true;
     }
 
-    Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+    Point xy; MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
     if (xy && (xy.x == 3 || xy.x == 4 || xy.y == 5))
     {
-      if (keyEvent->info.state == RELEASED && keyEvent->Hold() == false)
+      if (inputEvent->keypad.state == KeypadState::Released && inputEvent->keypad.hold == false)
       {
         RenderDownArrow(Point(2, 2), Color::White);
         bool success = Save(saveSlot);
@@ -1815,14 +1815,14 @@ void Sequencer::SequenceBrowser() {
     MatrixOS::LED::SetColor(Point(7, 7), copy ? Color::White : Color(0x0080FF));
   });
 
-  browser.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  browser.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     if (eventTime != 0 && MatrixOS::SYS::Millis() - eventTime < 500)
     {
-      if (keyEvent->State() == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         eventTime = 0;
         MatrixOS::LED::Fade();
-        KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(keyEvent->id);
+        Point _clearPt; KeyInfo* keyInfo = MatrixOS::Input::TryGetPoint(inputEvent->id, &_clearPt) ? MatrixOS::KeyPad::GetKey(_clearPt) : nullptr;
         if (keyInfo)
         {
           keyInfo->Clear();
@@ -1831,7 +1831,7 @@ void Sequencer::SequenceBrowser() {
       return true;
     }
 
-    Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+    Point xy; MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
     if (!xy)
     {
       return false;
@@ -1843,7 +1843,7 @@ void Sequencer::SequenceBrowser() {
         return true;
       }
 
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         uint16_t slot = xy.y * 8 + xy.x;
         auto it = slotColors.find(slot);
@@ -1859,7 +1859,7 @@ void Sequencer::SequenceBrowser() {
         clear = false;
         copy = false;
       }
-      else if (keyEvent->info.state == RELEASED && keyEvent->info.Hold() == false)
+      else if (inputEvent->keypad.state == KeypadState::Released && inputEvent->keypad.hold == false)
       {
         uint16_t slot = xy.y * 8 + xy.x;
         auto it = slotColors.find(slot);
@@ -1947,13 +1947,13 @@ void Sequencer::SequenceBrowser() {
     }
     else if (xy.x > 1 && xy.x < 6 && xy.y == 7) // Color Picker
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         MatrixOS::UIUtility::TextScroll("Sequence Color", meta.color);
         clear = false;
         copy = false;
       }
-      else if (keyEvent->info.state == RELEASED && keyEvent->info.Hold() == false)
+      else if (inputEvent->keypad.state == KeypadState::Released && inputEvent->keypad.hold == false)
       {
         Color newColor = meta.color;
         if (MatrixOS::UIUtility::ColorPicker(newColor, false))
@@ -1972,13 +1972,13 @@ void Sequencer::SequenceBrowser() {
     }
     else if (xy.x == 0 && xy.y == 7) // Clear
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         clear = true;
         copy = false;
         modifierTime = MatrixOS::SYS::Millis();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         if (clear)
         {
@@ -1990,14 +1990,14 @@ void Sequencer::SequenceBrowser() {
     }
     else if (xy.x == 7 && xy.y == 7) // Copy
     {
-      if (keyEvent->info.state == PRESSED)
+      if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         copy = true;
         clear = false;
         copySrc = -1;
         modifierTime = MatrixOS::SYS::Millis();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         if (copy)
         {
@@ -2010,7 +2010,7 @@ void Sequencer::SequenceBrowser() {
     }
     else
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         copy = false;
         clear = false;

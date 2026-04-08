@@ -29,7 +29,7 @@ private:
   size_t uadSize = 0;
   CreateSavedVar("CustomControlMap", menuLock, bool, false);
 
-  void KeyEventHandler(KeyEvent& keyEvent);
+  void KeyEventHandler(InputEvent& inputEvent);
   void Reload();
   void ActionMenu();
   size_t GetCurrentMaxUADSize() const;

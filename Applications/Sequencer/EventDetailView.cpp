@@ -23,7 +23,7 @@ bool EventDetailView::IsEnabled() {
 
   if (enabled && wasEnabled == false)
   {
-    MatrixOS::KeyPad::Clear();
+    MatrixOS::Input::ClearQueue();
     RebuildEventList();
     lastOnTime = MatrixOS::SYS::Millis();
   }
@@ -274,7 +274,7 @@ void EventDetailView::RenderMicroStepSelector(Point origin) {
 
   // Delete button at X=7 (global), render bright red (or white when pressed)
   Point deletePoint = origin + Point(7, 0);
-  bool deleteActive = MatrixOS::KeyPad::GetKey(deletePoint)->Active();
+  bool deleteActive = MatrixOS::Input::GetKeypadState(deletePoint).Active();
   Color deleteColor = deleteActive ? Color::White : Color::Red;
   MatrixOS::LED::SetColor(deletePoint, deleteColor);
 }

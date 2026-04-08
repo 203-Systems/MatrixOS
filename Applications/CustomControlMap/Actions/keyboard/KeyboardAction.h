@@ -31,9 +31,9 @@ static bool LoadData(cb0r_t actionData, KeyboardAction* action) {
   return true;
 }
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
   MLOGV(TAG, "KeyEvent");
-  if (keyInfo->State() != KeyState::PRESSED && keyInfo->State() != KeyState::RELEASED)
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
     return false;
 
   struct KeyboardAction action;
@@ -51,13 +51,13 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     keycode = action.user_keycode;
   }
 
-  if (keyInfo->State() == KeyState::PRESSED)
+  if (keypadInfo->state == KeypadState::Pressed)
   {
     MLOGV(TAG, "Sending key char %d", keycode);
     MatrixOS::HID::Keyboard::Press((KeyboardKeycode)keycode);
     return true;
   }
-  else if (keyInfo->State() == KeyState::RELEASED)
+  else if (keypadInfo->state == KeypadState::Released)
   {
     MLOGV(TAG, "Releasing key char %d", keycode);
     MatrixOS::HID::Keyboard::Release((KeyboardKeycode)keycode);

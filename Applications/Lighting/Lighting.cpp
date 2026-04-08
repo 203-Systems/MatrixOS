@@ -7,10 +7,10 @@ void Lighting::Setup(const vector<string>& args) {
 }
 
 void Lighting::Loop() {
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   }
 
   if (renderTimer.Tick(1000 / Device::LED::fps))
@@ -86,10 +86,10 @@ void Lighting::Render(Color color) {
 
 void Lighting::RenderGradient() {}
 
-void Lighting::KeyEventHandler(KeyEvent& keyEvent) {
-  if (keyEvent.ID() == FUNCTION_KEY)
+void Lighting::KeyEventHandler(InputEvent& inputEvent) {
+  if (inputEvent.id.IsFunctionKey())
   {
-    if (keyEvent.State() == PRESSED)
+    if (inputEvent.keypad.state == KeypadState::Pressed)
     {
       Settings();
     }
@@ -187,15 +187,15 @@ void Lighting::Settings() {
   // Gradient Selector
 
   // Second, set the key event handler to match the intended behavior
-  settingsUI.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (keyEvent->id == FUNCTION_KEY)
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit(); // Exit the application.
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         settingsUI.Exit(); // Exit the UI
       }

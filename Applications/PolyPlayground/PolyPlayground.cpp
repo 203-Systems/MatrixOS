@@ -52,14 +52,14 @@ void PolyPlayground::Setup(const vector<string>& args) {
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    if (keyEvent->id == FUNCTION_KEY)
+  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         MatrixOS::NVS::SetVariable(POLY_CONFIGS_HASH, &polyPadConfig, sizeof(polyPadConfig));
         PolyView();

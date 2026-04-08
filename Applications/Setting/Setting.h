@@ -17,7 +17,7 @@ public:
   static void NextBrightness();
   static void ResetConfirm();
 
-  bool CustomKeyEvent(KeyEvent* keyEvent);
+  bool CustomKeyEvent(InputEvent* inputEvent);
 
 private:
   void SecretMenu();

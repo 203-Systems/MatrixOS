@@ -9,10 +9,10 @@ void ExampleAPP::Setup(const vector<string>& args) {
 // Run in a loop after Setup()
 void ExampleAPP::Loop() {
   // Set up key event handler
-  struct KeyEvent keyEvent;                // Variable for the latest key event to be stored at
-  while (MatrixOS::KeyPad::Get(&keyEvent)) // While there is still keyEvent in the queue
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(keyEvent);
+    KeyEventHandler(inputEvent);
   } // Handle them
 
   struct MidiPacket midiPacket;            // Variable for the latest midi packet to be stored at
@@ -23,24 +23,24 @@ void ExampleAPP::Loop() {
 }
 
 // Handle the key event from the OS
-void ExampleAPP::KeyEventHandler(KeyEvent& keyEvent) {
-  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent.ID()); // Trying to get the XY coordination of the KeyID
+void ExampleAPP::KeyEventHandler(InputEvent& inputEvent) {
+  Point xy; MatrixOS::Input::TryGetPoint(inputEvent.id, &xy); // Trying to get the XY coordination of the KeyID
   if (xy)                                            // IF XY is valid, means it is a key on the grid
   {
-    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, keyEvent.State()); // Print the key event to the debug log
-    if (keyEvent.State() == PRESSED)                                // Key is pressed
+    MLOGD("Example", "Key %d %d %d", xy.x, xy.y, (uint8_t)inputEvent.keypad.state); // Print the key event to the debug log
+    if (inputEvent.keypad.state == KeypadState::Pressed)                                // Key is pressed
     {
       MatrixOS::LED::SetColor(xy, color, 0); // Set the LED color to a color. Last 0 means writes to the active layer (255 writes to the
                                              // active layer as well but do not trigger auto update.)
     }
-    else if (keyEvent.State() == RELEASED)
+    else if (inputEvent.keypad.state == KeypadState::Released)
     {
       MatrixOS::LED::SetColor(xy, 0x000000, 0); // Set the LED to off
     }
   }
   else // XY Not valid,
   {
-    if (keyEvent.ID() == FUNCTION_KEY) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+    if (inputEvent.id.IsFunctionKey()) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
     {
       UIMenu(); // Open UI Menu
     }
@@ -145,18 +145,18 @@ void ExampleAPP::UIMenu() {
   menu.AllowExit(false);
 
   // Second, set the key event handler to match the intended behavior
-  menu.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
+  menu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (keyEvent->id == FUNCTION_KEY)
+    if (inputEvent->id.IsFunctionKey())
     {
-      if (keyEvent->info.state == HOLD)
+      if (inputEvent->keypad.state == KeypadState::Hold)
       {
         Exit(); // Exit the application.
 
         return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI. This is not really
                      // needed as the application exits after Exit();
       }
-      else if (keyEvent->info.state == RELEASED)
+      else if (inputEvent->keypad.state == KeypadState::Released)
       {
         menu.Exit(); // Exit the UI
         return true; // Block UI from to do anything with FN, basically this function control the life cycle of the UI

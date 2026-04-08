@@ -594,9 +594,9 @@ Color NoteControlBar::GetOctaveMinusColor() {
 
 bool NoteControlBar::Render(Point origin) {
   MatrixOS::LED::SetColor(origin + Point(0, CTL_BAR_Y - 1),
-                          MatrixOS::KeyPad::GetKey(origin + Point(0, CTL_BAR_Y - 1))->Active() ? Color::White : Color(0xFF0000));
+                          MatrixOS::Input::GetKeypadState(origin + Point(0, CTL_BAR_Y - 1)).Active() ? Color::White : Color(0xFF0000));
   MatrixOS::LED::SetColor(origin + Point(1, CTL_BAR_Y - 1),
-                          MatrixOS::KeyPad::GetKey(origin + Point(1, CTL_BAR_Y - 1))->Active() ? Color::White : Color(0x00FF00));
+                          MatrixOS::Input::GetKeypadState(origin + Point(1, CTL_BAR_Y - 1)).Active() ? Color::White : Color(0x00FF00));
   Color latchColor;
   if (notePad[0]->rt->noteLatch.IsToggleMode())
   {
@@ -626,9 +626,9 @@ bool NoteControlBar::Render(Point origin) {
   MatrixOS::LED::SetColor(origin + Point(4, CTL_BAR_Y - 1), mode == ARP_MODE ? Color::White : Color(0x80FF00));
   MatrixOS::LED::SetColor(origin + Point(5, CTL_BAR_Y - 1), mode == KEY_MODE ? Color::White : Color(0xFF0060));
   MatrixOS::LED::SetColor(origin + Point(6, CTL_BAR_Y - 1),
-                          MatrixOS::KeyPad::GetKey(origin + Point(6, CTL_BAR_Y - 1))->Active() ? Color::White : GetOctaveMinusColor());
+                          MatrixOS::Input::GetKeypadState(origin + Point(6, CTL_BAR_Y - 1)).Active() ? Color::White : GetOctaveMinusColor());
   MatrixOS::LED::SetColor(origin + Point(7, CTL_BAR_Y - 1),
-                          MatrixOS::KeyPad::GetKey(origin + Point(7, CTL_BAR_Y - 1))->Active() ? Color::White : GetOctavePlusColor());
+                          MatrixOS::Input::GetKeypadState(origin + Point(7, CTL_BAR_Y - 1)).Active() ? Color::White : GetOctavePlusColor());
 
   switch (mode)
   {

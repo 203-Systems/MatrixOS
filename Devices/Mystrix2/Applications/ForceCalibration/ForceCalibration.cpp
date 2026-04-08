@@ -190,8 +190,8 @@ void ForceCalibration::ForceGridVisualizer() {
     }
   });
 
-  forceGridVisualizer.SetKeyEventHandler([&](KeyEvent* keyEvent) -> bool {
-    return keyEvent->id != FUNCTION_KEY; // Skip all keys except function key
+  forceGridVisualizer.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+    return !inputEvent->id.IsFunctionKey(); // Skip all keys except function key
   });
 
   forceGridVisualizer.Start();

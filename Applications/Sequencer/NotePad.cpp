@@ -613,9 +613,9 @@ void SequencerNotePad::Rescan(Point origin) {
     for (uint8_t x = 0; x < GetSize().x; x++)
     {
       Point pos = origin + Point(x, y);
-      KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(pos);
+      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(pos);
 
-      if (keyInfo->Active())
+      if (keypadState.Active())
       {
         uint8_t note = noteMap[y * 8 + x];
         if (note != 255)
@@ -623,7 +623,7 @@ void SequencerNotePad::Rescan(Point origin) {
           uint8_t velocity = 127;
           if (sequencer->meta.tracks[track].velocitySensitive)
           {
-            velocity = keyInfo->Force().to7bits();
+            velocity = keypadState.pressure.to7bits();
           }
           sequencer->noteSelected[note] = velocity;
           MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);

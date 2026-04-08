@@ -71,7 +71,7 @@ public:
     for (uint8_t i = 0; i < 8; i++)
     {
       Point xy = origin + Point(0, i);
-      bool keyState = MatrixOS::KeyPad::GetKey(xy)->Active();
+      bool keyState = MatrixOS::Input::GetKeypadState(xy).Active();
       if (keyState)
       {
         newKeyBitmap |= 1 << i;

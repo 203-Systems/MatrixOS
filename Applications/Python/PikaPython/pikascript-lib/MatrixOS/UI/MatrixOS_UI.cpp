@@ -1,6 +1,7 @@
 #include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
+#include "Framework/Input/InputCompat.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../PikaObjUtils.h"
@@ -170,10 +171,30 @@ extern "C" {
 
         SaveCallbackObjToPikaObj(self, (char*)"keyEventHandler", key_event_handler);
 
-        ui->SetKeyEventHandler([self](KeyEvent* keyEvent) -> bool {
+        ui->SetKeyEventHandler([self](InputEvent* inputEvent) -> bool {
+            // Convert InputEvent to legacy KeyEvent for Python API compatibility
+            KeyEvent keyEvent;
+            if (inputEvent->id.IsFunctionKey())
+            {
+                keyEvent.id = FUNCTION_KEY;
+            }
+            else
+            {
+                Point xy;
+                if (MatrixOS::Input::TryGetPoint(inputEvent->id, &xy))
+                {
+                    keyEvent.id = MatrixOS::KeyPad::XY2ID(xy);
+                }
+                else
+                {
+                    keyEvent.id = UINT16_MAX;
+                }
+            }
+            keyEvent.info = KeypadInfoToKeyInfo(inputEvent->keypad);
+
             // Create a KeyEvent Python object and pass it to the callback
             PikaObj* keyEventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
-            copyCppObjIntoPikaObj<KeyEvent>(keyEventObj, *keyEvent);
+            copyCppObjIntoPikaObj<KeyEvent>(keyEventObj, keyEvent);
 
             // Pack the object into an Arg for the callback
             Arg* keyEventArg = arg_newObj(keyEventObj);

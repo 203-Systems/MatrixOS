@@ -19,7 +19,7 @@ public:
 
   bool LoadUAD(uint8_t* uad, size_t size);
   void UnloadUAD();
-  void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
+  void KeyEvent(InputId inputId, KeypadInfo* keypadInfo);
 
   // UAD Runtime
   enum ActionEventType { INITIALIZATION, UPDATE, DEINITIALIZATION, KEYEVENT };
@@ -27,7 +27,7 @@ public:
     ActionEventType type;
     union {
       void* data;       // For GENERIC EVENT TYPES
-      KeyInfo* keyInfo; // For KEYEVENT
+      KeypadInfo* keyInfo; // For KEYEVENT
     };
   };
 

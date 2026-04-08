@@ -94,27 +94,7 @@ void UI::GetKey() {
     if (inputEvent.inputClass != InputClass::Keypad)
       continue;
 
-    // Synthesize legacy KeyEvent for CustomKeyEvent handler
-    KeyEvent keyEvent;
-    if (inputEvent.id.IsFunctionKey())
-    {
-      keyEvent.id = FUNCTION_KEY;
-    }
-    else
-    {
-      Point xy;
-      if (MatrixOS::Input::TryGetPoint(inputEvent.id, &xy))
-      {
-        keyEvent.id = MatrixOS::KeyPad::XY2ID(xy);
-      }
-      else
-      {
-        keyEvent.id = UINT16_MAX;
-      }
-    }
-    keyEvent.info = KeypadInfoToKeyInfo(inputEvent.keypad);
-
-    if (!CustomKeyEvent(&keyEvent)) // Run Custom Key Event first. Check if UI event is blocked
+    if (!CustomKeyEvent(&inputEvent)) // Run Custom Key Event first. Check if UI event is blocked
     {
       UIKeyEvent(&inputEvent);
     }
@@ -196,8 +176,8 @@ void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
   UI::post_render_func = std::make_unique<std::function<void()>>(post_render_func);
 }
 
-void UI::SetKeyEventHandler(std::function<bool(KeyEvent*)> key_event_handler) {
-  UI::key_event_handler = std::make_unique<std::function<bool(KeyEvent*)>>(key_event_handler);
+void UI::SetKeyEventHandler(std::function<bool(InputEvent*)> key_event_handler) {
+  UI::key_event_handler = std::make_unique<std::function<bool(InputEvent*)>>(key_event_handler);
 }
 
 void UI::ClearUIComponents() {

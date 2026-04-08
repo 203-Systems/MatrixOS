@@ -280,6 +280,22 @@ void ClearState() {
   ClearQueue();
 }
 
+KeypadInfo GetKeypadState(Point xy) {
+  const InputCluster* grid = GetPrimaryGridCluster();
+  if (grid) {
+    InputId id;
+    if (GetInputAt(grid->clusterId, xy, &id)) {
+      InputSnapshot snap;
+      if (GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
+        return snap.keypad;
+      }
+    }
+  }
+  KeypadInfo empty;
+  memset(&empty, 0, sizeof(empty));
+  return empty;
+}
+
 void SetRotationCallback(void (*callback)()) {
   rotationCallback = callback;
 }

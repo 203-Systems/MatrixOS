@@ -41,9 +41,9 @@ public:
 
   void Setup(const vector<string>& args) override;
 
-  void KeyEventHandler(KeyEvent& keyEvent);
+  void KeyEventHandler(InputEvent& inputEvent);
 
-  void GridKeyEvent(Point xy, KeyInfo* KeyInfo);
+  void GridKeyEvent(Point xy, KeypadInfo* keypadInfo);
   void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);
 
   void PlayView();

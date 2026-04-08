@@ -39,7 +39,7 @@ public:
       for (uint8_t y = 0; y < dimension.y; y++)
       {
         Point target_coord = origin + Point(x, y);
-        Color target_color = MatrixOS::KeyPad::GetKey(target_coord)->Active() ? Color::White : color;
+        Color target_color = MatrixOS::Input::GetKeypadState(target_coord).Active() ? Color::White : color;
         MatrixOS::LED::SetColor(target_coord, target_color);
       }
     }

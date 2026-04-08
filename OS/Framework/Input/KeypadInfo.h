@@ -35,6 +35,10 @@ struct KeypadInfo {
   bool Cleared() const {
     return cleared;
   }
+
+  bool Active() const {
+    return (state >= KeypadState::Activated && state <= KeypadState::Aftertouch) || state == KeypadState::ReleaseDebouncing;
+  }
 };
 
 struct KeypadCapabilities {

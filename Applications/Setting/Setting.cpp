@@ -9,7 +9,7 @@ void Setting::SystemSetting() {
   UI systemSetting;
   systemSetting.SetName("Setting");
   systemSetting.SetColor(Color(0xFFFFFF));
-  systemSetting.SetKeyEventHandler([this](KeyEvent* keyEvent) -> bool { return CustomKeyEvent(keyEvent); });
+  systemSetting.SetKeyEventHandler([this](InputEvent* inputEvent) -> bool { return CustomKeyEvent(inputEvent); });
 
   // Brightness Control
   UIButton brightnessBtn;
@@ -136,10 +136,11 @@ void Setting::SecretMenu() {
   secretMenu.Start();
 }
 
-bool Setting::CustomKeyEvent(KeyEvent* keyEvent) {
-  Point xy = MatrixOS::KeyPad::ID2XY(keyEvent->id);
+bool Setting::CustomKeyEvent(InputEvent* inputEvent) {
+  Point xy;
+  bool hasXY = MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
 
-  if (xy && keyEvent->info.state == RELEASED) // IF XY is valid, means it's on the main grid
+  if (hasXY && inputEvent->keypad.state == KeypadState::Released) // IF XY is valid, means it's on the main grid
   {
     if ((konami == 0 || konami == 1) && (xy == origin + Point(0, -1) || xy == origin + Point(1, -1)))
     {

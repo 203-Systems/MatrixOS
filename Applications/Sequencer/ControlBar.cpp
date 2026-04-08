@@ -879,7 +879,7 @@ bool SequencerControlBar::Render(Point origin) {
     {
       Point point = origin + Point(0, 0);
       bool canResume = sequencer->sequence.CanResume();
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
       MatrixOS::LED::SetColor(point, color);
     }
 
@@ -888,7 +888,7 @@ bool SequencerControlBar::Render(Point origin) {
       Point point = origin + Point(5, 0);
       uint8_t track = sequencer->track;
       bool twoPatternMode = sequencer->meta.tracks[track].twoPatternMode;
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00).DimIfNot(twoPatternMode);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFFFF00).DimIfNot(twoPatternMode);
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -899,7 +899,7 @@ bool SequencerControlBar::Render(Point origin) {
     {
       Point point = origin + Point(0, 0);
       bool canResume = sequencer->sequence.CanResume();
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -911,7 +911,7 @@ bool SequencerControlBar::Render(Point origin) {
     {
       Point point = origin + Point(0, 0);
       bool canResume = sequencer->sequence.CanResume();
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFF8000).DimIfNot(canResume);
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -921,19 +921,19 @@ bool SequencerControlBar::Render(Point origin) {
     // Quantize
     {
       Point point = origin + Point(1, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFFFF00);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFFFF00);
       MatrixOS::LED::SetColor(point, color);
     }
     // Octave Up
     {
       Point point = origin + Point(2, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
     // Octave Down
     {
       Point point = origin + Point(3, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -948,7 +948,7 @@ bool SequencerControlBar::Render(Point origin) {
       {
         color = Color(0xFF0040).Dim();
       }
-      else if (MatrixOS::KeyPad::GetKey(point)->Active())
+      else if (MatrixOS::Input::GetKeypadState(point).Active())
       {
         color = Color::White;
       }
@@ -962,7 +962,7 @@ bool SequencerControlBar::Render(Point origin) {
       {
         color = Color(0xFF0040).Dim();
       }
-      else if (MatrixOS::KeyPad::GetKey(point)->Active())
+      else if (MatrixOS::Input::GetKeypadState(point).Active())
       {
         color = Color::White;
       }
@@ -971,13 +971,13 @@ bool SequencerControlBar::Render(Point origin) {
     // Octave Up
     {
       Point point = origin + Point(2, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
     // Octave Down
     {
       Point point = origin + Point(3, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xA000FF);
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xA000FF);
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -991,7 +991,7 @@ bool SequencerControlBar::Render(Point origin) {
     {
       MatrixOS::LED::SetColor(point, Color::Green.Dim());
     }
-    else if (MatrixOS::KeyPad::GetKey(point)->Active())
+    else if (MatrixOS::Input::GetKeypadState(point).Active())
     {
       MatrixOS::LED::SetColor(point, Color::White);
     }
@@ -1010,7 +1010,7 @@ bool SequencerControlBar::Render(Point origin) {
   if (barRenderMask & 0b01000000)
   {
     Point point = origin + Point(1, 0);
-    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    if (MatrixOS::Input::GetKeypadState(point).Active())
     {
       MatrixOS::LED::SetColor(point, Color::White);
     }
@@ -1035,7 +1035,7 @@ bool SequencerControlBar::Render(Point origin) {
   {
     Point point = origin + Point(2, 0);
     Color color;
-    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    if (MatrixOS::Input::GetKeypadState(point).Active())
     {
       color = Color::White;
     }
@@ -1055,7 +1055,7 @@ bool SequencerControlBar::Render(Point origin) {
   {
     Point point = origin + Point(3, 0);
     Color color;
-    if (MatrixOS::KeyPad::GetKey(point)->Active())
+    if (MatrixOS::Input::GetKeypadState(point).Active())
     {
       color = Color::White;
     }
@@ -1082,7 +1082,7 @@ bool SequencerControlBar::Render(Point origin) {
     }
     else
     {
-      color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0xFF0080);
+      color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0xFF0080);
     }
     MatrixOS::LED::SetColor(point, color);
   }
@@ -1098,7 +1098,7 @@ bool SequencerControlBar::Render(Point origin) {
     }
     else
     {
-      color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : Color(0x0080FF);
+      color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : Color(0x0080FF);
     }
     MatrixOS::LED::SetColor(point, color);
   }
@@ -1109,7 +1109,7 @@ bool SequencerControlBar::Render(Point origin) {
     if (barRenderMask & 0b00000010)
     {
       Point point = origin + Point(6, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctaveMinusColor();
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : GetOctaveMinusColor();
       MatrixOS::LED::SetColor(point, color);
     }
 
@@ -1117,7 +1117,7 @@ bool SequencerControlBar::Render(Point origin) {
     if (barRenderMask & 0b00000001)
     {
       Point point = origin + Point(7, 0);
-      Color color = MatrixOS::KeyPad::GetKey(point)->Active() ? Color::White : GetOctavePlusColor();
+      Color color = MatrixOS::Input::GetKeypadState(point).Active() ? Color::White : GetOctavePlusColor();
       MatrixOS::LED::SetColor(point, color);
     }
   }
@@ -1132,8 +1132,8 @@ bool SequencerControlBar::Render(Point origin) {
   {
     Point point1 = origin + Point(6, 0);
     Point point2 = origin + Point(7, 0);
-    bool active = MatrixOS::KeyPad::GetKey(point1)->Active() || MatrixOS::KeyPad::GetKey(point2)->Active();
-    Color color = MatrixOS::KeyPad::GetKey(point1)->Active() ? Color::White : sequencer->meta.tracks[sequencer->track].color;
+    bool active = MatrixOS::Input::GetKeypadState(point1).Active() || MatrixOS::Input::GetKeypadState(point2).Active();
+    Color color = MatrixOS::Input::GetKeypadState(point1).Active() ? Color::White : sequencer->meta.tracks[sequencer->track].color;
     MatrixOS::LED::SetColor(point1, color);
     MatrixOS::LED::SetColor(point2, color);
   }

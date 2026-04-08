@@ -74,7 +74,7 @@ static bool LoadData(cb0r_t actionData, WrapAction* action) {
   return true;
 }
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
   WrapAction data;
   if (!LoadData(actionData, &data))
   {
@@ -113,7 +113,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
 
   newAction.depth++;
 
-  UADRuntime::ActionEvent actionEvent = {.type = UADRuntime::ActionEventType::KEYEVENT, .keyInfo = keyInfo};
+  UADRuntime::ActionEvent actionEvent = {.type = UADRuntime::ActionEventType::KEYEVENT, .keyInfo = keypadInfo};
   uadRT->ExecuteActions(&newAction, &actionEvent);
   uadRT->ExecuteEffects(&newAction, &actionEvent);
   return true;

@@ -21,7 +21,7 @@ public:
 
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(KeyEvent& keyEvent);
+  void KeyEventHandler(InputEvent& inputEvent);
 
   CreateSavedVar("Strum", nvsVersion, uint32_t, STRUM_APP_VERSION); // In case NoteLayoutConfig got changed
   CreateSavedVar("Strum", activeLayout, uint8_t, 0);                // 0 for left, 1 for right

@@ -194,8 +194,8 @@ static bool LoadData(cb0r_t actionData, MidiAction* action) {
   return true;
 }
 
-static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeyInfo* keyInfo) {
-  if (keyInfo->State() != PRESSED && keyInfo->State() != RELEASED && keyInfo->State() != AFTERTOUCH)
+static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionData, KeypadInfo* keypadInfo) {
+  if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released && keypadInfo->state != KeypadState::Aftertouch)
   {
     return false;
   }
@@ -214,11 +214,11 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     break;
   }
   case AnalogSource::Momentary: {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       outputValue = data.end;
     }
-    else if (keyInfo->State() == RELEASED)
+    else if (keypadInfo->state == KeypadState::Released)
     {
       outputValue = data.begin;
     }
@@ -229,7 +229,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     break;
   }
   case AnalogSource::Persistent: {
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       outputValue = data.end;
     }
@@ -243,7 +243,7 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     ActionInfo groupActionInfo = *actionInfo;
     groupActionInfo.index = 255;
     groupActionInfo.actionType = ActionType::EFFECT;
-    if (keyInfo->State() == PRESSED)
+    if (keypadInfo->state == KeypadState::Pressed)
     {
       uint32_t registerValue;
       if (!uadRT->GetRegister(actionInfo, &registerValue))
@@ -286,18 +286,18 @@ static bool KeyEvent(UADRuntime* uadRT, ActionInfo* actionInfo, cb0r_t actionDat
     break;
   }
   case AnalogSource::KeyForce: {
-    if (keyInfo->State() == RELEASED)
+    if (keypadInfo->state == KeypadState::Released)
     {
       outputValue = data.begin;
     }
-    else if (keyInfo->Force() == FRACT16_MAX)
+    else if (keypadInfo->pressure == FRACT16_MAX)
     {
       outputValue = data.end;
     }
     else
     {
       int32_t range = data.end - data.begin;
-      outputValue = data.begin + (((uint16_t)keyInfo->Force() * range) >>
+      outputValue = data.begin + (((uint16_t)keypadInfo->pressure * range) >>
                                    16); // I know this is offed by one (velocity max is 0x7FFF but >> 16 is 0x8000) but it's fine
     }
     break;

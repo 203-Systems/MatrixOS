@@ -16,15 +16,15 @@ void BootAnimation::Loop() {
     Exit();
   }
 
-  struct KeyEvent keyEvent;
-  while (MatrixOS::KeyPad::Get(&keyEvent))
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEvent(keyEvent.ID(), &keyEvent.info);
+    KeyEvent(inputEvent.id, &inputEvent.keypad);
   }
 }
 
-void BootAnimation::KeyEvent(uint16_t keyId, KeyInfo* keyInfo) {
-  if (keyId == FUNCTION_KEY && keyInfo->State() == PRESSED)
+void BootAnimation::KeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
+  if (inputId.IsFunctionKey() && keypadInfo->state == KeypadState::Pressed)
   {
     Exit();
   }

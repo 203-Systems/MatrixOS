@@ -20,7 +20,7 @@ public:
 
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(KeyEvent& keyEvent);
+  void KeyEventHandler(InputEvent& inputEvent);
 
   void ActionMenu();
 };
