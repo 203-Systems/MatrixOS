@@ -63,6 +63,12 @@ namespace Input
 {
 bool Get(InputEvent* event, uint32_t timeoutMs = 0);
 bool GetState(InputId id, InputSnapshot* snapshot);
+
+const vector<InputCluster>& GetClusters();
+const InputCluster* GetCluster(uint8_t clusterId);
+const InputCluster* GetPrimaryGridCluster();
+Dimension GetPrimaryGridSize();
+
 void ClearQueue();
 void ClearState();
 } // namespace Input
