@@ -112,9 +112,9 @@
 - Applications\Dice\Dice.cpp - FORMATTED
 - Devices\Mystrix1\Family.h - NOT FORMATTED
 - Devices\Mystrix1\Family.cpp - NOT FORMATTED
-- Applications\BrightnessControl\UI4pxFloat.h - NOT FORMATTED
-- Applications\BrightnessControl\BrightnessControl.h - NOT FORMATTED
-- Applications\BrightnessControl\BrightnessControl.cpp - NOT FORMATTED
+- Applications\BrightnessControl\UI4pxFloat.h - FORMATTED
+- Applications\BrightnessControl\BrightnessControl.h - FORMATTED
+- Applications\BrightnessControl\BrightnessControl.cpp - FORMATTED
 - Applications\CustomControlMap\UILayerControl.h - NOT FORMATTED
 - Applications\CustomControlMap\UADruntime.cpp - NOT FORMATTED
 - Applications\CustomControlMap\UADloader.cpp - NOT FORMATTED

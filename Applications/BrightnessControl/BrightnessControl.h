@@ -4,7 +4,7 @@
 #include "UI/UI.h"
 
 class BrightnessControl : public UI {
- public:
+public:
   // string name = "Setting";
   // Color nameColor = Color(0x00FFFF);
 
