@@ -88,17 +88,11 @@ bool IsFunctionKey(InputId id);
 
 namespace KeyPad
 {
-uint16_t Scan(); // Return # of changed key
-bool Get(KeyEvent* keyEventDest, uint32_t timeoutMs = 0);
 KeyInfo* GetKey(Point keyXY);
 KeyInfo* GetKey(uint16_t keyID);
-void Clear();                // Don't handle any keyEvent till their next Press event (So no Release, Hold, etc)
-void ClearList();            // Clear the current KeyEvent queue
-uint16_t XY2ID(Point xy);    // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no
-                             // ID is assigned to given XY
-Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
-                             // given ID;
-
+void Clear();                // Clear device keypad state
+uint16_t XY2ID(Point xy);    // return UINT16_MAX if no ID is assigned to given XY
+Point ID2XY(uint16_t keyID); // return Point(INT16_MIN, INT16_MIN) if no XY found
 } // namespace KeyPad
 
 namespace USB

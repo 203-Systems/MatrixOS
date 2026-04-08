@@ -171,7 +171,6 @@ void Begin(void) {
 
 void InitSysModules(void) {
   MatrixOS::Input::Init();
-  MatrixOS::KeyPad::Init();
   MatrixOS::LED::Init();
 #if DEVICE_STORAGE
   MatrixOS::FileSystem::Init();

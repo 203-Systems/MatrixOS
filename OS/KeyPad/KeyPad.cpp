@@ -5,8 +5,6 @@
 
 namespace MatrixOS::KeyPad
 {
-QueueHandle_t keyeventQueue;
-
 // Bridge: forward KeyEvent as InputEvent to the new input system
 IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
   InputEvent inputEvent;
@@ -16,31 +14,9 @@ IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
   MatrixOS::Input::NewEvent(inputEvent);
 }
 
-void Init() {
-  if (!keyeventQueue)
-  {
-    keyeventQueue = xQueueCreate(KEYEVENT_QUEUE_SIZE, sizeof(KeyEvent));
-  }
-  else
-  {
-    xQueueReset(keyeventQueue);
-  }
-}
-
 IRAM_ATTR bool NewEvent(KeyEvent* keyevent) {
-  // Bridge to new input system
   BridgeToInput(keyevent);
-
-  if (uxQueueSpacesAvailable(keyeventQueue) == 0)
-  {
-    // TODO: Drop first element
-  }
-  xQueueSend(keyeventQueue, keyevent, 0);
-  return uxQueueSpacesAvailable(keyeventQueue) == 0;
-}
-
-bool Get(KeyEvent* keyeventDest, uint32_t timeoutMs) {
-  return xQueueReceive(keyeventQueue, (void*)keyeventDest, pdMS_TO_TICKS(timeoutMs)) == pdTRUE;
+  return false;
 }
 
 KeyInfo* GetKey(Point keyXY) {
@@ -51,13 +27,8 @@ KeyInfo* GetKey(uint16_t keyID) {
   return Device::KeyPad::GetKey(keyID);
 }
 
-void ClearList() {
-  xQueueReset(keyeventQueue);
-}
-
 void Clear() {
   Device::KeyPad::Clear();
-  ClearList();
 }
 
 uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)

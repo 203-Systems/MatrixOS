@@ -9,13 +9,17 @@ extern "C" {
     PikaObj* New__MatrixOS_Point_Point(Args *args);
     void _MatrixOS_Point_Point___init__(PikaObj *self, int x, int y);
 
-    // KeyPad class implementation
+    // KeyPad class implementation — polls from MatrixOS::Input (the legacy KeyEvent queue is deleted)
     Arg* _MatrixOS_KeyPad_Get(PikaObj *self, int timeout_ms) {
-        KeyEvent event;
-        bool success = MatrixOS::KeyPad::Get(&event, timeout_ms);
+        InputEvent inputEvent;
+        bool success = MatrixOS::Input::Get(&inputEvent, timeout_ms);
 
         if (success) {
-            // Create new KeyEvent object and copy the C++ object into it
+            // Convert InputEvent to legacy KeyEvent for Python compatibility
+            KeyEvent event;
+            event.id = Device::KeyPad::InputIdToLegacyKeyId(inputEvent.id);
+            event.info = KeypadInfoToKeyInfo(inputEvent.keypad);
+
             PikaObj* event_obj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
             copyCppObjIntoPikaObj<KeyEvent>(event_obj, event);
             return arg_newObj(event_obj);

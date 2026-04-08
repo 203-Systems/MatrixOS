@@ -1594,11 +1594,6 @@ void Sequencer::ConfirmSaveUI() {
       if (inputEvent->keypad.state == KeypadState::Pressed)
       {
         confirmSaveUI.Exit();
-        Point _clearPt; KeyInfo* keyInfo = MatrixOS::Input::TryGetPoint(inputEvent->id, &_clearPt) ? MatrixOS::KeyPad::GetKey(_clearPt) : nullptr;
-        if (keyInfo)
-        {
-          keyInfo->Clear();
-        }
       }
       return true;
     }
@@ -1822,11 +1817,6 @@ void Sequencer::SequenceBrowser() {
       {
         eventTime = 0;
         MatrixOS::LED::Fade();
-        Point _clearPt; KeyInfo* keyInfo = MatrixOS::Input::TryGetPoint(inputEvent->id, &_clearPt) ? MatrixOS::KeyPad::GetKey(_clearPt) : nullptr;
-        if (keyInfo)
-        {
-          keyInfo->Clear();
-        }
       }
       return true;
     }

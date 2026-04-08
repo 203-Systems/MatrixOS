@@ -2,6 +2,5 @@
 
 namespace MatrixOS::KeyPad
 {
-void Init(void);
-bool NewEvent(KeyEvent* keyevent); // Adding keyevent, return true when queue is full
+bool NewEvent(KeyEvent* keyevent); // Bridge: forward to MatrixOS::Input, will be removed when drivers emit InputEvent directly
 } // namespace MatrixOS::KeyPad
