@@ -18,17 +18,18 @@ enum SysExState : uint8_t {
 };
 
 namespace MatrixOS::MIDI
-  {
-    inline MidiPort* osPort = nullptr;
-    inline QueueHandle_t appQueue = nullptr;
-    inline TaskHandle_t receiveTask = nullptr;
+{
+inline MidiPort* osPort = nullptr;
+inline QueueHandle_t appQueue = nullptr;
+inline TaskHandle_t receiveTask = nullptr;
 
-    void Init(void);
-    void ReceiveTask(void* parameters);
+void Init(void);
+void ReceiveTask(void* parameters);
 
-    bool Get(MidiPacket* midiPacketDest, uint16_t timeout_ms);
-    bool Send(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeout_ms);
-    bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta);  // If include meta, it will send the correct header and ending;
-    void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer);
-    SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool complete);
-  }
+bool Get(MidiPacket* midiPacketDest, uint16_t timeoutMs);
+bool Send(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeoutMs);
+bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data,
+               bool includeMeta); // If include meta, it will send the correct header and ending;
+void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer);
+SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool complete);
+} // namespace MatrixOS::MIDI

@@ -2,5 +2,5 @@
 
 namespace MatrixOS::LED
 {
-    void Init(void);
+void Init(void);
 }

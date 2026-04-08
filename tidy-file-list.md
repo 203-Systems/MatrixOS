@@ -191,14 +191,14 @@
 - OS\System\Parameters.h - FORMATTED
 - Devices\Mystrix1\Family.h - NOT FORMATTED
 - Devices\Mystrix1\Family.cpp - NOT FORMATTED
-- OS\NVS\NVS.cpp - NOT FORMATTED
+- OS\NVS\NVS.cpp - FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLinkProtocol.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.cpp - NOT FORMATTED
 - Devices\Mystrix1\MatrixOSConfig.h - NOT FORMATTED
 - Devices\Mystrix1\main.c - NOT FORMATTED
-- OS\MIDI\MIDI.h - NOT FORMATTED
-- OS\MIDI\MIDI.cpp - NOT FORMATTED
+- OS\MIDI\MIDI.h - FORMATTED
+- OS\MIDI\MIDI.cpp - FORMATTED
 - OS\MatrixOS.h - NOT FORMATTED
 - OS\main.cpp - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\Firmware\mystrix2_mpe_driver.h - NOT FORMATTED
@@ -222,8 +222,8 @@
 - Devices\Mystrix1\Drivers\HWMidi.cpp - NOT FORMATTED
 - Devices\Mystrix1\Drivers\EFuse.cpp - NOT FORMATTED
 - Devices\Mystrix1\Drivers\BLEMIDI.cpp - NOT FORMATTED
-- OS\Logging\Logging.h - NOT FORMATTED
-- OS\Logging\Logging.cpp - NOT FORMATTED
+- OS\Logging\Logging.h - FORMATTED
+- OS\Logging\Logging.cpp - FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\MystrixBoot\MystrixBoot.cpp - NOT FORMATTED
 - Devices\Mystrix1\ULP\fsr_keypad.c - NOT FORMATTED
@@ -231,21 +231,21 @@
 - Devices\Mystrix1\Variants\Mystrix\V110\Config.h - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\RevC\Config.h - NOT FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\Device.cpp - NOT FORMATTED
-- OS\LED\LED.h - NOT FORMATTED
-- OS\LED\LED.cpp - NOT FORMATTED
+- OS\LED\LED.h - FORMATTED
+- OS\LED\LED.cpp - FORMATTED
 - Devices\Mystrix1\Variants\Mystrix\V100\Config.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\LowCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\HighCalibration.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\ForceCalibration\ForceCalibration.cpp - NOT FORMATTED
-- OS\KeyPad\KeyPad.h - NOT FORMATTED
-- OS\KeyPad\KeyPad.cpp - NOT FORMATTED
-- OS\HID\RawHID.cpp - NOT FORMATTED
-- OS\HID\Keyboard.cpp - NOT FORMATTED
-- OS\HID\HIDSpecs.h - NOT FORMATTED
-- OS\HID\HID.h - NOT FORMATTED
-- OS\HID\HID.cpp - NOT FORMATTED
-- OS\HID\Gamepad.cpp - NOT FORMATTED
+- OS\KeyPad\KeyPad.h - FORMATTED
+- OS\KeyPad\KeyPad.cpp - FORMATTED
+- OS\HID\RawHID.cpp - FORMATTED
+- OS\HID\Keyboard.cpp - FORMATTED
+- OS\HID\HIDSpecs.h - FORMATTED
+- OS\HID\HID.h - FORMATTED
+- OS\HID\HID.cpp - FORMATTED
+- OS\HID\Gamepad.cpp - FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.h - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\FactoryMenu.cpp - NOT FORMATTED
 - Devices\Mystrix1\Applications\FactoryMenu\EFuseBurner.cpp - NOT FORMATTED

@@ -2,6 +2,6 @@
 
 namespace MatrixOS::KeyPad
 {
-    void Init(void);
-    bool NewEvent(KeyEvent* keyevent);  // Adding keyevent, return true when queue is full
-}
+void Init(void);
+bool NewEvent(KeyEvent* keyevent); // Adding keyevent, return true when queue is full
+} // namespace MatrixOS::KeyPad

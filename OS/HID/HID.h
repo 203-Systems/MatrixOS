@@ -2,8 +2,8 @@
 
 namespace MatrixOS::HID
 {
-    namespace RawHID
-    {
-        void Init(void);
-    }
+namespace RawHID
+{
+void Init(void);
 }
+} // namespace MatrixOS::HID
