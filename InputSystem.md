@@ -384,7 +384,7 @@ Explicitly not in scope right now:
 - [x] Define the initial `XXXInfo` types
 - [x] Add compile-time `sizeof <= 16B` and trivially copyable constraints to all `XXXInfo`
 - [x] Add the `MatrixOS::Input` namespace and public header entry
-- [ ] Add the input event queue and state cache
+- [x] Add the input event queue and state cache
 - [ ] Implement `Get()` / `GetState()` / `GetClusters()` / `GetCluster()`
 - [ ] Implement `GetPrimaryGridCluster()` / `GetPrimaryGridSize()`
 - [ ] Implement `GetInputsAt()` / `GetInputAt()` / `TryGetPoint()`

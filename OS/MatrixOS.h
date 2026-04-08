@@ -62,6 +62,9 @@ uint32_t GetLEDCount(void);
 namespace Input
 {
 bool Get(InputEvent* event, uint32_t timeoutMs = 0);
+bool GetState(InputId id, InputSnapshot* snapshot);
+void ClearQueue();
+void ClearState();
 } // namespace Input
 
 namespace KeyPad
