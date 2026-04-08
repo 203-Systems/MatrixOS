@@ -4,17 +4,17 @@
 #include "../Application.h"
 
 class BootAnimation : public Application {
- public:
+public:
   void Loop() override;
 
   uint8_t stage = 0;
-  bool idle_hold = false;
+  bool idleHold = false;
 
   virtual bool Idle(bool ready) {
     return true;
-  };  // return true will signal the Boot Animation to enter Boot Animation
-  virtual void Boot(){};
+  }; // return true will signal the Boot Animation to enter Boot Animation
+  virtual void Boot() {};
 
-  virtual void End(){};
-  virtual void KeyEvent(uint16_t KeyID, KeyInfo* keyInfo);
+  virtual void End() {};
+  virtual void KeyEvent(uint16_t keyId, KeyInfo* keyInfo);
 };

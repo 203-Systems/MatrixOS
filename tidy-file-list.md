@@ -133,8 +133,8 @@
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLinkProtocol.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.h - NOT FORMATTED
 - Devices\Mystrix2\Drivers\CoprocessorLink\MPEDriver\MPECoprocessorLink.cpp - NOT FORMATTED
-- Applications\BootAnimation\BootAnimation.h - NOT FORMATTED
-- Applications\BootAnimation\BootAnimation.cpp - NOT FORMATTED
+- Applications\BootAnimation\BootAnimation.h - FORMATTED
+- Applications\BootAnimation\BootAnimation.cpp - FORMATTED
 - Devices\Mystrix1\MatrixOSConfig.h - NOT FORMATTED
 - Devices\Mystrix1\main.c - NOT FORMATTED
 - Applications\Example\Example.h - NOT FORMATTED
