@@ -1,9 +1,11 @@
 #include "FactoryMenu.h"
 void FactoryMenu::KeyPadTester() {
   bool keypadTested[X_SIZE][Y_SIZE];
+  InputSnapshot fnSnap = {};
   memset(keypadTested, false, X_SIZE * Y_SIZE);
   MatrixOS::LED::Fill(0);
-  while (!MatrixOS::Input::IsFunctionKeyActive())
+  while (!(MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
+           fnSnap.inputClass == InputClass::Keypad && fnSnap.keypad.Active()))
   {
     for (uint8_t x = 0; x < X_SIZE; x++)
     {

@@ -98,7 +98,7 @@ void REDACTED::End() {
 }
 
 void REDACTED::KeyEventHandler(InputEvent* inputEvent) {
-  if (MatrixOS::Input::IsFunctionKey(inputEvent->id) && inputEvent->keypad.state == KeypadState::Pressed)
+  if (inputEvent->id == InputId::FunctionKey() && inputEvent->keypad.state == KeypadState::Pressed)
   {
     Exit();
     return;

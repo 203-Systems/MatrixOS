@@ -205,23 +205,4 @@ bool HasVelocitySensitivity() {
   return caps.hasVelocity;
 }
 
-InputId GetFunctionKeyId() {
-  return Device::GetFunctionKeyId();
-}
-
-bool IsFunctionKey(InputId id) {
-  return Device::IsFunctionKey(id);
-}
-
-bool IsFunctionKeyActive() {
-  InputSnapshot snap;
-  if (!GetState(GetFunctionKeyId(), &snap))
-    return false;
-  if (snap.inputClass == InputClass::Keypad)
-    return snap.keypad.Active();
-  // Non-keypad function key classes are not yet supported;
-  // return false rather than misinterpreting the union payload.
-  return false;
-}
-
 } // namespace MatrixOS::Input

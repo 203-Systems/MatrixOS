@@ -87,7 +87,7 @@ void Lighting::Render(Color color) {
 void Lighting::RenderGradient() {}
 
 void Lighting::KeyEventHandler(InputEvent& inputEvent) {
-  if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
+  if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Pressed)
     {
@@ -189,7 +189,7 @@ void Lighting::Settings() {
   // Second, set the key event handler to match the intended behavior
   settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

@@ -28,14 +28,6 @@ void DeviceInit() {
   BLEMIDI::Init(name);
 }
 
-InputId GetFunctionKeyId() {
-  return InputId{0, 0};
-}
-
-bool IsFunctionKey(InputId id) {
-  return id == GetFunctionKeyId();
-}
-
 void RegisterInputClusters(); // forward declaration
 
 namespace Input

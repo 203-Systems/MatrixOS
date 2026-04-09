@@ -1,6 +1,7 @@
 #include "ForceCalibration.h"
 
 void ForceCalibration::HighCalibration() {
+  InputSnapshot fnSnap = {};
   Timer renderTimer;
 
   enum calibrationState { Idle, Stabilizing, Recording, Done };
@@ -36,7 +37,8 @@ void ForceCalibration::HighCalibration() {
     }
   }
 
-  while (!MatrixOS::Input::IsFunctionKeyActive())
+  while (!(MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
+           fnSnap.inputClass == InputClass::Keypad && fnSnap.keypad.Active()))
   {
     if (progress < X_SIZE * Y_SIZE)
     {

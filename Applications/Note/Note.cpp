@@ -263,7 +263,7 @@ void Note::Setup(const vector<string>& args) {
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

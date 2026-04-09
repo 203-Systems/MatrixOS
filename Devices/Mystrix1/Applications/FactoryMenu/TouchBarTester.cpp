@@ -2,12 +2,14 @@
 
 void FactoryMenu::TouchBarTester() {
 #ifdef FAMILY_MYSTRIX
+  InputSnapshot fnSnap = {};
   bool touchbarTested[32];
   memset(touchbarTested, false, 32);
 
   MatrixOS::LED::Fill(0);
   Device::touchbarEnable.TempSet(true);
-  while (!MatrixOS::Input::IsFunctionKeyActive())
+  while (!(MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
+           fnSnap.inputClass == InputClass::Keypad && fnSnap.keypad.Active()))
   {
     // Left
     for (uint8_t i = 0; i < 8; i++)

@@ -98,7 +98,7 @@ void Sequencer::SequencerUI() {
 
   sequencerUI.AllowExit(false);
   sequencerUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
       {
@@ -249,7 +249,7 @@ void Sequencer::SequencerMenu() {
 
   sequencerMenu.AllowExit(false);
   sequencerMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

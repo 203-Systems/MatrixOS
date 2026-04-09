@@ -110,7 +110,7 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
               UI::GlobalLoops();
               MatrixOS::Input::ClearQueue();
               InputSnapshot fnSnap;
-              if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+              if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                   fnSnap.keypad.state == KeypadState::Pressed)
               {
                 MatrixOS::Input::ClearQueue();
@@ -233,7 +233,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
             UI::GlobalLoops();
             MatrixOS::Input::ClearQueue();
             InputSnapshot fnSnap;
-            if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+            if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                 fnSnap.keypad.state == KeypadState::Pressed)
             {
               MatrixOS::Input::ClearQueue();
@@ -269,7 +269,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
             UI::GlobalLoops();
             MatrixOS::Input::ClearQueue();
             InputSnapshot fnSnap;
-            if (MatrixOS::Input::GetState(MatrixOS::Input::GetFunctionKeyId(), &fnSnap) &&
+            if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                 fnSnap.keypad.state == KeypadState::Pressed)
             {
               MatrixOS::Input::ClearQueue();

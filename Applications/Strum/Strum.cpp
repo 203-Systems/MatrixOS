@@ -107,7 +107,7 @@ void Strum::Setup(const vector<string>& args) {
   strumUI.AddUIComponent(strumBarR, Point(8, 0));
 
   strumUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
       {
@@ -138,7 +138,7 @@ void Strum::ActionMenu() {
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

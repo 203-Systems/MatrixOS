@@ -78,7 +78,7 @@ void Dice::Loop() {
 
 // Handle the key event from the OS
 void Dice::KeyEventHandler(InputEvent& inputEvent) {
-  if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
+  if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Hold)
     {
@@ -197,7 +197,7 @@ void Dice::Settings() {
   // Second, set the key event handler to match the intended behavior
   settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

@@ -529,7 +529,7 @@ bool CustomControlMap::SendHID(const vector<uint8_t>& report, uint8_t retry) {
 
 void CustomControlMap::KeyEventHandler(InputEvent& inputEvent) {
   // Reserve Function Key
-  if (MatrixOS::Input::IsFunctionKey(inputEvent.id) && inputEvent.keypad.state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
+  if (inputEvent.id == InputId::FunctionKey() && inputEvent.keypad.state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
   {
     ActionMenu();
   }
@@ -573,7 +573,7 @@ void CustomControlMap::ActionMenu() {
   actionMenu.AddUIComponent(passthroughControl, Point(0, 6));
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

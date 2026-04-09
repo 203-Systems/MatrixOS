@@ -1,6 +1,7 @@
 #include "ForceCalibration.h"
 
 void ForceCalibration::LowCalibration() {
+  InputSnapshot fnSnap = {};
   uint32_t startTime = MatrixOS::SYS::Millis();
 
   const uint32_t stabilizeTime = 1000;     // 1 second
@@ -32,7 +33,8 @@ void ForceCalibration::LowCalibration() {
     }
   }
 
-  while (!MatrixOS::Input::IsFunctionKeyActive())
+  while (!(MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
+           fnSnap.inputClass == InputClass::Keypad && fnSnap.keypad.Active()))
   {
     uint32_t elapsedTime = MatrixOS::SYS::Millis() - startTime;
     if (elapsedTime < stabilizeTime) // IDLE, wait for stabilize

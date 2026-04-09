@@ -98,7 +98,7 @@ void Supervisor(void* param) {
       xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, applicationStack, &applicationTaskdef);
 
   bool exited = false;
-  InputId fnKeyId = MatrixOS::Input::GetFunctionKeyId();
+  InputId fnKeyId = InputId::FunctionKey();
   while (true)
   {
     // Check if function key is held for more than 3 seconds via new Input API

@@ -108,7 +108,7 @@ bool ColorPicker(Color& color, bool shade) {
   UI colorPicker("Color Picker", Color(0x000000));
 
   colorPicker.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
       {

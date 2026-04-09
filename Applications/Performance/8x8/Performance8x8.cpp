@@ -502,7 +502,7 @@ void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 void Performance::IDKeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
-  if (MatrixOS::Input::IsFunctionKey(inputId) && keypadInfo->state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
+  if (inputId == InputId::FunctionKey() && keypadInfo->state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
   {
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 121, 127), MIDI_PORT_ALL);
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(0, 123, 0)); // All notes off
@@ -585,7 +585,7 @@ void Performance::PaletteViewer(uint8_t customPaletteId) {
             break;
           }
         }
-        if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
+        if (inputEvent.id == InputId::FunctionKey())
         {
           if (inputEvent.keypad.state == KeypadState::Hold)
           {
@@ -701,7 +701,7 @@ void Performance::ActionMenu() {
   });
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

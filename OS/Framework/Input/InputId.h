@@ -14,6 +14,10 @@ struct InputId {
     return InputId{invalidClusterId, invalidMemberId};
   }
 
+  static constexpr InputId FunctionKey() {
+    return InputId{0, 0};
+  }
+
   bool operator==(const InputId& target) const {
     return clusterId == target.clusterId && memberId == target.memberId;
   }

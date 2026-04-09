@@ -24,7 +24,7 @@ void Companion::Loop() {
 }
 
 void Companion::KeyEventHandler(InputEvent& inputEvent) {
-  if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
+  if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Pressed)
     {
@@ -106,7 +106,7 @@ void Companion::ActionMenu() {
   });
 
   actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {

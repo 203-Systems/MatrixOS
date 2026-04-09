@@ -24,7 +24,7 @@ void BootAnimation::Loop() {
 }
 
 void BootAnimation::KeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
-  if (MatrixOS::Input::IsFunctionKey(inputId) && keypadInfo->state == KeypadState::Pressed)
+  if (inputId == InputId::FunctionKey() && keypadInfo->state == KeypadState::Pressed)
   {
     Exit();
   }

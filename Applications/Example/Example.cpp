@@ -40,7 +40,7 @@ void ExampleAPP::KeyEventHandler(InputEvent& inputEvent) {
   }
   else // XY Not valid,
   {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
+    if (inputEvent.id == InputId::FunctionKey())
     {
       UIMenu(); // Open UI Menu
     }
@@ -147,7 +147,7 @@ void ExampleAPP::UIMenu() {
   // Second, set the key event handler to match the intended behavior
   menu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
-    if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
+    if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
       {
