@@ -224,6 +224,16 @@ void UI::RegisterUI(UI* ui) {
   UI::uiList.push_back(ui);
 }
 
+bool UI::IsComponentAttached(UIComponent* component) {
+  for (UI* ui : uiList) {
+    for (auto& pair : ui->uiComponents) {
+      if (pair.second == component)
+        return true;
+    }
+  }
+  return false;
+}
+
 void UI::UnregisterUI(UI* ui) {
   MLOGD("UI", "Unregister UI %s", ui->name.c_str());
   auto it = std::find(UI::uiList.begin(), UI::uiList.end(), ui);

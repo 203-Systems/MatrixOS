@@ -1,6 +1,7 @@
 #include <functional>
 #include "MatrixOS.h"
 #include "UI/Component/UIButton.h"
+#include "UI/UI.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../../PikaObjUtils.h"
@@ -14,8 +15,14 @@ extern "C" {
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(btn));
     }
 
-    // Close method — deterministic teardown
+    // Close method — deterministic teardown.
+    // Refuses to destroy if the native object is still referenced by a live UI.
     void _MatrixOS_UIButton_UIButton_Close(PikaObj *self) {
+        UIButton* btn = getCppHandlePtrInPikaObj<UIButton>(self);
+        if (btn && UI::IsComponentAttached(static_cast<UIComponent*>(btn))) {
+            return;  // still owned by a UI
+        }
+
         destroyCppHandleInPikaObj<UIButton>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"colorFunc");

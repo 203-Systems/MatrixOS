@@ -3,6 +3,7 @@
 #include "PikaObj.h"
 #include <functional>
 #include "UI/Component/UIComponent.h"
+#include "UI/UI.h"
 #include "../../PikaObjUtils.h"
 #include "../../PikaCallbackUtils.h"
 
@@ -13,8 +14,14 @@ extern "C" {
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(comp));
     }
 
-    // Close method — deterministic teardown
+    // Close method — deterministic teardown.
+    // Refuses to destroy if the native object is still referenced by a live UI.
     void _MatrixOS_UIComponent_UIComponent_Close(PikaObj *self) {
+        UIComponent* comp = getCppHandlePtrInPikaObj<UIComponent>(self);
+        if (comp && UI::IsComponentAttached(comp)) {
+            return;  // still owned by a UI — caller must ClearUIComponents or Close the UI first
+        }
+
         destroyCppHandleInPikaObj<UIComponent>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"enableFunc");

@@ -1,6 +1,7 @@
 #include <functional>
 #include "MatrixOS.h"
 #include "UI/Component/UI4pxNumber.h"
+#include "UI/UI.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../../PikaObjUtils.h"
@@ -14,8 +15,14 @@ extern "C" {
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(num));
     }
 
-    // Close method — deterministic teardown
+    // Close method — deterministic teardown.
+    // Refuses to destroy if the native object is still referenced by a live UI.
     void _MatrixOS_UI4pxNumber_UI4pxNumber_Close(PikaObj *self) {
+        UI4pxNumber* num = getCppHandlePtrInPikaObj<UI4pxNumber>(self);
+        if (num && UI::IsComponentAttached(static_cast<UIComponent*>(num))) {
+            return;  // still owned by a UI
+        }
+
         destroyCppHandleInPikaObj<UI4pxNumber>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"getValueFunc");

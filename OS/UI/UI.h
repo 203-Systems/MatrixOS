@@ -47,6 +47,10 @@ public:
 
   static void ExitAllUIs();
 
+  // Returns true if any live UI holds a raw pointer to this component.
+  // Used by Python binding Close() to prevent dangling-pointer destruction.
+  static bool IsComponentAttached(UIComponent* component);
+
 private:
   int8_t status = 0;
 

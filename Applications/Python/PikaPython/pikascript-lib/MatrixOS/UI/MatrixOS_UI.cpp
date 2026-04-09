@@ -6,7 +6,17 @@
 #include "../PikaObjUtils.h"
 #include "../PikaCallbackUtils.h"
 
+// Legacy PythonKeyEvent for the SetKeyEventHandler bridge.
+// Matches the struct in MatrixOS_KeyEvent.cpp / MatrixOS_KeyPad.cpp.
+struct PythonKeyEvent {
+  uint16_t id;
+  KeypadInfo info;
+};
+
 extern "C" {
+
+    // Forward declaration — generated constructor for Python KeyEvent objects
+    PikaObj* New__MatrixOS_KeyEvent_KeyEvent(Args *args);
 
     // UI constructor - supports optional parameters with progressive fill
     // Native UI object is heap-allocated via handle wrapper.
@@ -179,7 +189,8 @@ extern "C" {
         return true;
     }
 
-    // SetKeyEventHandler - legacy bridge, will be replaced later
+    // SetKeyEventHandler - legacy bridge, will be replaced in Phase 4.
+    // Converts InputEvent to a PythonKeyEvent and passes it to the Python callback.
     pika_bool _MatrixOS_UI_UI_SetKeyEventHandler(PikaObj *self, Arg* key_event_handler) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
@@ -189,7 +200,16 @@ extern "C" {
         ui->SetInputEventHandler([self](InputEvent* inputEvent) -> bool {
             if (!hasCppHandleInPikaObj(self)) return false;
 
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"keyEventHandler");
+            // Bridge InputEvent → PythonKeyEvent so the Python callback sees an event object
+            PythonKeyEvent pyEvt;
+            pyEvt.id = Device::KeyPad::InputIdToLegacyKeyId(inputEvent->id);
+            pyEvt.info = inputEvent->keypad;
+
+            PikaObj* eventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
+            copyCppValueIntoPikaObj<PythonKeyEvent>(eventObj, pyEvt);
+            Arg* eventArg = arg_newObj(eventObj);
+
+            Arg* result = CallCallbackInPikaObj1(self, (char*)"keyEventHandler", eventArg);
 
             bool retval = false;
             if (result) {
@@ -198,6 +218,7 @@ extern "C" {
                 }
                 arg_deinit(result);
             }
+            arg_deinit(eventArg);
 
             return retval;
         });
