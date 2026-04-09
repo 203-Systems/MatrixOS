@@ -1,4 +1,6 @@
 #include "MatrixOS.h"
+#include "Framework/KeyEvent/KeyEvent.h"
+#include "Framework/Input/InputCompat.h"
 #include "pikaScript.h"
 #include "PikaObjUtils.h"
 

@@ -1,6 +1,7 @@
 // Define Device Keypad Function
 #include "Device.h"
 #include "Input/Input.h"
+#include "Framework/Input/InputCompat.h"
 #include "timers.h"
 #include "driver/gpio.h"
 #include "MatrixOSConfig.h"

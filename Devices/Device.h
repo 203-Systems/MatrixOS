@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework.h"
+#include "KeyInfo.h"
 #include "MatrixOSConfig.h"
 #include "Family.h"
 #include "DefaultConfigs.h"

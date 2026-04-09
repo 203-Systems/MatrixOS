@@ -10,9 +10,7 @@
 #include "LogLevel.h"
 
 // Custom Data Struct
-#include "KeyEvent.h"
 #include "InputEvent.h"
-#include "InputCompat.h"
 #include "MidiPacket.h"
 
 // Definition
