@@ -2,9 +2,16 @@
 
 #include "PikaObj.h"
 
+// ============================================================================
+// Callback storage helpers
+//
+// All callbacks are stored as named Arg entries inside the PikaObj wrapper.
+// Teardown helpers allow explicit cleanup when the native object is destroyed.
+// ============================================================================
+
 inline bool SaveCallbackObjToPikaObj(PikaObj *self, char* name, Arg* callback)
 {
-    // Check if callback already registed
+    // Check if callback already registered
     Arg* existing_callback = obj_getArg(self, name);
     if (existing_callback) {
         arg_deinit(existing_callback);
@@ -17,6 +24,14 @@ inline bool SaveCallbackObjToPikaObj(PikaObj *self, char* name, Arg* callback)
     }
 
     return false;
+}
+
+// Remove a single named callback from the wrapper.
+// Safe to call if the callback does not exist.
+// obj_removeArg handles arg deinitialization internally.
+inline void ClearCallbackInPikaObj(PikaObj *self, char* name)
+{
+    obj_removeArg(self, name);
 }
 
 inline Arg* CallCallbackInPikaObj0(PikaObj *self, char* name)

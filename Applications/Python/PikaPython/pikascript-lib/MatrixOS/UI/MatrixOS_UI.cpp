@@ -6,17 +6,10 @@
 #include "../PikaObjUtils.h"
 #include "../PikaCallbackUtils.h"
 
-// Same struct as in MatrixOS_KeyEvent.cpp — Python "KeyEvent" backed by KeypadInfo
-struct PythonKeyEvent {
-  uint16_t id;
-  KeypadInfo info;
-};
-
 extern "C" {
-    // Forward declaration for KeyEvent constructor
-    PikaObj* New__MatrixOS_KeyEvent_KeyEvent(Args *args);
 
     // UI constructor - supports optional parameters with progressive fill
+    // Native UI object is heap-allocated via handle wrapper.
     void _MatrixOS_UI_UI___init__(PikaObj *self, PikaTuple* val) {
         int arg_count = pikaTuple_getSize(val);
 
@@ -34,7 +27,7 @@ extern "C" {
         if (arg_count >= 2) {
             Arg* colorArg = pikaTuple_getArg(val, 1);
             PikaObj* colorObj = arg_getObj(colorArg);
-            Color* color_ptr = getCppObjPtrInPikaObj<Color>(colorObj);
+            Color* color_ptr = getCppValuePtrInPikaObj<Color>(colorObj);
             if (color_ptr) {
                 color = *color_ptr;
             }
@@ -44,13 +37,26 @@ extern "C" {
             newLEDLayer = pikaTuple_getBool(val, 2);
         }
 
-        // Create object with filled parameters
-        createCppObjPtrInPikaObj<UI>(self, name, color, newLEDLayer);
+        createCppHandleInPikaObj<UI>(self, name, color, newLEDLayer);
+    }
+
+    // Close method - deterministic teardown.
+    // Destroys the native UI object, invalidates callbacks.
+    void _MatrixOS_UI_UI_Close(PikaObj *self) {
+        destroyCppHandleInPikaObj<UI>(self);
+
+        // Clear all stored callbacks so they cannot be invoked after close
+        ClearCallbackInPikaObj(self, (char*)"setupFunc");
+        ClearCallbackInPikaObj(self, (char*)"loopFunc");
+        ClearCallbackInPikaObj(self, (char*)"endFunc");
+        ClearCallbackInPikaObj(self, (char*)"preRenderFunc");
+        ClearCallbackInPikaObj(self, (char*)"postRenderFunc");
+        ClearCallbackInPikaObj(self, (char*)"keyEventHandler");
     }
 
     // Start method
     void _MatrixOS_UI_UI_Start(PikaObj *self) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->Start();
@@ -58,7 +64,7 @@ extern "C" {
 
     // SetName method
     void _MatrixOS_UI_UI_SetName(PikaObj *self, char* name) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->SetName(string(name));
@@ -66,10 +72,10 @@ extern "C" {
 
     // SetColor method
     void _MatrixOS_UI_UI_SetColor(PikaObj *self, PikaObj* color) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
-        Color* colorPtr = getCppObjPtrInPikaObj<Color>(color);
+        Color* colorPtr = getCppValuePtrInPikaObj<Color>(color);
         if (!colorPtr) return;
 
         ui->SetColor(*colorPtr);
@@ -77,7 +83,7 @@ extern "C" {
 
     // ShouldCreatenewLEDLayer method
     void _MatrixOS_UI_UI_ShouldCreatenewLEDLayer(PikaObj *self, pika_bool create) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->ShouldCreatenewLEDLayer(create);
@@ -85,12 +91,13 @@ extern "C" {
 
     // SetSetupFunc method
     pika_bool _MatrixOS_UI_UI_SetSetupFunc(PikaObj *self, Arg* setupFunc) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"setupFunc", setupFunc);
 
         ui->SetSetupFunc([self]() {
+            if (!hasCppHandleInPikaObj(self)) return;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"setupFunc");
             if (result) {
                 arg_deinit(result);
@@ -102,12 +109,13 @@ extern "C" {
 
     // SetLoopFunc method
     pika_bool _MatrixOS_UI_UI_SetLoopFunc(PikaObj *self, Arg* loopFunc) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"loopFunc", loopFunc);
 
         ui->SetLoopFunc([self]() {
+            if (!hasCppHandleInPikaObj(self)) return;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"loopFunc");
             if (result) {
                 arg_deinit(result);
@@ -119,12 +127,13 @@ extern "C" {
 
     // SetEndFunc method
     pika_bool _MatrixOS_UI_UI_SetEndFunc(PikaObj *self, Arg* endFunc) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"endFunc", endFunc);
 
         ui->SetEndFunc([self]() {
+            if (!hasCppHandleInPikaObj(self)) return;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"endFunc");
             if (result) {
                 arg_deinit(result);
@@ -136,12 +145,13 @@ extern "C" {
 
     // SetPreRenderFunc method
     pika_bool _MatrixOS_UI_UI_SetPreRenderFunc(PikaObj *self, Arg* pre_renderFunc) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"preRenderFunc", pre_renderFunc);
 
         ui->SetPreRenderFunc([self]() {
+            if (!hasCppHandleInPikaObj(self)) return;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"preRenderFunc");
             if (result) {
                 arg_deinit(result);
@@ -153,12 +163,13 @@ extern "C" {
 
     // SetPostRenderFunc method
     pika_bool _MatrixOS_UI_UI_SetPostRenderFunc(PikaObj *self, Arg* post_renderFunc) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"postRenderFunc", post_renderFunc);
 
         ui->SetPostRenderFunc([self]() {
+            if (!hasCppHandleInPikaObj(self)) return;
             Arg* result = CallCallbackInPikaObj0(self, (char*)"postRenderFunc");
             if (result) {
                 arg_deinit(result);
@@ -168,43 +179,18 @@ extern "C" {
         return true;
     }
 
-    // SetKeyEventHandler method
+    // SetKeyEventHandler - legacy bridge, will be replaced later
     pika_bool _MatrixOS_UI_UI_SetKeyEventHandler(PikaObj *self, Arg* key_event_handler) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"keyEventHandler", key_event_handler);
 
-        ui->SetKeyEventHandler([self](InputEvent* inputEvent) -> bool {
-            PythonKeyEvent evt;
-            if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
-            {
-                evt.id = FUNCTION_KEY;
-            }
-            else
-            {
-                Point xy;
-                if (MatrixOS::Input::TryGetPoint(inputEvent->id, &xy))
-                {
-                    vector<InputId> ids;
-                    MatrixOS::Input::GetInputsAt(xy, &ids);
-                    evt.id = ids.empty() ? UINT16_MAX : Device::KeyPad::InputIdToLegacyKeyId(ids[0]);
-                }
-                else
-                {
-                    evt.id = UINT16_MAX;
-                }
-            }
-            evt.info = inputEvent->keypad;
+        ui->SetInputEventHandler([self](InputEvent* inputEvent) -> bool {
+            if (!hasCppHandleInPikaObj(self)) return false;
 
-            PikaObj* keyEventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
-            copyCppObjIntoPikaObj<PythonKeyEvent>(keyEventObj, evt);
+            Arg* result = CallCallbackInPikaObj0(self, (char*)"keyEventHandler");
 
-            // Pack the object into an Arg for the callback
-            Arg* keyEventArg = arg_newObj(keyEventObj);
-            Arg* result = CallCallbackInPikaObj1(self, (char*)"keyEventHandler", keyEventArg);
-
-            // Convert result to bool
             bool retval = false;
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_BOOL) {
@@ -212,9 +198,6 @@ extern "C" {
                 }
                 arg_deinit(result);
             }
-
-            arg_deinit(keyEventArg);
-            obj_deinit(keyEventObj);
 
             return retval;
         });
@@ -224,13 +207,18 @@ extern "C" {
 
     // AddUIComponent method
     void _MatrixOS_UI_UI_AddUIComponent(PikaObj *self, PikaObj* uiComponent, PikaObj* xy) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
-        UIComponent* component = getCppObjPtrInPikaObj<UIComponent>(uiComponent);
+        // Retrieve the UIComponent base pointer stored during construction.
+        // This avoids unsafe void*→UIComponent* casts for derived types.
+        UIComponent* component = static_cast<UIComponent*>(obj_getPtr(uiComponent, (char*)"_component"));
         if (!component) return;
 
-        Point* point = getCppObjPtrInPikaObj<Point>(xy);
+        // Verify the owning handle is still alive
+        if (!hasCppHandleInPikaObj(uiComponent)) return;
+
+        Point* point = getCppValuePtrInPikaObj<Point>(xy);
         if (!point) return;
 
         ui->AddUIComponent(component, *point);
@@ -238,7 +226,7 @@ extern "C" {
 
     // ClearUIComponents method
     void _MatrixOS_UI_UI_ClearUIComponents(PikaObj *self) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->ClearUIComponents();
@@ -246,7 +234,7 @@ extern "C" {
 
     // AllowExit method
     void _MatrixOS_UI_UI_AllowExit(PikaObj *self, pika_bool allow) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->AllowExit(allow);
@@ -254,7 +242,7 @@ extern "C" {
 
     // SetFPS method
     void _MatrixOS_UI_UI_SetFPS(PikaObj *self, int fps) {
-        UI* ui = getCppObjPtrInPikaObj<UI>(self);
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return;
 
         ui->SetFPS(fps);
