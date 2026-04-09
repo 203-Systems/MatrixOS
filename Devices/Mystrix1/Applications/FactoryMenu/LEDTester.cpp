@@ -6,7 +6,7 @@ void FactoryMenu::LEDTester() {
                            Color(0x00FFFF), Color(0x0000FF), Color(0xFF00FF), Color(0x000000)};
   MatrixOS::LED::Fill(0);
   uint32_t led_count = MatrixOS::LED::GetLEDCount();
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())
+  while (!MatrixOS::Input::IsFunctionKeyActive())
   {
     uint8_t ledIndex = ledCounter % led_count;
     uint8_t ledColorIndex = ledCounter / led_count % (sizeof(colors) / sizeof(Color));
@@ -14,9 +14,9 @@ void FactoryMenu::LEDTester() {
     MatrixOS::LED::SetColor(ledIndex, colors[ledColorIndex]);
     MatrixOS::LED::Update();
     ledCounter++;
-    MatrixOS::KeyPad::Clear();
+    MatrixOS::Input::ClearState();
     MatrixOS::SYS::DelayMs(30);
   }
-  MatrixOS::KeyPad::Clear();
+  MatrixOS::Input::ClearState();
   MatrixOS::LED::Fill(0);
 }

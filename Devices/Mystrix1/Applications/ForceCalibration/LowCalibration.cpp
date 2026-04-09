@@ -32,7 +32,7 @@ void ForceCalibration::LowCalibration() {
     }
   }
 
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active())
+  while (!MatrixOS::Input::IsFunctionKeyActive())
   {
     uint32_t elapsedTime = MatrixOS::SYS::Millis() - startTime;
     if (elapsedTime < stabilizeTime) // IDLE, wait for stabilize

@@ -166,10 +166,12 @@ void ClearState() {
 }
 
 KeypadInfo GetKeypadState(Point xy) {
-  const InputCluster* grid = GetPrimaryGridCluster();
-  if (grid) {
+  // Search all coordinate-capable keypad clusters (grid, touchbar, etc.)
+  for (const auto& cluster : Device::Input::clusters) {
+    if (cluster.inputClass != InputClass::Keypad || !cluster.HasCoordinates())
+      continue;
     InputId id;
-    if (GetInputAt(grid->clusterId, xy, &id)) {
+    if (GetInputAt(cluster.clusterId, xy, &id)) {
       InputSnapshot snap;
       if (GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
         return snap.keypad;
@@ -209,6 +211,11 @@ InputId GetFunctionKeyId() {
 
 bool IsFunctionKey(InputId id) {
   return Device::IsFunctionKey(id);
+}
+
+bool IsFunctionKeyActive() {
+  InputSnapshot snap;
+  return GetState(GetFunctionKeyId(), &snap) && snap.keypad.Active();
 }
 
 } // namespace MatrixOS::Input

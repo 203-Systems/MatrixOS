@@ -160,32 +160,23 @@ void ForceCalibration::ForceGridVisualizer() {
     {
       for (uint8_t y = 0; y < 8; y++)
       {
-        KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(Point(x, y));
+        KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(Point(x, y));
         Color color = Color::White;
-        // uint16_t value = (uint16_t)(keyInfo->rawVelocity) >> 8;
-        // uint8_t value8 = value > 0xFF ? 0xFF : value & 0xFF;
-        if (keyInfo->Force() > 0 && keyInfo->Active())
+        if (keypadState.pressure > 0 && keypadState.Active())
         {
-          color = Color(0x00FFFF).Scale(keyInfo->Force().to8bits());
+          color = Color(0x00FFFF).Scale(keypadState.pressure.to8bits());
         }
-        // else if (keyInfo->rawVelocity > 0 && keyInfo->Force() == 0) {
-        //     color = Color::White;
-        // }
 
-        if (keyInfo->Force() == FRACT16_MAX)
+        if (keypadState.pressure == FRACT16_MAX)
         {
           color = Color(0x00FF00);
         }
         MatrixOS::LED::SetColor(Point(x, y), color);
 
-        if (keyInfo->Force().to8bits() > 127)
+        if (keypadState.pressure.to8bits() > 127)
         {
           activeKey = Point(x, y);
         }
-
-        // if (activeKey.x == x && activeKey.y == y)
-        // { MLOGD("ForceGridVisualizer", "%d %d\tRaw Read: %d\t16bit: %d\tThreshold: %d\tActive %d", x, y, keyInfo->rawVelocity,
-        // keyInfo->Force(), keyInfo->threshold, keyInfo->Active()); }
       }
     }
   });

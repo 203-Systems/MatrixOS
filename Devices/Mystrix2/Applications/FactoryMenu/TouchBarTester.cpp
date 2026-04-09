@@ -7,7 +7,7 @@ void FactoryMenu::TouchBarTester() {
 
   MatrixOS::LED::Fill(0);
   Device::touchbarEnable.TempSet(true);
-  while (!MatrixOS::KeyPad::GetKey(FUNCTION_KEY)->Active()) // TODO Factor in the rotation or limit rotation
+  while (!MatrixOS::Input::IsFunctionKeyActive())
   {
     // Left
     for (uint8_t i = 0; i < 8; i++)
@@ -16,12 +16,10 @@ void FactoryMenu::TouchBarTester() {
       Point ledXY = Point(0, i);
       uint8_t testedIndex = i;
 
-      KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(xy);
-      if (keyInfo == nullptr)
-        continue;
-      touchbarTested[testedIndex] |= keyInfo->Active();
+      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(xy);
+      touchbarTested[testedIndex] |= keypadState.Active();
 
-      MatrixOS::LED::SetColor(ledXY, keyInfo->Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
+      MatrixOS::LED::SetColor(ledXY, keypadState.Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
     }
 
     // Right
@@ -31,12 +29,10 @@ void FactoryMenu::TouchBarTester() {
       Point ledXY = Point(7, i);
       uint8_t testedIndex = i + 8;
 
-      KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(xy);
-      if (keyInfo == nullptr)
-        continue;
-      touchbarTested[testedIndex] |= keyInfo->Active();
+      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(xy);
+      touchbarTested[testedIndex] |= keypadState.Active();
 
-      MatrixOS::LED::SetColor(ledXY, keyInfo->Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
+      MatrixOS::LED::SetColor(ledXY, keypadState.Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
     }
 
     // Top (When Matrix is rotated)
@@ -46,12 +42,10 @@ void FactoryMenu::TouchBarTester() {
       Point ledXY = Point(i, 0);
       uint8_t testedIndex = i + 16;
 
-      KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(xy);
-      if (keyInfo == nullptr)
-        continue;
-      touchbarTested[testedIndex] |= keyInfo->Active();
+      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(xy);
+      touchbarTested[testedIndex] |= keypadState.Active();
 
-      MatrixOS::LED::SetColor(ledXY, keyInfo->Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
+      MatrixOS::LED::SetColor(ledXY, keypadState.Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
     }
 
     // Bottom (When Matrix is rotated)
@@ -61,17 +55,15 @@ void FactoryMenu::TouchBarTester() {
       Point ledXY = Point(i, 7);
       uint8_t testedIndex = i + 24;
 
-      KeyInfo* keyInfo = MatrixOS::KeyPad::GetKey(xy);
-      if (keyInfo == nullptr)
-        continue;
-      touchbarTested[testedIndex] |= keyInfo->Active();
+      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(xy);
+      touchbarTested[testedIndex] |= keypadState.Active();
 
-      MatrixOS::LED::SetColor(ledXY, keyInfo->Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
+      MatrixOS::LED::SetColor(ledXY, keypadState.Active() ? Color(0x00FF00) : Color(0xFFFFFF * touchbarTested[testedIndex]));
     }
     MatrixOS::LED::Update();
   }
   Device::touchbarEnable.Load();
-  MatrixOS::KeyPad::Clear();
+  MatrixOS::Input::ClearState();
   MatrixOS::LED::Fill(0);
 #endif
 }

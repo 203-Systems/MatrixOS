@@ -138,8 +138,8 @@ namespace SYS
 void ErrorHandler(string error);
 }
 
-namespace KeyPad
+namespace Input
 {
-bool NewEvent(KeyEvent* keyevent);
+bool NewEvent(const InputEvent& event);
 }
 } // namespace MatrixOS

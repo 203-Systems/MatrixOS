@@ -84,6 +84,7 @@ bool HasVelocitySensitivity(); // Convenience: checks primary grid cluster
 
 InputId GetFunctionKeyId();
 bool IsFunctionKey(InputId id);
+bool IsFunctionKeyActive();
 } // namespace Input
 
 namespace KeyPad
