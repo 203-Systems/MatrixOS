@@ -12,7 +12,7 @@ extern "C" {
         Color color = ColorEffects::Rainbow((uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, color);
+        copyCppValueIntoPikaObj<Color>(new_color, color);
         return new_color;
     }
 
@@ -43,61 +43,61 @@ extern "C" {
 
     // ColorBreath effect - applies breath effect to a color
     PikaObj* _MatrixOS_ColorEffects_ColorBreath(PikaObj *self, PikaObj* color_obj, int period, int offset) {
-        Color* color = getCppObjPtrInPikaObj<Color>(color_obj);
+        Color* color = getCppValuePtrInPikaObj<Color>(color_obj);
         if (!color) return nullptr;
         
         Color result = ColorEffects::ColorBreath(*color, (uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, result);
+        copyCppValueIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
 
     // ColorBreathLowBound effect - applies breath with lower bound to a color
     PikaObj* _MatrixOS_ColorEffects_ColorBreathLowBound(PikaObj *self, PikaObj* color_obj, int low_bound, int period, int offset) {
-        Color* color = getCppObjPtrInPikaObj<Color>(color_obj);
+        Color* color = getCppValuePtrInPikaObj<Color>(color_obj);
         if (!color) return nullptr;
         
         Color result = ColorEffects::ColorBreathLowBound(*color, (uint8_t)low_bound, (uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, result);
+        copyCppValueIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
 
     // ColorStrobe effect - applies strobe effect to a color
     PikaObj* _MatrixOS_ColorEffects_ColorStrobe(PikaObj *self, PikaObj* color_obj, int period, int offset) {
-        Color* color = getCppObjPtrInPikaObj<Color>(color_obj);
+        Color* color = getCppValuePtrInPikaObj<Color>(color_obj);
         if (!color) return nullptr;
         
         Color result = ColorEffects::ColorStrobe(*color, (uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, result);
+        copyCppValueIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
 
     // ColorSaw effect - applies sawtooth effect to a color
     PikaObj* _MatrixOS_ColorEffects_ColorSaw(PikaObj *self, PikaObj* color_obj, int period, int offset) {
-        Color* color = getCppObjPtrInPikaObj<Color>(color_obj);
+        Color* color = getCppValuePtrInPikaObj<Color>(color_obj);
         if (!color) return nullptr;
         
         Color result = ColorEffects::ColorSaw(*color, (uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, result);
+        copyCppValueIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
 
     // ColorTriangle effect - applies triangle wave effect to a color
     PikaObj* _MatrixOS_ColorEffects_ColorTriangle(PikaObj *self, PikaObj* color_obj, int period, int offset) {
-        Color* color = getCppObjPtrInPikaObj<Color>(color_obj);
+        Color* color = getCppValuePtrInPikaObj<Color>(color_obj);
         if (!color) return nullptr;
         
         Color result = ColorEffects::ColorTriangle(*color, (uint16_t)period, (int32_t)offset);
         
         PikaObj* new_color = newNormalObj(New__MatrixOS_Color_Color);
-        copyCppObjIntoPikaObj<Color>(new_color, result);
+        copyCppValueIntoPikaObj<Color>(new_color, result);
         return new_color;
     }
 }

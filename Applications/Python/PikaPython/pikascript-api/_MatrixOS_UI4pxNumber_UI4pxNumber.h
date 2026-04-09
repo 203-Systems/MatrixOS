@@ -17,6 +17,7 @@
 
 PikaObj *New__MatrixOS_UI4pxNumber_UI4pxNumber(Args *args);
 
+pika_bool _MatrixOS_UI4pxNumber_UI4pxNumber_Close(PikaObj *self);
 pika_bool _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColor(PikaObj *self, PikaObj* alternativeColor);
 pika_bool _MatrixOS_UI4pxNumber_UI4pxNumber_SetColor(PikaObj *self, PikaObj* color);
 pika_bool _MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFunc(PikaObj *self, Arg* colorFunc);

@@ -16,7 +16,7 @@ extern "C" {
             // Single argument - raw bytes
             Arg* arg = pikaTuple_getArg(val, 0);
             int rawByte = arg_getInt(arg);
-            createCppObjPtrInPikaObj<Dimension>(self, (uint32_t)rawByte);
+            createCppValueInPikaObj<Dimension>(self, (uint32_t)rawByte);
         }
         else if(args_size == 2)
         {
@@ -27,45 +27,45 @@ extern "C" {
             int x = arg_getInt(x_arg);
             int y = arg_getInt(y_arg);
             
-            createCppObjPtrInPikaObj<Dimension>(self, (int16_t)x, (int16_t)y);
+            createCppValueInPikaObj<Dimension>(self, (int16_t)x, (int16_t)y);
         }
         else
         {
             // Default to zero dimension
-            createCppObjPtrInPikaObj<Dimension>(self);
+            createCppValueInPikaObj<Dimension>(self);
         }
     }
 
     // Getters
     int _MatrixOS_Dimension_Dimension_X(PikaObj *self) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return 0;
         return dimension->x;
     }
 
     int _MatrixOS_Dimension_Dimension_Y(PikaObj *self) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return 0;
         return dimension->y;
     }
 
     // Setters
     void _MatrixOS_Dimension_Dimension_SetX(PikaObj *self, int x) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return;
         dimension->x = (int16_t)x;
     }
 
     void _MatrixOS_Dimension_Dimension_SetY(PikaObj *self, int y) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return;
         dimension->y = (int16_t)y;
     }
 
     // Methods
     pika_bool _MatrixOS_Dimension_Dimension_Contains(PikaObj *self, PikaObj* point) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
-        Point* pointPtr = getCppObjPtrInPikaObj<Point>(point);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
+        Point* pointPtr = getCppValuePtrInPikaObj<Point>(point);
         
         if (!dimension || !pointPtr) return false;
         
@@ -73,28 +73,28 @@ extern "C" {
     }
 
     int _MatrixOS_Dimension_Dimension_Area(PikaObj *self) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return 0;
         return dimension->Area();
     }
 
     // Operators
     PikaObj* _MatrixOS_Dimension_Dimension___add__(PikaObj *self, PikaObj* other) {
-        Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
-        Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
+        Dimension* dimension1 = getCppValuePtrInPikaObj<Dimension>(self);
+        Dimension* dimension2 = getCppValuePtrInPikaObj<Dimension>(other);
         
         if (!dimension1 || !dimension2) return nullptr;
         
         Dimension result = *dimension1 + *dimension2;
         
         PikaObj* new_dimension = newNormalObj(New__MatrixOS_Dimension_Dimension);
-        copyCppObjIntoPikaObj<Dimension>(new_dimension, result);
+        copyCppValueIntoPikaObj<Dimension>(new_dimension, result);
         return new_dimension;
     }
 
     pika_bool _MatrixOS_Dimension_Dimension___eq__(PikaObj *self, PikaObj* other) {
-        Dimension* dimension1 = getCppObjPtrInPikaObj<Dimension>(self);
-        Dimension* dimension2 = getCppObjPtrInPikaObj<Dimension>(other);
+        Dimension* dimension1 = getCppValuePtrInPikaObj<Dimension>(self);
+        Dimension* dimension2 = getCppValuePtrInPikaObj<Dimension>(other);
         
         if (!dimension1 || !dimension2) return false;
         
@@ -103,7 +103,7 @@ extern "C" {
 
 
     pika_bool _MatrixOS_Dimension_Dimension___bool__(PikaObj *self) {
-        Dimension* dimension = getCppObjPtrInPikaObj<Dimension>(self);
+        Dimension* dimension = getCppValuePtrInPikaObj<Dimension>(self);
         if (!dimension) return false;
         return (bool)*dimension;
     }

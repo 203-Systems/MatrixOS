@@ -13,21 +13,25 @@ extern "C" {
     void _MatrixOS_UIButton_UIButton___init__(PikaObj *self) {
         UIButton* btn = createCppHandleInPikaObj<UIButton>(self);
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(btn));
+        InitCallbackContext(self);
     }
 
     // Close method — deterministic teardown.
-    // Refuses to destroy if the native object is still referenced by a live UI.
-    void _MatrixOS_UIButton_UIButton_Close(PikaObj *self) {
+    // Returns false if the native object is still referenced by a live UI.
+    pika_bool _MatrixOS_UIButton_UIButton_Close(PikaObj *self) {
         UIButton* btn = getCppHandlePtrInPikaObj<UIButton>(self);
         if (btn && UI::IsComponentAttached(static_cast<UIComponent*>(btn))) {
-            return;  // still owned by a UI
+            return false;
         }
 
+        InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UIButton>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"colorFunc");
         ClearCallbackInPikaObj(self, (char*)"pressCallback");
         ClearCallbackInPikaObj(self, (char*)"holdCallback");
+        DestroyCallbackContext(self);
+        return true;
     }
 
     // SetName method
@@ -57,11 +61,11 @@ extern "C" {
         if (!button) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        button->SetColorFunc([self]() -> Color {
-            if (!hasCppHandleInPikaObj(self)) return Color::White;
+        button->SetColorFunc([ctx]() -> Color {
             Color retval = Color::White;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"colorFunc");
+            Arg* result = SafeCallCallback0(ctx, (char*)"colorFunc");
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_OBJECT) {
@@ -98,13 +102,11 @@ extern "C" {
         if (!button) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"pressCallback", pressCallback);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        button->OnPress([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"pressCallback");
-            if (result) {
-                arg_deinit(result);
-            }
+        button->OnPress([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"pressCallback");
+            if (result) arg_deinit(result);
         });
 
         return true;
@@ -116,13 +118,11 @@ extern "C" {
         if (!button) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"holdCallback", holdCallback);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        button->OnHold([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"holdCallback");
-            if (result) {
-                arg_deinit(result);
-            }
+        button->OnHold([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"holdCallback");
+            if (result) arg_deinit(result);
         });
 
         return true;

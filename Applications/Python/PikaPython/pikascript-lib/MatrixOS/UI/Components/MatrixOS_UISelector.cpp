@@ -13,22 +13,26 @@ extern "C" {
     void _MatrixOS_UISelector_UISelector___init__(PikaObj *self) {
         UISelector* sel = createCppHandleInPikaObj<UISelector>(self);
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(sel));
+        InitCallbackContext(self);
     }
 
     // Close method — deterministic teardown.
-    // Refuses to destroy if the native object is still referenced by a live UI.
-    void _MatrixOS_UISelector_UISelector_Close(PikaObj *self) {
+    // Returns false if the native object is still referenced by a live UI.
+    pika_bool _MatrixOS_UISelector_UISelector_Close(PikaObj *self) {
         UISelector* sel = getCppHandlePtrInPikaObj<UISelector>(self);
         if (sel && UI::IsComponentAttached(static_cast<UIComponent*>(sel))) {
-            return;  // still owned by a UI
+            return false;
         }
 
+        InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UISelector>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"getValueFunc");
         ClearCallbackInPikaObj(self, (char*)"changeCallback");
         ClearCallbackInPikaObj(self, (char*)"colorFunc");
         ClearCallbackInPikaObj(self, (char*)"nameFunc");
+        DestroyCallbackContext(self);
+        return true;
     }
 
     // SetValueFunc method
@@ -37,11 +41,11 @@ extern "C" {
         if (!selector) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"getValueFunc", getValueFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        selector->SetValueFunc([self]() -> uint16_t {
-            if (!hasCppHandleInPikaObj(self)) return 0;
+        selector->SetValueFunc([ctx]() -> uint16_t {
             uint16_t retval = 0;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"getValueFunc");
+            Arg* result = SafeCallCallback0(ctx, (char*)"getValueFunc");
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_INT) {
@@ -122,15 +126,13 @@ extern "C" {
         if (!selector) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"changeCallback", changeCallback);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        selector->OnChange([self](uint16_t value) {
-            if (!hasCppHandleInPikaObj(self)) return;
+        selector->OnChange([ctx](uint16_t value) {
             Arg* valueArg = arg_newInt(value);
-            Arg* result = CallCallbackInPikaObj1(self, (char*)"changeCallback", valueArg);
+            Arg* result = SafeCallCallback1(ctx, (char*)"changeCallback", valueArg);
 
-            if (result) {
-                arg_deinit(result);
-            }
+            if (result) arg_deinit(result);
             arg_deinit(valueArg);
         });
 
@@ -143,11 +145,11 @@ extern "C" {
         if (!selector) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        selector->SetColorFunc([self]() -> Color {
-            if (!hasCppHandleInPikaObj(self)) return Color::White;
+        selector->SetColorFunc([ctx]() -> Color {
             Color retval = Color::White;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"colorFunc");
+            Arg* result = SafeCallCallback0(ctx, (char*)"colorFunc");
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_OBJECT) {
@@ -172,12 +174,12 @@ extern "C" {
         if (!selector) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        selector->SetIndividualColorFunc([self](uint16_t index) -> Color {
-            if (!hasCppHandleInPikaObj(self)) return Color::White;
+        selector->SetIndividualColorFunc([ctx](uint16_t index) -> Color {
             Color retval = Color::White;
             Arg* indexArg = arg_newInt(index);
-            Arg* result = CallCallbackInPikaObj1(self, (char*)"colorFunc", indexArg);
+            Arg* result = SafeCallCallback1(ctx, (char*)"colorFunc", indexArg);
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_OBJECT) {
@@ -203,12 +205,12 @@ extern "C" {
         if (!selector) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"nameFunc", nameFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        selector->SetIndividualNameFunc([self](uint16_t index) -> string {
-            if (!hasCppHandleInPikaObj(self)) return string("");
+        selector->SetIndividualNameFunc([ctx](uint16_t index) -> string {
             string retval = string("");
             Arg* indexArg = arg_newInt(index);
-            Arg* result = CallCallbackInPikaObj1(self, (char*)"nameFunc", indexArg);
+            Arg* result = SafeCallCallback1(ctx, (char*)"nameFunc", indexArg);
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_STRING) {

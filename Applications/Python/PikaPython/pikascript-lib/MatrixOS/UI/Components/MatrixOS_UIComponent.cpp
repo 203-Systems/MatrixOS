@@ -12,19 +12,23 @@ extern "C" {
     void _MatrixOS_UIComponent_UIComponent___init__(PikaObj *self) {
         UIComponent* comp = createCppHandleInPikaObj<UIComponent>(self);
         obj_setPtr(self, (char*)"_component", static_cast<UIComponent*>(comp));
+        InitCallbackContext(self);
     }
 
     // Close method — deterministic teardown.
-    // Refuses to destroy if the native object is still referenced by a live UI.
-    void _MatrixOS_UIComponent_UIComponent_Close(PikaObj *self) {
+    // Returns false if the native object is still referenced by a live UI.
+    pika_bool _MatrixOS_UIComponent_UIComponent_Close(PikaObj *self) {
         UIComponent* comp = getCppHandlePtrInPikaObj<UIComponent>(self);
         if (comp && UI::IsComponentAttached(comp)) {
-            return;  // still owned by a UI — caller must ClearUIComponents or Close the UI first
+            return false;
         }
 
+        InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UIComponent>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
         ClearCallbackInPikaObj(self, (char*)"enableFunc");
+        DestroyCallbackContext(self);
+        return true;
     }
 
     // SetEnabled method
@@ -42,10 +46,10 @@ extern "C" {
         if (!component) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"enableFunc", enableFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        component->SetEnableFunc([self]() -> bool {
-            if (!hasCppHandleInPikaObj(self)) return false;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"enableFunc");
+        component->SetEnableFunc([ctx]() -> bool {
+            Arg* result = SafeCallCallback0(ctx, (char*)"enableFunc");
 
             bool retval = false;
             if (result) {

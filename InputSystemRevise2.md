@@ -9,6 +9,10 @@ This revision focuses on four things:
 - what kinds of clusters the current `Point`-based APIs actually apply to
 - whether `TouchArea` fits the current `InputClusterShape`
 - where cluster mapping handlers should live
+- how temporary the old `KeyPad` compatibility layer should be
+- whether `MatrixOS::SYS::Rotate()` should remain as a public wrapper
+- whether `MatrixOS::Input` is still too keypad-centric
+- whether rotation metadata should remain in `InputCluster`
 
 ## Conclusions
 
@@ -16,6 +20,10 @@ This revision focuses on four things:
 - `GetInputAt / GetInputsAt / TryGetPoint` should only apply to **discrete coordinate-addressable clusters**
 - `TouchArea` should not be forced into the same shape semantics as `Grid2D`
 - mapping handlers should be stored **inside `InputCluster`**, not in a parallel ops table
+- the old `KeyPad` layer should only survive as a **short-lived migration shim**
+- `MatrixOS::SYS::Rotate()` may temporarily forward to `Device::Rotate()`, but should not remain a long-term public API
+- `MatrixOS::Input` core should not remain centered around keypad/grid helpers
+- once mapping is fully device-owned, `InputCluster` should not keep rotation implementation details
 
 ## 1. `memberId` Must Be Stable And Dense
 
@@ -202,6 +210,136 @@ For `TouchArea` / `Area2D`:
 - these function pointers may remain `nullptr`
 - continuous-space APIs can be added later if needed
 
+## 5. The Old `KeyPad` Layer Must Not Survive As A Second Real Input System
+
+The current branch still uses the old device-side path:
+
+- device driver produces `KeyEvent / KeyInfo`
+- `MatrixOS::KeyPad` receives it
+- `MatrixOS::KeyPad` bridges it into `InputEvent`
+
+That is acceptable only as a migration step.
+
+It must **not** become the long-term shape of the new system.
+
+### Rule
+
+The compatibility layer may temporarily exist, but it must be reduced to a thin shim only:
+
+- no independent mapping rules
+- no independent rotation logic
+- no second state cache
+- no second source of truth
+
+Long term, device drivers should produce `InputEvent` directly.
+
+If the old `KeyPad` layer remains, it should only forward into the new system, never reinterpret the device topology on its own.
+
+## 6. `MatrixOS::SYS::Rotate()` Should Be Treated As Transitional, Not Final
+
+Revision 1 already decided that rotation ownership belongs to the device layer.
+
+That means the following is acceptable only as a migration convenience:
+
+```cpp
+MatrixOS::SYS::Rotate(...)
+  -> Device::Rotate(...)
+```
+
+This wrapper does not satisfy the architectural goal by itself.
+
+### Rule
+
+- the authoritative rotation entry point is `Device::Rotate(...)`
+- `MatrixOS::SYS::Rotate()` may temporarily forward to it
+- but it should not remain a permanent public API
+
+Otherwise, new code will continue to treat rotation as an OS-owned transaction.
+
+## 7. `MatrixOS::Input` Core Must Not Stay Keypad-Centric
+
+The current `MatrixOS::Input` layer still contains helpers such as:
+
+- `GetPrimaryGridCluster()`
+- `GetPrimaryGridSize()`
+- `GetKeypadState(Point)`
+- `HasVelocitySensitivity()`
+
+These can be useful during migration, but they do not belong to the conceptual core of a generic input system.
+
+### Rule
+
+- these APIs should be treated as transition helpers
+- they should not define the long-term identity of `MatrixOS::Input`
+- the conceptual core should remain:
+  - event queue
+  - state cache
+  - cluster enumeration
+  - device-owned mapping dispatch
+
+The generic input system should not slowly turn into "KeyPad with a new name."
+
+## 8. `InputCluster` Should Not Permanently Keep Rotation Implementation Fields
+
+If the final architecture is:
+
+- device layer owns rotation
+- device layer owns mapping
+- device layer produces final post-rotation coordinates
+
+then fields such as:
+
+- `rotation`
+- `rotationDimension`
+
+inside `InputCluster` are likely temporary implementation details rather than proper long-term cluster metadata.
+
+### Rule
+
+- `InputCluster` should eventually keep descriptive data plus mapping entry points
+- rotation bookkeeping that only exists to help the current implementation should move behind the device-side mapping handlers
+
+Keeping these fields forever would leak a specific mapping strategy back into the shared framework type.
+
+## 9. Mystrix1 Bring-Up Shows That Event Production Alone Is Not Enough
+
+Current Mystrix1 behavior already demonstrates an important architectural rule:
+
+- the legacy keypad driver still produces events
+- those events are successfully bridged into `InputEvent`
+- but pad presses still do not reach UI components if device-side cluster mapping is missing
+
+This happens because:
+
+- function-key handling can bypass coordinate lookup
+- normal pad events still require `InputId -> Point` mapping before UI dispatch can happen
+- if `Device::Input::TryGetPoint(...)` is missing, grid events become invisible to the new UI path
+
+### Rule
+
+For devices that still use the old keypad driver during migration:
+
+- event bridging alone is not sufficient
+- the device must also provide at least a minimal discrete cluster model and working coordinate mapping
+
+That means Mystrix1 bring-up requires, at minimum:
+
+- a function-key cluster
+- a main grid cluster
+- any required touchbar clusters
+- working `TryGetPoint`
+- working `TryGetMemberId`
+
+Without those pieces, the system will appear half-alive:
+
+- function key works
+- normal pad interaction does not
+
+This is not just an implementation bug. It is a structural reminder that the new input system depends on both:
+
+- event production
+- coordinate resolution
+
 ## Direct Revisions To Revision 1
 
 After this revision, the following extra rules are added on top of Revision 1:
@@ -211,6 +349,11 @@ After this revision, the following extra rules are added on top of Revision 1:
 3. `GetInputAt / GetInputsAt / TryGetPoint` are only for discrete coordinate-addressable clusters
 4. `TouchArea` should use a continuous 2D shape such as `Area2D`, not `Grid2D`
 5. mapping handlers should live directly inside `InputCluster`
+6. the old `KeyPad` layer is only a temporary migration shim, not a second long-term input owner
+7. `MatrixOS::SYS::Rotate()` is transitional if it remains, while `Device::Rotate()` is authoritative
+8. keypad-centric helpers in `MatrixOS::Input` are migration helpers, not core semantics
+9. `InputCluster` should eventually drop rotation implementation fields
+10. migration-era devices must provide both event bridging and minimal cluster/mapping support, otherwise only special non-spatial inputs will work
 
 ## Required Next Implementation Steps
 
@@ -232,10 +375,29 @@ After this revision, the following extra rules are added on top of Revision 1:
 - remove any idea of a parallel `clusterOps` table
 
 ### Priority 5
+- reduce `MatrixOS::KeyPad` to a thin temporary shim
+- stop adding new logic there
+
+### Priority 6
+- keep `Device::Rotate(...)` as the authoritative rotation entry
+- plan removal of `MatrixOS::SYS::Rotate()` from the long-term public API
+
+### Priority 7
+- classify keypad/grid convenience APIs as migration helpers
+- keep them out of the long-term core abstraction
+
+### Priority 8
+- move rotation bookkeeping behind device-side mapping handlers
+- eventually remove `rotation` and `rotationDimension` from `InputCluster`
+
+### Priority 9
+- for Mystrix1 and other migration-era devices, add the minimal cluster + mapping layer before expecting UI parity
+
+### Priority 10
 - fold Revision 1 and Revision 2 conclusions back into the main `InputSystem.md`
 
 ## One-Sentence Summary
 
 The core of Revision 2 is:
 
-**keep `memberId` dense but opaque, restrict integer `Point` APIs to discrete clusters, and bind mapping handlers directly to each `InputCluster`.**
+**keep `memberId` dense but opaque, restrict integer `Point` APIs to discrete clusters, bind mapping handlers directly to each `InputCluster`, and avoid letting transitional keypad-era APIs define the long-term architecture.**

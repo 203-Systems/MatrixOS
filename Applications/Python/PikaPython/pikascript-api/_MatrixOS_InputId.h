@@ -9,14 +9,14 @@
  * http://pikapython.com/doc/PikaScript%20%E6%A8%A1%E5%9D%97%E6%A6%82%E8%BF%B0.html
  */
 
-#ifndef ___MatrixOS_KeyInfo__H
-#define ___MatrixOS_KeyInfo__H
+#ifndef ___MatrixOS_InputId__H
+#define ___MatrixOS_InputId__H
 #include <stdio.h>
 #include <stdlib.h>
 #include "PikaObj.h"
 
-PikaObj *New__MatrixOS_KeyInfo(Args *args);
+PikaObj *New__MatrixOS_InputId(Args *args);
 
-Arg* _MatrixOS_KeyInfo_KeyInfo(PikaObj *self);
+Arg* _MatrixOS_InputId_InputId(PikaObj *self);
 
 #endif

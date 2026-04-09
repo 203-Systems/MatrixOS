@@ -4,8 +4,9 @@ from MatrixOS_Dimension import Dimension
 
 from MatrixOS_Color import Color
 
-from MatrixOS_KeyInfo import KeyInfo
-from MatrixOS_KeyEvent import KeyEvent
+from MatrixOS_KeypadInfo import KeypadInfo
+from MatrixOS_InputEvent import InputEvent
+from MatrixOS_InputCluster import InputCluster
 from MatrixOS_KeyState import KeyState
 
 from MatrixOS_KeyboardKeycode import KeyboardKeycode

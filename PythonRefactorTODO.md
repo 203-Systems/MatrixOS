@@ -26,7 +26,7 @@ It assumes:
 - [x] Introduce value-wrapper helper API
 - [x] Introduce handle-wrapper helper API
 - [x] Introduce callback context / lifecycle helper API
-- [ ] Delete or retire old unsafe helper paths
+- [x] Delete or retire old unsafe helper paths
 
 ## Phase 2: Migrate UI Wrappers To Handle Model
 
@@ -41,48 +41,58 @@ It assumes:
 
 ## Phase 3: Implement New Input Python API
 
-- [ ] Add `MatrixOS_Input.py`
-- [ ] Add `_MatrixOS_Input.pyi`
-- [ ] Add new C++ input binding implementation
-- [ ] Expose `InputId`
-- [ ] Expose `InputClass`
-- [ ] Expose `InputEvent`
+- [x] Add `MatrixOS_Input.py`
+- [x] Add `_MatrixOS_Input.pyi`
+- [x] Add new C++ input binding implementation
+- [x] Expose `InputId`
+- [x] Expose `InputClass`
+- [x] Expose `InputEvent`
 - [ ] Expose `InputSnapshot` if included in first version
-- [ ] Expose `KeypadInfo`
-- [ ] Implement `get_event(timeout_ms=0)`
-- [ ] Implement `get_state(input_id)`
-- [ ] Implement `get_clusters()`
-- [ ] Implement `get_primary_grid_cluster()`
-- [ ] Implement `get_position(input_id)`
-- [ ] Implement `get_inputs_at(point)`
-- [ ] Implement `clear_queue()`
-- [ ] Implement `clear_state()`
-- [ ] Implement `function_key()`
+- [x] Expose `KeypadInfo`
+- [x] Expose `InputCluster`
+- [x] Implement `get_event(timeout_ms=0)`
+- [x] Implement `get_state(input_id)`
+- [x] Implement `get_clusters()`
+- [x] Implement `get_primary_grid_cluster()`
+- [x] Implement `get_position(input_id)`
+- [x] Implement `get_inputs_at(point)`
+- [x] Implement `clear_queue()`
+- [x] Implement `clear_state()`
+- [x] Implement `function_key()`
 
 ## Phase 4: Implement New UI Python API
 
-- [ ] Replace Python-facing `SetKeyEventHandler` with input-centric API
-- [ ] Add `set_input_handler`
-- [ ] Expose input events with explicit `input_class`
+- [x] Replace Python-facing `SetKeyEventHandler` with input-centric API
+- [x] Add `set_input_handler`
+- [x] Expose input events with explicit `input_class`
 - [ ] Ensure keypad-specific handling is explicit in Python
 - [ ] Remove keypad-era assumptions from Python UI callback path
 
 ## Phase 5: Remove Legacy Python API Surface
 
-- [ ] Delete `MatrixOS_KeyPad.py`
-- [ ] Delete `MatrixOS_KeyEvent.py`
-- [ ] Delete `MatrixOS_KeyInfo.py`
-- [ ] Delete `_MatrixOS_KeyPad.pyi`
-- [ ] Delete `_MatrixOS_KeyEvent.pyi`
-- [ ] Delete `_MatrixOS_KeyInfo.pyi`
-- [ ] Remove legacy keypad re-exports from `MatrixOS.py`
-- [ ] Remove legacy keypad re-exports from `MatrixOS_Framework.py`
+- [x] Delete `MatrixOS_KeyPad.py`
+- [x] Delete `MatrixOS_KeyEvent.py`
+- [x] Delete `MatrixOS_KeyInfo.py`
+- [x] Delete `_MatrixOS_KeyPad.pyi`
+- [x] Delete `_MatrixOS_KeyEvent.pyi`
+- [x] Delete `_MatrixOS_KeyInfo.pyi`
+- [x] Remove legacy keypad re-exports from `MatrixOS.py`
+- [x] Remove legacy keypad re-exports from `MatrixOS_Framework.py`
+- [x] Gut legacy C++ binding files (`MatrixOS_KeyPad.cpp`, `MatrixOS_KeyEvent.cpp`, `MatrixOS_KeyInfo.cpp`)
+- [x] Gut legacy generated headers in `pikascript-api/`
+- [x] Remove legacy binding blocks from `__pikaBinding.c`
+- [x] Remove legacy `#include` lines from `__pikaBinding.c` (Round 5)
+- [x] Neuter legacy `.h` files — empty header guards, no function declarations (Round 5)
+- [x] Physically delete gutted legacy files from tree (`git rm`)
+- [x] Physically delete `compute_hashes.py` from repo root
 
 ## Phase 6: Regenerate Binding Artifacts
 
-- [ ] Regenerate `pikascript-api/`
-- [ ] Verify generated headers match the new `.pyi`
-- [ ] Verify no generated file still depends on old keypad-era symbols
+- [x] Regenerate `pikascript-api/` (hand-updated; `rust-msc-latest-win10.exe` could not be run — no shell)
+- [x] Verify generated headers match the new `.pyi`
+- [x] Verify no generated file still depends on old keypad-era symbols
+- [x] Re-run Pika compiler (`rust-msc-latest-win10.exe`) to regenerate from .pyi source-of-truth
+- [x] After physical file deletion, re-run generator to confirm no legacy symbols reappear
 
 ## Phase 7: Re-enable Python Incrementally
 

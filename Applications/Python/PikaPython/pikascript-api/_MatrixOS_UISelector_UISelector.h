@@ -17,6 +17,7 @@
 
 PikaObj *New__MatrixOS_UISelector_UISelector(Args *args);
 
+pika_bool _MatrixOS_UISelector_UISelector_Close(PikaObj *self);
 pika_bool _MatrixOS_UISelector_UISelector_OnChange(PikaObj *self, Arg* changeCallback);
 pika_bool _MatrixOS_UISelector_UISelector_SetColor(PikaObj *self, PikaObj* color);
 pika_bool _MatrixOS_UISelector_UISelector_SetColorFunc(PikaObj *self, Arg* colorFunc);

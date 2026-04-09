@@ -17,6 +17,7 @@
 
 PikaObj *New__MatrixOS_UIButton_UIButton(Args *args);
 
+pika_bool _MatrixOS_UIButton_UIButton_Close(PikaObj *self);
 pika_bool _MatrixOS_UIButton_UIButton_OnHold(PikaObj *self, Arg* holdCallback);
 pika_bool _MatrixOS_UIButton_UIButton_OnPress(PikaObj *self, Arg* pressCallback);
 pika_bool _MatrixOS_UIButton_UIButton_SetColor(PikaObj *self, PikaObj* color);

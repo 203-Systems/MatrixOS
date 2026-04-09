@@ -31,9 +31,12 @@
 #include "_MatrixOS_HID_RawHID.h"
 #include "_MatrixOS_HID_System.h"
 #include "_MatrixOS_HID_Touch.h"
-#include "_MatrixOS_KeyEvent.h"
-#include "_MatrixOS_KeyInfo.h"
-#include "_MatrixOS_KeyPad.h"
+#include "_MatrixOS_Input.h"
+#include "_MatrixOS_InputClass.h"
+#include "_MatrixOS_InputCluster.h"
+#include "_MatrixOS_InputEvent.h"
+#include "_MatrixOS_InputId.h"
+#include "_MatrixOS_KeypadInfo.h"
 #include "_MatrixOS_LED.h"
 #include "_MatrixOS_MIDI.h"
 #include "_MatrixOS_MidiPacket.h"
@@ -67,8 +70,10 @@
 #include "PikaStdTask_Task.h"
 #include "_MatrixOS_Color_Color.h"
 #include "_MatrixOS_Dimension_Dimension.h"
-#include "_MatrixOS_KeyEvent_KeyEvent.h"
-#include "_MatrixOS_KeyInfo_KeyInfo.h"
+#include "_MatrixOS_InputCluster_InputCluster.h"
+#include "_MatrixOS_InputEvent_InputEvent.h"
+#include "_MatrixOS_InputId_InputId.h"
+#include "_MatrixOS_KeypadInfo_KeypadInfo.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
 #include "_MatrixOS_Point_Point.h"
 #include "_MatrixOS_UI4pxNumber_UI4pxNumber.h"
@@ -310,14 +315,23 @@ PikaObj *New_PikaMain(Args *args){
 #ifndef PIKA_MODULE__MATRIXOS_HID_TOUCH_DISABLE
     obj_newObj(self, "_MatrixOS_HID_Touch", "_MatrixOS_HID_Touch", New__MatrixOS_HID_Touch);
 #endif
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-    obj_newObj(self, "_MatrixOS_KeyEvent", "_MatrixOS_KeyEvent", New__MatrixOS_KeyEvent);
+#ifndef PIKA_MODULE__MATRIXOS_INPUT_DISABLE
+    obj_newObj(self, "_MatrixOS_Input", "_MatrixOS_Input", New__MatrixOS_Input);
 #endif
-#ifndef PIKA_MODULE__MATRIXOS_KEYINFO_DISABLE
-    obj_newObj(self, "_MatrixOS_KeyInfo", "_MatrixOS_KeyInfo", New__MatrixOS_KeyInfo);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTCLASS_DISABLE
+    obj_newObj(self, "_MatrixOS_InputClass", "_MatrixOS_InputClass", New__MatrixOS_InputClass);
 #endif
-#ifndef PIKA_MODULE__MATRIXOS_KEYPAD_DISABLE
-    obj_newObj(self, "_MatrixOS_KeyPad", "_MatrixOS_KeyPad", New__MatrixOS_KeyPad);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTCLUSTER_DISABLE
+    obj_newObj(self, "_MatrixOS_InputCluster", "_MatrixOS_InputCluster", New__MatrixOS_InputCluster);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_INPUTEVENT_DISABLE
+    obj_newObj(self, "_MatrixOS_InputEvent", "_MatrixOS_InputEvent", New__MatrixOS_InputEvent);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_INPUTID_DISABLE
+    obj_newObj(self, "_MatrixOS_InputId", "_MatrixOS_InputId", New__MatrixOS_InputId);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_KEYPADINFO_DISABLE
+    obj_newObj(self, "_MatrixOS_KeypadInfo", "_MatrixOS_KeypadInfo", New__MatrixOS_KeypadInfo);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_LED_DISABLE
     obj_newObj(self, "_MatrixOS_LED", "_MatrixOS_LED", New__MatrixOS_LED);
@@ -2568,351 +2582,600 @@ PikaObj *New__MatrixOS_HID_Touch(Args *args){
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-void _MatrixOS_KeyEvent_KeyEventMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyEvent_KeyEvent(self);
+#ifndef PIKA_MODULE__MATRIXOS_INPUT_DISABLE
+void _MatrixOS_Input_ClearQueueMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_Input_ClearQueue(self);
+}
+method_typedef(
+    _MatrixOS_Input_ClearQueue,
+    "ClearQueue", ""
+);
+
+void _MatrixOS_Input_ClearStateMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_Input_ClearState(self);
+}
+method_typedef(
+    _MatrixOS_Input_ClearState,
+    "ClearState", ""
+);
+
+void _MatrixOS_Input_FunctionKeyMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_Input_FunctionKey(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_FunctionKey,
+    "FunctionKey", ""
+);
+
+void _MatrixOS_Input_GetClustersMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_Input_GetClusters(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_GetClusters,
+    "GetClusters", ""
+);
+
+void _MatrixOS_Input_GetEventMethod(PikaObj *self, Args *_args_){
+    int timeout_ms = args_getInt(_args_, "timeout_ms");
+    Arg* res = _MatrixOS_Input_GetEvent(self, timeout_ms);
     method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent,
-    "KeyEvent", ""
+    _MatrixOS_Input_GetEvent,
+    "GetEvent", "timeout_ms"
 );
 
-class_def(_MatrixOS_KeyEvent){
-    __BEFORE_MOETHOD_DEF
-    constructor_def(_MatrixOS_KeyEvent_KeyEvent, 823779312),
-};
-class_inhert(_MatrixOS_KeyEvent, TinyObj);
+void _MatrixOS_Input_GetInputsAtMethod(PikaObj *self, Args *_args_){
+    PikaObj* point = args_getPtr(_args_, "point");
+    PikaObj* res = _MatrixOS_Input_GetInputsAt(self, point);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_GetInputsAt,
+    "GetInputsAt", "point"
+);
 
-PikaObj *New__MatrixOS_KeyEvent(Args *args){
+void _MatrixOS_Input_GetPositionMethod(PikaObj *self, Args *_args_){
+    PikaObj* input_id = args_getPtr(_args_, "input_id");
+    Arg* res = _MatrixOS_Input_GetPosition(self, input_id);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_GetPosition,
+    "GetPosition", "input_id"
+);
+
+void _MatrixOS_Input_GetPrimaryGridClusterMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_Input_GetPrimaryGridCluster(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_GetPrimaryGridCluster,
+    "GetPrimaryGridCluster", ""
+);
+
+void _MatrixOS_Input_GetStateMethod(PikaObj *self, Args *_args_){
+    PikaObj* input_id = args_getPtr(_args_, "input_id");
+    Arg* res = _MatrixOS_Input_GetState(self, input_id);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_Input_GetState,
+    "GetState", "input_id"
+);
+
+class_def(_MatrixOS_Input){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_Input_FunctionKey, 82640084),
+    method_def(_MatrixOS_Input_GetPosition, 296753146),
+    method_def(_MatrixOS_Input_GetClusters, 818464762),
+    method_def(_MatrixOS_Input_GetInputsAt, 1220729309),
+    method_def(_MatrixOS_Input_GetPrimaryGridCluster, 1316371473),
+    method_def(_MatrixOS_Input_ClearQueue, 1503872817),
+    method_def(_MatrixOS_Input_ClearState, 1506204333),
+    method_def(_MatrixOS_Input_GetEvent, 1953022279),
+    method_def(_MatrixOS_Input_GetState, 1969549126),
+};
+class_inhert(_MatrixOS_Input, TinyObj);
+
+PikaObj *New__MatrixOS_Input(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent);
+    obj_setClass(self, _MatrixOS_Input);
     return self;
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_KEYEVENT_DISABLE
-void _MatrixOS_KeyEvent_KeyEvent_ActiveMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyEvent_KeyEvent_Active(self);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_Active,
-    "Active", ""
-);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTCLASS_DISABLE
+class_def(_MatrixOS_InputClass){
+    __BEFORE_MOETHOD_DEF
+};
+class_inhert(_MatrixOS_InputClass, TinyObj);
 
-void _MatrixOS_KeyEvent_KeyEvent_ForceMethod(PikaObj *self, Args *_args_){
-    pika_float res = _MatrixOS_KeyEvent_KeyEvent_Force(self);
-    method_returnFloat(_args_, res);
+PikaObj *New__MatrixOS_InputClass(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_InputClass);
+    return self;
 }
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_Force,
-    "Force", ""
-);
+#endif
 
-void _MatrixOS_KeyEvent_KeyEvent_HoldMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyEvent_KeyEvent_Hold(self);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_Hold,
-    "Hold", ""
-);
-
-void _MatrixOS_KeyEvent_KeyEvent_HoldTimeMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyEvent_KeyEvent_HoldTime(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_HoldTime,
-    "HoldTime", ""
-);
-
-void _MatrixOS_KeyEvent_KeyEvent_IDMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyEvent_KeyEvent_ID(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_ID,
-    "ID", ""
-);
-
-void _MatrixOS_KeyEvent_KeyEvent_KeyInfoMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyEvent_KeyEvent_KeyInfo(self);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTCLUSTER_DISABLE
+void _MatrixOS_InputCluster_InputClusterMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputCluster_InputCluster(self);
     method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_KeyInfo,
-    "KeyInfo", ""
+    _MatrixOS_InputCluster_InputCluster,
+    "InputCluster", ""
 );
 
-void _MatrixOS_KeyEvent_KeyEvent_StateMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyEvent_KeyEvent_State(self);
+class_def(_MatrixOS_InputCluster){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_InputCluster_InputCluster, 1428367575),
+};
+class_inhert(_MatrixOS_InputCluster, TinyObj);
+
+PikaObj *New__MatrixOS_InputCluster(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_InputCluster);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_INPUTCLUSTER_DISABLE
+void _MatrixOS_InputCluster_InputCluster_ClusterIdMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputCluster_InputCluster_ClusterId(self);
     method_returnInt(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_State,
-    "State", ""
+    _MatrixOS_InputCluster_InputCluster_ClusterId,
+    "ClusterId", ""
 );
 
-void _MatrixOS_KeyEvent_KeyEvent_ValueMethod(PikaObj *self, Args *_args_){
-    PikaObj* index = args_getPtr(_args_, "index");
-    pika_float res = _MatrixOS_KeyEvent_KeyEvent_Value(self, index);
-    method_returnFloat(_args_, res);
+void _MatrixOS_InputCluster_InputCluster_DimensionMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputCluster_InputCluster_Dimension(self);
+    method_returnObj(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent_Value,
-    "Value", "index"
+    _MatrixOS_InputCluster_InputCluster_Dimension,
+    "Dimension", ""
 );
 
-void _MatrixOS_KeyEvent_KeyEvent___bool__Method(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyEvent_KeyEvent___bool__(self);
+void _MatrixOS_InputCluster_InputCluster_HasCoordinatesMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputCluster_InputCluster_HasCoordinates(self);
     method_returnBool(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent___bool__,
-    "__bool__", ""
+    _MatrixOS_InputCluster_InputCluster_HasCoordinates,
+    "HasCoordinates", ""
 );
 
-void _MatrixOS_KeyEvent_KeyEvent___init__Method(PikaObj *self, Args *_args_){
-    _MatrixOS_KeyEvent_KeyEvent___init__(self);
+void _MatrixOS_InputCluster_InputCluster_HasRootPointMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputCluster_InputCluster_HasRootPoint(self);
+    method_returnBool(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyEvent_KeyEvent___init__,
+    _MatrixOS_InputCluster_InputCluster_HasRootPoint,
+    "HasRootPoint", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster_InputClassMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputCluster_InputCluster_InputClass(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster_InputClass,
+    "InputClass", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster_InputCountMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputCluster_InputCluster_InputCount(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster_InputCount,
+    "InputCount", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster_NameMethod(PikaObj *self, Args *_args_){
+    char* res = _MatrixOS_InputCluster_InputCluster_Name(self);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster_Name,
+    "Name", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster_RootPointMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputCluster_InputCluster_RootPoint(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster_RootPoint,
+    "RootPoint", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster_ShapeMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputCluster_InputCluster_Shape(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster_Shape,
+    "Shape", ""
+);
+
+void _MatrixOS_InputCluster_InputCluster___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_InputCluster_InputCluster___init__(self);
+}
+method_typedef(
+    _MatrixOS_InputCluster_InputCluster___init__,
     "__init__", ""
 );
 
-class_def(_MatrixOS_KeyEvent_KeyEvent){
+class_def(_MatrixOS_InputCluster_InputCluster){
     __BEFORE_MOETHOD_DEF
-    method_def(_MatrixOS_KeyEvent_KeyEvent_ID, 5862386),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_KeyInfo, 90173338),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_Force, 221283220),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_State, 236861926),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_Value, 239748898),
-    method_def(_MatrixOS_KeyEvent_KeyEvent___bool__, 632207565),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_Active, 650066369),
-    method_def(_MatrixOS_KeyEvent_KeyEvent___init__, 904762485),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_HoldTime, 1374032955),
-    method_def(_MatrixOS_KeyEvent_KeyEvent_Hold, 2089185612),
+    method_def(_MatrixOS_InputCluster_InputCluster_Dimension, 72821067),
+    method_def(_MatrixOS_InputCluster_InputCluster_InputClass, 149188171),
+    method_def(_MatrixOS_InputCluster_InputCluster_InputCount, 149317598),
+    method_def(_MatrixOS_InputCluster_InputCluster_Shape, 236430550),
+    method_def(_MatrixOS_InputCluster_InputCluster_RootPoint, 662773459),
+    method_def(_MatrixOS_InputCluster_InputCluster_HasRootPoint, 727284591),
+    method_def(_MatrixOS_InputCluster_InputCluster_HasCoordinates, 882179324),
+    method_def(_MatrixOS_InputCluster_InputCluster___init__, 904762485),
+    method_def(_MatrixOS_InputCluster_InputCluster_ClusterId, 1568627924),
+    method_def(_MatrixOS_InputCluster_InputCluster_Name, 2089386022),
 };
-class_inhert(_MatrixOS_KeyEvent_KeyEvent, TinyObj);
+class_inhert(_MatrixOS_InputCluster_InputCluster, TinyObj);
 
-PikaObj *New__MatrixOS_KeyEvent_KeyEvent(Args *args){
+PikaObj *New__MatrixOS_InputCluster_InputCluster(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyEvent_KeyEvent);
+    obj_setClass(self, _MatrixOS_InputCluster_InputCluster);
     return self;
 }
 
-Arg *_MatrixOS_KeyEvent_KeyEvent(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_KeyEvent_KeyEvent);
+Arg *_MatrixOS_InputCluster_InputCluster(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_InputCluster_InputCluster);
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_KEYINFO_DISABLE
-void _MatrixOS_KeyInfo_KeyInfoMethod(PikaObj *self, Args *_args_){
-    Arg* res = _MatrixOS_KeyInfo_KeyInfo(self);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTEVENT_DISABLE
+void _MatrixOS_InputEvent_InputEventMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputEvent_InputEvent(self);
     method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo,
-    "KeyInfo", ""
+    _MatrixOS_InputEvent_InputEvent,
+    "InputEvent", ""
 );
 
-class_def(_MatrixOS_KeyInfo){
+class_def(_MatrixOS_InputEvent){
     __BEFORE_MOETHOD_DEF
-    constructor_def(_MatrixOS_KeyInfo_KeyInfo, 90173338),
+    constructor_def(_MatrixOS_InputEvent_InputEvent, 151923575),
 };
-class_inhert(_MatrixOS_KeyInfo, TinyObj);
+class_inhert(_MatrixOS_InputEvent, TinyObj);
 
-PikaObj *New__MatrixOS_KeyInfo(Args *args){
+PikaObj *New__MatrixOS_InputEvent(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyInfo);
+    obj_setClass(self, _MatrixOS_InputEvent);
     return self;
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_KEYINFO_DISABLE
-void _MatrixOS_KeyInfo_KeyInfo_ActiveMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyInfo_KeyInfo_Active(self);
-    method_returnBool(_args_, res);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTEVENT_DISABLE
+void _MatrixOS_InputEvent_InputEvent_IdMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputEvent_InputEvent_Id(self);
+    method_returnObj(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_Active,
-    "Active", ""
+    _MatrixOS_InputEvent_InputEvent_Id,
+    "Id", ""
 );
 
-void _MatrixOS_KeyInfo_KeyInfo_ForceMethod(PikaObj *self, Args *_args_){
-    pika_float res = _MatrixOS_KeyInfo_KeyInfo_Force(self);
-    method_returnFloat(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_Force,
-    "Force", ""
-);
-
-void _MatrixOS_KeyInfo_KeyInfo_HoldMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyInfo_KeyInfo_Hold(self);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_Hold,
-    "Hold", ""
-);
-
-void _MatrixOS_KeyInfo_KeyInfo_HoldTimeMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyInfo_KeyInfo_HoldTime(self);
+void _MatrixOS_InputEvent_InputEvent_InputClassMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputEvent_InputEvent_InputClass(self);
     method_returnInt(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_HoldTime,
-    "HoldTime", ""
+    _MatrixOS_InputEvent_InputEvent_InputClass,
+    "InputClass", ""
 );
 
-void _MatrixOS_KeyInfo_KeyInfo_LastEventTimeMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyInfo_KeyInfo_LastEventTime(self);
-    method_returnInt(_args_, res);
+void _MatrixOS_InputEvent_InputEvent_KeypadMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputEvent_InputEvent_Keypad(self);
+    method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_LastEventTime,
-    "LastEventTime", ""
+    _MatrixOS_InputEvent_InputEvent_Keypad,
+    "Keypad", ""
 );
 
-void _MatrixOS_KeyInfo_KeyInfo_StateMethod(PikaObj *self, Args *_args_){
-    int res = _MatrixOS_KeyInfo_KeyInfo_State(self);
-    method_returnInt(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_State,
-    "State", ""
-);
-
-void _MatrixOS_KeyInfo_KeyInfo_ValueMethod(PikaObj *self, Args *_args_){
-    PikaObj* index = args_getPtr(_args_, "index");
-    pika_float res = _MatrixOS_KeyInfo_KeyInfo_Value(self, index);
-    method_returnFloat(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo_Value,
-    "Value", "index"
-);
-
-void _MatrixOS_KeyInfo_KeyInfo___bool__Method(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_KeyInfo_KeyInfo___bool__(self);
+void _MatrixOS_InputEvent_InputEvent___bool__Method(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputEvent_InputEvent___bool__(self);
     method_returnBool(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo___bool__,
+    _MatrixOS_InputEvent_InputEvent___bool__,
     "__bool__", ""
 );
 
-void _MatrixOS_KeyInfo_KeyInfo___init__Method(PikaObj *self, Args *_args_){
-    PikaTuple* val = args_getTuple(_args_, "val");
-    _MatrixOS_KeyInfo_KeyInfo___init__(self, val);
+void _MatrixOS_InputEvent_InputEvent___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_InputEvent_InputEvent___init__(self);
 }
 method_typedef(
-    _MatrixOS_KeyInfo_KeyInfo___init__,
-    "__init__", "*val"
+    _MatrixOS_InputEvent_InputEvent___init__,
+    "__init__", ""
 );
 
-class_def(_MatrixOS_KeyInfo_KeyInfo){
+class_def(_MatrixOS_InputEvent_InputEvent){
     __BEFORE_MOETHOD_DEF
-    method_def(_MatrixOS_KeyInfo_KeyInfo_Force, 221283220),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_State, 236861926),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_Value, 239748898),
-    method_def(_MatrixOS_KeyInfo_KeyInfo___bool__, 632207565),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_Active, 650066369),
-    method_def(_MatrixOS_KeyInfo_KeyInfo___init__, 904762485),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_HoldTime, 1374032955),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_LastEventTime, 2054074890),
-    method_def(_MatrixOS_KeyInfo_KeyInfo_Hold, 2089185612),
+    method_def(_MatrixOS_InputEvent_InputEvent_Id, 5862418),
+    method_def(_MatrixOS_InputEvent_InputEvent_InputClass, 149188171),
+    method_def(_MatrixOS_InputEvent_InputEvent___bool__, 632207565),
+    method_def(_MatrixOS_InputEvent_InputEvent___init__, 904762485),
+    method_def(_MatrixOS_InputEvent_InputEvent_Keypad, 1043978755),
 };
-class_inhert(_MatrixOS_KeyInfo_KeyInfo, TinyObj);
+class_inhert(_MatrixOS_InputEvent_InputEvent, TinyObj);
 
-PikaObj *New__MatrixOS_KeyInfo_KeyInfo(Args *args){
+PikaObj *New__MatrixOS_InputEvent_InputEvent(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyInfo_KeyInfo);
+    obj_setClass(self, _MatrixOS_InputEvent_InputEvent);
     return self;
 }
 
-Arg *_MatrixOS_KeyInfo_KeyInfo(PikaObj *self){
-    return obj_newObjInPackage(New__MatrixOS_KeyInfo_KeyInfo);
+Arg *_MatrixOS_InputEvent_InputEvent(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_InputEvent_InputEvent);
 }
 #endif
 
-#ifndef PIKA_MODULE__MATRIXOS_KEYPAD_DISABLE
-void _MatrixOS_KeyPad_ClearMethod(PikaObj *self, Args *_args_){
-    _MatrixOS_KeyPad_Clear(self);
-}
-method_typedef(
-    _MatrixOS_KeyPad_Clear,
-    "Clear", ""
-);
-
-void _MatrixOS_KeyPad_GetMethod(PikaObj *self, Args *_args_){
-    int timeout_ms = args_getInt(_args_, "timeout_ms");
-    Arg* res = _MatrixOS_KeyPad_Get(self, timeout_ms);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTID_DISABLE
+void _MatrixOS_InputId_InputIdMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputId_InputId(self);
     method_returnArg(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyPad_Get,
-    "Get", "timeout_ms"
+    _MatrixOS_InputId_InputId,
+    "InputId", ""
 );
 
-void _MatrixOS_KeyPad_GetKeyMethod(PikaObj *self, Args *_args_){
-    PikaObj* keyXY = args_getPtr(_args_, "keyXY");
-    Arg* res = _MatrixOS_KeyPad_GetKey(self, keyXY);
-    method_returnArg(_args_, res);
+class_def(_MatrixOS_InputId){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_InputId_InputId, 2145336738),
+};
+class_inhert(_MatrixOS_InputId, TinyObj);
+
+PikaObj *New__MatrixOS_InputId(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_InputId);
+    return self;
 }
-method_typedef(
-    _MatrixOS_KeyPad_GetKey,
-    "GetKey", "keyXY"
-);
+#endif
 
-void _MatrixOS_KeyPad_GetKeyByIDMethod(PikaObj *self, Args *_args_){
-    int keyID = args_getInt(_args_, "keyID");
-    Arg* res = _MatrixOS_KeyPad_GetKeyByID(self, keyID);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyPad_GetKeyByID,
-    "GetKeyByID", "keyID"
-);
-
-void _MatrixOS_KeyPad_ID2XYMethod(PikaObj *self, Args *_args_){
-    int keyID = args_getInt(_args_, "keyID");
-    Arg* res = _MatrixOS_KeyPad_ID2XY(self, keyID);
-    method_returnArg(_args_, res);
-}
-method_typedef(
-    _MatrixOS_KeyPad_ID2XY,
-    "ID2XY", "keyID"
-);
-
-void _MatrixOS_KeyPad_XY2IDMethod(PikaObj *self, Args *_args_){
-    PikaObj* xy = args_getPtr(_args_, "xy");
-    int res = _MatrixOS_KeyPad_XY2ID(self, xy);
+#ifndef PIKA_MODULE__MATRIXOS_INPUTID_DISABLE
+void _MatrixOS_InputId_InputId_ClusterIdMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputId_InputId_ClusterId(self);
     method_returnInt(_args_, res);
 }
 method_typedef(
-    _MatrixOS_KeyPad_XY2ID,
-    "XY2ID", "xy"
+    _MatrixOS_InputId_InputId_ClusterId,
+    "ClusterId", ""
 );
 
-class_def(_MatrixOS_KeyPad){
-    __BEFORE_MOETHOD_DEF
-    method_def(_MatrixOS_KeyPad_Get, 193457765),
-    method_def(_MatrixOS_KeyPad_Clear, 217603436),
-    method_def(_MatrixOS_KeyPad_ID2XY, 223225621),
-    method_def(_MatrixOS_KeyPad_XY2ID, 241768597),
-    method_def(_MatrixOS_KeyPad_GetKey, 887217358),
-    method_def(_MatrixOS_KeyPad_GetKeyByID, 1495650614),
-};
-class_inhert(_MatrixOS_KeyPad, TinyObj);
+void _MatrixOS_InputId_InputId_FunctionKeyMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputId_InputId_FunctionKey(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId_FunctionKey,
+    "FunctionKey", ""
+);
 
-PikaObj *New__MatrixOS_KeyPad(Args *args){
+void _MatrixOS_InputId_InputId_InvalidMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputId_InputId_Invalid(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId_Invalid,
+    "Invalid", ""
+);
+
+void _MatrixOS_InputId_InputId_MemberIdMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputId_InputId_MemberId(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId_MemberId,
+    "MemberId", ""
+);
+
+void _MatrixOS_InputId_InputId___bool__Method(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputId_InputId___bool__(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId___bool__,
+    "__bool__", ""
+);
+
+void _MatrixOS_InputId_InputId___eq__Method(PikaObj *self, Args *_args_){
+    PikaObj* other = args_getPtr(_args_, "other");
+    pika_bool res = _MatrixOS_InputId_InputId___eq__(self, other);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId___eq__,
+    "__eq__", "other"
+);
+
+void _MatrixOS_InputId_InputId___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_InputId_InputId___init__(self);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId___init__,
+    "__init__", ""
+);
+
+void _MatrixOS_InputId_InputId___ne__Method(PikaObj *self, Args *_args_){
+    PikaObj* other = args_getPtr(_args_, "other");
+    pika_bool res = _MatrixOS_InputId_InputId___ne__(self, other);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputId_InputId___ne__,
+    "__ne__", "other"
+);
+
+class_def(_MatrixOS_InputId_InputId){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_InputId_InputId_Invalid, 4242220),
+    method_def(_MatrixOS_InputId_InputId_FunctionKey, 82640084),
+    method_def(_MatrixOS_InputId_InputId___bool__, 632207565),
+    method_def(_MatrixOS_InputId_InputId___init__, 904762485),
+    method_def(_MatrixOS_InputId_InputId_ClusterId, 1568627924),
+    method_def(_MatrixOS_InputId_InputId___eq__, 1818853367),
+    method_def(_MatrixOS_InputId_InputId___ne__, 1819163732),
+    method_def(_MatrixOS_InputId_InputId_MemberId, 1872971978),
+};
+class_inhert(_MatrixOS_InputId_InputId, TinyObj);
+
+PikaObj *New__MatrixOS_InputId_InputId(Args *args){
     PikaObj *self = New_TinyObj(args);
-    obj_setClass(self, _MatrixOS_KeyPad);
+    obj_setClass(self, _MatrixOS_InputId_InputId);
     return self;
+}
+
+Arg *_MatrixOS_InputId_InputId(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_InputId_InputId);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_KEYPADINFO_DISABLE
+void _MatrixOS_KeypadInfo_KeypadInfoMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_KeypadInfo_KeypadInfo(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo,
+    "KeypadInfo", ""
+);
+
+class_def(_MatrixOS_KeypadInfo){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_KeypadInfo_KeypadInfo, 469175471),
+};
+class_inhert(_MatrixOS_KeypadInfo, TinyObj);
+
+PikaObj *New__MatrixOS_KeypadInfo(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_KeypadInfo);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_KEYPADINFO_DISABLE
+void _MatrixOS_KeypadInfo_KeypadInfo_ActiveMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeypadInfo_KeypadInfo_Active(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_Active,
+    "Active", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_ForceMethod(PikaObj *self, Args *_args_){
+    pika_float res = _MatrixOS_KeypadInfo_KeypadInfo_Force(self);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_Force,
+    "Force", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_HoldMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeypadInfo_KeypadInfo_Hold(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_Hold,
+    "Hold", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_HoldTimeMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_KeypadInfo_KeypadInfo_HoldTime(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_HoldTime,
+    "HoldTime", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_LastEventTimeMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_KeypadInfo_KeypadInfo_LastEventTime(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_LastEventTime,
+    "LastEventTime", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_StateMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_KeypadInfo_KeypadInfo_State(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_State,
+    "State", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo_ValueMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    pika_float res = _MatrixOS_KeypadInfo_KeypadInfo_Value(self, index);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo_Value,
+    "Value", "index"
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo___bool__Method(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_KeypadInfo_KeypadInfo___bool__(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo___bool__,
+    "__bool__", ""
+);
+
+void _MatrixOS_KeypadInfo_KeypadInfo___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_KeypadInfo_KeypadInfo___init__(self);
+}
+method_typedef(
+    _MatrixOS_KeypadInfo_KeypadInfo___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_KeypadInfo_KeypadInfo){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_Force, 221283220),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_State, 236861926),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_Value, 239748898),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo___bool__, 632207565),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_Active, 650066369),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo___init__, 904762485),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_HoldTime, 1374032955),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_LastEventTime, 2054074890),
+    method_def(_MatrixOS_KeypadInfo_KeypadInfo_Hold, 2089185612),
+};
+class_inhert(_MatrixOS_KeypadInfo_KeypadInfo, TinyObj);
+
+PikaObj *New__MatrixOS_KeypadInfo_KeypadInfo(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_KeypadInfo_KeypadInfo);
+    return self;
+}
+
+Arg *_MatrixOS_KeypadInfo_KeypadInfo(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_KeypadInfo_KeypadInfo);
 }
 #endif
 
@@ -3925,6 +4188,15 @@ PikaObj *New__MatrixOS_UI4pxNumber(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_UI4PXNUMBER_DISABLE
+void _MatrixOS_UI4pxNumber_UI4pxNumber_CloseMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_Close(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI4pxNumber_UI4pxNumber_Close,
+    "Close", ""
+);
+
 void _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColorMethod(PikaObj *self, Args *_args_){
     PikaObj* alternativeColor = args_getPtr(_args_, "alternativeColor");
     pika_bool res = _MatrixOS_UI4pxNumber_UI4pxNumber_SetAlternativeColor(self, alternativeColor);
@@ -4007,6 +4279,7 @@ class_def(_MatrixOS_UI4pxNumber_UI4pxNumber){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetColor, 123130384),
     method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetSpacing, 159305974),
+    method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_Close, 217614907),
     method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetColorFunc, 465157340),
     method_def(_MatrixOS_UI4pxNumber_UI4pxNumber___init__, 904762485),
     method_def(_MatrixOS_UI4pxNumber_UI4pxNumber_SetValueFunc, 1651519706),
@@ -4051,6 +4324,15 @@ PikaObj *New__MatrixOS_UIButton(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_UIBUTTON_DISABLE
+void _MatrixOS_UIButton_UIButton_CloseMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UIButton_UIButton_Close(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIButton_UIButton_Close,
+    "Close", ""
+);
+
 void _MatrixOS_UIButton_UIButton_OnHoldMethod(PikaObj *self, Args *_args_){
     Arg* holdCallback = args_getArg(_args_, "holdCallback");
     pika_bool res = _MatrixOS_UIButton_UIButton_OnHold(self, holdCallback);
@@ -4122,6 +4404,7 @@ method_typedef(
 class_def(_MatrixOS_UIButton_UIButton){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_UIButton_UIButton_SetColor, 123130384),
+    method_def(_MatrixOS_UIButton_UIButton_Close, 217614907),
     method_def(_MatrixOS_UIButton_UIButton_SetColorFunc, 465157340),
     method_def(_MatrixOS_UIButton_UIButton___init__, 904762485),
     method_def(_MatrixOS_UIButton_UIButton_OnHold, 1209431977),
@@ -4166,6 +4449,15 @@ PikaObj *New__MatrixOS_UIComponent(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_UICOMPONENT_DISABLE
+void _MatrixOS_UIComponent_UIComponent_CloseMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UIComponent_UIComponent_Close(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UIComponent_UIComponent_Close,
+    "Close", ""
+);
+
 void _MatrixOS_UIComponent_UIComponent_SetEnableFuncMethod(PikaObj *self, Args *_args_){
     Arg* enableFunc = args_getArg(_args_, "enableFunc");
     pika_bool res = _MatrixOS_UIComponent_UIComponent_SetEnableFunc(self, enableFunc);
@@ -4197,6 +4489,7 @@ method_typedef(
 class_def(_MatrixOS_UIComponent_UIComponent){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_UIComponent_UIComponent_SetEnableFunc, 186198980),
+    method_def(_MatrixOS_UIComponent_UIComponent_Close, 217614907),
     method_def(_MatrixOS_UIComponent_UIComponent___init__, 904762485),
     method_def(_MatrixOS_UIComponent_UIComponent_SetEnabled, 1327803484),
 };
@@ -4257,6 +4550,15 @@ PikaObj *New__MatrixOS_UISelector(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_UISELECTOR_DISABLE
+void _MatrixOS_UISelector_UISelector_CloseMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UISelector_UISelector_Close(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UISelector_UISelector_Close,
+    "Close", ""
+);
+
 void _MatrixOS_UISelector_UISelector_OnChangeMethod(PikaObj *self, Args *_args_){
     Arg* changeCallback = args_getArg(_args_, "changeCallback");
     pika_bool res = _MatrixOS_UISelector_UISelector_OnChange(self, changeCallback);
@@ -4379,6 +4681,7 @@ class_def(_MatrixOS_UISelector_UISelector){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_UISelector_UISelector_SetColor, 123130384),
     method_def(_MatrixOS_UISelector_UISelector_SetCount, 123140154),
+    method_def(_MatrixOS_UISelector_UISelector_Close, 217614907),
     method_def(_MatrixOS_UISelector_UISelector_OnChange, 459587400),
     method_def(_MatrixOS_UISelector_UISelector_SetColorFunc, 465157340),
     method_def(_MatrixOS_UISelector_UISelector_SetIndividualColorFunc, 847679429),
@@ -4492,8 +4795,7 @@ PikaObj *New__MatrixOS_UIUtility(Args *args){
 void _MatrixOS_UI_UI_AddUIComponentMethod(PikaObj *self, Args *_args_){
     PikaObj* uiComponent = args_getPtr(_args_, "uiComponent");
     PikaObj* xy = args_getPtr(_args_, "xy");
-    pika_bool res = _MatrixOS_UI_UI_AddUIComponent(self, uiComponent, xy);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_AddUIComponent(self, uiComponent, xy);
 }
 method_typedef(
     _MatrixOS_UI_UI_AddUIComponent,
@@ -4502,8 +4804,7 @@ method_typedef(
 
 void _MatrixOS_UI_UI_AllowExitMethod(PikaObj *self, Args *_args_){
     pika_bool allow = args_getBool(_args_, "allow");
-    pika_bool res = _MatrixOS_UI_UI_AllowExit(self, allow);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_AllowExit(self, allow);
 }
 method_typedef(
     _MatrixOS_UI_UI_AllowExit,
@@ -4511,18 +4812,25 @@ method_typedef(
 );
 
 void _MatrixOS_UI_UI_ClearUIComponentsMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_UI_UI_ClearUIComponents(self);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_ClearUIComponents(self);
 }
 method_typedef(
     _MatrixOS_UI_UI_ClearUIComponents,
     "ClearUIComponents", ""
 );
 
+void _MatrixOS_UI_UI_CloseMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_UI_UI_Close(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_Close,
+    "Close", ""
+);
+
 void _MatrixOS_UI_UI_SetColorMethod(PikaObj *self, Args *_args_){
     PikaObj* color = args_getPtr(_args_, "color");
-    pika_bool res = _MatrixOS_UI_UI_SetColor(self, color);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_SetColor(self, color);
 }
 method_typedef(
     _MatrixOS_UI_UI_SetColor,
@@ -4541,22 +4849,21 @@ method_typedef(
 
 void _MatrixOS_UI_UI_SetFPSMethod(PikaObj *self, Args *_args_){
     int fps = args_getInt(_args_, "fps");
-    pika_bool res = _MatrixOS_UI_UI_SetFPS(self, fps);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_SetFPS(self, fps);
 }
 method_typedef(
     _MatrixOS_UI_UI_SetFPS,
     "SetFPS", "fps"
 );
 
-void _MatrixOS_UI_UI_SetKeyEventHandlerMethod(PikaObj *self, Args *_args_){
-    Arg* key_event_handler = args_getArg(_args_, "key_event_handler");
-    pika_bool res = _MatrixOS_UI_UI_SetKeyEventHandler(self, key_event_handler);
+void _MatrixOS_UI_UI_SetInputHandlerMethod(PikaObj *self, Args *_args_){
+    Arg* input_handler = args_getArg(_args_, "input_handler");
+    pika_bool res = _MatrixOS_UI_UI_SetInputHandler(self, input_handler);
     method_returnBool(_args_, res);
 }
 method_typedef(
-    _MatrixOS_UI_UI_SetKeyEventHandler,
-    "SetKeyEventHandler", "key_event_handler"
+    _MatrixOS_UI_UI_SetInputHandler,
+    "SetInputHandler", "input_handler"
 );
 
 void _MatrixOS_UI_UI_SetLoopFuncMethod(PikaObj *self, Args *_args_){
@@ -4571,8 +4878,7 @@ method_typedef(
 
 void _MatrixOS_UI_UI_SetNameMethod(PikaObj *self, Args *_args_){
     char* name = args_getStr(_args_, "name");
-    pika_bool res = _MatrixOS_UI_UI_SetName(self, name);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_SetName(self, name);
 }
 method_typedef(
     _MatrixOS_UI_UI_SetName,
@@ -4611,8 +4917,7 @@ method_typedef(
 
 void _MatrixOS_UI_UI_ShouldCreatenewLEDLayerMethod(PikaObj *self, Args *_args_){
     pika_bool create = args_getBool(_args_, "create");
-    pika_bool res = _MatrixOS_UI_UI_ShouldCreatenewLEDLayer(self, create);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_ShouldCreatenewLEDLayer(self, create);
 }
 method_typedef(
     _MatrixOS_UI_UI_ShouldCreatenewLEDLayer,
@@ -4620,8 +4925,7 @@ method_typedef(
 );
 
 void _MatrixOS_UI_UI_StartMethod(PikaObj *self, Args *_args_){
-    pika_bool res = _MatrixOS_UI_UI_Start(self);
-    method_returnBool(_args_, res);
+    _MatrixOS_UI_UI_Start(self);
 }
 method_typedef(
     _MatrixOS_UI_UI_Start,
@@ -4641,12 +4945,13 @@ class_def(_MatrixOS_UI_UI){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_UI_UI_SetPostRenderFunc, 86385219),
     method_def(_MatrixOS_UI_UI_SetColor, 123130384),
+    method_def(_MatrixOS_UI_UI_Close, 217614907),
     method_def(_MatrixOS_UI_UI_Start, 236861875),
     method_def(_MatrixOS_UI_UI_SetLoopFunc, 403850743),
     method_def(_MatrixOS_UI_UI_SetSetupFunc, 513484014),
-    method_def(_MatrixOS_UI_UI_SetKeyEventHandler, 813681242),
     method_def(_MatrixOS_UI_UI___init__, 904762485),
     method_def(_MatrixOS_UI_UI_AllowExit, 915050654),
+    method_def(_MatrixOS_UI_UI_SetInputHandler, 1139319007),
     method_def(_MatrixOS_UI_UI_SetEndFunc, 1330365108),
     method_def(_MatrixOS_UI_UI_SetFPS, 1356835898),
     method_def(_MatrixOS_UI_UI_ShouldCreatenewLEDLayer, 1465366404),

@@ -19,11 +19,11 @@ extern "C" {
 
     void _MatrixOS_LED_SetColor(PikaObj *self, PikaObj* xy, PikaObj* color, int layer) {
         // Get Point object from PikaObj
-        Point* point_ptr = getCppObjPtrInPikaObj<Point>(xy);
+        Point* point_ptr = getCppValuePtrInPikaObj<Point>(xy);
         if (!point_ptr) return;
 
         // Get Color object from PikaObj
-        Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
+        Color* color_ptr = getCppValuePtrInPikaObj<Color>(color);
         if (!color_ptr) return;
 
         MatrixOS::LED::SetColor(*point_ptr, *color_ptr, layer);
@@ -31,7 +31,7 @@ extern "C" {
 
     void _MatrixOS_LED_SetColorByID(PikaObj *self, int id, PikaObj* color, int layer) {
         // Get Color object from PikaObj
-        Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
+        Color* color_ptr = getCppValuePtrInPikaObj<Color>(color);
         if (!color_ptr) return;
         
         MatrixOS::LED::SetColor(id, *color_ptr, layer);
@@ -39,7 +39,7 @@ extern "C" {
 
     void _MatrixOS_LED_Fill(PikaObj *self, PikaObj* color, int layer) {
         // Get Color object from PikaObj
-        Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
+        Color* color_ptr = getCppValuePtrInPikaObj<Color>(color);
         if (!color_ptr) return;
         
         MatrixOS::LED::Fill(*color_ptr, layer);
@@ -47,7 +47,7 @@ extern "C" {
 
     pika_bool _MatrixOS_LED_FillPartition(PikaObj *self, char* partition, PikaObj* color, int layer) {
         // Get Color object from PikaObj
-        Color* color_ptr = getCppObjPtrInPikaObj<Color>(color);
+        Color* color_ptr = getCppValuePtrInPikaObj<Color>(color);
         if (!color_ptr) return false;
         
         return MatrixOS::LED::FillPartition(string(partition), *color_ptr, layer);

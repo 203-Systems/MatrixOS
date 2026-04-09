@@ -1,5 +1,5 @@
 # KeyState enumeration for MatrixOS
-# Binding of OS/Framework/KeyEvent/KeyInfo.h
+# Binding of keypad state values used by the Input API
 
 class KeyState:
     """Key state enumeration values"""

@@ -6,17 +6,7 @@
 #include "../PikaObjUtils.h"
 #include "../PikaCallbackUtils.h"
 
-// Legacy PythonKeyEvent for the SetKeyEventHandler bridge.
-// Matches the struct in MatrixOS_KeyEvent.cpp / MatrixOS_KeyPad.cpp.
-struct PythonKeyEvent {
-  uint16_t id;
-  KeypadInfo info;
-};
-
 extern "C" {
-
-    // Forward declaration — generated constructor for Python KeyEvent objects
-    PikaObj* New__MatrixOS_KeyEvent_KeyEvent(Args *args);
 
     // UI constructor - supports optional parameters with progressive fill
     // Native UI object is heap-allocated via handle wrapper.
@@ -48,20 +38,25 @@ extern "C" {
         }
 
         createCppHandleInPikaObj<UI>(self, name, color, newLEDLayer);
+        InitCallbackContext(self);
     }
 
     // Close method - deterministic teardown.
-    // Destroys the native UI object, invalidates callbacks.
-    void _MatrixOS_UI_UI_Close(PikaObj *self) {
+    // Invalidates callbacks, destroys native UI, frees context.
+    pika_bool _MatrixOS_UI_UI_Close(PikaObj *self) {
+        InvalidateCallbackContext(self);
+
         destroyCppHandleInPikaObj<UI>(self);
 
-        // Clear all stored callbacks so they cannot be invoked after close
         ClearCallbackInPikaObj(self, (char*)"setupFunc");
         ClearCallbackInPikaObj(self, (char*)"loopFunc");
         ClearCallbackInPikaObj(self, (char*)"endFunc");
         ClearCallbackInPikaObj(self, (char*)"preRenderFunc");
         ClearCallbackInPikaObj(self, (char*)"postRenderFunc");
-        ClearCallbackInPikaObj(self, (char*)"keyEventHandler");
+        ClearCallbackInPikaObj(self, (char*)"inputHandler");
+
+        DestroyCallbackContext(self);
+        return true;
     }
 
     // Start method
@@ -105,13 +100,11 @@ extern "C" {
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"setupFunc", setupFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetSetupFunc([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"setupFunc");
-            if (result) {
-                arg_deinit(result);
-            }
+        ui->SetSetupFunc([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"setupFunc");
+            if (result) arg_deinit(result);
         });
 
         return true;
@@ -123,13 +116,11 @@ extern "C" {
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"loopFunc", loopFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetLoopFunc([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"loopFunc");
-            if (result) {
-                arg_deinit(result);
-            }
+        ui->SetLoopFunc([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"loopFunc");
+            if (result) arg_deinit(result);
         });
 
         return true;
@@ -141,13 +132,11 @@ extern "C" {
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"endFunc", endFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetEndFunc([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"endFunc");
-            if (result) {
-                arg_deinit(result);
-            }
+        ui->SetEndFunc([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"endFunc");
+            if (result) arg_deinit(result);
         });
 
         return true;
@@ -159,13 +148,11 @@ extern "C" {
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"preRenderFunc", pre_renderFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetPreRenderFunc([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"preRenderFunc");
-            if (result) {
-                arg_deinit(result);
-            }
+        ui->SetPreRenderFunc([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"preRenderFunc");
+            if (result) arg_deinit(result);
         });
 
         return true;
@@ -177,39 +164,37 @@ extern "C" {
         if (!ui) return false;
 
         SaveCallbackObjToPikaObj(self, (char*)"postRenderFunc", post_renderFunc);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetPostRenderFunc([self]() {
-            if (!hasCppHandleInPikaObj(self)) return;
-            Arg* result = CallCallbackInPikaObj0(self, (char*)"postRenderFunc");
-            if (result) {
-                arg_deinit(result);
-            }
+        ui->SetPostRenderFunc([ctx]() {
+            Arg* result = SafeCallCallback0(ctx, (char*)"postRenderFunc");
+            if (result) arg_deinit(result);
         });
 
         return true;
     }
 
-    // SetKeyEventHandler - legacy bridge, will be replaced in Phase 4.
-    // Converts InputEvent to a PythonKeyEvent and passes it to the Python callback.
-    pika_bool _MatrixOS_UI_UI_SetKeyEventHandler(PikaObj *self, Arg* key_event_handler) {
+    // Forward declarations for InputEvent/InputId Python object constructors
+    PikaObj* New__MatrixOS_InputEvent_InputEvent(Args *args);
+    PikaObj* New__MatrixOS_InputId_InputId(Args *args);
+
+    // SetInputHandler — the new input-centric forward path.
+    // Passes InputEvent directly to the Python callback (no legacy conversion).
+    pika_bool _MatrixOS_UI_UI_SetInputHandler(PikaObj *self, Arg* input_handler) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"keyEventHandler", key_event_handler);
+        SaveCallbackObjToPikaObj(self, (char*)"inputHandler", input_handler);
+        PythonCallbackContext* ctx = GetCallbackContext(self);
 
-        ui->SetInputEventHandler([self](InputEvent* inputEvent) -> bool {
-            if (!hasCppHandleInPikaObj(self)) return false;
+        ui->SetInputEventHandler([ctx](InputEvent* inputEvent) -> bool {
+            if (!ctx || !ctx->alive) return false;
 
-            // Bridge InputEvent → PythonKeyEvent so the Python callback sees an event object
-            PythonKeyEvent pyEvt;
-            pyEvt.id = Device::KeyPad::InputIdToLegacyKeyId(inputEvent->id);
-            pyEvt.info = inputEvent->keypad;
-
-            PikaObj* eventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
-            copyCppValueIntoPikaObj<PythonKeyEvent>(eventObj, pyEvt);
+            PikaObj* eventObj = newNormalObj(New__MatrixOS_InputEvent_InputEvent);
+            copyCppValueIntoPikaObj<InputEvent>(eventObj, *inputEvent);
             Arg* eventArg = arg_newObj(eventObj);
 
-            Arg* result = CallCallbackInPikaObj1(self, (char*)"keyEventHandler", eventArg);
+            Arg* result = SafeCallCallback1(ctx, (char*)"inputHandler", eventArg);
 
             bool retval = false;
             if (result) {

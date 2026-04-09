@@ -4,24 +4,58 @@
 #include <type_traits>
 
 // ============================================================================
-// Value wrappers — for small, trivially-copyable types only.
+// IsApprovedPikaValue<T> — compile-time allowlist for value wrappers.
 //
-// Approved value types: Point, Dimension, Color, InputId, KeypadInfo,
-//                       PythonKeyEvent, PythonInputEventValue
+// Only types explicitly approved here may be stored by-value inside PikaObj.
+// To approve a new type:
+//   1. Verify it is trivially copyable (no strings, containers, vtables)
+//   2. Add a forward declaration below
+//   3. Add a template specialization to the approved list
+//   4. The static_assert enforces both traits at template instantiation
+//
+// For file-local types, add the specialization in the translation unit
+// that defines the struct, before first use.
+// ============================================================================
+
+template <typename T>
+struct IsApprovedPikaValue : std::false_type {};
+
+// Forward declarations for globally-approved value types.
+// Full definitions come from MatrixOS.h, included by all .cpp translation units.
+struct Point;
+struct Dimension;
+struct Color;
+struct InputId;
+struct KeypadInfo;
+struct MidiPacket;
+struct InputEvent;
+struct InputSnapshot;
+
+template <> struct IsApprovedPikaValue<Point> : std::true_type {};
+template <> struct IsApprovedPikaValue<Dimension> : std::true_type {};
+template <> struct IsApprovedPikaValue<Color> : std::true_type {};
+template <> struct IsApprovedPikaValue<InputId> : std::true_type {};
+template <> struct IsApprovedPikaValue<KeypadInfo> : std::true_type {};
+template <> struct IsApprovedPikaValue<MidiPacket> : std::true_type {};
+template <> struct IsApprovedPikaValue<InputEvent> : std::true_type {};
+template <> struct IsApprovedPikaValue<InputSnapshot> : std::true_type {};
+
+// ============================================================================
+// Value wrappers — for small, trivially-copyable, approved types only.
 //
 // These store a by-value copy inside PikaObj via obj_setStruct (memcpy).
 // Do NOT use for types with strings, containers, function objects,
 // unique_ptr, virtual methods, or non-trivial destructors.
-//
-// The static_assert enforces this at compile time.
 // ============================================================================
 
 template <typename T, typename... Args>
 void createCppValueInPikaObj(PikaObj* pika_obj, Args&&... args)
 {
+    static_assert(IsApprovedPikaValue<T>::value,
+        "createCppValueInPikaObj: T is not on the approved value-wrapper list. "
+        "Add an IsApprovedPikaValue specialization or use handle wrappers.");
     static_assert(std::is_trivially_copyable_v<T>,
-        "createCppValueInPikaObj: T must be trivially copyable. "
-        "Use handle wrappers for non-trivial types.");
+        "createCppValueInPikaObj: T must be trivially copyable.");
     T obj = T(std::forward<Args>(args)...);
     obj_setStruct(pika_obj, (char*)"_self", obj);
 }
@@ -29,14 +63,17 @@ void createCppValueInPikaObj(PikaObj* pika_obj, Args&&... args)
 template <typename T>
 void copyCppValueIntoPikaObj(PikaObj* pika_obj, T& obj)
 {
+    static_assert(IsApprovedPikaValue<T>::value,
+        "copyCppValueIntoPikaObj: T is not on the approved value-wrapper list.");
     static_assert(std::is_trivially_copyable_v<T>,
-        "copyCppValueIntoPikaObj: T must be trivially copyable. "
-        "Use handle wrappers for non-trivial types.");
+        "copyCppValueIntoPikaObj: T must be trivially copyable.");
     obj_setStruct(pika_obj, (char*)"_self", obj);
 }
 
 template <typename T>
 T* getCppValuePtrInPikaObj(PikaObj* pika_obj) {
+    static_assert(IsApprovedPikaValue<T>::value,
+        "getCppValuePtrInPikaObj: T is not on the approved value-wrapper list.");
     static_assert(std::is_trivially_copyable_v<T>,
         "getCppValuePtrInPikaObj: T must be trivially copyable.");
     return (T*)(obj_getStruct(pika_obj, (char*)"_self"));
@@ -55,10 +92,6 @@ inline bool hasCppValueInPikaObj(PikaObj* pika_obj) {
 // PikaObj stores only a pointer to a NativeHandle holder.
 // The holder tracks an alive flag to prevent use-after-destroy.
 // Explicit destroyCppHandleInPikaObj<T>() must be called on teardown.
-//
-// The handle stores a type-erased void* so that base-class retrieval
-// (e.g. getCppHandlePtrInPikaObj<UIComponent> on a UIButton wrapper)
-// works safely for single-inheritance hierarchies.
 // ============================================================================
 
 struct NativeHandle {
@@ -101,46 +134,4 @@ void destroyCppHandleInPikaObj(PikaObj* pika_obj)
     }
     delete handle;
     obj_setPtr(pika_obj, (char*)"_handle", nullptr);
-}
-
-// ============================================================================
-// Legacy aliases — DEPRECATED, kept temporarily for unchanged value-wrapper
-// callers (Point, Dimension, Color, KeyEvent, KeyInfo, MidiPacket).
-//
-// All aliases enforce the same trivially-copyable constraint as the primary
-// value wrappers.  Any attempt to use them with a handle type (UI, UIButton,
-// etc.) will produce a compile-time error.
-//
-// getCppObjInPikaObj (returned a bare reference) has been removed because it
-// hides null-safety and makes misuse too easy.  Use getCppValuePtrInPikaObj
-// and null-check the result instead.
-// ============================================================================
-
-template <typename T, typename... Args>
-void createCppObjPtrInPikaObj(PikaObj* pika_obj, Args&&... args)
-{
-    static_assert(std::is_trivially_copyable_v<T>,
-        "createCppObjPtrInPikaObj: T must be trivially copyable. "
-        "This legacy alias is only safe for value types.");
-    createCppValueInPikaObj<T>(pika_obj, std::forward<Args>(args)...);
-}
-
-template <typename T>
-void copyCppObjIntoPikaObj(PikaObj* pika_obj, T& obj)
-{
-    static_assert(std::is_trivially_copyable_v<T>,
-        "copyCppObjIntoPikaObj: T must be trivially copyable. "
-        "This legacy alias is only safe for value types.");
-    copyCppValueIntoPikaObj<T>(pika_obj, obj);
-}
-
-template <typename T>
-T* getCppObjPtrInPikaObj(PikaObj* pika_obj) {
-    static_assert(std::is_trivially_copyable_v<T>,
-        "getCppObjPtrInPikaObj: T must be trivially copyable.");
-    return getCppValuePtrInPikaObj<T>(pika_obj);
-}
-
-inline bool hasCppObjInPikaObj(PikaObj* pika_obj) {
-    return hasCppValueInPikaObj(pika_obj);
 }

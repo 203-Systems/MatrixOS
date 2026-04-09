@@ -12,7 +12,7 @@ extern "C" {
         MidiPacket packet;
         if (MatrixOS::MIDI::Get(&packet, timeout_ms)) {
             PikaObj* midi_packet = newNormalObj(New__MatrixOS_MidiPacket_MidiPacket);
-            copyCppObjIntoPikaObj<MidiPacket>(midi_packet, packet);
+            copyCppValueIntoPikaObj<MidiPacket>(midi_packet, packet);
 
             return arg_newObj(midi_packet);
         }
@@ -20,7 +20,7 @@ extern "C" {
     }
 
     pika_bool _MatrixOS_MIDI_Send(PikaObj *self, PikaObj* packet, int timeout_ms) {
-        MidiPacket* midi_packet_ptr = getCppObjPtrInPikaObj<MidiPacket>(packet);
+        MidiPacket* midi_packet_ptr = getCppValuePtrInPikaObj<MidiPacket>(packet);
         if (!midi_packet_ptr) return false;
 
         return MatrixOS::MIDI::Send(*midi_packet_ptr, timeout_ms);
