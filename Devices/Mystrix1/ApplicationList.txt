@@ -34,7 +34,7 @@ Strum
 Reversi
 Companion
 # PolyPlayground
-# [System]Python  # Disabled: build env blocker (ldgen parse failure, not code-related)
+[System]Python
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot

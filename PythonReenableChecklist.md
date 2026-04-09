@@ -6,10 +6,28 @@ Operator-focused checklist for bringing Python back on Mystrix1 and Mystrix2.
 
 ## Prerequisites
 
-- [ ] ESP-IDF toolchain is functional (no ldgen parse failures)
-- [ ] `xtensa-esp-elf-gcc` is on PATH and matches the ESP-IDF version
-- [ ] IDF_PATH is set correctly (e.g. `C:\espressif\v5.3.1`)
-- [ ] ESP-IDF export script has been sourced (`export.ps1` / `export.sh`)
+- [x] ESP-IDF ldgen parser patched (see "ldgen fix" below)
+- [x] `xtensa-esp-elf-gcc` is on PATH and matches the ESP-IDF version
+- [x] IDF_PATH is set correctly (`C:\espressif\v5.3.1`)
+- [x] ESP-IDF export script has been sourced (`export.ps1` / `export.sh`)
+- [x] Mystrix1 build succeeds with Python enabled
+
+## ldgen Fix (ESP-IDF v5.3.1)
+
+ESP-IDF v5.3.1's `ldgen` fails parsing section flags that contain underscores
+(e.g. `LINK_ONCE_DISCARD`).  This was fixed upstream in v5.3.4.
+
+One-line patch applied to `C:\espressif\v5.3.1\tools\ldgen\ldgen\entity.py`
+(line 142–143):
+
+```diff
+-        section_entry = (Suppress(Word(nums)) + Regex(r'\.\S+') + Suppress(rest_of_line)
+-                         + Suppress(ZeroOrMore(Word(alphas) + Literal(',')) + Word(alphas)))
++        section_entry = (Suppress(Word(nums)) + Regex(r'\.\S+') + Suppress(rest_of_line)
++                         + Suppress(ZeroOrMore(Word(alphas + '_') + Literal(',')) + Word(alphas + '_')))
+```
+
+No pyparsing version change is required.  The default venv version (3.2.5) works.
 
 ## Step 1: Regenerate Binding Artifacts
 
@@ -30,12 +48,7 @@ Only `KeypadInfo` (the new API) should match.  No `MatrixOS_KeyPad`,
 
 ## Step 2: Re-enable Python for Mystrix1
 
-Edit `Devices/Mystrix1/ApplicationList.txt`:
-
-```diff
--# [System]Python  # Disabled: build env blocker (ldgen parse failure, not code-related)
-+[System]Python
-```
+Already done — `[System]Python` is active in `Devices/Mystrix1/ApplicationList.txt`.
 
 ## Step 3: Build Mystrix1
 
@@ -52,7 +65,7 @@ cmake -B build/Mystrix1 -Wno-dev . `
 cmake --build build/Mystrix1
 ```
 
-Expected: build completes with `libPython.a` linked.
+Expected: build completes with `libPython.a` linked.  ✅ Verified 2026-04-09.
 
 ## Step 4: Flash and Boot
 
@@ -96,16 +109,6 @@ Build and flash Mystrix2, then repeat the smoke tests.
 
 ## If Build Still Fails
 
-### ldgen parse failure
-
-This is an ESP-IDF toolchain issue, not a Python code issue.
-
-Workarounds:
-1. Use a different ESP-IDF version (v5.3.1 worked for compilation, ldgen may
-   need v5.3.2+ or a pyparsing downgrade)
-2. Downgrade `pyparsing`: `pip install pyparsing==3.0.9`
-3. Check ESP-IDF GitHub issues for ldgen-related fixes
-
 ### Compiler errors in Python C++
 
 If any Python C++ file fails to compile, the binding surface may have
@@ -118,5 +121,6 @@ C++ implementation mismatches.
 
 | Blocker                         | Type          | Status     |
 |---------------------------------|---------------|------------|
-| ldgen `ParseException`          | Environment   | Unresolved |
+| ldgen `ParseException`          | Environment   | **Resolved** (entity.py patch) |
+| Build verification (Mystrix1)   | Software      | **Passed** |
 | Hardware smoke test validation  | Hardware      | Pending    |

@@ -7,15 +7,17 @@ keypad-centric Python API to the new input-first Python API in MatrixOS.
 
 ## Summary of Changes
 
-| Old API                | New API                                    |
-|------------------------|--------------------------------------------|
-| `MatrixOS.KeyPad`      | `MatrixOS.Input`                           |
-| `KeyEvent`             | `InputEvent`                               |
-| `KeyInfo`              | `KeypadInfo` (accessed via `InputEvent`)   |
-| `KeyPad.GetKey()`      | `Input.GetEvent(timeout_ms)`               |
-| `KeyPad.GetKeyState()` | `Input.GetState(input_id)`                 |
-| `UI.SetKeyEventHandler(cb)` | `UI.SetInputHandler(cb)`              |
-| Integer key index      | `InputId` (cluster + member)               |
+| Old API                      | New API                                              | Notes                                                    |
+|------------------------------|------------------------------------------------------|----------------------------------------------------------|
+| `MatrixOS.KeyPad`            | `MatrixOS.Input`                                     | Module rename                                            |
+| `KeyEvent`                   | `InputEvent`                                         | Now includes `InputClass` discriminator                  |
+| `KeyInfo`                    | `KeypadInfo` (via `InputEvent.Keypad()`)             | Only valid when `InputClass() == KEYPAD`                 |
+| `KeyPad.GetKey()`            | `Input.GetEvent(timeout_ms)`                         | Returns any input event, not just keypad                 |
+| `KeyPad.GetKeyState(point)`  | `Input.GetState(input_id)`                           | Takes `InputId`, not grid point; returns `InputSnapshot` |
+| `UI.SetKeyEventHandler(cb)`  | `UI.SetInputHandler(cb)`                             | Handler receives `InputEvent`, returns `bool`            |
+| Integer key index            | `InputId` (cluster + member)                         | No single integer key index                              |
+| *(no equivalent)*            | `Input.GetClusters()` / `GetPrimaryGridCluster()`    | Topology discovery                                       |
+| *(no equivalent)*            | `Input.GetPosition(id)` / `GetInputsAt(point)`       | Coordinate round-trip                                    |
 
 ---
 
@@ -233,9 +235,15 @@ ids = MatrixOS.Input.GetInputsAt(pos)
 ```python
 import MatrixOS
 
-MatrixOS.Input.ClearQueue()  # discard queued events
-MatrixOS.Input.ClearState()  # reset pressure / hold state
+MatrixOS.Input.ClearQueue()  # discard queued events only (OS-side queue)
+MatrixOS.Input.ClearState()  # clear OS-side state cache AND queued events
 ```
+
+**Important:** Neither `ClearQueue()` nor `ClearState()` resets device-side
+keypad scan state.  If a key is physically held, the device will still
+generate a `Released` event when the key is lifted.  This is by design —
+device-side active-press consumption is handled separately at the framework
+level (see `InputClearIssue.md` for full details).
 
 ---
 

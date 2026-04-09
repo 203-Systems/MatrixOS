@@ -644,3 +644,88 @@ Blocker: cannot verify build succeeds. Phase 7 TODO updated with concrete next-s
 - **Phase 7:** Run smoke tests on actual hardware
 - **Phase 7:** Re-enable Mystrix2 after Mystrix1 is validated
 - **Acceptance:** Final item (hardfault-free enable) requires hardware verification
+
+---
+
+## Round 9: Environment Fix + Doc Corrections + Build Verification
+
+### What was done
+
+**Task A — ldgen parse failure root-caused and fixed:**
+
+The `ldgen` `ParseException` that blocked all previous build attempts was diagnosed to its
+actual root cause:
+
+- `objdump -h` output for `libesp_driver_gptimer.a` contains section flags with underscores
+  (e.g. `LINK_ONCE_DISCARD`)
+- ESP-IDF v5.3.1's `entity.py` (line 142–143) uses `Word(alphas)` to match flag tokens,
+  which does not accept underscores
+- This is the same bug already fixed upstream in ESP-IDF v5.3.4 (confirmed by diffing
+  `v5.3.4/tools/ldgen/ldgen/entity.py`)
+
+**Fix applied:** one-line change in `C:\espressif\v5.3.1\tools\ldgen\ldgen\entity.py`:
+```diff
+-        + Suppress(ZeroOrMore(Word(alphas) + Literal(',')) + Word(alphas)))
++        + Suppress(ZeroOrMore(Word(alphas + '_') + Literal(',')) + Word(alphas + '_')))
+```
+
+pyparsing version is irrelevant to this bug.  The IDF venv's pyparsing 3.2.5 works fine.
+(pyparsing was temporarily downgraded to 3.0.9 and 3.1.4 during diagnosis; restored to 3.2.5.)
+
+**Task B — Mystrix1 Python build verified:**
+
+Environment setup:
+```powershell
+$env:IDF_PATH = "C:\espressif\v5.3.1"
+. "$env:IDF_PATH\export.ps1"
+cd C:\Users\NengzhuoCai\Documents\GitHub\Matrix\MatrixOS
+cmake -B build/Mystrix1 -Wno-dev . `
+  -DCMAKE_TOOLCHAIN_FILE="$env:IDF_PATH/tools/cmake/toolchain-esp32s3.cmake" `
+  -DFAMILY=Mystrix1 -DDEVICE=Mystrix1 -DMODE=DEVELOPMENT -GNinja
+cmake --build build/Mystrix1
+```
+
+Results:
+- CMake configured successfully: `Python at Applications/Python` loaded as system app
+- All Python C++ files compiled clean
+- `libPython.a` linked successfully
+- `ldgen` passed (sections.ld generated without error)
+- Binary generated: `MatrixOS-Mystrix1.bin` (0x24dde0 bytes, 42% free in app partition)
+- Build exit code: 0
+
+**Mystrix1 Python is now permanently enabled** (`[System]Python` uncommented).
+
+**Task C — PythonMigrationNotes.md corrected:**
+
+1. Old-to-new mapping table expanded:
+   - Added `GetKeyState(point)` → `GetState(input_id)` with note about argument change
+   - Added topology and coordinate APIs (no old equivalent)
+   - Added "Notes" column to clarify semantic differences
+
+2. `ClearQueue()` / `ClearState()` semantics made honest:
+   - `ClearQueue()`: clears OS-side queued events only
+   - `ClearState()`: clears OS-side state cache + queue
+   - Explicit note: neither clears device-side active press state
+   - References `InputClearIssue.md` for full analysis
+
+**Task D — PythonReenableChecklist.md corrected:**
+
+- Prerequisites updated to reflect resolved state
+- Added "ldgen Fix" section documenting exact patch
+- Step 2 updated (already done, not future action)
+- Step 3 marked as verified
+- Removed outdated workaround suggestions (pyparsing downgrade, etc.)
+- Blocker table updated: ldgen resolved, build passed, only hardware tests pending
+
+**Task E — PythonRefactorTODO.md updated:**
+
+- Phase 7 "Build verification on target" marked done with ldgen fix note
+- Phase 7 "Re-enable Python in Mystrix1" marked done
+- Phase 7 "Verify build succeeds" marked done
+
+### What remains after this round
+
+- **Phase 7 hardware:** Run smoke tests on actual Mystrix1 hardware
+- **Phase 7 hardware:** Verify no hardfault on UI create/destroy and callback re-registration loops
+- **Phase 7:** Re-enable Mystrix2 after Mystrix1 hardware smoke tests pass
+- **Acceptance:** Final checklist item (hardfault-free enable) requires hardware verification
