@@ -86,6 +86,8 @@ import from `main.py`), then boot the device.
 | 1     | `smoke_tests/smoke_value_wrappers.py`     | Printed InputId, Point, Color, cluster info |
 | 2     | `smoke_tests/smoke_input_polling.py`      | `GetEvent` returns None on timeout, events on key press |
 | 3     | `smoke_tests/smoke_ui_callback.py`        | UI opens, input events printed, clean exit on fn-key |
+| 4     | `smoke_tests/smoke_ui_create_destroy_loop.py` | 20 UI create/destroy cycles, no crash  |
+| 5     | `smoke_tests/smoke_ui_callback_reregister_loop.py` | 20 callback replacements, no crash |
 
 ### What to look for
 
@@ -95,10 +97,12 @@ import from `main.py`), then boot the device.
 - UI callback prints event details with correct cluster/member IDs
 - `ui.Close()` completes without crash
 - No watchdog timeout
+- Scripts 4 and 5 print "done" after all iterations without crash
 
 ## Step 6: Re-enable Python for Mystrix2
 
-Only after Mystrix1 smoke tests pass:
+Only after **all five** Mystrix1 smoke tests pass (including the
+create/destroy and callback re-registration loop scripts):
 
 Edit `Devices/Mystrix2/ApplicationList.txt` with the same change (uncomment
 `[System]Python`).

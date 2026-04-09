@@ -7,17 +7,19 @@ keypad-centric Python API to the new input-first Python API in MatrixOS.
 
 ## Summary of Changes
 
-| Old API                      | New API                                              | Notes                                                    |
-|------------------------------|------------------------------------------------------|----------------------------------------------------------|
-| `MatrixOS.KeyPad`            | `MatrixOS.Input`                                     | Module rename                                            |
-| `KeyEvent`                   | `InputEvent`                                         | Now includes `InputClass` discriminator                  |
-| `KeyInfo`                    | `KeypadInfo` (via `InputEvent.Keypad()`)             | Only valid when `InputClass() == KEYPAD`                 |
-| `KeyPad.GetKey()`            | `Input.GetEvent(timeout_ms)`                         | Returns any input event, not just keypad                 |
-| `KeyPad.GetKeyState(point)`  | `Input.GetState(input_id)`                           | Takes `InputId`, not grid point; returns `InputSnapshot` |
-| `UI.SetKeyEventHandler(cb)`  | `UI.SetInputHandler(cb)`                             | Handler receives `InputEvent`, returns `bool`            |
-| Integer key index            | `InputId` (cluster + member)                         | No single integer key index                              |
-| *(no equivalent)*            | `Input.GetClusters()` / `GetPrimaryGridCluster()`    | Topology discovery                                       |
-| *(no equivalent)*            | `Input.GetPosition(id)` / `GetInputsAt(point)`       | Coordinate round-trip                                    |
+| Old API                        | New API                                              | Notes                                                    |
+|--------------------------------|------------------------------------------------------|----------------------------------------------------------|
+| `MatrixOS.KeyPad`              | `MatrixOS.Input`                                     | Module rename                                            |
+| `KeyEvent`                     | `InputEvent`                                         | Now includes `InputClass` discriminator                  |
+| `KeyInfo`                      | `KeypadInfo` (via `InputEvent.Keypad()`)             | Only valid when `InputClass() == KEYPAD`                 |
+| `KeyPad.Get(timeout_ms)`       | `Input.GetEvent(timeout_ms)`                         | Event polling — returns any input, not just keypad       |
+| `KeyPad.GetKey(point)`         | `Input.GetState(input_id)`                           | State lookup — takes `InputId`, not grid point           |
+| `KeyPad.GetKeyByID(id)`        | `Input.GetState(input_id)`                           | State lookup — `InputId` replaces integer key index      |
+| `KeyPad.XY2ID(point)`          | `Input.GetInputsAt(point)`                           | Returns list of `InputId`s at a grid coordinate          |
+| `KeyPad.ID2XY(id)`             | `Input.GetPosition(input_id)`                        | Returns `Point` for a given `InputId`                    |
+| `UI.SetKeyEventHandler(cb)`    | `UI.SetInputHandler(cb)`                             | Handler receives `InputEvent`, returns `bool`            |
+| Integer key index              | `InputId` (cluster + member)                         | No single integer key index                              |
+| *(no equivalent)*              | `Input.GetClusters()` / `GetPrimaryGridCluster()`    | Topology discovery                                       |
 
 ---
 
@@ -227,6 +229,36 @@ if grid is not None:
 pos = MatrixOS.Input.GetPosition(some_id)
 ids = MatrixOS.Input.GetInputsAt(pos)
 ```
+
+---
+
+## Migrating State Lookups (`GetKey` → `GetState`)
+
+The old `KeyPad.GetKey(point)` took a grid coordinate and returned key
+info directly.  The new API separates coordinate resolution from state
+lookup:
+
+```python
+import MatrixOS
+import MatrixOS_InputClass as InputClass
+from MatrixOS_Point import Point
+
+# Old pattern (deleted):
+#   info = MatrixOS.KeyPad.GetKey(Point(2, 3))
+#   state = info.State()
+
+# New pattern — resolve InputId first, then look up state:
+ids = MatrixOS.Input.GetInputsAt(Point(2, 3))
+if len(ids) > 0:
+    snap = MatrixOS.Input.GetState(ids[0])
+    if snap is not None and snap.InputClass() == InputClass.KEYPAD:
+        info = snap.Keypad()
+        if info is not None:
+            print("State:", info.State(), "Force:", info.Force())
+```
+
+`GetKeyByID(id)` works the same way — replace the integer ID with an
+`InputId` and call `GetState()`.
 
 ---
 

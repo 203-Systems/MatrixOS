@@ -112,8 +112,10 @@ Target: Mystrix1 (same hardware/build as Mystrix2; both have Python disabled ide
 - [x] Add one smoke test script exercising input polling (`MatrixOS.Input.GetEvent()`)
 - [x] Add one smoke test script exercising UI callback registration (`UI.SetInputHandler()`)
 - [x] Add one smoke test script exercising value wrappers (`InputId`, `Point`, `Color`)
-- [ ] Verify no immediate hardfault on UI create/destroy loop
-- [ ] Verify no immediate hardfault on callback re-registration loop
+- [x] Add smoke test script for UI create/destroy loop stability
+- [x] Add smoke test script for callback re-registration loop stability
+- [ ] Verify no immediate hardfault on UI create/destroy loop (hardware)
+- [ ] Verify no immediate hardfault on callback re-registration loop (hardware)
 - [ ] Re-enable Python for Mystrix2 after Mystrix1 smoke tests pass
 
 ## Phase 8: App Migration

@@ -729,3 +729,68 @@ Results:
 - **Phase 7 hardware:** Verify no hardfault on UI create/destroy and callback re-registration loops
 - **Phase 7:** Re-enable Mystrix2 after Mystrix1 hardware smoke tests pass
 - **Acceptance:** Final checklist item (hardfault-free enable) requires hardware verification
+
+## Round 10: Doc Mapping Fix + Hardfault Smoke Scripts + Checklist Updates
+
+### What was done
+
+**Task A — PythonMigrationNotes.md mapping table corrected:**
+
+The old-to-new API mapping table had an incorrect entry: `KeyPad.GetKey()` → `Input.GetEvent()`.
+The old API actually exposed:
+
+| Old function           | Purpose              |
+|------------------------|----------------------|
+| `KeyPad.Get(timeout)`  | Event queue polling  |
+| `KeyPad.GetKey(point)` | State lookup by grid coordinate |
+| `KeyPad.GetKeyByID(id)`| State lookup by integer key ID |
+| `KeyPad.XY2ID(point)`  | Coordinate → legacy integer ID |
+| `KeyPad.ID2XY(id)`     | Legacy integer ID → coordinate |
+
+The table now correctly maps each old function to its new equivalent, separating
+event polling (`GetEvent`) from state lookup (`GetState`) from topology helpers
+(`GetInputsAt`, `GetPosition`).
+
+Added a new "Migrating State Lookups" section with an example showing the
+resolve-then-lookup pattern that replaces direct `GetKey(point)` calls.
+
+**Task B — Two hardfault-detection smoke scripts added:**
+
+- `smoke_tests/smoke_ui_create_destroy_loop.py` — creates and closes a UI 20 times
+  in a tight loop. Catches memory corruption, double-free, or resource leaks in the
+  handle lifecycle.
+
+- `smoke_tests/smoke_ui_callback_reregister_loop.py` — replaces the input handler
+  20 times on a single UI instance. Catches callback context leaks, dangling references,
+  or refcount errors in the callback pinning path.
+
+Both scripts print clear start/end markers and per-iteration status for serial
+observation. They use only the new input-first API.
+
+**Task C — smoke_tests/README.md updated:**
+
+Added the two new scripts to the table with a recommended 5-step execution order.
+Documented what each stress test is designed to catch.
+
+**Task D — PythonReenableChecklist.md updated:**
+
+- Step 5 table expanded with the two new smoke scripts (order 4 and 5)
+- Added "Scripts 4 and 5 print done after all iterations without crash" to observations
+- Step 6 (Mystrix2) now explicitly requires all five smoke tests to pass
+
+**Task E — PythonRefactorTODO.md updated:**
+
+- Added two new "Add smoke test script" checkboxes, both marked done
+- Renamed the hardware-execution items to include "(hardware)" suffix to make it
+  clear they require physical device execution
+- No hardware-execution items were marked done
+
+### What remains after this round
+
+All remaining unchecked items are **hardware-only** — they require flashing and
+running on a physical Mystrix1 device:
+
+- Phase 7: Verify no immediate hardfault on UI create/destroy loop (hardware)
+- Phase 7: Verify no immediate hardfault on callback re-registration loop (hardware)
+- Phase 7: Re-enable Python for Mystrix2 after Mystrix1 smoke tests pass
+- Acceptance: Python can be enabled without known structural hardfault traps
