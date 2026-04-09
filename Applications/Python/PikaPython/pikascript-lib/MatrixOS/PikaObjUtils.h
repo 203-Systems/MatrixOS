@@ -61,13 +61,14 @@ void createCppValueInPikaObj(PikaObj* pika_obj, Args&&... args)
 }
 
 template <typename T>
-void copyCppValueIntoPikaObj(PikaObj* pika_obj, T& obj)
+void copyCppValueIntoPikaObj(PikaObj* pika_obj, const T& obj)
 {
     static_assert(IsApprovedPikaValue<T>::value,
         "copyCppValueIntoPikaObj: T is not on the approved value-wrapper list.");
     static_assert(std::is_trivially_copyable_v<T>,
         "copyCppValueIntoPikaObj: T must be trivially copyable.");
-    obj_setStruct(pika_obj, (char*)"_self", obj);
+    T copy = obj;  // mutable copy — obj_setStruct takes void*, not const void*
+    obj_setStruct(pika_obj, (char*)"_self", copy);
 }
 
 template <typename T>

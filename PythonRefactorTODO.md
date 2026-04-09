@@ -104,14 +104,14 @@ Target: Mystrix1 (same hardware/build as Mystrix2; both have Python disabled ide
 - [x] Pika generator has been run and generated output is consistent
 - [x] `.py` and `.pyi` typing is internally consistent (nullable convention applied)
 - [x] `SetKeyEventHandler` fully removed; `SetInputHandler` is the only UI input API
-- [ ] Build verification on target (blocked: ESP-IDF toolchain version mismatch in dev env)
+- [ ] Build verification on target (blocked: ESP-IDF ldgen parse failure in toolchain, not code-related)
 
 ### Re-enable steps
 - [ ] Re-enable Python in `Devices/Mystrix1/ApplicationList.txt` (uncomment `[System]Python`)
-- [ ] Verify build succeeds with `idf.py -B build/Mystrix1 -DDEVICE=Mystrix1 build`
-- [ ] Add one smoke test script exercising input polling (`MatrixOS.Input.GetEvent()`)
-- [ ] Add one smoke test script exercising UI callback registration (`UI.SetInputHandler()`)
-- [ ] Add one smoke test script exercising value wrappers (`InputId`, `Point`, `Color`)
+- [ ] Verify build succeeds (all Python C++ compiles clean; blocked by ldgen env issue)
+- [x] Add one smoke test script exercising input polling (`MatrixOS.Input.GetEvent()`)
+- [x] Add one smoke test script exercising UI callback registration (`UI.SetInputHandler()`)
+- [x] Add one smoke test script exercising value wrappers (`InputId`, `Point`, `Color`)
 - [ ] Verify no immediate hardfault on UI create/destroy loop
 - [ ] Verify no immediate hardfault on callback re-registration loop
 - [ ] Re-enable Python for Mystrix2 after Mystrix1 smoke tests pass

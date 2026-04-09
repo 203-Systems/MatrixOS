@@ -34,7 +34,7 @@ Strum
 Reversi
 Companion
 # PolyPlayground
-# [System]Python  # Disabled: input API migration in progress (Phase 4–7)
+# [System]Python  # Disabled: build env blocker (ldgen parse failure, not code-related)
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot

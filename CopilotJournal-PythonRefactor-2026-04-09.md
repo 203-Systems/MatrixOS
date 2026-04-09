@@ -536,3 +536,47 @@ Blocker: cannot verify build succeeds. Phase 7 TODO updated with concrete next-s
 - **Phase 7:** Write actual smoke test Python scripts
 - **Phase 8:** App migration
 - **Phase 9:** Final cleanup
+
+---
+
+## Round 7: Phase 7 Smoke Tests + Build Attempt
+
+### What was done
+
+**Task A — Smoke test scripts added:**
+- `Applications/Python/PikaPython/smoke_tests/smoke_input_polling.py`
+  - exercises `GetEvent()`, `GetState()`, `FunctionKey()`, `ClearQueue()`, `ClearState()`
+- `Applications/Python/PikaPython/smoke_tests/smoke_ui_callback.py`
+  - creates UI, installs `SetInputHandler`, filters on `InputClass`, start/close lifecycle
+- `Applications/Python/PikaPython/smoke_tests/smoke_value_wrappers.py`
+  - exercises `InputId`, `Point`, `Color`, `InputCluster`, `KeypadInfo` via live data
+- `Applications/Python/PikaPython/smoke_tests/README.md`
+  - execution instructions for hardware bring-up
+
+**Task B — Mystrix1 re-enable attempted then reverted:**
+- `[System]Python` was temporarily uncommented in `Devices/Mystrix1/ApplicationList.txt`
+- CMake configuration succeeded; Python app was loaded as system application
+- All Python C++ files compiled successfully; `libPython.a` linked clean
+- Build failed at ESP-IDF `ldgen` linker script generation (unrelated to Python code)
+- Error: `pyparsing.exceptions.ParseException` in `libesp_driver_gptimer.a` section parsing
+- Re-enable reverted; Python remains disabled until toolchain environment is fixed
+
+**Task C — Build validation:**
+- Build command: `cmake -B build/Mystrix1 -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$IDF_PATH/tools/cmake/toolchain-esp32s3.cmake -DFAMILY=Mystrix1 -DDEVICE=Mystrix1 -DMODE=DEVELOPMENT -GNinja && cmake --build build/Mystrix1`
+- IDF_PATH: `C:\espressif\v5.3.1` (ESP-IDF v5.3.1, xtensa-esp-elf-gcc 13.2.0)
+- Note: `idf.py build` fails due to esp-clang misconfiguration; direct cmake works
+
+**Code fixes during build:**
+1. `PikaObjUtils.h`: `copyCppValueIntoPikaObj` now takes `const T&` (was `T&`), with mutable copy for `obj_setStruct`
+2. `MatrixOS_InputCluster.cpp`: cast `c.name.c_str()` to `char*` and `""` to `char*` for `obj_setStr`
+
+**Task D — No regressions:**
+- No legacy keypad symbols reintroduced
+- All smoke scripts use input-first API exclusively
+
+### What remains after this round
+
+- **Phase 7:** Fix ESP-IDF toolchain environment (ldgen parse error) and re-enable Python
+- **Phase 7:** Run smoke tests on hardware
+- **Phase 8:** App migration
+- **Phase 9:** Final cleanup

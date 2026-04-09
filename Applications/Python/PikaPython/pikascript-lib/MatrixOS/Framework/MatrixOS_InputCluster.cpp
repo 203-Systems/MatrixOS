@@ -7,7 +7,7 @@
 // Uses Pika attributes for all fields so the Python object is fully self-contained.
 void populateInputClusterInPikaObj(PikaObj* obj, const InputCluster& c) {
     obj_setInt(obj, (char*)"_clusterId", c.clusterId);
-    obj_setStr(obj, (char*)"_name", c.name.c_str());
+    obj_setStr(obj, (char*)"_name", (char*)c.name.c_str());
     obj_setInt(obj, (char*)"_inputClass", (int)c.inputClass);
     obj_setInt(obj, (char*)"_shape", (int)c.shape);
     obj_setInt(obj, (char*)"_rootPointX", c.rootPoint.x);
@@ -26,7 +26,7 @@ extern "C" {
 
     void _MatrixOS_InputCluster_InputCluster___init__(PikaObj *self) {
         obj_setInt(self, (char*)"_clusterId", 0);
-        obj_setStr(self, (char*)"_name", "");
+        obj_setStr(self, (char*)"_name", (char*)"");
         obj_setInt(self, (char*)"_inputClass", 0);
         obj_setInt(self, (char*)"_shape", 0);
         obj_setInt(self, (char*)"_rootPointX", INT16_MIN);
