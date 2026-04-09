@@ -44,7 +44,6 @@ public:
   void KeyEventHandler(InputEvent& inputEvent);
 
   void GridKeyEvent(Point xy, KeypadInfo* keypadInfo);
-  void IDKeyEvent(uint16_t keyID, KeyInfo* KeyInfo);
 
   void PlayView();
 

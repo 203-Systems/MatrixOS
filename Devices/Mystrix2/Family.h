@@ -97,7 +97,7 @@ inline gpio_num_t fnPin;
 inline bool velocitySensitivity = true;
 inline KeypadType keypadType = KeypadType::MPEKeypad;
 
-inline KeyConfig binaryConfig = {
+inline KeyScanConfig binaryConfig = {
     .applyCurve = false,
     .lowThreshold = 0,
     .highThreshold = 65535,
@@ -105,7 +105,7 @@ inline KeyConfig binaryConfig = {
     .debounce = 3,
 };
 
-inline KeyConfig keypadConfig = {
+inline KeyScanConfig keypadConfig = {
     .applyCurve = true,
     .lowThreshold = 24000,
     .highThreshold = 53248,
@@ -113,7 +113,7 @@ inline KeyConfig keypadConfig = {
     .debounce = 5,
 };
 
-inline KeyConfig mpeConfig = {
+inline KeyScanConfig mpeConfig = {
     .applyCurve = true,
     .lowThreshold = 40000,
     .highThreshold = 53248,
@@ -124,10 +124,10 @@ inline KeyConfig mpeConfig = {
 inline const uint16_t keypadScanrate = 240;
 inline const uint16_t touchbarScanrate = 120;
 
-inline KeyInfo fnState;
-inline KeyInfo keypadState[X_SIZE][Y_SIZE];
+inline KeyScanState fnState;
+inline KeyScanState keypadState[X_SIZE][Y_SIZE];
 inline uint16_t padForce[X_SIZE][Y_SIZE] = {};
-inline KeyInfo touchbarState[TOUCHBAR_SIZE]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
+inline KeyScanState touchbarState[TOUCHBAR_SIZE]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
 
 namespace FSR
 {
@@ -143,7 +143,7 @@ void Start();
 bool Scan();
 } // namespace MPE
 
-bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
+bool NotifyOS(uint16_t keyID, KeyScanState* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
 } // namespace KeyPad
 
 namespace NVS

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Framework.h"
-#include "KeyInfo.h"
+#include "KeyScanState.h"
 #include "MatrixOSConfig.h"
 #include "Family.h"
 #include "DefaultConfigs.h"
@@ -60,7 +60,7 @@ Point Index2XY(uint16_t index); // Buffer index to Grid XY, return Point(INT16_M
 
 namespace KeyPad
 {
-KeyInfo* GetKey(uint16_t keyID);
+KeyScanState* GetKey(uint16_t keyID);
 void Clear();                // Since only the Device layer awares the keyInfo buffer, the function's job is to run Clear() on all
                              // keyInfo
 uint16_t XY2ID(Point xy);    // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no

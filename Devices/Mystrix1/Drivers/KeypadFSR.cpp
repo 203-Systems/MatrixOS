@@ -158,7 +158,7 @@ IRAM_ATTR bool Scan() {
   uint16_t (*result)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_result;
   // uint16_t(*threshold)[Y_SIZE] = (uint16_t(*)[Y_SIZE]) &ulp_threshold;
 
-  KeyConfig config = keypadConfig;
+  KeyScanConfig config = keypadConfig;
   for (uint8_t y = 0; y < Y_SIZE; y++)
   {
     for (uint8_t x = 0; x < X_SIZE; x++)

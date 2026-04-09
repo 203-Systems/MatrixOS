@@ -96,7 +96,7 @@ bool ScanTouchBar();
 inline gpio_num_t fnPin;
 inline bool velocitySensitivity = false;
 
-inline KeyConfig binaryConfig = {
+inline KeyScanConfig binaryConfig = {
     .applyCurve = false,
     .lowThreshold = 0,
     .highThreshold = 65535,
@@ -104,7 +104,7 @@ inline KeyConfig binaryConfig = {
     .debounce = 3,
 };
 
-inline KeyConfig keypadConfig = {
+inline KeyScanConfig keypadConfig = {
     .applyCurve = true,
     .lowThreshold = 1536,
     .highThreshold = 32767,
@@ -126,9 +126,9 @@ inline const uint16_t touchbarScanrate = 120;
 inline uint8_t touchbarMap[touchbarSize]; // Touch number as index and touch location as value (Left touch down
                                             // and then right touch down)
 
-inline KeyInfo fnState;
-inline KeyInfo keypadState[X_SIZE][Y_SIZE];
-inline KeyInfo touchbarState[touchbarSize];
+inline KeyScanState fnState;
+inline KeyScanState keypadState[X_SIZE][Y_SIZE];
+inline KeyScanState touchbarState[touchbarSize];
 
 namespace Binary
 {
@@ -144,7 +144,7 @@ void Start();
 bool Scan();
 } // namespace FSR
 
-bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
+bool NotifyOS(uint16_t keyID, KeyScanState* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
 } // namespace KeyPad
 
 namespace NVS

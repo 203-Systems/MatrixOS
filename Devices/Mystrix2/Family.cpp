@@ -318,18 +318,18 @@ void DeviceStart() {
   }
 #endif
   Device::KeyPad::Scan();
-  // Use keyInfo->Force() instead KeyInfo->Active() because it might still be debouncing
-  if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->Force() && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->Force())
+  // Use keyState->pressure instead of Active() because it might still be debouncing
+  if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->pressure)
   {
     MatrixOS::SYS::ExecuteAPP("203 Systems", "Mystrix Factory Menu");
   }
-  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->Force() && KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->Force())
+  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->pressure)
   {
     KeyPad::Clear();
     MatrixOS::UserVar::brightness.Set(Device::LED::brightnessLevel[0]);
   }
-  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->Force() && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->Force() &&
-           KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->Force())
+  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->pressure &&
+           KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->pressure)
   {
     MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF00FF));
     MatrixOS::LED::SetColor(Point(5, 2), Color(0xFF00FF));
