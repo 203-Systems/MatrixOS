@@ -178,8 +178,7 @@ extern "C" {
     PikaObj* New__MatrixOS_InputEvent_InputEvent(Args *args);
     PikaObj* New__MatrixOS_InputId_InputId(Args *args);
 
-    // SetInputHandler — the new input-centric forward path.
-    // Passes InputEvent directly to the Python callback (no legacy conversion).
+    // SetInputHandler — passes InputEvent directly to the Python callback.
     pika_bool _MatrixOS_UI_UI_SetInputHandler(PikaObj *self, Arg* input_handler) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;

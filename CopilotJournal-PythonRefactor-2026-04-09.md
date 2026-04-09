@@ -580,3 +580,67 @@ Blocker: cannot verify build succeeds. Phase 7 TODO updated with concrete next-s
 - **Phase 7:** Run smoke tests on hardware
 - **Phase 8:** App migration
 - **Phase 9:** Final cleanup
+
+---
+
+## Round 8: Phase 8 Audit + Phase 9 Cleanup + Documentation
+
+### What was done
+
+**Task A — Phase 8 app audit:**
+- Audited all hand-written Python scripts under `Applications/Python/PikaPython/`:
+  - `main.py` — imports only input-first modules
+  - `smoke_tests/smoke_input_polling.py` — uses `MatrixOS.Input.GetEvent`, `InputClass`, `KeypadInfo`
+  - `smoke_tests/smoke_ui_callback.py` — uses `UI.SetInputHandler`, `InputClass` filtering
+  - `smoke_tests/smoke_value_wrappers.py` — uses `InputId`, `Point`, `Color`, `InputCluster`
+  - All `.py` wrapper modules — input-first only
+- Grep confirmed: zero references to `KeyPad`, `KeyEvent`, `KeyInfo`, or `SetKeyEventHandler` in any `.py` or `.pyi`
+- **Conclusion:** No migration work needed. All Phase 8 items marked done.
+
+**Task B — Migration documentation:**
+- Created `PythonMigrationNotes.md` at repo root
+  - Old-to-new API mapping table
+  - Core concepts (InputId, InputClass, InputEvent, InputSnapshot, KeypadInfo, KeyState)
+  - Polling examples with `MatrixOS.Input.GetEvent()`
+  - State reading with `MatrixOS.Input.GetState()`
+  - UI callback migration with `UI.SetInputHandler()`
+  - InputClass-check-first pattern
+  - Value wrapper vs handle wrapper guidance
+  - Quick reference imports
+
+**Task C — Re-enable checklist:**
+- Created `PythonReenableChecklist.md` at repo root
+  - Prerequisite checks (ESP-IDF, toolchain, IDF_PATH)
+  - Generator step (`rust-msc-latest-win10.exe`)
+  - Exact file to edit (`Devices/Mystrix1/ApplicationList.txt`)
+  - Build commands (cmake, not `idf.py build`)
+  - Smoke test execution order and expected serial output
+  - Mystrix2 re-enable criteria
+  - Troubleshooting for known blockers
+
+**Task D — Pika generator re-run:**
+- `rust-msc-latest-win10.exe` ran successfully from `Applications/Python/PikaPython/`
+- All `.py`/`.pyi` sources scanned, compiled, and linked
+- Generated `pikascript-api/` output: no changes (already consistent)
+- No legacy `MatrixOS_KeyPad`, `MatrixOS_KeyEvent`, or `MatrixOS_KeyInfo` symbols in generated output
+
+**Task E — Build verification:**
+- Python temporarily re-enabled in `Devices/Mystrix1/ApplicationList.txt`
+- CMake configured successfully: `Python at Applications/Python` loaded as system app
+- Build command: `cmake -B build/Mystrix1 -Wno-dev . -DCMAKE_TOOLCHAIN_FILE=$IDF_PATH/tools/cmake/toolchain-esp32s3.cmake -DFAMILY=Mystrix1 -DDEVICE=Mystrix1 -DMODE=DEVELOPMENT -GNinja && cmake --build build/Mystrix1`
+- `libPython.a` linked clean — all Python C++ compiled without error
+- Build failed at `ldgen` (linker script generation): `pyparsing.exceptions.ParseException` on `libesp_driver_gptimer.a`
+- This is the same ESP-IDF toolchain bug from Round 7, not code-related
+- Python re-enable reverted; remains disabled until toolchain is fixed
+
+**Task F — Phase 9 cleanup:**
+- Removed stale "no legacy conversion" comment from `MatrixOS_UI.cpp` line 182
+- No obsolete wrapper files or generated stubs found (all removed in Phase 5/6)
+- `PythonRefactorTODO.md` updated: Phase 8 and Phase 9 marked done, acceptance checklist updated
+
+### What remains after this round
+
+- **Phase 7:** Fix ESP-IDF toolchain environment (ldgen parse error) and re-enable Python
+- **Phase 7:** Run smoke tests on actual hardware
+- **Phase 7:** Re-enable Mystrix2 after Mystrix1 is validated
+- **Acceptance:** Final item (hardfault-free enable) requires hardware verification

@@ -118,26 +118,35 @@ Target: Mystrix1 (same hardware/build as Mystrix2; both have Python disabled ide
 
 ## Phase 8: App Migration
 
-- [ ] Audit existing Python apps/scripts
-- [ ] Replace old keypad imports with new input imports
-- [ ] Replace old key event callbacks with new input callbacks
-- [ ] Remove dependence on integer key IDs
-- [ ] Update examples and templates
+- [x] Audit existing Python apps/scripts
+- [x] Replace old keypad imports with new input imports
+- [x] Replace old key event callbacks with new input callbacks
+- [x] Remove dependence on integer key IDs
+- [x] Update examples and templates
+
+> **Result:** Audit found zero remaining legacy references.  All hand-written
+> scripts (`main.py`, smoke tests, wrapper `.py` modules) already use the
+> input-first API exclusively.  No migration work was needed.
 
 ## Phase 9: Cleanup
 
-- [ ] Remove dead compatibility comments
-- [ ] Remove obsolete wrapper files
-- [ ] Remove obsolete generated stubs
-- [ ] Write migration notes for future Python scripts
-- [ ] Write final Python re-enable checklist
+- [x] Remove dead compatibility comments
+- [x] Remove obsolete wrapper files
+- [x] Remove obsolete generated stubs
+- [x] Write migration notes for future Python scripts
+- [x] Write final Python re-enable checklist
+
+> **Result:** One stale "no legacy conversion" comment removed from
+> `MatrixOS_UI.cpp`.  No obsolete wrapper files or generated stubs remain
+> (legacy surface was deleted in Phase 5/6).  `PythonMigrationNotes.md` and
+> `PythonReenableChecklist.md` created at repo root.
 
 ---
 
 ## Acceptance Checklist
 
-- [ ] No non-trivial UI object is stored in `PikaObj` by raw struct copy
-- [ ] Old Python `KeyPad / KeyEvent / KeyInfo` API is gone
-- [ ] Python input API is input-first, not keypad-first
-- [ ] Callback lifecycle is explicit and teardown-safe
+- [x] No non-trivial UI object is stored in `PikaObj` by raw struct copy
+- [x] Old Python `KeyPad / KeyEvent / KeyInfo` API is gone
+- [x] Python input API is input-first, not keypad-first
+- [x] Callback lifecycle is explicit and teardown-safe
 - [ ] Python can be enabled without known structural hardfault traps
