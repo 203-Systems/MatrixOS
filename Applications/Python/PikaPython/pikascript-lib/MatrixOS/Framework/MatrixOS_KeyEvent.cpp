@@ -1,8 +1,14 @@
 #include "MatrixOS.h"
-#include "Framework/KeyEvent/KeyEvent.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../PikaObjUtils.h"
+
+// Python-side "KeyEvent" backed by new input types.
+// Keeps the same Python API surface but no longer depends on the C++ KeyEvent struct.
+struct PythonKeyEvent {
+  uint16_t id;
+  KeypadInfo info;
+};
 
 extern "C" {
     // PikaObj constructor
@@ -10,70 +16,70 @@ extern "C" {
 
     // constructor
     void _MatrixOS_KeyEvent_KeyEvent___init__(PikaObj *self) {
-        createCppObjPtrInPikaObj<KeyEvent>(self);
+        createCppObjPtrInPikaObj<PythonKeyEvent>(self);
     }
 
     // Getters
     int _MatrixOS_KeyEvent_KeyEvent_ID(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return 0;
-        return keyEvent->ID();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return 0;
+        return evt->id;
     }
 
-    // Pass-through methods to KeyInfo
+    // Pass-through methods to KeypadInfo
     int _MatrixOS_KeyEvent_KeyEvent_State(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return 0;
-        return (int)keyEvent->State();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return 0;
+        return (int)evt->info.state;
     }
 
     pika_bool _MatrixOS_KeyEvent_KeyEvent_Hold(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return false;
-        return keyEvent->Hold();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return false;
+        return evt->info.Hold();
     }
 
     int _MatrixOS_KeyEvent_KeyEvent_HoldTime(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return 0;
-        return keyEvent->HoldTime();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return 0;
+        if (!evt->info.Active()) return 0;
+        return (int)(MatrixOS::SYS::Millis() - evt->info.lastEventTime);
     }
 
     pika_bool _MatrixOS_KeyEvent_KeyEvent_Active(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return false;
-        return keyEvent->Active();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return false;
+        return evt->info.Active();
     }
 
     pika_float _MatrixOS_KeyEvent_KeyEvent_Force(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return 0.0;
-        return (float)keyEvent->Force();
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return 0.0;
+        return (float)evt->info.pressure;
     }
 
     pika_float _MatrixOS_KeyEvent_KeyEvent_Value(PikaObj *self, int index) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return 0.0;
-        return (float)keyEvent->Value(index);
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return 0.0;
+        if (index == 0) return (float)evt->info.pressure;
+        if (index == 1) return (float)evt->info.velocity;
+        return 0.0;
     }
 
     // Boolean conversion operator
     pika_bool _MatrixOS_KeyEvent_KeyEvent___bool__(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return false;
-        return (*keyEvent);
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return false;
+        return evt->info.state >= KeypadState::Pressed && evt->info.state <= KeypadState::Released;
     }
 
     Arg* _MatrixOS_KeyEvent_KeyEvent_KeyInfo(PikaObj *self) {
-        KeyEvent* keyEvent = getCppObjPtrInPikaObj<KeyEvent>(self);
-        if (!keyEvent) return arg_newNone();
-        
-        // Create a new KeyInfo Python object
+        PythonKeyEvent* evt = getCppObjPtrInPikaObj<PythonKeyEvent>(self);
+        if (!evt) return arg_newNone();
+
         PikaObj* keyInfoObj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
-        
-        // Copy the KeyInfo data from the KeyEvent
-        copyCppObjIntoPikaObj<KeyInfo>(keyInfoObj, keyEvent->info);
-        
+        copyCppObjIntoPikaObj<KeypadInfo>(keyInfoObj, evt->info);
+
         return arg_newObj(keyInfoObj);
     }
 }

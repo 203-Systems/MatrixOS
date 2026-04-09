@@ -1,8 +1,12 @@
 #include "MatrixOS.h"
-#include "Framework/KeyEvent/KeyEvent.h"
-#include "Framework/Input/InputCompat.h"
 #include "pikaScript.h"
 #include "PikaObjUtils.h"
+
+// Same struct as in MatrixOS_KeyEvent.cpp — Python "KeyEvent" backed by KeypadInfo
+struct PythonKeyEvent {
+  uint16_t id;
+  KeypadInfo info;
+};
 
 extern "C" {
     // Forward declarations for constructors
@@ -11,19 +15,18 @@ extern "C" {
     PikaObj* New__MatrixOS_Point_Point(Args *args);
     void _MatrixOS_Point_Point___init__(PikaObj *self, int x, int y);
 
-    // KeyPad class implementation — polls from MatrixOS::Input (the legacy KeyEvent queue is deleted)
+    // KeyPad class implementation — polls from MatrixOS::Input
     Arg* _MatrixOS_KeyPad_Get(PikaObj *self, int timeout_ms) {
         InputEvent inputEvent;
         bool success = MatrixOS::Input::Get(&inputEvent, timeout_ms);
 
         if (success) {
-            // Convert InputEvent to legacy KeyEvent for Python compatibility
-            KeyEvent event;
-            event.id = Device::KeyPad::InputIdToLegacyKeyId(inputEvent.id);
-            event.info = KeypadInfoToKeyInfo(inputEvent.keypad);
+            PythonKeyEvent evt;
+            evt.id = Device::KeyPad::InputIdToLegacyKeyId(inputEvent.id);
+            evt.info = inputEvent.keypad;
 
             PikaObj* event_obj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
-            copyCppObjIntoPikaObj<KeyEvent>(event_obj, event);
+            copyCppObjIntoPikaObj<PythonKeyEvent>(event_obj, evt);
             return arg_newObj(event_obj);
         }
 
@@ -31,15 +34,13 @@ extern "C" {
     }
 
     Arg* _MatrixOS_KeyPad_GetKey(PikaObj *self, PikaObj* keyXY) {
-        // Get Point object from PikaObj
         Point* point_ptr = getCppObjPtrInPikaObj<Point>(keyXY);
         if (!point_ptr) return arg_newNone();
 
         KeypadInfo kpi = MatrixOS::Input::GetKeypadState(*point_ptr);
-        KeyInfo info = KeypadInfoToKeyInfo(kpi);
 
         PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
-        copyCppObjIntoPikaObj<KeyInfo>(info_obj, info);
+        copyCppObjIntoPikaObj<KeypadInfo>(info_obj, kpi);
         return arg_newObj(info_obj);
     }
 
@@ -49,9 +50,8 @@ extern "C" {
         if (!MatrixOS::Input::GetState(id, &snap))
             return arg_newNone();
 
-        KeyInfo info = KeypadInfoToKeyInfo(snap.keypad);
         PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
-        copyCppObjIntoPikaObj<KeyInfo>(info_obj, info);
+        copyCppObjIntoPikaObj<KeypadInfo>(info_obj, snap.keypad);
         return arg_newObj(info_obj);
     }
 
@@ -60,9 +60,8 @@ extern "C" {
     }
 
     int _MatrixOS_KeyPad_XY2ID(PikaObj *self, PikaObj* xy) {
-        // Get Point object from PikaObj
         Point* point_ptr = getCppObjPtrInPikaObj<Point>(xy);
-        if (!point_ptr) return -1;  // Return invalid ID
+        if (!point_ptr) return -1;
 
         vector<InputId> ids;
         MatrixOS::Input::GetInputsAt(*point_ptr, &ids);

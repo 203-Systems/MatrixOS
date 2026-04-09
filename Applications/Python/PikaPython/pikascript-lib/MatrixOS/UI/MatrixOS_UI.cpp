@@ -1,12 +1,16 @@
 #include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
-#include "Framework/Input/InputCompat.h"
 #include "pikaScript.h"
 #include "PikaObj.h"
 #include "../PikaObjUtils.h"
 #include "../PikaCallbackUtils.h"
 
+// Same struct as in MatrixOS_KeyEvent.cpp — Python "KeyEvent" backed by KeypadInfo
+struct PythonKeyEvent {
+  uint16_t id;
+  KeypadInfo info;
+};
 
 extern "C" {
     // Forward declaration for KeyEvent constructor
@@ -172,11 +176,10 @@ extern "C" {
         SaveCallbackObjToPikaObj(self, (char*)"keyEventHandler", key_event_handler);
 
         ui->SetKeyEventHandler([self](InputEvent* inputEvent) -> bool {
-            // Convert InputEvent to legacy KeyEvent for Python API compatibility
-            KeyEvent keyEvent;
+            PythonKeyEvent evt;
             if (MatrixOS::Input::IsFunctionKey(inputEvent->id))
             {
-                keyEvent.id = FUNCTION_KEY;
+                evt.id = FUNCTION_KEY;
             }
             else
             {
@@ -185,18 +188,17 @@ extern "C" {
                 {
                     vector<InputId> ids;
                     MatrixOS::Input::GetInputsAt(xy, &ids);
-                    keyEvent.id = ids.empty() ? UINT16_MAX : Device::KeyPad::InputIdToLegacyKeyId(ids[0]);
+                    evt.id = ids.empty() ? UINT16_MAX : Device::KeyPad::InputIdToLegacyKeyId(ids[0]);
                 }
                 else
                 {
-                    keyEvent.id = UINT16_MAX;
+                    evt.id = UINT16_MAX;
                 }
             }
-            keyEvent.info = KeypadInfoToKeyInfo(inputEvent->keypad);
+            evt.info = inputEvent->keypad;
 
-            // Create a KeyEvent Python object and pass it to the callback
             PikaObj* keyEventObj = newNormalObj(New__MatrixOS_KeyEvent_KeyEvent);
-            copyCppObjIntoPikaObj<KeyEvent>(keyEventObj, keyEvent);
+            copyCppObjIntoPikaObj<PythonKeyEvent>(keyEventObj, evt);
 
             // Pack the object into an Arg for the callback
             Arg* keyEventArg = arg_newObj(keyEventObj);
