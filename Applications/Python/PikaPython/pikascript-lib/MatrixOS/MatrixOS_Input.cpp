@@ -9,7 +9,7 @@ void populateInputClusterInPikaObj(PikaObj* obj, const InputCluster& c);
 extern "C" {
     PikaObj* New__MatrixOS_InputId_InputId(Args *args);
     PikaObj* New__MatrixOS_InputEvent_InputEvent(Args *args);
-    PikaObj* New__MatrixOS_KeypadInfo_KeypadInfo(Args *args);
+    PikaObj* New__MatrixOS_InputSnapshot_InputSnapshot(Args *args);
     PikaObj* New__MatrixOS_InputCluster_InputCluster(Args *args);
     void _MatrixOS_InputCluster_InputCluster___init__(PikaObj *self);
     PikaObj* New__MatrixOS_Point_Point(Args *args);
@@ -31,7 +31,7 @@ extern "C" {
     }
 
     // GetState — gets the current snapshot of an input.
-    // Returns KeypadInfo for keypad inputs, None for non-keypad or not found.
+    // Returns InputSnapshot on success, None if not found.
     Arg* _MatrixOS_Input_GetState(PikaObj *self, PikaObj* input_id) {
         InputId* id = getCppValuePtrInPikaObj<InputId>(input_id);
         if (!id) return arg_newNone();
@@ -41,14 +41,9 @@ extern "C" {
             return arg_newNone();
         }
 
-        // Only keypad-class snapshots can be safely read as KeypadInfo
-        if (snap.inputClass != ::InputClass::Keypad) {
-            return arg_newNone();
-        }
-
-        PikaObj* infoObj = newNormalObj(New__MatrixOS_KeypadInfo_KeypadInfo);
-        copyCppValueIntoPikaObj<KeypadInfo>(infoObj, snap.keypad);
-        return arg_newObj(infoObj);
+        PikaObj* snapObj = newNormalObj(New__MatrixOS_InputSnapshot_InputSnapshot);
+        copyCppValueIntoPikaObj<InputSnapshot>(snapObj, snap);
+        return arg_newObj(snapObj);
     }
 
     // GetPosition — get the grid coordinate of an input.

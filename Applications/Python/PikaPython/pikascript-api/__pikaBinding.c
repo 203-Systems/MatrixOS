@@ -36,6 +36,7 @@
 #include "_MatrixOS_InputCluster.h"
 #include "_MatrixOS_InputEvent.h"
 #include "_MatrixOS_InputId.h"
+#include "_MatrixOS_InputSnapshot.h"
 #include "_MatrixOS_KeypadInfo.h"
 #include "_MatrixOS_LED.h"
 #include "_MatrixOS_MIDI.h"
@@ -73,6 +74,7 @@
 #include "_MatrixOS_InputCluster_InputCluster.h"
 #include "_MatrixOS_InputEvent_InputEvent.h"
 #include "_MatrixOS_InputId_InputId.h"
+#include "_MatrixOS_InputSnapshot_InputSnapshot.h"
 #include "_MatrixOS_KeypadInfo_KeypadInfo.h"
 #include "_MatrixOS_MidiPacket_MidiPacket.h"
 #include "_MatrixOS_Point_Point.h"
@@ -329,6 +331,9 @@ PikaObj *New_PikaMain(Args *args){
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_INPUTID_DISABLE
     obj_newObj(self, "_MatrixOS_InputId", "_MatrixOS_InputId", New__MatrixOS_InputId);
+#endif
+#ifndef PIKA_MODULE__MATRIXOS_INPUTSNAPSHOT_DISABLE
+    obj_newObj(self, "_MatrixOS_InputSnapshot", "_MatrixOS_InputSnapshot", New__MatrixOS_InputSnapshot);
 #endif
 #ifndef PIKA_MODULE__MATRIXOS_KEYPADINFO_DISABLE
     obj_newObj(self, "_MatrixOS_KeypadInfo", "_MatrixOS_KeypadInfo", New__MatrixOS_KeypadInfo);
@@ -3046,6 +3051,95 @@ PikaObj *New__MatrixOS_InputId_InputId(Args *args){
 
 Arg *_MatrixOS_InputId_InputId(PikaObj *self){
     return obj_newObjInPackage(New__MatrixOS_InputId_InputId);
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_INPUTSNAPSHOT_DISABLE
+void _MatrixOS_InputSnapshot_InputSnapshotMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputSnapshot_InputSnapshot(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot,
+    "InputSnapshot", ""
+);
+
+class_def(_MatrixOS_InputSnapshot){
+    __BEFORE_MOETHOD_DEF
+    constructor_def(_MatrixOS_InputSnapshot_InputSnapshot, 683414949),
+};
+class_inhert(_MatrixOS_InputSnapshot, TinyObj);
+
+PikaObj *New__MatrixOS_InputSnapshot(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_InputSnapshot);
+    return self;
+}
+#endif
+
+#ifndef PIKA_MODULE__MATRIXOS_INPUTSNAPSHOT_DISABLE
+void _MatrixOS_InputSnapshot_InputSnapshot_IdMethod(PikaObj *self, Args *_args_){
+    PikaObj* res = _MatrixOS_InputSnapshot_InputSnapshot_Id(self);
+    method_returnObj(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot_Id,
+    "Id", ""
+);
+
+void _MatrixOS_InputSnapshot_InputSnapshot_InputClassMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputSnapshot_InputSnapshot_InputClass(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot_InputClass,
+    "InputClass", ""
+);
+
+void _MatrixOS_InputSnapshot_InputSnapshot_KeypadMethod(PikaObj *self, Args *_args_){
+    Arg* res = _MatrixOS_InputSnapshot_InputSnapshot_Keypad(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot_Keypad,
+    "Keypad", ""
+);
+
+void _MatrixOS_InputSnapshot_InputSnapshot___bool__Method(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputSnapshot_InputSnapshot___bool__(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot___bool__,
+    "__bool__", ""
+);
+
+void _MatrixOS_InputSnapshot_InputSnapshot___init__Method(PikaObj *self, Args *_args_){
+    _MatrixOS_InputSnapshot_InputSnapshot___init__(self);
+}
+method_typedef(
+    _MatrixOS_InputSnapshot_InputSnapshot___init__,
+    "__init__", ""
+);
+
+class_def(_MatrixOS_InputSnapshot_InputSnapshot){
+    __BEFORE_MOETHOD_DEF
+    method_def(_MatrixOS_InputSnapshot_InputSnapshot_Id, 5862418),
+    method_def(_MatrixOS_InputSnapshot_InputSnapshot_InputClass, 149188171),
+    method_def(_MatrixOS_InputSnapshot_InputSnapshot___bool__, 632207565),
+    method_def(_MatrixOS_InputSnapshot_InputSnapshot___init__, 904762485),
+    method_def(_MatrixOS_InputSnapshot_InputSnapshot_Keypad, 1043978755),
+};
+class_inhert(_MatrixOS_InputSnapshot_InputSnapshot, TinyObj);
+
+PikaObj *New__MatrixOS_InputSnapshot_InputSnapshot(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _MatrixOS_InputSnapshot_InputSnapshot);
+    return self;
+}
+
+Arg *_MatrixOS_InputSnapshot_InputSnapshot(PikaObj *self){
+    return obj_newObjInPackage(New__MatrixOS_InputSnapshot_InputSnapshot);
 }
 #endif
 

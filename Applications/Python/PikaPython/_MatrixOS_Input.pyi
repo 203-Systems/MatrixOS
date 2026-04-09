@@ -3,14 +3,14 @@
 
 from MatrixOS_InputId import InputId
 from MatrixOS_InputEvent import InputEvent
-from MatrixOS_KeypadInfo import KeypadInfo
+from MatrixOS_InputSnapshot import InputSnapshot
 from MatrixOS_InputCluster import InputCluster
 from MatrixOS_Point import Point
 
 # Poll for the next input event. Returns InputEvent or None on timeout.
 def GetEvent(timeout_ms: int) -> any: ...
 
-# Get the current snapshot state of an input. Returns KeypadInfo or None.
+# Get the current snapshot state of an input. Returns InputSnapshot or None.
 def GetState(input_id: InputId) -> any: ...
 
 # Get the grid coordinate of an input. Returns Point or None.
