@@ -14,7 +14,7 @@ void FactoryMenu::LEDTester() {
     MatrixOS::LED::SetColor(ledIndex, colors[ledColorIndex]);
     MatrixOS::LED::Update();
     ledCounter++;
-    MatrixOS::Input::ClearState();
+    MatrixOS::Input::ClearQueue();
     MatrixOS::SYS::DelayMs(30);
   }
   MatrixOS::Input::ClearState();

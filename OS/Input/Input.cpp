@@ -215,7 +215,13 @@ bool IsFunctionKey(InputId id) {
 
 bool IsFunctionKeyActive() {
   InputSnapshot snap;
-  return GetState(GetFunctionKeyId(), &snap) && snap.keypad.Active();
+  if (!GetState(GetFunctionKeyId(), &snap))
+    return false;
+  if (snap.inputClass == InputClass::Keypad)
+    return snap.keypad.Active();
+  // Non-keypad function key classes are not yet supported;
+  // return false rather than misinterpreting the union payload.
+  return false;
 }
 
 } // namespace MatrixOS::Input
