@@ -1,5 +1,6 @@
 // Define Device Keypad Function
 #include "Device.h"
+#include "Input/Input.h"
 #include "timers.h"
 #include "driver/gpio.h"
 #include "MatrixOSConfig.h"
@@ -153,10 +154,12 @@ KeyInfo* GetKey(uint16_t keyID) {
 }
 
 IRAM_ATTR bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo) {
-  KeyEvent keyEvent;
-  keyEvent.id = keyID;
-  keyEvent.info = *keyInfo;
-  return MatrixOS::KeyPad::NewEvent(&keyEvent);
+  InputEvent inputEvent;
+  inputEvent.id = BridgeKeyId(keyID);
+  inputEvent.inputClass = InputClass::Keypad;
+  inputEvent.keypad = KeyInfoToKeypadInfo(*keyInfo);
+  MatrixOS::Input::NewEvent(inputEvent);
+  return false;
 }
 
 uint16_t XY2ID(Point xy) {

@@ -1,24 +1,9 @@
 #include "MatrixOS.h"
 #include "KeyPad.h"
-#include "../Input/Input.h"
 #include <string>
 
 namespace MatrixOS::KeyPad
 {
-// Bridge: forward KeyEvent as InputEvent to the new input system
-IRAM_ATTR static void BridgeToInput(KeyEvent* keyevent) {
-  InputEvent inputEvent;
-  inputEvent.id = Device::KeyPad::BridgeKeyId(keyevent->id);
-  inputEvent.inputClass = InputClass::Keypad;
-  inputEvent.keypad = KeyInfoToKeypadInfo(keyevent->info);
-  MatrixOS::Input::NewEvent(inputEvent);
-}
-
-IRAM_ATTR bool NewEvent(KeyEvent* keyevent) {
-  BridgeToInput(keyevent);
-  return false;
-}
-
 KeyInfo* GetKey(Point keyXY) {
   return GetKey(XY2ID(keyXY));
 }

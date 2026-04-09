@@ -143,7 +143,7 @@ void Start();
 bool Scan();
 } // namespace MPE
 
-bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); // Passthrough MatrixOS::KeyPad::NewEvent() result
+bool NotifyOS(uint16_t keyID, KeyInfo* keyInfo); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
 } // namespace KeyPad
 
 namespace NVS
