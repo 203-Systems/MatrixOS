@@ -61,8 +61,7 @@ Point Index2XY(uint16_t index); // Buffer index to Grid XY, return Point(INT16_M
 namespace KeyPad
 {
 KeyScanState* GetKey(uint16_t keyID);
-void Clear();                // Since only the Device layer awares the keyInfo buffer, the function's job is to run Clear() on all
-                             // keyInfo
+void Clear();                // Clears all key scan state buffers (fnState, keypadState, touchbarState)
 uint16_t XY2ID(Point xy);    // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no
                              // ID is assigned to given XY
 Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
