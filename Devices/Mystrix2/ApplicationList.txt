@@ -34,7 +34,7 @@ Strum
 Reversi
 Companion
 # PolyPlayground
-# [System]Python  # Disabled: depends on deleted keyID compat layer
+# [System]Python  # Disabled: input API migration in progress (Phase 4–7)
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot

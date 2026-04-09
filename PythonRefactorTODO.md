@@ -47,7 +47,7 @@ It assumes:
 - [x] Expose `InputId`
 - [x] Expose `InputClass`
 - [x] Expose `InputEvent`
-- [ ] Expose `InputSnapshot` if included in first version
+- [x] Expose `InputSnapshot` if included in first version
 - [x] Expose `KeypadInfo`
 - [x] Expose `InputCluster`
 - [x] Implement `get_event(timeout_ms=0)`
@@ -65,8 +65,8 @@ It assumes:
 - [x] Replace Python-facing `SetKeyEventHandler` with input-centric API
 - [x] Add `set_input_handler`
 - [x] Expose input events with explicit `input_class`
-- [ ] Ensure keypad-specific handling is explicit in Python
-- [ ] Remove keypad-era assumptions from Python UI callback path
+- [x] Ensure keypad-specific handling is explicit in Python
+- [x] Remove keypad-era assumptions from Python UI callback path
 
 ## Phase 5: Remove Legacy Python API Surface
 
