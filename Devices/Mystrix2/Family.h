@@ -97,7 +97,7 @@ inline gpio_num_t fnPin;
 inline bool velocitySensitivity = true;
 inline KeypadType keypadType = KeypadType::MPEKeypad;
 
-inline KeyScanConfig binaryConfig = {
+inline KeypadConfig binaryConfig = {
     .applyCurve = false,
     .lowThreshold = 0,
     .highThreshold = 65535,
@@ -105,7 +105,7 @@ inline KeyScanConfig binaryConfig = {
     .debounce = 3,
 };
 
-inline KeyScanConfig keypadConfig = {
+inline KeypadConfig keypadConfig = {
     .applyCurve = true,
     .lowThreshold = 24000,
     .highThreshold = 53248,
@@ -113,7 +113,7 @@ inline KeyScanConfig keypadConfig = {
     .debounce = 5,
 };
 
-inline KeyScanConfig mpeConfig = {
+inline KeypadConfig mpeConfig = {
     .applyCurve = true,
     .lowThreshold = 40000,
     .highThreshold = 53248,

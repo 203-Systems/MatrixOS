@@ -96,7 +96,7 @@ bool ScanTouchBar();
 inline gpio_num_t fnPin;
 inline bool velocitySensitivity = false;
 
-inline KeyScanConfig binaryConfig = {
+inline KeypadConfig binaryConfig = {
     .applyCurve = false,
     .lowThreshold = 0,
     .highThreshold = 65535,
@@ -104,7 +104,7 @@ inline KeyScanConfig binaryConfig = {
     .debounce = 3,
 };
 
-inline KeyScanConfig keypadConfig = {
+inline KeypadConfig keypadConfig = {
     .applyCurve = true,
     .lowThreshold = 1536,
     .highThreshold = 32767,

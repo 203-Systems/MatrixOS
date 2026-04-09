@@ -22,8 +22,8 @@ namespace MatrixOS::SYS { uint64_t Millis(void); }
 
 #define KEY_SCAN_THRESHOLD 512
 
-// Device-layer key-scan configuration (thresholds, curves, debounce).
-struct KeyScanConfig {
+// Device-layer keypad scan configuration (thresholds, curves, debounce).
+struct KeypadConfig {
   bool applyCurve;
   Fract16 lowThreshold;
   Fract16 highThreshold;
@@ -60,8 +60,8 @@ struct KeypadInfo {
   }
 
   // Device-layer scan methods (implementations in KeypadInfo.cpp).
-  Fract16 ApplyForceCurve(KeyScanConfig& config, Fract16 value);
-  bool Update(KeyScanConfig& config, Fract16 newValue);
+  Fract16 ApplyForceCurve(KeypadConfig& config, Fract16 value);
+  bool Update(KeypadConfig& config, Fract16 newValue);
   void Clear();
   uint32_t HoldTime();
 };

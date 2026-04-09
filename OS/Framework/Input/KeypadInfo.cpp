@@ -10,7 +10,7 @@ inline uint16_t MAX(uint16_t a, uint16_t b) {
 #define BELOW_VALUE_THRESHOLD newValue <= config.lowThreshold
 #define ABOVE_THRESHOLD newValue > config.lowThreshold
 
-IRAM_ATTR Fract16 KeypadInfo::ApplyForceCurve(KeyScanConfig& config, Fract16 value) {
+IRAM_ATTR Fract16 KeypadInfo::ApplyForceCurve(KeypadConfig& config, Fract16 value) {
   if (!config.applyCurve)
   {
     return value;
@@ -31,7 +31,7 @@ IRAM_ATTR Fract16 KeypadInfo::ApplyForceCurve(KeyScanConfig& config, Fract16 val
   return value;
 }
 
-IRAM_ATTR bool KeypadInfo::Update(KeyScanConfig& config, Fract16 newValue) {
+IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
   uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
 
   switch (state)

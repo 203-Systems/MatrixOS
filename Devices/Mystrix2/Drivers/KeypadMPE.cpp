@@ -831,7 +831,7 @@ void Start() {
 
 IRAM_ATTR bool Scan() {
   const auto& mpeData = coprocessorLink.GetMPEData();
-  KeyScanConfig config = mpeConfig;
+  KeypadConfig config = mpeConfig;
   const uint64_t nowUs = esp_timer_get_time();
 
   if (lastScanUs != 0U)
