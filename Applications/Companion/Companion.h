@@ -27,7 +27,7 @@ public:
   void Loop() override;
   void End() override;
 
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
   void HIDReportHandler();
   void ActionMenu();
 };

@@ -189,7 +189,7 @@ inline bool TemperatureColorPicker(Color& color) {
   // int8_t new_layer = MatrixOS::LED::CreateLayer();
   UI colorPicker("Temperature Color Picker", Color(0x000000), false);
 
-  colorPicker.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  colorPicker.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)

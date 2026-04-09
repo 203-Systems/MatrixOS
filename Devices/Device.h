@@ -68,7 +68,7 @@ extern vector<InputCluster> clusters;
 
 // Device-owned coordinate mapping handlers.
 // The device layer defines how memberId maps to visual coordinates and vice versa.
-bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point);
+bool GetPosition(uint8_t clusterId, uint16_t memberId, Point* point);
 bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId);
 } // namespace Input
 

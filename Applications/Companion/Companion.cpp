@@ -17,13 +17,14 @@ void Companion::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   }
 
   HIDReportHandler();
 }
 
-void Companion::KeyEventHandler(InputEvent& inputEvent) {
+void Companion::InputEventHandler(InputEvent& inputEvent) {
   if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Pressed)
@@ -32,7 +33,7 @@ void Companion::KeyEventHandler(InputEvent& inputEvent) {
     }
   }
 
-  Point xy; MatrixOS::Input::TryGetPoint(inputEvent.id, &xy);
+  Point xy; MatrixOS::Input::GetPosition(inputEvent.id, &xy);
 
   if (xy && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
   {
@@ -105,7 +106,7 @@ void Companion::ActionMenu() {
     HIDReportHandler();
   });
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)

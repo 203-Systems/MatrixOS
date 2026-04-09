@@ -456,7 +456,7 @@ void Shell::ApplicationLauncher() {
   AppLauncherBar appLauncherBar(this);
   applicationLauncher.AddUIComponent(&appLauncherBar, Point(0, 7));
 
-  applicationLauncher.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  applicationLauncher.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey() && inputEvent->keypad.state == KeypadState::Hold)
     {
       ApplicationLauncherEditing();
@@ -489,7 +489,7 @@ void Shell::ApplicationLauncherEditing() {
   AppLauncherBarEditMode appLauncherBarEdit(this);
   applicationLauncherEdit.AddUIComponent(&appLauncherBarEdit, Point(0, 7));
 
-  applicationLauncherEdit.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  applicationLauncherEdit.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey() && inputEvent->keypad.state == KeypadState::Released)
     {
       // Exit edit mode

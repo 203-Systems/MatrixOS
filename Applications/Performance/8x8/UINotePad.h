@@ -34,12 +34,18 @@ public:
   }
 
   virtual bool Render(Point origin) {
+    const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+    auto keypadActiveAt = [&](Point p) -> bool {
+      InputId id; InputSnapshot snap;
+      return grid && MatrixOS::Input::GetInputAt(grid->clusterId, p, &id) &&
+             MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad && snap.keypad.Active();
+    };
     for (uint8_t x = 0; x < dimension.x; x++)
     {
       for (uint8_t y = 0; y < dimension.y; y++)
       {
         Point target_coord = origin + Point(x, y);
-        Color target_color = MatrixOS::Input::GetKeypadState(target_coord).Active() ? Color::White : color;
+        Color target_color = keypadActiveAt(target_coord) ? Color::White : color;
         MatrixOS::LED::SetColor(target_coord, target_color);
       }
     }

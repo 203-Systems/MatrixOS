@@ -101,14 +101,7 @@ const InputCluster* GetPrimaryGridCluster() {
   return nullptr;
 }
 
-Dimension GetPrimaryGridSize() {
-  const InputCluster* grid = GetPrimaryGridCluster();
-  if (grid)
-  {
-    return grid->dimension;
-  }
-  return Dimension(0, 0);
-}
+
 
 void GetInputsAt(Point xy, vector<InputId>* ids) {
   ids->clear();
@@ -144,13 +137,13 @@ bool GetInputAt(uint8_t clusterId, Point xy, InputId* id) {
   return true;
 }
 
-bool TryGetPoint(InputId id, Point* xy) {
+bool GetPosition(InputId id, Point* xy) {
   const InputCluster* cluster = GetCluster(id.clusterId);
-  if (cluster && cluster->tryGetPoint)
+  if (cluster && cluster->getPosition)
   {
-    return cluster->tryGetPoint(*cluster, id.memberId, xy);
+    return cluster->getPosition(*cluster, id.memberId, xy);
   }
-  return Device::Input::TryGetPoint(id.clusterId, id.memberId, xy);
+  return Device::Input::GetPosition(id.clusterId, id.memberId, xy);
 }
 
 void ClearQueue() {
@@ -165,24 +158,6 @@ void ClearState() {
   ClearQueue();
 }
 
-KeypadInfo GetKeypadState(Point xy) {
-  // Search all coordinate-capable keypad clusters (grid, touchbar, etc.)
-  for (const auto& cluster : Device::Input::clusters) {
-    if (cluster.inputClass != InputClass::Keypad || !cluster.HasCoordinates())
-      continue;
-    InputId id;
-    if (GetInputAt(cluster.clusterId, xy, &id)) {
-      InputSnapshot snap;
-      if (GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
-        return snap.keypad;
-      }
-    }
-  }
-  KeypadInfo empty;
-  memset(&empty, 0, sizeof(empty));
-  return empty;
-}
-
 void RegisterKeypadCapabilities(uint8_t clusterId, const KeypadCapabilities& caps) {
   keypadCapsMap[clusterId] = caps;
 }
@@ -195,14 +170,6 @@ bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
   }
   *caps = it->second;
   return true;
-}
-
-bool HasVelocitySensitivity() {
-  const InputCluster* cluster = GetPrimaryGridCluster();
-  if (!cluster) return false;
-  KeypadCapabilities caps;
-  if (!GetKeypadCapabilities(cluster->clusterId, &caps)) return false;
-  return caps.hasVelocity;
 }
 
 } // namespace MatrixOS::Input

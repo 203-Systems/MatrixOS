@@ -58,7 +58,7 @@ void Gamepad::Setup(const vector<string>& args) {
   UIGamepadKey startKey(Color(0x0000FF), 7);
   gamepadUI.AddUIComponent(startKey, Point(4, 7));
 
-  gamepadUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  gamepadUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
@@ -83,7 +83,7 @@ void Gamepad::ActionMenu() {
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)

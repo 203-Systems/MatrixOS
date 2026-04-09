@@ -112,7 +112,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   rotationRequiredUI.AddUIComponent(rotateLeftBtn, Point(2, 3));
 
   // Second, set the key event handler to match the intended behavior
-  rotationRequiredUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  rotationRequiredUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
     if (inputEvent->id == InputId::FunctionKey())
     {

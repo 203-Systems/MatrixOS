@@ -613,7 +613,15 @@ void SequencerNotePad::Rescan(Point origin) {
     for (uint8_t x = 0; x < GetSize().x; x++)
     {
       Point pos = origin + Point(x, y);
-      KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(pos);
+      KeypadInfo keypadState = {};
+      {
+        InputId id; InputSnapshot snap;
+        const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+        if (grid && MatrixOS::Input::GetInputAt(grid->clusterId, pos, &id) &&
+            MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
+          keypadState = snap.keypad;
+        }
+      }
 
       if (keypadState.Active())
       {

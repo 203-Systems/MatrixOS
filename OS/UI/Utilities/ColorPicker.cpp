@@ -107,7 +107,7 @@ bool ColorPicker(Color& color, bool shade) {
 
   UI colorPicker("Color Picker", Color(0x000000));
 
-  colorPicker.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  colorPicker.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)

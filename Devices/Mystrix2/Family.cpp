@@ -57,7 +57,7 @@ static const InputCluster* FindCluster(uint8_t clusterId) {
 }
 
 // Grid2D mapping handler
-static bool Grid2D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+static bool Grid2D_GetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
   if (memberId >= cluster.inputCount) return false;
   int16_t localX = memberId % cluster.dimension.x;
   int16_t localY = memberId / cluster.dimension.x;
@@ -85,7 +85,7 @@ static bool Grid2D_TryGetMemberId(const InputCluster& cluster, Point point, uint
 }
 
 // Linear1D mapping handler
-static bool Linear1D_TryGetPoint(const InputCluster& cluster, uint16_t memberId, Point* point) {
+static bool Linear1D_GetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
   if (memberId >= cluster.inputCount) return false;
   Point hwPoint;
   if (cluster.dimension.x > 1)
@@ -118,11 +118,11 @@ static bool Linear1D_TryGetMemberId(const InputCluster& cluster, Point point, ui
   return true;
 }
 
-bool TryGetPoint(uint8_t clusterId, uint16_t memberId, Point* point) {
+bool GetPosition(uint8_t clusterId, uint16_t memberId, Point* point) {
   const InputCluster* cluster = FindCluster(clusterId);
   if (!cluster || !cluster->HasCoordinates()) return false;
-  if (!cluster->tryGetPoint) return false;
-  return cluster->tryGetPoint(*cluster, memberId, point);
+  if (!cluster->getPosition) return false;
+  return cluster->getPosition(*cluster, memberId, point);
 }
 
 bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId) {
@@ -187,7 +187,7 @@ void RegisterInputClusters() {
   gridCluster.inputCount = X_SIZE * Y_SIZE;
   gridCluster.rotation = rotation;
   gridCluster.rotationDimension = rotDim;
-  gridCluster.tryGetPoint = Input::Grid2D_TryGetPoint;
+  gridCluster.getPosition = Input::Grid2D_GetPosition;
   gridCluster.tryGetMemberId = Input::Grid2D_TryGetMemberId;
   Input::clusters.push_back(gridCluster);
 
@@ -202,7 +202,7 @@ void RegisterInputClusters() {
   touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarLeftCluster.rotation = rotation;
   touchbarLeftCluster.rotationDimension = rotDim;
-  touchbarLeftCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarLeftCluster.getPosition = Input::Linear1D_GetPosition;
   touchbarLeftCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
   Input::clusters.push_back(touchbarLeftCluster);
 
@@ -217,7 +217,7 @@ void RegisterInputClusters() {
   touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
   touchbarRightCluster.rotation = rotation;
   touchbarRightCluster.rotationDimension = rotDim;
-  touchbarRightCluster.tryGetPoint = Input::Linear1D_TryGetPoint;
+  touchbarRightCluster.getPosition = Input::Linear1D_GetPosition;
   touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
   Input::clusters.push_back(touchbarRightCluster);
 

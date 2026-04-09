@@ -41,7 +41,7 @@ public:
 
   void Setup(const vector<string>& args) override;
 
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
 
   void GridKeyEvent(Point xy, KeypadInfo* keypadInfo);
 

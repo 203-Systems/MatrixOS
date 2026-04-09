@@ -68,19 +68,15 @@ bool GetState(InputId id, InputSnapshot* snapshot);
 const vector<InputCluster>& GetClusters();
 const InputCluster* GetCluster(uint8_t clusterId);
 const InputCluster* GetPrimaryGridCluster();
-Dimension GetPrimaryGridSize();
 
 void GetInputsAt(Point xy, vector<InputId>* ids);
 bool GetInputAt(uint8_t clusterId, Point xy, InputId* id);
-bool TryGetPoint(InputId id, Point* xy);
+bool GetPosition(InputId id, Point* xy);
 
 void ClearQueue();
 void ClearState();
 
-KeypadInfo GetKeypadState(Point xy);
-
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps);
-bool HasVelocitySensitivity(); // Convenience: checks primary grid cluster
 
 } // namespace Input
 

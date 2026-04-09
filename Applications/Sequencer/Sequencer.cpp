@@ -97,7 +97,7 @@ void Sequencer::SequencerUI() {
   sequencerUI.AddUIComponent(messageDisplay, Point(0, 3));
 
   sequencerUI.AllowExit(false);
-  sequencerUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  sequencerUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
@@ -172,7 +172,10 @@ void Sequencer::SequencerMenu() {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if (MatrixOS::Input::HasVelocitySensitivity())
+  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+  KeypadCapabilities caps;
+  bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
+  if (hasVelocity)
   {
     forceSensitiveToggle.SetColorFunc([&]() -> Color { return Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
     forceSensitiveToggle.OnPress([&]() -> void {
@@ -248,7 +251,7 @@ void Sequencer::SequencerMenu() {
   sequencerMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
   sequencerMenu.AllowExit(false);
-  sequencerMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  sequencerMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
@@ -1588,7 +1591,7 @@ void Sequencer::ConfirmSaveUI() {
     }
   });
 
-  confirmSaveUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  confirmSaveUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if ((saved || failed))
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
@@ -1598,7 +1601,7 @@ void Sequencer::ConfirmSaveUI() {
       return true;
     }
 
-    Point xy; MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
+    Point xy; MatrixOS::Input::GetPosition(inputEvent->id, &xy);
     if (xy && (xy.x == 3 || xy.x == 4 || xy.y == 5))
     {
       if (inputEvent->keypad.state == KeypadState::Released && inputEvent->keypad.hold == false)
@@ -1810,7 +1813,7 @@ void Sequencer::SequenceBrowser() {
     MatrixOS::LED::SetColor(Point(7, 7), copy ? Color::White : Color(0x0080FF));
   });
 
-  browser.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  browser.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (eventTime != 0 && MatrixOS::SYS::Millis() - eventTime < 500)
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
@@ -1821,7 +1824,7 @@ void Sequencer::SequenceBrowser() {
       return true;
     }
 
-    Point xy; MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
+    Point xy; MatrixOS::Input::GetPosition(inputEvent->id, &xy);
     if (!xy)
     {
       return false;

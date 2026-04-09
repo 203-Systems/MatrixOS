@@ -8,7 +8,8 @@ void Reversi::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   }
 
   if (renderTimer.Tick(1000 / Device::LED::fps))
@@ -594,7 +595,7 @@ Color Reversi::GetPlayerColor(uint8_t player) {
   }
 }
 
-void Reversi::KeyEventHandler(InputEvent& inputEvent) {
+void Reversi::InputEventHandler(InputEvent& inputEvent) {
   if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Pressed)
@@ -606,7 +607,7 @@ void Reversi::KeyEventHandler(InputEvent& inputEvent) {
 
   if (gameState == Waiting)
   {
-    Point xy; MatrixOS::Input::TryGetPoint(inputEvent.id, &xy);
+    Point xy; MatrixOS::Input::GetPosition(inputEvent.id, &xy);
 
     if (xy && inputEvent.keypad.state == KeypadState::Released) // IF XY is valid, means it's on the main grid
     {
@@ -695,7 +696,7 @@ void Reversi::Settings() {
   settingsUI.AddUIComponent(resetGameBtn, Point(7, 3));
 
   // Second, set the key event handler to match the intended behavior
-  settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  settingsUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
     if (inputEvent->id == InputId::FunctionKey())
     {

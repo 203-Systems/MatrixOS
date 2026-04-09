@@ -12,7 +12,7 @@ public:
   uint16_t map_length;
   uint16_t threshold;
 
-  const Point origin = Point((MatrixOS::Input::GetPrimaryGridSize().x - 1) / 2, (MatrixOS::Input::GetPrimaryGridSize().y - 1) / 2);
+  const Point origin = Point((MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 1) / 2, (MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1) / 2);
 
   void Start();
 };

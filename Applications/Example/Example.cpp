@@ -12,7 +12,8 @@ void ExampleAPP::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   } // Handle them
 
   struct MidiPacket midiPacket;            // Variable for the latest midi packet to be stored at
@@ -23,8 +24,8 @@ void ExampleAPP::Loop() {
 }
 
 // Handle the key event from the OS
-void ExampleAPP::KeyEventHandler(InputEvent& inputEvent) {
-  Point xy; MatrixOS::Input::TryGetPoint(inputEvent.id, &xy); // Trying to get the XY coordination of the KeyID
+void ExampleAPP::InputEventHandler(InputEvent& inputEvent) {
+  Point xy; MatrixOS::Input::GetPosition(inputEvent.id, &xy); // Trying to get the XY coordination of the KeyID
   if (xy)                                            // IF XY is valid, means it is a key on the grid
   {
     MLOGD("Example", "Key %d %d %d", xy.x, xy.y, (uint8_t)inputEvent.keypad.state); // Print the key event to the debug log
@@ -122,7 +123,7 @@ void ExampleAPP::UIMenu() {
   });
 
   // Add the UI element to the UI object to top right conner
-  menu.AddUIComponent(colorSelector, Point(MatrixOS::Input::GetPrimaryGridSize().x - 1, 0));
+  menu.AddUIComponent(colorSelector, Point(MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 1, 0));
 
   // A large button that cycles though the brightness of the device
   UIButton brightnessBtn;
@@ -133,7 +134,7 @@ void ExampleAPP::UIMenu() {
   brightnessBtn.OnHold([&]() -> void { BrightnessControl().Start(); });      // Function to call when the button is hold down
 
   // Place this button in the center of the device
-  menu.AddUIComponent(brightnessBtn, Point((MatrixOS::Input::GetPrimaryGridSize().x - 1) / 2, (MatrixOS::Input::GetPrimaryGridSize().y - 1) / 2));
+  menu.AddUIComponent(brightnessBtn, Point((MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 1) / 2, (MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1) / 2));
 
   // Set a key event handler for the UI object
   // By default, the UI exits after the function key is PRESSED.
@@ -145,7 +146,7 @@ void ExampleAPP::UIMenu() {
   menu.AllowExit(false);
 
   // Second, set the key event handler to match the intended behavior
-  menu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  menu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
     if (inputEvent->id == InputId::FunctionKey())
     {

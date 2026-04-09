@@ -19,6 +19,7 @@ void BootAnimation::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
     KeyEvent(inputEvent.id, &inputEvent.keypad);
   }
 }

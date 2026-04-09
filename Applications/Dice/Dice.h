@@ -53,7 +53,7 @@ public:
   CreateSavedVar("Dice", number_faces, uint8_t, 30);
 
   void Settings();
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
 
   uint8_t GetRandomNumber(uint8_t upperbound, uint8_t lowerbound = 1);
   void RenderDot(Point point, Color color);

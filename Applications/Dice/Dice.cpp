@@ -25,7 +25,8 @@ void Dice::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   } // Handle them
 
   if (!renderTimer.Tick(1000 / Device::LED::fps))
@@ -77,7 +78,7 @@ void Dice::Loop() {
 }
 
 // Handle the key event from the OS
-void Dice::KeyEventHandler(InputEvent& inputEvent) {
+void Dice::InputEventHandler(InputEvent& inputEvent) {
   if (inputEvent.id == InputId::FunctionKey())
   {
     if (inputEvent.keypad.state == KeypadState::Hold)
@@ -195,7 +196,7 @@ void Dice::Settings() {
   settingsUI.AddUIComponent(numberFacesSelectorBtn, Point(2, 7));
 
   // Second, set the key event handler to match the intended behavior
-  settingsUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  settingsUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     // If function key is hold down. Exit the application
     if (inputEvent->id == InputId::FunctionKey())
     {

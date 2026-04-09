@@ -9,7 +9,7 @@ void Setting::SystemSetting() {
   UI systemSetting;
   systemSetting.SetName("Setting");
   systemSetting.SetColor(Color(0xFFFFFF));
-  systemSetting.SetKeyEventHandler([this](InputEvent* inputEvent) -> bool { return CustomKeyEvent(inputEvent); });
+  systemSetting.SetInputEventHandler([this](InputEvent* inputEvent) -> bool { return CustomInputEvent(inputEvent); });
 
   // Brightness Control
   UIButton brightnessBtn;
@@ -64,7 +64,7 @@ void Setting::SystemSetting() {
   // Dynamic color based on storage availability
   mscModeBtn.SetColorFunc([]() -> Color { return Color(0xFF8000).DimIfNot(Device::Storage::Available()); });
 
-  systemSetting.AddUIComponent(mscModeBtn, Point(MatrixOS::Input::GetPrimaryGridSize().x - 1, MatrixOS::Input::GetPrimaryGridSize().y - 1));
+  systemSetting.AddUIComponent(mscModeBtn, Point(MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 1, MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1));
 #endif
 
   // Device Control
@@ -75,27 +75,27 @@ void Setting::SystemSetting() {
   deviceIdBtn.OnPress([]() -> void {
     MatrixOS::UserVar::deviceId = MatrixOS::UIUtility::NumberSelector8x8(MatrixOS::UserVar::deviceId, 0x00FFFF, "Device ID", 0, 63);
   });
-  systemSetting.AddUIComponent(deviceIdBtn, Point(MatrixOS::Input::GetPrimaryGridSize().x - 2, MatrixOS::Input::GetPrimaryGridSize().y - 1));
+  systemSetting.AddUIComponent(deviceIdBtn, Point(MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 2, MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1));
 
   UIButton enterDfuBtn;
   enterDfuBtn.SetName("Enter Bootloader Mode");
   enterDfuBtn.SetColor(Color(0xFF0000));
   enterDfuBtn.OnPress([]() -> void { MatrixOS::SYS::Bootloader(); });
-  systemSetting.AddUIComponent(enterDfuBtn, Point(0, MatrixOS::Input::GetPrimaryGridSize().y - 1));
+  systemSetting.AddUIComponent(enterDfuBtn, Point(0, MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1));
 
   UIButton resetDevice;
   resetDevice.SetName("Factory Reset Device");
   resetDevice.SetColor(Color(0xFF00FF));
   resetDevice.OnPress([]() -> void { Setting::ResetConfirm(); });
   // resetDevice.SetEnabled(MatrixOS::UserVar::developer_mode);
-  systemSetting.AddUIComponent(resetDevice, Point(1, MatrixOS::Input::GetPrimaryGridSize().y - 1));
+  systemSetting.AddUIComponent(resetDevice, Point(1, MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1));
 
   UIButton osVersionBtn;
   osVersionBtn.SetName("Matrix OS Version");
   osVersionBtn.SetColor(Color(0x00FF30));
   osVersionBtn.SetSize(Dimension(2, 1));
   osVersionBtn.OnPress([]() -> void { MatrixOS::UIUtility::TextScroll("Matrix OS " + MATRIXOS_VERSION_STRING, Color(0x00FF30)); });
-  systemSetting.AddUIComponent(osVersionBtn, Point(3, MatrixOS::Input::GetPrimaryGridSize().y - 1));
+  systemSetting.AddUIComponent(osVersionBtn, Point(3, MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1));
 
   UIButton deviceSettingsBtn;
   deviceSettingsBtn.SetName("Device Settings");
@@ -136,9 +136,9 @@ void Setting::SecretMenu() {
   secretMenu.Start();
 }
 
-bool Setting::CustomKeyEvent(InputEvent* inputEvent) {
+bool Setting::CustomInputEvent(InputEvent* inputEvent) {
   Point xy;
-  bool hasXY = MatrixOS::Input::TryGetPoint(inputEvent->id, &xy);
+  bool hasXY = MatrixOS::Input::GetPosition(inputEvent->id, &xy);
 
   if (hasXY && inputEvent->keypad.state == KeypadState::Released) // IF XY is valid, means it's on the main grid
   {

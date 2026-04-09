@@ -20,11 +20,11 @@ public:
     y = (int16_t)(rawByte & 0xFFFF);
   }
 
-  bool Contains(Point point) {
+  bool Contains(Point point) const {
     return point.x >= 0 && point.y >= 0 && point.x < x && point.y < y;
   }
 
-  uint32_t Area() {
+  uint32_t Area() const {
     return x * y;
   }
 

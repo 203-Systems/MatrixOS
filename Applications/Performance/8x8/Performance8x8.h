@@ -50,7 +50,7 @@ public:
   void NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity);
   void SysExHandler(MidiPacket midiPacket);
 
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
 
   void GridKeyEvent(Point xy, KeypadInfo* keypadInfo);
   void IDKeyEvent(InputId inputId, KeypadInfo* keypadInfo);

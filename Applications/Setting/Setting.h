@@ -9,7 +9,7 @@ class Setting {
 public:
   Setting() = default;
 
-  const Point origin = Point((MatrixOS::Input::GetPrimaryGridSize().x - 1) / 2, (MatrixOS::Input::GetPrimaryGridSize().y - 1) / 2);
+  const Point origin = Point((MatrixOS::Input::GetPrimaryGridCluster()->dimension.x - 1) / 2, (MatrixOS::Input::GetPrimaryGridCluster()->dimension.y - 1) / 2);
 
   void SystemSetting();
 
@@ -17,7 +17,7 @@ public:
   static void NextBrightness();
   static void ResetConfirm();
 
-  bool CustomKeyEvent(InputEvent* inputEvent);
+  bool CustomInputEvent(InputEvent* inputEvent);
 
 private:
   void SecretMenu();

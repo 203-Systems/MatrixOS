@@ -80,7 +80,10 @@ void Note::Setup(const vector<string>& args) {
 
   UIButton forceSensitiveToggle;
   forceSensitiveToggle.SetName("Velocity Sensitive");
-  if (MatrixOS::Input::HasVelocitySensitivity())
+  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+  KeypadCapabilities caps;
+  bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
+  if (hasVelocity)
   {
     forceSensitiveToggle.SetColorFunc(
         [&]() -> Color { return Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
@@ -262,7 +265,7 @@ void Note::Setup(const vector<string>& args) {
   systemSettingBtn.OnPress([&]() -> void { MatrixOS::SYS::OpenSetting(); });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)

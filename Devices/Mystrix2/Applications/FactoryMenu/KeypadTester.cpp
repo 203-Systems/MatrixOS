@@ -11,7 +11,15 @@ void FactoryMenu::KeyPadTester() {
     {
       for (uint8_t y = 0; y < Y_SIZE; y++)
       {
-        KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(Point(x, y));
+        KeypadInfo keypadState = {};
+        {
+          const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+          InputId id; InputSnapshot snap;
+          if (grid && MatrixOS::Input::GetInputAt(grid->clusterId, Point(x, y), &id) &&
+              MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
+            keypadState = snap.keypad;
+          }
+        }
 
         if (keypadState.Active())
         {

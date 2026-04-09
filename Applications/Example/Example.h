@@ -53,7 +53,7 @@ public:
 #endif
 
   void UIMenu();
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
   void MidiEventHandler(MidiPacket& midiPacket);
 };
 

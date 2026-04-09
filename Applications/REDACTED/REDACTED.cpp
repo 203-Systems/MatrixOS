@@ -84,7 +84,8 @@ void REDACTED::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(&inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(&inputEvent);
   }
 }
 
@@ -97,7 +98,7 @@ void REDACTED::End() {
   MatrixOS::LED::Update();
 }
 
-void REDACTED::KeyEventHandler(InputEvent* inputEvent) {
+void REDACTED::InputEventHandler(InputEvent* inputEvent) {
   if (inputEvent->id == InputId::FunctionKey() && inputEvent->keypad.state == KeypadState::Pressed)
   {
     Exit();

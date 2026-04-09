@@ -274,7 +274,15 @@ void EventDetailView::RenderMicroStepSelector(Point origin) {
 
   // Delete button at X=7 (global), render bright red (or white when pressed)
   Point deletePoint = origin + Point(7, 0);
-  bool deleteActive = MatrixOS::Input::GetKeypadState(deletePoint).Active();
+  bool deleteActive = false;
+  {
+    const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+    InputId id; InputSnapshot snap;
+    if (grid && MatrixOS::Input::GetInputAt(grid->clusterId, deletePoint, &id) &&
+        MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
+      deleteActive = snap.keypad.Active();
+    }
+  }
   Color deleteColor = deleteActive ? Color::White : Color::Red;
   MatrixOS::LED::SetColor(deletePoint, deleteColor);
 }

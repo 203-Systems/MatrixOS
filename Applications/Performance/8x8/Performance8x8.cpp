@@ -32,7 +32,8 @@ void Performance::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   }
 
   struct MidiPacket midiPacket;
@@ -392,9 +393,9 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
   sysExBuffer.clear();
 }
 
-void Performance::KeyEventHandler(InputEvent& inputEvent) {
+void Performance::InputEventHandler(InputEvent& inputEvent) {
   Point xy;
-  if (MatrixOS::Input::TryGetPoint(inputEvent.id, &xy)) // IF XY is valid, means it's on the main grid
+  if (MatrixOS::Input::GetPosition(inputEvent.id, &xy)) // IF XY is valid, means it's on the main grid
   {
     GridKeyEvent(xy, &inputEvent.keypad);
   }
@@ -445,11 +446,16 @@ void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
           point = Point(-1, i - 24);
         }
 
-        if (MatrixOS::Input::GetKeypadState(point).Active())
-        {
-          comboKey = true;
-          break;
+        vector<InputId> ids;
+        MatrixOS::Input::GetInputsAt(point, &ids);
+        for (const auto& id : ids) {
+          InputSnapshot snap;
+          if (MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad && snap.keypad.Active()) {
+            comboKey = true;
+            break;
+          }
         }
+        if (comboKey) break;
       }
     }
 
@@ -557,10 +563,10 @@ void Performance::PaletteViewer(uint8_t customPaletteId) {
       }
 
       InputEvent inputEvent;
-      if (MatrixOS::Input::Get(&inputEvent))
+      if (MatrixOS::Input::Get(&inputEvent) && inputEvent.inputClass == InputClass::Keypad)
       {
         Point xy;
-        bool hasXY = MatrixOS::Input::TryGetPoint(inputEvent.id, &xy);
+        bool hasXY = MatrixOS::Input::GetPosition(inputEvent.id, &xy);
         if (hasXY && xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8)
         {
           uint8_t id = xy.y * 8 + xy.x + i * 64;
@@ -636,7 +642,12 @@ void Performance::ActionMenu() {
   velocityToggle.SetColor(Color(0x00FFFF));
   velocityToggle.SetValuePointer(&forceSensitive);
   velocityToggle.OnPress([&]() -> void { forceSensitive.Save(); });
-  velocityToggle.SetEnabled(MatrixOS::Input::HasVelocitySensitivity());
+  {
+    const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+    KeypadCapabilities caps;
+    bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
+    velocityToggle.SetEnabled(hasVelocity);
+  }
   actionMenu.AddUIComponent(velocityToggle, Point(7, 0));
 
   UIButton systemSettingBtn;
@@ -700,7 +711,7 @@ void Performance::ActionMenu() {
     }
   });
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)

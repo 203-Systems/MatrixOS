@@ -26,7 +26,7 @@ struct InputCluster {
   // Device-owned discrete mapping handlers.
   // Only meaningful for discrete coordinate-addressable clusters (Grid2D, Linear1D).
   // nullptr for Scalar or Area2D clusters.
-  bool (*tryGetPoint)(const InputCluster& cluster, uint16_t memberId, Point* point) = nullptr;
+  bool (*getPosition)(const InputCluster& cluster, uint16_t memberId, Point* point) = nullptr;
   bool (*tryGetMemberId)(const InputCluster& cluster, Point point, uint16_t* memberId) = nullptr;
 
   bool HasRootPoint() const {

@@ -26,7 +26,7 @@ void UADRuntime::KeyEvent(InputId inputId, KeypadInfo* keypadInfo) {
 
   ActionInfo actionInfo;
   Point xy;
-  MatrixOS::Input::TryGetPoint(inputId, &xy);
+  MatrixOS::Input::GetPosition(inputId, &xy);
   if (xy)
   {
     if (xy.x >= mapSize.x || xy.y >= mapSize.y || xy.x < 0 || xy.y < 0)

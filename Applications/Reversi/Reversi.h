@@ -47,7 +47,7 @@ public:
   };
   void Setup(const vector<string>& args) override;
   void Loop() override;
-  void KeyEventHandler(InputEvent& inputEvent);
+  void InputEventHandler(InputEvent& inputEvent);
   void Place(Point pos);
 
   void Render();

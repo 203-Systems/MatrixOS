@@ -93,7 +93,7 @@ void UI::GetKey() {
     if (inputEvent.inputClass != InputClass::Keypad)
       continue;
 
-    if (!CustomKeyEvent(&inputEvent)) // Run Custom Key Event first. Check if UI event is blocked
+    if (!CustomInputEvent(&inputEvent)) // Run Custom Key Event first. Check if UI event is blocked
     {
       UIKeyEvent(&inputEvent);
     }
@@ -111,7 +111,7 @@ void UI::UIKeyEvent(InputEvent* inputEvent) {
     }
   }
   Point xy;
-  if (!MatrixOS::Input::TryGetPoint(inputEvent->id, &xy))
+  if (!MatrixOS::Input::GetPosition(inputEvent->id, &xy))
   {
     return;
   }
@@ -136,7 +136,7 @@ void UI::UIKeyEvent(InputEvent* inputEvent) {
       }
     }
     if (this->name.empty() == false && hasAction == false && inputEvent->keypad.state == KeypadState::Hold &&
-        MatrixOS::Input::GetPrimaryGridSize().Contains(xy))
+        MatrixOS::Input::GetPrimaryGridCluster()->dimension.Contains(xy))
     {
       MatrixOS::UIUtility::TextScroll(this->name, this->nameColor);
     }
@@ -175,8 +175,8 @@ void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
   UI::post_render_func = std::make_unique<std::function<void()>>(post_render_func);
 }
 
-void UI::SetKeyEventHandler(std::function<bool(InputEvent*)> key_event_handler) {
-  UI::key_event_handler = std::make_unique<std::function<bool(InputEvent*)>>(key_event_handler);
+void UI::SetInputEventHandler(std::function<bool(InputEvent*)> inputEventHandler) {
+  UI::inputEventHandler = std::make_unique<std::function<bool(InputEvent*)>>(inputEventHandler);
 }
 
 void UI::ClearUIComponents() {

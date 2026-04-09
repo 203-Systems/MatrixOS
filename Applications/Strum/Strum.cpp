@@ -106,7 +106,7 @@ void Strum::Setup(const vector<string>& args) {
   StrumBar strumBarR(&strumBarConfigs[0]); // Keep as same for now
   strumUI.AddUIComponent(strumBarR, Point(8, 0));
 
-  strumUI.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  strumUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Pressed)
@@ -137,7 +137,7 @@ void Strum::ActionMenu() {
   });
   actionMenu.AddUIComponent(systemSettingBtn, Point(7, 7));
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)

@@ -160,7 +160,15 @@ void ForceCalibration::ForceGridVisualizer() {
     {
       for (uint8_t y = 0; y < 8; y++)
       {
-        KeypadInfo keypadState = MatrixOS::Input::GetKeypadState(Point(x, y));
+        KeypadInfo keypadState = {};
+        {
+          const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+          InputId id; InputSnapshot snap;
+          if (grid && MatrixOS::Input::GetInputAt(grid->clusterId, Point(x, y), &id) &&
+              MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
+            keypadState = snap.keypad;
+          }
+        }
         Color color = Color::White;
         if (keypadState.pressure > 0 && keypadState.Active())
         {
@@ -181,7 +189,7 @@ void ForceCalibration::ForceGridVisualizer() {
     }
   });
 
-  forceGridVisualizer.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  forceGridVisualizer.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     return inputEvent->id != InputId::FunctionKey(); // Skip all keys except function key
   });
 

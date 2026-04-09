@@ -24,7 +24,8 @@ void CustomControlMap::Loop() {
   InputEvent inputEvent;
   while (MatrixOS::Input::Get(&inputEvent))
   {
-    KeyEventHandler(inputEvent);
+    if (inputEvent.inputClass != InputClass::Keypad) continue;
+    InputEventHandler(inputEvent);
   }
 
   HIDReportHandler();
@@ -402,8 +403,8 @@ void CustomControlMap::SendDeviceDescriptor() {
       0x4D,                                   // Family ID 0x4D
       0x58,                                   // Family ID 0x58
       0x11,                                   // Model ID 0x11
-      MatrixOS::Input::GetPrimaryGridSize().x,                         // Device X 8
-      MatrixOS::Input::GetPrimaryGridSize().y,                         // Device Y 8
+      MatrixOS::Input::GetPrimaryGridCluster()->dimension.x,           // Device X 8
+      MatrixOS::Input::GetPrimaryGridCluster()->dimension.y,           // Device Y 8
       MAX_UAD_LAYER,                          // Max Layers
       (uint8_t)((maxUadSize >> 24) & 0xFF), // UAD Size MSB1
       (uint8_t)((maxUadSize >> 16) & 0xFF), // UAD Size MSB2
@@ -527,7 +528,7 @@ bool CustomControlMap::SendHID(const vector<uint8_t>& report, uint8_t retry) {
   return false;
 }
 
-void CustomControlMap::KeyEventHandler(InputEvent& inputEvent) {
+void CustomControlMap::InputEventHandler(InputEvent& inputEvent) {
   // Reserve Function Key
   if (inputEvent.id == InputId::FunctionKey() && inputEvent.keypad.state == (menuLock ? KeypadState::Hold : KeypadState::Pressed))
   {
@@ -572,7 +573,7 @@ void CustomControlMap::ActionMenu() {
   UILayerControl passthroughControl("Layer Passthrough", Color(0xFF00FF), Dimension(8, 2), &uadRT, UADRuntime::LayerInfoType::PASSTHROUGH);
   actionMenu.AddUIComponent(passthroughControl, Point(0, 6));
 
-  actionMenu.SetKeyEventHandler([&](InputEvent* inputEvent) -> bool {
+  actionMenu.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
       if (inputEvent->keypad.state == KeypadState::Hold)
