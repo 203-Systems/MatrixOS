@@ -87,15 +87,6 @@ bool IsFunctionKey(InputId id);
 bool IsFunctionKeyActive();
 } // namespace Input
 
-namespace KeyPad
-{
-KeyInfo* GetKey(Point keyXY);
-KeyInfo* GetKey(uint16_t keyID);
-void Clear();                // Clear device keypad state
-uint16_t XY2ID(Point xy);    // return UINT16_MAX if no ID is assigned to given XY
-Point ID2XY(uint16_t keyID); // return Point(INT16_MIN, INT16_MIN) if no XY found
-} // namespace KeyPad
-
 namespace USB
 {
 bool Connected(void); // If USB is connected

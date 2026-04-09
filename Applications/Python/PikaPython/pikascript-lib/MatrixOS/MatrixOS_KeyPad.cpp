@@ -33,30 +33,28 @@ extern "C" {
         Point* point_ptr = getCppObjPtrInPikaObj<Point>(keyXY);
         if (!point_ptr) return arg_newNone();
 
-        KeyInfo* info = MatrixOS::KeyPad::GetKey(*point_ptr);
+        KeypadInfo kpi = MatrixOS::Input::GetKeypadState(*point_ptr);
+        KeyInfo info = KeypadInfoToKeyInfo(kpi);
 
-        if (info != nullptr) {
-            PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
-            copyCppObjIntoPikaObj<KeyInfo>(info_obj, *info);
-            return arg_newObj(info_obj);
-        }
-
-        return arg_newNone();
+        PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
+        copyCppObjIntoPikaObj<KeyInfo>(info_obj, info);
+        return arg_newObj(info_obj);
     }
 
     Arg* _MatrixOS_KeyPad_GetKeyByID(PikaObj *self, int keyID) {
-        KeyInfo* info = MatrixOS::KeyPad::GetKey(keyID);
+        InputId id = Device::KeyPad::BridgeKeyId((uint16_t)keyID);
+        InputSnapshot snap;
+        if (!MatrixOS::Input::GetState(id, &snap))
+            return arg_newNone();
 
-        if (info != nullptr) {
-            PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
-            copyCppObjIntoPikaObj<KeyInfo>(info_obj, *info);
-            return arg_newObj(info_obj);
-        }
-        return arg_newNone();
+        KeyInfo info = KeypadInfoToKeyInfo(snap.keypad);
+        PikaObj* info_obj = newNormalObj(New__MatrixOS_KeyInfo_KeyInfo);
+        copyCppObjIntoPikaObj<KeyInfo>(info_obj, info);
+        return arg_newObj(info_obj);
     }
 
     void _MatrixOS_KeyPad_Clear(PikaObj *self) {
-        MatrixOS::KeyPad::Clear();
+        MatrixOS::Input::ClearState();
     }
 
     int _MatrixOS_KeyPad_XY2ID(PikaObj *self, PikaObj* xy) {
@@ -64,15 +62,16 @@ extern "C" {
         Point* point_ptr = getCppObjPtrInPikaObj<Point>(xy);
         if (!point_ptr) return -1;  // Return invalid ID
 
-        return MatrixOS::KeyPad::XY2ID(*point_ptr);
+        vector<InputId> ids;
+        MatrixOS::Input::GetInputsAt(*point_ptr, &ids);
+        if (ids.empty()) return UINT16_MAX;
+        return Device::KeyPad::InputIdToLegacyKeyId(ids[0]);
     }
 
     Arg* _MatrixOS_KeyPad_ID2XY(PikaObj *self, int keyID) {
-        Point point = MatrixOS::KeyPad::ID2XY(keyID);
-
-        // Check if the returned point is valid (ID2XY returns Point::Invalid() for invalid IDs)
-        if (point == Point::Invalid()) {
-            // Return None if invalid ID
+        InputId id = Device::KeyPad::BridgeKeyId((uint16_t)keyID);
+        Point point;
+        if (!MatrixOS::Input::TryGetPoint(id, &point)) {
             return arg_newNone();
         }
 

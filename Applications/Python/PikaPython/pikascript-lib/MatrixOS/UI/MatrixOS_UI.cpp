@@ -183,7 +183,9 @@ extern "C" {
                 Point xy;
                 if (MatrixOS::Input::TryGetPoint(inputEvent->id, &xy))
                 {
-                    keyEvent.id = MatrixOS::KeyPad::XY2ID(xy);
+                    vector<InputId> ids;
+                    MatrixOS::Input::GetInputsAt(xy, &ids);
+                    keyEvent.id = ids.empty() ? UINT16_MAX : Device::KeyPad::InputIdToLegacyKeyId(ids[0]);
                 }
                 else
                 {

@@ -1,7 +1,6 @@
 # Add all subdirectories
 add_subdirectory(HID)
 add_subdirectory(Input)
-add_subdirectory(KeyPad)
 add_subdirectory(LED)
 add_subdirectory(Logging)
 add_subdirectory(MIDI)
@@ -26,7 +25,6 @@ target_link_libraries(MatrixOS PUBLIC
     MatrixOSSystem
     MatrixOSLogging
     MatrixOSInput
-    MatrixOSKeyPad
     MatrixOSLED
     MatrixOSNVS
     MatrixOSUSB
