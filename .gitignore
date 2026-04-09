@@ -43,3 +43,6 @@ log.txt
 
 # macOS
 .DS_Store
+
+# Local agent/copilot workflow artifacts
+.agent/

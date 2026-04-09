@@ -332,6 +332,13 @@ Recommended workflow for an AI agent:
 5. Preserve persistence and compatibility rules intentionally.
    Do not create accidental dual sources of truth.
 
+6. Keep agent-only workflow artifacts out of the main project surface.
+   Local agent notes, Copilot journals, temporary prompt files, wrapper scripts,
+   migration scratch docs, and similar AI-workflow-only materials should live
+   under `.agent/`, not in the repo root and not in official project `Tools/`
+   locations.
+
+
 ## Formatting Guide
 
 Use these rules consistently.
