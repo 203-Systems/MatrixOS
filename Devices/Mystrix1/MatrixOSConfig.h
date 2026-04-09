@@ -1,8 +1,6 @@
 #pragma once
 #include "Framework.h"
 
-#define FUNCTION_KEY 0 // Keypad Code for main function key
-
 #define X_SIZE 8
 #define Y_SIZE 8
 

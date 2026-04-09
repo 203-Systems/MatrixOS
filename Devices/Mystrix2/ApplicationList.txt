@@ -34,7 +34,7 @@ Strum
 Reversi
 Companion
 # PolyPlayground
-[System]Python
+# [System]Python  # Disabled: depends on deleted keyID compat layer
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot

@@ -216,59 +216,6 @@ void RegisterInputClusters() {
   Input::clusters.push_back(touchbarRightCluster);
 }
 
-namespace KeyPad
-{
-// Device-owned legacy keyID → InputId bridge.
-// Encoding: bits [15:12] = class, bits [11:0] = payload.
-// Class 0 = System, Class 1 = Grid (bits [11:6]=x, [5:0]=y), Class 2 = TouchBar.
-InputId BridgeKeyId(uint16_t keyID) {
-  uint8_t keyClass = keyID >> 12;
-  switch (keyClass)
-  {
-  case 0: // System
-    return InputId{0, static_cast<uint16_t>(keyID & 0x0FFF)};
-  case 1: // Grid
-  {
-    uint16_t x = (keyID >> 6) & 0x3F;
-    uint16_t y = keyID & 0x3F;
-    return InputId{1, static_cast<uint16_t>(y * X_SIZE + x)};
-  }
-  case 2: // TouchBar: left (0-7) → cluster 2, right (8-15) → cluster 3
-  {
-    uint16_t index = keyID & 0x0FFF;
-    if (index >= 8)
-    {
-      return InputId{3, static_cast<uint16_t>(index - 8)};
-    }
-    return InputId{2, static_cast<uint16_t>(index)};
-  }
-  default:
-    return InputId{static_cast<uint8_t>(keyClass), static_cast<uint16_t>(keyID & 0x0FFF)};
-  }
-}
-
-// Inverse: InputId → legacy keyID encoding.
-uint16_t InputIdToLegacyKeyId(InputId id) {
-  switch (id.clusterId)
-  {
-  case 0: // System
-    return id.memberId;
-  case 1: // Grid: memberId = y * X_SIZE + x
-  {
-    uint16_t x = id.memberId % X_SIZE;
-    uint16_t y = id.memberId / X_SIZE;
-    return (1 << 12) | (x << 6) | y;
-  }
-  case 2: // TouchBar Left
-    return (2 << 12) | id.memberId;
-  case 3: // TouchBar Right
-    return (2 << 12) | (id.memberId + 8);
-  default:
-    return UINT16_MAX;
-  }
-}
-} // namespace KeyPad
-
 void DeviceStart() {
   RegisterInputClusters();
   Device::KeyPad::Start();
@@ -288,17 +235,17 @@ void DeviceStart() {
 #endif
   Device::KeyPad::Scan();
   // Use keyState->pressure instead of Active() because it might still be debouncing
-  if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 0)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 1)))->pressure)
+  if (KeyPad::keypadState[0][0].pressure && KeyPad::keypadState[1][1].pressure)
   {
     MatrixOS::SYS::ExecuteAPP("203 Systems", "Mystrix Factory Menu");
   }
-  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(6, 6)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(7, 7)))->pressure)
+  else if (KeyPad::keypadState[6][6].pressure && KeyPad::keypadState[7][7].pressure)
   {
     KeyPad::Clear();
     MatrixOS::UserVar::brightness.Set(Device::LED::brightnessLevel[0]);
   }
-  else if (KeyPad::GetKey(KeyPad::XY2ID(Point(0, 5)))->pressure && KeyPad::GetKey(KeyPad::XY2ID(Point(1, 6)))->pressure &&
-           KeyPad::GetKey(KeyPad::XY2ID(Point(0, 7)))->pressure)
+  else if (KeyPad::keypadState[0][5].pressure && KeyPad::keypadState[1][6].pressure &&
+           KeyPad::keypadState[0][7].pressure)
   {
     MatrixOS::LED::SetColor(Point(2, 2), Color(0xFF00FF));
     MatrixOS::LED::SetColor(Point(5, 2), Color(0xFF00FF));

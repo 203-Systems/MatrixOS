@@ -18,11 +18,6 @@
 #define DEVICE_BATTERY 0
 #endif
 
-// Function Key Support
-#ifndef FUNCTION_KEY
-#define FUNCTION_KEY 0
-#endif
-
 // Default Shell Application
 #ifndef OS_SHELL
 #define OS_SHELL APPID("203 Systems", "Shell")

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Framework.h"
-#include "KeyScanState.h"
+
 #include "MatrixOSConfig.h"
 #include "Family.h"
 #include "DefaultConfigs.h"
@@ -60,17 +60,7 @@ Point Index2XY(uint16_t index); // Buffer index to Grid XY, return Point(INT16_M
 
 namespace KeyPad
 {
-KeyScanState* GetKey(uint16_t keyID);
 void Clear();                // Clears all key scan state buffers (fnState, keypadState, touchbarState)
-uint16_t XY2ID(Point xy);    // Not sure if this is required by Matrix OS, added in for now. return UINT16_MAX if no
-                             // ID is assigned to given XY
-Point ID2XY(uint16_t keyID); // Locate XY for given key ID, return Point(INT16_MIN, INT16_MIN) if no XY found for
-                             // given ID;
-
-// Legacy bridge: device-owned decoding of old keyID encoding into InputId.
-// Moves topology knowledge (cluster IDs, memberId formulas) to the device layer.
-InputId BridgeKeyId(uint16_t keyID);
-uint16_t InputIdToLegacyKeyId(InputId id);
 } // namespace KeyPad
 
 namespace Input

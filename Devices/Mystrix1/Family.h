@@ -126,9 +126,9 @@ inline const uint16_t touchbarScanrate = 120;
 inline uint8_t touchbarMap[touchbarSize]; // Touch number as index and touch location as value (Left touch down
                                             // and then right touch down)
 
-inline KeyScanState fnState;
-inline KeyScanState keypadState[X_SIZE][Y_SIZE];
-inline KeyScanState touchbarState[touchbarSize];
+inline KeypadInfo fnState = {};
+inline KeypadInfo keypadState[X_SIZE][Y_SIZE] = {};
+inline KeypadInfo touchbarState[touchbarSize] = {};
 
 namespace Binary
 {
@@ -144,7 +144,7 @@ void Start();
 bool Scan();
 } // namespace FSR
 
-bool NotifyOS(uint16_t keyID, KeyScanState* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
+bool NotifyOS(InputId id, KeypadInfo* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
 } // namespace KeyPad
 
 namespace NVS

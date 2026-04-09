@@ -40,7 +40,7 @@ void ExampleAPP::KeyEventHandler(InputEvent& inputEvent) {
   }
   else // XY Not valid,
   {
-    if (MatrixOS::Input::IsFunctionKey(inputEvent.id)) // FUNCTION_KEY is pre defined by the device, as the keyID for the system function key
+    if (MatrixOS::Input::IsFunctionKey(inputEvent.id))
     {
       UIMenu(); // Open UI Menu
     }

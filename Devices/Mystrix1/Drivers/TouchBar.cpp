@@ -54,8 +54,8 @@ IRAM_ATTR bool ScanTouchBar() {
     bool updated = touchbarState[keyId].Update(binaryConfig, reading);
     if (updated)
     {
-      uint16_t keyID = (2 << 12) + keyId;
-      if (NotifyOS(keyID, &touchbarState[keyId]))
+      InputId id = keyId < 8 ? InputId{2, (uint16_t)keyId} : InputId{3, (uint16_t)(keyId - 8)};
+      if (NotifyOS(id, &touchbarState[keyId]))
       {
         return true;
       }

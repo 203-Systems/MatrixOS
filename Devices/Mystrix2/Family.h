@@ -124,10 +124,10 @@ inline KeyScanConfig mpeConfig = {
 inline const uint16_t keypadScanrate = 240;
 inline const uint16_t touchbarScanrate = 120;
 
-inline KeyScanState fnState;
-inline KeyScanState keypadState[X_SIZE][Y_SIZE];
+inline KeypadInfo fnState = {};
+inline KeypadInfo keypadState[X_SIZE][Y_SIZE] = {};
 inline uint16_t padForce[X_SIZE][Y_SIZE] = {};
-inline KeyScanState touchbarState[TOUCHBAR_SIZE]; // Virtual 16 keys to be backward compatible with Mystrix 1 apps
+inline KeypadInfo touchbarState[TOUCHBAR_SIZE] = {};
 
 namespace FSR
 {
@@ -143,7 +143,7 @@ void Start();
 bool Scan();
 } // namespace MPE
 
-bool NotifyOS(uint16_t keyID, KeyScanState* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
+bool NotifyOS(InputId id, KeypadInfo* keyState); // Emits InputEvent directly via MatrixOS::Input::NewEvent()
 } // namespace KeyPad
 
 namespace NVS

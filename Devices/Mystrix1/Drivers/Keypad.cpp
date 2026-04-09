@@ -94,7 +94,7 @@ IRAM_ATTR bool ScanFN() {
   // ESP_LOGI("FN", "%d", gpio_get_level(fnPin));
   if (fnState.Update(binaryConfig, read))
   {
-    if (NotifyOS(FUNCTION_KEY, &fnState))
+    if (NotifyOS(InputId{0, 0}, &fnState))
     {
       return true;
     }
@@ -119,96 +119,12 @@ void Clear() {
   }
 }
 
-KeyScanState* GetKey(uint16_t keyID) {
-  uint8_t keyClass = keyID >> 12;
-  switch (keyClass)
-  {
-  case 0: // System
-  {
-    uint16_t index = keyID & (0b0000111111111111);
-    switch (index)
-    {
-    case 0:
-      return &fnState;
-    }
-    break;
-  }
-  case 1: // Main Grid
-  {
-    int16_t x = (keyID & (0b0000111111000000)) >> 6;
-    int16_t y = keyID & (0b0000000000111111);
-    if (x < X_SIZE && y < Y_SIZE)
-      return &keypadState[x][y];
-    break;
-  }
-  case 2: // Touch Bar
-  {
-    uint16_t index = keyID & (0b0000111111111111);
-    // MLOGD("Keypad", "Read Touch %d", index);
-    if (index < touchbarSize)
-      return &touchbarState[index];
-    break;
-  }
-  }
-  return nullptr; // Return an empty KeyScanState
-}
-
-IRAM_ATTR bool NotifyOS(uint16_t keyID, KeyScanState* keyState) {
+IRAM_ATTR bool NotifyOS(InputId id, KeypadInfo* keyState) {
   InputEvent inputEvent;
-  inputEvent.id = BridgeKeyId(keyID);
+  inputEvent.id = id;
   inputEvent.inputClass = InputClass::Keypad;
   inputEvent.keypad = *keyState;  // slices to KeypadInfo base
   MatrixOS::Input::NewEvent(inputEvent);
   return false;
-}
-
-uint16_t XY2ID(Point xy) {
-  if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) // Main grid
-  {
-    return (1 << 12) + (xy.x << 6) + xy.y;
-  }
-  else if ((xy.x == -1 || xy.x == 8) && (xy.y >= 0 && xy.y < 8)) // Touch Bar
-  {
-    return (2 << 12) + xy.y + (xy.x == 8) * 8;
-  }
-  return UINT16_MAX;
-}
-
-// Matrix use the following ID Struct
-// CCCC IIIIIIIIIIII
-// C as class (4 bits), I as index (12 bits). I could be split by the class definition, for example, class 0 (grid),
-// it's split to XXXXXXX YYYYYYY. Class List: Class 0 - System - IIIIIIIIIIII Class 1 - Grid - XXXXXX YYYYYY Class 2
-// - TouchBar - IIIIIIIIIIII Class 3 - Underglow - IIIIIIIIIIII
-
-Point ID2XY(uint16_t keyID) {
-  uint8_t keyClass = keyID >> 12;
-  switch (keyClass)
-  {
-  case 1: // Main Grid
-  {
-    int16_t x = (keyID & 0b0000111111000000) >> 6;
-    int16_t y = keyID & (0b0000000000111111);
-    if (x < X_SIZE && y < Y_SIZE)
-      return Point(x, y);
-    break;
-  }
-  case 2: // TouchBar
-  {
-    uint16_t index = keyID & (0b0000111111111111);
-    if (index < touchbarSize)
-    {
-      if (index / 8) // Right
-      {
-        return Point(X_SIZE, index % 8);
-      }
-      else // Left
-      {
-        return Point(-1, index % 8);
-      }
-    }
-    break;
-  }
-  }
-  return Point(INT16_MIN, INT16_MIN);
 }
 } // namespace Device::KeyPad

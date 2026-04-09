@@ -877,8 +877,7 @@ IRAM_ATTR bool Scan() {
 
       if (keypadState[x][y].Update(config, (Fract16)padForce[x][y]))
       {
-        const uint16_t keyID = (1U << 12) + ((uint16_t)x << 6) + y;
-        if (NotifyOS(keyID, &keypadState[x][y]))
+        if (NotifyOS(InputId{1, (uint16_t)(y * X_SIZE + x)}, &keypadState[x][y]))
         {
           return true;
         }

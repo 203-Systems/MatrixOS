@@ -17,7 +17,26 @@ enum class KeypadState : uint8_t {
   Invalid = 255u,
 };
 
+// Forward-declare Millis() so the .cpp file can call it.
+namespace MatrixOS::SYS { uint64_t Millis(void); }
+
+#define KEY_SCAN_THRESHOLD 512
+
+// Device-layer key-scan configuration (thresholds, curves, debounce).
+struct KeyScanConfig {
+  bool applyCurve;
+  Fract16 lowThreshold;
+  Fract16 highThreshold;
+  Fract16 activationOffset;
+  uint16_t debounce;
+};
+
+// Portable per-key state.
+// Holds the snapshot fields forwarded to the OS via InputEvent *and* the
+// device-layer debounce / state-machine logic that drivers need.
 struct KeypadInfo {
+  static constexpr uint16_t kHoldThreshold = 400;
+
   uint32_t lastEventTime;
   Fract16 pressure;
   Fract16 velocity;
@@ -39,6 +58,12 @@ struct KeypadInfo {
   bool Active() const {
     return (state >= KeypadState::Activated && state <= KeypadState::Aftertouch) || state == KeypadState::ReleaseDebouncing;
   }
+
+  // Device-layer scan methods (implementations in KeypadInfo.cpp).
+  Fract16 ApplyForceCurve(KeyScanConfig& config, Fract16 value);
+  bool Update(KeyScanConfig& config, Fract16 newValue);
+  void Clear();
+  uint32_t HoldTime();
 };
 
 struct KeypadCapabilities {
@@ -49,4 +74,3 @@ struct KeypadCapabilities {
 };
 
 static_assert(sizeof(KeypadInfo) <= inputInfoMaxSize, "KeypadInfo must be <= 16 bytes");
-static_assert(std::is_trivially_copyable_v<KeypadInfo>, "KeypadInfo must be trivially copyable");

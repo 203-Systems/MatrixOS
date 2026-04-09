@@ -172,12 +172,11 @@ IRAM_ATTR bool Scan() {
       bool updated = keypadState[x][y].Update(config, reading);
       if (updated)
       {
-        uint16_t keyID = (1 << 12) + (x << 6) + y;
-        if (NotifyOS(keyID, &keypadState[x][y]))
+        if (NotifyOS(InputId{1, (uint16_t)(y * X_SIZE + x)}, &keypadState[x][y]))
         {
           return true;
         }
-        // ESP_LOGI("Keypad ULP", "Key %d,%d (%d) updated: %d (R:%d, L:%d, H:%d)", x, y, keyID, (uint16_t)keypadState[x][y].velocity,
+        // ESP_LOGI("Keypad ULP", "Key %d,%d updated: %d (R:%d, L:%d, H:%d)", x, y, (uint16_t)keypadState[x][y].velocity,
         // (uint16_t)reading, (uint16_t)config.lowThreshold, (uint16_t)config.highThreshold);
       }
     }
