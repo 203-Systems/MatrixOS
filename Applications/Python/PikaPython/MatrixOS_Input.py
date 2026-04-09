@@ -7,16 +7,20 @@ from MatrixOS_InputCluster import InputCluster
 from MatrixOS_Point import Point
 import MatrixOS_InputClass as InputClass
 
-def GetEvent(timeout_ms: int = 0) -> InputEvent:
+# Nullable convention: PikaPython has no Optional[T].
+# Functions that may return None use `-> any` with a comment
+# documenting the real return type.
+
+def GetEvent(timeout_ms: int = 0) -> any:  # InputEvent or None
     return _MatrixOS_Input.GetEvent(timeout_ms)
 
-def GetState(input_id: InputId) -> InputSnapshot:
+def GetState(input_id: InputId) -> any:  # InputSnapshot or None
     return _MatrixOS_Input.GetState(input_id)
 
-def GetPosition(input_id: InputId) -> Point:
+def GetPosition(input_id: InputId) -> any:  # Point or None
     return _MatrixOS_Input.GetPosition(input_id)
 
-def GetInputsAt(point: Point) -> list:
+def GetInputsAt(point: Point) -> list:  # list of InputId
     return _MatrixOS_Input.GetInputsAt(point)
 
 def ClearQueue() -> None:
@@ -28,8 +32,8 @@ def ClearState() -> None:
 def FunctionKey() -> InputId:
     return _MatrixOS_Input.FunctionKey()
 
-def GetClusters() -> list:
+def GetClusters() -> list:  # list of InputCluster
     return _MatrixOS_Input.GetClusters()
 
-def GetPrimaryGridCluster() -> InputCluster:
+def GetPrimaryGridCluster() -> any:  # InputCluster or None
     return _MatrixOS_Input.GetPrimaryGridCluster()

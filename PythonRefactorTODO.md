@@ -67,6 +67,7 @@ It assumes:
 - [x] Expose input events with explicit `input_class`
 - [x] Ensure keypad-specific handling is explicit in Python
 - [x] Remove keypad-era assumptions from Python UI callback path
+- [x] Add input-class-check-first usage examples to InputEvent, InputSnapshot, UI stubs
 
 ## Phase 5: Remove Legacy Python API Surface
 
@@ -96,13 +97,24 @@ It assumes:
 
 ## Phase 7: Re-enable Python Incrementally
 
-- [ ] Re-enable Python in app list for one target only
-- [ ] Add one smoke test app for input polling
-- [ ] Add one smoke test app for UI callback registration
-- [ ] Add one smoke test app for value wrappers
+Target: Mystrix1 (same hardware/build as Mystrix2; both have Python disabled identically)
+
+### Prerequisites (all met)
+- [x] Binding surface is input-first with no legacy keypad symbols
+- [x] Pika generator has been run and generated output is consistent
+- [x] `.py` and `.pyi` typing is internally consistent (nullable convention applied)
+- [x] `SetKeyEventHandler` fully removed; `SetInputHandler` is the only UI input API
+- [ ] Build verification on target (blocked: ESP-IDF toolchain version mismatch in dev env)
+
+### Re-enable steps
+- [ ] Re-enable Python in `Devices/Mystrix1/ApplicationList.txt` (uncomment `[System]Python`)
+- [ ] Verify build succeeds with `idf.py -B build/Mystrix1 -DDEVICE=Mystrix1 build`
+- [ ] Add one smoke test script exercising input polling (`MatrixOS.Input.GetEvent()`)
+- [ ] Add one smoke test script exercising UI callback registration (`UI.SetInputHandler()`)
+- [ ] Add one smoke test script exercising value wrappers (`InputId`, `Point`, `Color`)
 - [ ] Verify no immediate hardfault on UI create/destroy loop
 - [ ] Verify no immediate hardfault on callback re-registration loop
-- [ ] Re-enable Python for remaining targets after smoke tests pass
+- [ ] Re-enable Python for Mystrix2 after Mystrix1 smoke tests pass
 
 ## Phase 8: App Migration
 
