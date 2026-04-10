@@ -8,7 +8,7 @@
   font-family: var(--sans);
   line-height: 1.4;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 15px;
 
   color: #d4d4d8;
 
@@ -62,7 +62,7 @@ body {
 
 .workspace {
   flex: 1;
-  min-width: 0;
+  min-width: 420px;
   min-height: 0;
   overflow: hidden;
   background: var(--bg-1);
@@ -98,4 +98,231 @@ button {
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* Shared tool panel primitives */
+.tool-surface {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.tool-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+
+.tool-hero-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tool-hero-desc,
+.tool-list-detail,
+.tool-empty {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.tool-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tool-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-family: var(--mono);
+}
+
+.tool-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tool-card-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.tool-card-value {
+  font-size: 0.84rem;
+  font-family: var(--mono);
+  color: var(--text);
+  word-break: break-word;
+}
+
+.tool-value-live {
+  color: #6bdd8b;
+}
+
+.tool-value-idle {
+  color: var(--muted);
+}
+
+.tool-value-warn {
+  color: #f7c266;
+}
+
+.tool-value-error {
+  color: #ff8b8b;
+}
+
+.tool-value-blocked {
+  color: #ff8b8b;
+}
+
+.tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tool-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tool-list-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: fit-content;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.status-live {
+  color: #6bdd8b;
+  background: rgba(107, 221, 139, 0.1);
+  border-color: rgba(107, 221, 139, 0.18);
+}
+
+.status-partial {
+  color: #86b8ff;
+  background: rgba(134, 184, 255, 0.1);
+  border-color: rgba(134, 184, 255, 0.18);
+}
+
+.status-planned {
+  color: #c8b5ff;
+  background: rgba(156, 107, 255, 0.1);
+  border-color: rgba(156, 107, 255, 0.18);
+}
+
+.status-blocked {
+  color: #ff8b8b;
+  background: rgba(255, 107, 107, 0.1);
+  border-color: rgba(255, 107, 107, 0.18);
+}
+
+.status-idle {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+}
+
+.tool-console {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #0f1014;
+  min-height: 120px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: var(--mono);
+}
+
+.tool-console-row {
+  display: grid;
+  grid-template-columns: 78px 36px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 0.72rem;
+}
+
+.tool-console-time {
+  color: var(--muted);
+}
+
+.tool-console-level {
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tool-console-text {
+  word-break: break-word;
+  color: var(--text);
 }

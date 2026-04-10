@@ -1,11 +1,13 @@
 <script>
   import {
     Keyboard, Terminal, Activity, Screen, Music,
-    Usb, Connect, Meter
+    Usb, Connect, Meter, Application, Plug,
+    Compass, BatteryFull, DataBase
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
 
   const iconMap = {
+    application: Application,
     input: Keyboard,
     logs: Terminal,
     runtime: Activity,
@@ -14,6 +16,10 @@
     hid: Usb,
     serial: Connect,
     usage: Meter,
+    usb: Plug,
+    gyro: Compass,
+    battery: BatteryFull,
+    storage: DataBase,
   }
 </script>
 
@@ -25,7 +31,7 @@
       on:click={() => toggleTool(tool.id)}
       title={tool.label}
     >
-      <svelte:component this={iconMap[tool.id]} size={16} />
+      <svelte:component this={iconMap[tool.id]} size={20} />
       <span class="tray-label">{tool.label}</span>
     </button>
   {/each}
@@ -35,35 +41,39 @@
   .tool-tray {
     display: flex;
     flex-direction: column;
-    width: 40px;
+    width: 48px;
     background: var(--panel);
     border-left: 1px solid var(--border);
     padding: 6px 0;
     gap: 1px;
     flex-shrink: 0;
     overflow: hidden;
+    overflow-y: auto;
     transition: width 0.15s ease;
     z-index: 5;
+    scrollbar-width: none;
   }
+  .tool-tray::-webkit-scrollbar { display: none; }
   .tool-tray:hover {
-    width: 110px;
+    width: 130px;
   }
   .tray-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 0;
-    padding-left: 11px;
+    padding: 8px 0;
+    padding-left: 13px;
     border: none;
     background: none;
     color: var(--muted);
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 500;
     white-space: nowrap;
     transition: color 0.12s, background 0.12s;
     border-right: 2px solid transparent;
+    flex-shrink: 0;
   }
   .tray-btn:hover {
     color: var(--text);

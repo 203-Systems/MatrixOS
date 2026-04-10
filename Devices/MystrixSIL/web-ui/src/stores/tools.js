@@ -35,12 +35,17 @@ export function closeTool(id) {
 
 // Tool registry for the Device page
 export const deviceTools = [
-  { id: 'input',   label: 'Input' },
-  { id: 'logs',    label: 'Logs' },
-  { id: 'runtime', label: 'Runtime' },
-  { id: 'ui',      label: 'UI' },
-  { id: 'midi',    label: 'MIDI' },
-  { id: 'hid',     label: 'HID' },
-  { id: 'serial',  label: 'Serial' },
-  { id: 'usage',   label: 'Usage' },
+  { id: 'application', label: 'Application' },
+  { id: 'input',       label: 'Input' },
+  { id: 'logs',        label: 'Logs' },
+  { id: 'runtime',     label: 'Runtime' },
+  { id: 'ui',          label: 'UI' },
+  { id: 'midi',        label: 'MIDI' },
+  { id: 'hid',         label: 'HID' },
+  { id: 'serial',      label: 'Serial' },
+  { id: 'usage',       label: 'Usage' },
+  { id: 'usb',         label: 'USB' },
+  { id: 'gyro',        label: 'Gyro' },
+  { id: 'battery',     label: 'Battery' },
+  { id: 'storage',     label: 'Storage' },
 ]

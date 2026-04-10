@@ -8,9 +8,9 @@
   <div class="top-bar-left">
     <picture class="top-bar-logo">
       <source srcset="/203dark.svg" media="(prefers-color-scheme: dark)" />
-      <img src="/203.svg" alt="203 Systems" height="22" />
+      <img src="/203.svg" alt="203 Systems" height="24" />
     </picture>
-    <span class="top-bar-title">MystrixSIL</span>
+    <span class="top-bar-title">Matrix OS Developer Toolkit</span>
     <span class="top-bar-divider">|</span>
     <span class="top-bar-status">
       <span class="status-dot"
@@ -35,7 +35,7 @@
   <div class="top-bar-right">
     <span class="top-bar-build-id">{$buildIdentity}</span>
     <button class="top-bar-action" on:click={doReboot} title="Reset emulator">
-      <Restart size={14} />
+      <Restart size={16} />
       <span>Reset</span>
     </button>
   </div>
@@ -46,44 +46,44 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 42px;
-    padding: 0 14px;
+    height: 50px;
+    padding: 0 16px;
     background: var(--panel);
     border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
-    gap: 12px;
+    font-size: 0.88rem;
+    gap: 14px;
     flex-shrink: 0;
     z-index: 10;
   }
   .top-bar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
   }
   .top-bar-logo img {
-    height: 22px;
+    height: 24px;
     display: block;
   }
   .top-bar-title {
     font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.04em;
+    font-size: 0.96rem;
+    letter-spacing: 0.03em;
     white-space: nowrap;
   }
   .top-bar-divider {
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     opacity: 0.4;
   }
   .top-bar-status {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
   }
   .status-dot {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -106,7 +106,7 @@
   }
   .status-label {
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: 0.84rem;
     white-space: nowrap;
   }
   .top-bar-alerts {
@@ -114,8 +114,8 @@
     gap: 6px;
   }
   .alert-badge {
-    font-size: 0.7rem;
-    padding: 1px 6px;
+    font-size: 0.76rem;
+    padding: 2px 8px;
     border-radius: 4px;
     font-weight: 500;
   }
@@ -132,11 +132,11 @@
   .top-bar-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
   .top-bar-build-id {
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-family: var(--mono);
     white-space: nowrap;
     letter-spacing: 0.02em;
@@ -144,9 +144,9 @@
   .top-bar-action {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    font-size: 0.75rem;
+    gap: 5px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
     font-family: inherit;
     color: var(--text);
     background: var(--bg-2);

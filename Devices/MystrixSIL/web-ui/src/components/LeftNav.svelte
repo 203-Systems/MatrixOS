@@ -1,12 +1,14 @@
 <script>
-  import { Dashboard, Settings, Chip } from 'carbon-icons-svelte'
+  import { Dashboard, Connect, Activity, Settings, Chip } from 'carbon-icons-svelte'
 
   export let active = 'device'
 
   const sections = [
-    { id: 'device',   label: 'Device',   icon: Dashboard },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'firmware', label: 'Firmware', icon: Chip },
+    { id: 'device',     label: 'Device',     icon: Dashboard },
+    { id: 'connection', label: 'Connection', icon: Connect },
+    { id: 'simulation', label: 'Simulation', icon: Activity },
+    { id: 'settings',   label: 'Settings',   icon: Settings },
+    { id: 'firmware',   label: 'Firmware',   icon: Chip },
   ]
 </script>
 
@@ -18,7 +20,7 @@
       on:click={() => (active = sec.id)}
       title={sec.label}
     >
-      <svelte:component this={sec.icon} size={18} />
+      <svelte:component this={sec.icon} size={22} />
       <span class="nav-label">{sec.label}</span>
     </button>
   {/each}
@@ -28,7 +30,7 @@
   .left-nav {
     display: flex;
     flex-direction: column;
-    width: 56px;
+    width: 60px;
     background: var(--panel);
     border-right: 1px solid var(--border);
     padding: 8px 0;
@@ -39,20 +41,20 @@
     z-index: 5;
   }
   .left-nav:hover {
-    width: 140px;
+    width: 160px;
   }
   .nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 0;
+    padding: 11px 0;
     padding-left: 18px;
     border: none;
     background: none;
     color: var(--muted);
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.78rem;
+    font-size: 0.84rem;
     font-weight: 500;
     white-space: nowrap;
     transition: color 0.12s, background 0.12s;

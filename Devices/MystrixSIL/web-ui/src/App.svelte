@@ -5,10 +5,13 @@
   import TopBar from './components/TopBar.svelte'
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
+  import ConnectionPage from './components/ConnectionPage.svelte'
+  import SimulationPage from './components/SimulationPage.svelte'
   import SettingsPage from './components/SettingsPage.svelte'
   import FirmwarePage from './components/FirmwarePage.svelte'
   import ToolTray from './components/ToolTray.svelte'
   import ToolPanelStack from './components/ToolPanelStack.svelte'
+  import { detectBrowserCapabilities } from './stores/tooling.js'
 
   let activeSection = 'device'
 
@@ -17,10 +20,12 @@
   onMount(() => {
     try {
       const stored = window.localStorage.getItem(sectionPrefKey)
-      if (['device', 'settings', 'firmware'].includes(stored)) {
+      if (['device', 'connection', 'simulation', 'settings', 'firmware'].includes(stored)) {
         activeSection = stored
       }
     } catch {}
+
+    detectBrowserCapabilities()
 
     const restoreLogging = hookModuleLogging()
     const restoreWasm = initWasm()
@@ -37,7 +42,7 @@
 </script>
 
 <svelte:head>
-  <title>MystrixSIL — MatrixOS Emulator</title>
+  <title>Matrix OS Developer Toolkit</title>
 </svelte:head>
 
 <div class="dashboard">
@@ -49,6 +54,10 @@
     <main class="workspace">
       {#if activeSection === 'device'}
         <DevicePanel />
+      {:else if activeSection === 'connection'}
+        <ConnectionPage />
+      {:else if activeSection === 'simulation'}
+        <SimulationPage />
       {:else if activeSection === 'settings'}
         <SettingsPage />
       {:else if activeSection === 'firmware'}

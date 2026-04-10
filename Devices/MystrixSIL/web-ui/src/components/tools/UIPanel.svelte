@@ -1,38 +1,73 @@
 <script>
-  // Placeholder: UI stack inspection will be added in a later round
+  import { scenarioHooks, uiInspectorHooks, usageSnapshot } from '../../stores/tooling.js'
+
+  function formatInputEvent(event) {
+    if (!event) return 'No input captured yet'
+    if (event.type === 'fn') return `FN ${event.pressed ? 'press' : 'release'}`
+    return `Grid (${event.x},${event.y}) ${event.pressed ? 'press' : 'release'}`
+  }
 </script>
 
-<div class="ui-panel">
-  <div class="placeholder">
-    <span class="placeholder-title">UI Inspector</span>
-    <span class="placeholder-desc">Active UI stack and component inspection will appear here.</span>
-  </div>
-</div>
+<div class="tool-surface">
+  <section class="tool-hero">
+    <div class="tool-hero-title">UI Inspector</div>
+    <div class="tool-hero-desc">
+      This lane now exposes the live UI-adjacent surfaces already present in MystrixSIL and makes the missing runtime exports explicit instead of leaving a dead placeholder.
+    </div>
+    <div class="tool-tag-row">
+      <span class="status-pill status-live">Event timeline live</span>
+      <span class="status-pill status-planned">UI tree export planned</span>
+      <span class="status-pill status-partial">Replay path seeded</span>
+    </div>
+  </section>
 
-<style>
-  .ui-panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 14px;
-  }
-  .placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    flex: 1;
-    color: var(--muted);
-    text-align: center;
-  }
-  .placeholder-title {
-    font-size: 0.82rem;
-    font-weight: 600;
-  }
-  .placeholder-desc {
-    font-size: 0.75rem;
-    max-width: 220px;
-    line-height: 1.4;
-  }
-</style>
+  <section class="tool-section">
+    <div class="tool-section-title">Live session</div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-card-label">Runtime</span>
+        <span class="tool-card-value" class:tool-value-live={$usageSnapshot.runtimeLive} class:tool-value-warn={!$usageSnapshot.runtimeLive}>
+          {$usageSnapshot.runtimeStatus}
+        </span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Open tools</span>
+        <span class="tool-card-value">{$usageSnapshot.openToolCount}</span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Last input</span>
+        <span class="tool-card-value">{formatInputEvent($usageSnapshot.lastInputEvent)}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-section">
+    <div class="tool-section-title">Inspection hooks</div>
+    <div class="tool-list">
+      {#each uiInspectorHooks as hook}
+        <div class="tool-list-item">
+          <div class="tool-list-main">
+            <span class="tool-list-title">{hook.title}</span>
+            <span class="tool-list-detail">{hook.detail}</span>
+          </div>
+          <span class="status-pill status-{hook.status}">{hook.label}</span>
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <section class="tool-section">
+    <div class="tool-section-title">Scenario / replay path</div>
+    <div class="tool-list">
+      {#each scenarioHooks as hook}
+        <div class="tool-list-item">
+          <div class="tool-list-main">
+            <span class="tool-list-title">{hook.title}</span>
+            <span class="tool-list-detail">{hook.detail}</span>
+          </div>
+          <span class="status-pill status-{hook.status}">{hook.label}</span>
+        </div>
+      {/each}
+    </div>
+  </section>
+</div>

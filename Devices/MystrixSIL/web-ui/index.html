@@ -10,6 +10,16 @@
     <div id="app"></div>
     <script>
       window.Module = window.Module || {}
+      const looksLikeMatrixOSLog = (args) => {
+        const text = args.map((v) => {
+          if (v === null || v === undefined) return String(v)
+          if (typeof v === 'object') {
+            try { return JSON.stringify(v) } catch { return '[object]' }
+          }
+          return String(v)
+        }).join(' ').trim()
+        return text.startsWith('[MystrixSIL]') || /^[DIWEV]\s*\(\d+\)/.test(text)
+      }
       window.MatrixOSRuntimeReady = new Promise((resolve) => {
         const previous = window.Module.onRuntimeInitialized
         window.Module.onRuntimeInitialized = () => {
@@ -37,9 +47,9 @@
       }
       window.Module.printErr = (...args) => {
         console.error(...args)
-        if (window.MatrixOSLogDispatch) {
+        if (window.MatrixOSLogDispatch && looksLikeMatrixOSLog(args)) {
           window.MatrixOSLogDispatch('error', args)
-        } else {
+        } else if (looksLikeMatrixOSLog(args)) {
           window.MatrixOSLogBuffer.push({ level: 'error', args })
         }
       }

@@ -5,6 +5,9 @@
   let logBody
   let autoScroll = true
   let userScrolledUp = false
+  let showTimestamps = true
+
+  const timestampPrefKey = 'matrixos-log-show-timestamps'
 
   const levels = [
     { value: 'all',   label: 'All' },
@@ -19,6 +22,15 @@
       if (logBody) logBody.scrollTop = logBody.scrollHeight
     })
   }
+
+  try {
+    const stored = window.localStorage.getItem(timestampPrefKey)
+    if (stored === '0') showTimestamps = false
+  } catch {}
+
+  $: try {
+    window.localStorage.setItem(timestampPrefKey, showTimestamps ? '1' : '0')
+  } catch {}
 
   function scrollToBottom() {
     if (logBody) {
@@ -45,6 +57,14 @@
         <option value={lvl.value}>{lvl.label}</option>
       {/each}
     </select>
+    <button
+      class="logs-toggle"
+      class:logs-toggle-active={showTimestamps}
+      on:click={() => (showTimestamps = !showTimestamps)}
+      title="Toggle timestamps"
+    >
+      Time
+    </button>
     <span class="logs-count">{$filteredLogs.length} / {$logMessages.length}</span>
     <button class="logs-clear" on:click={clearLogs} title="Clear logs">
       <Close size={14} />
@@ -61,12 +81,14 @@
       userScrolledUp = !near
     }}
   >
-    {#if $filteredLogs.length === 0}
-      <div class="logs-empty">No logs{$logFilter || $logLevelFilter !== 'all' ? ' matching filter' : ' yet'}.</div>
-    {:else}
-      {#each $filteredLogs as entry (entry.id)}
-        <div class="log-row level-{entry.level}">
+      {#if $filteredLogs.length === 0}
+        <div class="logs-empty">No logs{$logFilter || $logLevelFilter !== 'all' ? ' matching filter' : ' yet'}.</div>
+      {:else}
+        {#each $filteredLogs as entry (entry.id)}
+        <div class="log-row level-{entry.level}" class:log-row-no-time={!showTimestamps}>
+          {#if showTimestamps}
           <span class="log-time">{entry.timestamp}</span>
+          {/if}
           <span class="log-level-tag">{entry.level}</span>
           <span class="log-text" style={entry.color ? `color:${entry.color}` : ''}>{entry.text}</span>
         </div>
@@ -84,26 +106,26 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    padding: 12px 14px;
-    gap: 8px;
+    padding: 10px 10px 8px;
+    gap: 6px;
     overflow: hidden;
     position: relative;
   }
   .logs-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
   }
   .logs-search {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex: 1;
     min-width: 0;
-    padding: 4px 8px;
+    padding: 3px 7px;
     border: 1px solid var(--border);
-    border-radius: 5px;
+    border-radius: 4px;
     background: var(--bg-2);
     color: var(--muted);
   }
@@ -114,14 +136,14 @@
     outline: none;
     color: var(--text);
     font-family: var(--mono);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     min-width: 0;
   }
   .logs-search-input::placeholder { color: var(--muted); }
   .logs-level-select {
     font-family: inherit;
-    font-size: 0.75rem;
-    padding: 4px 8px;
+    font-size: 0.72rem;
+    padding: 3px 7px;
     border: 1px solid var(--border);
     border-radius: 5px;
     background: var(--bg-2);
@@ -130,10 +152,27 @@
     outline: none;
   }
   .logs-count {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--muted);
     font-family: var(--mono);
     white-space: nowrap;
+  }
+  .logs-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.66rem;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .logs-toggle:hover,
+  .logs-toggle-active {
+    color: var(--text);
+    border-color: var(--accent);
   }
   .logs-clear {
     background: none;
@@ -141,7 +180,7 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 4px;
+    padding: 1px 3px;
     display: inline-flex;
     align-items: center;
   }
@@ -152,30 +191,35 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0;
     font-family: var(--mono);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.12) transparent;
   }
   .log-row {
-    display: flex;
-    gap: 8px;
-    padding: 3px 6px;
-    border-radius: 3px;
+    display: grid;
+    grid-template-columns: 82px 38px minmax(0, 1fr);
+    gap: 6px;
+    padding: 1px 4px;
+    border-radius: 0;
     background: rgba(255, 255, 255, 0.015);
-    align-items: baseline;
-    line-height: 1.4;
+    align-items: start;
+    line-height: 1.25;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+  }
+  .log-row-no-time {
+    grid-template-columns: 38px minmax(0, 1fr);
   }
   .log-time {
     color: var(--muted);
-    min-width: 85px;
+    min-width: 0;
     flex-shrink: 0;
-    font-size: 0.72rem;
+    font-size: 0.66rem;
   }
   .log-level-tag {
-    min-width: 36px;
-    font-size: 0.68rem;
+    min-width: 0;
+    font-size: 0.64rem;
     text-transform: uppercase;
     font-weight: 500;
     flex-shrink: 0;
