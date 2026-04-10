@@ -1,5 +1,4 @@
 #include "UI.h"
-#include "Input/Input.h"
 
 std::vector<UI*> UI::uiList;
 
@@ -42,7 +41,6 @@ void UI::Start() {
   }
 
   MatrixOS::Input::ClearInputBuffer();
-  MatrixOS::Input::InvalidateStateCache();
   Device::Input::SuppressActiveInputs();
   Setup();
   while (status >= 0)

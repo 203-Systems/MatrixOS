@@ -72,8 +72,16 @@ bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId);
 // queue.  This prevents stale physical interactions from leaking into
 // a new UI or input context.
 // NOTE: This does NOT clear the OS-side input event buffer.
-// NOTE: This does NOT clear the OS-side input snapshot cache.
 void SuppressActiveInputs();
+
+// Query the current live state of a specific input from device hardware.
+// Populates *snapshot with the live device state for the given InputId.
+// Returns false if the clusterId/memberId is unknown or unsupported.
+bool GetState(InputId id, InputSnapshot* snapshot);
+
+// Query device-owned keypad capabilities for a cluster.
+// Returns false if the clusterId is unknown or not a keypad cluster.
+bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps);
 } // namespace Input
 
 namespace NVS // Device should also implements duplication check. If new value is equal to the old one, then skip the write.

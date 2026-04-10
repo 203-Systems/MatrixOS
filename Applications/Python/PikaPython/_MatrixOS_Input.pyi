@@ -16,7 +16,7 @@ from MatrixOS_Point import Point
 # Returns InputEvent on success, None on timeout.
 def GetEvent(timeout_ms: int) -> any: ...
 
-# Get the current snapshot state of an input.
+# Get the current live state of an input from device hardware.
 # Returns InputSnapshot on success, None if input not found.
 def GetState(input_id: InputId) -> any: ...
 

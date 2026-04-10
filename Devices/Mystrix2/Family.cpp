@@ -1,7 +1,6 @@
 #include "Device.h"
 #include "MatrixOS.h"
 #include "UI/UI.h"
-#include "Input/Input.h"
 
 #include "esp_private/system_internal.h" // For esp_reset_reason_set_hint
 #include "esp_timer.h"                   // esp_timer_get_time
@@ -155,9 +154,8 @@ void Rotate(Direction newRotation, bool absolute) {
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
 
-  // Clear stale input events, invalidate cache, and suppress active device-side inputs
+  // Clear stale input events and suppress active device-side inputs
   MatrixOS::Input::ClearInputBuffer();
-  MatrixOS::Input::InvalidateStateCache();
   Device::Input::SuppressActiveInputs();
 }
 
@@ -222,23 +220,6 @@ void RegisterInputClusters() {
   touchbarRightCluster.getPosition = Input::Linear1D_GetPosition;
   touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
   Input::clusters.push_back(touchbarRightCluster);
-
-  // Register keypad capabilities
-  // Grid: FSR pressure sensing, aftertouch, velocity
-  KeypadCapabilities gridCaps = {};
-  gridCaps.hasPressure = true;
-  gridCaps.hasAftertouch = true;
-  gridCaps.hasVelocity = KeyPad::velocitySensitivity;
-  gridCaps.hasPosition = true;
-  MatrixOS::Input::RegisterKeypadCapabilities(1, gridCaps);
-
-  // FN button: binary only
-  KeypadCapabilities fnCaps = {};
-  fnCaps.hasPressure = false;
-  fnCaps.hasAftertouch = false;
-  fnCaps.hasVelocity = false;
-  fnCaps.hasPosition = false;
-  MatrixOS::Input::RegisterKeypadCapabilities(0, fnCaps);
 }
 
 void DeviceStart() {

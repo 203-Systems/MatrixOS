@@ -136,6 +136,60 @@ void SuppressActiveInputs() {
     KeyPad::touchbarState[i].Suppress();
   }
 }
+
+bool GetState(InputId id, InputSnapshot* snapshot) {
+  KeypadInfo* info = nullptr;
+
+  switch (id.clusterId)
+  {
+    case 0: // FN button
+      if (id.memberId != 0) return false;
+      info = &KeyPad::fnState;
+      break;
+    case 1: // Main grid
+    {
+      uint8_t x = id.memberId % X_SIZE;
+      uint8_t y = id.memberId / X_SIZE;
+      if (id.memberId >= X_SIZE * Y_SIZE) return false;
+      info = &KeyPad::keypadState[x][y];
+      break;
+    }
+    case 2: // TouchBar Left
+      if (id.memberId >= TOUCHBAR_SIZE / 2) return false;
+      info = &KeyPad::touchbarState[id.memberId];
+      break;
+    case 3: // TouchBar Right
+      if (id.memberId >= TOUCHBAR_SIZE / 2) return false;
+      info = &KeyPad::touchbarState[TOUCHBAR_SIZE / 2 + id.memberId];
+      break;
+    default:
+      return false;
+  }
+
+  memset(snapshot, 0, sizeof(*snapshot));
+  snapshot->id = id;
+  snapshot->inputClass = InputClass::Keypad;
+  snapshot->keypad = *info;
+  return true;
+}
+
+bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
+  switch (clusterId)
+  {
+    case 0: // FN button: binary only
+      *caps = {false, false, false, false};
+      return true;
+    case 1: // Main grid: FSR pressure sensing, aftertouch, velocity
+      *caps = {true, true, KeyPad::velocitySensitivity, true};
+      return true;
+    case 2: // TouchBar Left
+    case 3: // TouchBar Right
+      *caps = {false, false, false, false};
+      return true;
+    default:
+      return false;
+  }
+}
 } // namespace Device::Input
 
 namespace Device::KeyPad
