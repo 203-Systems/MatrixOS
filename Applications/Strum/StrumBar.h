@@ -67,11 +67,18 @@ public:
   }
 
   virtual bool Render(Point origin) {
-    const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
     auto keypadActiveAt = [&](Point p) -> bool {
-      InputId id; InputSnapshot snap;
-      return grid && MatrixOS::Input::GetInputAt(grid->clusterId, p, &id) &&
-             MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad && snap.keypad.Active();
+      vector<InputId> ids;
+      MatrixOS::Input::GetInputsAt(p, &ids);
+      for (const InputId& id : ids)
+      {
+        InputSnapshot snap;
+        if (MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad && snap.keypad.Active())
+        {
+          return true;
+        }
+      }
+      return false;
     };
     uint8_t newKeyBitmap = 0;
     for (uint8_t i = 0; i < 8; i++)
