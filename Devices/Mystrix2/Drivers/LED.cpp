@@ -43,15 +43,19 @@ static Point CanonicalIndex2XY(uint16_t index) {
   }
   else if (index < 72)
   {
-    hw = Point(7 - (index - 64), 8);
+    hw = Point(8, 7 - (index - 64));
   }
   else if (index < 80)
   {
-    hw = Point(-1, index - 72);
+    hw = Point(7 - (index - 72), -1);
   }
   else if (index < 88)
   {
-    hw = Point(index - 80, -1);
+    hw = Point(-1, index - 80);
+  }
+  else if (index < 96)
+  {
+    hw = Point(index - 88, 8);
   }
   else
   {
