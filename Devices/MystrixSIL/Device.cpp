@@ -442,9 +442,7 @@ void MatrixOS_Wasm_KeypadTick(void) {
 }
 
 const char* MatrixOS_Wasm_GetVersionString(void) {
-  static char version[32];
-  snprintf(version, sizeof(version), "%d.%d.%d", MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER, MATRIXOS_PATCH_VER);
-  return version;
+  return MATRIXOS_VERSION_STRING.c_str();
 }
 
 void MatrixOS_Wasm_Reboot(void) {

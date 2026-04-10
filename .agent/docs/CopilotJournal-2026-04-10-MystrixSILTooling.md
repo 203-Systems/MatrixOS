@@ -140,3 +140,49 @@ Added `-sALLOW_TABLE_GROWTH=1` to the Emscripten linker flags as a safety net, a
 - `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UISelector.cpp` — removed unused `<functional>` include
 - `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UIComponent.cpp` — removed unused `<functional>` include
 - `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UI4pxNumber.cpp` — removed unused `<functional>` include
+
+## Round 4: Layout and Tool Model Refactor
+
+### Goal
+Refactor the dashboard from a page-switcher layout to a proper three-column architecture matching the updated tool spec.
+
+### Changes Made
+
+#### Layout Architecture
+- **App.svelte**: Rewired from 4-page switcher to 3-section global nav + conditional right-side tool area (ToolTray + ToolPanelStack only shown on Device page).
+- **LeftNav.svelte**: Reduced to 3 sections (Device, Settings, Firmware). Input/Logs/Runtime removed from left nav.
+- New **ToolTray.svelte**: Right-edge icon bar with 8 tool slots. Collapsible with hover labels.
+- New **ToolPanelStack.svelte**: Renders open tools as vertically stacked split panels with close buttons.
+
+#### New Store
+- **stores/tools.js**: Manages `openTools` array with localStorage persistence. Exports `toggleTool()`, `closeTool()`, and `deviceTools` registry.
+
+#### New Tool Panel Shells
+- **tools/UIPanel.svelte** — placeholder for UI stack inspection
+- **tools/MIDIPanel.svelte** — placeholder for MIDI monitor/injection
+- **tools/HIDPanel.svelte** — placeholder for HID activity
+- **tools/SerialPanel.svelte** — placeholder for serial console
+- **tools/UsagePanel.svelte** — placeholder for RAM/tasks/resource stats (merged)
+
+#### New Page Placeholders
+- **SettingsPage.svelte**, **FirmwarePage.svelte** — placeholder pages
+
+#### Top Bar
+- Removed DFU button
+- Renamed "Reboot" → "Reset"
+- Replaced `v3.3.0` with full build identity: `Matrix OS 3.3 Development • <hash> • Clean/Dirty`
+
+#### Build Identity Pipeline
+- **Device.cpp**: `MatrixOS_Wasm_GetVersionString` now returns `MATRIXOS_VERSION_STRING.c_str()`
+- **vite.config.js**: Injects `__GIT_HASH__` and `__GIT_DIRTY__` at build time
+- **stores/wasm.js**: New `buildIdentity` derived store
+
+### Validation
+- `npm run build` succeeds cleanly (4.92s)
+
+### What Remains
+- Browser runtime validation (needs WASM binary)
+- Tool panel content implementation
+- Settings/Firmware page content
+- Scenario/recording/MIDI tooling
+- Debug API / WebSocket transport

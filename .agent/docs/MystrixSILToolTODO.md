@@ -60,7 +60,24 @@
 - [x] Fix EXPORTED_FUNCTIONS to include GetRotation, GetUptimeMs (added in R1 but missing from export list)
 - [x] Add GetKeypadState, GetKeypadStateLength, GetFnState WASM exports
 
-## Phase 7: Forward-Looking Hooks
+## Phase 7: Layout and Tool Model Refactor (Round 4)
+- [x] Convert layout to: left global nav → center workspace → right ToolTray + panel stack
+- [x] Left nav now shows Device / Settings / Firmware (global product navigation)
+- [x] Move Input / Logs / Runtime out of left nav into right-side tool panels
+- [x] Add ToolTray icon bar on right edge (toggleable, 8 tool slots)
+- [x] Add ToolPanelStack: vertically stacked, closable tool panels
+- [x] Add panel shells for UI, MIDI, HID, Serial, Usage
+- [x] Merge RAM/tasks concepts into Usage panel
+- [x] Add Settings page placeholder
+- [x] Add Firmware page placeholder
+- [x] Remove DFU button from top bar
+- [x] Rename Reboot to Reset
+- [x] Show full build identity: channel + git hash + dirty/clean state
+- [x] Update Device.cpp to expose MATRIXOS_VERSION_STRING via WASM
+- [x] Inject git hash/dirty via Vite build-time defines
+- [x] Web UI Vite build succeeds (`npm run build` clean)
+
+## Phase 8: Forward-Looking Hooks
 - [ ] Leave a clean path for MIDI tooling
 - [ ] Leave a clean path for scenarios/replay
 - [ ] Leave a clean path for SDK/debug transport

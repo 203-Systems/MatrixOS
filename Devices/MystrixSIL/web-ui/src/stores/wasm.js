@@ -1,11 +1,51 @@
 // WASM module lifecycle store for MystrixSIL
-import { writable, get } from 'svelte/store'
+import { writable, derived, get } from 'svelte/store'
 
 export const moduleRef = writable(null)
 export const moduleReady = writable(false)
 export const wasmMissing = writable(false)
 export const runtimeStatus = writable('Waiting for runtime…')
 export const versionLabel = writable('…')
+
+// Build identity: "Matrix OS 3.3 Development • a1b2c3d • Clean"
+const GIT_HASH = typeof __GIT_HASH__ === 'string' ? __GIT_HASH__ : ''
+const GIT_DIRTY = typeof __GIT_DIRTY__ === 'boolean' ? __GIT_DIRTY__ : false
+
+// Map WASM version string to a human-readable channel label
+function formatBuildChannel(raw) {
+  if (!raw || raw === '…') return 'Matrix OS'
+  // raw is e.g. "3.3 InDev Apr 10 2026 16:38:33" or "3.3" or "3.3 RC1"
+  const channelMap = {
+    'InDev': 'Development',
+    'Nighty': 'Nightly',
+    'Beta': 'Beta',
+    'RC': 'RC',
+  }
+  for (const [key, label] of Object.entries(channelMap)) {
+    if (raw.includes(key)) {
+      // Extract major.minor
+      const ver = raw.match(/^[\d.]+/)
+      const verStr = ver ? ver[0] : raw
+      // For RC, include the number
+      if (key === 'RC') {
+        const rcMatch = raw.match(/RC\s*(\d+)/)
+        return `Matrix OS ${verStr} ${label}${rcMatch ? ' ' + rcMatch[1] : ''}`
+      }
+      return `Matrix OS ${verStr} ${label}`
+    }
+  }
+  // Pure version string = Release
+  const ver = raw.match(/^[\d.]+/)
+  return ver ? `Matrix OS ${ver[0]}` : `Matrix OS ${raw}`
+}
+
+export const buildIdentity = derived(versionLabel, ($ver) => {
+  const channel = formatBuildChannel($ver)
+  const parts = [channel]
+  if (GIT_HASH) parts.push(GIT_HASH)
+  parts.push(GIT_DIRTY ? 'Dirty' : 'Clean')
+  return parts.join(' • ')
+})
 
 let wasmSignature = null
 let reloadTimer = 0

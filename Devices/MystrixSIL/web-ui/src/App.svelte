@@ -5,24 +5,23 @@
   import TopBar from './components/TopBar.svelte'
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
-  import InputPanel from './components/InputPanel.svelte'
-  import LogsPanel from './components/LogsPanel.svelte'
-  import RuntimePanel from './components/RuntimePanel.svelte'
+  import SettingsPage from './components/SettingsPage.svelte'
+  import FirmwarePage from './components/FirmwarePage.svelte'
+  import ToolTray from './components/ToolTray.svelte'
+  import ToolPanelStack from './components/ToolPanelStack.svelte'
 
   let activeSection = 'device'
 
   const sectionPrefKey = 'matrixos-active-section'
 
   onMount(() => {
-    // Restore last active section
     try {
       const stored = window.localStorage.getItem(sectionPrefKey)
-      if (['device', 'input', 'logs', 'runtime'].includes(stored)) {
+      if (['device', 'settings', 'firmware'].includes(stored)) {
         activeSection = stored
       }
     } catch {}
 
-    // Hook log capture before WASM init so early messages are captured
     const restoreLogging = hookModuleLogging()
     const restoreWasm = initWasm()
 
@@ -50,13 +49,16 @@
     <main class="workspace">
       {#if activeSection === 'device'}
         <DevicePanel />
-      {:else if activeSection === 'input'}
-        <InputPanel />
-      {:else if activeSection === 'logs'}
-        <LogsPanel />
-      {:else if activeSection === 'runtime'}
-        <RuntimePanel />
+      {:else if activeSection === 'settings'}
+        <SettingsPage />
+      {:else if activeSection === 'firmware'}
+        <FirmwarePage />
       {/if}
     </main>
+
+    {#if activeSection === 'device'}
+      <ToolPanelStack />
+      <ToolTray />
+    {/if}
   </div>
 </div>

@@ -1,13 +1,12 @@
 <script>
-  import { Dashboard, Keyboard, Terminal, Activity } from 'carbon-icons-svelte'
+  import { Dashboard, Settings, Chip } from 'carbon-icons-svelte'
 
   export let active = 'device'
 
   const sections = [
-    { id: 'device',  label: 'Device',  icon: Dashboard },
-    { id: 'input',   label: 'Input',   icon: Keyboard },
-    { id: 'logs',    label: 'Logs',    icon: Terminal },
-    { id: 'runtime', label: 'Runtime', icon: Activity },
+    { id: 'device',   label: 'Device',   icon: Dashboard },
+    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'firmware', label: 'Firmware', icon: Chip },
   ]
 </script>
 

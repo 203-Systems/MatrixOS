@@ -1,6 +1,6 @@
 <script>
-  import { Restart, Power, WarningAlt } from 'carbon-icons-svelte'
-  import { moduleReady, wasmMissing, runtimeStatus, versionLabel, doReboot, doBootloader } from '../stores/wasm.js'
+  import { Restart } from 'carbon-icons-svelte'
+  import { moduleReady, wasmMissing, runtimeStatus, buildIdentity, doReboot } from '../stores/wasm.js'
   import { errorCount, warnCount } from '../stores/logs.js'
 </script>
 
@@ -33,14 +33,10 @@
     {/if}
   </div>
   <div class="top-bar-right">
-    <span class="top-bar-version">v{$versionLabel}</span>
-    <button class="top-bar-action" on:click={doReboot} title="Reboot">
+    <span class="top-bar-build-id">{$buildIdentity}</span>
+    <button class="top-bar-action" on:click={doReboot} title="Reset emulator">
       <Restart size={14} />
-      <span>Reboot</span>
-    </button>
-    <button class="top-bar-action top-bar-action-danger" on:click={doBootloader} title="Bootloader">
-      <Power size={14} />
-      <span>DFU</span>
+      <span>Reset</span>
     </button>
   </div>
 </header>
@@ -138,10 +134,12 @@
     align-items: center;
     gap: 8px;
   }
-  .top-bar-version {
+  .top-bar-build-id {
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-family: var(--mono);
+    white-space: nowrap;
+    letter-spacing: 0.02em;
   }
   .top-bar-action {
     display: inline-flex;
@@ -159,8 +157,5 @@
   }
   .top-bar-action:hover {
     border-color: var(--accent);
-  }
-  .top-bar-action-danger:hover {
-    border-color: var(--danger);
   }
 </style>
