@@ -81,6 +81,46 @@ void UpdateBrightness() {
   needUpdate = true;
 }
 
+void Reset() {
+  if (activeBufferSemaphore == nullptr)
+  {
+    return;
+  }
+
+  xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+
+  crossfadeActive = false;
+  crossfadeStartTime = 0;
+  crossfadeDuration = 0;
+
+  if (crossfadeDestroySourceBuffer && crossfadeSourceBuffer != nullptr)
+  {
+    vPortFree(crossfadeSourceBuffer);
+  }
+  crossfadeSourceBuffer = nullptr;
+  crossfadeDestroySourceBuffer = false;
+
+  if (crossfadeBuffer != nullptr)
+  {
+    vPortFree(crossfadeBuffer);
+    crossfadeBuffer = nullptr;
+  }
+
+  for (Color* buffer : frameBuffers)
+  {
+    if (buffer)
+    {
+      vPortFree(buffer);
+    }
+  }
+
+  frameBuffers.clear();
+
+  CreateLayer(0); // Create Layer 0 - The active layer
+  CreateLayer(0); // Create Layer 1 - The base layer
+  xSemaphoreGive(activeBufferSemaphore);
+}
+
 void Init() {
 
   if (ledInited == false)
@@ -107,18 +147,7 @@ void Init() {
     activeBufferSemaphore = xSemaphoreCreateMutex();
   }
 
-  for (Color* buffer : frameBuffers)
-  {
-    if (buffer)
-    {
-      vPortFree(buffer);
-    }
-  }
-
-  frameBuffers.clear();
-
-  CreateLayer(0); // Create Layer 0 - The active layer
-  CreateLayer(0); // Create Layer 1 - The base layer
+  Reset();
 
   if (ledInited == false)
   {

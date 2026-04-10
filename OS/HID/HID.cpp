@@ -11,7 +11,7 @@ bool Ready() {
   return tud_hid_ready();
 }
 
-void Init() {
+void Reset() {
   RawHID::Init();
 
   if (Ready())
@@ -19,5 +19,9 @@ void Init() {
     Gamepad::ReleaseAll();
     Keyboard::ReleaseAll();
   }
+}
+
+void Init() {
+  Reset();
 }
 } // namespace MatrixOS::HID
