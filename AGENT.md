@@ -214,6 +214,29 @@ Important build facts:
 - application loading depends on the family `ApplicationList.txt`
 - some applications may be cloned from external git repos at configure time
 
+### ESP-IDF Requirement
+
+- use `ESP-IDF v5.3.4`
+- if the user has already provided an ESP-IDF path, use that path
+- if the user has not provided a path, search common local install locations and identify the `v5.3.4` install before building
+- do not patch or edit files under the ESP-IDF install directory; fix build issues in MatrixOS instead
+
+### Standard Build Commands
+
+Typical configure/build flow from the repo root:
+
+```powershell
+cmake -S . -B build\Mystrix1 -G Ninja -DDEVICE=Mystrix1 -DMODE=DEVELOPMENT
+cmake --build build\Mystrix1
+```
+
+```powershell
+cmake -S . -B build\Mystrix2 -G Ninja -DDEVICE=Mystrix2 -DMODE=DEVELOPMENT
+cmake --build build\Mystrix2
+```
+
+Use `-DFAMILY=...` only when the build actually needs a non-default family override.
+
 If a feature only exists on devices with storage or battery, guard it using the existing compile-time feature flags and runtime availability checks.
 
 ## Device Layer Expectations
@@ -250,29 +273,6 @@ If changing UI behavior:
 - inspect `OS/UI/`
 - preserve existing interaction patterns unless intentionally redesigning
 - avoid global UI side effects without checking the active app and current UI stack
-
-## MIDI, HID, and Protocol Changes
-
-When changing protocol, serialization, or host communication:
-
-- inspect both firmware and host/editor repos
-- keep payload shape changes explicit and documented
-- update error handling on both sides
-- prefer one canonical wire format over long-term "temporary" compatibility branches unless compatibility is a product requirement
-
-Areas where this matters:
-
-- `Applications/CustomControlMap`
-- RawHID commands
-- map/UAD serialization
-- MIDI SysEx payload handling
-
-If you change any host-visible structure, update:
-
-- firmware parser/serializer
-- editor serializer/deserializer
-- user-facing error messages
-- docs if the format is public or semi-public
 
 ## Concurrency and Memory
 
