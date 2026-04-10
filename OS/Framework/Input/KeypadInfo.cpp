@@ -134,8 +134,11 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
 }
 
 void KeypadInfo::Suppress() {
-  if (state == KeypadState::Pressed || state == KeypadState::Activated ||
-      state == KeypadState::Hold || state == KeypadState::Aftertouch)
+  // Suppress all states that Active() considers active, including
+  // ReleaseDebouncing.  A key in release-debounce will eventually
+  // transition to Released; that release event must also be suppressed
+  // to prevent it from leaking into the next input context.
+  if (Active())
   {
     suppressed = true;
   }

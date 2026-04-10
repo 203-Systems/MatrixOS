@@ -151,6 +151,11 @@ void ClearInputBuffer() {
   {
     xQueueReset(inputEventQueue);
   }
+  // Invalidate the snapshot cache so that GetState() does not return
+  // stale pressed/hold snapshots from before the buffer clear.
+  // Without this, suppressed keys whose release events are dropped
+  // would appear pressed forever in the cache.
+  stateCache.clear();
 }
 
 void RegisterKeypadCapabilities(uint8_t clusterId, const KeypadCapabilities& caps) {

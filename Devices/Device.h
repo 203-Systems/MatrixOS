@@ -56,10 +56,6 @@ Point Index2XY(uint16_t index); // Buffer index to Grid XY, return Point(INT16_M
                                 // Provides a way for application to iterate through all LEDs
 } // namespace LED
 
-namespace KeyPad
-{
-} // namespace KeyPad
-
 namespace Input
 {
 // Device-owned cluster data. The device layer populates and maintains this.
