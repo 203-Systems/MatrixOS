@@ -21,6 +21,9 @@
         }
         window.Module.locateFile = (path) => `/${path}`
       })
+      // JS hooks called from WASM via EM_ASM for reboot / bootloader
+      window.MatrixOS_Reboot = () => location.reload()
+      window.MatrixOS_Bootloader = () => location.reload()
       // Buffer MatrixOS stdout/stderr until the UI is ready to read it
       window.MatrixOSLogBuffer = window.MatrixOSLogBuffer || []
       window.MatrixOSLogDispatch = window.MatrixOSLogDispatch || null
