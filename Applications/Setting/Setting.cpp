@@ -32,21 +32,21 @@ void Setting::SystemSetting() {
   rotateRightBtn.SetName("Rotate to this side");
   rotateRightBtn.SetColor(Color(0x00FF00));
   rotateRightBtn.SetSize(Dimension(1, 2));
-  rotateRightBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(RIGHT); });
+  rotateRightBtn.OnPress([&]() -> void { Device::Rotate(RIGHT); });
   systemSetting.AddUIComponent(rotateRightBtn, origin + Point(2, 0));
 
   UIButton rotateDownBtn;
   rotateDownBtn.SetName("Rotate to this side");
   rotateDownBtn.SetColor(Color(0x00FF00));
   rotateDownBtn.SetSize(Dimension(2, 1));
-  rotateDownBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(DOWN); });
+  rotateDownBtn.OnPress([&]() -> void { Device::Rotate(DOWN); });
   systemSetting.AddUIComponent(rotateDownBtn, origin + Point(0, 2));
 
   UIButton rotateLeftBtn;
   rotateLeftBtn.SetName("Rotate to this side");
   rotateLeftBtn.SetColor(Color(0x00FF00));
   rotateLeftBtn.SetSize(Dimension(1, 2));
-  rotateLeftBtn.OnPress([&]() -> void { MatrixOS::SYS::Rotate(LEFT); });
+  rotateLeftBtn.OnPress([&]() -> void { Device::Rotate(LEFT); });
   systemSetting.AddUIComponent(rotateLeftBtn, origin + Point(-1, 0));
 
 #if DEVICE_STORAGE == 1

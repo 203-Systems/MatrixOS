@@ -18,6 +18,9 @@ IRAM_ATTR void Update(Color* frameBuffer, vector<uint8_t>& brightness) // Render
 }
 
 uint16_t XY2Index(Point xy) {
+  // Rotate from user-space to hardware-space
+  xy = xy.Rotate(Device::rotation, Point(Device::xSize, Device::ySize));
+
   if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) // Main grid
   {
     uint16_t rowOffset = xy.y * 8;
@@ -43,25 +46,31 @@ uint16_t XY2Index(Point xy) {
 }
 
 Point Index2XY(uint16_t index) {
+  Point hw;
   if (index < 64)
   {
     int16_t y = index / 8;
     int16_t rowIndex = index % 8;
-    return Point((y % 2 == 0) ? rowIndex : (7 - rowIndex), y);
+    hw = Point((y % 2 == 0) ? rowIndex : (7 - rowIndex), y);
   }
   else if (index < 72)
   {
-    return Point(7 - (index - 64), 8);
+    hw = Point(7 - (index - 64), 8);
   }
   else if (index < 80)
   {
-    return Point(-1, index - 72);
+    hw = Point(-1, index - 72);
   }
   else if (index < 88)
   {
-    return Point(index - 80, -1);
+    hw = Point(index - 80, -1);
   }
-  return Point::Invalid();
+  else
+  {
+    return Point::Invalid();
+  }
+  // Rotate from hardware-space to user-space
+  return hw.Rotate(Device::rotation, Point(Device::xSize, Device::ySize), true);
 }
 
 // TODO This text is very wrong (GRID)

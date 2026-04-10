@@ -10,6 +10,8 @@
 
 namespace Device
 {
+Direction rotation = TOP;
+
 namespace KeyPad
 {
 void Scan();
@@ -148,8 +150,9 @@ void Rotate(Direction newRotation, bool absolute) {
     MatrixOS::LED::Fill(0, ledLayer);
   }
 
-  // Update rotation state
-  MatrixOS::UserVar::rotation = (Direction)((MatrixOS::UserVar::rotation * !absolute + newRotation) % 360);
+  // Update device-owned rotation state and persist
+  rotation = (Direction)((rotation * !absolute + newRotation) % 360);
+  MatrixOS::UserVar::rotation = rotation;
 
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
@@ -160,7 +163,6 @@ void Rotate(Direction newRotation, bool absolute) {
 }
 
 void RegisterInputClusters() {
-  Direction rotation = MatrixOS::UserVar::rotation;
   Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
 
   Input::clusters.clear();
@@ -223,6 +225,7 @@ void RegisterInputClusters() {
 }
 
 void DeviceStart() {
+  rotation = MatrixOS::UserVar::rotation;
   RegisterInputClusters();
   Device::KeyPad::Start();
   Device::LED::Start();

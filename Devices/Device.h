@@ -21,6 +21,7 @@ extern string name;
 extern uint8_t xSize;
 extern uint8_t ySize;
 extern string serialNumber;
+extern Direction rotation;
 
 void DeviceInit();
 void DeviceStart();

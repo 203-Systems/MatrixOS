@@ -175,7 +175,6 @@ void SetColor(Point xy, Color color, uint8_t layer) {
     return;
   }
 
-  xy = xy.Rotate(UserVar::rotation, Point(Device::xSize, Device::ySize));
   uint16_t index = Device::LED::XY2Index(xy);
   // MLOGI("LED", "Set Color #%.2X%.2X%.2X to %d %d at Layer %d (index %d)", color.R, color.G, color.B, xy.x, xy.y, layer, index);
   if (index == UINT16_MAX)

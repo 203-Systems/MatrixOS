@@ -5,7 +5,7 @@
 bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   bool rotated = false;
 
-  Direction currentOrientation = MatrixOS::UserVar::rotation;
+  Direction currentOrientation = Device::rotation;
 
   if (!up && !down && !left && !right)
   {
@@ -40,7 +40,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   {
     rotateUpBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, startTime); });
     rotateUpBtn.OnPress([&]() -> void {
-      MatrixOS::SYS::Rotate(UP);
+      Device::Rotate(UP);
       rotated = true;
       rotationRequiredUI.Exit();
     });
@@ -60,7 +60,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   {
     rotateRightBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, startTime); });
     rotateRightBtn.OnPress([&]() -> void {
-      MatrixOS::SYS::Rotate(RIGHT);
+      Device::Rotate(RIGHT);
       rotated = true;
       rotationRequiredUI.Exit();
     });
@@ -80,7 +80,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   {
     rotateDownBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, startTime); });
     rotateDownBtn.OnPress([&]() -> void {
-      MatrixOS::SYS::Rotate(DOWN);
+      Device::Rotate(DOWN);
       rotated = true;
       rotationRequiredUI.Exit();
     });
@@ -100,7 +100,7 @@ bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   {
     rotateLeftBtn.SetColorFunc([&]() -> Color { return ColorEffects::ColorBreathLowBound(Color(0x00FF00), 64, 2000, startTime); });
     rotateLeftBtn.OnPress([&]() -> void {
-      MatrixOS::SYS::Rotate(LEFT);
+      Device::Rotate(LEFT);
       rotated = true;
       rotationRequiredUI.Exit();
     });
