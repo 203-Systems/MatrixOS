@@ -523,6 +523,8 @@ IRAM_ATTR void RenderCrossfade() {
     {
       vPortFree(crossfadeSourceBuffer);
     }
+    crossfadeSourceBuffer = nullptr;
+    crossfadeDestroySourceBuffer = false;
     vPortFree(crossfadeBuffer);
     crossfadeBuffer = nullptr;
     crossfadeActive = false;

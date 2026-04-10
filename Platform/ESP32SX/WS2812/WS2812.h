@@ -20,5 +20,7 @@ namespace WS2812
   inline bool dithering = false;
   inline uint8_t dithering_threshold = 4; // Channel value lower than this will not dither
   void Init(gpio_num_t gpio_pin, std::vector<LEDPartition>& partitions);
-  void Show(Color* buffer, std::vector<uint8_t>& brightness);
+  // Optional LED index remapping for device-side rotation. When mapping is nullptr, the driver uses
+  // the default identity mapping and reads buffer[physical_index] directly.
+  void Show(Color* buffer, std::vector<uint8_t>& brightness, const uint16_t* mapping = nullptr);
 }
