@@ -109,6 +109,7 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data,
 namespace HID
 {
 void Init();
+void Reset();
 bool Ready(void);
 
 namespace Keyboard
