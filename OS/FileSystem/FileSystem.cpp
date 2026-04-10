@@ -9,6 +9,30 @@ namespace MatrixOS::FileSystem
 static FATFS fs;
 static bool filesystemMounted = false;
 
+static bool HasParentTraversal(const string& path) {
+  size_t segmentStart = 0;
+  while (segmentStart <= path.size())
+  {
+    size_t segmentEnd = path.find('/', segmentStart);
+    if (segmentEnd == string::npos)
+    {
+      segmentEnd = path.size();
+    }
+
+    if (segmentEnd > segmentStart && path.substr(segmentStart, segmentEnd - segmentStart) == "..")
+    {
+      return true;
+    }
+
+    if (segmentEnd == path.size())
+    {
+      break;
+    }
+    segmentStart = segmentEnd + 1;
+  }
+  return false;
+}
+
 // Helper function to get app sandbox path
 string GetAppSandboxPath() {
   if (MatrixOS::SYS::activeAppInfo)
@@ -20,6 +44,11 @@ string GetAppSandboxPath() {
 
 // Path translation for sandboxing
 string TranslatePath(const string& path) {
+  if (path.empty())
+  {
+    return "";
+  }
+
   // Check for privilege escalation attempts
   if (path.substr(0, 2) == "//" || path.substr(0, 8) == "rootfs:/")
   {
@@ -44,6 +73,11 @@ string TranslatePath(const string& path) {
   // Sandbox application paths
   if (MatrixOS::SYS::activeAppInfo && xTaskGetCurrentTaskHandle() == MatrixOS::SYS::activeAppTask)
   {
+    if (HasParentTraversal(path))
+    {
+      return "";
+    }
+
     string sandboxBase = GetAppSandboxPath();
     string result;
     if (path[0] == '/')
