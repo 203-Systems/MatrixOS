@@ -74,8 +74,8 @@ bool EmitKeyEvent(InputId id, KeyState* ks) {
 
   InputEvent event;
   event.id = id;
-  event.value = ks->info.pressure;
-  event.active = ks->info.Active();
+  event.inputClass = InputClass::Keypad;
+  event.keypad = ks->info;
   return MatrixOS::Input::NewEvent(event);
 }
 } // anonymous namespace
@@ -171,16 +171,18 @@ bool GetState(InputId id, InputSnapshot* snapshot) {
   if (!ks)
     return false;
 
-  snapshot->active = ks->info.Active();
-  snapshot->value = ks->info.pressure;
+  memset(snapshot, 0, sizeof(*snapshot));
+  snapshot->id = id;
+  snapshot->inputClass = InputClass::Keypad;
+  snapshot->keypad = ks->info;
   return true;
 }
 
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
   if (clusterId > 1)
     return false;
-  caps->velocitySensitive = false;
-  caps->pressureSensitive = false;
+  // SIL emulates binary keypads: no pressure, aftertouch, velocity, or position
+  *caps = {false, false, false, false};
   return true;
 }
 } // namespace Input
@@ -390,11 +392,16 @@ void MatrixOS_Wasm_KeyEvent(uint16_t keyIndex, bool pressed) {
   if (pressed && !ks->info.Active())
   {
     ks->info.pressure = 65535;
-    ks->info.activeThreshold = 1;
+    ks->info.velocity = 65535;
+    ks->info.state = KeypadState::Pressed;
+    ks->info.lastEventTime = Device::Millis();
   }
   else if (!pressed && ks->info.Active())
   {
     ks->info.pressure = 0;
+    ks->info.velocity = 0;
+    ks->info.state = KeypadState::Idle;
+    ks->info.lastEventTime = Device::Millis();
   }
   else
   {
@@ -409,11 +416,16 @@ void MatrixOS_Wasm_FnEvent(bool pressed) {
   if (pressed && !fnState.info.Active())
   {
     fnState.info.pressure = 65535;
-    fnState.info.activeThreshold = 1;
+    fnState.info.velocity = 65535;
+    fnState.info.state = KeypadState::Pressed;
+    fnState.info.lastEventTime = Device::Millis();
   }
   else if (!pressed && fnState.info.Active())
   {
     fnState.info.pressure = 0;
+    fnState.info.velocity = 0;
+    fnState.info.state = KeypadState::Idle;
+    fnState.info.lastEventTime = Device::Millis();
   }
   else
   {

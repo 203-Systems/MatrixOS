@@ -52,6 +52,18 @@ void ReleaseAll() {}
 
 namespace Gamepad
 {
+typedef struct {
+  int16_t xAxis;
+  int16_t yAxis;
+  int16_t zAxis;
+  int16_t rzAxis;
+  int16_t rxAxis;
+  int16_t ryAxis;
+  uint8_t dPad;
+  uint32_t buttons;
+} HID_GamepadReport_Data_t;
+
+HID_GamepadReport_Data_t _report;
 void Tap(uint8_t buttonId, uint16_t lengthMs) { (void)buttonId; (void)lengthMs; }
 void Press(uint8_t buttonId) { (void)buttonId; }
 void Release(uint8_t buttonId) { (void)buttonId; }

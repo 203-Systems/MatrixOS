@@ -1,1 +1,47 @@
-<!doctype html><html lang="en">  <head>    <meta charset="UTF-8" />    <link rel="icon" type="image/png" href="/favicon.png" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>web-ui</title>  </head>  <body>    <div id="app"></div>    <script>      window.Module = window.Module || {}      window.MatrixOSRuntimeReady = new Promise((resolve) => {        const previous = window.Module.onRuntimeInitialized        window.Module.onRuntimeInitialized = () => {          if (typeof previous === 'function') {            previous()          }          window.Module.runtimeReady = true          resolve()        }        window.Module.locateFile = (path) => `/${path}`      })      // Buffer MatrixOS stdout/stderr until the UI is ready to read it      window.MatrixOSLogBuffer = window.MatrixOSLogBuffer || []      window.MatrixOSLogDispatch = window.MatrixOSLogDispatch || null      window.Module.print = (...args) => {        console.log(...args)        if (window.MatrixOSLogDispatch) {          window.MatrixOSLogDispatch('log', args)        } else {          window.MatrixOSLogBuffer.push({ level: 'log', args })        }      }      window.Module.printErr = (...args) => {        console.error(...args)        if (window.MatrixOSLogDispatch) {          window.MatrixOSLogDispatch('error', args)        } else {          window.MatrixOSLogBuffer.push({ level: 'error', args })        }      }    </script>    <script src="/MatrixOSHost.js"></script>    <script type="module" src="/src/main.js"></script>  </body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>web-ui</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      window.Module = window.Module || {}
+      window.MatrixOSRuntimeReady = new Promise((resolve) => {
+        const previous = window.Module.onRuntimeInitialized
+        window.Module.onRuntimeInitialized = () => {
+          if (typeof previous === 'function') {
+            previous()
+          }
+          window.Module.runtimeReady = true
+          resolve()
+        }
+        window.Module.locateFile = (path) => `/${path}`
+      })
+      // Buffer MatrixOS stdout/stderr until the UI is ready to read it
+      window.MatrixOSLogBuffer = window.MatrixOSLogBuffer || []
+      window.MatrixOSLogDispatch = window.MatrixOSLogDispatch || null
+      window.Module.print = (...args) => {
+        console.log(...args)
+        if (window.MatrixOSLogDispatch) {
+          window.MatrixOSLogDispatch('log', args)
+        } else {
+          window.MatrixOSLogBuffer.push({ level: 'log', args })
+        }
+      }
+      window.Module.printErr = (...args) => {
+        console.error(...args)
+        if (window.MatrixOSLogDispatch) {
+          window.MatrixOSLogDispatch('error', args)
+        } else {
+          window.MatrixOSLogBuffer.push({ level: 'error', args })
+        }
+      }
+    </script>
+    <script src="/MatrixOSHost.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
