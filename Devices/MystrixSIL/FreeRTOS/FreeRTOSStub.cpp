@@ -8,6 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <csetjmp>
 #include <cstdlib>
 #include <cstring>
 #include <deque>
@@ -31,6 +32,11 @@ namespace
     std::mutex notify_mutex;
     std::condition_variable notify_cv;
     uint32_t notify_count = 0;
+
+    // setjmp target so vTaskDelete(self) can terminate the current thread.
+    // On real FreeRTOS vTaskDelete(NULL) never returns; this emulates that.
+    std::jmp_buf selfDeleteJmp;
+    bool selfDeleteJmpSet = false;
 
     void* tls[configNUM_THREAD_LOCAL_STORAGE_POINTERS] = {};
   };
@@ -151,7 +157,13 @@ BaseType_t xTaskCreate(TaskFunction_t task, const char* name, uint16_t stackDept
       g_tasks[std::this_thread::get_id()] = control;
     }
 
-    control->function(control->parameter);
+    // setjmp returns 0 on initial call; vTaskDelete(self) longjmps back
+    // with value 1 so the task function is never re-entered.
+    if (setjmp(control->selfDeleteJmp) == 0)
+    {
+      control->selfDeleteJmpSet = true;
+      control->function(control->parameter);
+    }
 
     control->running = false;
     {
@@ -178,15 +190,71 @@ void vTaskDelete(TaskHandle_t task)
   }
   control->deleted = true;
   control->running = false;
+
+  if (control == g_current_task && control->selfDeleteJmpSet)
+  {
+    // Self-deletion: on real FreeRTOS vTaskDelete(NULL) never returns.
+    // longjmp back to the setjmp in xTaskCreate so the thread exits cleanly.
+    std::longjmp(control->selfDeleteJmp, 1);
+  }
+
+  // External deletion: wake the target thread so it can observe the deleted flag
+  // at its next yield / wait point and terminate.
+  {
+    std::lock_guard<std::mutex> lock(control->suspend_mutex);
+  }
+  control->suspend_cv.notify_all();
+  {
+    std::lock_guard<std::mutex> lock(control->notify_mutex);
+  }
+  control->notify_cv.notify_all();
 }
 
 void vTaskDelay(TickType_t ticks)
 {
+  // Check deletion / suspension before sleeping (mirrors real scheduler behaviour).
+  TaskControl* control = g_current_task;
+  if (control)
+  {
+    if (control->deleted.load() && control->selfDeleteJmpSet)
+    {
+      std::longjmp(control->selfDeleteJmp, 1);
+    }
+    if (control->suspended.load())
+    {
+      std::unique_lock<std::mutex> lock(control->suspend_mutex);
+      control->suspend_cv.wait(lock,
+                               [control]() { return !control->suspended.load() || control->deleted.load(); });
+      if (control->deleted.load() && control->selfDeleteJmpSet)
+      {
+        std::longjmp(control->selfDeleteJmp, 1);
+      }
+    }
+  }
   std::this_thread::sleep_for(std::chrono::milliseconds(ticks * portTICK_PERIOD_MS));
 }
 
 void taskYIELD(void)
 {
+  // Check deletion / suspension (mirrors real scheduler preemption points).
+  TaskControl* control = g_current_task;
+  if (control)
+  {
+    if (control->deleted.load() && control->selfDeleteJmpSet)
+    {
+      std::longjmp(control->selfDeleteJmp, 1);
+    }
+    if (control->suspended.load())
+    {
+      std::unique_lock<std::mutex> lock(control->suspend_mutex);
+      control->suspend_cv.wait(lock,
+                               [control]() { return !control->suspended.load() || control->deleted.load(); });
+      if (control->deleted.load() && control->selfDeleteJmpSet)
+      {
+        std::longjmp(control->selfDeleteJmp, 1);
+      }
+    }
+  }
   std::this_thread::yield();
 }
 
@@ -228,6 +296,11 @@ void vTaskSuspend(TaskHandle_t task)
   if (control == g_current_task)
   {
     control->suspend_cv.wait(lock, [control]() { return !control->suspended.load() || control->deleted.load(); });
+    if (control->deleted.load() && control->selfDeleteJmpSet)
+    {
+      lock.unlock();
+      std::longjmp(control->selfDeleteJmp, 1);
+    }
   }
 }
 
@@ -292,6 +365,13 @@ uint32_t ulTaskNotifyTake(BaseType_t clearOnExit, TickType_t ticksToWait)
       control->notify_cv.wait_for(lock, std::chrono::milliseconds(ticksToWait * portTICK_PERIOD_MS),
                                   [control]() { return control->notify_count > 0 || control->deleted.load(); });
     }
+  }
+
+  // Woke due to deletion – terminate the task.
+  if (control->deleted.load() && control->selfDeleteJmpSet)
+  {
+    lock.unlock();
+    std::longjmp(control->selfDeleteJmp, 1);
   }
 
   uint32_t count = control->notify_count;
