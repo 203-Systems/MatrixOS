@@ -1,6 +1,17 @@
 #include "MatrixOS.h"
 #include "MidiPort.h"
 
+static const char* TAG = "MidiPort";
+static uint32_t droppedMidiPackets = 0;
+
+static void LogDroppedMidiPacket() {
+  droppedMidiPackets++;
+  if (droppedMidiPackets == 1 || (droppedMidiPackets % 32) == 0)
+  {
+    MLOGW(TAG, "MIDI port queue overflow, dropped %lu packet(s)", droppedMidiPackets);
+  }
+}
+
 // Define the static member variable
 std::map<uint16_t, MidiPort*> MidiPort::midiPortMap;
 
@@ -64,6 +75,7 @@ bool MidiPort::Receive(MidiPacket midiPacket, uint32_t timeoutMs) {
     // Drop oldest packet to make room for new one (FIFO overflow behavior)
     MidiPacket discarded;
     xQueueReceive(midiQueue, &discarded, 0);
+    LogDroppedMidiPacket();
   }
   xQueueSend(midiQueue, &midiPacket, pdMS_TO_TICKS(timeoutMs));
   return true;

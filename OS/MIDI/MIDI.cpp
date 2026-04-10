@@ -6,6 +6,16 @@
 
 namespace MatrixOS::MIDI
 {
+static uint32_t droppedAppMidiPackets = 0;
+
+static void LogDroppedAppMidiPacket() {
+  droppedAppMidiPackets++;
+  if (droppedAppMidiPackets == 1 || (droppedAppMidiPackets % 32) == 0)
+  {
+    MLOGW("MIDI", "Application MIDI queue overflow, dropped %lu packet(s)", droppedAppMidiPackets);
+  }
+}
+
 void Init(void) {
   // Create the OS MIDI port if it doesn't exist
   if (!osPort)
@@ -100,7 +110,10 @@ void ReceiveTask(void* parameters) {
       if (shouldForwardToApp && appQueue)
       {
         // Try to send to app queue, drop if full
-        xQueueSend(appQueue, &packet, 0);
+        if (xQueueSend(appQueue, &packet, 0) != pdTRUE)
+        {
+          LogDroppedAppMidiPacket();
+        }
       }
     }
   }
