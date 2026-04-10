@@ -20,6 +20,11 @@ namespace KeyPad
 void Scan();
 }
 
+namespace LED
+{
+void UpdateRotationMapping(Direction rotation);
+}
+
 void DeviceInit() {
   MLOGI("Mystrix2", "DeviceInit: LoadDeviceInfo start");
   LoadDeviceInfo();
@@ -147,18 +152,18 @@ void Rotate(Direction newRotation, bool absolute) {
     return;
   }
 
-  // Clear LED layers
-  for (uint8_t ledLayer = 0; ledLayer <= MatrixOS::LED::CurrentLayer(); ledLayer++)
-  {
-    MatrixOS::LED::Fill(0, ledLayer);
-  }
+  Direction targetRotation = (Direction)((deviceRotation * !absolute + newRotation) % 360);
 
   // Update device-owned rotation state and persist
-  deviceRotation = (Direction)((deviceRotation * !absolute + newRotation) % 360);
+  deviceRotation = targetRotation;
   persistedRotation = deviceRotation;
+  LED::UpdateRotationMapping(deviceRotation);
 
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
+
+  // Re-render the existing active framebuffer with the new device mapping.
+  MatrixOS::LED::Update(0);
 
   // Clear stale input events and suppress active device-side inputs
   MatrixOS::Input::ClearInputBuffer();
@@ -233,6 +238,7 @@ void RegisterInputClusters() {
 
 void DeviceStart() {
   deviceRotation = persistedRotation.Get();
+  LED::UpdateRotationMapping(deviceRotation);
   RegisterInputClusters();
   Device::KeyPad::Start();
   Device::LED::Start();

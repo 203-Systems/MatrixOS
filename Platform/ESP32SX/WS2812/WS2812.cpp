@@ -163,7 +163,7 @@ namespace WS2812
     ESP_ERROR_CHECK(rmt_enable(rmt_channel));
   }
 
-  IRAM_ATTR void Show(Color* buffer, std::vector<uint8_t>& brightness) {
+  IRAM_ATTR void Show(Color* buffer, std::vector<uint8_t>& brightness, const uint16_t* mapping) {
     // Safety checks
     if (buffer == NULL || led_data == NULL || WS2812::partitions == NULL) {
       return;
@@ -203,18 +203,25 @@ namespace WS2812
       for (uint16_t i = 0; i < WS2812::partitions->at(partition_index).size; i++)
       {
         uint16_t buffer_index = local_partition.start + i;
+        uint16_t source_index = buffer_index;
+        if (mapping != NULL) {
+          source_index = mapping[buffer_index];
+          if (source_index >= numsOfLED) {
+            source_index = buffer_index;
+          }
+        }
         uint16_t data_index_g = partition_data_offset + i * byte_per_pixel;
         uint16_t data_index_r = data_index_g + 1;
         uint16_t data_index_b = data_index_g + 2;
         uint16_t data_index_w = data_index_g + 3;
 
-        led_data[data_index_g] = Color::Scale8Video(buffer[buffer_index].G, localBrightness);
-        led_data[data_index_r] = Color::Scale8Video(buffer[buffer_index].R, localBrightness);
-        led_data[data_index_b] = Color::Scale8Video(buffer[buffer_index].B, localBrightness);
+        led_data[data_index_g] = Color::Scale8Video(buffer[source_index].G, localBrightness);
+        led_data[data_index_r] = Color::Scale8Video(buffer[source_index].R, localBrightness);
+        led_data[data_index_b] = Color::Scale8Video(buffer[source_index].B, localBrightness);
 
         if (byte_per_pixel == 4)
         {
-          led_data[data_index_w] = Color::Scale8Video(buffer[buffer_index].W, localBrightness);
+          led_data[data_index_w] = Color::Scale8Video(buffer[source_index].W, localBrightness);
         }
 
         if(dithering && dither_error != NULL) {
@@ -225,10 +232,10 @@ namespace WS2812
             uint8_t original;
             uint16_t data_index;
           } channels[4] = {
-            {buffer[buffer_index].G, data_index_g},
-            {buffer[buffer_index].R, data_index_r},
-            {buffer[buffer_index].B, data_index_b},
-            {buffer[buffer_index].W, data_index_w}
+            {buffer[source_index].G, data_index_g},
+            {buffer[source_index].R, data_index_r},
+            {buffer[source_index].B, data_index_b},
+            {buffer[source_index].W, data_index_w}
           };
           uint8_t channel_count = byte_per_pixel;
 

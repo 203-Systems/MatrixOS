@@ -6,21 +6,9 @@ namespace Device
 {
 namespace LED
 {
-void Init() {
-  WS2812::Init(ledPin, partitions);
-}
+static vector<uint16_t> rotationMapping;
 
-void Start() {}
-
-IRAM_ATTR void Update(Color* frameBuffer, vector<uint8_t>& brightness) // Render LED
-{
-  WS2812::Show(frameBuffer, brightness);
-}
-
-uint16_t XY2Index(Point xy) {
-  // Rotate from user-space to hardware-space
-  xy = xy.Rotate(Device::GetRotation(), Point(Device::xSize, Device::ySize));
-
+static uint16_t CanonicalXY2Index(Point xy) {
   if (xy.x >= 0 && xy.x < 8 && xy.y >= 0 && xy.y < 8) // Main grid
   {
     uint16_t rowOffset = xy.y * 8;
@@ -45,7 +33,7 @@ uint16_t XY2Index(Point xy) {
   return UINT16_MAX;
 }
 
-Point Index2XY(uint16_t index) {
+static Point CanonicalIndex2XY(uint16_t index) {
   Point hw;
   if (index < 64)
   {
@@ -69,8 +57,51 @@ Point Index2XY(uint16_t index) {
   {
     return Point::Invalid();
   }
-  // Rotate from hardware-space to user-space
-  return hw.Rotate(Device::GetRotation(), Point(Device::xSize, Device::ySize), true);
+  return hw;
+}
+
+void UpdateRotationMapping(Direction rotation) {
+  rotationMapping.resize(count);
+
+  const Point dimension(Device::xSize, Device::ySize);
+  for (uint16_t physicalIndex = 0; physicalIndex < count; physicalIndex++)
+  {
+    Point physicalPoint = CanonicalIndex2XY(physicalIndex);
+    if (!physicalPoint)
+    {
+      rotationMapping[physicalIndex] = physicalIndex;
+      continue;
+    }
+
+    Point sourcePoint = physicalPoint.Rotate(rotation, dimension, true);
+    uint16_t sourceIndex = CanonicalXY2Index(sourcePoint);
+    rotationMapping[physicalIndex] = (sourceIndex == UINT16_MAX) ? physicalIndex : sourceIndex;
+  }
+}
+
+void Init() {
+  WS2812::Init(ledPin, partitions);
+  UpdateRotationMapping(TOP);
+}
+
+void Start() {}
+
+IRAM_ATTR void Update(Color* frameBuffer, vector<uint8_t>& brightness) // Render LED
+{
+  const uint16_t* mapping = nullptr;
+  if (!rotationMapping.empty() && Device::GetRotation() != TOP)
+  {
+    mapping = rotationMapping.data();
+  }
+  WS2812::Show(frameBuffer, brightness, mapping);
+}
+
+uint16_t XY2Index(Point xy) {
+  return CanonicalXY2Index(xy);
+}
+
+Point Index2XY(uint16_t index) {
+  return CanonicalIndex2XY(index);
 }
 
 // TODO This text is very wrong (GRID)
