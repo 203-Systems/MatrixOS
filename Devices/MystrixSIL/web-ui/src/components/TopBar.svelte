@@ -1,0 +1,166 @@
+<script>
+  import { Restart, Power, WarningAlt } from 'carbon-icons-svelte'
+  import { moduleReady, wasmMissing, runtimeStatus, versionLabel, doReboot, doBootloader } from '../stores/wasm.js'
+  import { errorCount, warnCount } from '../stores/logs.js'
+</script>
+
+<header class="top-bar">
+  <div class="top-bar-left">
+    <picture class="top-bar-logo">
+      <source srcset="/203dark.svg" media="(prefers-color-scheme: dark)" />
+      <img src="/203.svg" alt="203 Systems" height="22" />
+    </picture>
+    <span class="top-bar-title">MystrixSIL</span>
+    <span class="top-bar-divider">|</span>
+    <span class="top-bar-status">
+      <span class="status-dot"
+        class:dot-live={$moduleReady && !$wasmMissing}
+        class:dot-error={$wasmMissing}
+        class:dot-loading={!$moduleReady && !$wasmMissing}
+      ></span>
+      <span class="status-label">{$runtimeStatus}</span>
+    </span>
+    {#if $errorCount > 0 || $warnCount > 0}
+      <span class="top-bar-divider">|</span>
+      <span class="top-bar-alerts">
+        {#if $errorCount > 0}
+          <span class="alert-badge alert-error">{$errorCount} err</span>
+        {/if}
+        {#if $warnCount > 0}
+          <span class="alert-badge alert-warn">{$warnCount} warn</span>
+        {/if}
+      </span>
+    {/if}
+  </div>
+  <div class="top-bar-right">
+    <span class="top-bar-version">v{$versionLabel}</span>
+    <button class="top-bar-action" on:click={doReboot} title="Reboot">
+      <Restart size={14} />
+      <span>Reboot</span>
+    </button>
+    <button class="top-bar-action top-bar-action-danger" on:click={doBootloader} title="Bootloader">
+      <Power size={14} />
+      <span>DFU</span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+    padding: 0 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .top-bar-logo img {
+    height: 22px;
+    display: block;
+  }
+  .top-bar-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .top-bar-divider {
+    color: var(--muted);
+    font-size: 0.75rem;
+    opacity: 0.4;
+  }
+  .top-bar-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-live {
+    background: #3dd68c;
+    box-shadow: 0 0 6px rgba(61, 214, 140, 0.5);
+  }
+  .dot-error {
+    background: #ff6b6b;
+    box-shadow: 0 0 6px rgba(255, 107, 107, 0.5);
+  }
+  .dot-loading {
+    background: #f7c266;
+    box-shadow: 0 0 6px rgba(247, 194, 102, 0.4);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .status-label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .top-bar-alerts {
+    display: flex;
+    gap: 6px;
+  }
+  .alert-badge {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .alert-error {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff8b8b;
+    border: 1px solid rgba(255, 107, 107, 0.25);
+  }
+  .alert-warn {
+    background: rgba(247, 194, 102, 0.12);
+    color: #f7c266;
+    border: 1px solid rgba(247, 194, 102, 0.2);
+  }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-bar-version {
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-family: var(--mono);
+  }
+  .top-bar-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .top-bar-action:hover {
+    border-color: var(--accent);
+  }
+  .top-bar-action-danger:hover {
+    border-color: var(--danger);
+  }
+</style>

@@ -455,4 +455,12 @@ void MatrixOS_Wasm_Bootloader(void) {
   Device::Bootloader();
 }
 
+int MatrixOS_Wasm_GetRotation(void) {
+  return (int)deviceRotation;
+}
+
+uint32_t MatrixOS_Wasm_GetUptimeMs(void) {
+  return Device::Millis();
+}
+
 } // extern "C"
