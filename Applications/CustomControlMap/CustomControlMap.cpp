@@ -392,6 +392,7 @@ void CustomControlMap::BeginUAD() {
 
 void CustomControlMap::SendDeviceDescriptor() {
   size_t maxUadSize = GetCurrentMaxUADSize();
+  const InputCluster* primaryGrid = MatrixOS::Input::GetPrimaryGridCluster();
   MLOGD("CustomControlMap", "Send Device Descriptor");
   vector<uint8_t> payload = {
       DEVICE_DESCRIPTOR | HID_RESPONSE,       // Response to DEVICE_DESCRIPTOR
@@ -403,8 +404,8 @@ void CustomControlMap::SendDeviceDescriptor() {
       0x4D,                                   // Family ID 0x4D
       0x58,                                   // Family ID 0x58
       0x11,                                   // Model ID 0x11
-      MatrixOS::Input::GetPrimaryGridCluster()->dimension.x,           // Device X 8
-      MatrixOS::Input::GetPrimaryGridCluster()->dimension.y,           // Device Y 8
+      static_cast<uint8_t>(primaryGrid->dimension.x),                 // Device X 8
+      static_cast<uint8_t>(primaryGrid->dimension.y),                 // Device Y 8
       MAX_UAD_LAYER,                          // Max Layers
       (uint8_t)((maxUadSize >> 24) & 0xFF), // UAD Size MSB1
       (uint8_t)((maxUadSize >> 16) & 0xFF), // UAD Size MSB2
