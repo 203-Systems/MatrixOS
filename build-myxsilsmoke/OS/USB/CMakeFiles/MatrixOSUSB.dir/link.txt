@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSUSB.a CMakeFiles/MatrixOSUSB.dir/USBStub.cpp.o CMakeFiles/MatrixOSUSB.dir/__/__/Library/printf/src/printf/printf.c.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSUSB.a

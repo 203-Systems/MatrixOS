@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSUI.a CMakeFiles/MatrixOSUI.dir/UI.cpp.o CMakeFiles/MatrixOSUI.dir/Utilities/ColorPicker.cpp.o CMakeFiles/MatrixOSUI.dir/Utilities/NumberEditor8x8.cpp.o CMakeFiles/MatrixOSUI.dir/Utilities/TextScroll.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSUI.a

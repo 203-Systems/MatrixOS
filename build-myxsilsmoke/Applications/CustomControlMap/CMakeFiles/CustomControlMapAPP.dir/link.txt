@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libCustomControlMapAPP.a CMakeFiles/CustomControlMapAPP.dir/Actions/Actions.cpp.o CMakeFiles/CustomControlMapAPP.dir/CustomControlMap.cpp.o CMakeFiles/CustomControlMapAPP.dir/UADapi.cpp.o CMakeFiles/CustomControlMapAPP.dir/UADloader.cpp.o CMakeFiles/CustomControlMapAPP.dir/UADruntime.cpp.o CMakeFiles/CustomControlMapAPP.dir/__/__/Library/cb0r/src/cb0r.c.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libCustomControlMapAPP.a

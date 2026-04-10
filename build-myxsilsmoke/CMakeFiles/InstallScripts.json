@@ -1,0 +1,36 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Devices/MystrixSIL/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Devices/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/HID/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Input/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/LED/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Logging/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/MIDI/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/System/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/NVS/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/UI/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Framework/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/USB/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/FileSystem/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/BootAnimation/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Setting/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/BrightnessControl/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Shell/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Performance/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Note/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Sequencer/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/CustomControlMap/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Lighting/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Dice/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Strum/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Reversi/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/Applications/Companion/cmake_install.cmake",
+		"C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/external_apps/FAMILY_Applications_MystrixBoot/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

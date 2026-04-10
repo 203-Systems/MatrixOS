@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libStrumAPP.a CMakeFiles/StrumAPP.dir/Strum.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libStrumAPP.a

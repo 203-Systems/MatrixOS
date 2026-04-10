@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libLightingAPP.a CMakeFiles/LightingAPP.dir/Lighting.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libLightingAPP.a

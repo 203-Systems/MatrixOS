@@ -1,0 +1,100 @@
+# Install script for directory: C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/OS
+
+# Set the install prefix
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "C:/Users/NENGZH~1/AppData/Local/Temp/emscripten_cache/sysroot")
+endif()
+string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+
+# Set the install configuration name.
+if(NOT DEFINED CMAKE_INSTALL_CONFIG_NAME)
+  if(BUILD_TYPE)
+    string(REGEX REPLACE "^[^A-Za-z0-9_]+" ""
+           CMAKE_INSTALL_CONFIG_NAME "${BUILD_TYPE}")
+  else()
+    set(CMAKE_INSTALL_CONFIG_NAME "")
+  endif()
+  message(STATUS "Install configuration: \"${CMAKE_INSTALL_CONFIG_NAME}\"")
+endif()
+
+# Set the component getting installed.
+if(NOT CMAKE_INSTALL_COMPONENT)
+  if(COMPONENT)
+    message(STATUS "Install component: \"${COMPONENT}\"")
+    set(CMAKE_INSTALL_COMPONENT "${COMPONENT}")
+  else()
+    set(CMAKE_INSTALL_COMPONENT)
+  endif()
+endif()
+
+# Is this installation the result of a crosscompile?
+if(NOT DEFINED CMAKE_CROSSCOMPILING)
+  set(CMAKE_CROSSCOMPILING "TRUE")
+endif()
+
+# Set path to fallback-tool for dependency-resolution.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "CMAKE_OBJDUMP-NOTFOUND")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/HID/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Input/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/LED/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Logging/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/MIDI/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/System/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/NVS/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/UI/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/Framework/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/USB/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/FileSystem/cmake_install.cmake")
+endif()
+
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "C:/Users/NengzhuoCai/Documents/GitHub/Matrix/MatrixOS.worktrees/copilot-worktree-2026-04-10T05-41-06/build-myxsilsmoke/OS/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()

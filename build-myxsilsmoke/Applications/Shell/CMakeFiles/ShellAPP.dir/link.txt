@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libShellAPP.a CMakeFiles/ShellAPP.dir/PythonAppDiscovery.cpp.o CMakeFiles/ShellAPP.dir/Shell.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libShellAPP.a

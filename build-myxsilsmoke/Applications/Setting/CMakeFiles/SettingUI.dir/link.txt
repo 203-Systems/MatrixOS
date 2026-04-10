@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libSettingUI.a CMakeFiles/SettingUI.dir/Setting.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libSettingUI.a

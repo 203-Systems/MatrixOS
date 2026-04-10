@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSLogging.a CMakeFiles/MatrixOSLogging.dir/Logging.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSLogging.a

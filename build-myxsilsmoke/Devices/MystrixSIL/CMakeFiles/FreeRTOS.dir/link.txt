@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libFreeRTOS.a CMakeFiles/FreeRTOS.dir/FreeRTOS/FreeRTOSStub.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libFreeRTOS.a

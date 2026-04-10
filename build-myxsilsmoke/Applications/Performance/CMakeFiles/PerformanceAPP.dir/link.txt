@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libPerformanceAPP.a CMakeFiles/PerformanceAPP.dir/8x8/Performance8x8.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libPerformanceAPP.a

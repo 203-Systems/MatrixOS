@@ -1,0 +1,2 @@
+"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libBrightnessControlUI.a CMakeFiles/BrightnessControlUI.dir/BrightnessControl.cpp.o
+"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libBrightnessControlUI.a
