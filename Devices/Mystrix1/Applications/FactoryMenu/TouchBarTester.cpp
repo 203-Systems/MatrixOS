@@ -77,7 +77,7 @@ void FactoryMenu::TouchBarTester() {
     MatrixOS::LED::Update();
   }
   Device::touchbarEnable.Load();
-  MatrixOS::Input::ClearState();
+  MatrixOS::Input::ClearInputBuffer();
   MatrixOS::LED::Fill(0);
 #endif
 }

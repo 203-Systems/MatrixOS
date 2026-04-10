@@ -82,14 +82,9 @@ extern "C" {
         return list;
     }
 
-    // ClearQueue — discard all pending input events.
-    void _MatrixOS_Input_ClearQueue(PikaObj *self) {
-        MatrixOS::Input::ClearQueue();
-    }
-
-    // ClearState — reset all input state (pressure, hold, etc.).
-    void _MatrixOS_Input_ClearState(PikaObj *self) {
-        MatrixOS::Input::ClearState();
+    // ClearInputBuffer — discard all pending input events from the OS input buffer.
+    void _MatrixOS_Input_ClearInputBuffer(PikaObj *self) {
+        MatrixOS::Input::ClearInputBuffer();
     }
 
     // FunctionKey — returns the InputId for the function key.

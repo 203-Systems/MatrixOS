@@ -34,6 +34,6 @@ void FactoryMenu::KeyPadTester() {
     }
     MatrixOS::LED::Update();
   }
-  MatrixOS::Input::ClearState();
+  MatrixOS::Input::ClearInputBuffer();
   MatrixOS::LED::Fill(0);
 }

@@ -23,7 +23,7 @@ bool EventDetailView::IsEnabled() {
 
   if (enabled && wasEnabled == false)
   {
-    MatrixOS::Input::ClearQueue();
+    MatrixOS::Input::ClearInputBuffer();
     RebuildEventList();
     lastOnTime = MatrixOS::SYS::Millis();
   }

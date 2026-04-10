@@ -73,8 +73,7 @@ void GetInputsAt(Point xy, vector<InputId>* ids);
 bool GetInputAt(uint8_t clusterId, Point xy, InputId* id);
 bool GetPosition(InputId id, Point* xy);
 
-void ClearQueue();
-void ClearState();
+void ClearInputBuffer();
 
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps);
 

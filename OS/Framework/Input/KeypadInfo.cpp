@@ -40,7 +40,7 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
   case KeypadState::Released:
     state = KeypadState::Idle;
     lastEventTime = timeNow;
-    cleared = false;
+    suppressed = false;
     hold = false;
     [[fallthrough]];
   case KeypadState::Idle:
@@ -57,7 +57,7 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
         state = KeypadState::Pressed;
         lastEventTime = timeNow;
         pressure = config.applyCurve ? ApplyForceCurve(config, newValue) : newValue;
-        return true & !cleared;
+        return true & !suppressed;
       }
     }
     break;
@@ -73,7 +73,7 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
       state = KeypadState::Pressed;
       lastEventTime = timeNow;
       pressure = config.applyCurve ? ApplyForceCurve(config, newValue) : newValue;
-      return true & !cleared;
+      return true & !suppressed;
     }
     return false;
   case KeypadState::ReleaseDebouncing:
@@ -81,7 +81,7 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
     {
       state = KeypadState::Released;
       lastEventTime = timeNow;
-      return true & !cleared;
+      return true & !suppressed;
     }
     else if (ABOVE_THRESHOLD && timeNow - lastEventTime > config.debounce)
     {
@@ -107,7 +107,7 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
       {
         state = KeypadState::Released;
         lastEventTime = timeNow;
-        return true & !cleared;
+        return true & !suppressed;
       }
     }
     // Apply force curve
@@ -118,14 +118,14 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
       state = KeypadState::Hold;
       pressure = newValue;
       hold = true;
-      return true & !cleared;
+      return true & !suppressed;
     }
     else if ((DIFFERENCE((uint16_t)newValue, (uint16_t)pressure) > KEY_SCAN_THRESHOLD) ||
              ((newValue != pressure) && newValue == FRACT16_MAX))
     {
       state = KeypadState::Aftertouch;
       pressure = newValue;
-      return true & !cleared;
+      return true & !suppressed;
     }
     return false;
   }
@@ -133,11 +133,11 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
   return false;
 }
 
-void KeypadInfo::Clear() {
+void KeypadInfo::Suppress() {
   if (state == KeypadState::Pressed || state == KeypadState::Activated ||
       state == KeypadState::Hold || state == KeypadState::Aftertouch)
   {
-    cleared = true;
+    suppressed = true;
   }
 }
 

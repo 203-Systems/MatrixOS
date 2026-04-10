@@ -102,23 +102,30 @@ IRAM_ATTR bool ScanFN() {
   return false;
 }
 
-void Clear() {
-  fnState.Clear();
+} // namespace Device::KeyPad
+
+namespace Device::Input
+{
+void SuppressActiveInputs() {
+  KeyPad::fnState.Suppress();
 
   for (uint8_t x = 0; x < X_SIZE; x++)
   {
     for (uint8_t y = 0; y < Y_SIZE; y++)
     {
-      keypadState[x][y].Clear();
+      KeyPad::keypadState[x][y].Suppress();
     }
   }
 
-  for (uint8_t i = 0; i < touchbarSize; i++)
+  for (uint8_t i = 0; i < KeyPad::touchbarSize; i++)
   {
-    touchbarState[i].Clear();
+    KeyPad::touchbarState[i].Suppress();
   }
 }
+} // namespace Device::Input
 
+namespace Device::KeyPad
+{
 IRAM_ATTR bool NotifyOS(InputId id, KeypadInfo* keyState) {
   InputEvent inputEvent;
   inputEvent.id = id;

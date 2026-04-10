@@ -108,12 +108,12 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
             while (!textScrollTimer.Tick(speed))
             {
               UI::GlobalLoops();
-              MatrixOS::Input::ClearQueue();
+              MatrixOS::Input::ClearInputBuffer();
               InputSnapshot fnSnap;
               if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                   fnSnap.keypad.state == KeypadState::Pressed)
               {
-                MatrixOS::Input::ClearQueue();
+                MatrixOS::Input::ClearInputBuffer();
                 MatrixOS::LED::DestroyLayer();
                 MatrixOS::LED::Update();
                 return;
@@ -231,12 +231,12 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed))
           {
             UI::GlobalLoops();
-            MatrixOS::Input::ClearQueue();
+            MatrixOS::Input::ClearInputBuffer();
             InputSnapshot fnSnap;
             if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                 fnSnap.keypad.state == KeypadState::Pressed)
             {
-              MatrixOS::Input::ClearQueue();
+              MatrixOS::Input::ClearInputBuffer();
               MatrixOS::LED::DestroyLayer();
               MatrixOS::LED::Update();
               return;
@@ -267,12 +267,12 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed * 4))
           {
             UI::GlobalLoops();
-            MatrixOS::Input::ClearQueue();
+            MatrixOS::Input::ClearInputBuffer();
             InputSnapshot fnSnap;
             if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
                 fnSnap.keypad.state == KeypadState::Pressed)
             {
-              MatrixOS::Input::ClearQueue();
+              MatrixOS::Input::ClearInputBuffer();
               MatrixOS::LED::DestroyLayer();
               MatrixOS::LED::Update();
               return;

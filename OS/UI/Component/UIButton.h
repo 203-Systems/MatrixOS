@@ -92,7 +92,7 @@ public:
       if (PressCallback())
       {
         MLOGD("UI Button", "Key Event Callback");
-        MatrixOS::Input::ClearQueue();
+        MatrixOS::Input::ClearInputBuffer();
         return true;
       }
     }
@@ -100,7 +100,7 @@ public:
     {
       if (HoldCallback())
       {
-        MatrixOS::Input::ClearQueue();
+        MatrixOS::Input::ClearInputBuffer();
         return true;
       }
       else if (!GetName().empty())

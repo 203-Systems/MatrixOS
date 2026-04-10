@@ -13,7 +13,7 @@ KeyInfo* GetKey(uint16_t keyID) {
 }
 
 void Clear() {
-  Device::KeyPad::Clear();
+  Device::Input::SuppressActiveInputs();
 }
 
 uint16_t XY2ID(Point xy) // Delegates to device handlers for coordinate mapping (rotation handled by device layer)

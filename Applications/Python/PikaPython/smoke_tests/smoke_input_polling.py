@@ -4,8 +4,7 @@
 #   MatrixOS.Input.GetEvent()
 #   MatrixOS.Input.GetState()
 #   MatrixOS.Input.FunctionKey()
-#   MatrixOS.Input.ClearQueue()
-#   MatrixOS.Input.ClearState()
+#   MatrixOS.Input.ClearInputBuffer()
 #
 # Expected: no crash; print confirms each call returns the correct type.
 
@@ -21,10 +20,9 @@ def run():
     print("[smoke] FunctionKey() -> cluster=" + str(fk.ClusterId()) +
           " member=" + str(fk.MemberId()))
 
-    # --- ClearQueue / ClearState ---
-    MatrixOS.Input.ClearQueue()
-    MatrixOS.Input.ClearState()
-    print("[smoke] ClearQueue + ClearState OK")
+    # --- ClearInputBuffer ---
+    MatrixOS.Input.ClearInputBuffer()
+    print("[smoke] ClearInputBuffer OK")
 
     # --- Non-blocking GetEvent ---
     evt = MatrixOS.Input.GetEvent(0)

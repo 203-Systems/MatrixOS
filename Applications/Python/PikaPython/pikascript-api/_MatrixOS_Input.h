@@ -17,8 +17,7 @@
 
 PikaObj *New__MatrixOS_Input(Args *args);
 
-void _MatrixOS_Input_ClearQueue(PikaObj *self);
-void _MatrixOS_Input_ClearState(PikaObj *self);
+void _MatrixOS_Input_ClearInputBuffer(PikaObj *self);
 PikaObj* _MatrixOS_Input_FunctionKey(PikaObj *self);
 PikaObj* _MatrixOS_Input_GetClusters(PikaObj *self);
 Arg* _MatrixOS_Input_GetEvent(PikaObj *self, int timeout_ms);

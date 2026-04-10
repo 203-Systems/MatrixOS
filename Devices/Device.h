@@ -58,7 +58,6 @@ Point Index2XY(uint16_t index); // Buffer index to Grid XY, return Point(INT16_M
 
 namespace KeyPad
 {
-void Clear();                // Clears all key scan state buffers (fnState, keypadState, touchbarState)
 } // namespace KeyPad
 
 namespace Input
@@ -70,6 +69,15 @@ extern vector<InputCluster> clusters;
 // The device layer defines how memberId maps to visual coordinates and vice versa.
 bool GetPosition(uint8_t clusterId, uint16_t memberId, Point* point);
 bool TryGetMemberId(uint8_t clusterId, Point point, uint16_t* memberId);
+
+// Suppress currently active device-side input scan states.
+// Marks any currently pressed/held/active key as suppressed so that
+// their follow-up release events will not be emitted to the OS input
+// queue.  This prevents stale physical interactions from leaking into
+// a new UI or input context.
+// NOTE: This does NOT clear the OS-side input event buffer.
+// NOTE: This does NOT clear the OS-side input snapshot cache.
+void SuppressActiveInputs();
 } // namespace Input
 
 namespace NVS // Device should also implements duplication check. If new value is equal to the old one, then skip the write.

@@ -43,7 +43,7 @@ struct KeypadInfo {
   KeypadState state;
   struct {
     uint8_t hold : 1;
-    uint8_t cleared : 1;
+    uint8_t suppressed : 1;
     uint8_t reserved : 6;
   };
 
@@ -51,8 +51,8 @@ struct KeypadInfo {
     return hold;
   }
 
-  bool Cleared() const {
-    return cleared;
+  bool Suppressed() const {
+    return suppressed;
   }
 
   bool Active() const {
@@ -62,7 +62,7 @@ struct KeypadInfo {
   // Device-layer scan methods (implementations in KeypadInfo.cpp).
   Fract16 ApplyForceCurve(KeypadConfig& config, Fract16 value);
   bool Update(KeypadConfig& config, Fract16 newValue);
-  void Clear();
+  void Suppress();
   uint32_t HoldTime();
 };
 

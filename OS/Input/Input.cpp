@@ -146,16 +146,11 @@ bool GetPosition(InputId id, Point* xy) {
   return Device::Input::GetPosition(id.clusterId, id.memberId, xy);
 }
 
-void ClearQueue() {
+void ClearInputBuffer() {
   if (inputEventQueue)
   {
     xQueueReset(inputEventQueue);
   }
-}
-
-void ClearState() {
-  stateCache.clear();
-  ClearQueue();
 }
 
 void RegisterKeypadCapabilities(uint8_t clusterId, const KeypadCapabilities& caps) {

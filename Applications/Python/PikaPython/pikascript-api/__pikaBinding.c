@@ -2588,20 +2588,12 @@ PikaObj *New__MatrixOS_HID_Touch(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_INPUT_DISABLE
-void _MatrixOS_Input_ClearQueueMethod(PikaObj *self, Args *_args_){
-    _MatrixOS_Input_ClearQueue(self);
+void _MatrixOS_Input_ClearInputBufferMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_Input_ClearInputBuffer(self);
 }
 method_typedef(
-    _MatrixOS_Input_ClearQueue,
-    "ClearQueue", ""
-);
-
-void _MatrixOS_Input_ClearStateMethod(PikaObj *self, Args *_args_){
-    _MatrixOS_Input_ClearState(self);
-}
-method_typedef(
-    _MatrixOS_Input_ClearState,
-    "ClearState", ""
+    _MatrixOS_Input_ClearInputBuffer,
+    "ClearInputBuffer", ""
 );
 
 void _MatrixOS_Input_FunctionKeyMethod(PikaObj *self, Args *_args_){
@@ -2677,9 +2669,8 @@ class_def(_MatrixOS_Input){
     method_def(_MatrixOS_Input_GetPosition, 296753146),
     method_def(_MatrixOS_Input_GetClusters, 818464762),
     method_def(_MatrixOS_Input_GetInputsAt, 1220729309),
+    method_def(_MatrixOS_Input_ClearInputBuffer, 1239960278),
     method_def(_MatrixOS_Input_GetPrimaryGridCluster, 1316371473),
-    method_def(_MatrixOS_Input_ClearQueue, 1503872817),
-    method_def(_MatrixOS_Input_ClearState, 1506204333),
     method_def(_MatrixOS_Input_GetEvent, 1953022279),
     method_def(_MatrixOS_Input_GetState, 1969549126),
 };

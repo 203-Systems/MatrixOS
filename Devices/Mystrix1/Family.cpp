@@ -141,8 +141,9 @@ void Rotate(Direction newRotation, bool absolute) {
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
 
-  // Clear stale input state
-  MatrixOS::Input::ClearState();
+  // Clear stale input events and suppress active device-side inputs
+  MatrixOS::Input::ClearInputBuffer();
+  Device::Input::SuppressActiveInputs();
 }
 
 void RegisterInputClusters() {
@@ -233,7 +234,7 @@ void DeviceStart() {
   }
   else if (KeyPad::keypadState[6][6].pressure && KeyPad::keypadState[7][7].pressure)
   {
-    KeyPad::Clear();
+    Device::Input::SuppressActiveInputs();
     MatrixOS::UserVar::brightness.Set(Device::LED::brightnessLevel[0]);
   }
   else if (KeyPad::keypadState[0][5].pressure && KeyPad::keypadState[1][6].pressure &&

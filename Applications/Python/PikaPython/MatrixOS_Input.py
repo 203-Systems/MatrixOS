@@ -23,11 +23,8 @@ def GetPosition(input_id: InputId) -> any:  # Point or None
 def GetInputsAt(point: Point) -> list:  # list of InputId
     return _MatrixOS_Input.GetInputsAt(point)
 
-def ClearQueue() -> None:
-    _MatrixOS_Input.ClearQueue()
-
-def ClearState() -> None:
-    _MatrixOS_Input.ClearState()
+def ClearInputBuffer() -> None:
+    _MatrixOS_Input.ClearInputBuffer()
 
 def FunctionKey() -> InputId:
     return _MatrixOS_Input.FunctionKey()
