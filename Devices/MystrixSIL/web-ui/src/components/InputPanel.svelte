@@ -22,13 +22,6 @@
 </script>
 
 <div class="input-panel">
-  <div class="state-summary">
-    <span class="section-title">Observation</span>
-    <span class="section-hint">
-      Input injection now belongs on the device workspace. This panel is for observing live state and event flow.
-    </span>
-  </div>
-
   <!-- Active keys snapshot (injection side) -->
   {#if $activeGridKeys.size > 0 || $fnKeyActive}
     <div class="state-section">
@@ -116,10 +109,6 @@
     text-transform: uppercase;
     color: var(--text);
   }
-  .section-hint {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
   .section-count {
     font-size: 0.72rem;
     color: var(--muted);
@@ -137,13 +126,6 @@
     align-items: center;
   }
   .section-action:hover { color: var(--text); border-color: var(--accent); }
-
-  .state-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding-bottom: 2px;
-  }
 
   /* State snapshot */
   .state-section {
