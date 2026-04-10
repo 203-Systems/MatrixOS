@@ -18,6 +18,14 @@
 
 static const char* TAG = "MystrixSIL";
 
+#ifndef MATRIXOS_GIT_HASH
+#define MATRIXOS_GIT_HASH ""
+#endif
+
+#ifndef MATRIXOS_GIT_DIRTY
+#define MATRIXOS_GIT_DIRTY 0
+#endif
+
 // ---------------------------------------------------------------------------
 // Internal keypad state
 // ---------------------------------------------------------------------------
@@ -39,6 +47,50 @@ std::mutex ledMutex;
 
 // Rotation-aware LED index mapping (rebuilt on rotation change)
 uint16_t ledIndexMap[X_SIZE * Y_SIZE]; // gridIndex -> framebuffer index
+
+string BuildVersionLabel() {
+  return "Matrix OS " XSTR(MATRIXOS_MAJOR_VER) "." XSTR(MATRIXOS_MINOR_VER) MATRIXOS_MINOR_VERSION_STRING;
+}
+
+string BuildIdentityLabel() {
+  string version = BuildVersionLabel();
+#if defined(MATRIXOS_BUILD_RELEASE)
+  string channel = "Release";
+#elif defined(MATRIXOS_BUILD_RELEASE_CANDIDATE)
+  string channel = "RC " XSTR(MATRIXOS_RELEASE_VER);
+#elif defined(MATRIXOS_BUILD_BETA)
+  string channel = "Beta " XSTR(MATRIXOS_RELEASE_VER);
+#elif defined(MATRIXOS_BUILD_NIGHTY)
+  string channel = "Nightly";
+#elif defined(MATRIXOS_BUILD_INDEV)
+  string channel = "InDev";
+#else
+  string channel = "";
+#endif
+
+  string identity = version;
+  if (!channel.empty())
+  {
+    identity += " • " + channel;
+  }
+
+#if defined(MATRIXOS_BUILD_NIGHTY) || defined(MATRIXOS_BUILD_INDEV)
+  if (strlen(MATRIXOS_GIT_HASH) > 0)
+  {
+    identity += " ";
+    identity += MATRIXOS_GIT_HASH;
+  }
+#endif
+
+#if MATRIXOS_GIT_DIRTY
+  identity += " • Dirty";
+#endif
+
+  return identity;
+}
+
+string wasmVersionLabel = BuildVersionLabel();
+string wasmBuildIdentityLabel = BuildIdentityLabel();
 
 void BuildLEDIndexMap(Direction rotation) {
   for (uint16_t y = 0; y < Y_SIZE; y++)
@@ -442,7 +494,11 @@ void MatrixOS_Wasm_KeypadTick(void) {
 }
 
 const char* MatrixOS_Wasm_GetVersionString(void) {
-  return MATRIXOS_VERSION_STRING.c_str();
+  return wasmVersionLabel.c_str();
+}
+
+const char* MatrixOS_Wasm_GetBuildIdentityString(void) {
+  return wasmBuildIdentityLabel.c_str();
 }
 
 void MatrixOS_Wasm_Reboot(void) {
