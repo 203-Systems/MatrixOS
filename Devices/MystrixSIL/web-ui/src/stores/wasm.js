@@ -159,3 +159,22 @@ export function getUptimeMs() {
   if (mod?._MatrixOS_Wasm_GetUptimeMs) return mod._MatrixOS_Wasm_GetUptimeMs()
   return 0
 }
+
+// Runtime-side keypad state (polled by Input panel)
+
+export function getRuntimeKeypadState() {
+  const mod = get(moduleRef)
+  if (!mod?._MatrixOS_Wasm_GetKeypadState || !mod?._MatrixOS_Wasm_GetKeypadStateLength) return null
+  const heap = mod.HEAPU8 || window.HEAPU8
+  if (!heap) return null
+  const len = mod._MatrixOS_Wasm_GetKeypadStateLength()
+  const ptr = mod._MatrixOS_Wasm_GetKeypadState()
+  if (!ptr || !len) return null
+  return heap.subarray(ptr, ptr + len)
+}
+
+export function getRuntimeFnState() {
+  const mod = get(moduleRef)
+  if (!mod?._MatrixOS_Wasm_GetFnState) return false
+  return mod._MatrixOS_Wasm_GetFnState() !== 0
+}

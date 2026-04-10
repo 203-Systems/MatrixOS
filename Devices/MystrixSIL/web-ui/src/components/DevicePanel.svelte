@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
-  import { moduleRef, moduleReady, wasmMissing, runtimeStatus, sendGridKey, sendFnKey, tickKeypad } from '../stores/wasm.js'
-  import { logInputEvent } from '../stores/input.js'
+  import { moduleRef, moduleReady, wasmMissing, runtimeStatus, sendGridKey, sendFnKey, tickKeypad, getRuntimeKeypadState, getRuntimeFnState } from '../stores/wasm.js'
+  import { logInputEvent, pollRuntimeState } from '../stores/input.js'
 
   const fallbackSize = 8
   const offColor = 'rgb(160, 160, 160)'
@@ -114,6 +114,9 @@
       const el = underglowEls[i]
       if (el) el.style.backgroundColor = color
     }
+
+    // Poll runtime-side keypad state for the Input panel
+    pollRuntimeState(getRuntimeKeypadState(), getRuntimeFnState())
   }
 
   const getCellFromEvent = (event) => {

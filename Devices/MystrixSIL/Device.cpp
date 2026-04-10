@@ -463,4 +463,25 @@ uint32_t MatrixOS_Wasm_GetUptimeMs(void) {
   return Device::Millis();
 }
 
+// Returns a pointer to an array of uint8_t[X_SIZE * Y_SIZE] where each byte
+// is 1 if the key is currently active, 0 otherwise.  Polled by the dashboard
+// Input panel so it reflects real runtime state, not just injection-side events.
+static uint8_t wasmKeypadSnapshot[X_SIZE * Y_SIZE];
+
+uint8_t* MatrixOS_Wasm_GetKeypadState(void) {
+  for (uint16_t i = 0; i < X_SIZE * Y_SIZE; i++)
+  {
+    wasmKeypadSnapshot[i] = gridState[i].info.Active() ? 1 : 0;
+  }
+  return wasmKeypadSnapshot;
+}
+
+uint32_t MatrixOS_Wasm_GetKeypadStateLength(void) {
+  return X_SIZE * Y_SIZE;
+}
+
+uint8_t MatrixOS_Wasm_GetFnState(void) {
+  return fnState.info.Active() ? 1 : 0;
+}
+
 } // extern "C"

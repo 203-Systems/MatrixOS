@@ -69,10 +69,7 @@ export function pushLog(level, args, source = 'console') {
 
   if (source !== 'matrixos' && !isMatrixOSLog(text)) return
 
-  const suppressed =
-    text.includes('worker sent an error!') ||
-    text.includes('RuntimeError: table index is out of bounds')
-  if (suppressed || !text) return
+  if (!text) return
 
   const levelColor = {
     error: ansiColorMap[91], warn: ansiColorMap[93],

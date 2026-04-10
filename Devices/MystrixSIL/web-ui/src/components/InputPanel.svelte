@@ -1,7 +1,7 @@
 <script>
   import { get } from 'svelte/store'
   import { moduleReady, sendGridKey, sendFnKey } from '../stores/wasm.js'
-  import { inputEvents, activeGridKeys, fnKeyActive, logInputEvent, clearInputEvents } from '../stores/input.js'
+  import { inputEvents, activeGridKeys, fnKeyActive, logInputEvent, clearInputEvents, runtimeGridKeys, runtimeFnActive } from '../stores/input.js'
   import { Close } from 'carbon-icons-svelte'
 
   const gridSize = 8
@@ -83,16 +83,31 @@
     </div>
   </div>
 
-  <!-- Active keys snapshot -->
+  <!-- Active keys snapshot (injection side) -->
   {#if $activeGridKeys.size > 0 || $fnKeyActive}
     <div class="state-section">
-      <span class="section-title">Active</span>
+      <span class="section-title">Injected</span>
       <div class="state-chips">
         {#if $fnKeyActive}
           <span class="state-chip chip-fn">FN</span>
         {/if}
         {#each [...$activeGridKeys] as key}
           <span class="state-chip">({key})</span>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  <!-- Runtime-side state (what the OS actually sees) -->
+  {#if $runtimeGridKeys.size > 0 || $runtimeFnActive}
+    <div class="state-section runtime-state">
+      <span class="section-title">Runtime</span>
+      <div class="state-chips">
+        {#if $runtimeFnActive}
+          <span class="state-chip chip-fn chip-runtime">FN</span>
+        {/if}
+        {#each [...$runtimeGridKeys] as key}
+          <span class="state-chip chip-runtime">({key})</span>
         {/each}
       </div>
     </div>
@@ -255,6 +270,19 @@
     background: rgba(156, 107, 255, 0.1);
     border-color: rgba(156, 107, 255, 0.2);
     color: var(--accent-2);
+  }
+  .runtime-state .section-title {
+    color: #6bdd8b;
+  }
+  .chip-runtime {
+    background: rgba(107, 221, 139, 0.1);
+    border: 1px solid rgba(107, 221, 139, 0.2);
+    color: #6bdd8b;
+  }
+  .chip-fn.chip-runtime {
+    background: rgba(107, 221, 139, 0.1);
+    border-color: rgba(107, 221, 139, 0.2);
+    color: #6bdd8b;
   }
 
   /* Event log */

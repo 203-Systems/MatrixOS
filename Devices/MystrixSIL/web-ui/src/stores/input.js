@@ -8,6 +8,10 @@ export const inputEvents = writable([])
 export const activeGridKeys = writable(new Set())
 export const fnKeyActive = writable(false)
 
+// Runtime-side state (reflects what the OS actually sees, polled from WASM)
+export const runtimeGridKeys = writable(new Set())
+export const runtimeFnActive = writable(false)
+
 function timestamp() {
   const now = new Date()
   return now.toLocaleTimeString('en-US', {
@@ -47,4 +51,20 @@ export function clearInputEvents() {
   inputEvents.set([])
   activeGridKeys.set(new Set())
   fnKeyActive.set(false)
+}
+
+// Called from DevicePanel's renderFrame loop to poll runtime-side keypad state.
+export function pollRuntimeState(keypadArray, fnActive) {
+  if (keypadArray) {
+    const next = new Set()
+    for (let i = 0; i < keypadArray.length; i++) {
+      if (keypadArray[i]) {
+        const x = i % 8
+        const y = Math.floor(i / 8)
+        next.add(`${x},${y}`)
+      }
+    }
+    runtimeGridKeys.set(next)
+  }
+  runtimeFnActive.set(!!fnActive)
 }
