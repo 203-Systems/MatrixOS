@@ -1,6 +1,5 @@
 #pragma once
 #include "MatrixOS.h"
-#include <functional>
 #include <unordered_map>
 #include <deque>
 #include <cstdarg>
@@ -14,8 +13,8 @@ struct Application_Info {
   uint32_t version;
   bool visibility = true;
   bool isSystem = false; // System privilege flag
-  std::function<Application*()> factory = nullptr;
-  std::function<void(Application*)> destructor = nullptr;
+  Application* (*factory)() = nullptr;
+  void (*destructor)(Application*) = nullptr;
 };
 
 class Application {
@@ -61,23 +60,32 @@ inline std::map<uint32_t, uint32_t>& GetApplicationIDs() {
   return applicationIds;
 }
 
+// Named template functions for app creation/destruction.
+// Using real function addresses avoids WASM indirect-call-table issues
+// that arise when lambdas are stored in std::function during static init.
+template <typename T>
+static Application* CreateApp() {
+  void* mem = pvPortMalloc(sizeof(T));
+  if (mem == nullptr)
+  {
+    return nullptr;
+  }
+  return new (mem) T();
+}
+
+template <typename T>
+static void DestroyApp(Application* app) {
+  if (app != nullptr)
+  {
+    static_cast<T*>(app)->~T();
+    vPortFree(app);
+  }
+}
+
 template <typename APPLICATION_CLASS> static inline void RegisterApplication(uint32_t order, bool isSystem) {
   APPLICATION_CLASS::info.isSystem = isSystem; // Set system flag
-  APPLICATION_CLASS::info.factory = []() -> Application* {
-    void* mem = pvPortMalloc(sizeof(APPLICATION_CLASS));
-    if (mem == nullptr)
-    {
-      return nullptr;
-    }
-    return new (mem) APPLICATION_CLASS(); // Placement new
-  };
-  APPLICATION_CLASS::info.destructor = [](Application* app) {
-    if (app != nullptr)
-    {
-      static_cast<APPLICATION_CLASS*>(app)->~APPLICATION_CLASS(); // Call concrete destructor
-      vPortFree(app);                                           // Free memory
-    }
-  };
+  APPLICATION_CLASS::info.factory = &CreateApp<APPLICATION_CLASS>;
+  APPLICATION_CLASS::info.destructor = &DestroyApp<APPLICATION_CLASS>;
   MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), isSystem ? " (system)" : "");
   uint32_t app_id = StringHash(APPLICATION_CLASS::info.author + '-' + APPLICATION_CLASS::info.name);
   auto& applications = GetApplications();
