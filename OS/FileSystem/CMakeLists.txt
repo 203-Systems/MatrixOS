@@ -14,7 +14,7 @@ if(DEVICE_STORAGE)
     )
 else()
     set(FILE_HEADERS "")
-    set(FILE_SOURCES "")
+    set(FILE_SOURCES "FileSystemStub.cpp")
 endif()
 
 add_library(MatrixOSFile

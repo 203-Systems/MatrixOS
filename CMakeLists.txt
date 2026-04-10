@@ -99,10 +99,16 @@ if(NOT EXISTS ${FAMILY_PATH}/Config.cmake)
 endif()
 include(${FAMILY_PATH}/Config.cmake)
 
+# Default feature flags for devices that don't set them
+if(NOT DEFINED DEVICE_TINYUSB)
+    set(DEVICE_TINYUSB 1)
+endif()
+
 # Pass device feature flags as compile definitions to all targets
 add_compile_definitions(
     DEVICE_STORAGE=${DEVICE_STORAGE}
     DEVICE_BATTERY=${DEVICE_BATTERY}
+    DEVICE_TINYUSB=${DEVICE_TINYUSB}
 )
 
 # Set debug flags globally for all targets before adding subdirectories

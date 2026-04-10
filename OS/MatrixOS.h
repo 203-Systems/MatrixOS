@@ -269,10 +269,8 @@ bool DeleteVariable(uint32_t hash);
 //   }
 } // namespace MatrixOS
 
-#if DEVICE_STORAGE == 1
-  // Complete File API with FileSystem operations
+// File API (stubs provided when DEVICE_STORAGE == 0)
 #include "FileSystem/File.h"
 #include "FileSystem/FileSystem.h"
-#endif
 
 // ui/UIUtilities.h have more callable UI related function

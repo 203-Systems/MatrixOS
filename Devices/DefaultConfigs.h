@@ -18,6 +18,11 @@
 #define DEVICE_BATTERY 0
 #endif
 
+// TinyUSB Support (set to 0 for host/emulation builds without USB hardware)
+#ifndef DEVICE_TINYUSB
+#define DEVICE_TINYUSB 1
+#endif
+
 // Default Shell Application
 #ifndef OS_SHELL
 #define OS_SHELL APPID("203 Systems", "Shell")
