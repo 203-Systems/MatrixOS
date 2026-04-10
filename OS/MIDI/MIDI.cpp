@@ -6,6 +6,26 @@
 
 namespace MatrixOS::MIDI
 {
+static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
+static uint32_t droppedAppMidiPackets = 0;
+static uint32_t droppedOversizedSysExMessages = 0;
+
+static void LogDroppedAppMidiPacket() {
+  droppedAppMidiPackets++;
+  if (droppedAppMidiPackets == 1 || (droppedAppMidiPackets % 32) == 0)
+  {
+    MLOGW("MIDI", "Application MIDI queue overflow, dropped %lu packet(s)", droppedAppMidiPackets);
+  }
+}
+
+static void LogDroppedOversizedSysEx() {
+  droppedOversizedSysExMessages++;
+  if (droppedOversizedSysExMessages == 1 || (droppedOversizedSysExMessages % 8) == 0)
+  {
+    MLOGW("MIDI", "Dropped oversized system SysEx message(s): %lu", droppedOversizedSysExMessages);
+  }
+}
+
 void Init(void) {
   // Create the OS MIDI port if it doesn't exist
   if (!osPort)
@@ -72,11 +92,32 @@ void ReceiveTask(void* parameters) {
         }
         else if (currentSysExState == SysExState::SYSEX_INVALID)
         {
+          if (packet.status == SysExEnd)
+          {
+            activeSysExPort = MIDI_PORT_INVALID;
+            currentSysExState = SysExState::SYSEX_IDLE;
+          }
           continue; // Skip this packet
         }
 
         if (currentSysExState != SysExState::SYSEX_RELEASE)
         {
+          if (sysExBuffer.size() + 3 > MAX_SYSTEM_SYSEX_SIZE)
+          {
+            sysExBuffer.clear();
+            LogDroppedOversizedSysEx();
+            if (packet.status == SysExEnd)
+            {
+              activeSysExPort = MIDI_PORT_INVALID;
+              currentSysExState = SysExState::SYSEX_IDLE;
+            }
+            else
+            {
+              currentSysExState = SysExState::SYSEX_INVALID;
+            }
+            continue;
+          }
+
           sysExBuffer.insert(sysExBuffer.end(), packet.data, packet.data + 3);
           currentSysExState = ProcessSysEx(packet.port, sysExBuffer, packet.status == SysExEnd);
 
@@ -100,7 +141,10 @@ void ReceiveTask(void* parameters) {
       if (shouldForwardToApp && appQueue)
       {
         // Try to send to app queue, drop if full
-        xQueueSend(appQueue, &packet, 0);
+        if (xQueueSend(appQueue, &packet, 0) != pdTRUE)
+        {
+          LogDroppedAppMidiPacket();
+        }
       }
     }
   }

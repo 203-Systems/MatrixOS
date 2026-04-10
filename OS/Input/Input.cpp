@@ -1,6 +1,15 @@
 #include "MatrixOS.h"
 
 static const char* TAG = "Input";
+static uint32_t droppedInputEvents = 0;
+
+static void LogDroppedInputEvent() {
+  droppedInputEvents++;
+  if (droppedInputEvents == 1 || (droppedInputEvents % 32) == 0)
+  {
+    MLOGW(TAG, "Input queue overflow, dropped %lu event(s)", droppedInputEvents);
+  }
+}
 
 namespace MatrixOS::Input
 {
@@ -25,6 +34,7 @@ bool NewEvent(const InputEvent& event) {
     // Drop oldest event when queue is full
     InputEvent dropped;
     xQueueReceive(inputEventQueue, &dropped, 0);
+    LogDroppedInputEvent();
   }
   xQueueSend(inputEventQueue, &event, 0);
   return uxQueueSpacesAvailable(inputEventQueue) == 0;

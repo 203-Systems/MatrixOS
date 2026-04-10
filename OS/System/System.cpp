@@ -24,6 +24,13 @@ enum TLSIndex {
   TLS_MAX_INDEX = 1          // Reserve for future use
 };
 
+static void ResetAppEnvironment() {
+  MatrixOS::Input::ClearInputBuffer();
+  MatrixOS::LED::Reset();
+  MatrixOS::USB::SetMode(USB_MODE_NORMAL);
+  MatrixOS::HID::Reset();
+}
+
 void ApplicationFactory(void* param) {
   MLOGD("Application Factory", "App ID %X", nextAppId);
 
@@ -83,7 +90,7 @@ void ApplicationFactory(void* param) {
     MLOGD("Application Factory", "Set app permissions: %s", perms.privileged ? "Privileged" : "Not Privileged");
   }
 
-  InitSysModules();
+  ResetAppEnvironment();
   MatrixOS::LED::Fade();
 
   // Pass arguments to application

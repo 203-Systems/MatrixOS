@@ -29,6 +29,15 @@ Color* crossfadeBuffer = nullptr;
 
 void RenderCrossfade();
 
+static Color* AllocateColorBuffer(const char* errorMessage) {
+  Color* buffer = (Color*)pvPortMalloc(ledCount * sizeof(Color));
+  if (buffer == nullptr)
+  {
+    MatrixOS::SYS::ErrorHandler(errorMessage);
+  }
+  return buffer;
+}
+
 IRAM_ATTR void LEDTimerCallback(TimerHandle_t xTimer) {
   xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
   if (crossfadeActive)
@@ -72,6 +81,46 @@ void UpdateBrightness() {
   needUpdate = true;
 }
 
+void Reset() {
+  if (activeBufferSemaphore == nullptr)
+  {
+    return;
+  }
+
+  xSemaphoreTake(activeBufferSemaphore, portMAX_DELAY);
+
+  crossfadeActive = false;
+  crossfadeStartTime = 0;
+  crossfadeDuration = 0;
+
+  if (crossfadeDestroySourceBuffer && crossfadeSourceBuffer != nullptr)
+  {
+    vPortFree(crossfadeSourceBuffer);
+  }
+  crossfadeSourceBuffer = nullptr;
+  crossfadeDestroySourceBuffer = false;
+
+  if (crossfadeBuffer != nullptr)
+  {
+    vPortFree(crossfadeBuffer);
+    crossfadeBuffer = nullptr;
+  }
+
+  for (Color* buffer : frameBuffers)
+  {
+    if (buffer)
+    {
+      vPortFree(buffer);
+    }
+  }
+
+  frameBuffers.clear();
+
+  CreateLayer(0); // Create Layer 0 - The active layer
+  CreateLayer(0); // Create Layer 1 - The base layer
+  xSemaphoreGive(activeBufferSemaphore);
+}
+
 void Init() {
 
   if (ledInited == false)
@@ -98,18 +147,7 @@ void Init() {
     activeBufferSemaphore = xSemaphoreCreateMutex();
   }
 
-  for (Color* buffer : frameBuffers)
-  {
-    if (buffer)
-    {
-      vPortFree(buffer);
-    }
-  }
-
-  frameBuffers.clear();
-
-  CreateLayer(0); // Create Layer 0 - The active layer
-  CreateLayer(0); // Create Layer 1 - The base layer
+  Reset();
 
   if (ledInited == false)
   {
@@ -305,10 +343,9 @@ int8_t CreateLayer(uint16_t crossfade) {
     MatrixOS::SYS::ErrorHandler("Max LED Layer Exceded");
     return -1;
   }
-  Color* frameBuffer = (Color*)pvPortMalloc(ledCount * sizeof(Color));
+  Color* frameBuffer = AllocateColorBuffer("Failed to allocate new led buffer");
   if (frameBuffer == nullptr)
   {
-    MatrixOS::SYS::ErrorHandler("Failed to allocate new led buffer");
     return -1;
   }
   frameBuffers.push_back(frameBuffer);
@@ -389,6 +426,24 @@ void Fade(uint16_t crossfade, Color* sourceBuffer) {
     return;
   }
 
+  Color* nextCrossfadeBuffer = nullptr;
+  if (crossfadeActive)
+  {
+    nextCrossfadeBuffer = AllocateColorBuffer("Failed to allocate crossfade buffer");
+    if (nextCrossfadeBuffer == nullptr)
+    {
+      return;
+    }
+  }
+  else if (crossfadeBuffer == nullptr)
+  {
+    crossfadeBuffer = AllocateColorBuffer("Failed to allocate crossfade buffer");
+    if (crossfadeBuffer == nullptr)
+    {
+      return;
+    }
+  }
+
   if (crossfadeActive)
   {
     crossfadeActive = false;
@@ -404,17 +459,16 @@ void Fade(uint16_t crossfade, Color* sourceBuffer) {
     }
 
     crossfadeSourceBuffer = crossfadeBuffer; // Start crossfade from the crossfade buffer
-    crossfadeBuffer = nullptr;                 // Let the RenderCrossfade() to create a new buffer
+    crossfadeBuffer = nextCrossfadeBuffer;
     crossfadeDestroySourceBuffer = true;
     xSemaphoreGive(activeBufferSemaphore);
   }
   else if (sourceBuffer == nullptr)
   {
     // Create a copy of the current buffer
-    crossfadeSourceBuffer = (Color*)pvPortMalloc(ledCount * sizeof(Color));
+    crossfadeSourceBuffer = AllocateColorBuffer("Failed to allocate crossfade buffer");
     if (crossfadeSourceBuffer == nullptr)
     {
-      MatrixOS::SYS::ErrorHandler("Failed to allocate crossfade buffer");
       return;
     }
     memcpy((void*)crossfadeSourceBuffer, (void*)frameBuffers[0], ledCount * sizeof(Color));
@@ -439,11 +493,6 @@ IRAM_ATTR void RenderCrossfade() {
   Fract16 ratio = 0;
 
   uint32_t currentTime = MatrixOS::SYS::Millis();
-
-  if (crossfadeBuffer == nullptr)
-  {
-    crossfadeBuffer = (Color*)pvPortMalloc(ledCount * sizeof(Color));
-  }
 
   if (currentTime <= crossfadeStartTime)
   {
