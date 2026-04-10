@@ -155,8 +155,9 @@ void Rotate(Direction newRotation, bool absolute) {
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
 
-  // Clear stale input events and suppress active device-side inputs
+  // Clear stale input events, invalidate cache, and suppress active device-side inputs
   MatrixOS::Input::ClearInputBuffer();
+  MatrixOS::Input::InvalidateStateCache();
   Device::Input::SuppressActiveInputs();
 }
 

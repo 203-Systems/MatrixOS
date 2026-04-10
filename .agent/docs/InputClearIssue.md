@@ -21,16 +21,29 @@ and the new UI consumes it as if it were meant for that UI.
 
 ## Chosen Solution
 
-The fix uses two explicit, orthogonal APIs:
+The fix uses three explicit, orthogonal mechanisms:
 
-### `MatrixOS::Input::ClearInputBuffer()`
+### `MatrixOS::Input::ClearInputBuffer()` — public
 
 Discards all pending events from the OS-side input event queue.
-Does not touch device-side scan state or the OS snapshot cache.
+Does **not** touch device-side scan state.
+Does **not** touch the OS snapshot cache.
 
 Previously named `ClearQueue()`.
 
-### `Device::Input::SuppressActiveInputs()`
+### `MatrixOS::Input::InvalidateStateCache()` — internal
+
+Clears the internal `stateCache` map so that `GetState()` / Python
+`GetState()` cannot return stale pressed/hold snapshots from before a
+context transition.
+
+Declared in `OS/Input/Input.h` only — **not** in `OS/MatrixOS.h`.
+Not part of the public API. Call sites that need it include `Input/Input.h`
+directly.
+
+Cache entries are rebuilt naturally as new events arrive via `NewEvent()`.
+
+### `Device::Input::SuppressActiveInputs()` — device-side
 
 Marks all currently active device-side input scan states as suppressed
 so their follow-up release events are silently dropped by the scan loop.
@@ -40,17 +53,19 @@ Does **not** clear the OS snapshot cache.
 This replaced `Device::KeyPad::Clear()` and operates through the same
 `KeypadInfo::Suppress()` mechanism (formerly `KeypadInfo::Clear()`).
 
-### UI transition sequence
+### UI transition / rotation sequence
 
-At `UI::Start()`, the framework now calls both:
+At `UI::Start()` and in `Device::Rotate()`, the framework now calls all three:
 
 ```cpp
 MatrixOS::Input::ClearInputBuffer();
+MatrixOS::Input::InvalidateStateCache();
 Device::Input::SuppressActiveInputs();
 ```
 
 At `UI::UIEnd()` and `UI::ExitAllUIs()`, only `ClearInputBuffer()` is used
-because suppression is only needed when entering a new input context.
+because suppression and cache invalidation are only needed when entering a
+new input context.
 
 ### What was removed
 
@@ -59,20 +74,6 @@ because suppression is only needed when entering a new input context.
 
 - `Device::KeyPad::Clear()` — removed from the device API surface.
   Its behavior moved to `Device::Input::SuppressActiveInputs()`.
-
-### Snapshot cache invalidation
-
-`ClearInputBuffer()` now also clears the internal `stateCache` map so that
-`GetState()` / Python `GetState()` cannot return stale pressed/hold snapshots
-from before the context transition.
-
-Without this, when `SuppressActiveInputs()` prevents a release event from
-being emitted, the cache would keep the old pressed/hold snapshot forever,
-causing `GetState()` to report a suppressed key as still pressed.
-
-The cache clear is internal to the OS input runtime — no new public API was
-added. Cache entries are rebuilt naturally as new events arrive via
-`NewEvent()`.
 
 ### `KeypadInfo::Suppress()` semantics
 
@@ -90,7 +91,7 @@ is now fixed: any active state, including `ReleaseDebouncing`, sets the
 
 ### Rejected alternatives
 
-- `PrepareForUITransition()` — not used; the two explicit calls are clearer
+- `PrepareForUITransition()` — not used; the three explicit calls are clearer
 - `ConsumeActiveKeypadStates()` — renamed to `SuppressActiveInputs()` for
   clarity; "suppress" better describes the device-side flag mechanism
 
@@ -104,7 +105,8 @@ The current design conflates three different operations:
 2. clear cached OS-side input snapshots
 3. consume currently active physical keypad state and suppress its future release
 
-The fix separates these cleanly into `ClearInputBuffer()` (1 + 2) and
-`SuppressActiveInputs()` (3). Cache clearing (2) is now handled
-internally by `ClearInputBuffer()` so that suppressed keys cannot leave
-stale snapshots in `GetState()`.
+The fix separates these cleanly into `ClearInputBuffer()` (1),
+`InvalidateStateCache()` (2, internal), and `SuppressActiveInputs()` (3).
+Context-transition call sites invoke all three explicitly. Buffer-only
+call sites (e.g. `UIEnd()`, `ExitAllUIs()`, `LEDTester`) use only
+`ClearInputBuffer()`.
