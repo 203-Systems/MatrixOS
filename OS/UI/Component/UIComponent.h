@@ -1,15 +1,14 @@
 #pragma once
 #include "MatrixOS.h"
-#include <memory>
+#include "../UICallback.h"
 
 class UIComponent {
 public:
   bool enabled;
-  std::unique_ptr<std::function<bool()>> enableFunc;
+  UICallback<bool()> enableFunc;
 
   UIComponent() {
     this->enabled = true;
-    this->enableFunc = nullptr;
   }
 
   virtual Dimension GetSize() {
@@ -26,14 +25,14 @@ public:
   virtual void SetEnabled(bool enabled) {
     this->enabled = enabled;
   }
-  virtual void SetEnableFunc(std::function<bool()> enableFunc) {
-    this->enableFunc = std::make_unique<std::function<bool()>>(enableFunc);
+  template <typename F> void SetEnableFunc(F&& f) {
+    this->enableFunc = UICallback<bool()>(static_cast<F&&>(f));
   }
 
   virtual bool IsEnabled() {
     if (enableFunc)
     {
-      return (*enableFunc)();
+      return enableFunc();
     }
     return enabled;
   }

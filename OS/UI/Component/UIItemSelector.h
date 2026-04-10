@@ -8,11 +8,10 @@ public:
   T* itemPtr;
   T* items;
   UISelectorLitMode litMode;
-  std::unique_ptr<std::function<void(const T&)>> changeCallback;
+  UICallback<void(const T&)> changeCallback;
 
   UIItemSelector() : UISelectorBase() {
     this->litMode = UISelectorLitMode::LIT_EQUAL;
-    this->changeCallback = nullptr;
   }
 
   void SetLitMode(UISelectorLitMode litMode) {
@@ -24,15 +23,15 @@ public:
   void SetItems(T* items) {
     this->items = items;
   }
-  void OnChange(std::function<void(const T&)> changeCallback) {
-    this->changeCallback = std::make_unique<std::function<void(const T&)>>(changeCallback);
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(const T&)>(static_cast<F&&>(f));
   }
 
 protected:
   virtual void OnChangeCallback(const T& item) {
-    if (changeCallback != nullptr)
+    if (changeCallback)
     {
-      (*changeCallback)(item);
+      changeCallback(item);
     }
   }
 

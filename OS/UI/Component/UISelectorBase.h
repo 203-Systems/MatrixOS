@@ -34,9 +34,9 @@ public:
   UISelectorDirection direction;
   UISelectorColorMode colorMode;
   Color color;
-  std::unique_ptr<std::function<Color()>> colorFunc;
-  std::unique_ptr<std::function<Color(uint16_t)>> individualColorFunc;
-  std::unique_ptr<std::function<string(uint16_t)>> nameFunc;
+  UICallback<Color()> colorFunc;
+  UICallback<Color(uint16_t)> individualColorFunc;
+  UICallback<string(uint16_t)> nameFunc;
 
   UISelectorBase() {
     this->dimension = Dimension(1, 1);
@@ -57,29 +57,29 @@ public:
   }
 
   void SetColor(Color color) {
-    this->colorFunc.reset();
-    this->individualColorFunc.reset();
+    this->colorFunc.Reset();
+    this->individualColorFunc.Reset();
     colorMode = UISelectorColorMode::COLOR_MODE_SINGLE;
     this->color = color;
   }
 
-  void SetColorFunc(std::function<Color()> colorFunc) {
-    this->individualColorFunc.reset();
+  template <typename F> void SetColorFunc(F&& f) {
+    this->individualColorFunc.Reset();
     colorMode = UISelectorColorMode::COLOR_MODE_FUNCTION;
-    this->colorFunc = std::make_unique<std::function<Color()>>(colorFunc);
+    this->colorFunc = UICallback<Color()>(static_cast<F&&>(f));
   }
 
-  void SetIndividualColorFunc(std::function<Color(uint16_t)> colorFunc) { // UINT16_MAX is called when the color is used for text scroll
-    this->colorFunc.reset();
+  template <typename F> void SetIndividualColorFunc(F&& f) { // UINT16_MAX is called when the color is used for text scroll
+    this->colorFunc.Reset();
     colorMode = UISelectorColorMode::COLOR_MODE_INDIVIDUAL;
-    this->individualColorFunc = std::make_unique<std::function<Color(uint16_t)>>(colorFunc);
+    this->individualColorFunc = UICallback<Color(uint16_t)>(static_cast<F&&>(f));
   }
 
   void SetDirection(UISelectorDirection direction) {
     this->direction = direction;
   }
-  void SetIndividualNameFunc(std::function<string(uint16_t)> nameFunc) {
-    this->nameFunc = std::make_unique<std::function<string(uint16_t)>>(nameFunc);
+  template <typename F> void SetIndividualNameFunc(F&& f) {
+    this->nameFunc = UICallback<string(uint16_t)>(static_cast<F&&>(f));
   }
 
   // Internal functions
@@ -87,11 +87,11 @@ protected:
   virtual Color GetColor() {
     if (colorMode == UISelectorColorMode::COLOR_MODE_FUNCTION)
     {
-      return (*colorFunc)();
+      return colorFunc();
     }
     else if (colorMode == UISelectorColorMode::COLOR_MODE_INDIVIDUAL)
     {
-      return (*individualColorFunc)(UINT16_MAX);
+      return individualColorFunc(UINT16_MAX);
     }
     else
     {
@@ -104,17 +104,17 @@ protected:
   }
 
   virtual Color GetIndividualColor(uint16_t index) {
-    if (colorMode == UISelectorColorMode::COLOR_MODE_INDIVIDUAL && individualColorFunc != nullptr)
+    if (colorMode == UISelectorColorMode::COLOR_MODE_INDIVIDUAL && individualColorFunc)
     {
-      return (*individualColorFunc)(index);
+      return individualColorFunc(index);
     }
     return GetColor();
   }
 
   virtual string GetIndividualName(uint16_t index) {
-    if (nameFunc != nullptr)
+    if (nameFunc)
     {
-      return (*nameFunc)(index);
+      return nameFunc(index);
     }
     return name;
   }
@@ -183,14 +183,14 @@ public:
     }
     else if (colorMode == UISelectorColorMode::COLOR_MODE_FUNCTION)
     {
-      color = (*colorFunc)();
+      color = colorFunc();
     }
 
     for (uint16_t item = 0; item < dimension.Area(); item++)
     {
       if (colorMode == UISelectorColorMode::COLOR_MODE_INDIVIDUAL)
       {
-        color = (*individualColorFunc)(item);
+        color = individualColorFunc(item);
       }
 
       Point xy = origin + IndexToPoint(item);
@@ -218,7 +218,7 @@ public:
     }
     else if (keypadInfo->state == KeypadState::Hold)
     {
-      if (nameFunc == nullptr)
+      if (!nameFunc)
       {
         MatrixOS::UIUtility::TextScroll(name, GetColor());
       }

@@ -14,7 +14,7 @@ bool SequencerNotePad::IsEnabled() {
 
   if (enableFunc)
   {
-    enabled = (*enableFunc)();
+    enabled = enableFunc();
   }
 
   if (enabled && wasEnabled == false)

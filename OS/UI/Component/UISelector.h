@@ -5,14 +5,12 @@ class UISelector : public UISelectorBase {
 public:
   uint16_t* valuePtr;
   UISelectorLitMode litMode;
-  std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
-  std::unique_ptr<std::function<uint16_t()>> getValueFunc;
+  UICallback<void(uint16_t)> changeCallback;
+  UICallback<uint16_t()> getValueFunc;
 
   UISelector() : UISelectorBase() {
     this->valuePtr = nullptr;
     this->litMode = UISelectorLitMode::LIT_EQUAL;
-    this->changeCallback = nullptr;
-    this->getValueFunc = nullptr;
   }
 
   void SetLitMode(UISelectorLitMode litMode) {
@@ -21,37 +19,36 @@ public:
 
   void SetValuePointer(uint16_t* valuePtr) {
     this->valuePtr = valuePtr;
-    this->getValueFunc = nullptr; // Clear getValueFunc when setting pointer
+    this->getValueFunc.Reset();
   }
 
-  void SetValueFunc(std::function<uint16_t()> getValueFunc) {
-    this->getValueFunc = std::make_unique<std::function<uint16_t()>>(getValueFunc);
-    this->valuePtr = nullptr; // Clear valuePtr when setting function
+  template <typename F> void SetValueFunc(F&& f) {
+    this->getValueFunc = UICallback<uint16_t()>(static_cast<F&&>(f));
+    this->valuePtr = nullptr;
   }
 
-  void OnChange(std::function<void(uint16_t)> changeCallback) {
-    this->changeCallback = std::make_unique<std::function<void(uint16_t)>>(changeCallback);
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(uint16_t)>(static_cast<F&&>(f));
   }
 
   virtual void OnChangeCallback(uint16_t value) {
-    if (changeCallback != nullptr)
+    if (changeCallback)
     {
-      (*changeCallback)(value);
+      changeCallback(value);
     }
   }
 
   uint16_t GetValue() {
-    // Prioritize getValueFunc if set
-    if (getValueFunc != nullptr)
+    if (getValueFunc)
     {
-      return (*getValueFunc)();
+      return getValueFunc();
     }
     return (valuePtr != nullptr) ? *valuePtr : 0;
   }
 
   void SetValue(uint16_t value) {
     // SetValue should not work if getValueFunc is set
-    if (getValueFunc == nullptr && valuePtr != nullptr)
+    if (!getValueFunc && valuePtr != nullptr)
     {
       *valuePtr = value;
     }

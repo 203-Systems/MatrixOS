@@ -18,7 +18,7 @@ public:
   Color GetColor() override {
     if (colorFunc)
     {
-      return (*colorFunc)();
+      return colorFunc();
     }
     return color.DimIfNot(*valuePtr);
   }
@@ -27,7 +27,7 @@ public:
     *valuePtr = !*valuePtr;
     if (pressCallback)
     {
-      (*pressCallback)();
+      pressCallback();
       return true;
     }
     return true;

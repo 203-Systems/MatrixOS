@@ -1,4 +1,3 @@
-#include <functional>
 #include "MatrixOS.h"
 #include "UI/Component/UI4pxNumber.h"
 #include "UI/UI.h"

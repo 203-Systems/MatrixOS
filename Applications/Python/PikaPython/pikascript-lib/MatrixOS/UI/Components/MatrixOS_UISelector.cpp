@@ -1,4 +1,3 @@
-#include <functional>
 #include "MatrixOS.h"
 #include "UI/Component/UISelector.h"
 #include "UI/UI.h"

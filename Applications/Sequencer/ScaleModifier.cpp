@@ -1,23 +1,16 @@
 #include "ScaleModifier.h"
 
 SequenceScaleModifier::SequenceScaleModifier(Color color, Color rootColor) {
-  this->changeCallback = nullptr;
   this->color = color;
   this->rootColor = rootColor;
 }
 
-void SequenceScaleModifier::SetScaleFunc(std::function<uint16_t()> getScale) {
-  this->getScale = std::move(getScale);
-}
-
-void SequenceScaleModifier::OnChange(std::function<void(uint16_t)> changeCallback) {
-  this->changeCallback = std::make_unique<std::function<void(uint16_t)>>(changeCallback);
-}
+// SetScaleFunc and OnChange are now inline templates in ScaleModifier.h
 
 void SequenceScaleModifier::OnChangeCallback(uint16_t newScale) {
-  if (changeCallback != nullptr)
+  if (changeCallback)
   {
-    (*changeCallback)(newScale);
+    changeCallback(newScale);
   }
 }
 

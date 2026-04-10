@@ -51,7 +51,7 @@ public:
   bool IsEnabled() {
     if (enableFunc)
     {
-      enabled = (*enableFunc)();
+      enabled = enableFunc();
     }
     if (!enabled)
     {

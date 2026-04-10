@@ -10,20 +10,18 @@ public:
   string name;
   uint8_t digits;
   int32_t* valuePtr;
-  std::unique_ptr<std::function<int32_t()>> getValueFunc;
+  UICallback<int32_t()> getValueFunc;
   uint8_t spacing;
   Color color;
   Color alternativeColor;
-  std::unique_ptr<std::function<Color(uint16_t digit)>> colorFunc;
+  UICallback<Color(uint16_t digit)> colorFunc;
 
   UI4pxNumber() {
     this->color = Color(0);
     this->alternativeColor = Color::White;
     this->digits = 0;
     this->valuePtr = nullptr;
-    this->getValueFunc = nullptr;
     this->spacing = 0;
-    this->colorFunc = nullptr;
   }
 
   virtual Dimension GetSize() {
@@ -32,7 +30,7 @@ public:
   virtual Color GetColor(uint16_t digit) {
     if (colorFunc)
     {
-      return (*colorFunc)(digit);
+      return colorFunc(digit);
     }
     else if (digit == UINT16_MAX)
     {
@@ -59,26 +57,25 @@ public:
 
   void SetValuePointer(int32_t* valuePtr) {
     this->valuePtr = valuePtr;
-    this->getValueFunc = nullptr; // Clear getValueFunc when setting pointer
+    this->getValueFunc.Reset();
   }
 
-  void SetValueFunc(std::function<int32_t()> getValueFunc) {
-    this->getValueFunc = std::make_unique<std::function<int32_t()>>(getValueFunc);
-    this->valuePtr = nullptr; // Clear valuePtr when setting function
+  template <typename F> void SetValueFunc(F&& f) {
+    this->getValueFunc = UICallback<int32_t()>(static_cast<F&&>(f));
+    this->valuePtr = nullptr;
   }
 
   int32_t GetValue() {
-    // Prioritize getValueFunc if set
-    if (getValueFunc != nullptr)
+    if (getValueFunc)
     {
-      return (*getValueFunc)();
+      return getValueFunc();
     }
     return (valuePtr != nullptr) ? *valuePtr : 0;
   }
 
   void SetValue(int32_t value) {
     // SetValue should not work if getValueFunc is set
-    if (getValueFunc == nullptr && valuePtr != nullptr)
+    if (!getValueFunc && valuePtr != nullptr)
     {
       *valuePtr = value;
     }
@@ -87,8 +84,8 @@ public:
   void SetSpacing(uint8_t spacing) {
     this->spacing = spacing;
   }
-  void SetColorFunc(std::function<Color(uint16_t digit)> colorFunc) {
-    this->colorFunc = std::make_unique<std::function<Color(uint16_t digit)>>(colorFunc);
+  template <typename F> void SetColorFunc(F&& f) {
+    this->colorFunc = UICallback<Color(uint16_t digit)>(static_cast<F&&>(f));
   }
   void Render4pxNumber(Point origin, Color color, uint8_t value) {
     // MLOGD("4PX", "Num: %d, render at %d-%d", value, origin.x, origin.y);

@@ -2,20 +2,22 @@
 
 #include "MatrixOS.h"
 #include "UI/UI.h"
-#include <functional>
-#include <memory>
 
 class SequenceScaleModifier : public UIComponent {
 public:
-  std::function<uint16_t()> getScale;
-  std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
+  UICallback<uint16_t()> getScale;
+  UICallback<void(uint16_t)> changeCallback;
   Color color;
   Color rootColor;
 
   SequenceScaleModifier(Color color, Color rootColor);
 
-  void SetScaleFunc(std::function<uint16_t()> getScale);
-  void OnChange(std::function<void(uint16_t)> changeCallback);
+  template <typename F> void SetScaleFunc(F&& f) {
+    this->getScale = UICallback<uint16_t()>(static_cast<F&&>(f));
+  }
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(uint16_t)>(static_cast<F&&>(f));
+  }
   virtual void OnChangeCallback(uint16_t newScale);
 
   virtual Color GetColor();

@@ -87,3 +87,56 @@ Additionally, `taskYIELD()` and `vTaskDelay()` never checked for external deleti
 - `Devices/MystrixSIL/web-ui/src/stores/logs.js` — removed error suppression
 - `Devices/MystrixSIL/web-ui/src/components/DevicePanel.svelte` — polls runtime keypad state
 - `Devices/MystrixSIL/web-ui/src/components/InputPanel.svelte` — shows runtime state section
+
+## Round 3 Plan
+- Fix the remaining `RuntimeError: table index is out of bounds` crash in the UI callback layer
+- Replace all `std::function`-based callbacks in the UI layer with a lightweight `UICallback<Sig>` type using named template function pointers
+- Add `-sALLOW_TABLE_GROWTH=1` Emscripten linker flag as safety net
+
+## Round 3 Results
+
+### Root Cause Analysis
+After Round 2 fixed the FreeRTOS stub `vTaskDelete` crash, the `table index is out of bounds` error moved downstream to the UI callback layer. The crash occurred after `UI: Register UI Application Launcher` — the Shell installs lambda callbacks (OnPress, SetInputEventHandler, SetColorFunc) via `std::function`.
+
+`std::function` uses complex type-erasure with internal vtable/invoker mechanisms. In WASM, these invokers go through `call_indirect` instructions that check the indirect function table bounds. Emscripten's libc++ `std::function` implementation creates many internal invoker/destroyer functions whose table entries can exceed the fixed-size table.
+
+This is the same root cause pattern as the `Application_Info::factory`/`destructor` crash fixed in Round 2 (commit e6ff9048), where replacing `std::function` with named template function pointers eliminated the crash.
+
+### Fix: UICallback<Sig> (`OS/UI/UICallback.h`)
+Created a lightweight type-erased callable that replaces `std::function` throughout the UI layer:
+- Stores `void* state_`, `InvokeFn invoke_`, `DestroyFn destroy_`
+- Uses named static template member functions `Invoke<Stored>()` and `Destroy<Stored>()` — NOT lambdas — producing stable, predictable WASM indirect call table entries
+- Move-only semantics, `explicit operator bool()`, direct `operator()` invocation (no `*` dereference)
+- `Reset()` method replaces `unique_ptr::reset()`
+- Heap-allocates captured state via `new Stored(...)` / `delete`
+- Compatible with all existing lambda call sites — no changes needed in callers
+
+### Fix: -sALLOW_TABLE_GROWTH=1 (`CMakeLists.txt`)
+Added `-sALLOW_TABLE_GROWTH=1` to the Emscripten linker flags as a safety net, allowing the WASM indirect call table to grow dynamically if needed.
+
+### Files Changed
+- `OS/UI/UICallback.h` — **NEW** lightweight type-erased callable
+- `OS/UI/UI.h` — replaced 7 `std::unique_ptr<std::function<...>>` members with `UICallback<...>`, converted setter methods to inline templates
+- `OS/UI/UI.cpp` — removed out-of-line setter implementations (now inline), removed `*` dereference on virtual method invocations
+- `OS/UI/Component/UIComponent.h` — replaced `enableFunc` member and `SetEnableFunc` setter
+- `OS/UI/Component/UIButton.h` — replaced 3 callback members (pressCallback, holdCallback, colorFunc) and their setters/invocations
+- `OS/UI/Component/UIToggle.h` — removed `*` dereference on `colorFunc` and `pressCallback`
+- `OS/UI/Component/UISelectorBase.h` — replaced 3 callback members, converted `.reset()` to `.Reset()`, removed `*` dereference
+- `OS/UI/Component/UISelector.h` — replaced 2 callback members, updated `= nullptr` to `.Reset()`
+- `OS/UI/Component/UIItemSelector.h` — replaced template callback member
+- `OS/UI/Component/UINumModifier.h` — replaced callback member, removed `<functional>` include
+- `OS/UI/Component/UINumSelector.h` — replaced callback member
+- `OS/UI/Component/UITimedDisplay.h` — replaced renderFunc member, removed `*` dereference on `enableFunc`
+- `OS/UI/Component/UI4pxNumber.h` — replaced 2 callback members
+- `OS/UI/Utilities/ColorPicker.cpp` — replaced 2 direct `std::function` members in local classes with `UICallback`
+- `Devices/MystrixSIL/CMakeLists.txt` — added `-sALLOW_TABLE_GROWTH=1` linker flag
+- `Applications/Note/ArpDirVisualizer.h` — removed `*` dereference on `enableFunc`
+- `Applications/Note/ScaleModifier.h` — replaced `std::unique_ptr<std::function<...>>` with `UICallback`
+- `Applications/Sequencer/NotePad.cpp` — removed `*` dereference on `enableFunc`
+- `Applications/Sequencer/ScaleModifier.h` — replaced `std::function` and `std::unique_ptr<std::function<...>>` with `UICallback`
+- `Applications/Sequencer/ScaleModifier.cpp` — updated implementations for UICallback
+- `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/MatrixOS_UI.cpp` — removed unused `<functional>` include
+- `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UIButton.cpp` — removed unused `<functional>` include
+- `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UISelector.cpp` — removed unused `<functional>` include
+- `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UIComponent.cpp` — removed unused `<functional>` include
+- `Applications/Python/PikaPython/pikascript-lib/MatrixOS/UI/Components/MatrixOS_UI4pxNumber.cpp` — removed unused `<functional>` include

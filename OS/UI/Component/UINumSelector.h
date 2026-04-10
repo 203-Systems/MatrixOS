@@ -10,7 +10,7 @@ public:
   Dimension dimension;
   uint16_t count;
   UISelectorDirection direction;
-  std::unique_ptr<std::function<void(T)>> changeCallback;
+  UICallback<void(T)> changeCallback;
 
   UINumItemSelector() {
     this->dimension = Dimension(1, 1);
@@ -19,7 +19,6 @@ public:
     this->count = 0;
     this->items = nullptr;
     this->direction = UISelectorDirection::RIGHT_THEN_DOWN;
-    this->changeCallback = nullptr;
   }
 
   virtual Color GetColor() {
@@ -47,14 +46,14 @@ public:
   void SetDirection(UISelectorDirection direction) {
     this->direction = direction;
   }
-  void OnChange(std::function<void(T)> changeCallback) {
-    this->changeCallback = std::make_unique<std::function<void(T)>>(changeCallback);
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(T)>(static_cast<F&&>(f));
   }
 
   virtual bool OnChangeCallback(T value) {
     if (changeCallback)
     {
-      (*changeCallback)(value);
+      changeCallback(value);
       return true;
     }
     return false;

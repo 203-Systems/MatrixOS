@@ -51,6 +51,7 @@ if(EMSCRIPTEN)
         "SHELL:-sUSE_PTHREADS=1"
         "SHELL:-sPTHREAD_POOL_SIZE=16"
         "SHELL:-sPROXY_TO_PTHREAD=1"
+        "SHELL:-sALLOW_TABLE_GROWTH=1"
         -pthread
     )
 endif()

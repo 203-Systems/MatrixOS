@@ -82,3 +82,10 @@
 - [ ] Emscripten WASM build succeeds (needs Emscripten SDK on this machine)
 - [ ] Browser validation: Shell launches without crash
 - [ ] Browser validation: Input panel shows runtime state
+
+## Validation (Round 3)
+- [x] All `std::function`-based UI callbacks replaced with `UICallback<Sig>` (named template trampolines)
+- [x] Added `-sALLOW_TABLE_GROWTH=1` Emscripten linker flag
+- [x] Emscripten WASM build succeeds (all .o files + link to MatrixOSHost.js)
+- [ ] Browser validation: Shell launches without crash
+- [ ] Browser validation: Application Launcher UI is functional

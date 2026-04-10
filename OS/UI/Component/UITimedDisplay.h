@@ -8,16 +8,15 @@ public:
   uint32_t enableLength;
   bool disableOnTap = true;
   Dimension dimension;
-  std::unique_ptr<std::function<void(Point)>> renderFunc;
+  UICallback<void(Point)> renderFunc;
 
   UITimedDisplay(uint32_t enableLength = 500) {
     this->lastEnabledTime = 0;
     this->enableLength = enableLength;
-    this->renderFunc = nullptr;
   }
 
-  void SetRenderFunc(std::function<void(Point)> renderFunc) {
-    this->renderFunc = std::make_unique<std::function<void(Point)>>(renderFunc);
+  template <typename F> void SetRenderFunc(F&& f) {
+    this->renderFunc = UICallback<void(Point)>(static_cast<F&&>(f));
   }
 
   void SetDimension(Dimension dimension) {
@@ -32,7 +31,7 @@ public:
     uint32_t currentTime = (uint32_t)MatrixOS::SYS::Millis();
     if (enableFunc)
     {
-      enabled = (*enableFunc)();
+      enabled = enableFunc();
     }
 
     // If already timed out, force disabled
@@ -91,7 +90,7 @@ public:
 
     if (renderFunc)
     {
-      (*renderFunc)(origin);
+      renderFunc(origin);
     }
 
     return true;

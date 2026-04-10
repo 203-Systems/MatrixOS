@@ -7,13 +7,14 @@ public:
   Dimension dimension;
   float begin;
   float step;
-  std::function<void(float)> callback;
+  UICallback<void(float)> callback;
 
-  UIHueSelector(Dimension dimension, std::function<void(float)> callback, int16_t begin = 0, int16_t end = 360) {
+  template <typename F>
+  UIHueSelector(Dimension dimension, F&& callback, int16_t begin = 0, int16_t end = 360)
+      : callback(static_cast<F&&>(callback)) {
     this->dimension = dimension;
     this->step = (float)(end - begin) / 360 / (dimension.Area() - 1);
     this->begin = std::fmod((float)begin / 360, 1.0);
-    this->callback = callback;
   }
 
   virtual Dimension GetSize() {
@@ -54,17 +55,18 @@ public:
   float vBegin;
   float sStep;
   float vStep;
-  std::function<void(Color)> callback;
+  UICallback<void(Color)> callback;
 
-  UIShadeSelector(Dimension dimension, float* hue, std::function<void(Color)> callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX,
-                  Fract16 vBegin = 4096, Fract16 vEnd = FRACT16_MAX) {
+  template <typename F>
+  UIShadeSelector(Dimension dimension, float* hue, F&& callback, Fract16 sBegin = 0, Fract16 sEnd = FRACT16_MAX,
+                  Fract16 vBegin = 4096, Fract16 vEnd = FRACT16_MAX)
+      : callback(static_cast<F&&>(callback)) {
     this->dimension = dimension;
     this->hue = hue;
     this->sStep = float(sEnd - sBegin) / (dimension.x - 1);
     this->vStep = float(vEnd - vBegin) / (dimension.y - 1);
     this->sBegin = float(sBegin);
     this->vBegin = float(vBegin);
-    this->callback = callback;
   }
 
   virtual Dimension GetSize() {

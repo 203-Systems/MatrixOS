@@ -6,18 +6,15 @@ class UIButton : public UIComponent {
 public:
   string name;
   Color color = Color(0);
-  std::unique_ptr<std::function<void()>> pressCallback;
-  std::unique_ptr<std::function<void()>> holdCallback;
-  std::unique_ptr<std::function<Color()>> colorFunc;
+  UICallback<void()> pressCallback;
+  UICallback<void()> holdCallback;
+  UICallback<Color()> colorFunc;
   Dimension dimension = Dimension(1, 1);
 
   UIButton() {
     this->name = "";
     this->color = Color::White;
     this->dimension = Dimension(1, 1);
-    this->pressCallback = nullptr;
-    this->holdCallback = nullptr;
-    this->colorFunc = nullptr;
   }
 
   virtual string GetName() {
@@ -30,15 +27,15 @@ public:
   virtual Color GetColor() {
     if (colorFunc)
     {
-      return (*colorFunc)();
+      return colorFunc();
     }
     return color;
   }
   void SetColor(Color color) {
     this->color = color;
   }
-  void SetColorFunc(std::function<Color()> colorFunc) {
-    this->colorFunc = std::make_unique<std::function<Color()>>(colorFunc);
+  template <typename F> void SetColorFunc(F&& f) {
+    this->colorFunc = UICallback<Color()>(static_cast<F&&>(f));
   }
 
   virtual Dimension GetSize() {
@@ -51,26 +48,26 @@ public:
   virtual bool PressCallback() {
     if (pressCallback)
     {
-      (*pressCallback)();
+      pressCallback();
       return true;
     }
     return false;
   }
 
-  void OnPress(std::function<void()> pressCallback) {
-    this->pressCallback = std::make_unique<std::function<void()>>(pressCallback);
+  template <typename F> void OnPress(F&& f) {
+    this->pressCallback = UICallback<void()>(static_cast<F&&>(f));
   }
 
   virtual bool HoldCallback() {
     if (holdCallback)
     {
-      (*holdCallback)();
+      holdCallback();
       return true;
     }
     return false;
   }
-  void OnHold(std::function<void()> holdCallback) {
-    this->holdCallback = std::make_unique<std::function<void()>>(holdCallback);
+  template <typename F> void OnHold(F&& f) {
+    this->holdCallback = UICallback<void()>(static_cast<F&&>(f));
   }
 
   virtual bool Render(Point origin) {

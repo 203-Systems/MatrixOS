@@ -3,13 +3,12 @@
 class NoteScaleModifier : public UIComponent {
 public:
   uint16_t* scale;
-  std::unique_ptr<std::function<void(uint16_t)>> changeCallback;
+  UICallback<void(uint16_t)> changeCallback;
   Color color;
   Color rootColor;
 
   NoteScaleModifier(uint16_t* scale, Color color = Color(0x00FFFF), Color rootColor = Color(0x0040FF)) {
     this->scale = scale;
-    this->changeCallback = nullptr;
     this->color = color;
     this->rootColor = rootColor;
   }
@@ -18,14 +17,14 @@ public:
     this->scale = scale;
   }
 
-  void OnChange(std::function<void(uint16_t)> changeCallback) {
-    this->changeCallback = std::make_unique<std::function<void(uint16_t)>>(changeCallback);
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(uint16_t)>(static_cast<F&&>(f));
   }
 
   virtual void OnChangeCallback(uint16_t newScale) {
-    if (changeCallback != nullptr)
+    if (changeCallback)
     {
-      (*changeCallback)(newScale);
+      changeCallback(newScale);
     }
   }
 

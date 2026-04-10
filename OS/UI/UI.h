@@ -2,11 +2,11 @@
 
 #include "MatrixOS.h"
 #include <string>
-#include <functional>
 #include <list>
 #include <map>
 #include <algorithm>
 #include <stdarg.h>
+#include "UICallback.h"
 #include "UIComponents.h"
 #include "UIUtilities.h"
 
@@ -26,13 +26,14 @@ public:
   void SetName(string name);
   void SetColor(Color color);
   void ShouldCreatenewLEDLayer(bool create);
-  void SetSetupFunc(std::function<void()> setup_func);
-  void SetLoopFunc(std::function<void()> loop_func);
-  void SetGlobalLoopFunc(std::function<void()> global_loop_func);
-  void SetEndFunc(std::function<void()> end_func);
-  void SetPreRenderFunc(std::function<void()> pre_render_func);
-  void SetPostRenderFunc(std::function<void()> post_render_func);
-  void SetInputEventHandler(std::function<bool(InputEvent*)> inputEventHandler);
+
+  template <typename F> void SetSetupFunc(F&& f) { setup_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetLoopFunc(F&& f) { loop_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetGlobalLoopFunc(F&& f) { global_loop_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetEndFunc(F&& f) { end_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetPreRenderFunc(F&& f) { pre_render_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetPostRenderFunc(F&& f) { post_render_func = UICallback<void()>(static_cast<F&&>(f)); }
+  template <typename F> void SetInputEventHandler(F&& f) { inputEventHandler = UICallback<bool(InputEvent*)>(static_cast<F&&>(f)); }
 
   void AddUIComponent(UIComponent* uiComponent, Point xy);
   void ClearUIComponents();
@@ -61,13 +62,13 @@ private:
   Timer uiTimer;
   uint32_t uiUpdateMS = 1000 / UI_DEFAULT_MAX_FPS;
 
-  std::unique_ptr<std::function<void()>> setup_func = nullptr;
-  std::unique_ptr<std::function<void()>> loop_func = nullptr;
-  std::unique_ptr<std::function<void()>> global_loop_func = nullptr;
-  std::unique_ptr<std::function<void()>> pre_render_func = nullptr;
-  std::unique_ptr<std::function<void()>> post_render_func = nullptr;
-  std::unique_ptr<std::function<void()>> end_func = nullptr;
-  std::unique_ptr<std::function<bool(InputEvent*)>> inputEventHandler = nullptr;
+  UICallback<void()> setup_func;
+  UICallback<void()> loop_func;
+  UICallback<void()> global_loop_func;
+  UICallback<void()> pre_render_func;
+  UICallback<void()> post_render_func;
+  UICallback<void()> end_func;
+  UICallback<bool(InputEvent*)> inputEventHandler;
 
   std::list<pair<Point, UIComponent*>> uiComponents;
   int8_t prev_layer = -1;
@@ -86,7 +87,7 @@ private:
 
   virtual bool CustomInputEvent(InputEvent* inputEvent) {
     if (inputEventHandler)
-      return (*inputEventHandler)(inputEvent);
+      return inputEventHandler(inputEvent);
     return false;
   }; // Return true to skip UIKeyEvent
 

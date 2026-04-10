@@ -152,33 +152,7 @@ void UI::AllowExit(bool allow) {
   disableExit = !allow;
 }
 
-void UI::SetSetupFunc(std::function<void()> setup_func) {
-  UI::setup_func = std::make_unique<std::function<void()>>(setup_func);
-}
-
-void UI::SetLoopFunc(std::function<void()> loop_func) {
-  UI::loop_func = std::make_unique<std::function<void()>>(loop_func);
-}
-
-void UI::SetGlobalLoopFunc(std::function<void()> global_loop_func) {
-  UI::global_loop_func = std::make_unique<std::function<void()>>(global_loop_func);
-}
-
-void UI::SetEndFunc(std::function<void()> end_func) {
-  UI::end_func = std::make_unique<std::function<void()>>(end_func);
-}
-
-void UI::SetPreRenderFunc(std::function<void()> pre_render_func) {
-  UI::pre_render_func = std::make_unique<std::function<void()>>(pre_render_func);
-}
-
-void UI::SetPostRenderFunc(std::function<void()> post_render_func) {
-  UI::post_render_func = std::make_unique<std::function<void()>>(post_render_func);
-}
-
-void UI::SetInputEventHandler(std::function<bool(InputEvent*)> inputEventHandler) {
-  UI::inputEventHandler = std::make_unique<std::function<bool(InputEvent*)>>(inputEventHandler);
-}
+// Setters are now inline templates in UI.h
 
 void UI::ClearUIComponents() {
   uiComponents.clear();
@@ -270,30 +244,30 @@ void UI::ExitAllUIs() {
 // Virtual function implementations
 void UI::Setup() {
   if (setup_func)
-    (*setup_func)();
+    setup_func();
 }
 
 void UI::Loop() {
   if (loop_func)
-    (*loop_func)();
+    loop_func();
 }
 
 void UI::GlobalLoop() {
   if (global_loop_func)
-    (*global_loop_func)();
+    global_loop_func();
 }
 
 void UI::PreRender() {
   if (pre_render_func)
-    (*pre_render_func)();
+    pre_render_func();
 }
 
 void UI::PostRender() {
   if (post_render_func)
-    (*post_render_func)();
+    post_render_func();
 }
 
 void UI::End() {
   if (end_func)
-    (*end_func)();
+    end_func();
 }

@@ -1,4 +1,3 @@
-#include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
 #include "pikaScript.h"

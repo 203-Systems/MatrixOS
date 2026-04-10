@@ -1,8 +1,6 @@
 #pragma once
 #include "UIComponent.h"
 #include <limits.h>
-#include <functional>
-#include <memory>
 
 // TODO add negative support?
 class UINumberModifier : public UIComponent {
@@ -14,7 +12,7 @@ public:
   const uint8_t* controlGradient;
   int32_t lowerLimit;
   int32_t upperLimit;
-  std::unique_ptr<std::function<void(int32_t)>> changeCallback;
+  UICallback<void(int32_t)> changeCallback;
 
   UINumberModifier() {
     this->color = Color(0);
@@ -24,7 +22,6 @@ public:
     this->controlGradient = nullptr;
     this->lowerLimit = INT_MIN;
     this->upperLimit = INT_MAX;
-    this->changeCallback = nullptr;
   }
 
   virtual Dimension GetSize() {
@@ -56,14 +53,14 @@ public:
     this->upperLimit = upperLimit;
   }
 
-  void OnChange(std::function<void(int32_t)> changeCallback) {
-    this->changeCallback = std::make_unique<std::function<void(int32_t)>>(changeCallback);
+  template <typename F> void OnChange(F&& f) {
+    this->changeCallback = UICallback<void(int32_t)>(static_cast<F&&>(f));
   }
 
   virtual void OnChangeCallback(int32_t value) {
-    if (changeCallback != nullptr)
+    if (changeCallback)
     {
-      (*changeCallback)(value);
+      changeCallback(value);
     }
   }
 
