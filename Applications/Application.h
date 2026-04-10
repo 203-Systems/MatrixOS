@@ -74,8 +74,8 @@ template <typename APPLICATION_CLASS> static inline void RegisterApplication(uin
   APPLICATION_CLASS::info.destructor = [](Application* app) {
     if (app != nullptr)
     {
-      app->~Application(); // Call destructor
-      vPortFree(app);      // Free memory
+      static_cast<APPLICATION_CLASS*>(app)->~APPLICATION_CLASS(); // Call concrete destructor
+      vPortFree(app);                                           // Free memory
     }
   };
   MLOGI("Application", "Registering application: %s%s", APPLICATION_CLASS::info.name.c_str(), isSystem ? " (system)" : "");
