@@ -11,7 +11,6 @@ namespace MatrixOS::UserVar
 // variable name, variable type, variable default
 UserVar(deviceId, uint16_t, 0);
 
-UserVar(rotation, Direction, TOP);
 UserVar(brightness, uint8_t, 64);
 UserVar(uiAnimation, bool, true);
 UserVar(secretMenuEn, bool, false);

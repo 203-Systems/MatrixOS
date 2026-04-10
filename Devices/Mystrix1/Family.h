@@ -51,6 +51,7 @@ inline DeviceInfo deviceInfo;
 // Device Variable
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbarEnable, bool, true);
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
+inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, persistedRotation, Direction, TOP);
 
 namespace HWMidi
 {

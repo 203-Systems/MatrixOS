@@ -52,6 +52,7 @@ inline DeviceInfo deviceInfo;
 // Device Variable
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbarEnable, bool, true);
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
+inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, persistedRotation, Direction, TOP);
 
 inline gpio_num_t i2cSdaPin;
 inline gpio_num_t i2cSclPin;

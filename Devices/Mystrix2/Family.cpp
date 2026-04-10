@@ -10,7 +10,10 @@
 
 namespace Device
 {
-Direction rotation = TOP;
+namespace
+{
+Direction deviceRotation = TOP;
+}
 
 namespace KeyPad
 {
@@ -151,8 +154,8 @@ void Rotate(Direction newRotation, bool absolute) {
   }
 
   // Update device-owned rotation state and persist
-  rotation = (Direction)((rotation * !absolute + newRotation) % 360);
-  MatrixOS::UserVar::rotation = rotation;
+  deviceRotation = (Direction)((deviceRotation * !absolute + newRotation) % 360);
+  persistedRotation = deviceRotation;
 
   // Rebuild input clusters with new rotation
   RegisterInputClusters();
@@ -160,6 +163,10 @@ void Rotate(Direction newRotation, bool absolute) {
   // Clear stale input events and suppress active device-side inputs
   MatrixOS::Input::ClearInputBuffer();
   Device::Input::SuppressActiveInputs();
+}
+
+Direction GetRotation() {
+  return deviceRotation;
 }
 
 void RegisterInputClusters() {
@@ -187,7 +194,7 @@ void RegisterInputClusters() {
   gridCluster.rootPoint = Point(0, 0);
   gridCluster.dimension = Dimension(X_SIZE, Y_SIZE);
   gridCluster.inputCount = X_SIZE * Y_SIZE;
-  gridCluster.rotation = rotation;
+  gridCluster.rotation = deviceRotation;
   gridCluster.rotationDimension = rotDim;
   gridCluster.getPosition = Input::Grid2D_GetPosition;
   gridCluster.tryGetMemberId = Input::Grid2D_TryGetMemberId;
@@ -202,7 +209,7 @@ void RegisterInputClusters() {
   touchbarLeftCluster.rootPoint = Point(-1, 0);
   touchbarLeftCluster.dimension = Dimension(1, Y_SIZE);
   touchbarLeftCluster.inputCount = TOUCHBAR_SIZE / 2;
-  touchbarLeftCluster.rotation = rotation;
+  touchbarLeftCluster.rotation = deviceRotation;
   touchbarLeftCluster.rotationDimension = rotDim;
   touchbarLeftCluster.getPosition = Input::Linear1D_GetPosition;
   touchbarLeftCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
@@ -217,7 +224,7 @@ void RegisterInputClusters() {
   touchbarRightCluster.rootPoint = Point(X_SIZE, 0);
   touchbarRightCluster.dimension = Dimension(1, Y_SIZE);
   touchbarRightCluster.inputCount = TOUCHBAR_SIZE / 2;
-  touchbarRightCluster.rotation = rotation;
+  touchbarRightCluster.rotation = deviceRotation;
   touchbarRightCluster.rotationDimension = rotDim;
   touchbarRightCluster.getPosition = Input::Linear1D_GetPosition;
   touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
@@ -225,7 +232,7 @@ void RegisterInputClusters() {
 }
 
 void DeviceStart() {
-  rotation = MatrixOS::UserVar::rotation;
+  deviceRotation = persistedRotation.Get();
   RegisterInputClusters();
   Device::KeyPad::Start();
   Device::LED::Start();

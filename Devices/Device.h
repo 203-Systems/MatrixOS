@@ -21,7 +21,6 @@ extern string name;
 extern uint8_t xSize;
 extern uint8_t ySize;
 extern string serialNumber;
-extern Direction rotation;
 
 void DeviceInit();
 void DeviceStart();
@@ -34,6 +33,7 @@ uint64_t Micros();
 void DeviceSettings();
 
 void Rotate(Direction rotation, bool absolute = false);
+Direction GetRotation();
 
 void Log(string& format, va_list& valst);
 

@@ -5,7 +5,7 @@
 bool RotationRequiredUI(bool up, bool down, bool left, bool right) {
   bool rotated = false;
 
-  Direction currentOrientation = Device::rotation;
+  Direction currentOrientation = Device::GetRotation();
 
   if (!up && !down && !left && !right)
   {
