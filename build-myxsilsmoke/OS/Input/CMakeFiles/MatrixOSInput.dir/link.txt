@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSInput.a CMakeFiles/MatrixOSInput.dir/Input.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSInput.a

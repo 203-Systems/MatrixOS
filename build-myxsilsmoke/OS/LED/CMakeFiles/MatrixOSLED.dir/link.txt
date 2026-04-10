@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSLED.a CMakeFiles/MatrixOSLED.dir/LED.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSLED.a

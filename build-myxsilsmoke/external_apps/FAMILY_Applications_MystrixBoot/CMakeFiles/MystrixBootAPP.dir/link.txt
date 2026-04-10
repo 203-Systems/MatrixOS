@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMystrixBootAPP.a CMakeFiles/MystrixBootAPP.dir/MystrixBoot.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMystrixBootAPP.a

@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSSystem.a CMakeFiles/MatrixOSSystem.dir/System.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSSystem.a

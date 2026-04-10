@@ -384,9 +384,10 @@ uint32_t MatrixOS_Wasm_GetHeight(void) {
   return Y_SIZE;
 }
 
-void MatrixOS_Wasm_KeyEvent(uint16_t keyIndex, bool pressed) {
-  if (keyIndex >= X_SIZE * Y_SIZE)
+void MatrixOS_Wasm_KeyEvent(uint16_t x, uint16_t y, bool pressed) {
+  if (x >= X_SIZE || y >= Y_SIZE)
     return;
+  uint16_t keyIndex = y * X_SIZE + x;
 
   KeyState* ks = &gridState[keyIndex];
   if (pressed && !ks->info.Active())

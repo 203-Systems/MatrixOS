@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSNVS.a CMakeFiles/MatrixOSNVS.dir/NVS.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSNVS.a

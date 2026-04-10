@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libNoteAPP.a CMakeFiles/NoteAPP.dir/Arpeggiator.cpp.o CMakeFiles/NoteAPP.dir/ChordEffect.cpp.o CMakeFiles/NoteAPP.dir/MidiClock.cpp.o CMakeFiles/NoteAPP.dir/MidiPipeline.cpp.o CMakeFiles/NoteAPP.dir/Note.cpp.o CMakeFiles/NoteAPP.dir/NoteControlBar.cpp.o CMakeFiles/NoteAPP.dir/NoteLatch.cpp.o CMakeFiles/NoteAPP.dir/NotePad.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libNoteAPP.a

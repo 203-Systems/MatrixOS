@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libBootAnimationTemplate.a CMakeFiles/BootAnimationTemplate.dir/BootAnimation.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libBootAnimationTemplate.a

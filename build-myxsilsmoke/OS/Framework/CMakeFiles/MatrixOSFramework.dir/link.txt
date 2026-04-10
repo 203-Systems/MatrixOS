@@ -1,2 +1,0 @@
-"C:/Program Files/emsdk/upstream/emscripten/emar.bat" qc libMatrixOSFramework.a CMakeFiles/MatrixOSFramework.dir/Color/Color.cpp.o CMakeFiles/MatrixOSFramework.dir/Color/ColorEffects.cpp.o CMakeFiles/MatrixOSFramework.dir/Input/KeypadInfo.cpp.o CMakeFiles/MatrixOSFramework.dir/Midi/MidiPacket.cpp.o CMakeFiles/MatrixOSFramework.dir/Midi/MidiPort.cpp.o CMakeFiles/MatrixOSFramework.dir/Timer/Timer.cpp.o
-"C:/Program Files/emsdk/upstream/emscripten/emranlib.bat" libMatrixOSFramework.a
