@@ -16,13 +16,6 @@ struct InputCluster {
   Dimension dimension;
   uint16_t inputCount;
 
-  // Device-specified rotation for this cluster's coordinates.
-  // The device layer sets this based on the current device orientation.
-  Direction rotation = TOP;
-  // The bounding box used for the rotation transform (typically the main grid size).
-  // Only used when rotation != TOP.
-  Dimension rotationDimension = Dimension(0, 0);
-
   // Device-owned discrete mapping handlers.
   // Only meaningful for discrete coordinate-addressable clusters (Grid2D, Linear1D).
   // nullptr for Scalar or Area2D clusters.

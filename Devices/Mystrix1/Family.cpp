@@ -7,6 +7,8 @@
 
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
+#include <algorithm>
+#include <cstdlib>
 
 namespace Device
 {
@@ -52,63 +54,61 @@ static const InputCluster* FindCluster(uint8_t clusterId) {
   return nullptr;
 }
 
-// Generic Grid2D mapping handler
-static bool Grid2D_GetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
+static Point RotatePhysicalPoint(Point physicalPoint) {
+  return physicalPoint.Rotate(Device::GetRotation(), Point(X_SIZE, Y_SIZE), true);
+}
+
+static Point UnrotateLogicalPoint(Point logicalPoint) {
+  return logicalPoint.Rotate(Device::GetRotation(), Point(X_SIZE, Y_SIZE));
+}
+
+static void GetTouchBarBounds(uint8_t clusterId, Point* rootPoint, Dimension* dimension) {
+  const Point physicalStart = (clusterId == 2) ? Point(-1, 0) : Point(X_SIZE, 0);
+  const Point physicalEnd = physicalStart + Point(0, Y_SIZE - 1);
+
+  const Point rotatedStart = RotatePhysicalPoint(physicalStart);
+  const Point rotatedEnd = RotatePhysicalPoint(physicalEnd);
+
+  rootPoint->x = std::min(rotatedStart.x, rotatedEnd.x);
+  rootPoint->y = std::min(rotatedStart.y, rotatedEnd.y);
+  dimension->x = std::abs(rotatedStart.x - rotatedEnd.x) + 1;
+  dimension->y = std::abs(rotatedStart.y - rotatedEnd.y) + 1;
+}
+
+static Point GetTouchBarPhysicalPoint(uint8_t clusterId, uint16_t memberId) {
+  return (clusterId == 2) ? Point(-1, memberId) : Point(X_SIZE, memberId);
+}
+
+// Generic grid mapping handler.
+static bool GridGetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
   if (memberId >= cluster.inputCount) return false;
   int16_t localX = memberId % cluster.dimension.x;
   int16_t localY = memberId / cluster.dimension.x;
-  Point hwPoint(cluster.rootPoint.x + localX, cluster.rootPoint.y + localY);
-  if (cluster.rotation != TOP)
-  {
-    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
-  }
-  *point = hwPoint;
+  *point = RotatePhysicalPoint(Point(localX, localY));
   return true;
 }
 
-static bool Grid2D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
-  Point hwPoint = point;
-  if (cluster.rotation != TOP)
-  {
-    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
-  }
-  if (!cluster.Contains(hwPoint)) return false;
-  Point local = hwPoint - cluster.rootPoint;
+static bool GridTryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point local = UnrotateLogicalPoint(point);
+  if (local.x < 0 || local.y < 0 || local.x >= cluster.dimension.x || local.y >= cluster.dimension.y) return false;
   uint16_t id = static_cast<uint16_t>(local.y) * cluster.dimension.x + local.x;
   if (id >= cluster.inputCount) return false;
   *memberId = id;
   return true;
 }
 
-// Generic Linear1D mapping handler
-static bool Linear1D_GetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
+// Generic touchbar mapping handler.
+static bool TouchBarGetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
   if (memberId >= cluster.inputCount) return false;
-  Point hwPoint;
-  if (cluster.dimension.x > 1)
-  {
-    hwPoint = Point(cluster.rootPoint.x + memberId, cluster.rootPoint.y);
-  }
-  else
-  {
-    hwPoint = Point(cluster.rootPoint.x, cluster.rootPoint.y + memberId);
-  }
-  if (cluster.rotation != TOP)
-  {
-    hwPoint = hwPoint.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y));
-  }
-  *point = hwPoint;
+  *point = RotatePhysicalPoint(GetTouchBarPhysicalPoint(cluster.clusterId, memberId));
   return true;
 }
 
-static bool Linear1D_TryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
-  Point hwPoint = point;
-  if (cluster.rotation != TOP)
-  {
-    hwPoint = point.Rotate(cluster.rotation, Point(cluster.rotationDimension.x, cluster.rotationDimension.y), true);
-  }
-  if (!cluster.Contains(hwPoint)) return false;
-  Point local = hwPoint - cluster.rootPoint;
-  uint16_t id = (cluster.dimension.x > 1) ? local.x : local.y;
+static bool TouchBarTryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point physicalPoint = UnrotateLogicalPoint(point);
+  const int16_t expectedX = (cluster.clusterId == 2) ? -1 : X_SIZE;
+  if (physicalPoint.x != expectedX || physicalPoint.y < 0 || physicalPoint.y >= cluster.inputCount) return false;
+  uint16_t id = physicalPoint.y;
   if (id >= cluster.inputCount) return false;
   *memberId = id;
   return true;
@@ -162,8 +162,6 @@ Direction GetRotation() {
 }
 
 void RegisterInputClusters() {
-  Dimension rotDim = Dimension(X_SIZE, Y_SIZE);
-
   Input::clusters.clear();
 
   // Cluster 0: System (FN button) — no coordinates, no rotation
@@ -186,40 +184,32 @@ void RegisterInputClusters() {
   gridCluster.rootPoint = Point(0, 0);
   gridCluster.dimension = Dimension(X_SIZE, Y_SIZE);
   gridCluster.inputCount = X_SIZE * Y_SIZE;
-  gridCluster.rotation = deviceRotation;
-  gridCluster.rotationDimension = rotDim;
-  gridCluster.getPosition = Input::Grid2D_GetPosition;
-  gridCluster.tryGetMemberId = Input::Grid2D_TryGetMemberId;
+  gridCluster.getPosition = Input::GridGetPosition;
+  gridCluster.tryGetMemberId = Input::GridTryGetMemberId;
   Input::clusters.push_back(gridCluster);
 
-  // Cluster 2: TouchBar Left (8 keys along left edge, x = -1 in hardware space)
+  // Cluster 2: TouchBar Left
   InputCluster touchbarLeftCluster;
   touchbarLeftCluster.clusterId = 2;
   touchbarLeftCluster.name = "TouchBarLeft";
   touchbarLeftCluster.inputClass = InputClass::Keypad;
   touchbarLeftCluster.shape = InputClusterShape::Linear1D;
-  touchbarLeftCluster.rootPoint = Point(-1, 0);
-  touchbarLeftCluster.dimension = Dimension(1, Y_SIZE);
   touchbarLeftCluster.inputCount = KeyPad::touchbarSize / 2;
-  touchbarLeftCluster.rotation = deviceRotation;
-  touchbarLeftCluster.rotationDimension = rotDim;
-  touchbarLeftCluster.getPosition = Input::Linear1D_GetPosition;
-  touchbarLeftCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
+  Input::GetTouchBarBounds(touchbarLeftCluster.clusterId, &touchbarLeftCluster.rootPoint, &touchbarLeftCluster.dimension);
+  touchbarLeftCluster.getPosition = Input::TouchBarGetPosition;
+  touchbarLeftCluster.tryGetMemberId = Input::TouchBarTryGetMemberId;
   Input::clusters.push_back(touchbarLeftCluster);
 
-  // Cluster 3: TouchBar Right (8 keys along right edge, x = X_SIZE in hardware space)
+  // Cluster 3: TouchBar Right
   InputCluster touchbarRightCluster;
   touchbarRightCluster.clusterId = 3;
   touchbarRightCluster.name = "TouchBarRight";
   touchbarRightCluster.inputClass = InputClass::Keypad;
   touchbarRightCluster.shape = InputClusterShape::Linear1D;
-  touchbarRightCluster.rootPoint = Point(X_SIZE, 0);
-  touchbarRightCluster.dimension = Dimension(1, Y_SIZE);
   touchbarRightCluster.inputCount = KeyPad::touchbarSize / 2;
-  touchbarRightCluster.rotation = deviceRotation;
-  touchbarRightCluster.rotationDimension = rotDim;
-  touchbarRightCluster.getPosition = Input::Linear1D_GetPosition;
-  touchbarRightCluster.tryGetMemberId = Input::Linear1D_TryGetMemberId;
+  Input::GetTouchBarBounds(touchbarRightCluster.clusterId, &touchbarRightCluster.rootPoint, &touchbarRightCluster.dimension);
+  touchbarRightCluster.getPosition = Input::TouchBarGetPosition;
+  touchbarRightCluster.tryGetMemberId = Input::TouchBarTryGetMemberId;
   Input::clusters.push_back(touchbarRightCluster);
 }
 
