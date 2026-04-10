@@ -1,0 +1,1 @@
+{  "name": "web-ui",  "private": true,  "version": "0.0.0",  "type": "module",  "scripts": {    "dev": "vite",    "build": "vite build",    "preview": "vite preview"  },  "devDependencies": {    "@sveltejs/vite-plugin-svelte": "^6.2.1",    "svelte": "^5.43.8",    "vite": "^7.2.4"  },  "dependencies": {    "carbon-icons-svelte": "^13.8.0"  }}
