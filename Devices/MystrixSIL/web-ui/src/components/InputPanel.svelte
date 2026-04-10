@@ -1,37 +1,11 @@
 <script>
   import { get } from 'svelte/store'
-  import { moduleReady, sendGridKey, sendFnKey } from '../stores/wasm.js'
+  import { moduleReady } from '../stores/wasm.js'
   import { inputEvents, activeGridKeys, fnKeyActive, logInputEvent, clearInputEvents, runtimeGridKeys, runtimeFnActive } from '../stores/input.js'
   import { Close } from 'carbon-icons-svelte'
 
-  const gridSize = 8
-  const gridSlots = Array.from({ length: gridSize })
-
   let eventBody
   let autoScroll = true
-
-  let injecting = {}
-  let fnInjecting = false
-
-  function handleGridInject(x, y, pressed) {
-    if (!get(moduleReady)) return
-    sendGridKey(x, y, pressed)
-    logInputEvent('grid', x, y, pressed)
-    if (pressed) {
-      injecting = { ...injecting, [`${x},${y}`]: true }
-    } else {
-      const next = { ...injecting }
-      delete next[`${x},${y}`]
-      injecting = next
-    }
-  }
-
-  function handleFnInject(pressed) {
-    if (!get(moduleReady)) return
-    sendFnKey(pressed)
-    logInputEvent('fn', 0, 0, pressed)
-    fnInjecting = pressed
-  }
 
   function scrollToBottom() {
     if (eventBody) {
@@ -48,39 +22,11 @@
 </script>
 
 <div class="input-panel">
-  <!-- Injection controls -->
-  <div class="inject-section">
-    <div class="section-header">
-      <span class="section-title">Inject</span>
-      <span class="section-hint">click grid cells or FN</span>
-    </div>
-    <div class="inject-controls">
-      <div class="inject-grid">
-        {#each gridSlots as _, y}
-          <div class="inject-row">
-            {#each gridSlots as _, x}
-              <button
-                class="inject-cell"
-                class:inject-active={$activeGridKeys.has(`${x},${y}`)}
-                on:pointerdown|preventDefault={() => handleGridInject(x, y, true)}
-                on:pointerup|preventDefault={() => handleGridInject(x, y, false)}
-                on:pointerleave={() => {
-                  if (injecting[`${x},${y}`]) handleGridInject(x, y, false)
-                }}
-                title="({x},{y})"
-              ></button>
-            {/each}
-          </div>
-        {/each}
-      </div>
-      <button
-        class="inject-fn"
-        class:inject-fn-active={$fnKeyActive}
-        on:pointerdown|preventDefault={() => handleFnInject(true)}
-        on:pointerup|preventDefault={() => handleFnInject(false)}
-        on:pointerleave={() => { if (fnInjecting) handleFnInject(false) }}
-      >FN</button>
-    </div>
+  <div class="state-summary">
+    <span class="section-title">Observation</span>
+    <span class="section-hint">
+      Input injection now belongs on the device workspace. This panel is for observing live state and event flow.
+    </span>
   </div>
 
   <!-- Active keys snapshot (injection side) -->
@@ -192,57 +138,11 @@
   }
   .section-action:hover { color: var(--text); border-color: var(--accent); }
 
-  /* Injection grid */
-  .inject-section { flex-shrink: 0; }
-  .inject-controls {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .inject-grid {
+  .state-summary {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    flex-shrink: 0;
-  }
-  .inject-row {
-    display: flex;
-    gap: 2px;
-  }
-  .inject-cell {
-    width: 28px; height: 28px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    background: var(--bg-2);
-    cursor: pointer;
-    padding: 0;
-    transition: background 0.1s, border-color 0.1s;
-  }
-  .inject-cell:hover {
-    border-color: var(--accent);
-    background: rgba(76, 201, 240, 0.1);
-  }
-  .inject-active {
-    background: rgba(76, 201, 240, 0.25) !important;
-    border-color: var(--accent) !important;
-  }
-  .inject-fn {
-    width: 40px; height: 40px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--bg-2);
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.72rem;
-    font-family: inherit;
-    font-weight: 600;
-    align-self: center;
-  }
-  .inject-fn:hover { border-color: var(--accent-2); }
-  .inject-fn-active {
-    background: rgba(156, 107, 255, 0.2) !important;
-    border-color: var(--accent-2) !important;
-    color: var(--text) !important;
+    gap: 4px;
+    padding-bottom: 2px;
   }
 
   /* State snapshot */

@@ -1,6 +1,5 @@
 <script>
-  import { Restart } from 'carbon-icons-svelte'
-  import { moduleReady, wasmMissing, runtimeStatus, buildIdentity, doReboot } from '../stores/wasm.js'
+  import { moduleReady, wasmMissing, runtimeStatus, buildIdentity } from '../stores/wasm.js'
   import { errorCount, warnCount } from '../stores/logs.js'
 </script>
 
@@ -34,10 +33,6 @@
   </div>
   <div class="top-bar-right">
     <span class="top-bar-build-id">{$buildIdentity}</span>
-    <button class="top-bar-action" on:click={doReboot} title="Reset emulator">
-      <Restart size={16} />
-      <span>Reset</span>
-    </button>
   </div>
 </header>
 
@@ -129,33 +124,12 @@
     color: #f7c266;
     border: 1px solid rgba(247, 194, 102, 0.2);
   }
-  .top-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .top-bar-right { display: flex; align-items: center; }
   .top-bar-build-id {
     color: var(--muted);
     font-size: 0.78rem;
     font-family: var(--mono);
     white-space: nowrap;
     letter-spacing: 0.02em;
-  }
-  .top-bar-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 12px;
-    font-size: 0.82rem;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 5px;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  .top-bar-action:hover {
-    border-color: var(--accent);
   }
 </style>

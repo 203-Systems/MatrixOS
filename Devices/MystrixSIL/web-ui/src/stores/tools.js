@@ -36,6 +36,7 @@ export function closeTool(id) {
 // Tool registry for the Device page
 export const deviceTools = [
   { id: 'application', label: 'Application' },
+  { id: 'api',         label: 'API' },
   { id: 'input',       label: 'Input' },
   { id: 'logs',        label: 'Logs' },
   { id: 'runtime',     label: 'Runtime' },

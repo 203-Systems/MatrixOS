@@ -1,8 +1,9 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import { Close } from 'carbon-icons-svelte'
   import { openTools, closeTool, deviceTools } from '../stores/tools.js'
   import InputPanel from './InputPanel.svelte'
+  import APIPanel from './tools/APIPanel.svelte'
   import LogsPanel from './LogsPanel.svelte'
   import RuntimePanel from './RuntimePanel.svelte'
   import ApplicationPanel from './tools/ApplicationPanel.svelte'
@@ -18,6 +19,7 @@
 
   const panelMap = {
     application: ApplicationPanel,
+    api: APIPanel,
     input: InputPanel,
     logs: LogsPanel,
     runtime: RuntimePanel,
@@ -82,8 +84,9 @@
   }
 
   function resolveWidth(toolCount) {
-    if (userOverride != null) return clampWidth(userOverride, toolCount)
-    return clampWidth(defaultWidth(toolCount), toolCount)
+    const baseWidth = clampWidth(defaultWidth(toolCount), toolCount)
+    if (userOverride == null) return baseWidth
+    return Math.max(baseWidth, clampWidth(userOverride, toolCount))
   }
 
   /* ── Panel proportions ── */
@@ -115,32 +118,23 @@
     } catch {}
   }
 
-  function syncPanelWidths(toolIds) {
+  async function syncLayoutForTools(toolIds) {
     const sig = toolIds.join('|')
     if (sig === lastToolSignature) return
     lastToolSignature = sig
     panelWidths = normalizePanelWidths(toolIds)
     persistPanelWidths()
+    prevToolCount = toolIds.length
+    await tick()
+    if (toolIds.length > 0) {
+      stackWidth = resolveWidth(toolIds.length)
+    }
   }
 
   function getPanelStyle(toolId) {
     const w = panelWidths[toolId] ?? 0
     const dividers = Math.max($openTools.length - 1, 0) * DIVIDER_W
     return `width:calc((100% - ${dividers}px) * ${w});flex:0 0 auto;`
-  }
-
-  /* Release user override when the new tool count makes it non-sensical */
-  function maybeReleaseOverride(toolCount) {
-    if (userOverride == null) { prevToolCount = toolCount; return }
-    const def = defaultWidth(toolCount)
-    if (toolCount > prevToolCount && userOverride < def) {
-      userOverride = null
-      persistOverride()
-    } else if (toolCount < prevToolCount && userOverride > def) {
-      userOverride = null
-      persistOverride()
-    }
-    prevToolCount = toolCount
   }
 
   /* ── Left-boundary drag (sets userOverride) ── */
@@ -228,10 +222,9 @@
     } catch {}
   })
 
-  /* ── Reactive: sync proportions, then compute width ── */
-  $: syncPanelWidths($openTools)
+  /* ── Reactive: sync proportions and width on structural tool changes ── */
+  $: syncLayoutForTools($openTools)
   $: if ($openTools.length > 0) {
-    maybeReleaseOverride($openTools.length)
     stackWidth = resolveWidth($openTools.length)
   }
 </script>
