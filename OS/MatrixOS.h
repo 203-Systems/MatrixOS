@@ -179,6 +179,7 @@ namespace RawHID
 {
 size_t Get(uint8_t** report, uint32_t timeoutMs = 0);
 bool Send(const vector<uint8_t>& report);
+bool NewReport(const uint8_t* report, size_t size);
 } // namespace RawHID
 } // namespace HID
 

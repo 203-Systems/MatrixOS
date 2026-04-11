@@ -86,6 +86,7 @@ namespace RawHID
 void Init() {}
 size_t Get(uint8_t** report, uint32_t timeoutMs) { (void)report; (void)timeoutMs; return 0; }
 bool Send(const vector<uint8_t>& report) { (void)report; return false; }
+bool NewReport(const uint8_t* report, size_t size) { (void)report; (void)size; return false; }
 } // namespace RawHID
 } // namespace MatrixOS::HID
 
