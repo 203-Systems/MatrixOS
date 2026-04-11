@@ -3,9 +3,7 @@
   import { Close } from 'carbon-icons-svelte'
   import { openTools, closeTool, deviceTools } from '../stores/tools.js'
   import InputPanel from './InputPanel.svelte'
-  import APIPanel from './tools/APIPanel.svelte'
   import LogsPanel from './LogsPanel.svelte'
-  import RuntimePanel from './RuntimePanel.svelte'
   import ApplicationPanel from './tools/ApplicationPanel.svelte'
   import UIPanel from './tools/UIPanel.svelte'
   import MIDIPanel from './tools/MIDIPanel.svelte'
@@ -18,16 +16,14 @@
   import StoragePanel from './tools/StoragePanel.svelte'
 
   const panelMap = {
+    system: UsagePanel,
     application: ApplicationPanel,
-    api: APIPanel,
     input: InputPanel,
     logs: LogsPanel,
-    runtime: RuntimePanel,
     ui: UIPanel,
     midi: MIDIPanel,
     hid: HIDPanel,
     serial: SerialPanel,
-    usage: UsagePanel,
     usb: USBPanel,
     gyro: GyroPanel,
     battery: BatteryPanel,

@@ -1,7 +1,7 @@
 <script>
   import {
     Keyboard, Terminal, Activity, Screen, Music,
-    Usb, Connect, Meter, Application, Plug, Api,
+    Usb, Connect, Meter, Application, Plug,
     Compass, BatteryFull, DataBase, Restart
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
@@ -9,11 +9,10 @@
   let expanded = false
 
   const iconMap = {
+    system: Activity,
     application: Application,
-    api: Api,
     input: Keyboard,
     logs: Terminal,
-    runtime: Activity,
     ui: Screen,
     midi: Music,
     hid: Usb,
