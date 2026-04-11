@@ -17,8 +17,18 @@
   let controller = 0
   let ccValue = 64
   let program = 0
-  let targetPortId = 0x0100
-  let srcPortId = 0xF000   // MatrixOS as source by default
+  let srcPortChoice = String(0xF000)   // MatrixOS as source by default
+  let dstPortChoice = String(0x0100)   // USB MIDI as destination by default
+  let srcCustomHex = ''
+  let dstCustomHex = ''
+
+  function resolvePort(choice, customHex) {
+    if (choice === 'custom') {
+      const n = parseInt(customHex.replace(/^0x/i, ''), 16)
+      return isNaN(n) ? 0 : n
+    }
+    return parseInt(choice)
+  }
 
   // Auto-scroll on new events
   $: if ($midiEvents && autoScroll && eventBody) {
@@ -70,7 +80,7 @@
 
   function send() {
     const ch = clamp(channel, 1, 16) - 1
-    const port = targetPortId
+    const port = resolvePort(dstPortChoice, dstCustomHex)
     if (msgType === 'noteOn') {
       sendMidiNote(ch, clamp(note, 0, 127), clamp(velocity, 0, 127), port)
     } else if (msgType === 'noteOff') {
@@ -165,20 +175,50 @@
     <div class="sender-route-row">
       <label class="sender-field">
         <span>Src</span>
-        <select bind:value={srcPortId} class="sender-select">
-          {#each $midiPorts as port}
-            <option value={port.id}>{port.name}</option>
-          {/each}
+        <select bind:value={srcPortChoice} class="sender-select">
+          <optgroup label="Device Ports">
+            {#each $midiPorts as port}
+              <option value={String(port.id)}>{port.name}</option>
+            {/each}
+          </optgroup>
+          <optgroup label="Other">
+            <option value="custom">Custom…</option>
+          </optgroup>
         </select>
+        {#if srcPortChoice === 'custom'}
+          <input
+            type="text"
+            class="custom-port-input"
+            bind:value={srcCustomHex}
+            placeholder="0x0100"
+            spellcheck="false"
+          />
+        {/if}
       </label>
       <span class="route-arrow">→</span>
       <label class="sender-field">
         <span>Dst</span>
-        <select bind:value={targetPortId} class="sender-select">
-          {#each $midiPorts as port}
-            <option value={port.id}>{port.name}</option>
-          {/each}
+        <select bind:value={dstPortChoice} class="sender-select">
+          <optgroup label="Device Ports">
+            {#each $midiPorts as port}
+              <option value={String(port.id)}>{port.name}</option>
+            {/each}
+          </optgroup>
+          <optgroup label="Routing">
+            <option value={String(0x0001)}>All Ports</option>
+            <option value={String(0x0000)}>Each Class</option>
+            <option value="custom">Custom…</option>
+          </optgroup>
         </select>
+        {#if dstPortChoice === 'custom'}
+          <input
+            type="text"
+            class="custom-port-input"
+            bind:value={dstCustomHex}
+            placeholder="0x0100"
+            spellcheck="false"
+          />
+        {/if}
       </label>
     </div>
     <!-- Row 2: MIDI message -->
@@ -468,6 +508,18 @@
     margin-left: auto;
   }
   .sender-btn:hover { background: rgba(76, 201, 240, 0.12); }
+
+  .custom-port-input {
+    width: 72px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 3px 4px;
+  }
+  .custom-port-input:focus { outline: none; border-color: var(--accent); }
 
   input[type='number'] {
     -moz-appearance: textfield;
