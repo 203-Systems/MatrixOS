@@ -5,9 +5,14 @@
  *   window.matrixosRpc.call(method, params) → Promise<result>
  *   window.matrixosRpc.subscribe(topic, callback) → unsubscribe()
  *
- * All 22 methods from MystrixSILJsonRpcSpec.md are implemented here.
- * The UI panels continue to use Svelte stores directly (low-ceremony);
- * this layer adds a clean, documented, scriptable API surface on top.
+ * Implements all 22 handles from MystrixSILJsonRpcSpec.md.
+ *
+ * Deployment modes:
+ *   IS_NODE_BACKED = true  → dev server or Node-backed local build
+ *                            in-page API active; external WebSocket planned
+ *   IS_NODE_BACKED = false → static browser-only build
+ *                            in-page WASM control still works, but external
+ *                            JSON-RPC access is not available (no server)
  */
 
 import { get } from 'svelte/store'
@@ -15,11 +20,21 @@ import {
   moduleReady, runtimeStatus, versionLabel, buildIdentity,
   doReboot, sendGridKey, sendFnKey, getUptimeMs,
 } from './wasm.js'
-import { logMessages } from './logs.js'
-import { midiEvents, midiPorts, portLabel, portHex, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
+import { logMessages, errorCount, warnCount } from './logs.js'
+import { midiEvents, midiPorts, portLabel, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
 import { hidEvents, sendRawHid } from './hid.js'
 import { serialEvents, sendSerialText, sendSerialHex } from './serial.js'
-import { nvsEntries, refreshNvs, writeNvsEntry, deleteNvsEntry } from './storage.js'
+import { nvsEntries, refreshNvs, writeNvsEntry } from './storage.js'
+
+// ---------------------------------------------------------------------------
+// Deployment mode
+// ---------------------------------------------------------------------------
+
+// True when served via the Node dev server (npm run dev) or when
+// VITE_MATRIXOS_RPC_EXTERNAL=true is set at build time for a Node-backed
+// local deployment. False for pure static builds (npm run build).
+export const IS_NODE_BACKED =
+  import.meta.env.DEV || import.meta.env.VITE_MATRIXOS_RPC_EXTERNAL === 'true'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -37,7 +52,7 @@ const ERR = {
 }
 
 // ---------------------------------------------------------------------------
-// Global emulator error collector
+// Emulator error collector (host-side JS errors, separate from MatrixOS logs)
 // ---------------------------------------------------------------------------
 
 const _emulatorErrors = []
@@ -52,7 +67,13 @@ function collectError(severity, source, message) {
   if (_emulatorErrors.length > 200) _emulatorErrors.shift()
 }
 
+// Installs window.onerror / onunhandledrejection collectors.
+// Guarded by window.__matrixosRpcErrorsInstalled so multiple initRpc() calls
+// (e.g. HMR) don't stack additional wrappers.
 function installErrorCollectors() {
+  if (window.__matrixosRpcErrorsInstalled) return
+  window.__matrixosRpcErrorsInstalled = true
+
   const prevError = window.onerror
   window.onerror = (msg, src, line, col, err) => {
     collectError('error', 'window.onerror', `${msg} (${src}:${line}:${col})`)
@@ -85,12 +106,12 @@ export function nvsHashHex(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Subscription system (for midi/hid/serial push notifications)
+// Subscription system (MIDI / HID / Serial push notifications)
 // ---------------------------------------------------------------------------
 
 const _subs = { midi: [], hid: [], serial: [] }
 
-function subscribe(topic, callback) {
+function _subscribe(topic, callback) {
   if (!_subs[topic]) return () => {}
   _subs[topic].push(callback)
   return () => {
@@ -98,15 +119,21 @@ function subscribe(topic, callback) {
   }
 }
 
-let _prevMidiLen = 0
-let _prevHidLen = 0
-let _prevSerialLen = 0
-
+// Install Svelte store observers that forward new events to registered
+// subscribers. Guarded so multiple initRpc() calls don't stack watchers.
+// Local prev-length counters are captured at init time so the first store
+// callback does not re-emit history.
 function initSubscriptionBridge() {
+  if (window.__matrixosRpcBridgeInstalled) return
+  window.__matrixosRpcBridgeInstalled = true
+
+  let prevMidi   = get(midiEvents).length
+  let prevHid    = get(hidEvents).length
+  let prevSerial = get(serialEvents).length
+
   midiEvents.subscribe(evts => {
-    if (evts.length > _prevMidiLen) {
-      const newEvts = evts.slice(_prevMidiLen)
-      newEvts.forEach(evt => {
+    if (evts.length > prevMidi) {
+      evts.slice(prevMidi).forEach(evt => {
         _subs.midi.forEach(cb => cb({
           timestamp: new Date().toISOString(),
           direction: evt.direction === 'TX' ? 'out' : 'in',
@@ -121,13 +148,12 @@ function initSubscriptionBridge() {
         }))
       })
     }
-    _prevMidiLen = evts.length
+    prevMidi = evts.length
   })
 
   hidEvents.subscribe(evts => {
-    if (evts.length > _prevHidLen) {
-      const newEvts = evts.slice(_prevHidLen)
-      newEvts.forEach(evt => {
+    if (evts.length > prevHid) {
+      evts.slice(prevHid).forEach(evt => {
         _subs.hid.forEach(cb => cb({
           timestamp: new Date().toISOString(),
           category: evt.category,
@@ -136,13 +162,12 @@ function initSubscriptionBridge() {
         }))
       })
     }
-    _prevHidLen = evts.length
+    prevHid = evts.length
   })
 
   serialEvents.subscribe(evts => {
-    if (evts.length > _prevSerialLen) {
-      const newEvts = evts.slice(_prevSerialLen)
-      newEvts.forEach(evt => {
+    if (evts.length > prevSerial) {
+      evts.slice(prevSerial).forEach(evt => {
         _subs.serial.forEach(cb => cb({
           timestamp: new Date().toISOString(),
           direction: evt.direction === 'TX' ? 'out' : 'in',
@@ -151,7 +176,7 @@ function initSubscriptionBridge() {
         }))
       })
     }
-    _prevSerialLen = evts.length
+    prevSerial = evts.length
   })
 }
 
@@ -196,12 +221,7 @@ function getFramebufferData() {
 
 function ledAtIndex(data, idx) {
   const base = idx * 4
-  return {
-    r: data[base],
-    g: data[base + 1],
-    b: data[base + 2],
-    w: data[base + 3],
-  }
+  return { r: data[base], g: data[base + 1], b: data[base + 2], w: data[base + 3] }
 }
 
 function ledToHex({ r, g, b, w }) {
@@ -211,6 +231,20 @@ function ledToHex({ r, g, b, w }) {
     b.toString(16).padStart(2, '0') +
     w.toString(16).padStart(2, '0')
   ).toUpperCase()
+}
+
+// ---------------------------------------------------------------------------
+// NVS hash parsing
+// ---------------------------------------------------------------------------
+
+function parseNvsHash(raw) {
+  if (raw === null || raw === undefined) return null
+  if (typeof raw === 'number') return raw >>> 0
+  if (typeof raw === 'string') {
+    const n = parseInt(raw.replace(/^0x/i, ''), 16)
+    return isNaN(n) ? null : n >>> 0
+  }
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -243,10 +277,11 @@ const handlers = {
     return {
       status: get(runtimeStatus),
       uptimeMs: getUptimeMs(),
-      usbConnected: false, // runtime USB state not yet exposed by WASM
+      usbConnected: false, // USB runtime state not yet exposed via WASM exports
       activeApp: ready ? { name: 'Running', id: 'runtime' } : null,
-      warningCount: 0,
-      errorCount: _emulatorErrors.filter(e => e.severity === 'error').length,
+      // Use MatrixOS log store counts — do not mix in emulator-host JS errors
+      warningCount: get(warnCount),
+      errorCount: get(errorCount),
     }
   },
 
@@ -279,10 +314,11 @@ const handlers = {
       const target = parseInputId(evt.input)
       if (!target) continue
       const action = evt.action // 'Press' | 'Release' | 'Hold'
-      if (action !== 'Press' && action !== 'Release') continue // Hold not injectable
+      // Hold is OS-generated after hold threshold; only Press/Release are injectable
+      if (action !== 'Press' && action !== 'Release') continue
 
-      const atMs = typeof evt.atMs === 'number' ? evt.atMs : 0
-      if (atMs <= 0) {
+      const atMs = typeof evt.atMs === 'number' ? Math.max(0, evt.atMs) : 0
+      if (atMs === 0) {
         execInputAction(target, action)
       } else {
         setTimeout(() => execInputAction(target, action), atMs)
@@ -328,20 +364,14 @@ const handlers = {
 
     const totalLeds = Math.floor(data.length / 4)
     const gridCount = Math.min(64, totalLeds)
-    const ugCount = Math.max(0, totalLeds - 64)
 
     const grid = []
     for (let i = 0; i < gridCount; i++) grid.push(ledToHex(ledAtIndex(data, i)))
 
     const underglow = []
-    for (let i = 64; i < 64 + ugCount; i++) underglow.push(ledToHex(ledAtIndex(data, i)))
+    for (let i = 64; i < totalLeds; i++) underglow.push(ledToHex(ledAtIndex(data, i)))
 
-    return {
-      timestamp: new Date().toISOString(),
-      format: 'rgbw-hex',
-      grid,
-      underglow,
-    }
+    return { timestamp: new Date().toISOString(), format: 'rgbw-hex', grid, underglow }
   },
 
   'led.get': (params) => {
@@ -372,31 +402,60 @@ const handlers = {
 
   // ---- Logs ----
 
+  // Filters: last (count), since (ISO string), to (ISO string), level (string | string[])
   'log.get': (params) => {
     let entries = get(logMessages).map(m => ({
-      timestamp: m.timestamp,
+      timestamp: m.isoTimestamp || m.timestamp,
       level: m.level === 'warn' ? 'warning' : m.level,
       tag: m.tag || 'Unknown',
       text: m.text,
+      _iso: m.isoTimestamp || null,
     }))
 
     if (params?.level) {
       const levels = Array.isArray(params.level) ? params.level : [params.level]
-      entries = entries.filter(e => levels.includes(e.level))
+      // Map 'warn' → 'warning' for matching convenience
+      const normalised = levels.map(l => l === 'warn' ? 'warning' : l)
+      entries = entries.filter(e => normalised.includes(e.level))
     }
+
+    if (params?.since) {
+      const since = new Date(params.since).getTime()
+      if (!isNaN(since)) {
+        entries = entries.filter(e => e._iso && new Date(e._iso).getTime() >= since)
+      }
+    }
+
+    if (params?.to) {
+      const to = new Date(params.to).getTime()
+      if (!isNaN(to)) {
+        entries = entries.filter(e => e._iso && new Date(e._iso).getTime() <= to)
+      }
+    }
+
     if (typeof params?.last === 'number') {
       entries = entries.slice(-params.last)
     }
 
-    return { entries }
+    // Strip internal _iso field before returning
+    return { entries: entries.map(({ _iso, ...e }) => e) }
   },
 
+  // Host-side JS errors — separate from MatrixOS runtime logs
   'emulator.getErrors': (params) => {
     let entries = [..._emulatorErrors]
 
     if (params?.severity) {
       const sev = Array.isArray(params.severity) ? params.severity : [params.severity]
       entries = entries.filter(e => sev.includes(e.severity))
+    }
+    if (params?.since) {
+      const since = new Date(params.since).getTime()
+      if (!isNaN(since)) entries = entries.filter(e => new Date(e.timestamp).getTime() >= since)
+    }
+    if (params?.to) {
+      const to = new Date(params.to).getTime()
+      if (!isNaN(to)) entries = entries.filter(e => new Date(e.timestamp).getTime() <= to)
     }
     if (typeof params?.last === 'number') {
       entries = entries.slice(-params.last)
@@ -444,7 +503,7 @@ const handlers = {
 
   'midi.subscribe': (params, notifyFn) => {
     if (typeof notifyFn !== 'function') return { __error: ERR.INVALID_PARAMS }
-    const unsub = subscribe('midi', notifyFn)
+    const unsub = _subscribe('midi', notifyFn)
     return { ok: true, __cleanup: unsub }
   },
 
@@ -472,7 +531,7 @@ const handlers = {
 
   'hid.subscribe': (params, notifyFn) => {
     if (typeof notifyFn !== 'function') return { __error: ERR.INVALID_PARAMS }
-    const unsub = subscribe('hid', notifyFn)
+    const unsub = _subscribe('hid', notifyFn)
     return { ok: true, __cleanup: unsub }
   },
 
@@ -483,18 +542,13 @@ const handlers = {
     if (typeof payload !== 'string') return { __error: ERR.INVALID_PARAMS }
 
     const encoding = params.encoding ?? 'utf8'
-    let ok
-    if (encoding === 'hex') {
-      ok = sendSerialHex(payload)
-    } else {
-      ok = sendSerialText(payload)
-    }
+    const ok = encoding === 'hex' ? sendSerialHex(payload) : sendSerialText(payload)
     return ok ? { ok: true } : { __error: ERR.UNSUPPORTED }
   },
 
   'serial.subscribe': (params, notifyFn) => {
     if (typeof notifyFn !== 'function') return { __error: ERR.INVALID_PARAMS }
-    const unsub = subscribe('serial', notifyFn)
+    const unsub = _subscribe('serial', notifyFn)
     return { ok: true, __cleanup: unsub }
   },
 
@@ -554,26 +608,11 @@ const handlers = {
   'storage.nvs.computeHash': (params) => {
     const text = params?.text
     if (typeof text !== 'string') return { __error: ERR.INVALID_PARAMS }
-    const hash = computeNvsHash(text)
     return {
       text,
-      hash: '0x' + hash.toString(16).padStart(8, '0').toUpperCase(),
+      hash: '0x' + computeNvsHash(text).toString(16).padStart(8, '0').toUpperCase(),
     }
   },
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function parseNvsHash(raw) {
-  if (raw === null || raw === undefined) return null
-  if (typeof raw === 'number') return raw >>> 0
-  if (typeof raw === 'string') {
-    const n = parseInt(raw.replace(/^0x/i, ''), 16)
-    return isNaN(n) ? null : n >>> 0
-  }
-  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -599,7 +638,6 @@ async function dispatch(method, params = {}, notifyFn = null) {
     if (result?.__error) {
       return { jsonrpc: '2.0', id, error: result.__error }
     }
-    // Strip internal keys
     const { __cleanup, __error, ...clean } = result ?? {}
     return { jsonrpc: '2.0', id, result: clean }
   } catch (err) {
@@ -613,25 +651,38 @@ async function dispatch(method, params = {}, notifyFn = null) {
 }
 
 // ---------------------------------------------------------------------------
-// Public API object exposed at window.matrixosRpc
+// Public API
 // ---------------------------------------------------------------------------
 
 export const rpcApi = {
   call: dispatch,
-  subscribe,
+  subscribe: _subscribe,
   computeNvsHash,
   nvsHashHex,
+  isNodeBacked: IS_NODE_BACKED,
   get sessionId() { return SESSION_ID },
   get protocolVersion() { return PROTOCOL_VERSION },
 }
 
 // ---------------------------------------------------------------------------
-// Init — call once from App.svelte after initWasm()
+// Init — idempotent; safe to call on remount or HMR
 // ---------------------------------------------------------------------------
 
 export function initRpc() {
+  // Guard via window flags so re-entrant calls (HMR, StrictMode remount)
+  // don't stack error collectors or store subscriptions
   installErrorCollectors()
   initSubscriptionBridge()
+
+  // Always (re-)expose the API object — harmless on remount
   window.matrixosRpc = rpcApi
-  console.info('[MystrixSIL] JSON-RPC ready. Use window.matrixosRpc.call(method, params) to interact.')
+
+  if (!window.__matrixosRpcReady) {
+    window.__matrixosRpcReady = true
+    console.info('[MystrixSIL] JSON-RPC ready. window.matrixosRpc.call(method, params)')
+    if (!IS_NODE_BACKED) {
+      console.info('[MystrixSIL] Static build: in-page API active; external WebSocket access unavailable.')
+    }
+  }
 }
+
