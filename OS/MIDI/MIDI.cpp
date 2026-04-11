@@ -62,7 +62,7 @@ bool Send(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeoutMs) {
     return false;
   bool result = osPort->Send(midiPacket, targetPort, timeoutMs);
 #ifdef __EMSCRIPTEN__
-  EM_ASM({
+  MAIN_THREAD_ASYNC_EM_ASM({
     if (typeof window._matrixos_midi_tap === 'function')
       window._matrixos_midi_tap($0, $1, $2, $3, $4, $5, $6);
   }, 1, (int)midiPacket.port, (int)targetPort, (int)(uint8_t)midiPacket.status,
@@ -153,7 +153,7 @@ void ReceiveTask(void* parameters) {
       if (shouldForwardToApp && appQueue)
       {
 #ifdef __EMSCRIPTEN__
-        EM_ASM({
+        MAIN_THREAD_ASYNC_EM_ASM({
           if (typeof window._matrixos_midi_tap === 'function')
             window._matrixos_midi_tap($0, $1, $2, $3, $4, $5, $6);
         }, 0, (int)packet.port, 0, (int)(uint8_t)packet.status,

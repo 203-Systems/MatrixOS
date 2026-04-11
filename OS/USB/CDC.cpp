@@ -32,10 +32,17 @@ void Print(string str) {
   }
   // tud_cdc_n_write_str(0, str);
 #ifdef __EMSCRIPTEN__
-  EM_ASM({
-    if (typeof window._matrixos_serial_tap === 'function')
-      window._matrixos_serial_tap(1, UTF8ToString($0));
-  }, str.c_str());
+  {
+    // Copy string to heap — async call may fire after local string is destroyed
+    char* tapStr = strdup(str.c_str());
+    if (tapStr) {
+      MAIN_THREAD_ASYNC_EM_ASM({
+        if (typeof window._matrixos_serial_tap === 'function')
+          window._matrixos_serial_tap(1, UTF8ToString($0));
+        _free($0);
+      }, tapStr);
+    }
+  }
 #endif
   Flush();
 }

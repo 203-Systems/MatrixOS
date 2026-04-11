@@ -74,13 +74,21 @@ bool HandleMatrixOSHID(const uint8_t* report, size_t size) {
 
 bool NewReport(const uint8_t* report, size_t size) {
 #ifdef __EMSCRIPTEN__
-  EM_ASM({
-    if (typeof window._matrixos_hid_tap === 'function') {
-      var data = [];
-      for (var i = 0; i < $1; i++) data.push(HEAPU8[$0 + i]);
-      window._matrixos_hid_tap(2, 0, data);
+  {
+    // Copy buffer to heap — async call may fire after local pointer is invalid
+    uint8_t* tapBuf = (uint8_t*)malloc(size);
+    if (tapBuf) {
+      memcpy(tapBuf, report, size);
+      MAIN_THREAD_ASYNC_EM_ASM({
+        if (typeof window._matrixos_hid_tap === 'function') {
+          var data = [];
+          for (var i = 0; i < $1; i++) data.push(HEAPU8[$0 + i]);
+          window._matrixos_hid_tap(2, 0, data);
+        }
+        _free($0);
+      }, (int)(uintptr_t)tapBuf, (int)size);
     }
-  }, (int)(uintptr_t)report, (int)size);
+  }
 #endif
   if (xMessageBufferSendFromISR(rawhidMessageBuffer, report, size, NULL) == pdTRUE)
   {
@@ -112,13 +120,20 @@ bool Send(const vector<uint8_t>& report) {
   memset(reportBuffer + report.size(), 0, 32 - report.size());
 
 #ifdef __EMSCRIPTEN__
-  EM_ASM({
-    if (typeof window._matrixos_hid_tap === 'function') {
-      var data = [];
-      for (var i = 0; i < 32; i++) data.push(HEAPU8[$0 + i]);
-      window._matrixos_hid_tap(2, 1, data);
+  {
+    uint8_t* tapBuf = (uint8_t*)malloc(32);
+    if (tapBuf) {
+      memcpy(tapBuf, reportBuffer, 32);
+      MAIN_THREAD_ASYNC_EM_ASM({
+        if (typeof window._matrixos_hid_tap === 'function') {
+          var data = [];
+          for (var i = 0; i < 32; i++) data.push(HEAPU8[$0 + i]);
+          window._matrixos_hid_tap(2, 1, data);
+        }
+        _free($0);
+      }, (int)(uintptr_t)tapBuf);
     }
-  }, (int)(uintptr_t)reportBuffer);
+  }
 #endif
 
   return tud_hid_report(255, reportBuffer, 32);
