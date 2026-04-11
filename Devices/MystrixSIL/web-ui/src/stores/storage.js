@@ -6,17 +6,22 @@ export const nvsConnected = writable(false)
 export const filesystemMounted = writable(false)
 export const filesystemPath = writable('')
 
+let _lastNvsCount = -1
+
 // Refresh NVS entries from WASM
 export function refreshNvs() {
   const mod = window.Module
   if (!mod?._MatrixOS_Wasm_NvsGetCount) {
     nvsConnected.set(false)
+    _lastNvsCount = -1
     return
   }
 
   nvsConnected.set(true)
   const count = mod._MatrixOS_Wasm_NvsGetCount()
+
   if (count === 0) {
+    _lastNvsCount = 0
     nvsEntries.set([])
     return
   }
@@ -66,7 +71,16 @@ export function refreshNvs() {
     })
   }
 
+  _lastNvsCount = count
   nvsEntries.set(entries)
+}
+
+// Poll NVS for runtime-side writes (called by StoragePanel while mounted)
+export function pollNvs() {
+  const mod = window.Module
+  if (!mod?._MatrixOS_Wasm_NvsGetCount) return
+  const count = mod._MatrixOS_Wasm_NvsGetCount()
+  if (count !== _lastNvsCount) refreshNvs()
 }
 
 // Write an NVS entry

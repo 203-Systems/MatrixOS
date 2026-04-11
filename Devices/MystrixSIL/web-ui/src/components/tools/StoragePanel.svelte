@@ -1,17 +1,49 @@
 <script>
-  import { onMount } from 'svelte'
-  import { nvsEntries, nvsConnected, refreshNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath } from '../../stores/storage.js'
-  import { Close, Download, Upload, TrashCan } from 'carbon-icons-svelte'
+  import { onMount, onDestroy } from 'svelte'
+  import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath } from '../../stores/storage.js'
+  import { Search, Download, Upload, TrashCan } from 'carbon-icons-svelte'
 
   let fileInput
+  let keyInput = ''
+  let searchQuery = ''
+  let pollTimer
+
+  // FNV-1a 32-bit — same as MatrixOS NVS key hashing
+  function fnv1aHash(str) {
+    let hash = 2166136261
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i)
+      hash = Math.imul(hash, 16777619) >>> 0
+    }
+    return hash
+  }
+
+  $: keyHash = keyInput.length > 0 ? fnv1aHash(keyInput) : null
+  $: keyHashHex = keyHash !== null ? '0x' + keyHash.toString(16).padStart(8, '0').toUpperCase() : ''
+
+  // Automatically pipe computed hash into search box
+  $: if (keyHashHex) searchQuery = keyHashHex
+  $: if (!keyInput) searchQuery = ''
+
+  // Filter entries by search query (matches hash hex, size, or value preview)
+  $: filteredEntries = (() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return $nvsEntries
+    return $nvsEntries.filter(e =>
+      e.hashHex.toLowerCase().includes(q) ||
+      e.preview.toLowerCase().includes(q) ||
+      String(e.size).includes(q)
+    )
+  })()
 
   onMount(() => {
     refreshNvs()
+    // Poll for runtime-side NVS writes every 1.5 s
+    pollTimer = setInterval(pollNvs, 1500)
+    return () => clearInterval(pollTimer)
   })
 
-  function handleImportClick() {
-    fileInput?.click()
-  }
+  function handleImportClick() { fileInput?.click() }
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0]
@@ -20,18 +52,16 @@
       e.target.value = ''
     }
   }
-
-  function handleDelete(hash) {
-    deleteNvsEntry(hash)
-  }
 </script>
 
 <div class="storage-panel">
   <!-- NVS Section -->
   <div class="nvs-section">
+    <!-- Header row -->
     <div class="section-header">
-      <span class="section-title">NVS Store</span>
-      <span class="section-count">{$nvsEntries.length}</span>
+      <span class="section-title">NVS</span>
+      <span class="section-subtitle">hash → value</span>
+      <span class="section-count">{filteredEntries.length}{filteredEntries.length !== $nvsEntries.length ? ` / ${$nvsEntries.length}` : ''}</span>
       <div class="header-actions">
         <button class="action-btn" on:click={refreshNvs} title="Refresh">↻</button>
         <button class="action-btn" on:click={downloadNvsExport} title="Export">
@@ -40,25 +70,45 @@
         <button class="action-btn" on:click={handleImportClick} title="Import">
           <Upload size={14} />
         </button>
-        <button class="action-btn action-danger" on:click={clearNvs} title="Clear all">
+        <button class="action-btn action-danger" on:click={clearNvs} title="Clear all NVS entries">
           <TrashCan size={14} />
         </button>
       </div>
     </div>
 
-    <input
-      type="file"
-      accept=".bin,.nvs"
-      bind:this={fileInput}
-      on:change={handleFileChange}
-      class="hidden-input"
-    />
+    <!-- Integrated key→hash + search toolbar -->
+    <div class="nvs-toolbar">
+      <div class="key-lookup">
+        <input
+          class="key-input"
+          type="text"
+          bind:value={keyInput}
+          placeholder="Key → hash…"
+          spellcheck="false"
+          title="Type a key string — hash is computed live and applied to search"
+        />
+      </div>
+      <div class="search-box">
+        <Search size={12} />
+        <input
+          class="search-input"
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Filter by hash or value…"
+          spellcheck="false"
+        />
+      </div>
+    </div>
+
+    <input type="file" accept=".bin,.nvs" bind:this={fileInput} on:change={handleFileChange} class="hidden-input" />
 
     <div class="nvs-body">
       {#if !$nvsConnected}
         <div class="empty-msg">NVS bridge not available.</div>
       {:else if $nvsEntries.length === 0}
         <div class="empty-msg">NVS store is empty.</div>
+      {:else if filteredEntries.length === 0}
+        <div class="empty-msg">No entries match the filter.</div>
       {:else}
         <div class="nvs-table">
           <div class="nvs-header-row">
@@ -67,14 +117,14 @@
             <span class="nvs-col-value">Value</span>
             <span class="nvs-col-actions"></span>
           </div>
-          {#each $nvsEntries as entry (entry.hash)}
-            <div class="nvs-row">
+          {#each filteredEntries as entry (entry.hash)}
+            <div class="nvs-row" class:nvs-row-highlight={keyHash !== null && entry.hash === keyHash}>
               <span class="nvs-col-hash mono">{entry.hashHex}</span>
               <span class="nvs-col-size mono">{entry.size}B</span>
               <span class="nvs-col-value mono" title={entry.rawBytes}>{entry.preview}</span>
               <span class="nvs-col-actions">
-                <button class="row-action" on:click={() => handleDelete(entry.hash)} title="Delete entry">
-                  <Close size={12} />
+                <button class="row-action" on:click={() => deleteNvsEntry(entry.hash)} title="Delete entry">
+                  <TrashCan size={11} />
                 </button>
               </span>
             </div>
@@ -82,6 +132,9 @@
         </div>
       {/if}
     </div>
+    {#if keyHash !== null}
+      <div class="nvs-note">Keys are stored as FNV-1a hashes. Original strings are not recoverable from the NVS backend.</div>
+    {/if}
   </div>
 
   <!-- Filesystem Section -->
@@ -108,7 +161,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    gap: 12px;
+    gap: 0;
     padding: 14px;
     overflow: hidden;
   }
@@ -127,6 +180,12 @@
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--text);
+  }
+  .section-subtitle {
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    opacity: 0.7;
   }
   .section-count {
     font-size: 0.72rem;
@@ -151,8 +210,61 @@
   }
   .action-btn:hover { color: var(--text); border-color: var(--accent); }
   .action-danger:hover { color: var(--danger); border-color: var(--danger); }
-
   .hidden-input { display: none; }
+
+  /* Integrated key→hash + search toolbar */
+  .nvs-toolbar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .key-lookup {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 180px;
+  }
+  .key-input {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 7px;
+    outline: none;
+  }
+  .key-input::placeholder { color: var(--muted); opacity: 0.5; }
+  .key-input:focus { border-color: var(--accent); }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 120px;
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-2);
+    color: var(--muted);
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    min-width: 0;
+  }
+  .search-input::placeholder { color: var(--muted); }
 
   /* NVS table */
   .nvs-section {
@@ -196,6 +308,10 @@
     background: rgba(255, 255, 255, 0.015);
   }
   .nvs-row:hover { background: rgba(255, 255, 255, 0.04); }
+  .nvs-row-highlight {
+    background: rgba(76, 201, 240, 0.06) !important;
+    border-radius: 3px;
+  }
   .mono { font-family: var(--mono); }
   .nvs-col-hash { width: 110px; flex-shrink: 0; }
   .nvs-col-size { width: 50px; flex-shrink: 0; text-align: right; }
@@ -214,6 +330,14 @@
   }
   .nvs-row:hover .row-action { opacity: 1; }
   .row-action:hover { color: var(--danger); }
+  .nvs-note {
+    margin-top: 4px;
+    font-size: 0.66rem;
+    color: var(--muted);
+    opacity: 0.55;
+    font-style: italic;
+    flex-shrink: 0;
+  }
   .empty-msg {
     color: var(--muted);
     font-size: 0.82rem;
@@ -227,6 +351,7 @@
     flex-shrink: 0;
     border-top: 1px solid var(--border);
     padding-top: 10px;
+    margin-top: 10px;
   }
   .fs-info {
     display: flex;
@@ -235,7 +360,7 @@
     font-size: 0.76rem;
   }
   .fs-label { color: var(--muted); font-size: 0.72rem; }
-  .fs-path { color: var(--text); }
+  .fs-path { color: var(--text); font-family: var(--mono); }
   .fs-placeholder {
     color: var(--muted);
     font-size: 0.76rem;
