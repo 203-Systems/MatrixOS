@@ -4,6 +4,10 @@
 
 #include "../System/System.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 namespace MatrixOS::MIDI
 {
 static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
@@ -56,7 +60,15 @@ bool Get(MidiPacket* midiPacketDest, uint16_t timeoutMs) {
 bool Send(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeoutMs) {
   if (!osPort)
     return false;
-  return osPort->Send(midiPacket, targetPort, timeoutMs);
+  bool result = osPort->Send(midiPacket, targetPort, timeoutMs);
+#ifdef __EMSCRIPTEN__
+  EM_ASM({
+    if (typeof window._matrixos_midi_tap === 'function')
+      window._matrixos_midi_tap($0, $1, $2, $3, $4, $5, $6);
+  }, 1, (int)midiPacket.port, (int)targetPort, (int)(uint8_t)midiPacket.status,
+     (int)midiPacket.data[0], (int)midiPacket.data[1], (int)midiPacket.data[2]);
+#endif
+  return result;
 }
 
 void ReceiveTask(void* parameters) {
@@ -140,6 +152,13 @@ void ReceiveTask(void* parameters) {
       // Forward to application queue if not handled by system
       if (shouldForwardToApp && appQueue)
       {
+#ifdef __EMSCRIPTEN__
+        EM_ASM({
+          if (typeof window._matrixos_midi_tap === 'function')
+            window._matrixos_midi_tap($0, $1, $2, $3, $4, $5, $6);
+        }, 0, (int)packet.port, 0, (int)(uint8_t)packet.status,
+           (int)packet.data[0], (int)packet.data[1], (int)packet.data[2]);
+#endif
         // Try to send to app queue, drop if full
         if (xQueueSend(appQueue, &packet, 0) != pdTRUE)
         {

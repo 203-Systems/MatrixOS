@@ -1,5 +1,8 @@
 // WASM module lifecycle store for MystrixSIL
 import { writable, get } from 'svelte/store'
+import { hookMidiTap } from './midi.js'
+import { hookHidTap } from './hid.js'
+import { hookSerialTap } from './serial.js'
 
 export const moduleRef = writable(null)
 export const moduleReady = writable(false)
@@ -66,6 +69,11 @@ export function initWasm() {
     return () => {}
   }
 
+  // Install subsystem tap hooks so events arrive before runtime starts
+  const unhookMidi = hookMidiTap()
+  const unhookHid = hookHidTap()
+  const unhookSerial = hookSerialTap()
+
   // Hook abort
   const prevAbort = mod.onAbort
   mod.onAbort = (what) => {
@@ -120,6 +128,9 @@ export function initWasm() {
   return () => {
     if (reloadTimer) clearInterval(reloadTimer)
     mod.onAbort = prevAbort
+    if (unhookMidi) unhookMidi()
+    if (unhookHid) unhookHid()
+    if (unhookSerial) unhookSerial()
   }
 }
 

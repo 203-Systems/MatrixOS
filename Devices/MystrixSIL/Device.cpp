@@ -538,4 +538,114 @@ uint8_t MatrixOS_Wasm_GetFnState(void) {
   return fnState.info.Active() ? 1 : 0;
 }
 
+// ---- MIDI injection ----
+
+void MatrixOS_Wasm_MidiInject(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2, uint16_t targetPort) {
+  MidiPacket pkt;
+  pkt.status = (EMidiStatus)status;
+  pkt.data[0] = d0;
+  pkt.data[1] = d1;
+  pkt.data[2] = d2;
+  pkt.port = MIDI_PORT_OS;
+  MatrixOS::MIDI::Send(pkt, targetPort, 10);
+}
+
+// ---- RawHID injection ----
+
+void MatrixOS_Wasm_RawHidInject(uint8_t* data, uint32_t length) {
+  if (length > 32) length = 32;
+  MatrixOS::HID::RawHID::NewReport(data, length);
+}
+
+// ---- Serial TX (device output) ----
+
+void MatrixOS_Wasm_SerialWrite(const char* data, uint32_t length) {
+  string str(data, length);
+  MatrixOS::USB::CDC::Print(str);
+}
+
+// ---- NVS exports ----
+
+uint32_t MatrixOS_Wasm_NvsGetCount(void) {
+  std::lock_guard<std::mutex> lock(nvsMutex);
+  return nvsStore.size();
+}
+
+static uint32_t nvsHashBuffer[256];
+
+uint32_t* MatrixOS_Wasm_NvsGetHashes(void) {
+  std::lock_guard<std::mutex> lock(nvsMutex);
+  uint32_t i = 0;
+  for (const auto& [hash, data] : nvsStore) {
+    if (i >= 256) break;
+    nvsHashBuffer[i++] = hash;
+  }
+  return nvsHashBuffer;
+}
+
+uint32_t MatrixOS_Wasm_NvsGetSize(uint32_t hash) {
+  return Device::NVS::Size(hash);
+}
+
+static char nvsReadBuffer[4096];
+
+uint8_t* MatrixOS_Wasm_NvsGetData(uint32_t hash) {
+  auto data = Device::NVS::Read(hash);
+  if (data.empty()) return nullptr;
+  uint32_t len = data.size();
+  if (len > sizeof(nvsReadBuffer)) len = sizeof(nvsReadBuffer);
+  memcpy(nvsReadBuffer, data.data(), len);
+  return reinterpret_cast<uint8_t*>(nvsReadBuffer);
+}
+
+bool MatrixOS_Wasm_NvsWrite(uint32_t hash, uint8_t* data, uint16_t length) {
+  return Device::NVS::Write(hash, data, length);
+}
+
+bool MatrixOS_Wasm_NvsDelete(uint32_t hash) {
+  return Device::NVS::Delete(hash);
+}
+
+void MatrixOS_Wasm_NvsClear(void) {
+  Device::NVS::Clear();
+}
+
+static vector<uint8_t> nvsExportBuffer;
+
+uint8_t* MatrixOS_Wasm_NvsExport(void) {
+  std::lock_guard<std::mutex> lock(nvsMutex);
+  nvsExportBuffer.clear();
+  uint32_t count = nvsStore.size();
+  nvsExportBuffer.insert(nvsExportBuffer.end(), (uint8_t*)&count, (uint8_t*)&count + 4);
+  for (const auto& [hash, data] : nvsStore) {
+    uint32_t h = hash;
+    uint32_t len = data.size();
+    nvsExportBuffer.insert(nvsExportBuffer.end(), (uint8_t*)&h, (uint8_t*)&h + 4);
+    nvsExportBuffer.insert(nvsExportBuffer.end(), (uint8_t*)&len, (uint8_t*)&len + 4);
+    nvsExportBuffer.insert(nvsExportBuffer.end(), data.begin(), data.end());
+  }
+  return nvsExportBuffer.data();
+}
+
+uint32_t MatrixOS_Wasm_NvsExportSize(void) {
+  return nvsExportBuffer.size();
+}
+
+void MatrixOS_Wasm_NvsImport(uint8_t* data, uint32_t totalLength) {
+  std::lock_guard<std::mutex> lock(nvsMutex);
+  nvsStore.clear();
+  if (totalLength < 4) return;
+  uint32_t count;
+  memcpy(&count, data, 4);
+  uint32_t offset = 4;
+  for (uint32_t i = 0; i < count && offset + 8 <= totalLength; i++) {
+    uint32_t hash, len;
+    memcpy(&hash, data + offset, 4); offset += 4;
+    memcpy(&len, data + offset, 4); offset += 4;
+    if (offset + len > totalLength) break;
+    nvsStore[hash] = vector<char>((char*)(data + offset), (char*)(data + offset + len));
+    offset += len;
+  }
+}
+
 } // extern "C"

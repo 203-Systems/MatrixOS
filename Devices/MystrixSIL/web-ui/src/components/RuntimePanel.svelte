@@ -1,10 +1,9 @@
 <script>
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
-  import { moduleReady, wasmMissing, runtimeStatus, getRotation, getUptimeMs } from '../stores/wasm.js'
+  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs } from '../stores/wasm.js'
   import { errorCount, warnCount, logMessages } from '../stores/logs.js'
 
-  let rotation = 0
   let uptime = '—'
   let uptimeTimer
 
@@ -19,7 +18,6 @@
   }
 
   function poll() {
-    rotation = getRotation()
     uptime = formatUptime(getUptimeMs())
   }
 
@@ -45,10 +43,6 @@
         <span class="rt-card-value" class:val-live={!$wasmMissing} class:val-error={$wasmMissing}>
           {$wasmMissing ? 'Missing' : 'Present'}
         </span>
-      </div>
-      <div class="rt-card">
-        <span class="rt-card-label">Rotation</span>
-        <span class="rt-card-value">{rotation}°</span>
       </div>
       <div class="rt-card">
         <span class="rt-card-label">Uptime</span>

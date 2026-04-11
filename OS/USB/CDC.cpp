@@ -3,6 +3,10 @@
 #include "tusb.h"
 #include "printf.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 namespace MatrixOS::USB::CDC
 {
 
@@ -27,6 +31,12 @@ void Print(string str) {
     tud_cdc_n_write_char(0, str[i]);
   }
   // tud_cdc_n_write_str(0, str);
+#ifdef __EMSCRIPTEN__
+  EM_ASM({
+    if (typeof window._matrixos_serial_tap === 'function')
+      window._matrixos_serial_tap(1, UTF8ToString($0));
+  }, str.c_str());
+#endif
   Flush();
 }
 

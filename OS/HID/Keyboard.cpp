@@ -3,6 +3,10 @@
 #include "tusb.h"
 #include "task.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #define NKRO_KEY_COUNT (8 * 13)
 
 typedef union __attribute__((packed, aligned(1))) {
@@ -115,6 +119,14 @@ static void SendTask(void* param) {
       // and REMOTE_WAKEUP feature is enabled by host
       tud_remote_wakeup();
     }
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM({
+      if (typeof window._matrixos_hid_tap === 'function')
+        window._matrixos_hid_tap(0, 1, $0, $1, $2, $3, $4, $5, $6, $7);
+    }, _keyReport.keys[0], _keyReport.keys[1], _keyReport.keys[2], _keyReport.keys[3],
+       _keyReport.keys[4], _keyReport.keys[5], _keyReport.keys[6], _keyReport.keys[7]);
+#endif
 
     for (uint8_t i = 0; i < 5; i++)
     {
