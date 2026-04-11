@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath } from '../../stores/storage.js'
+  import { nvsHashHex } from '../../stores/rpc.js'
   import { Search, Download, Upload, TrashCan } from 'carbon-icons-svelte'
 
   let fileInput
@@ -8,18 +9,7 @@
   let searchQuery = ''
   let pollTimer
 
-  // FNV-1a 32-bit — same as MatrixOS NVS key hashing
-  function fnv1aHash(str) {
-    let hash = 2166136261
-    for (let i = 0; i < str.length; i++) {
-      hash ^= str.charCodeAt(i)
-      hash = Math.imul(hash, 16777619) >>> 0
-    }
-    return hash
-  }
-
-  $: keyHash = keyInput.length > 0 ? fnv1aHash(keyInput) : null
-  $: keyHashHex = keyHash !== null ? '0x' + keyHash.toString(16).padStart(8, '0').toUpperCase() : ''
+  $: keyHashHex = keyInput.length > 0 ? nvsHashHex(keyInput) : ''
 
   // Automatically pipe computed hash into search box
   $: if (keyHashHex) searchQuery = keyHashHex
