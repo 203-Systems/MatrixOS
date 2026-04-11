@@ -7,13 +7,12 @@ const MAX_EVENTS = 500
 export const midiEvents = writable([])
 export const midiConnected = writable(false)
 
-// Known MIDI ports (populated when runtime provides them)
+// Known MIDI ports — names follow OS-canonical definitions (OS/Framework/Midi/MidiPacket.h)
 export const midiPorts = writable([
-  { id: 0x0100, name: 'USB' },
-  { id: 0x0200, name: 'Physical' },
-  { id: 0x0300, name: 'Bluetooth' },
-  { id: 0x8000, name: 'Synth' },
-  { id: 0xF000, name: 'OS' },
+  { id: 0x0100, name: 'USB MIDI', short: 'USB' },
+  { id: 0x0200, name: 'Midi Port', short: 'Phys' },
+  { id: 0x0300, name: 'Bluetooth', short: 'BT' },
+  { id: 0xF000, name: 'MatrixOS', short: 'OS' },
 ])
 
 function timestamp() {
@@ -60,10 +59,61 @@ function formatMidiSummary(status, data0, data1, data2) {
   return `${data0.toString(16).padStart(2, '0')} ${data1.toString(16).padStart(2, '0')} ${data2.toString(16).padStart(2, '0')}`
 }
 
+// Special port IDs from OS/Framework/Midi/MidiPacket.h
+const SPECIAL_PORTS = {
+  0x0000: { name: 'Each Class', short: 'Each' },
+  0x0001: { name: 'All Ports',  short: 'All'  },
+  0x0400: { name: 'Wireless',   short: 'WiFi' },
+  0x0500: { name: 'RTP MIDI',   short: 'RTP'  },
+  0x0600: { name: 'Custom',     short: 'Cust' },
+  0x8000: { name: 'Synth',      short: 'Synth'},
+  0xF000: { name: 'MatrixOS',   short: 'OS'   },
+  0xFFFF: { name: 'Invalid',    short: '—'    },
+}
+
 function portName(portId) {
   const ports = get(midiPorts)
+  // Handle USB MIDI sub-ports (0x0100–0x01FF)
+  if (portId >= 0x0100 && portId <= 0x01FF) {
+    const idx = portId - 0x0100
+    return idx === 0 ? 'USB' : `USB${idx + 1}`
+  }
+  // Handle Physical MIDI sub-ports (0x0200–0x02FF)
+  if (portId >= 0x0200 && portId <= 0x02FF) {
+    const idx = portId - 0x0200
+    return idx === 0 ? 'Phys' : `Phys${idx + 1}`
+  }
+  // Handle Bluetooth sub-ports (0x0300–0x03FF)
+  if (portId >= 0x0300 && portId <= 0x03FF) {
+    const idx = portId - 0x0300
+    return idx === 0 ? 'BT' : `BT${idx + 1}`
+  }
+  if (SPECIAL_PORTS[portId]) return SPECIAL_PORTS[portId].short
   const found = ports.find(p => p.id === portId)
-  return found ? found.name : `0x${portId.toString(16)}`
+  return found ? found.short : `0x${portId.toString(16).toUpperCase()}`
+}
+
+export function portLabel(portId) {
+  const ports = get(midiPorts)
+  const hex = '0x' + portId.toString(16).toUpperCase().padStart(4, '0')
+  if (portId >= 0x0100 && portId <= 0x01FF) {
+    const idx = portId - 0x0100
+    const label = idx === 0 ? 'USB MIDI' : `USB MIDI ${idx + 1}`
+    return `${label} (${hex})`
+  }
+  if (portId >= 0x0200 && portId <= 0x02FF) {
+    const idx = portId - 0x0200
+    const label = idx === 0 ? 'Midi Port' : `Midi Port ${idx + 1}`
+    return `${label} (${hex})`
+  }
+  if (portId >= 0x0300 && portId <= 0x03FF) {
+    const idx = portId - 0x0300
+    const label = idx === 0 ? 'Bluetooth' : `Bluetooth ${idx + 1}`
+    return `${label} (${hex})`
+  }
+  if (SPECIAL_PORTS[portId]) return `${SPECIAL_PORTS[portId].name} (${hex})`
+  const found = ports.find(p => p.id === portId)
+  return found ? `${found.name} (${hex})` : hex
 }
 
 function pushMidiEvent(direction, srcPort, dstPort, status, data0, data1, data2) {
@@ -74,6 +124,8 @@ function pushMidiEvent(direction, srcPort, dstPort, status, data0, data1, data2)
     direction: direction === 1 ? 'TX' : 'RX',
     srcPort: portName(srcPort),
     dstPort: portName(dstPort),
+    srcPortLabel: portLabel(srcPort),
+    dstPortLabel: portLabel(dstPort),
     srcPortId: srcPort,
     dstPortId: dstPort,
     msgType: decoded.type,
