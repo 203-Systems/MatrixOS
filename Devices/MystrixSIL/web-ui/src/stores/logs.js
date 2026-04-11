@@ -94,6 +94,7 @@ export function pushLog(level, args, source = 'console') {
     level,
     text,
     timestamp: timestamp(),
+    isoTimestamp: new Date().toISOString(),
     color: ansiColor || prefixColor || levelColor
   }
 
