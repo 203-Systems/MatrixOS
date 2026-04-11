@@ -285,6 +285,12 @@ button {
   border-color: rgba(255, 107, 107, 0.18);
 }
 
+.status-error {
+  color: #ff8b8b;
+  background: rgba(255, 107, 107, 0.08);
+  border-color: rgba(255, 107, 107, 0.2);
+}
+
 .status-idle {
   color: var(--muted);
   background: rgba(255, 255, 255, 0.04);
