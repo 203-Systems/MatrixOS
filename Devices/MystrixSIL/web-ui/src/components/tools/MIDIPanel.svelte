@@ -148,7 +148,7 @@
         {#each filteredEvents as evt (evt.id)}
           <div class="event-row" class:row-tx={evt.direction === 'TX'} class:row-rx={evt.direction === 'RX'} class:no-time={!showTimestamps}>
             {#if showTimestamps}<span class="col-time event-time">{evt.timestamp}</span>{/if}
-            <span class="col-ports event-ports">{evt.srcPortLabel || evt.srcPort} → {evt.dstPortLabel || evt.dstPort}</span>
+            <span class="col-ports event-ports" title="{evt.srcPortHex} → {evt.dstPortHex}">{evt.srcPortLabel || evt.srcPort} → {evt.dstPortLabel || evt.dstPort}</span>
             <span class="col-ch event-ch">{evt.channel != null ? evt.channel : '—'}</span>
             <span class="col-type event-type">{evt.msgType}</span>
             <span class="col-summary event-summary">{evt.summary}</span>

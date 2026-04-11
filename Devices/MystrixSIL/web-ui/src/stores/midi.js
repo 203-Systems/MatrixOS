@@ -95,25 +95,25 @@ function portName(portId) {
 
 export function portLabel(portId) {
   const ports = get(midiPorts)
-  const hex = '0x' + portId.toString(16).toUpperCase().padStart(4, '0')
   if (portId >= 0x0100 && portId <= 0x01FF) {
     const idx = portId - 0x0100
-    const label = idx === 0 ? 'USB MIDI' : `USB MIDI ${idx + 1}`
-    return `${label} (${hex})`
+    return idx === 0 ? 'USB MIDI' : `USB MIDI ${idx + 1}`
   }
   if (portId >= 0x0200 && portId <= 0x02FF) {
     const idx = portId - 0x0200
-    const label = idx === 0 ? 'Midi Port' : `Midi Port ${idx + 1}`
-    return `${label} (${hex})`
+    return idx === 0 ? 'Midi Port' : `Midi Port ${idx + 1}`
   }
   if (portId >= 0x0300 && portId <= 0x03FF) {
     const idx = portId - 0x0300
-    const label = idx === 0 ? 'Bluetooth' : `Bluetooth ${idx + 1}`
-    return `${label} (${hex})`
+    return idx === 0 ? 'Bluetooth' : `Bluetooth ${idx + 1}`
   }
-  if (SPECIAL_PORTS[portId]) return `${SPECIAL_PORTS[portId].name} (${hex})`
+  if (SPECIAL_PORTS[portId]) return SPECIAL_PORTS[portId].name
   const found = ports.find(p => p.id === portId)
-  return found ? `${found.name} (${hex})` : hex
+  return found ? found.name : '0x' + portId.toString(16).toUpperCase().padStart(4, '0')
+}
+
+export function portHex(portId) {
+  return '0x' + portId.toString(16).toUpperCase().padStart(4, '0')
 }
 
 function pushMidiEvent(direction, srcPort, dstPort, status, data0, data1, data2) {
@@ -126,6 +126,8 @@ function pushMidiEvent(direction, srcPort, dstPort, status, data0, data1, data2)
     dstPort: portName(dstPort),
     srcPortLabel: portLabel(srcPort),
     dstPortLabel: portLabel(dstPort),
+    srcPortHex: portHex(srcPort),
+    dstPortHex: portHex(dstPort),
     srcPortId: srcPort,
     dstPortId: dstPort,
     msgType: decoded.type,
