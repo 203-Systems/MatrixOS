@@ -19,13 +19,16 @@ function timestamp() {
   }) + '.' + String(now.getMilliseconds()).padStart(3, '0')
 }
 
-export function logInputEvent(type, x, y, pressed) {
+export function logInputEvent(type, x, y, pressed, velocity = null) {
+  // MystrixSIL binary keypad: press velocity is always 127 (100%), release is 0
+  const vel = velocity !== null ? velocity : (type === 'grid' ? (pressed ? 127 : 0) : null)
   const entry = {
     id: counter++,
     type,
     x,
     y,
     pressed,
+    velocity: vel,
     timestamp: timestamp()
   }
 
