@@ -1,19 +1,37 @@
 // Storage (NVS + filesystem) store for MystrixSIL dashboard
-import { writable, get } from 'svelte/store'
+import { writable } from 'svelte/store'
 
 export const nvsEntries = writable([])
 export const nvsConnected = writable(false)
 export const filesystemMounted = writable(false)
 export const filesystemPath = writable('')
 
-let _lastNvsCount = -1
+// Fingerprint = "count:hash0_size0:hash1_size1:..." — detects count changes AND
+// per-entry size changes (covers most runtime-side NVS mutations). Same-count
+// same-size value rewrites are not detectable without reading all bytes; that
+// edge case is accepted in the poll path (UI-triggered writes always call
+// refreshNvs() directly after the write regardless).
+let _lastNvsFingerprint = ''
+
+function computeNvsFingerprint(mod, count) {
+  if (count === 0) return '0'
+  const hashesPtr = mod._MatrixOS_Wasm_NvsGetHashes()
+  const heap32 = new Uint32Array(mod.HEAPU8.buffer)
+  const parts = [String(count)]
+  for (let i = 0; i < Math.min(count, 256); i++) {
+    const h = heap32[(hashesPtr >> 2) + i]
+    const size = mod._MatrixOS_Wasm_NvsGetSize(h)
+    parts.push(`${h}_${size}`)
+  }
+  return parts.join(':')
+}
 
 // Refresh NVS entries from WASM
 export function refreshNvs() {
   const mod = window.Module
   if (!mod?._MatrixOS_Wasm_NvsGetCount) {
     nvsConnected.set(false)
-    _lastNvsCount = -1
+    _lastNvsFingerprint = ''
     return
   }
 
@@ -21,7 +39,7 @@ export function refreshNvs() {
   const count = mod._MatrixOS_Wasm_NvsGetCount()
 
   if (count === 0) {
-    _lastNvsCount = 0
+    _lastNvsFingerprint = '0'
     nvsEntries.set([])
     return
   }
@@ -29,10 +47,13 @@ export function refreshNvs() {
   const hashesPtr = mod._MatrixOS_Wasm_NvsGetHashes()
   const heap32 = new Uint32Array(mod.HEAPU8.buffer)
   const entries = []
+  const fpParts = [String(count)]
 
   for (let i = 0; i < count && i < 256; i++) {
     const hash = heap32[(hashesPtr >> 2) + i]
     const size = mod._MatrixOS_Wasm_NvsGetSize(hash)
+    fpParts.push(`${hash}_${size}`)
+
     const dataPtr = mod._MatrixOS_Wasm_NvsGetData(hash)
     let preview = ''
     let rawBytes = ''
@@ -71,16 +92,18 @@ export function refreshNvs() {
     })
   }
 
-  _lastNvsCount = count
+  _lastNvsFingerprint = fpParts.join(':')
   nvsEntries.set(entries)
 }
 
-// Poll NVS for runtime-side writes (called by StoragePanel while mounted)
+// Poll NVS for runtime-side writes (called by StoragePanel while mounted).
+// Detects count changes AND per-entry size changes via fingerprint comparison.
 export function pollNvs() {
   const mod = window.Module
   if (!mod?._MatrixOS_Wasm_NvsGetCount) return
   const count = mod._MatrixOS_Wasm_NvsGetCount()
-  if (count !== _lastNvsCount) refreshNvs()
+  const fp = computeNvsFingerprint(mod, count)
+  if (fp !== _lastNvsFingerprint) refreshNvs()
 }
 
 // Write an NVS entry
