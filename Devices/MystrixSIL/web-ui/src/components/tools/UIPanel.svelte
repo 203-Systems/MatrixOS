@@ -3,8 +3,8 @@
 
   function formatInputEvent(event) {
     if (!event) return 'No input captured yet'
-    if (event.type === 'fn') return `FN ${event.pressed ? 'press' : 'release'}`
-    return `Grid (${event.x},${event.y}) ${event.pressed ? 'press' : 'release'}`
+    if (event.type === 'fn') return `Function Key ${event.pressed ? 'Press' : 'Release'}`
+    return `Grid (${event.x},${event.y}) ${event.pressed ? 'Press' : 'Release'}`
   }
 </script>
 
