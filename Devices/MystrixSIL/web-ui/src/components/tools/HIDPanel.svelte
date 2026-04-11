@@ -1,29 +1,14 @@
 <script>
   import { hidEvents, hidConnected, clearHidEvents, sendRawHid } from '../../stores/hid.js'
-  import { activeGridKeys, fnKeyActive, runtimeGridKeys, runtimeFnActive } from '../../stores/input.js'
-  import { browserCapabilities } from '../../stores/tooling.js'
-  import { Close } from 'carbon-icons-svelte'
+  import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
 
   let eventBody
   let autoScroll = true
   let hexInput = ''
+  let filterQuery = ''
+  let showFilterHelp = false
+  let showTimestamps = false
 
-  $: hidTapTone = $hidConnected ? 'live' : 'idle'
-  $: hidTapLabel = $hidConnected ? 'Connected' : 'Not connected'
-
-  $: webHidLabel = $browserCapabilities.detected
-    ? ($browserCapabilities.hid ? 'Available' : 'Unavailable')
-    : 'Detecting'
-  $: webHidTone = !$browserCapabilities.detected ? 'idle'
-    : $browserCapabilities.hid ? 'live' : 'warn'
-
-  $: gamepadLabel = $browserCapabilities.detected
-    ? ($browserCapabilities.gamepad ? 'Available' : 'Unavailable')
-    : 'Detecting'
-  $: gamepadTone = !$browserCapabilities.detected ? 'idle'
-    : $browserCapabilities.gamepad ? 'live' : 'warn'
-
-  // Category color mapping
   const catColors = { Keyboard: 'cat-kb', Gamepad: 'cat-gp', RawHID: 'cat-raw' }
 
   // Auto-scroll on new events
@@ -32,6 +17,21 @@
       if (eventBody) eventBody.scrollTop = eventBody.scrollHeight
     })
   }
+
+  // Filter — supports dir:, cat:, plain text
+  $: filteredEvents = (() => {
+    const q = filterQuery.trim().toLowerCase()
+    if (!q) return $hidEvents
+    const dirM = q.match(/\bdir:(tx|rx)\b/)
+    const catM = q.match(/\bcat:(\S+)/)
+    const plain = q.replace(/\b(dir|cat):\S+/g, '').trim()
+    return $hidEvents.filter(evt => {
+      if (dirM && evt.direction.toLowerCase() !== dirM[1]) return false
+      if (catM && !evt.category.toLowerCase().includes(catM[1])) return false
+      if (plain) return evt.summary.toLowerCase().includes(plain) || evt.category.toLowerCase().includes(plain) || evt.direction.toLowerCase().includes(plain)
+      return true
+    })
+  })()
 
   function handleScroll() {
     if (!eventBody) return
@@ -63,43 +63,64 @@
 </script>
 
 <div class="hid-panel">
-  <!-- Status bar -->
-  <div class="status-bar">
-    <span class="status-item">
-      HID tap: <span class="tool-value-{hidTapTone}">{hidTapLabel}</span>
-    </span>
-    <span class="status-sep">·</span>
-    <span class="status-item">
-      WebHID: <span class="tool-value-{webHidTone}">{webHidLabel}</span>
-    </span>
-    <span class="status-sep">·</span>
-    <span class="status-item">
-      Gamepad: <span class="tool-value-{gamepadTone}">{gamepadLabel}</span>
-    </span>
+  <!-- Filter toolbar -->
+  <div class="filter-bar">
+    <div class="filter-search" class:filter-active={filterQuery}>
+      <Search size={13} />
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Filter HID…"
+        bind:value={filterQuery}
+        spellcheck="false"
+      />
+    </div>
+    <button
+      class="toolbar-toggle"
+      class:toolbar-toggle-active={showFilterHelp}
+      on:click={() => showFilterHelp = !showFilterHelp}
+      title="Filter syntax help"
+    >
+      <Information size={14} />
+    </button>
+    <button
+      class="toolbar-toggle"
+      class:toolbar-toggle-active={showTimestamps}
+      on:click={() => showTimestamps = !showTimestamps}
+      title="Toggle timestamps"
+    >
+      <Time size={13} />
+    </button>
+    <button class="clear-btn" on:click={clearHidEvents} title="Clear HID events">
+      <TrashCan size={13} />
+    </button>
   </div>
+
+  {#if showFilterHelp}
+    <div class="filter-help">
+      <span><code>dir:TX</code> or <code>dir:RX</code> — direction</span>
+      <span><code>cat:Keyboard</code> — category (Keyboard, Gamepad, RawHID)</span>
+      <span>Plain text matches summary and category.</span>
+    </div>
+  {/if}
 
   <!-- Event log -->
   <div class="event-section">
-    <div class="section-header">
-      <span class="section-title">HID Traffic</span>
-      <span class="section-count">{$hidEvents.length}</span>
-      <button class="section-action" on:click={clearHidEvents} title="Clear events">
-        <Close size={14} />
-      </button>
+    <div class="event-col-header" class:no-time={!showTimestamps}>
+      {#if showTimestamps}<span class="col-time">Time</span>{/if}
+      <span class="col-cat">Category</span>
+      <span class="col-sum">Summary</span>
     </div>
-    <div
-      class="event-body"
-      bind:this={eventBody}
-      on:scroll={handleScroll}
-    >
-      {#if $hidEvents.length === 0}
-        <div class="empty-msg">No HID events captured yet.</div>
+    <div class="event-body" bind:this={eventBody} on:scroll={handleScroll}>
+      {#if filteredEvents.length === 0}
+        <div class="empty-msg">{$hidEvents.length === 0 ? 'No HID events captured yet.' : 'No events match the filter.'}</div>
       {:else}
-        {#each $hidEvents as evt (evt.id)}
-          <div class="event-row">
-            <span class="event-time">{evt.timestamp}</span>
-            <span class="event-cat {catColors[evt.category] || ''}">{evt.category}</span>
-            <span class="event-dir" class:dir-tx={evt.direction === 'TX'} class:dir-rx={evt.direction === 'RX'}>{evt.direction}</span>
+        {#each filteredEvents as evt (evt.id)}
+          <div class="event-row" class:no-time={!showTimestamps}>
+            {#if showTimestamps}<span class="event-time col-time">{evt.timestamp}</span>{/if}
+            <span class="event-cat {catColors[evt.category] || ''}">
+              {evt.category === 'RawHID' ? (evt.direction === 'TX' ? 'Raw Out' : 'Raw In') : evt.category}
+            </span>
             <span class="event-summary">{evt.summary}</span>
             {#if evt.rawPayload}
               <span class="event-raw">{evt.rawPayload}</span>
@@ -137,20 +158,85 @@
     overflow: hidden;
   }
 
-  /* Status bar */
-  .status-bar {
+  /* Filter bar */
+  .filter-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
-    font-family: var(--mono);
-    color: var(--muted);
+    gap: 6px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    flex-wrap: wrap;
   }
-  .status-sep { opacity: 0.3; }
+  .filter-search {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-2);
+    color: var(--muted);
+  }
+  .filter-search:focus-within,
+  .filter-active { border-color: rgba(76, 201, 240, 0.35); }
+  .filter-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    min-width: 0;
+  }
+  .filter-input::placeholder { color: var(--muted); }
+  .filter-count {
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .toolbar-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.66rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .toolbar-toggle:hover { color: var(--text); border-color: var(--accent); }
+  .toolbar-toggle-active { color: var(--accent); border-color: rgba(76, 201, 240, 0.4); }
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 5px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .clear-btn:hover { color: var(--danger); border-color: var(--danger); }
+  .filter-help {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    flex-shrink: 0;
+    margin-bottom: 4px;
+  }
+  .filter-help code { color: var(--accent); background: rgba(76, 201, 240, 0.08); padding: 0 3px; border-radius: 2px; }
 
   /* Event log */
   .event-section {
@@ -158,40 +244,8 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding-top: 8px;
+    padding-top: 6px;
   }
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-  }
-  .section-title {
-    font-weight: 600;
-    font-size: 0.82rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-  .section-count {
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  .section-action {
-    margin-left: auto;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--muted);
-    cursor: pointer;
-    padding: 2px 4px;
-    display: inline-flex;
-    align-items: center;
-  }
-  .section-action:hover { color: var(--text); border-color: var(--accent); }
-
   .event-body {
     flex: 1;
     overflow-y: auto;
@@ -203,7 +257,6 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.12) transparent;
   }
-
   .event-row {
     display: flex;
     gap: 6px;
@@ -213,25 +266,13 @@
     white-space: nowrap;
     background: rgba(255, 255, 255, 0.015);
   }
-
-  .event-time { color: var(--muted); min-width: 80px; flex-shrink: 0; }
-
-  .event-cat {
-    min-width: 56px;
-    flex-shrink: 0;
-    font-weight: 600;
-  }
+  .event-time { color: var(--muted); }
+  .event-cat { min-width: 56px; flex-shrink: 0; font-weight: 600; }
   .cat-kb { color: var(--accent); }
   .cat-gp { color: #c49bff; }
   .cat-raw { color: #f0a04b; }
-
-  .event-dir { min-width: 20px; flex-shrink: 0; font-weight: 600; }
-  .dir-tx { color: var(--accent); }
-  .dir-rx { color: #6bdd8b; }
-
   .event-summary { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .event-raw { color: var(--muted); opacity: 0.5; flex-shrink: 0; }
-
   .empty-msg {
     color: var(--muted);
     font-size: 0.82rem;
@@ -247,16 +288,12 @@
     padding-top: 8px;
     margin-top: 4px;
   }
-  .sender-row {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
+  .sender-row { display: flex; gap: 6px; align-items: center; }
   .hex-input {
     flex: 1;
     font-family: var(--mono);
     font-size: 0.72rem;
-    background: var(--bg);
+    background: var(--bg-2);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -268,16 +305,16 @@
   .sender-btn {
     font-family: var(--mono);
     font-size: 0.72rem;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
     border-radius: 4px;
     padding: 4px 10px;
     cursor: pointer;
     font-weight: 600;
     flex-shrink: 0;
   }
-  .sender-btn:hover { opacity: 0.85; }
+  .sender-btn:hover { background: rgba(76, 201, 240, 0.12); }
   .sender-hint {
     display: block;
     font-size: 0.65rem;
@@ -286,4 +323,22 @@
     margin-top: 3px;
     font-family: var(--mono);
   }
+
+  .event-col-header {
+    display: flex;
+    gap: 6px;
+    padding: 2px 6px 4px;
+    font-size: 0.64rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    opacity: 0.65;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .col-time { min-width: 80px; flex-shrink: 0; }
+  .col-cat  { min-width: 56px; flex-shrink: 0; }
+  .col-sum  { flex: 1; min-width: 0; }
+  .no-time .col-time { display: none; }
 </style>
