@@ -130,6 +130,22 @@ bool EmitKeyEvent(InputId id, KeyState* ks) {
   event.keypad = ks->info;
   return MatrixOS::Input::NewEvent(event);
 }
+
+bool TickHoldEvent(InputId id, KeyState* ks, uint32_t now) {
+  if (!ks->info.Active() || ks->info.hold)
+  {
+    return false;
+  }
+
+  if ((now - ks->info.lastEventTime) <= KeypadInfo::kHoldThreshold)
+  {
+    return false;
+  }
+
+  ks->info.state = KeypadState::Hold;
+  ks->info.hold = true;
+  return EmitKeyEvent(id, ks);
+}
 } // anonymous namespace
 
 // ---------------------------------------------------------------------------
@@ -447,13 +463,14 @@ void MatrixOS_Wasm_KeyEvent(uint16_t x, uint16_t y, bool pressed) {
     ks->info.pressure = 65535;
     ks->info.velocity = 65535;
     ks->info.state = KeypadState::Pressed;
+    ks->info.hold = false;
     ks->info.lastEventTime = Device::Millis();
   }
   else if (!pressed && ks->info.Active())
   {
     ks->info.pressure = 0;
     ks->info.velocity = 0;
-    ks->info.state = KeypadState::Idle;
+    ks->info.state = KeypadState::Released;
     ks->info.lastEventTime = Device::Millis();
   }
   else
@@ -471,13 +488,14 @@ void MatrixOS_Wasm_FnEvent(bool pressed) {
     fnState.info.pressure = 65535;
     fnState.info.velocity = 65535;
     fnState.info.state = KeypadState::Pressed;
+    fnState.info.hold = false;
     fnState.info.lastEventTime = Device::Millis();
   }
   else if (!pressed && fnState.info.Active())
   {
     fnState.info.pressure = 0;
     fnState.info.velocity = 0;
-    fnState.info.state = KeypadState::Idle;
+    fnState.info.state = KeypadState::Released;
     fnState.info.lastEventTime = Device::Millis();
   }
   else
@@ -490,7 +508,14 @@ void MatrixOS_Wasm_FnEvent(bool pressed) {
 }
 
 void MatrixOS_Wasm_KeypadTick(void) {
-  // No-op: SIL keypad is event-driven from JS, not scan-driven.
+  uint32_t now = Device::Millis();
+  TickHoldEvent(InputId::FunctionKey(), &fnState, now);
+
+  for (uint16_t keyIndex = 0; keyIndex < X_SIZE * Y_SIZE; keyIndex++)
+  {
+    InputId id = {1, keyIndex};
+    TickHoldEvent(id, &gridState[keyIndex], now);
+  }
 }
 
 const char* MatrixOS_Wasm_GetVersionString(void) {
