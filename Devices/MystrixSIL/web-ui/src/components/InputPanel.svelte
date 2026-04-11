@@ -22,36 +22,6 @@
 </script>
 
 <div class="input-panel">
-  <!-- Active keys snapshot (injection side) -->
-  {#if $activeGridKeys.size > 0 || $fnKeyActive}
-    <div class="state-section">
-      <span class="section-title">Injected</span>
-      <div class="state-chips">
-        {#if $fnKeyActive}
-          <span class="state-chip chip-fn">FN</span>
-        {/if}
-        {#each [...$activeGridKeys] as key}
-          <span class="state-chip">({key})</span>
-        {/each}
-      </div>
-    </div>
-  {/if}
-
-  <!-- Runtime-side state (what the OS actually sees) -->
-  {#if $runtimeGridKeys.size > 0 || $runtimeFnActive}
-    <div class="state-section runtime-state">
-      <span class="section-title">Runtime</span>
-      <div class="state-chips">
-        {#if $runtimeFnActive}
-          <span class="state-chip chip-fn chip-runtime">FN</span>
-        {/if}
-        {#each [...$runtimeGridKeys] as key}
-          <span class="state-chip chip-runtime">({key})</span>
-        {/each}
-      </div>
-    </div>
-  {/if}
-
   <!-- Event log -->
   <div class="event-section">
     <div class="section-header">
