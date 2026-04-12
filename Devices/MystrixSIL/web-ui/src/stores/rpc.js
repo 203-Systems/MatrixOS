@@ -19,12 +19,15 @@
 
 import { get } from 'svelte/store'
 import { logMessages } from './logs.js'
-import { midiEvents, midiPorts, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
-import { hidEvents, sendRawHid } from './hid.js'
-import { serialEvents, sendSerialText, sendSerialHex } from './serial.js'
+import { midiEvents, midiPorts } from './midi.js'
+import { hidEvents } from './hid.js'
+import { serialEvents } from './serial.js'
 import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
 import { listInputs, executeInputEvents, getActiveInputs } from '../handles/input.js'
 import { getLedFrame, getLed } from '../handles/led.js'
+import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
+import { sendRawHid } from '../handles/hid.js'
+import { sendSerialText, sendSerialHex } from '../handles/serial.js'
 import {
   getSessionStatus,
   pingSession,
