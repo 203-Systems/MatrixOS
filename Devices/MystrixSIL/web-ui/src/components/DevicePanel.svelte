@@ -187,24 +187,51 @@
     event.preventDefault()
   }
 
-  // Touchbar pointer tracking: Map<pointerId, {side, index}>
-  const touchbarPointers = new Map()
+  // Touchbar: column-level drag tracking (same model as keypad)
+  let tbLeftEl, tbRightEl
+  let tbLeftActive = -1, tbRightActive = -1
+  let tbLeftPointerId = null, tbRightPointerId = null
 
-  const handleTouchBarPointerDown = (event, side, index) => {
+  function getTBIndex(el, event) {
+    const rect = el.getBoundingClientRect()
+    return Math.max(0, Math.min(7, Math.floor(((event.clientY - rect.top) / rect.height) * 8)))
+  }
+
+  const handleTBDown = (event, side) => {
     if (!get(moduleReady)) return
-    touchbarPointers.set(event.pointerId, { side, index })
-    event.currentTarget.setPointerCapture(event.pointerId)
+    const el = side === 0 ? tbLeftEl : tbRightEl
+    const index = getTBIndex(el, event)
+    el.setPointerCapture(event.pointerId)
+    if (side === 0) { tbLeftPointerId = event.pointerId; tbLeftActive = index }
+    else { tbRightPointerId = event.pointerId; tbRightActive = index }
     sendTouchBarKey(side, index, true)
     logInputEvent('touchbar', side, index, true)
     event.preventDefault()
   }
 
-  const handleTouchBarPointerUp = (event) => {
-    const info = touchbarPointers.get(event.pointerId)
-    if (!info) return
-    touchbarPointers.delete(event.pointerId)
-    sendTouchBarKey(info.side, info.index, false)
-    logInputEvent('touchbar', info.side, info.index, false)
+  const handleTBMove = (event, side) => {
+    const pid = side === 0 ? tbLeftPointerId : tbRightPointerId
+    if (pid !== event.pointerId) return
+    const el = side === 0 ? tbLeftEl : tbRightEl
+    const index = getTBIndex(el, event)
+    const current = side === 0 ? tbLeftActive : tbRightActive
+    if (index === current) return
+    sendTouchBarKey(side, current, false)
+    logInputEvent('touchbar', side, current, false)
+    if (side === 0) tbLeftActive = index; else tbRightActive = index
+    sendTouchBarKey(side, index, true)
+    logInputEvent('touchbar', side, index, true)
+  }
+
+  const handleTBUp = (event) => {
+    if (tbLeftPointerId === event.pointerId) {
+      if (tbLeftActive >= 0) { sendTouchBarKey(0, tbLeftActive, false); logInputEvent('touchbar', 0, tbLeftActive, false) }
+      tbLeftPointerId = null; tbLeftActive = -1
+    }
+    if (tbRightPointerId === event.pointerId) {
+      if (tbRightActive >= 0) { sendTouchBarKey(1, tbRightActive, false); logInputEvent('touchbar', 1, tbRightActive, false) }
+      tbRightPointerId = null; tbRightActive = -1
+    }
     event.preventDefault()
   }
 
@@ -221,24 +248,34 @@
 <div class="device-panel">
   <div class="device-grid-area">
     <div class="device-vis" class:vis-inactive={!$moduleReady}>
-      <div class="lp-outer">
-        <!-- Left touchbar -->
-        <div class="lp-touchbar lp-touchbar-left">
+      <div class="lp">
+        <!-- Left touchbar (bezel overlay) -->
+        <div class="lp-touchbar lp-touchbar-left"
+          bind:this={tbLeftEl}
+          on:pointerdown={(e) => handleTBDown(e, 0)}
+          on:pointermove={(e) => handleTBMove(e, 0)}
+          on:pointerup={handleTBUp}
+          on:pointercancel={handleTBUp}
+        >
           {#each edgeSlots as _, i}
-            <div
-              class="lp-tb-btn"
-              role="button"
-              aria-label={`Left touchbar ${i}`}
-              on:pointerdown={(e) => handleTouchBarPointerDown(e, 0, i)}
-              on:pointerup={handleTouchBarPointerUp}
-              on:pointercancel={handleTouchBarPointerUp}
-              on:pointerleave={handleTouchBarPointerUp}
-            ></div>
+            <div class="lp-tb-btn" class:lp-tb-active={tbLeftActive === i}></div>
           {/each}
         </div>
 
-        <div class="lp">
-          <!-- Underglow ring -->
+        <!-- Right touchbar (bezel overlay) -->
+        <div class="lp-touchbar lp-touchbar-right"
+          bind:this={tbRightEl}
+          on:pointerdown={(e) => handleTBDown(e, 1)}
+          on:pointermove={(e) => handleTBMove(e, 1)}
+          on:pointerup={handleTBUp}
+          on:pointercancel={handleTBUp}
+        >
+          {#each edgeSlots as _, i}
+            <div class="lp-tb-btn" class:lp-tb-active={tbRightActive === i}></div>
+          {/each}
+        </div>
+
+        <!-- Underglow ring -->
           <div class="lp-underglow" aria-hidden="true">
           <div class="lp-underglow-row">
             {#each edgeSlots as _, x}
@@ -308,24 +345,7 @@
           on:pointercancel={endFnPointer}
           on:pointerleave={endFnPointer}
         ></div>
-      </div>
-
-      <!-- Right touchbar -->
-      <div class="lp-touchbar lp-touchbar-right">
-        {#each edgeSlots as _, i}
-          <div
-            class="lp-tb-btn"
-            role="button"
-            aria-label={`Right touchbar ${i}`}
-            on:pointerdown={(e) => handleTouchBarPointerDown(e, 1, i)}
-            on:pointerup={handleTouchBarPointerUp}
-            on:pointercancel={handleTouchBarPointerUp}
-            on:pointerleave={handleTouchBarPointerUp}
-          ></div>
-        {/each}
-      </div>
-
-    </div><!-- end lp-outer -->
+      </div><!-- end lp -->
 
       {#if !$moduleReady}
         <div class="vis-overlay" aria-live="polite">
@@ -358,6 +378,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
+    max-width: 520px;
   }
   .vis-inactive .lp {
     filter: blur(4px) saturate(0.8);
@@ -387,54 +408,54 @@
   }
 
   /* Grid / LED visualization */
-  .lp-outer {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    justify-content: center;
-    width: 100%;
-    max-width: 520px;
+  .lp {
+    position: relative;
+    width: min(100%, 480px);
+    aspect-ratio: 1 / 1;
+    z-index: 1;
   }
 
+  /* Touchbar: absolutely positioned on left/right bezel, hidden until hover */
   .lp-touchbar {
+    position: absolute;
+    top: 3%;
+    height: 94%;
+    width: 3%;
     display: flex;
     flex-direction: column;
-    gap: 2%;
-    flex-shrink: 0;
-    align-self: stretch;
-    padding: 2% 0;
+    gap: 1.5%;
+    padding: 1.5% 15%;
     box-sizing: border-box;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+    pointer-events: none;
   }
+
+  .lp:hover .lp-touchbar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lp-touchbar-left { left: 0; }
+  .lp-touchbar-right { right: 0; }
 
   .lp-tb-btn {
     flex: 1;
-    width: 10px;
     border-radius: 9999px;
-    background-color: rgba(255, 255, 255, 0.08);
-    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.12);
+    transform: scale(0.8);
     transition: background-color 0.15s ease, transform 0.15s ease;
-    touch-action: none;
-    user-select: none;
-    transform: scale(0.85);
   }
 
-  .lp-tb-btn:hover {
-    background-color: rgba(255, 255, 255, 0.28);
-    transform: scale(1.0);
+  .lp-touchbar:hover .lp-tb-btn {
+    background-color: rgba(255, 255, 255, 0.22);
   }
 
-  .lp-tb-btn:active {
+  .lp-tb-btn.lp-tb-active {
     background-color: rgba(255, 255, 255, 0.55);
     transform: scale(1.05);
-  }
-
-  .lp {
-    position: relative;
-    flex: 1;
-    max-width: 480px;
-    aspect-ratio: 1 / 1;
-    z-index: 1;
   }
   .lp-border {
     background-color: var(--device-body, #151518);
