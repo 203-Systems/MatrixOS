@@ -1,5 +1,6 @@
 <script>
-  import { serialEvents, serialConnected, clearSerialEvents, sendSerialText, sendSerialHex } from '../../stores/serial.js'
+  import { serialEvents, serialConnected, clearSerialEvents } from '../../stores/serial.js'
+  import { sendSerialText, sendSerialHex } from '../../handles/serial.js'
   import { Search, TrashCan, Information, Time } from 'carbon-icons-svelte'
 
   let eventBody
