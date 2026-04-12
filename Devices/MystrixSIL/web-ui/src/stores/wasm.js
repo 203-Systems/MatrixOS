@@ -132,18 +132,28 @@ function prepareFreshModule() {
 }
 
 /** Dynamically inject MatrixOSHost.js and wait for it to load. */
-function injectWasmScript() {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = `/MatrixOSHost.js?t=${Date.now()}`
-    script.onload = resolve
-    script.onerror = () => {
-      wasmMissing.set(true)
-      runtimeStatus.set('WASM image missing')
-      reject(new Error('Failed to load MatrixOSHost.js'))
-    }
-    document.body.appendChild(script)
-  })
+async function injectWasmScript() {
+  // Emscripten uses let/const at top level. Injecting a <script> tag a second
+  // time in the same page causes "already declared" SyntaxErrors. Instead,
+  // fetch the JS text and run it via new Function() so each restart gets an
+  // isolated lexical scope that doesn't conflict with previous runs.
+  const url = `/MatrixOSHost.js?t=${Date.now()}`
+  let text
+  try {
+    const r = await fetch(url, { cache: 'no-store' })
+    if (!r.ok) throw new Error(`HTTP ${r.status}`)
+    text = await r.text()
+  } catch (e) {
+    wasmMissing.set(true)
+    runtimeStatus.set('WASM image missing')
+    throw new Error(`Failed to fetch MatrixOSHost.js: ${e.message}`)
+  }
+  // eslint-disable-next-line no-new-func
+  try { new Function(text)() } catch (e) {
+    wasmMissing.set(true)
+    runtimeStatus.set('WASM image missing')
+    throw new Error(`Failed to execute MatrixOSHost.js: ${e.message}`)
+  }
 }
 
 /** Reset all runtime-facing event stores. */
