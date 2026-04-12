@@ -5,7 +5,7 @@
   export let showHero = true
   export let onCloseHero = () => {}
 
-  const usbConnected = writable(false)
+  const usbConnected = writable(true)
   let batteryPct = 80
   let charging = false
 

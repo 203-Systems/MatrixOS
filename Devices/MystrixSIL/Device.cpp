@@ -46,7 +46,8 @@ Direction deviceRotation = TOP;
 
 // USB connection state (controlled by web UI). Must be atomic since it is set
 // from the JS main thread and read from the OS pthread.
-static std::atomic<bool> wasmUsbConnected{false};
+// Defaults to true so the OS boots with USB available (simulated environment).
+static std::atomic<bool> wasmUsbConnected{true};
 
 // Weak hook called by USBStub.cpp to read USB state across translation units.
 bool getWasmUsbState() {

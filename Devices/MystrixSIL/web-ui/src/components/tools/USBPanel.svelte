@@ -3,7 +3,7 @@
   import { Usb } from 'carbon-icons-svelte'
   import { setUsbAvailable } from '../../handles/usb.js'
 
-  const usbConnected = writable(false)
+  const usbConnected = writable(true)
 
   function toggleUsb() {
     usbConnected.update(v => {
