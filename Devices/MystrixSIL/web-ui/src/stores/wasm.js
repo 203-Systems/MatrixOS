@@ -435,9 +435,18 @@ export function getRuntimeFnState() {
 // window.matrixosRestart, doReboot, initWasm, etc. are all updated on re-eval.
 if (import.meta.hot) {
   // Clean up the old module's side effects before the new module takes over.
+  // Must mirror the teardown performed by terminateWasmRuntime() + the cleanup
+  // closure, because HMR re-evaluation replaces this module's closure state.
   import.meta.hot.dispose(() => {
+    // Stop the WASM-update polling timer.
     if (reloadTimer) { clearInterval(reloadTimer); reloadTimer = 0 }
+    // Run the active subsystem-hook cleanup (MIDI/HID/Serial unhook, onAbort restore).
     if (_currentCleanup) { _currentCleanup(); _currentCleanup = null }
+    // Terminate any running pthread workers so they don't linger after the
+    // new module version takes over.
+    terminateWasmRuntime()
+    // Clear the in-progress guard so the new module instance can restart freely.
+    _restartInProgress = false
   })
   // Re-init with the existing running WASM (if any) so the UI restores to Live.
   import.meta.hot.accept(() => {
