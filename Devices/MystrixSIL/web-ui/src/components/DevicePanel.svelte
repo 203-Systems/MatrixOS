@@ -241,7 +241,7 @@
       <div class="mystrix"
         class:mystrix-hover-left={tbHoverSide === 0}
         class:mystrix-hover-right={tbHoverSide === 1}
-        on:mousemove={(e) => { const r = e.currentTarget.getBoundingClientRect(); tbHoverSide = (e.clientX - r.left) < r.width / 2 ? 0 : 1 }}
+        on:mousemove={(e) => { const r = e.currentTarget.getBoundingClientRect(); const relX = (e.clientX - r.left) / r.width; tbHoverSide = relX < 0.05 ? 0 : relX > 0.95 ? 1 : -1 }}
         on:mouseleave={() => { if (!tbDragging) tbHoverSide = -1 }}
         on:pointerup={handleTBUp}
         on:pointercancel={handleTBUp}
@@ -531,9 +531,9 @@
     pointer-events: none;
   }
   .mystrix-touchkey-btn-child {
-    width: 100%;
+    width: 70%;
     height: 100%;
-    border-radius: 9999px;
+    border-radius: 5px;
     background-color: transparent;
     transition: background-color 0.15s ease, opacity 0.2s ease;
     pointer-events: auto;

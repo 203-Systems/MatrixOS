@@ -125,7 +125,7 @@
               {#if evt.type === 'grid'}
                 Grid ({evt.x},{evt.y})
               {:else if evt.type === 'touchbar'}
-                TouchBar {evt.x === 0 ? 'L' : 'R'}{evt.y}
+                TouchBar ({evt.x === 0 ? 'L' : 'R'}{evt.y})
               {:else}
                 Function Key
               {/if}
