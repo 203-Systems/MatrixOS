@@ -102,16 +102,9 @@
         <div class="tool-list-item">
           <div class="tool-list-main">
             <span class="tool-list-title">Transport</span>
-            <span class="tool-list-detail">In-page JS dispatcher. Call from DevTools or automation scripts in this tab.</span>
+            <span class="tool-list-detail">In-page JS dispatcher (this browser tab only). No external WebSocket server.</span>
           </div>
           <span class="status-pill status-live">Ready</span>
-        </div>
-        <div class="tool-list-item">
-          <div class="tool-list-main">
-            <span class="tool-list-title">External WebSocket</span>
-            <span class="tool-list-detail">WebSocket JSON-RPC server for CI/tooling — not yet implemented.</span>
-          </div>
-          <span class="status-pill status-planned">Planned</span>
         </div>
         <div class="tool-list-item">
           <div class="tool-list-main">
@@ -135,17 +128,10 @@
       <div class="tool-list">
         <div class="tool-list-item">
           <div class="tool-list-main">
-            <span class="tool-list-title">External JSON-RPC</span>
-            <span class="tool-list-detail">Not available in static builds. Requires the Node-backed local dev server.</span>
+            <span class="tool-list-title">JSON-RPC API</span>
+            <span class="tool-list-detail">Not available in static builds. Requires the Node-backed local dev server (npm run dev).</span>
           </div>
           <span class="status-pill status-error">Unavailable</span>
-        </div>
-        <div class="tool-list-item">
-          <div class="tool-list-main">
-            <span class="tool-list-title">In-page access</span>
-            <span class="tool-list-detail">window.matrixosRpc is still accessible from DevTools in this tab only.</span>
-          </div>
-          <span class="status-pill status-idle">Local only</span>
         </div>
       </div>
     {/if}
