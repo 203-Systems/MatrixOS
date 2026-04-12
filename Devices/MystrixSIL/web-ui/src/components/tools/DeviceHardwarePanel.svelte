@@ -1,6 +1,6 @@
 <script>
   import { writable } from 'svelte/store'
-  import { Usb, BatteryFull, Compass } from 'carbon-icons-svelte'
+  import { Usb, BatteryFull, BatteryCharging, Compass } from 'carbon-icons-svelte'
   import { setUsbAvailable } from '../../handles/usb.js'
   export let showHero = true
   export let onCloseHero = () => {}
@@ -54,30 +54,34 @@
   <div class="tool-section-title">Battery</div>
   <button
     class="hw-strip hw-strip-battery"
+    class:hw-on={charging}
     on:click={() => charging = !charging}
     aria-pressed={charging}
   >
     <div class="hw-strip-left">
+      <span class="hw-icon" class:hw-icon-on={charging}><BatteryCharging size={16} /></span>
       <div class="hw-label-stack">
         <span class="hw-title">Charging</span>
         <span class="hw-state">{charging ? 'On' : 'Off'}</span>
       </div>
     </div>
-    <div class="hw-strip-action hw-strip-action-toggle">
-      <div class="hw-toggle" class:hw-toggle-on={charging} aria-hidden="true">
-        <span class="hw-toggle-thumb"></span>
-      </div>
+    <div class="hw-strip-action">
+      {charging ? 'Disable' : 'Enable'}
     </div>
   </button>
-  <div class="hw-strip hw-strip-level" role="group" aria-label="Battery level">
-    <div class="hw-strip-left">
-      <div class="hw-label-stack">
-        <span class="hw-title">Battery Level</span>
-        <span class="hw-state">{batteryPct}%</span>
+
+  <div class="hw-level-strip">
+    <div class="hw-level-header">
+      <div class="hw-strip-left">
+        <span class="hw-icon"><BatteryFull size={16} /></span>
+        <div class="hw-label-stack">
+          <span class="hw-title">Battery Level</span>
+        </div>
       </div>
+      <span class="hw-level-pct">{batteryPct}%</span>
     </div>
-    <div class="hw-strip-action hw-strip-action-slider">
-      <input class="hw-slider" type="range" min="0" max="100" bind:value={batteryPct} on:click|stopPropagation />
+    <div class="hw-level-slider-row">
+      <input class="hw-slider" type="range" min="0" max="100" bind:value={batteryPct} />
     </div>
   </div>
 
@@ -106,7 +110,7 @@
     padding: 8px 2px 4px;
   }
 
-  /* USB strip — now a full-width button */
+  /* USB / Charging strip — full-width button */
   .hw-strip {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -138,17 +142,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-left: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.02);
     color: var(--muted);
     font-size: 0.7rem;
     font-weight: 600;
     white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
+    padding: 0 14px;
+    transition: color 0.15s;
   }
   .hw-strip:hover .hw-strip-action {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
+    color: var(--accent);
   }
 
   /* Icons */
@@ -170,7 +172,6 @@
     color: var(--text);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    transition: color 0.15s;
   }
   .hw-state {
     font-size: 0.68rem;
@@ -180,55 +181,38 @@
   }
   .hw-strip.hw-on .hw-state { color: #6bdd8b; }
 
-  /* Battery bars */
-  .hw-strip-battery { cursor: pointer; }
-  .hw-strip-action-toggle {
-    min-width: 60px;
-    padding: 0 14px;
-  }
-  .hw-strip-level { cursor: default; }
-  .hw-strip-action-slider {
-    min-width: 110px;
-    padding: 0 12px;
+  /* Battery level widget */
+  .hw-level-strip {
     display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+  }
+  .hw-level-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
+  }
+  .hw-level-pct {
+    font-size: 0.76rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+  .hw-level-slider-row {
+    padding: 0 12px 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
   }
   .hw-slider {
     width: 100%;
     accent-color: var(--accent);
     cursor: pointer;
-  }
-
-  /* Toggle switch (inside strip) */
-  .hw-toggle {
-    width: 34px;
-    height: 18px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.06);
-    cursor: pointer;
-    position: relative;
-    padding: 0;
-    transition: background 0.18s, border-color 0.18s;
-    flex-shrink: 0;
-  }
-  .hw-toggle-on {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .hw-toggle-thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--muted);
-    transition: left 0.18s, background 0.18s;
-  }
-  .hw-toggle-on .hw-toggle-thumb {
-    left: 18px;
-    background: #fff;
+    display: block;
+    height: 4px;
   }
 
   /* Gyro WIP */

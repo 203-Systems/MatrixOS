@@ -7,6 +7,7 @@
   $: runtimeLive = $moduleReady && !$wasmMissing
   $: runtimeLabel = runtimeLive && $runtimeStatus === 'Live' ? 'Runtime Live' : $runtimeStatus
   $: remoteConnected = IS_NODE_BACKED && $wsBridgeStatus === 'connected'
+  $: displayIdentity = $buildIdentity.replace(' • ', ' | ')
 </script>
 
 <header class="top-bar">
@@ -45,7 +46,7 @@
     {/if}
   </div>
   <div class="top-bar-right">
-    <span class="top-bar-build-id">{$buildIdentity}</span>
+    <span class="top-bar-build-id">{displayIdentity}</span>
   </div>
 </header>
 

@@ -22,7 +22,7 @@ export function getSessionStatus({ sessionId, protocolVersion }) {
     sessionId,
     connected: true,
     runtimeReady: get(moduleReady),
-    build: get(buildIdentity) || get(versionLabel) || 'Matrix OS',
+    build: (get(buildIdentity) || get(versionLabel) || 'Matrix OS').replace(/\s*•\s*/g, ' ').trim(),
   }
 }
 
