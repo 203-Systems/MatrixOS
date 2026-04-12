@@ -6,18 +6,35 @@ WEB_OUTPUT_WASM := $(BUILD)/Devices/MystrixSIL/MatrixOSHost.wasm
 EMCMAKE ?= emcmake
 CMAKE ?= cmake
 WEB_CMAKE_GENERATOR ?= Unix Makefiles
+MYXSIL_DEV_HELPER := powershell -NoProfile -ExecutionPolicy Bypass -File "$(FAMILY_PATH)/tools/dev-helper.ps1"
 
-.PHONY: build configure web-copy run
+.PHONY: setup build configure web-copy run
+
+setup:
+ifeq ($(OS),Windows_NT)
+	$(MYXSIL_DEV_HELPER) setup -RepoRoot "$(CURDIR)" -BuildDir "$(BUILD)" -WebUiDir "$(WEB_UI_DIR)" -Family "$(FAMILY)" -Device "$(DEVICE)" -Mode "$(MODE)" -Generator "$(WEB_CMAKE_GENERATOR)"
+else
+	@command -v emcmake >/dev/null 2>&1 || { echo "MystrixSIL requires Emscripten (emcmake/emcc) in PATH."; exit 1; }
+	npm --prefix $(WEB_UI_DIR) install
+endif
 
 build:
+ifeq ($(OS),Windows_NT)
+	$(MYXSIL_DEV_HELPER) build -RepoRoot "$(CURDIR)" -BuildDir "$(BUILD)" -WebUiDir "$(WEB_UI_DIR)" -Family "$(FAMILY)" -Device "$(DEVICE)" -Mode "$(MODE)" -Generator "$(WEB_CMAKE_GENERATOR)"
+else
 ifeq ($(wildcard $(BUILD)/CMakeCache.txt),)
 	$(MAKE) configure
 endif
 	$(CMAKE) --build $(BUILD)
 	$(MAKE) web-copy
+endif
 
 configure:
+ifeq ($(OS),Windows_NT)
+	$(MYXSIL_DEV_HELPER) configure -RepoRoot "$(CURDIR)" -BuildDir "$(BUILD)" -WebUiDir "$(WEB_UI_DIR)" -Family "$(FAMILY)" -Device "$(DEVICE)" -Mode "$(MODE)" -Generator "$(WEB_CMAKE_GENERATOR)"
+else
 	$(EMCMAKE) $(CMAKE) -S . -B $(BUILD) -DFAMILY=$(FAMILY) -DDEVICE=$(DEVICE) -DMODE=$(MODE) -G "$(WEB_CMAKE_GENERATOR)"
+endif
 
 web-copy:
 	$(CMAKE) -E make_directory $(WEB_PUBLIC_DIR)
@@ -25,4 +42,8 @@ web-copy:
 	$(CMAKE) -E copy_if_different $(WEB_OUTPUT_WASM) $(WEB_PUBLIC_DIR)/MatrixOSHost.wasm
 
 run:
+ifeq ($(OS),Windows_NT)
+	$(MYXSIL_DEV_HELPER) run -RepoRoot "$(CURDIR)" -BuildDir "$(BUILD)" -WebUiDir "$(WEB_UI_DIR)" -Family "$(FAMILY)" -Device "$(DEVICE)" -Mode "$(MODE)" -Generator "$(WEB_CMAKE_GENERATOR)"
+else
 	npm --prefix $(WEB_UI_DIR) run dev
+endif

@@ -49,7 +49,7 @@ BUILD := build/$(DEVICE)
 
 include $(FAMILY_PATH)/family.mk
 
-.PHONY: all build build-dev build-release build-beta build-rc build-nightly clean fullclean
+.PHONY: all setup build build-dev build-release build-beta build-rc build-nightly clean fullclean run
 
 all: save-config build
 
