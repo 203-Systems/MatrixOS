@@ -524,8 +524,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 4%;
-    padding: 1% 0;
+    gap: 1.5%;
+    padding: 0;
     pointer-events: none;
   }
   .mystrix-touchkey-btn {
@@ -537,9 +537,9 @@
     pointer-events: none;
   }
   .mystrix-touchkey-btn-child {
-    width: 55%;
-    height: 90%;
-    border-radius: 9999px;
+    width: 65%;
+    height: 100%;
+    border-radius: 10%;
     background-color: transparent;
     transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
     pointer-events: auto;
