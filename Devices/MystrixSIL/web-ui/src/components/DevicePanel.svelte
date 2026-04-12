@@ -187,52 +187,39 @@
     event.preventDefault()
   }
 
-  // Touchbar: column-level drag tracking (same model as keypad)
-  let tbLeftEl, tbRightEl
+  // Touchbar: per-button pointerdown + pointerenter for drag (wiki model)
+  let tbDragging = false
+  let tbDragSide = -1
   let tbLeftActive = -1, tbRightActive = -1
-  let tbLeftPointerId = null, tbRightPointerId = null
 
-  function getTBIndex(el, event) {
-    const rect = el.getBoundingClientRect()
-    return Math.max(0, Math.min(7, Math.floor(((event.clientY - rect.top) / rect.height) * 8)))
-  }
-
-  const handleTBDown = (event, side) => {
+  const handleTBDown = (event, side, index) => {
     if (!get(moduleReady)) return
-    const el = side === 0 ? tbLeftEl : tbRightEl
-    const index = getTBIndex(el, event)
-    el.setPointerCapture(event.pointerId)
-    if (side === 0) { tbLeftPointerId = event.pointerId; tbLeftActive = index }
-    else { tbRightPointerId = event.pointerId; tbRightActive = index }
+    tbDragging = true
+    tbDragSide = side
+    if (side === 0) tbLeftActive = index; else tbRightActive = index
     sendTouchBarKey(side, index, true)
     logInputEvent('touchbar', side, index, true)
     event.preventDefault()
   }
 
-  const handleTBMove = (event, side) => {
-    const pid = side === 0 ? tbLeftPointerId : tbRightPointerId
-    if (pid !== event.pointerId) return
-    const el = side === 0 ? tbLeftEl : tbRightEl
-    const index = getTBIndex(el, event)
+  const handleTBEnter = (event, side, index) => {
+    if (!tbDragging || tbDragSide !== side) return
     const current = side === 0 ? tbLeftActive : tbRightActive
-    if (index === current) return
-    sendTouchBarKey(side, current, false)
-    logInputEvent('touchbar', side, current, false)
+    if (current === index) return
+    if (current >= 0) { sendTouchBarKey(side, current, false); logInputEvent('touchbar', side, current, false) }
     if (side === 0) tbLeftActive = index; else tbRightActive = index
     sendTouchBarKey(side, index, true)
     logInputEvent('touchbar', side, index, true)
   }
 
   const handleTBUp = (event) => {
-    if (tbLeftPointerId === event.pointerId) {
-      if (tbLeftActive >= 0) { sendTouchBarKey(0, tbLeftActive, false); logInputEvent('touchbar', 0, tbLeftActive, false) }
-      tbLeftPointerId = null; tbLeftActive = -1
-    }
-    if (tbRightPointerId === event.pointerId) {
-      if (tbRightActive >= 0) { sendTouchBarKey(1, tbRightActive, false); logInputEvent('touchbar', 1, tbRightActive, false) }
-      tbRightPointerId = null; tbRightActive = -1
-    }
-    event.preventDefault()
+    if (!tbDragging) return
+    const side = tbDragSide
+    const current = side === 0 ? tbLeftActive : tbRightActive
+    if (current >= 0) { sendTouchBarKey(side, current, false); logInputEvent('touchbar', side, current, false) }
+    if (side === 0) tbLeftActive = -1; else tbRightActive = -1
+    tbDragging = false
+    tbDragSide = -1
   }
 
   onMount(() => {
@@ -248,71 +235,46 @@
 <div class="device-panel">
   <div class="device-grid-area">
     <div class="device-vis" class:vis-inactive={!$moduleReady}>
-      <div class="lp">
-        <!-- Left touchbar (bezel overlay) -->
-        <div class="lp-touchbar lp-touchbar-left"
-          bind:this={tbLeftEl}
-          on:pointerdown={(e) => handleTBDown(e, 0)}
-          on:pointermove={(e) => handleTBMove(e, 0)}
-          on:pointerup={handleTBUp}
-          on:pointercancel={handleTBUp}
-        >
-          {#each edgeSlots as _, i}
-            <div class="lp-tb-btn" class:lp-tb-active={tbLeftActive === i}></div>
-          {/each}
-        </div>
-
-        <!-- Right touchbar (bezel overlay) -->
-        <div class="lp-touchbar lp-touchbar-right"
-          bind:this={tbRightEl}
-          on:pointerdown={(e) => handleTBDown(e, 1)}
-          on:pointermove={(e) => handleTBMove(e, 1)}
-          on:pointerup={handleTBUp}
-          on:pointercancel={handleTBUp}
-        >
-          {#each edgeSlots as _, i}
-            <div class="lp-tb-btn" class:lp-tb-active={tbRightActive === i}></div>
-          {/each}
-        </div>
+      <div class="mystrix" on:pointerup={handleTBUp} on:pointercancel={handleTBUp}>
 
         <!-- Underglow ring -->
-          <div class="lp-underglow" aria-hidden="true">
-          <div class="lp-underglow-row">
+        <div class="mystrix-underglow" aria-hidden="true">
+          <div class="mystrix-underglow-row">
             {#each edgeSlots as _, x}
-              <div class="lp-underglow-led-parent">
-                <div class="lp-underglow-led" bind:this={underglowEls[getUnderglowIndex(x, -1)]}></div>
+              <div class="mystrix-underglow-led-parent">
+                <div class="mystrix-underglow-led" bind:this={underglowEls[getUnderglowIndex(x, -1)]}></div>
               </div>
             {/each}
           </div>
-          <div class="lp-underglow-middle">
-            <div class="lp-underglow-column">
+          <div class="mystrix-underglow-middle">
+            <div class="mystrix-underglow-column">
               {#each edgeSlots as _, y}
-                <div class="lp-underglow-led-parent">
-                  <div class="lp-underglow-led" bind:this={underglowEls[getUnderglowIndex(-1, y)]}></div>
+                <div class="mystrix-underglow-led-parent">
+                  <div class="mystrix-underglow-led" bind:this={underglowEls[getUnderglowIndex(-1, y)]}></div>
                 </div>
               {/each}
             </div>
-            <div class="lp-underglow-column">
+            <div class="mystrix-underglow-column">
               {#each edgeSlots as _, y}
-                <div class="lp-underglow-led-parent">
-                  <div class="lp-underglow-led" bind:this={underglowEls[getUnderglowIndex(8, y)]}></div>
+                <div class="mystrix-underglow-led-parent">
+                  <div class="mystrix-underglow-led" bind:this={underglowEls[getUnderglowIndex(8, y)]}></div>
                 </div>
               {/each}
             </div>
           </div>
-          <div class="lp-underglow-row">
+          <div class="mystrix-underglow-row">
             {#each edgeSlots as _, x}
-              <div class="lp-underglow-led-parent">
-                <div class="lp-underglow-led" bind:this={underglowEls[getUnderglowIndex(x, 8)]}></div>
+              <div class="mystrix-underglow-led-parent">
+                <div class="mystrix-underglow-led" bind:this={underglowEls[getUnderglowIndex(x, 8)]}></div>
               </div>
             {/each}
           </div>
         </div>
 
         <!-- Grid border and buttons -->
-        <div class="lp-border">
+        <div class="mystrix-border">
           <div
-            class="lp-controls"
+            class="mystrix-controls"
             bind:this={grid}
             on:pointerdown={handlePointerDown}
             on:pointermove={handlePointerMove}
@@ -321,23 +283,55 @@
             on:pointerleave={endPointer}
           >
             {#each edgeSlots as _, y}
-              <div class="lp-controls-row">
+              <div class="mystrix-controls-row">
                 {#each edgeSlots as _, x}
                   <div
-                    class="lp-btn-parent"
+                    class="mystrix-btn-parent"
                     style={getCornerClip(x, y) ? `clip-path: ${getCornerClip(x, y)};` : ''}
                   >
-                    <div class="lp-normal-btn" bind:this={keypadEls[y * 8 + x]}></div>
+                    <div class="mystrix-btn" bind:this={keypadEls[y * 8 + x]}></div>
                   </div>
                 {/each}
               </div>
             {/each}
           </div>
+
+          <!-- Touchbar overlay: pointer-events:none container, auto on each btn -->
+          <div class="mystrix-touch-key">
+            <div class="mystrix-touch-key-middle">
+              <!-- Left column -->
+              <div class="mystrix-touch-key-column">
+                {#each edgeSlots as _, i}
+                  <div class="mystrix-touchkey-btn">
+                    <div
+                      class="mystrix-touchkey-btn-child"
+                      class:mystrix-tb-active={tbLeftActive === i}
+                      on:pointerdown={(e) => handleTBDown(e, 0, i)}
+                      on:pointerenter={(e) => handleTBEnter(e, 0, i)}
+                    ></div>
+                  </div>
+                {/each}
+              </div>
+              <!-- Right column -->
+              <div class="mystrix-touch-key-column">
+                {#each edgeSlots as _, i}
+                  <div class="mystrix-touchkey-btn">
+                    <div
+                      class="mystrix-touchkey-btn-child"
+                      class:mystrix-tb-active={tbRightActive === i}
+                      on:pointerdown={(e) => handleTBDown(e, 1, i)}
+                      on:pointerenter={(e) => handleTBEnter(e, 1, i)}
+                    ></div>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- FN center key -->
         <div
-          class="lp-center-key"
+          class="mystrix-center-key"
           role="button"
           aria-label="Function key"
           on:pointerdown={handleFnPointerDown}
@@ -345,7 +339,7 @@
           on:pointercancel={endFnPointer}
           on:pointerleave={endFnPointer}
         ></div>
-      </div><!-- end lp -->
+      </div><!-- end mystrix -->
 
       {#if !$moduleReady}
         <div class="vis-overlay" aria-live="polite">
@@ -380,7 +374,7 @@
     width: 100%;
     max-width: 520px;
   }
-  .vis-inactive .lp {
+  .vis-inactive .mystrix {
     filter: blur(4px) saturate(0.8);
   }
   .vis-overlay {
@@ -408,56 +402,14 @@
   }
 
   /* Grid / LED visualization */
-  .lp {
+  .mystrix {
     position: relative;
     width: min(100%, 480px);
     aspect-ratio: 1 / 1;
     z-index: 1;
   }
 
-  /* Touchbar: absolutely positioned on left/right bezel, hidden until hover */
-  .lp-touchbar {
-    position: absolute;
-    top: 3%;
-    height: 94%;
-    width: 3%;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5%;
-    padding: 1.5% 15%;
-    box-sizing: border-box;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-    cursor: pointer;
-    pointer-events: none;
-  }
-
-  .lp:hover .lp-touchbar {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .lp-touchbar-left { left: 0; }
-  .lp-touchbar-right { right: 0; }
-
-  .lp-tb-btn {
-    flex: 1;
-    border-radius: 9999px;
-    background-color: rgba(255, 255, 255, 0.12);
-    transform: scale(0.8);
-    transition: background-color 0.15s ease, transform 0.15s ease;
-  }
-
-  .lp-touchbar:hover .lp-tb-btn {
-    background-color: rgba(255, 255, 255, 0.22);
-  }
-
-  .lp-tb-btn.lp-tb-active {
-    background-color: rgba(255, 255, 255, 0.55);
-    transform: scale(1.05);
-  }
-  .lp-border {
+  .mystrix-border {
     background-color: var(--device-body, #151518);
     border: 2px solid var(--device-border, #2f2f36);
     border-radius: 3%;
@@ -467,7 +419,7 @@
     aspect-ratio: 1 / 1;
     z-index: 2;
   }
-  .lp-underglow {
+  .mystrix-underglow {
     position: absolute;
     top: -3%; left: -3%;
     height: 106%; width: 106%;
@@ -475,39 +427,39 @@
     z-index: 1;
     pointer-events: none;
   }
-  .lp-underglow-row {
+  .mystrix-underglow-row {
     height: 6%;
     display: flex;
     padding-left: 6%; padding-right: 6%;
     gap: 1.5%;
   }
-  .lp-underglow-middle {
+  .mystrix-underglow-middle {
     display: flex;
     height: 88%;
     justify-content: space-between;
   }
-  .lp-underglow-column {
+  .mystrix-underglow-column {
     height: 100%; width: 6%;
     display: flex;
     flex-direction: column;
     gap: 1.5%;
     padding: 0.5% 0;
   }
-  .lp-underglow-row .lp-underglow-led-parent,
-  .lp-underglow-column .lp-underglow-led-parent {
+  .mystrix-underglow-row .mystrix-underglow-led-parent,
+  .mystrix-underglow-column .mystrix-underglow-led-parent {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
-  .lp-underglow-column .lp-underglow-led-parent {
+  .mystrix-underglow-column .mystrix-underglow-led-parent {
     height: 20%;
   }
-  .lp-underglow-led {
+  .mystrix-underglow-led {
     height: 100%; width: 100%;
     background-color: rgba(255, 255, 255, 0);
   }
-  .lp-controls {
+  .mystrix-controls {
     position: relative;
     height: 100%; width: 100%;
     display: flex;
@@ -517,19 +469,19 @@
     z-index: 10;
     touch-action: none;
   }
-  .lp-controls-row {
+  .mystrix-controls-row {
     height: 100%;
     display: flex;
     gap: 1.5%;
   }
-  .lp-btn-parent {
+  .mystrix-btn-parent {
     height: 100%; width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     filter: var(--key-glow-filter, none);
   }
-  .lp-normal-btn {
+  .mystrix-btn {
     padding: 0; border: none;
     height: 100%; width: 100%;
     border-radius: 10%;
@@ -540,7 +492,64 @@
     background-position: center;
     background-size: 100% 100%;
   }
-  .lp-center-key {
+
+  /* Touchbar overlay: full-area abs, pointer-events none except buttons */
+  .mystrix-touch-key {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 15;
+    pointer-events: none;
+  }
+  .mystrix-touch-key-middle {
+    display: flex;
+    height: 94%;
+    margin-top: 3%;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .mystrix-touch-key-column {
+    width: 3%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+  }
+  .mystrix-touchkey-btn {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .mystrix-touchkey-btn-child {
+    width: 100%;
+    height: 80%;
+    border-radius: 9999px;
+    background-color: transparent;
+    transform: scale(0.8);
+    transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: none;
+    opacity: 0;
+  }
+  .mystrix:hover .mystrix-touchkey-btn-child {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  .mystrix-touchkey-btn-child:hover {
+    background-color: rgba(255, 255, 255, 0.28) !important;
+    transform: scale(1.1);
+  }
+  .mystrix-touchkey-btn-child.mystrix-tb-active {
+    background-color: rgba(255, 255, 255, 0.55) !important;
+    transform: scale(1.15);
+  }
+
+  .mystrix-center-key {
     position: absolute;
     height: 3.2%; width: 3.2%;
     z-index: 3;
@@ -553,7 +562,7 @@
     touch-action: none;
     cursor: pointer;
   }
-  .lp-center-key:hover {
+  .mystrix-center-key:hover {
     background-color: rgba(255, 255, 255, 0.28);
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
   }
