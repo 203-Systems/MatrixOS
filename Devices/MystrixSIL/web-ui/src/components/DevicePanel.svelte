@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { get } from 'svelte/store'
-  import { moduleRef, moduleReady, wasmMissing, runtimeStatus, sendGridKey, sendFnKey, tickKeypad, getRuntimeKeypadState, getRuntimeFnState } from '../stores/wasm.js'
+  import { moduleRef, moduleReady, wasmMissing, runtimeStatus, sendGridKey, sendFnKey, sendTouchBarKey, tickKeypad, getRuntimeKeypadState, getRuntimeFnState } from '../stores/wasm.js'
   import { logInputEvent, pollRuntimeState } from '../stores/input.js'
 
   const fallbackSize = 8
@@ -187,6 +187,27 @@
     event.preventDefault()
   }
 
+  // Touchbar pointer tracking: Map<pointerId, {side, index}>
+  const touchbarPointers = new Map()
+
+  const handleTouchBarPointerDown = (event, side, index) => {
+    if (!get(moduleReady)) return
+    touchbarPointers.set(event.pointerId, { side, index })
+    event.currentTarget.setPointerCapture(event.pointerId)
+    sendTouchBarKey(side, index, true)
+    logInputEvent(side === 0 ? 'touchbar-left' : 'touchbar-right', index, 0, true)
+    event.preventDefault()
+  }
+
+  const handleTouchBarPointerUp = (event) => {
+    const info = touchbarPointers.get(event.pointerId)
+    if (!info) return
+    touchbarPointers.delete(event.pointerId)
+    sendTouchBarKey(info.side, info.index, false)
+    logInputEvent(info.side === 0 ? 'touchbar-left' : 'touchbar-right', info.index, 0, false)
+    event.preventDefault()
+  }
+
   onMount(() => {
     lastColors.fill('')
     lastUnderglowColors.fill('')
@@ -200,9 +221,25 @@
 <div class="device-panel">
   <div class="device-grid-area">
     <div class="device-vis" class:vis-inactive={!$moduleReady}>
-      <div class="lp">
-        <!-- Underglow ring -->
-        <div class="lp-underglow" aria-hidden="true">
+      <div class="lp-outer">
+        <!-- Left touchbar -->
+        <div class="lp-touchbar lp-touchbar-left">
+          {#each edgeSlots as _, i}
+            <div
+              class="lp-tb-btn"
+              role="button"
+              aria-label={`Left touchbar ${i}`}
+              on:pointerdown={(e) => handleTouchBarPointerDown(e, 0, i)}
+              on:pointerup={handleTouchBarPointerUp}
+              on:pointercancel={handleTouchBarPointerUp}
+              on:pointerleave={handleTouchBarPointerUp}
+            ></div>
+          {/each}
+        </div>
+
+        <div class="lp">
+          <!-- Underglow ring -->
+          <div class="lp-underglow" aria-hidden="true">
           <div class="lp-underglow-row">
             {#each edgeSlots as _, x}
               <div class="lp-underglow-led-parent">
@@ -273,14 +310,31 @@
         ></div>
       </div>
 
+      <!-- Right touchbar -->
+      <div class="lp-touchbar lp-touchbar-right">
+        {#each edgeSlots as _, i}
+          <div
+            class="lp-tb-btn"
+            role="button"
+            aria-label={`Right touchbar ${i}`}
+            on:pointerdown={(e) => handleTouchBarPointerDown(e, 1, i)}
+            on:pointerup={handleTouchBarPointerUp}
+            on:pointercancel={handleTouchBarPointerUp}
+            on:pointerleave={handleTouchBarPointerUp}
+          ></div>
+        {/each}
+      </div>
+
+    </div><!-- end lp-outer -->
+
       {#if !$moduleReady}
         <div class="vis-overlay" aria-live="polite">
           <div class="vis-status" class:vis-error={$wasmMissing}>{$runtimeStatus}</div>
         </div>
       {/if}
-    </div>
-  </div>
-</div>
+    </div><!-- end device-vis -->
+  </div><!-- end device-grid-area -->
+</div><!-- end device-panel -->
 
 <style>
   .device-panel {
@@ -334,6 +388,40 @@
   }
 
   /* Grid / LED visualization */
+  .lp-outer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+  }
+
+  .lp-touchbar {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    height: min(100%, 480px);
+  }
+
+  .lp-tb-btn {
+    flex: 1;
+    width: 18px;
+    border-radius: 6px;
+    background-color: var(--device-button, #3a3a42);
+    cursor: pointer;
+    transition: background-color 0.06s ease;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .lp-tb-btn:hover {
+    background-color: var(--device-button-hover, #525260);
+  }
+
+  .lp-tb-btn:active {
+    background-color: var(--accent, #4cc9f0);
+  }
+
   .lp {
     position: relative;
     width: min(100%, 480px);

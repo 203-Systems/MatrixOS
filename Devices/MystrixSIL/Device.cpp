@@ -38,6 +38,8 @@ struct KeyState {
 
 KeyState fnState;
 KeyState gridState[X_SIZE * Y_SIZE];
+KeyState touchbarLeftState[8];
+KeyState touchbarRightState[8];
 
 Direction deviceRotation = TOP;
 
@@ -190,6 +192,37 @@ static bool GridTryGetMemberId(const InputCluster& cluster, Point point, uint16_
   return true;
 }
 
+static Point GetTouchBarPhysicalPoint(uint8_t clusterId, uint16_t memberId) {
+  return (clusterId == 2) ? Point(-1, (int16_t)memberId) : Point(X_SIZE, (int16_t)memberId);
+}
+
+static void GetTouchBarBounds(uint8_t clusterId, Point* rootPoint, Dimension* dimension) {
+  const Point physicalStart = (clusterId == 2) ? Point(-1, 0) : Point(X_SIZE, 0);
+  const Point physicalEnd = (clusterId == 2) ? Point(-1, 7) : Point(X_SIZE, 7);
+  const Point rotatedStart = RotatePhysicalPoint(physicalStart);
+  const Point rotatedEnd = RotatePhysicalPoint(physicalEnd);
+  rootPoint->x = std::min(rotatedStart.x, rotatedEnd.x);
+  rootPoint->y = std::min(rotatedStart.y, rotatedEnd.y);
+  dimension->x = std::abs(rotatedStart.x - rotatedEnd.x) + 1;
+  dimension->y = std::abs(rotatedStart.y - rotatedEnd.y) + 1;
+}
+
+static bool TouchBarGetPosition(const InputCluster& cluster, uint16_t memberId, Point* point) {
+  if (memberId >= cluster.inputCount)
+    return false;
+  *point = RotatePhysicalPoint(GetTouchBarPhysicalPoint(cluster.clusterId, memberId));
+  return true;
+}
+
+static bool TouchBarTryGetMemberId(const InputCluster& cluster, Point point, uint16_t* memberId) {
+  Point physicalPoint = UnrotateLogicalPoint(point);
+  const int16_t expectedX = (cluster.clusterId == 2) ? -1 : X_SIZE;
+  if (physicalPoint.x != expectedX || physicalPoint.y < 0 || physicalPoint.y >= (int16_t)cluster.inputCount)
+    return false;
+  *memberId = (uint16_t)physicalPoint.y;
+  return true;
+}
+
 bool GetPosition(uint8_t clusterId, uint16_t memberId, Point* point) {
   for (const auto& c : clusters)
   {
@@ -224,6 +257,16 @@ void SuppressActiveInputs() {
     if (ks.info.Active())
       ks.suppressed = true;
   }
+  for (auto& ks : touchbarLeftState)
+  {
+    if (ks.info.Active())
+      ks.suppressed = true;
+  }
+  for (auto& ks : touchbarRightState)
+  {
+    if (ks.info.Active())
+      ks.suppressed = true;
+  }
 }
 
 bool GetState(InputId id, InputSnapshot* snapshot) {
@@ -236,6 +279,14 @@ bool GetState(InputId id, InputSnapshot* snapshot) {
   {
     ks = &gridState[id.memberId];
   }
+  else if (id.clusterId == 2 && id.memberId < 8)
+  {
+    ks = &touchbarLeftState[id.memberId];
+  }
+  else if (id.clusterId == 3 && id.memberId < 8)
+  {
+    ks = &touchbarRightState[id.memberId];
+  }
   if (!ks)
     return false;
 
@@ -247,9 +298,9 @@ bool GetState(InputId id, InputSnapshot* snapshot) {
 }
 
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
-  if (clusterId > 1)
+  if (clusterId > 3)
     return false;
-  // SIL emulates binary keypads: no pressure, aftertouch, velocity, or position
+  // All SIL clusters are binary keypads: no pressure, aftertouch, velocity, or position
   *caps = {false, false, false, false};
   return true;
 }
@@ -281,6 +332,30 @@ void RegisterInputClusters() {
   gridCluster.getPosition = Input::GridGetPosition;
   gridCluster.tryGetMemberId = Input::GridTryGetMemberId;
   Input::clusters.push_back(gridCluster);
+
+  // Cluster 2: TouchBar Left (physical x = -1, y = 0..7)
+  InputCluster touchbarLeftCluster;
+  touchbarLeftCluster.clusterId = 2;
+  touchbarLeftCluster.name = "TouchBarLeft";
+  touchbarLeftCluster.inputClass = InputClass::Keypad;
+  touchbarLeftCluster.shape = InputClusterShape::Linear1D;
+  touchbarLeftCluster.inputCount = 8;
+  Input::GetTouchBarBounds(2, &touchbarLeftCluster.rootPoint, &touchbarLeftCluster.dimension);
+  touchbarLeftCluster.getPosition = Input::TouchBarGetPosition;
+  touchbarLeftCluster.tryGetMemberId = Input::TouchBarTryGetMemberId;
+  Input::clusters.push_back(touchbarLeftCluster);
+
+  // Cluster 3: TouchBar Right (physical x = X_SIZE, y = 0..7)
+  InputCluster touchbarRightCluster;
+  touchbarRightCluster.clusterId = 3;
+  touchbarRightCluster.name = "TouchBarRight";
+  touchbarRightCluster.inputClass = InputClass::Keypad;
+  touchbarRightCluster.shape = InputClusterShape::Linear1D;
+  touchbarRightCluster.inputCount = 8;
+  Input::GetTouchBarBounds(3, &touchbarRightCluster.rootPoint, &touchbarRightCluster.dimension);
+  touchbarRightCluster.getPosition = Input::TouchBarGetPosition;
+  touchbarRightCluster.tryGetMemberId = Input::TouchBarTryGetMemberId;
+  Input::clusters.push_back(touchbarRightCluster);
 }
 
 // --- LED ---
@@ -516,6 +591,43 @@ void MatrixOS_Wasm_KeypadTick(void) {
     InputId id = {1, keyIndex};
     TickHoldEvent(id, &gridState[keyIndex], now);
   }
+
+  for (uint16_t i = 0; i < 8; i++)
+  {
+    TickHoldEvent({2, i}, &touchbarLeftState[i], now);
+    TickHoldEvent({3, i}, &touchbarRightState[i], now);
+  }
+}
+
+// side: 0 = left (cluster 2), 1 = right (cluster 3); index: 0..7
+void MatrixOS_Wasm_TouchBarEvent(uint8_t side, uint16_t index, bool pressed) {
+  if (index >= 8)
+    return;
+  uint8_t clusterId = (side == 0) ? 2 : 3;
+  KeyState* ks = (side == 0) ? &touchbarLeftState[index] : &touchbarRightState[index];
+
+  if (pressed && !ks->info.Active())
+  {
+    ks->info.pressure = 65535;
+    ks->info.velocity = 65535;
+    ks->info.state = KeypadState::Pressed;
+    ks->info.hold = false;
+    ks->info.lastEventTime = Device::Millis();
+  }
+  else if (!pressed && ks->info.Active())
+  {
+    ks->info.pressure = 0;
+    ks->info.velocity = 0;
+    ks->info.state = KeypadState::Released;
+    ks->info.lastEventTime = Device::Millis();
+  }
+  else
+  {
+    return;
+  }
+
+  InputId id = {clusterId, index};
+  EmitKeyEvent(id, ks);
 }
 
 const char* MatrixOS_Wasm_GetVersionString(void) {

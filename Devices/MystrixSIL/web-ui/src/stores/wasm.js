@@ -146,6 +146,13 @@ export function sendFnKey(pressed) {
   mod._MatrixOS_Wasm_FnEvent(pressed ? 1 : 0)
 }
 
+// side: 0 = left touchbar, 1 = right touchbar; index: 0..7
+export function sendTouchBarKey(side, index, pressed) {
+  const mod = get(moduleRef)
+  if (!mod?._MatrixOS_Wasm_TouchBarEvent) return
+  mod._MatrixOS_Wasm_TouchBarEvent(side, index, pressed ? 1 : 0)
+}
+
 export function tickKeypad() {
   const mod = get(moduleRef)
   if (mod?._MatrixOS_Wasm_KeypadTick) mod._MatrixOS_Wasm_KeypadTick()
