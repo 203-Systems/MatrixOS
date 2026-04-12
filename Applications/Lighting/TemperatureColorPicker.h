@@ -1,4 +1,5 @@
 #include <cmath>
+#include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
 

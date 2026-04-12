@@ -37,7 +37,7 @@ class MystrixBoot : public BootAnimation {
   Color BootPhase2Color(int16_t time, float hue);
   void BootPhase2QuadSetColor(uint8_t x_offset, uint8_t y_offset, Color color1, Color color2);
 
-  void End();
+  void End() override;
 };
 
 

@@ -11,8 +11,8 @@ class MixerControl : public UIComponent {
 public:
   MixerControl(Sequencer* sequencer);
 
-  Dimension GetSize();
+  Dimension GetSize() override;
   virtual bool IsEnabled() override;
-  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
-  virtual bool Render(Point origin);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
+  virtual bool Render(Point origin) override;
 };

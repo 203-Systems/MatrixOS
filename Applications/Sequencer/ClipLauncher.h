@@ -14,10 +14,10 @@ class ClipLauncher : public UIComponent {
 public:
   ClipLauncher(Sequencer* sequencer);
 
-  Dimension GetSize();
+  Dimension GetSize() override;
 
   virtual bool IsEnabled() override;
-  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
 
-  virtual bool Render(Point origin);
+  virtual bool Render(Point origin) override;
 };

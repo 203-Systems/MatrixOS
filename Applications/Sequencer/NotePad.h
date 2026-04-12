@@ -33,7 +33,7 @@ class SequencerNotePad : public UIComponent {
 public:
   SequencerNotePad(Sequencer* sequencer, bool testingMode = false);
 
-  Dimension GetSize();
+  Dimension GetSize() override;
 
   NoteType InScale(int16_t note);
   int16_t NoteFromRoot(int16_t note);
@@ -51,7 +51,7 @@ public:
 
   void Rescan(Point origin);
 
-  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo);
+  virtual bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
   virtual bool IsEnabled() override;
-  virtual bool Render(Point origin);
+  virtual bool Render(Point origin) override;
 };

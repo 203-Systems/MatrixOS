@@ -67,7 +67,7 @@ public:
   };
 
   void Setup(const vector<string>& args) override;
-  void End();
+  void End() override;
 
   SequenceMeta meta;
   Sequence sequence;

@@ -15,6 +15,6 @@ public:
   }; // return true will signal the Boot Animation to enter Boot Animation
   virtual void Boot() {};
 
-  virtual void End() {};
+  virtual void End() override {};
   virtual void KeyEvent(InputId inputId, KeypadInfo* keypadInfo);
 };

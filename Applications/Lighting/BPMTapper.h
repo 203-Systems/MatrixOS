@@ -1,11 +1,12 @@
 #include <cmath>
 #include <deque>
+#include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
 #define TAP_HISTORY_SIZE 10
 
-class UIBPMTapper : public UIComponent {
+class UIBPMTapper: public UIComponent {
 public:
   string name;
   Color color;

@@ -102,7 +102,7 @@ public:
   ~NotePad();
 
   virtual Color GetColor();
-  virtual Dimension GetSize();
+  virtual Dimension GetSize() override;
 
   NoteType InScale(int16_t note);
   int16_t NoteFromRoot(int16_t note);

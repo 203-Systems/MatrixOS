@@ -490,6 +490,7 @@ bool SequencerMessageDisplay::Render(Point origin) {
       }
       break;
     }
+    case SequencerMessage::COPY:
     case SequencerMessage::COPIED: {
       if (sequencer->CopyActive())
       {
@@ -519,6 +520,8 @@ bool SequencerMessageDisplay::Render(Point origin) {
       RenderClip(origin, clipColor);
       break;
     }
+    case SequencerMessage::NONE:
+      break;
     case SequencerMessage::MIX: {
       Color mixColor = Color(0x40FF00);
       RenderMix(origin, mixColor);
