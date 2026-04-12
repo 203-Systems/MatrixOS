@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { formatBytes, usageSnapshot } from '../../stores/tooling.js'
-  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs } from '../../stores/wasm.js'
+  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs, buildIdentity } from '../../stores/wasm.js'
   import { errorCount, warnCount, logMessages } from '../../stores/logs.js'
   export let showHero = true
   export let onCloseHero = () => {}
@@ -49,7 +49,7 @@
       <div class="tool-card">
         <span class="tool-card-label">OS Version</span>
         <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
-          {$wasmMissing ? 'Missing' : 'Matrix OS 3.3 InDev'}
+          {$wasmMissing ? 'Missing' : $buildIdentity}
         </span>
       </div>
       <div class="tool-card">
