@@ -448,9 +448,15 @@ if (import.meta.hot) {
     // Clear the in-progress guard so the new module instance can restart freely.
     _restartInProgress = false
   })
-  // Re-init with the existing running WASM (if any) so the UI restores to Live.
+  // After dispose() the old module may have fully torn down window.Module.
+  // In that case, explicitly hot-restart the runtime so wasm.js edits recover
+  // to a live state without requiring a manual page reload.
   import.meta.hot.accept(() => {
     const mod = window.Module
-    if (mod?.runtimeReady || mod?.calledRun) initWasm()
+    if (mod?.runtimeReady || mod?.calledRun) {
+      initWasm()
+    } else {
+      restartWasm()
+    }
   })
 }
