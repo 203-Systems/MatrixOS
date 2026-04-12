@@ -23,11 +23,12 @@ import {
   doReboot, getUptimeMs,
 } from './wasm.js'
 import { logMessages, errorCount, warnCount } from './logs.js'
-import { midiEvents, midiPorts, portLabel, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
+import { midiEvents, midiPorts, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
 import { hidEvents, sendRawHid } from './hid.js'
 import { serialEvents, sendSerialText, sendSerialHex } from './serial.js'
-import { nvsEntries, refreshNvs, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
-import { listInputs, executeInputEvents, getActiveInputs, INPUT_GRID_SIZE } from '../handles/input.js'
+import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
+import { listInputs, executeInputEvents, getActiveInputs } from '../handles/input.js'
+import { getLedFrame, getLed } from '../handles/led.js'
 
 // ---------------------------------------------------------------------------
 // Deployment mode
@@ -166,33 +167,6 @@ function initSubscriptionBridge() {
 }
 
 // ---------------------------------------------------------------------------
-// LED / framebuffer helpers
-// ---------------------------------------------------------------------------
-
-function getFramebufferData() {
-  const mod = window.Module
-  if (!mod?._MatrixOS_Wasm_GetFrameBuffer || !mod.HEAPU8) return null
-  const ptr = mod._MatrixOS_Wasm_GetFrameBuffer()
-  const byteLen = mod._MatrixOS_Wasm_GetFrameBufferByteLength?.() ?? 0
-  if (!ptr || !byteLen) return null
-  return mod.HEAPU8.subarray(ptr, ptr + byteLen)
-}
-
-function ledAtIndex(data, idx) {
-  const base = idx * 4
-  return { r: data[base], g: data[base + 1], b: data[base + 2], w: data[base + 3] }
-}
-
-function ledToHex({ r, g, b, w }) {
-  return (
-    r.toString(16).padStart(2, '0') +
-    g.toString(16).padStart(2, '0') +
-    b.toString(16).padStart(2, '0') +
-    w.toString(16).padStart(2, '0')
-  ).toUpperCase()
-}
-
-// ---------------------------------------------------------------------------
 // NVS hash parsing
 // ---------------------------------------------------------------------------
 
@@ -265,47 +239,9 @@ const handlers = {
 
   // ---- LED ----
 
-  'led.getFrame': () => {
-    const data = getFramebufferData()
-    if (!data) return { __error: ERR.UNSUPPORTED }
+  'led.getFrame': () => getLedFrame(),
 
-    const totalLeds = Math.floor(data.length / 4)
-    const gridCount = Math.min(64, totalLeds)
-
-    const grid = []
-    for (let i = 0; i < gridCount; i++) grid.push(ledToHex(ledAtIndex(data, i)))
-
-    const underglow = []
-    for (let i = 64; i < totalLeds; i++) underglow.push(ledToHex(ledAtIndex(data, i)))
-
-    return { timestamp: new Date().toISOString(), format: 'rgbw-hex', grid, underglow }
-  },
-
-  'led.get': (params) => {
-    const id = params?.id
-    if (!id) return { __error: ERR.INVALID_PARAMS }
-
-    const data = getFramebufferData()
-    if (!data) return { __error: ERR.UNSUPPORTED }
-
-    let idx
-    const gridM = /^grid:(\d+),(\d+)$/.exec(id)
-    const ugM = /^underglow:(\d+)$/.exec(id)
-    if (gridM) {
-      const x = parseInt(gridM[1]), y = parseInt(gridM[2])
-      if (x < 0 || x >= INPUT_GRID_SIZE || y < 0 || y >= INPUT_GRID_SIZE) {
-        return { __error: ERR.UNKNOWN_TARGET }
-      }
-      idx = y * INPUT_GRID_SIZE + x
-    } else if (ugM) {
-      idx = 64 + parseInt(ugM[1])
-    } else {
-      return { __error: ERR.UNKNOWN_TARGET }
-    }
-
-    if (idx * 4 + 3 >= data.length) return { __error: ERR.UNKNOWN_TARGET }
-    return { id, color: ledToHex(ledAtIndex(data, idx)) }
-  },
+  'led.get': (params) => getLed(params),
 
   // ---- Logs ----
 
