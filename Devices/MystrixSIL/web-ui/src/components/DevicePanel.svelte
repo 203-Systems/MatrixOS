@@ -308,33 +308,31 @@
 
           <!-- Touchbar overlay: pointer-events:none container, auto on each btn -->
           <div class="mystrix-touch-key">
-            <div class="mystrix-touch-key-middle">
-              <!-- Left column -->
-              <div class="mystrix-touch-key-column">
-                {#each edgeSlots as _, i}
-                  <div class="mystrix-touchkey-btn">
-                    <div
-                      class="mystrix-touchkey-btn-child"
-                      class:mystrix-tb-active={tbLeftActive === i}
-                      on:pointerdown={(e) => handleTBDown(e, 0, i)}
-                      on:pointerenter={(e) => handleTBEnter(e, 0, i)}
-                    ></div>
-                  </div>
-                {/each}
-              </div>
-              <!-- Right column -->
-              <div class="mystrix-touch-key-column">
-                {#each edgeSlots as _, i}
-                  <div class="mystrix-touchkey-btn">
-                    <div
-                      class="mystrix-touchkey-btn-child"
-                      class:mystrix-tb-active={tbRightActive === i}
-                      on:pointerdown={(e) => handleTBDown(e, 1, i)}
-                      on:pointerenter={(e) => handleTBEnter(e, 1, i)}
-                    ></div>
-                  </div>
-                {/each}
-              </div>
+            <!-- Left column -->
+            <div class="mystrix-touch-key-column mystrix-touch-key-left">
+              {#each edgeSlots as _, i}
+                <div class="mystrix-touchkey-btn">
+                  <div
+                    class="mystrix-touchkey-btn-child"
+                    class:mystrix-tb-active={tbLeftActive === i}
+                    on:pointerdown={(e) => handleTBDown(e, 0, i)}
+                    on:pointerenter={(e) => handleTBEnter(e, 0, i)}
+                  ></div>
+                </div>
+              {/each}
+            </div>
+            <!-- Right column -->
+            <div class="mystrix-touch-key-column mystrix-touch-key-right">
+              {#each edgeSlots as _, i}
+                <div class="mystrix-touchkey-btn">
+                  <div
+                    class="mystrix-touchkey-btn-child"
+                    class:mystrix-tb-active={tbRightActive === i}
+                    on:pointerdown={(e) => handleTBDown(e, 1, i)}
+                    on:pointerenter={(e) => handleTBEnter(e, 1, i)}
+                  ></div>
+                </div>
+              {/each}
             </div>
           </div>
         </div>
@@ -512,22 +510,18 @@
     z-index: 15;
     pointer-events: none;
   }
-  .mystrix-touch-key-middle {
-    display: flex;
-    height: 94%;
-    margin-top: 3%;
-    justify-content: space-between;
-    pointer-events: none;
-  }
   .mystrix-touch-key-column {
+    position: absolute;
+    top: 3%;
+    height: 94%;
     width: 3%;
-    height: 100%;
     display: flex;
     flex-direction: column;
     gap: 1.5%;
-    padding: 0;
     pointer-events: none;
   }
+  .mystrix-touch-key-left { left: 0; }
+  .mystrix-touch-key-right { right: 0; }
   .mystrix-touchkey-btn {
     flex: 1;
     width: 100%;
@@ -537,22 +531,22 @@
     pointer-events: none;
   }
   .mystrix-touchkey-btn-child {
-    width: 65%;
+    width: 100%;
     height: 100%;
-    border-radius: 10%;
+    border-radius: 9999px;
     background-color: transparent;
-    transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
+    transition: background-color 0.15s ease, opacity 0.2s ease;
     pointer-events: auto;
     cursor: pointer;
     touch-action: none;
     opacity: 0;
   }
   /* Per-side hover: only show the hovered side */
-  .mystrix-hover-left .mystrix-touch-key-column:first-child .mystrix-touchkey-btn-child {
+  .mystrix-hover-left .mystrix-touch-key-left .mystrix-touchkey-btn-child {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.15);
   }
-  .mystrix-hover-right .mystrix-touch-key-column:last-child .mystrix-touchkey-btn-child {
+  .mystrix-hover-right .mystrix-touch-key-right .mystrix-touchkey-btn-child {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.15);
   }
