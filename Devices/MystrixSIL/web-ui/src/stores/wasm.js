@@ -17,6 +17,8 @@ let wasmSignature = null
 let reloadTimer = 0
 let _currentCleanup = null
 let _restartInProgress = false
+// Blob URL for the current injected MatrixOSHost.js — revoked on next teardown.
+let _currentBlobUrl = null
 
 const isHtmlResponse = (r) => (r.headers.get('content-type') || '').includes('text/html')
 
@@ -93,6 +95,12 @@ function terminateWasmRuntime() {
     console.warn('[MystrixSIL] Error terminating pthreads:', e)
   }
 
+  // Revoke the previous restart's Blob URL now that all workers are terminated.
+  if (_currentBlobUrl) {
+    try { URL.revokeObjectURL(_currentBlobUrl) } catch {}
+    _currentBlobUrl = null
+  }
+
   document.querySelectorAll('script[src*="MatrixOSHost.js"]').forEach(el => el.remove())
   // Emscripten may define HEAPU8 as non-configurable — use assignment, not delete
   try { window.HEAPU8 = undefined } catch {}
@@ -133,7 +141,11 @@ function prepareFreshModule() {
   })
 
   window.MatrixOS_Reboot = () => { setTimeout(restartWasm, 0) }
-  window.MatrixOS_Bootloader = () => { setTimeout(restartWasm, 0) }
+  // Bootloader is distinct from a hot-restart: in the SIL environment there is no
+  // actual DFU target, so entering bootloader is represented as a full page reload
+  // (restoring the original pre-hot-restart behavior). This keeps it clearly
+  // separate from the runtime-only restart path.
+  window.MatrixOS_Bootloader = () => { location.reload() }
 }
 
 /** Dynamically inject MatrixOSHost.js and wait for it to load. */
@@ -201,14 +213,15 @@ async function injectWasmScript() {
     // eslint-disable-next-line no-new-func
     new Function(wrapped)()
   } catch (e) {
-    if (blobUrl) URL.revokeObjectURL(blobUrl)
+    if (blobUrl) { try { URL.revokeObjectURL(blobUrl) } catch {} }
     wasmMissing.set(true)
     runtimeStatus.set('WASM image missing')
     throw new Error(`Failed to execute MatrixOSHost.js: ${e.message}`)
   }
-  // Note: blobUrl is intentionally not revoked here — it must remain alive as long
-  // as any pthread worker holds a reference to it. Workers are terminated in
-  // terminateWasmRuntime() on the next restart.
+  // Store the blob URL at module level. It must remain alive while any pthread
+  // worker holds a reference to it. terminateWasmRuntime() will revoke it on
+  // the next hot-restart once all workers are terminated.
+  _currentBlobUrl = blobUrl
 }
 
 /** Reset all runtime-facing event stores. */
@@ -334,9 +347,11 @@ export function initWasm() {
 
   waitForRuntime().then(startPoll)
 
-  // Upgrade reboot hooks to use hot-restart (setTimeout avoids EM_ASM deadlock)
+  // Upgrade reboot hook to use hot-restart (setTimeout avoids EM_ASM deadlock).
+  // Bootloader uses location.reload() — there is no DFU target in the SIL
+  // environment, so bootloader semantics are a full page reload, not a hot-restart.
   window.MatrixOS_Reboot = () => { setTimeout(restartWasm, 0) }
-  window.MatrixOS_Bootloader = () => { setTimeout(restartWasm, 0) }
+  window.MatrixOS_Bootloader = () => { location.reload() }
 
   const cleanup = () => {
     if (reloadTimer) clearInterval(reloadTimer)
@@ -378,7 +393,10 @@ export function doReboot() {
 }
 
 export function doBootloader() {
-  restartWasm()
+  // Bootloader is a distinct action from a hot-restart. In the SIL environment
+  // there is no physical DFU target, so entering bootloader reloads the full page
+  // (matching the original pre-hot-restart behavior).
+  location.reload()
 }
 
 export function getRotation() {

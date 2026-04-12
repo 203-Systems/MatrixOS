@@ -8,7 +8,7 @@
  *   node test-hot-restart.mjs
  *
  * The test:
- *  0. Calls session.fullReload to ensure the browser has latest code,
+ *  0. Calls debug.fullReload to ensure the browser has latest code,
  *     then reconnects and waits for the runtime to be Live.
  *  1. Calls session.reset — hot-restart (no page reload)
  *  2. Waits for runtime to return to Live (polls every 2s, up to 15s)
@@ -107,9 +107,9 @@ async function run() {
     console.log('Connected.\n')
 
     // ---- Step 0: Full page reload to ensure latest code is loaded ----
-    console.log('[Step 0] session.fullReload — ensuring browser has latest code')
+    console.log('[Step 0] debug.fullReload — ensuring browser has latest code')
     try {
-      const res = await call(ws, 'session.fullReload')
+      const res = await call(ws, 'debug.fullReload')
       if (res?.ok) {
         console.log('  Browser reloading… waiting for agent to reconnect')
         ws.close()
@@ -138,8 +138,8 @@ async function run() {
           return
         }
       } else {
-        // session.fullReload not supported by old code — skip reload step
-        console.log('  session.fullReload not supported — skipping code refresh')
+        // debug.fullReload not supported by old code — skip reload step
+        console.log('  debug.fullReload not supported — skipping code refresh')
         console.log('  WARNING: tests may fail if browser has old code')
         const state = await call(ws, 'runtime.getState').catch(() => null)
         if (state?.status === 'Live') ok(`Baseline runtime is Live (uptime ${state.uptimeMs}ms)`)
@@ -148,12 +148,12 @@ async function run() {
     } catch (e) {
       // If method not found, old browser — skip reload
       if (e.message.includes('Method not found')) {
-        console.log('  session.fullReload not available — testing with existing browser code')
+        console.log('  debug.fullReload not available — testing with existing browser code')
         const state = await call(ws, 'runtime.getState').catch(() => null)
         if (state?.status === 'Live') ok(`Baseline runtime is Live (uptime ${state.uptimeMs}ms)`)
         else fail(`Baseline: ${JSON.stringify(state)}`)
       } else {
-        fail(`session.fullReload failed: ${e.message}`)
+        fail(`debug.fullReload failed: ${e.message}`)
       }
     }
 

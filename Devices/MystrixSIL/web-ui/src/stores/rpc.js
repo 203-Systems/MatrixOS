@@ -203,9 +203,14 @@ const handlers = {
 
   'session.reset': () => resetSession(),
 
-  // Force a full page reload — use sparingly (e.g., when a code update must be applied
-  // before testing, or when the WASM binary has changed).
-  'session.fullReload': () => {
+  // ---------------------------------------------------------------------------
+  // DEBUG / INTERNAL ONLY — NOT part of the MystrixSIL JSON-RPC spec.
+  // This method is intentionally undocumented and may be removed at any time.
+  // Use only for test tooling that needs to guarantee fresh browser code before
+  // exercising a hot-restart path. Never call from production automations.
+  // ---------------------------------------------------------------------------
+  'debug.fullReload': () => {
+    if (!IS_NODE_BACKED) return { __error: ERR.UNSUPPORTED }
     setTimeout(() => window.location.reload(), 50)
     return { ok: true }
   },
