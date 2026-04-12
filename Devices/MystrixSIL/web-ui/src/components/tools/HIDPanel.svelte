@@ -2,6 +2,8 @@
   import { hidEvents, hidConnected, clearHidEvents } from '../../stores/hid.js'
   import { sendRawHid } from '../../handles/hid.js'
   import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let eventBody
   let autoScroll = true
@@ -64,6 +66,13 @@
 </script>
 
 <div class="hid-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">HID</div>
+    <div class="tool-hero-desc">Monitor raw HID events — keyboard, gamepad, and custom reports. Send raw HID payloads for testing.</div>
+  </div>
+  {/if}
   <!-- Filter toolbar -->
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>

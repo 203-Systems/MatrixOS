@@ -2,6 +2,8 @@
   import { serialEvents, serialConnected, clearSerialEvents } from '../../stores/serial.js'
   import { sendSerialText, sendSerialHex } from '../../handles/serial.js'
   import { Search, TrashCan, Information, Time } from 'carbon-icons-svelte'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let eventBody
   let autoScroll = true
@@ -62,6 +64,13 @@
 </script>
 
 <div class="serial-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">Serial</div>
+    <div class="tool-hero-desc">Serial port monitor and sender. View TX/RX traffic and inject test data as text or raw hex bytes.</div>
+  </div>
+  {/if}
   <!-- Filter toolbar -->
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>

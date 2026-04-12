@@ -2,7 +2,7 @@
   import {
     Keyboard, Terminal, Activity, Screen, Music,
     Usb, Connect, Meter, Application, Plug,
-    Compass, BatteryFull, DataBase, Restart
+    Compass, BatteryFull, DataBase, Restart, Chip
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
   import { doReboot } from '../stores/wasm.js'
@@ -22,6 +22,7 @@
     gyro: Compass,
     battery: BatteryFull,
     storage: DataBase,
+    'device-hw': Chip,
   }
 </script>
 

@@ -8,7 +8,6 @@
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
   import ConnectionPage from './components/ConnectionPage.svelte'
-  import SimulationPage from './components/SimulationPage.svelte'
   import SettingsPage from './components/SettingsPage.svelte'
   import FirmwarePage from './components/FirmwarePage.svelte'
   import ToolTray from './components/ToolTray.svelte'
@@ -22,7 +21,7 @@
   onMount(() => {
     try {
       const stored = window.localStorage.getItem(sectionPrefKey)
-      if (['device', 'connection', 'simulation', 'settings', 'firmware'].includes(stored)) {
+      if (['device', 'connection', 'settings', 'firmware'].includes(stored)) {
         activeSection = stored
       }
     } catch {}
@@ -60,8 +59,6 @@
         <DevicePanel />
       {:else if activeSection === 'connection'}
         <ConnectionPage />
-      {:else if activeSection === 'simulation'}
-        <SimulationPage />
       {:else if activeSection === 'settings'}
         <SettingsPage />
       {:else if activeSection === 'firmware'}

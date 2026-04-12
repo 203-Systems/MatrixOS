@@ -1,73 +1,52 @@
 <script>
-  import { scenarioHooks, uiInspectorHooks, usageSnapshot } from '../../stores/tooling.js'
-
-  function formatInputEvent(event) {
-    if (!event) return 'No input captured yet'
-    if (event.type === 'fn') return `Function Key ${event.pressed ? 'Press' : 'Release'}`
-    return `Grid (${event.x},${event.y}) ${event.pressed ? 'Press' : 'Release'}`
-  }
+  export let showHero = true
+  export let onCloseHero = () => {}
 </script>
 
 <div class="tool-surface">
+  {#if showHero}
   <section class="tool-hero">
-    <div class="tool-hero-title">UI Inspector</div>
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">UI Debug</div>
     <div class="tool-hero-desc">
-      This lane now exposes the live UI-adjacent surfaces already present in MystrixSIL and makes the missing runtime exports explicit instead of leaving a dead placeholder.
-    </div>
-    <div class="tool-tag-row">
-      <span class="status-pill status-live">Event timeline live</span>
-      <span class="status-pill status-planned">UI tree export planned</span>
-      <span class="status-pill status-partial">Replay path seeded</span>
+      Inspect and manipulate the MatrixOS UI layer at runtime. Use this panel to probe display state, trigger UI redraws, inspect the LED buffer, and replay input sequences for UI testing.
     </div>
   </section>
+  {/if}
 
   <section class="tool-section">
-    <div class="tool-section-title">Live session</div>
+    <div class="tool-section-title">Display</div>
     <div class="tool-grid">
-      <div class="tool-card">
-        <span class="tool-card-label">Runtime</span>
-        <span class="tool-card-value" class:tool-value-live={$usageSnapshot.runtimeLive} class:tool-value-warn={!$usageSnapshot.runtimeLive}>
-          {$usageSnapshot.runtimeStatus}
-        </span>
+      <div class="tool-card tool-card-wip">
+        <span class="tool-card-label">LED Buffer</span>
+        <span class="tool-card-value tool-value-idle">Planned</span>
       </div>
-      <div class="tool-card">
-        <span class="tool-card-label">Open tools</span>
-        <span class="tool-card-value">{$usageSnapshot.openToolCount}</span>
+      <div class="tool-card tool-card-wip">
+        <span class="tool-card-label">Framerate</span>
+        <span class="tool-card-value tool-value-idle">Planned</span>
       </div>
-      <div class="tool-card">
-        <span class="tool-card-label">Last input</span>
-        <span class="tool-card-value">{formatInputEvent($usageSnapshot.lastInputEvent)}</span>
+      <div class="tool-card tool-card-wip">
+        <span class="tool-card-label">Render calls</span>
+        <span class="tool-card-value tool-value-idle">Planned</span>
       </div>
     </div>
   </section>
 
   <section class="tool-section">
-    <div class="tool-section-title">Inspection hooks</div>
-    <div class="tool-list">
-      {#each uiInspectorHooks as hook}
-        <div class="tool-list-item">
-          <div class="tool-list-main">
-            <span class="tool-list-title">{hook.title}</span>
-            <span class="tool-list-detail">{hook.detail}</span>
-          </div>
-          <span class="status-pill status-{hook.status}">{hook.label}</span>
-        </div>
-      {/each}
-    </div>
-  </section>
-
-  <section class="tool-section">
-    <div class="tool-section-title">Scenario / replay path</div>
-    <div class="tool-list">
-      {#each scenarioHooks as hook}
-        <div class="tool-list-item">
-          <div class="tool-list-main">
-            <span class="tool-list-title">{hook.title}</span>
-            <span class="tool-list-detail">{hook.detail}</span>
-          </div>
-          <span class="status-pill status-{hook.status}">{hook.label}</span>
-        </div>
-      {/each}
+    <div class="tool-section-title">Actions</div>
+    <div class="tool-grid">
+      <div class="tool-card tool-card-wip">
+        <span class="tool-card-label">Force redraw</span>
+        <span class="tool-card-value tool-value-idle">Planned</span>
+      </div>
+      <div class="tool-card tool-card-wip">
+        <span class="tool-card-label">Screenshot</span>
+        <span class="tool-card-value tool-value-idle">Planned</span>
+      </div>
     </div>
   </section>
 </div>
+
+<style>
+  .tool-card-wip { opacity: 0.55; }
+</style>

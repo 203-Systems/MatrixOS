@@ -1,6 +1,8 @@
 <script>
   import { Search, TrashCan, Time } from 'carbon-icons-svelte'
   import { filteredLogs, logFilter, logLevelFilter, logMessages, clearLogs } from '../stores/logs.js'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let logBody
   let autoScroll = true
@@ -59,6 +61,13 @@
 </script>
 
 <div class="logs-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">Logs</div>
+    <div class="tool-hero-desc">Live MatrixOS runtime log stream. Filter by level or keyword. Timestamps can be toggled on and off.</div>
+  </div>
+  {/if}
   <div class="logs-toolbar">
     <div class="logs-search">
       <Search size={14} />

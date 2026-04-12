@@ -2,9 +2,11 @@
   import { moduleReady, wasmMissing, runtimeStatus, buildIdentity } from '../stores/wasm.js'
   import { errorCount, warnCount } from '../stores/logs.js'
   import { IS_NODE_BACKED } from '../stores/rpc.js'
+  import { wsBridgeStatus } from '../stores/wsbridge.js'
 
   $: runtimeLive = $moduleReady && !$wasmMissing
   $: runtimeLabel = runtimeLive && $runtimeStatus === 'Live' ? 'Runtime Live' : $runtimeStatus
+  $: remoteConnected = IS_NODE_BACKED && $wsBridgeStatus === 'connected'
 </script>
 
 <header class="top-bar">
@@ -25,9 +27,9 @@
     </span>
     {#if IS_NODE_BACKED}
       <span class="top-bar-divider">|</span>
-      <span class="top-bar-remote">
-        <span class="remote-dot"></span>
-        <span class="remote-label">Remote Control Available</span>
+      <span class="top-bar-remote" class:remote-active={remoteConnected}>
+        <span class="remote-dot" class:dot-remote-live={remoteConnected}></span>
+        <span class="remote-label">{remoteConnected ? 'Remote Control Connected' : 'Remote Control Ready'}</span>
       </span>
     {/if}
     {#if $errorCount > 0 || $warnCount > 0}
@@ -132,11 +134,21 @@
     background: var(--muted);
     opacity: 0.65;
     flex-shrink: 0;
+    transition: background 0.2s, opacity 0.2s, box-shadow 0.2s;
+  }
+  .dot-remote-live {
+    background: var(--accent);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(76, 201, 240, 0.5);
   }
   .remote-label {
     color: var(--muted);
     font-size: 0.84rem;
     white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .remote-active .remote-label {
+    color: var(--accent);
   }
   .alert-badge {
     font-size: 0.76rem;

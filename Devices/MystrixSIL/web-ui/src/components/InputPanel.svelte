@@ -2,6 +2,8 @@
   import { moduleReady } from '../stores/wasm.js'
   import { inputEvents, clearInputEvents } from '../stores/input.js'
   import { Search, TrashCan, Information, Time } from 'carbon-icons-svelte'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let eventBody
   let autoScroll = true
@@ -51,6 +53,13 @@
 </script>
 
 <div class="input-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">Input</div>
+    <div class="tool-hero-desc">Click or tap grid keys to inject input events into the runtime. Monitor the full input event stream in real time.</div>
+  </div>
+  {/if}
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>
       <Search size={13} />

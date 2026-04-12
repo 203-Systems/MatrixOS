@@ -1,13 +1,18 @@
+<script>
+  export let showHero = true
+  export let onCloseHero = () => {}
+</script>
+
 <div class="tool-surface">
+  {#if showHero}
   <section class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
     <div class="tool-hero-title">Gyro</div>
     <div class="tool-hero-desc">
       Gyroscope and accelerometer data inspection for motion-aware applications.
     </div>
-    <div class="tool-tag-row">
-      <span class="status-pill status-planned">Planned</span>
-    </div>
   </section>
+  {/if}
 
   <section class="tool-section">
     <div class="tool-section-title">Sensor state</div>

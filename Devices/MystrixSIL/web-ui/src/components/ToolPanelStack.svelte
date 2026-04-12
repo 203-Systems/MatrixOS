@@ -1,6 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte'
-  import { Close } from 'carbon-icons-svelte'
+  import { Close, Help } from 'carbon-icons-svelte'
   import { openTools, closeTool, deviceTools } from '../stores/tools.js'
   import InputPanel from './InputPanel.svelte'
   import LogsPanel from './LogsPanel.svelte'
@@ -14,6 +14,7 @@
   import GyroPanel from './tools/GyroPanel.svelte'
   import BatteryPanel from './tools/BatteryPanel.svelte'
   import StoragePanel from './tools/StoragePanel.svelte'
+  import DeviceHardwarePanel from './tools/DeviceHardwarePanel.svelte'
 
   const panelMap = {
     system: UsagePanel,
@@ -28,7 +29,10 @@
     gyro: GyroPanel,
     battery: BatteryPanel,
     storage: StoragePanel,
+    'device-hw': DeviceHardwarePanel,
   }
+  // Panels that have a tool-hero (helper) section
+  const panelsWithHero = new Set(['system','application','ui','storage','device-hw','midi','hid','serial','input','logs'])
 
   const LEFT_NAV_W = 60
   const TRAY_W = 48
@@ -131,6 +135,26 @@
   })
 
   $: syncWidth($openTools)
+
+  // Per-panel hero visibility: true = visible
+  let helperVisible = {}
+
+  function initHelper(toolId) {
+    if (!(toolId in helperVisible)) helperVisible[toolId] = true
+    helperVisible = helperVisible
+  }
+
+  function closeHelper(toolId) {
+    helperVisible[toolId] = false
+    helperVisible = helperVisible
+  }
+
+  function openHelper(toolId) {
+    helperVisible[toolId] = true
+    helperVisible = helperVisible
+  }
+
+  $: $openTools.forEach(id => initHelper(id))
 </script>
 
 <svelte:window on:resize={handleWindowResize} />
@@ -157,12 +181,23 @@
           <section class="panel-slot">
             <div class="panel-header">
               <span class="panel-title">{getLabel(toolId)}</span>
-              <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
-                <Close size={14} />
-              </button>
+              <div class="panel-header-actions">
+                {#if !helperVisible[toolId]}
+                  <button class="panel-help-btn" on:click={() => openHelper(toolId)} title="Help" aria-label="Open helper">
+                    <Help size={14} />
+                  </button>
+                {/if}
+                <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
+                  <Close size={14} />
+                </button>
+              </div>
             </div>
             <div class="panel-body">
-              <svelte:component this={panelMap[toolId]} />
+              <svelte:component
+                this={panelMap[toolId]}
+                showHero={helperVisible[toolId]}
+                onCloseHero={() => closeHelper(toolId)}
+              />
             </div>
           </section>
         {/each}
@@ -232,6 +267,27 @@
     background: var(--panel);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+  }
+  .panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .panel-help-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 3px;
+    opacity: 0.55;
+  }
+  .panel-help-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+    opacity: 1;
   }
   .panel-title {
     font-size: 0.8rem;

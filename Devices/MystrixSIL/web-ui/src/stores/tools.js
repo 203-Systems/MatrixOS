@@ -43,8 +43,6 @@ export const deviceTools = [
   { id: 'midi',        label: 'MIDI' },
   { id: 'hid',         label: 'HID' },
   { id: 'serial',      label: 'Serial' },
-  { id: 'usb',         label: 'USB' },
-  { id: 'gyro',        label: 'Gyro' },
-  { id: 'battery',     label: 'Battery' },
   { id: 'storage',     label: 'Storage' },
+  { id: 'device-hw',   label: 'Device' },
 ]

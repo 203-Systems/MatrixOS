@@ -2,6 +2,8 @@
   import { midiEvents, midiConnected, midiPorts, clearMidiEvents, portLabel } from '../../stores/midi.js'
   import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../../handles/midi.js'
   import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let eventBody
   let autoScroll = true
@@ -95,6 +97,13 @@
 </script>
 
 <div class="midi-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">MIDI</div>
+    <div class="tool-hero-desc">Monitor MIDI events, inspect port routing, and send test messages to any MIDI port exposed by the runtime.</div>
+  </div>
+  {/if}
   <!-- Filter toolbar -->
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>
@@ -146,7 +155,7 @@
   <div class="event-section">
     <div class="event-col-header" class:no-time={!showTimestamps}>
       {#if showTimestamps}<span class="col-time">Time</span>{/if}
-      <span class="col-ports">Ports</span>
+      <span class="col-ports">Port</span>
       <span class="col-ch">Ch</span>
       <span class="col-type">Type</span>
       <span class="col-summary">Summary</span>

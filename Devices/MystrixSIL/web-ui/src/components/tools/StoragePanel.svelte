@@ -1,12 +1,16 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath, computeNvsHash } from '../../stores/storage.js'
-  import { Search, Download, Upload, TrashCan } from 'carbon-icons-svelte'
+  import { Search, Download, Upload, TrashCan, Copy } from 'carbon-icons-svelte'
+  export let showHero = true
+  export let onCloseHero = () => {}
 
   let fileInput
   let keyInput = ''
   let searchQuery = ''
   let pollTimer
+  // Track which entries are expanded (showing full hex value)
+  let expandedHashes = new Set()
 
   // Derive both numeric and hex forms so template can use either
   $: keyHash = keyInput.length > 0 ? computeNvsHash(keyInput) : null
@@ -43,9 +47,30 @@
       e.target.value = ''
     }
   }
+
+  function toggleExpand(hash) {
+    if (expandedHashes.has(hash)) {
+      expandedHashes.delete(hash)
+    } else {
+      expandedHashes.add(hash)
+    }
+    expandedHashes = expandedHashes
+  }
+
+  function copyEntryAsJson(entry) {
+    const json = JSON.stringify({ hash: entry.hashHex, value: entry.rawBytes })
+    navigator.clipboard?.writeText(json)
+  }
 </script>
 
 <div class="storage-panel">
+  {#if showHero}
+  <div class="tool-hero">
+    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+    <div class="tool-hero-title">Storage</div>
+    <div class="tool-hero-desc">Inspect NVS key-value entries and the virtual filesystem. Look up keys by name, view raw hex values, and export/import snapshots.</div>
+  </div>
+  {/if}
   <!-- NVS Section -->
   <div class="nvs-section">
     <!-- Header row -->
@@ -103,16 +128,33 @@
       {:else}
         <div class="nvs-table">
           <div class="nvs-header-row">
+            <span class="nvs-col-copy"></span>
             <span class="nvs-col-hash">Hash</span>
             <span class="nvs-col-size">Size</span>
-            <span class="nvs-col-value">Value</span>
+            <span class="nvs-col-value">Value (hex)</span>
             <span class="nvs-col-actions"></span>
           </div>
           {#each filteredEntries as entry (entry.hash)}
             <div class="nvs-row" class:nvs-row-highlight={keyHash !== null && entry.hash === keyHash}>
+              <span class="nvs-col-copy">
+                <button class="row-action" on:click={() => copyEntryAsJson(entry)} title="Copy as JSON">
+                  <Copy size={11} />
+                </button>
+              </span>
               <span class="nvs-col-hash mono">{entry.hashHex}</span>
               <span class="nvs-col-size mono">{entry.size}B</span>
-              <span class="nvs-col-value mono" title={entry.rawBytes}>{entry.preview}</span>
+              <span class="nvs-col-value mono">
+                <span
+                  class="nvs-hex-val"
+                  class:nvs-hex-truncated={!expandedHashes.has(entry.hash)}
+                  title={entry.rawBytes}
+                >{entry.rawBytes || '—'}</span>
+                {#if entry.rawBytes && entry.rawBytes.length > 24}
+                  <button class="nvs-expand-btn" on:click={() => toggleExpand(entry.hash)}>
+                    {expandedHashes.has(entry.hash) ? '▲' : '▼'}
+                  </button>
+                {/if}
+              </span>
               <span class="nvs-col-actions">
                 <button class="row-action" on:click={() => deleteNvsEntry(entry.hash)} title="Delete entry">
                   <TrashCan size={11} />
@@ -132,9 +174,7 @@
   <div class="fs-section">
     <div class="section-header">
       <span class="section-title">Filesystem</span>
-      <span class="status-pill" class:status-live={$filesystemMounted} class:status-idle={!$filesystemMounted}>
-        {$filesystemMounted ? 'Mounted' : 'Not mounted'}
-      </span>
+      <span class="fs-status">{$filesystemMounted ? 'Mounted' : 'Not mounted'}</span>
     </div>
     {#if $filesystemMounted}
       <div class="fs-info">
@@ -304,9 +344,24 @@
     border-radius: 3px;
   }
   .mono { font-family: var(--mono); }
+  .nvs-col-copy { width: 28px; flex-shrink: 0; display: flex; justify-content: center; }
   .nvs-col-hash { width: 110px; flex-shrink: 0; }
   .nvs-col-size { width: 50px; flex-shrink: 0; text-align: right; }
-  .nvs-col-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .nvs-col-value { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
+  .nvs-hex-val { min-width: 0; color: var(--text); }
+  .nvs-hex-truncated { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nvs-hex-val:not(.nvs-hex-truncated) { white-space: pre-wrap; word-break: break-all; }
+  .nvs-expand-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.55rem;
+    padding: 0 2px;
+    opacity: 0.6;
+  }
+  .nvs-expand-btn:hover { opacity: 1; }
   .nvs-col-actions { width: 28px; flex-shrink: 0; display: flex; justify-content: center; }
   .row-action {
     background: none;
@@ -320,7 +375,7 @@
     opacity: 0.5;
   }
   .nvs-row:hover .row-action { opacity: 1; }
-  .row-action:hover { color: var(--danger); }
+  .row-action:hover { color: var(--accent); }
   .nvs-note {
     margin-top: 4px;
     font-size: 0.66rem;
