@@ -94,8 +94,9 @@ function terminateWasmRuntime() {
   }
 
   document.querySelectorAll('script[src*="MatrixOSHost.js"]').forEach(el => el.remove())
-  delete window.HEAPU8
-  window.Module = undefined
+  // Emscripten may define HEAPU8 as non-configurable — use assignment, not delete
+  try { window.HEAPU8 = undefined } catch {}
+  try { window.Module = undefined } catch {}
 }
 
 /** Set up a fresh window.Module with all required callbacks. */
