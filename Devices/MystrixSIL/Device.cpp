@@ -43,6 +43,9 @@ KeyState touchbarRightState[8];
 
 Direction deviceRotation = TOP;
 
+// USB connection state (controlled by web UI)
+bool wasmUsbConnected = false;
+
 // LED framebuffer visible to WASM host
 Color ledFrameBuffer[64 + 32];
 std::mutex ledMutex;
@@ -636,6 +639,10 @@ const char* MatrixOS_Wasm_GetVersionString(void) {
 
 const char* MatrixOS_Wasm_GetBuildIdentityString(void) {
   return wasmBuildIdentityLabel.c_str();
+}
+
+void MatrixOS_Wasm_SetUsbAvailable(int available) {
+  wasmUsbConnected = (available != 0);
 }
 
 void MatrixOS_Wasm_Reboot(void) {

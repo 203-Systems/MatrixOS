@@ -4,13 +4,21 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
+// Device.cpp may define this to simulate USB connection state
+extern bool wasmUsbConnected __attribute__((weak));
+
+static bool usbConnectedState() {
+  if (&wasmUsbConnected) return wasmUsbConnected;
+  return false;
+}
+
 // --- MatrixOS::USB ---
 namespace MatrixOS::USB
 {
 void Init(USB_MODE mode) { (void)mode; }
 void SetMode(USB_MODE mode) { (void)mode; }
 uint8_t GetMode() { return USB_MODE_NORMAL; }
-bool Connected() { return false; }
+bool Connected() { return usbConnectedState(); }
 
 namespace MIDI
 {
@@ -19,7 +27,7 @@ void Init() {}
 
 namespace CDC
 {
-bool Connected() { return false; }
+bool Connected() { return usbConnectedState(); }
 uint32_t Available() { return 0; }
 void Poll() {}
 
