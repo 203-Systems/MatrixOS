@@ -1,7 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath } from '../../stores/storage.js'
-  import { computeNvsHash, nvsHashHex } from '../../stores/rpc.js'
+  import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath, computeNvsHash } from '../../stores/storage.js'
   import { Search, Download, Upload, TrashCan } from 'carbon-icons-svelte'
 
   let fileInput

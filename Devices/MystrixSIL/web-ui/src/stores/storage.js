@@ -1,7 +1,7 @@
 // Storage (NVS + filesystem) store for MystrixSIL dashboard
 import { writable } from 'svelte/store'
 
-export const nvsEntries = writable([])
+export const nvsEntries= writable([])
 export const nvsConnected = writable(false)
 export const filesystemMounted = writable(false)
 export const filesystemPath = writable('')
@@ -195,4 +195,23 @@ export function importNvsFromFile(file) {
     reader.onerror = () => resolve(false)
     reader.readAsArrayBuffer(file)
   })
+}
+
+// ---------------------------------------------------------------------------
+// NVS hash — FNV-1a 32-bit, matching MatrixOS key hashing.
+// Canonical home: rpc.js and UI both import from here, not from each other.
+// ---------------------------------------------------------------------------
+
+export function computeNvsHash(text) {
+  let hash = 0x811c9dc5
+  const bytes = new TextEncoder().encode(text)
+  for (const byte of bytes) {
+    hash ^= byte
+    hash = (Math.imul(hash, 0x01000193)) >>> 0
+  }
+  return hash
+}
+
+export function nvsHashHex(text) {
+  return '0x' + computeNvsHash(text).toString(16).padStart(8, '0').toUpperCase()
 }

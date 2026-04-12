@@ -20,13 +20,14 @@
 import { get } from 'svelte/store'
 import {
   moduleReady, runtimeStatus, versionLabel, buildIdentity,
-  doReboot, sendGridKey, sendFnKey, getUptimeMs,
+  doReboot, getUptimeMs,
 } from './wasm.js'
 import { logMessages, errorCount, warnCount } from './logs.js'
 import { midiEvents, midiPorts, portLabel, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
 import { hidEvents, sendRawHid } from './hid.js'
 import { serialEvents, sendSerialText, sendSerialHex } from './serial.js'
-import { nvsEntries, refreshNvs, writeNvsEntry } from './storage.js'
+import { nvsEntries, refreshNvs, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
+import { listInputs, executeInputEvents, getActiveInputs, INPUT_GRID_SIZE } from '../handles/input.js'
 
 // ---------------------------------------------------------------------------
 // Deployment mode
@@ -87,24 +88,6 @@ function installErrorCollectors() {
     collectError('error', 'unhandledrejection', String(evt.reason))
     if (typeof prevUnhandled === 'function') prevUnhandled(evt)
   }
-}
-
-// ---------------------------------------------------------------------------
-// NVS hash — FNV-1a 32-bit, matching MatrixOS key hashing
-// ---------------------------------------------------------------------------
-
-export function computeNvsHash(text) {
-  let hash = 0x811c9dc5
-  const bytes = new TextEncoder().encode(text)
-  for (const byte of bytes) {
-    hash ^= byte
-    hash = (Math.imul(hash, 0x01000193)) >>> 0
-  }
-  return hash
-}
-
-export function nvsHashHex(text) {
-  return '0x' + computeNvsHash(text).toString(16).padStart(8, '0').toUpperCase()
 }
 
 // ---------------------------------------------------------------------------
@@ -180,32 +163,6 @@ function initSubscriptionBridge() {
     }
     prevSerial = evts.length
   })
-}
-
-// ---------------------------------------------------------------------------
-// Input helpers
-// ---------------------------------------------------------------------------
-
-const INPUT_GRID_SIZE = 8
-
-function parseInputId(id) {
-  if (id === 'function') return { kind: 'functionKey' }
-  const m = /^grid:(\d+),(\d+)$/.exec(id)
-  if (m) {
-    const x = parseInt(m[1]), y = parseInt(m[2])
-    if (x >= 0 && x < INPUT_GRID_SIZE && y >= 0 && y < INPUT_GRID_SIZE) {
-      return { kind: 'gridKey', x, y }
-    }
-  }
-  return null
-}
-
-function execInputAction(target, action) {
-  if (target.kind === 'functionKey') {
-    sendFnKey(action === 'Press')
-  } else if (target.kind === 'gridKey') {
-    sendGridKey(target.x, target.y, action === 'Press')
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -293,70 +250,18 @@ const handlers = {
 
   // ---- Input ----
 
-  'input.list': () => {
-    const inputs = [
-      { id: 'function', label: 'Function Key', kind: 'functionKey' },
-    ]
-    for (let y = 0; y < INPUT_GRID_SIZE; y++) {
-      for (let x = 0; x < INPUT_GRID_SIZE; x++) {
-        inputs.push({ id: `grid:${x},${y}`, label: `Grid ${x},${y}`, kind: 'gridKey', x, y })
-      }
-    }
-    return { inputs }
-  },
+  'input.list': () => ({ inputs: listInputs() }),
 
   'input.execute': (params) => {
     const events = params?.events
     if (!Array.isArray(events) || events.length === 0) {
       return { __error: ERR.INVALID_PARAMS }
     }
-
-    let accepted = 0
-    for (const evt of events) {
-      const target = parseInputId(evt.input)
-      if (!target) continue
-      const action = evt.action // 'Press' | 'Release' | 'Hold'
-      // Hold is OS-generated after hold threshold; only Press/Release are injectable
-      if (action !== 'Press' && action !== 'Release') continue
-
-      const atMs = typeof evt.atMs === 'number' ? Math.max(0, evt.atMs) : 0
-      if (atMs === 0) {
-        execInputAction(target, action)
-      } else {
-        setTimeout(() => execInputAction(target, action), atMs)
-      }
-      accepted++
-    }
-
+    const accepted = executeInputEvents(events)
     return { ok: true, accepted }
   },
 
-  'input.get': () => {
-    const mod = window.Module
-    const activeInputs = []
-
-    if (mod?._MatrixOS_Wasm_GetFnState?.() !== 0) {
-      activeInputs.push({ input: 'function', label: 'Function Key' })
-    }
-
-    if (mod?._MatrixOS_Wasm_GetKeypadState && mod?._MatrixOS_Wasm_GetKeypadStateLength) {
-      const heap = mod.HEAPU8
-      const len = mod._MatrixOS_Wasm_GetKeypadStateLength()
-      const ptr = mod._MatrixOS_Wasm_GetKeypadState()
-      if (ptr && len && heap) {
-        const state = heap.subarray(ptr, ptr + len)
-        for (let i = 0; i < state.length; i++) {
-          if (state[i]) {
-            const x = i % INPUT_GRID_SIZE
-            const y = Math.floor(i / INPUT_GRID_SIZE)
-            activeInputs.push({ input: `grid:${x},${y}`, label: `Grid ${x},${y}` })
-          }
-        }
-      }
-    }
-
-    return { activeInputs }
-  },
+  'input.get': () => ({ activeInputs: getActiveInputs() }),
 
   // ---- LED ----
 
