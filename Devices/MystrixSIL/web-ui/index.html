@@ -31,7 +31,9 @@
         }
         window.Module.locateFile = (path) => `/${path}`
       })
-      // JS hooks called from WASM via EM_ASM for reboot / bootloader
+      // JS hooks called from WASM via EM_ASM for reboot / bootloader.
+      // These start as location.reload() but are upgraded to hot-restart
+      // by wasm.js once the Svelte app mounts (see restartWasm()).
       window.MatrixOS_Reboot = () => location.reload()
       window.MatrixOS_Bootloader = () => location.reload()
       // Buffer MatrixOS stdout/stderr until the UI is ready to read it
