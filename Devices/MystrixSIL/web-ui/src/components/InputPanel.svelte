@@ -21,7 +21,7 @@
   $: filteredEvents = (() => {
     const q = filterQuery.trim().toLowerCase()
     if (!q) return $inputEvents
-    const typeM = q.match(/\btype:(grid|fn|function)\b/)
+    const typeM = q.match(/\btype:(grid|fn|function|touchbar)\b/)
     const stateM = q.match(/\bstate:(press|release|hold)\b/)
     const plain = q.replace(/\b(type|state):\S+/g, '').trim()
     return $inputEvents.filter(evt => {
@@ -29,6 +29,7 @@
         const t = typeM[1]
         if ((t === 'grid') && evt.type !== 'grid') return false
         if ((t === 'fn' || t === 'function') && evt.type !== 'fn') return false
+        if (t === 'touchbar' && evt.type !== 'touchbar') return false
       }
       if (stateM) {
         const s = stateM[1]
@@ -36,9 +37,9 @@
         if (s === 'release' && evt.pressed) return false
       }
       if (plain) {
-        const typeLabel = evt.type === 'fn' ? 'function key' : 'grid'
+        const typeLabel = evt.type === 'fn' ? 'function key' : evt.type === 'touchbar' ? 'touchbar' : 'grid'
         const stateLabel = evt.pressed ? 'press' : 'release'
-        const posLabel = evt.type === 'grid' ? `${evt.x},${evt.y}` : ''
+        const posLabel = evt.type === 'grid' ? `${evt.x},${evt.y}` : evt.type === 'touchbar' ? `${evt.x === 0 ? 'left' : 'right'} ${evt.y}` : ''
         return typeLabel.includes(plain) || stateLabel.includes(plain) || posLabel.includes(plain) || evt.timestamp.includes(plain)
       }
       return true
@@ -123,6 +124,8 @@
             <span class="col-type event-type">
               {#if evt.type === 'grid'}
                 Grid ({evt.x},{evt.y})
+              {:else if evt.type === 'touchbar'}
+                TouchBar {evt.x === 0 ? 'L' : 'R'}{evt.y}
               {:else}
                 Function Key
               {/if}

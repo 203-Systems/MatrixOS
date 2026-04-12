@@ -47,9 +47,9 @@
         </span>
       </div>
       <div class="tool-card">
-        <span class="tool-card-label">WASM Binary</span>
+        <span class="tool-card-label">OS Version</span>
         <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
-          {$wasmMissing ? 'Missing' : 'OS Version - Matrix OS 3.3 InDev'}
+          {$wasmMissing ? 'Missing' : 'Matrix OS 3.3 InDev'}
         </span>
       </div>
       <div class="tool-card">
@@ -81,10 +81,6 @@
       <div class="tool-card">
         <span class="tool-card-label">Input events</span>
         <span class="tool-card-value">{$usageSnapshot.inputEventCount}</span>
-      </div>
-      <div class="tool-card">
-        <span class="tool-card-label">Open panels</span>
-        <span class="tool-card-value">{$usageSnapshot.openToolCount}</span>
       </div>
     </div>
   </section>

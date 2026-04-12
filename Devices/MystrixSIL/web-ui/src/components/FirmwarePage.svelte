@@ -2,14 +2,14 @@
   let searchQuery = ''
   let activeTag = 'all'
 
-  const tags = ['all', 'Stable', 'Beta', 'Nightly', 'InDev']
+  const tags = ['all', 'Release', 'Beta', 'Nightly', 'InDev']
 
   const placeholderFirmware = [
     { name: 'Matrix OS 3.3 InDev', version: 'v3.3.0-indev.12', date: '2026-04-10', tag: 'InDev' },
     { name: 'Matrix OS 3.2 Nightly', version: 'v3.2.0-nightly.88', date: '2026-03-28', tag: 'Nightly' },
     { name: 'Matrix OS 3.2 Beta', version: 'v3.2.0-beta.3', date: '2026-03-10', tag: 'Beta' },
-    { name: 'Matrix OS 3.1 Stable', version: 'v3.1.2', date: '2026-02-14', tag: 'Stable' },
-    { name: 'Matrix OS 3.0 Stable', version: 'v3.0.5', date: '2025-12-01', tag: 'Stable' },
+    { name: 'Matrix OS 3.1 Release', version: 'v3.1.2', date: '2026-02-14', tag: 'Release' },
+    { name: 'Matrix OS 3.0 Release', version: 'v3.0.5', date: '2025-12-01', tag: 'Release' },
     { name: 'Matrix OS 3.0 Beta', version: 'v3.0.0-beta.7', date: '2025-11-15', tag: 'Beta' },
   ]
 
@@ -52,7 +52,7 @@
       <span class="fw-col-name">Name</span>
       <span class="fw-col-ver">Version</span>
       <span class="fw-col-tag">Channel</span>
-      <span class="fw-col-date">Release Date</span>
+      <span class="fw-col-date">Build Date</span>
       <span class="fw-col-action"></span>
     </div>
     {#each filteredFirmware as fw}
@@ -64,7 +64,7 @@
         </span>
         <span class="fw-col-date fw-mono fw-date">{fw.date}</span>
         <span class="fw-col-action">
-          <button class="fw-flash-btn" disabled title="Connect a device to flash">Flash</button>
+          <button class="fw-load-btn">Load</button>
         </span>
       </div>
     {/each}
@@ -170,11 +170,11 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .fw-channel-stable { background: rgba(61,214,140,0.12); color: #3dd68c; }
+  .fw-channel-release { background: rgba(61,214,140,0.12); color: #3dd68c; }
   .fw-channel-beta { background: rgba(76,201,240,0.1); color: #4cc9f0; }
   .fw-channel-nightly { background: rgba(247,194,102,0.1); color: #f7c266; }
   .fw-channel-indev { background: rgba(255,107,107,0.1); color: #ff8b8b; }
-  .fw-flash-btn {
+  .fw-load-btn {
     background: none;
     border: 1px solid var(--border);
     color: var(--muted);

@@ -195,7 +195,7 @@
     touchbarPointers.set(event.pointerId, { side, index })
     event.currentTarget.setPointerCapture(event.pointerId)
     sendTouchBarKey(side, index, true)
-    logInputEvent(side === 0 ? 'touchbar-left' : 'touchbar-right', index, 0, true)
+    logInputEvent('touchbar', side, index, true)
     event.preventDefault()
   }
 
@@ -204,7 +204,7 @@
     if (!info) return
     touchbarPointers.delete(event.pointerId)
     sendTouchBarKey(info.side, info.index, false)
-    logInputEvent(info.side === 0 ? 'touchbar-left' : 'touchbar-right', info.index, 0, false)
+    logInputEvent('touchbar', info.side, info.index, false)
     event.preventDefault()
   }
 
@@ -358,7 +358,6 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 520px;
   }
   .vis-inactive .lp {
     filter: blur(4px) saturate(0.8);
@@ -394,37 +393,46 @@
     align-items: center;
     gap: 6px;
     justify-content: center;
+    width: 100%;
+    max-width: 520px;
   }
 
   .lp-touchbar {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    height: min(100%, 480px);
+    gap: 2%;
+    flex-shrink: 0;
+    align-self: stretch;
+    padding: 2% 0;
+    box-sizing: border-box;
   }
 
   .lp-tb-btn {
     flex: 1;
-    width: 18px;
-    border-radius: 6px;
-    background-color: var(--device-button, #3a3a42);
+    width: 10px;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.08);
     cursor: pointer;
-    transition: background-color 0.06s ease;
+    transition: background-color 0.15s ease, transform 0.15s ease;
     touch-action: none;
     user-select: none;
+    transform: scale(0.85);
   }
 
   .lp-tb-btn:hover {
-    background-color: var(--device-button-hover, #525260);
+    background-color: rgba(255, 255, 255, 0.28);
+    transform: scale(1.0);
   }
 
   .lp-tb-btn:active {
-    background-color: var(--accent, #4cc9f0);
+    background-color: rgba(255, 255, 255, 0.55);
+    transform: scale(1.05);
   }
 
   .lp {
     position: relative;
-    width: min(100%, 480px);
+    flex: 1;
+    max-width: 480px;
     aspect-ratio: 1 / 1;
     z-index: 1;
   }
