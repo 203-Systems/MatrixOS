@@ -6,7 +6,6 @@
 #include "MatrixOS.h"
 
 #include <algorithm>
-#include <atomic>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -44,15 +43,10 @@ KeyState touchbarRightState[8];
 
 Direction deviceRotation = TOP;
 
-// USB connection state (controlled by web UI). Must be atomic since it is set
-// from the JS main thread and read from the OS pthread.
-// Defaults to true so the OS boots with USB available (simulated environment).
-static std::atomic<bool> wasmUsbConnected{true};
-
-// Weak hook called by USBStub.cpp to read USB state across translation units.
-bool getWasmUsbState() {
-  return wasmUsbConnected.load(std::memory_order_acquire);
-}
+// USB connection state (controlled by web UI).
+// volatile prevents the compiler from caching reads across thread contexts.
+// Defaults to true so the OS boots with USB available in the SIL environment.
+volatile bool wasmUsbConnected = true;
 
 // LED framebuffer visible to WASM host
 Color ledFrameBuffer[64 + 32];
@@ -650,7 +644,7 @@ const char* MatrixOS_Wasm_GetBuildIdentityString(void) {
 }
 
 void MatrixOS_Wasm_SetUsbAvailable(int available) {
-  wasmUsbConnected.store(available != 0, std::memory_order_release);
+  wasmUsbConnected = (available != 0);
 }
 
 void MatrixOS_Wasm_Reboot(void) {

@@ -113,6 +113,8 @@ export function initWasm() {
     }
     moduleReady.set(true)
     runtimeStatus.set('Live')
+    // Ensure USB starts connected so the boot animation auto-progresses.
+    if (mod._MatrixOS_Wasm_SetUsbAvailable) mod._MatrixOS_Wasm_SetUsbAvailable(1)
     if (mod._MatrixOS_Wasm_GetVersionString && mod.UTF8ToString) {
       const ptr = mod._MatrixOS_Wasm_GetVersionString()
       if (ptr) versionLabel.set(mod.UTF8ToString(ptr))

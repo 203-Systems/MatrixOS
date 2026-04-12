@@ -4,14 +4,16 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
-// Device.cpp provides a strong definition that reads from std::atomic<bool>.
-// This weak fallback is used when Device.cpp is not linked (non-WASM builds).
-bool __attribute__((weak)) getWasmUsbState() { return false; }
+// wasmUsbConnected is defined in Devices/MystrixSIL/Device.cpp.
+// The weak attribute allows this TU to compile even when Device.cpp is not
+// linked (non-WASM targets); in WASM builds the strong definition wins.
+extern volatile bool wasmUsbConnected __attribute__((weak));
 
 static bool usbConnectedState() {
-  return getWasmUsbState();
+  // &wasmUsbConnected is non-null when Device.cpp is linked (WASM builds).
+  if (&wasmUsbConnected) return wasmUsbConnected;
+  return false;
 }
-
 // --- MatrixOS::USB ---
 namespace MatrixOS::USB
 {
