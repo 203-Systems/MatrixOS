@@ -1,6 +1,10 @@
 <script>
   import { moduleReady, wasmMissing, runtimeStatus, buildIdentity } from '../stores/wasm.js'
   import { errorCount, warnCount } from '../stores/logs.js'
+  import { IS_NODE_BACKED } from '../stores/rpc.js'
+
+  $: runtimeLive = $moduleReady && !$wasmMissing
+  $: runtimeLabel = runtimeLive && $runtimeStatus === 'Live' ? 'Runtime Live' : $runtimeStatus
 </script>
 
 <header class="top-bar">
@@ -13,12 +17,19 @@
     <span class="top-bar-divider">|</span>
     <span class="top-bar-status">
       <span class="status-dot"
-        class:dot-live={$moduleReady && !$wasmMissing}
+        class:dot-live={runtimeLive}
         class:dot-error={$wasmMissing}
         class:dot-loading={!$moduleReady && !$wasmMissing}
       ></span>
-      <span class="status-label">{$runtimeStatus}</span>
+      <span class="status-label">{runtimeLabel}</span>
     </span>
+    {#if IS_NODE_BACKED}
+      <span class="top-bar-divider">|</span>
+      <span class="top-bar-remote">
+        <span class="remote-dot"></span>
+        <span class="remote-label">Remote Control Available</span>
+      </span>
+    {/if}
     {#if $errorCount > 0 || $warnCount > 0}
       <span class="top-bar-divider">|</span>
       <span class="top-bar-alerts">
@@ -107,6 +118,25 @@
   .top-bar-alerts {
     display: flex;
     gap: 6px;
+  }
+  .top-bar-remote {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  .remote-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--muted);
+    opacity: 0.65;
+    flex-shrink: 0;
+  }
+  .remote-label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    white-space: nowrap;
   }
   .alert-badge {
     font-size: 0.76rem;
