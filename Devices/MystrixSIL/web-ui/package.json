@@ -11,7 +11,8 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "svelte": "^5.43.8",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "ws": "^8.20.0"
   },
   "dependencies": {
     "carbon-icons-svelte": "^13.8.0"

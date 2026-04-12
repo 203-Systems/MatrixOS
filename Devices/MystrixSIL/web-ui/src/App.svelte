@@ -3,6 +3,7 @@
   import { initWasm } from './stores/wasm.js'
   import { hookModuleLogging } from './stores/logs.js'
   import { initRpc } from './stores/rpc.js'
+  import { initWsBridge } from './stores/wsbridge.js'
   import TopBar from './components/TopBar.svelte'
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
@@ -31,6 +32,7 @@
     const restoreLogging = hookModuleLogging()
     const restoreWasm = initWasm()
     initRpc()
+    initWsBridge()
 
     return () => {
       if (restoreWasm) restoreWasm()
