@@ -24,6 +24,7 @@
   <section class="tool-hero">
     <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
     <div class="tool-hero-title">Device Hardware</div>
+    <span class="status-pill status-warn">Under Construction</span>
     <div class="tool-hero-desc">
       Simulate hardware peripheral state — USB connection, battery level, and gyroscope. Changes are reflected in the WASM runtime immediately.
     </div>
@@ -51,7 +52,10 @@
   </button>
 
   <!-- Battery -->
-  <div class="tool-section-title">Battery</div>
+  <div class="tool-section-title-row">
+    <span class="tool-section-title">Battery</span>
+    <span class="status-pill status-warn">Under Construction</span>
+  </div>
   <button
     class="hw-strip hw-strip-battery"
     class:hw-on={charging}
@@ -86,7 +90,10 @@
   </div>
 
   <!-- Gyro -->
-  <div class="tool-section-title">Gyro</div>
+  <div class="tool-section-title-row">
+    <span class="tool-section-title">Gyro</span>
+    <span class="status-pill status-warn">Under Construction</span>
+  </div>
   <div class="hw-wip-row">
     <span class="hw-icon hw-icon-wip"><Compass size={15} /></span>
     <span class="hw-wip-label">Gyroscope simulation — work in progress</span>

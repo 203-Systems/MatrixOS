@@ -190,6 +190,12 @@ button {
   color: var(--muted);
 }
 
+.tool-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -305,6 +311,12 @@ button {
   color: #ff8b8b;
   background: rgba(255, 107, 107, 0.1);
   border-color: rgba(255, 107, 107, 0.18);
+}
+
+.status-warn {
+  color: #f0b84b;
+  background: rgba(240, 184, 75, 0.1);
+  border-color: rgba(240, 184, 75, 0.22);
 }
 
 .status-error {

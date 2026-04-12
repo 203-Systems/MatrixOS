@@ -24,6 +24,7 @@
 <div class="firmware-page">
   <section class="tool-hero">
     <div class="tool-hero-title">Firmware</div>
+    <span class="status-pill status-warn">Under Construction</span>
     <div class="tool-hero-desc">
       Browse and flash MatrixOS firmware releases. Filter by release channel or search by name and version. Flashing requires a connected device.
     </div>
