@@ -110,7 +110,12 @@ function prepareFreshModule() {
         this.runtimeReady = true
         resolve()
       },
-      locateFile: (path) => `/${path}`,
+      // When MatrixOSHost.js is executed via new Function() (hot-restart path),
+      // document.currentScript is null, so Emscripten sets _scriptName=undefined.
+      // This causes pthread workers to be created at URL 'undefined' → HTTP 404/HTML.
+      // mainScriptUrlOrBlob overrides the worker URL — Emscripten checks this first.
+      mainScriptUrlOrBlob: `${location.origin}/MatrixOSHost.js`,
+      locateFile: (path) => path ? `/${path}` : '/',
       print: (...args) => {
         console.log(...args)
         if (window.MatrixOSLogDispatch) window.MatrixOSLogDispatch('log', args)
@@ -133,10 +138,28 @@ function prepareFreshModule() {
 
 /** Dynamically inject MatrixOSHost.js and wait for it to load. */
 async function injectWasmScript() {
-  // Emscripten uses let/const at top level. Injecting a <script> tag a second
-  // time in the same page causes "already declared" SyntaxErrors. Instead,
-  // fetch the JS text and run it via new Function() so each restart gets an
-  // isolated lexical scope that doesn't conflict with previous runs.
+  // Emscripten uses let/const at top level of its JS output — injecting a
+  // second <script> tag into the page causes "already declared" SyntaxErrors.
+  //
+  // Instead, fetch the JS text and run it via new Function() so each restart
+  // gets an isolated lexical scope.
+  //
+  // Three problems to solve inside new Function():
+  //
+  // 1. Module scope: new Function() has no outer Module. Emscripten's
+  //    `var Module = typeof Module != 'undefined' ? Module : {}`
+  //    creates a fresh empty {}, ignoring our window.Module callbacks.
+  //    Fix: preamble sets `var Module = window.Module || {}`.
+  //
+  // 2. Pthread worker URL: Emscripten derives the worker script URL from
+  //    `document.currentScript.src`, which is null inside new Function().
+  //    Workers end up created at URL `undefined` → HTTP 404.
+  //    Fix: create a Blob URL from our preamble+script, set it as
+  //    Module.mainScriptUrlOrBlob so Emscripten uses it for workers.
+  //
+  // 3. locateFile in workers: pthread workers run in a scope without
+  //    window.Module (window is undefined in workers). We add a fallback
+  //    locateFile in the preamble for the worker context.
   const url = `/MatrixOSHost.js?t=${Date.now()}`
   let text
   try {
@@ -148,12 +171,44 @@ async function injectWasmScript() {
     runtimeStatus.set('WASM image missing')
     throw new Error(`Failed to fetch MatrixOSHost.js: ${e.message}`)
   }
-  // eslint-disable-next-line no-new-func
-  try { new Function(text)() } catch (e) {
+
+  // Preamble that runs in BOTH main thread and pthread worker contexts:
+  //   - Main thread: `window` is defined → Module = window.Module (our callbacks)
+  //   - Worker: `window` is undefined → Module = {} (worker takes its own init path)
+  //   - locateFile fallback ensures workers can find MatrixOSHost.wasm
+  const preamble = [
+    `var Module = (typeof window !== 'undefined' ? window.Module : null) || {};`,
+    `if (!Module.locateFile) Module.locateFile = function(path) { return '/' + path; };`,
+  ].join('\n') + '\n'
+
+  const wrapped = preamble + text
+
+  // Create a Blob URL from the full wrapped script. Emscripten's pthread support
+  // uses Module.mainScriptUrlOrBlob as the worker URL — this ensures workers load
+  // the same preamble+script from the blob (not from document.currentScript which
+  // is null in new Function() context).
+  let blobUrl = null
+  try {
+    const blob = new Blob([wrapped], { type: 'application/javascript' })
+    blobUrl = URL.createObjectURL(blob)
+    if (window.Module) window.Module.mainScriptUrlOrBlob = blobUrl
+  } catch {
+    // Blob URLs may be unavailable in some environments — fall back gracefully.
+    if (window.Module) window.Module.mainScriptUrlOrBlob = `${location.origin}/MatrixOSHost.js`
+  }
+
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function(wrapped)()
+  } catch (e) {
+    if (blobUrl) URL.revokeObjectURL(blobUrl)
     wasmMissing.set(true)
     runtimeStatus.set('WASM image missing')
     throw new Error(`Failed to execute MatrixOSHost.js: ${e.message}`)
   }
+  // Note: blobUrl is intentionally not revoked here — it must remain alive as long
+  // as any pthread worker holds a reference to it. Workers are terminated in
+  // terminateWasmRuntime() on the next restart.
 }
 
 /** Reset all runtime-facing event stores. */
@@ -355,4 +410,20 @@ export function getRuntimeFnState() {
   const mod = get(moduleRef)
   if (!mod?._MatrixOS_Wasm_GetFnState) return false
   return mod._MatrixOS_Wasm_GetFnState() !== 0
+}
+
+// Accept HMR updates for this module so Vite re-evaluates wasm.js in place
+// (rather than propagating to parent Svelte components and losing context).
+// window.matrixosRestart, doReboot, initWasm, etc. are all updated on re-eval.
+if (import.meta.hot) {
+  // Clean up the old module's side effects before the new module takes over.
+  import.meta.hot.dispose(() => {
+    if (reloadTimer) { clearInterval(reloadTimer); reloadTimer = 0 }
+    if (_currentCleanup) { _currentCleanup(); _currentCleanup = null }
+  })
+  // Re-init with the existing running WASM (if any) so the UI restores to Live.
+  import.meta.hot.accept(() => {
+    const mod = window.Module
+    if (mod?.runtimeReady || mod?.calledRun) initWasm()
+  })
 }

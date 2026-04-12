@@ -203,6 +203,13 @@ const handlers = {
 
   'session.reset': () => resetSession(),
 
+  // Force a full page reload — use sparingly (e.g., when a code update must be applied
+  // before testing, or when the WASM binary has changed).
+  'session.fullReload': () => {
+    setTimeout(() => window.location.reload(), 50)
+    return { ok: true }
+  },
+
   // ---- Runtime ----
 
   'runtime.getState': () => getRuntimeState(),
