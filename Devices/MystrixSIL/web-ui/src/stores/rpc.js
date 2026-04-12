@@ -8,11 +8,13 @@
  * Implements all 22 handles from MystrixSILJsonRpcSpec.md.
  *
  * Deployment modes:
- *   IS_NODE_BACKED = true  → dev server or Node-backed local build
- *                            in-page API active; external WebSocket planned
- *   IS_NODE_BACKED = false → static browser-only build
- *                            in-page WASM control still works, but external
- *                            JSON-RPC access is not available (no server)
+ *   IS_NODE_BACKED = true  → dev server (npm run dev) or a build with
+ *                            VITE_MATRIXOS_RPC_EXTERNAL=true.
+ *                            window.matrixosRpc is exposed in this tab.
+ *                            No external WebSocket transport is implemented.
+ *   IS_NODE_BACKED = false → static browser-only build (npm run build).
+ *                            window.matrixosRpc is NOT exposed.
+ *                            JSON-RPC shows as Unavailable in the UI.
  */
 
 import { get } from 'svelte/store'
@@ -467,10 +469,15 @@ const handlers = {
   // ---- MIDI ----
 
   'midi.listPorts': () => {
-    const ports = get(midiPorts).map(p => ({
-      id: '0x' + p.id.toString(16).padStart(4, '0').toUpperCase(),
-      name: p.name,
-    }))
+    // Synth (0x8000) is excluded per product direction — it is an internal port,
+    // not a physical or logical MIDI port the user should address directly.
+    const EXCLUDED = new Set([0x8000])
+    const ports = get(midiPorts)
+      .filter(p => !EXCLUDED.has(p.id))
+      .map(p => ({
+        id: '0x' + p.id.toString(16).padStart(4, '0').toUpperCase(),
+        name: p.name,
+      }))
     return { ports }
   },
 
@@ -674,14 +681,21 @@ export function initRpc() {
   installErrorCollectors()
   initSubscriptionBridge()
 
-  // Always (re-)expose the API object — harmless on remount
-  window.matrixosRpc = rpcApi
-
-  if (!window.__matrixosRpcReady) {
-    window.__matrixosRpcReady = true
-    console.info('[MystrixSIL] JSON-RPC ready. window.matrixosRpc.call(method, params)')
-    if (!IS_NODE_BACKED) {
-      console.info('[MystrixSIL] Static build: in-page API active; external WebSocket access unavailable.')
+  // Only expose the API object in the Node-backed / dev mode.
+  // Static builds must not present the JSON-RPC API as available.
+  if (IS_NODE_BACKED) {
+    window.matrixosRpc = rpcApi
+    if (!window.__matrixosRpcReady) {
+      window.__matrixosRpcReady = true
+      console.info('[MystrixSIL] JSON-RPC ready. window.matrixosRpc.call(method, params)')
+      console.info('[MystrixSIL] Note: transport is in-page only. No external WebSocket server.')
+    }
+  } else {
+    // Static build — do not expose the API. Delete any stale reference from HMR.
+    delete window.matrixosRpc
+    if (!window.__matrixosRpcReady) {
+      window.__matrixosRpcReady = true
+      console.info('[MystrixSIL] Static build: JSON-RPC API not exposed (window.matrixosRpc unavailable).')
     }
   }
 }
