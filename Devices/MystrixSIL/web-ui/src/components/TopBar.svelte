@@ -148,7 +148,7 @@
     transition: color 0.2s;
   }
   .remote-active .remote-label {
-    color: var(--accent);
+    color: var(--muted);
   }
   .alert-badge {
     font-size: 0.76rem;

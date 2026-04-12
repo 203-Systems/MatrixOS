@@ -182,11 +182,15 @@
             <div class="panel-header">
               <span class="panel-title">{getLabel(toolId)}</span>
               <div class="panel-header-actions">
-                {#if !helperVisible[toolId]}
-                  <button class="panel-help-btn" on:click={() => openHelper(toolId)} title="Help" aria-label="Open helper">
-                    <Help size={14} />
-                  </button>
-                {/if}
+                <button
+                  class="panel-help-btn"
+                  class:panel-help-active={helperVisible[toolId]}
+                  on:click={() => helperVisible[toolId] ? closeHelper(toolId) : openHelper(toolId)}
+                  title="Help"
+                  aria-label="Toggle helper"
+                >
+                  <Help size={14} />
+                </button>
                 <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
                   <Close size={14} />
                 </button>
@@ -275,19 +279,24 @@
   }
   .panel-help-btn {
     background: none;
-    border: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px;
+    padding: 2px 5px;
     display: inline-flex;
     align-items: center;
-    border-radius: 3px;
-    opacity: 0.55;
   }
   .panel-help-btn:hover {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.06);
-    opacity: 1;
+    border-color: var(--accent);
+  }
+  .panel-help-active {
+    color: var(--accent);
+    border-color: rgba(76, 201, 240, 0.4);
+  }
+  .panel-help-active:hover {
+    color: var(--accent);
   }
   .panel-title {
     font-size: 0.8rem;
@@ -298,17 +307,17 @@
   }
   .panel-close {
     background: none;
-    border: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px;
+    padding: 2px 5px;
     display: inline-flex;
     align-items: center;
-    border-radius: 3px;
   }
   .panel-close:hover {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--accent);
   }
   .panel-body {
     flex: 1;

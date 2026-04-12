@@ -52,24 +52,33 @@
 
   <!-- Battery -->
   <div class="tool-section-title">Battery</div>
-  <div class="hw-section">
-    <div class="hw-control-row">
-      <span class="hw-control-label">Charging</span>
-      <button
-        class="hw-toggle"
-        class:hw-toggle-on={charging}
-        on:click={() => charging = !charging}
-        role="switch"
-        aria-checked={charging}
-      >
+  <button
+    class="hw-strip hw-strip-battery"
+    on:click={() => charging = !charging}
+    aria-pressed={charging}
+  >
+    <div class="hw-strip-left">
+      <div class="hw-label-stack">
+        <span class="hw-title">Charging</span>
+        <span class="hw-state">{charging ? 'On' : 'Off'}</span>
+      </div>
+    </div>
+    <div class="hw-strip-action hw-strip-action-toggle">
+      <div class="hw-toggle" class:hw-toggle-on={charging} aria-hidden="true">
         <span class="hw-toggle-thumb"></span>
-      </button>
+      </div>
     </div>
-    <div class="hw-control-row">
-      <span class="hw-control-label">Battery Level</span>
-      <span class="hw-control-value">{batteryPct}%</span>
+  </button>
+  <div class="hw-strip hw-strip-level" role="group" aria-label="Battery level">
+    <div class="hw-strip-left">
+      <div class="hw-label-stack">
+        <span class="hw-title">Battery Level</span>
+        <span class="hw-state">{batteryPct}%</span>
+      </div>
     </div>
-    <input class="hw-slider" type="range" min="0" max="100" bind:value={batteryPct} />
+    <div class="hw-strip-action hw-strip-action-slider">
+      <input class="hw-slider" type="range" min="0" max="100" bind:value={batteryPct} on:click|stopPropagation />
+    </div>
   </div>
 
   <!-- Gyro -->
@@ -113,7 +122,6 @@
     cursor: pointer;
     padding: 0;
   }
-  .hw-strip:hover .hw-title { color: var(--accent); }
   .hw-strip.hw-on {
     border-color: rgba(107, 221, 139, 0.28);
     background: rgba(107, 221, 139, 0.07);
@@ -172,30 +180,18 @@
   }
   .hw-strip.hw-on .hw-state { color: #6bdd8b; }
 
-  /* Battery section */
-  .hw-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: rgba(255,255,255,0.02);
+  /* Battery bars */
+  .hw-strip-battery { cursor: pointer; }
+  .hw-strip-action-toggle {
+    min-width: 60px;
+    padding: 0 14px;
   }
-  .hw-control-row {
+  .hw-strip-level { cursor: default; }
+  .hw-strip-action-slider {
+    min-width: 110px;
+    padding: 0 12px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .hw-control-label {
-    font-size: 0.76rem;
-    color: var(--muted);
-  }
-  .hw-control-value {
-    font-size: 0.76rem;
-    font-family: var(--mono);
-    color: var(--text);
   }
   .hw-slider {
     width: 100%;
@@ -203,7 +199,7 @@
     cursor: pointer;
   }
 
-  /* Toggle switch */
+  /* Toggle switch (inside strip) */
   .hw-toggle {
     width: 34px;
     height: 18px;

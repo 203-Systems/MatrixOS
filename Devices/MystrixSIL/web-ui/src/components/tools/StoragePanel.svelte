@@ -128,7 +128,6 @@
       {:else}
         <div class="nvs-table">
           <div class="nvs-header-row">
-            <span class="nvs-col-copy"></span>
             <span class="nvs-col-hash">Hash</span>
             <span class="nvs-col-size">Size</span>
             <span class="nvs-col-value">Value (hex)</span>
@@ -136,11 +135,6 @@
           </div>
           {#each filteredEntries as entry (entry.hash)}
             <div class="nvs-row" class:nvs-row-highlight={keyHash !== null && entry.hash === keyHash}>
-              <span class="nvs-col-copy">
-                <button class="row-action" on:click={() => copyEntryAsJson(entry)} title="Copy as JSON">
-                  <Copy size={11} />
-                </button>
-              </span>
               <span class="nvs-col-hash mono">{entry.hashHex}</span>
               <span class="nvs-col-size mono">{entry.size}B</span>
               <span class="nvs-col-value mono">
@@ -156,6 +150,9 @@
                 {/if}
               </span>
               <span class="nvs-col-actions">
+                <button class="row-action" on:click={() => copyEntryAsJson(entry)} title="Copy as JSON">
+                  <Copy size={11} />
+                </button>
                 <button class="row-action" on:click={() => deleteNvsEntry(entry.hash)} title="Delete entry">
                   <TrashCan size={11} />
                 </button>
@@ -344,8 +341,7 @@
     border-radius: 3px;
   }
   .mono { font-family: var(--mono); }
-  .nvs-col-copy { width: 28px; flex-shrink: 0; display: flex; justify-content: center; }
-  .nvs-col-hash { width: 110px; flex-shrink: 0; }
+  .nvs-col-hash { width: 72px; flex-shrink: 0; }
   .nvs-col-size { width: 50px; flex-shrink: 0; text-align: right; }
   .nvs-col-value { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
   .nvs-hex-val { min-width: 0; color: var(--text); }
@@ -362,7 +358,7 @@
     opacity: 0.6;
   }
   .nvs-expand-btn:hover { opacity: 1; }
-  .nvs-col-actions { width: 28px; flex-shrink: 0; display: flex; justify-content: center; }
+  .nvs-col-actions { width: 52px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 2px; }
   .row-action {
     background: none;
     border: none;
