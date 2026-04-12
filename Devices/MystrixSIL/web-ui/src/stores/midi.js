@@ -164,27 +164,4 @@ export function hookMidiTap() {
   }
 }
 
-// WASM send helpers
-export function sendMidiNote(channel, note, velocity, targetPort) {
-  const mod = window.Module
-  if (!mod?._MatrixOS_Wasm_MidiInject) return false
-  const status = velocity > 0 ? (0x90 | (channel & 0x0F)) : (0x80 | (channel & 0x0F))
-  mod._MatrixOS_Wasm_MidiInject(status, note & 0x7F, velocity & 0x7F, 0, targetPort)
-  return true
-}
-
-export function sendMidiCC(channel, controller, value, targetPort) {
-  const mod = window.Module
-  if (!mod?._MatrixOS_Wasm_MidiInject) return false
-  const status = 0xB0 | (channel & 0x0F)
-  mod._MatrixOS_Wasm_MidiInject(status, controller & 0x7F, value & 0x7F, 0, targetPort)
-  return true
-}
-
-export function sendMidiProgramChange(channel, program, targetPort) {
-  const mod = window.Module
-  if (!mod?._MatrixOS_Wasm_MidiInject) return false
-  const status = 0xC0 | (channel & 0x0F)
-  mod._MatrixOS_Wasm_MidiInject(status, program & 0x7F, 0, 0, targetPort)
-  return true
-}
+export { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'

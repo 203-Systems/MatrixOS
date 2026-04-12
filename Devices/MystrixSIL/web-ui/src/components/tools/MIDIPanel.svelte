@@ -1,5 +1,6 @@
 <script>
-  import { midiEvents, midiConnected, midiPorts, clearMidiEvents, sendMidiNote, sendMidiCC, sendMidiProgramChange, portLabel } from '../../stores/midi.js'
+  import { midiEvents, midiConnected, midiPorts, clearMidiEvents, portLabel } from '../../stores/midi.js'
+  import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../../handles/midi.js'
   import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
 
   let eventBody
