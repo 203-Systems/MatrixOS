@@ -1,16 +1,14 @@
 <script>
   import { writable } from 'svelte/store'
   import { Usb } from 'carbon-icons-svelte'
+  import { setUsbAvailable } from '../../handles/usb.js'
 
   const usbConnected = writable(false)
 
   function toggleUsb() {
     usbConnected.update(v => {
       const next = !v
-      const mod = window.Module
-      if (mod?._MatrixOS_Wasm_SetUsbAvailable) {
-        mod._MatrixOS_Wasm_SetUsbAvailable(next ? 1 : 0)
-      }
+      setUsbAvailable(next)
       return next
     })
   }
