@@ -6,22 +6,30 @@ export const nvsConnected = writable(false)
 export const filesystemMounted = writable(false)
 export const filesystemPath = writable('')
 
-// Fingerprint = "count:hash0_size0:hash1_size1:..." — detects count changes AND
-// per-entry size changes (covers most runtime-side NVS mutations). Same-count
-// same-size value rewrites are not detectable without reading all bytes; that
-// edge case is accepted in the poll path (UI-triggered writes always call
-// refreshNvs() directly after the write regardless).
+// Fingerprint = "count:hash0_size0_csum0:..." — detects count changes, size changes,
+// AND in-place value rewrites via a content sample checksum (first 16 bytes per entry).
+// This covers all practical runtime-side NVS mutations without reading all bytes.
 let _lastNvsFingerprint = ''
 
 function computeNvsFingerprint(mod, count) {
   if (count === 0) return '0'
   const hashesPtr = mod._MatrixOS_Wasm_NvsGetHashes()
   const heap32 = new Uint32Array(mod.HEAPU8.buffer)
+  const heap8 = mod.HEAPU8
   const parts = [String(count)]
   for (let i = 0; i < Math.min(count, 256); i++) {
     const h = heap32[(hashesPtr >> 2) + i]
     const size = mod._MatrixOS_Wasm_NvsGetSize(h)
-    parts.push(`${h}_${size}`)
+    // Sample up to 16 bytes of content for a lightweight change checksum
+    let contentSum = 0
+    if (size > 0 && mod._MatrixOS_Wasm_NvsGetData) {
+      const dataPtr = mod._MatrixOS_Wasm_NvsGetData(h)
+      if (dataPtr) {
+        const sampleLen = Math.min(size, 16)
+        for (let j = 0; j < sampleLen; j++) contentSum += heap8[dataPtr + j]
+      }
+    }
+    parts.push(`${h}_${size}_${contentSum}`)
   }
   return parts.join(':')
 }
@@ -52,14 +60,16 @@ export function refreshNvs() {
   for (let i = 0; i < count && i < 256; i++) {
     const hash = heap32[(hashesPtr >> 2) + i]
     const size = mod._MatrixOS_Wasm_NvsGetSize(hash)
-    fpParts.push(`${hash}_${size}`)
 
+    // Content sample for fingerprint (first 16 bytes)
     const dataPtr = mod._MatrixOS_Wasm_NvsGetData(hash)
+    let contentSum = 0
     let preview = ''
     let rawBytes = ''
 
     if (dataPtr && size > 0) {
       const bytes = new Uint8Array(mod.HEAPU8.buffer, dataPtr, Math.min(size, 64))
+      contentSum = Array.from(bytes.subarray(0, Math.min(size, 16))).reduce((a, b) => a + b, 0)
       rawBytes = Array.from(bytes).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 
       // Try to decode as UTF-8 string
@@ -90,6 +100,7 @@ export function refreshNvs() {
       preview,
       rawBytes,
     })
+    fpParts.push(`${hash}_${size}_${contentSum}`)
   }
 
   _lastNvsFingerprint = fpParts.join(':')
@@ -97,7 +108,8 @@ export function refreshNvs() {
 }
 
 // Poll NVS for runtime-side writes (called by StoragePanel while mounted).
-// Detects count changes AND per-entry size changes via fingerprint comparison.
+// Detects count changes, per-entry size changes, AND in-place value rewrites
+// via a content sample checksum included in the fingerprint.
 export function pollNvs() {
   const mod = window.Module
   if (!mod?._MatrixOS_Wasm_NvsGetCount) return
