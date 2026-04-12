@@ -150,6 +150,12 @@ button {
   color: var(--text);
 }
 
+.tool-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .tool-hero-desc,
 .tool-list-detail,
 .tool-empty {
@@ -278,6 +284,7 @@ button {
 .status-pill {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
   flex-shrink: 0;
   height: fit-content;
   padding: 2px 7px;

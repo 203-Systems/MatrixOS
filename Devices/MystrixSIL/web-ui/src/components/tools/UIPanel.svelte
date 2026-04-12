@@ -7,8 +7,10 @@
   {#if showHero}
   <section class="tool-hero">
     <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
-    <div class="tool-hero-title">UI Debug</div>
-    <span class="status-pill status-warn">Under Construction</span>
+    <div class="tool-hero-title-row">
+      <div class="tool-hero-title">UI Debug</div>
+      <span class="status-pill status-warn">Under Construction</span>
+    </div>
     <div class="tool-hero-desc">
       Inspect and manipulate the MatrixOS UI layer at runtime. Use this panel to probe display state, trigger UI redraws, inspect the LED buffer, and replay input sequences for UI testing.
     </div>
