@@ -1,3 +1,4 @@
+#include <functional>
 #include "MatrixOS.h"
 
 class NoteScaleVisualizer : public UIComponent {
