@@ -18,17 +18,20 @@
  */
 
 import { get } from 'svelte/store'
-import {
-  moduleReady, runtimeStatus, versionLabel, buildIdentity,
-  doReboot, getUptimeMs,
-} from './wasm.js'
-import { logMessages, errorCount, warnCount } from './logs.js'
+import { logMessages } from './logs.js'
 import { midiEvents, midiPorts, sendMidiNote, sendMidiCC, sendMidiProgramChange } from './midi.js'
 import { hidEvents, sendRawHid } from './hid.js'
 import { serialEvents, sendSerialText, sendSerialHex } from './serial.js'
 import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
 import { listInputs, executeInputEvents, getActiveInputs } from '../handles/input.js'
 import { getLedFrame, getLed } from '../handles/led.js'
+import {
+  getSessionStatus,
+  pingSession,
+  resetSession,
+  getRuntimeState,
+  getRuntimeAppState,
+} from '../handles/session.js'
 
 // ---------------------------------------------------------------------------
 // Deployment mode
@@ -188,39 +191,20 @@ const handlers = {
 
   // ---- Session ----
 
-  'session.status': () => ({
-    protocolVersion: PROTOCOL_VERSION,
+  'session.status': () => getSessionStatus({
     sessionId: SESSION_ID,
-    connected: true,
-    runtimeReady: get(moduleReady),
-    build: get(buildIdentity) || get(versionLabel) || 'Matrix OS',
+    protocolVersion: PROTOCOL_VERSION,
   }),
 
-  'session.ping': () => ({ ok: true }),
+  'session.ping': () => pingSession(),
 
-  'session.reset': () => {
-    doReboot()
-    return { ok: true }
-  },
+  'session.reset': () => resetSession(),
 
   // ---- Runtime ----
 
-  'runtime.getState': () => {
-    const ready = get(moduleReady)
-    return {
-      status: get(runtimeStatus),
-      uptimeMs: getUptimeMs(),
-      usbConnected: false, // USB runtime state not yet exposed via WASM exports
-      activeApp: ready ? { name: 'Running', id: 'runtime' } : null,
-      // Use MatrixOS log store counts — do not mix in emulator-host JS errors
-      warningCount: get(warnCount),
-      errorCount: get(errorCount),
-    }
-  },
+  'runtime.getState': () => getRuntimeState(),
 
-  'runtime.getAppState': () => ({
-    activeApp: get(moduleReady) ? { name: 'Running', id: 'runtime' } : null,
-  }),
+  'runtime.getAppState': () => getRuntimeAppState(),
 
   // ---- Input ----
 
