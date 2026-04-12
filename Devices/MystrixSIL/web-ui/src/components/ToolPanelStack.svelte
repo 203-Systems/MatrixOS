@@ -283,9 +283,12 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 0;
+    width: 22px;
+    height: 22px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
   }
   .panel-help-btn:hover {
     color: var(--text);
@@ -311,9 +314,12 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 0;
+    width: 22px;
+    height: 22px;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
   }
   .panel-close:hover {
     color: var(--text);

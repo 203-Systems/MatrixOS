@@ -209,11 +209,35 @@
   }
   .hw-slider {
     width: 100%;
-    accent-color: var(--accent);
     cursor: pointer;
     display: block;
-    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border);
+    outline: none;
   }
+  .hw-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .hw-slider:hover::-webkit-slider-thumb { background: var(--accent); }
+  .hw-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: none;
+    cursor: pointer;
+  }
+  .hw-slider:hover::-moz-range-thumb { background: var(--accent); }
 
   /* Gyro WIP */
   .hw-wip-row {
