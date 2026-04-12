@@ -7,16 +7,14 @@
 
   const statusLabel = {
     unavailable: 'Unavailable',
-    connecting: 'Connecting…',
+    available: 'Available',
     connected: 'Connected',
-    disconnected: 'Reconnecting…',
   }
 
   const statusClass = {
     unavailable: 'status-error',
-    connecting: 'status-idle',
+    available: 'status-live',
     connected: 'status-live',
-    disconnected: 'status-idle',
   }
 
   const namespaces = [
@@ -280,8 +278,8 @@
           <button
             class="ws-server-strip"
             class:is-connected={IS_NODE_BACKED && $wsBridgeStatus === 'connected'}
-            class:is-pending={IS_NODE_BACKED && $wsBridgeStatus !== 'connected'}
-            class:is-unavailable={!IS_NODE_BACKED}
+            class:is-available={IS_NODE_BACKED && $wsBridgeStatus === 'available'}
+            class:is-unavailable={!IS_NODE_BACKED || $wsBridgeStatus === 'unavailable'}
             on:click={() => IS_NODE_BACKED && navigator.clipboard?.writeText(RPC_WS_URL)}
             title={IS_NODE_BACKED ? 'Click to copy URL' : ''}
           >
@@ -483,28 +481,29 @@
     transition: color 0.2s;
   }
   /* connected — uniform green */
+  /* connected — blue */
   .ws-server-strip.is-connected {
-    border-color: rgba(61, 214, 140, 0.25);
-    background: rgba(61, 214, 140, 0.09);
+    border-color: rgba(76, 201, 240, 0.25);
+    background: rgba(76, 201, 240, 0.07);
   }
   .ws-server-strip.is-connected .ws-strip-left {
-    border-right-color: rgba(61, 214, 140, 0.18);
+    border-right-color: rgba(76, 201, 240, 0.18);
   }
   .ws-server-strip.is-connected .ws-strip-icon,
   .ws-server-strip.is-connected .ws-strip-state {
+    color: var(--accent);
+  }
+  /* available — green (server up, agent not yet ack'd) */
+  .ws-server-strip.is-available {
+    border-color: rgba(61, 214, 140, 0.25);
+    background: rgba(61, 214, 140, 0.07);
+  }
+  .ws-server-strip.is-available .ws-strip-left {
+    border-right-color: rgba(61, 214, 140, 0.18);
+  }
+  .ws-server-strip.is-available .ws-strip-icon,
+  .ws-server-strip.is-available .ws-strip-state {
     color: #3dd68c;
-  }
-  /* pending — uniform amber */
-  .ws-server-strip.is-pending {
-    border-color: rgba(247, 194, 102, 0.22);
-    background: rgba(247, 194, 102, 0.06);
-  }
-  .ws-server-strip.is-pending .ws-strip-left {
-    border-right-color: rgba(247, 194, 102, 0.18);
-  }
-  .ws-server-strip.is-pending .ws-strip-icon,
-  .ws-server-strip.is-pending .ws-strip-state {
-    color: #f7c266;
   }
   /* unavailable */
   .ws-server-strip.is-unavailable {

@@ -16,10 +16,14 @@ export const RPC_WS_PORT = 4002
 export const RPC_WS_URL = IS_NODE_BACKED ? `ws://localhost:${RPC_WS_PORT}` : ''
 
 /**
- * Reactive status for ConnectionPage.svelte.
- * Values: 'unavailable' | 'connecting' | 'connected' | 'disconnected'
+ * Reactive status for ConnectionPage.svelte and TopBar.svelte.
+ * Values: 'unavailable' | 'available' | 'connected'
+ *
+ *   unavailable — static build or WS server unreachable
+ *   available   — WS server is up, socket open, but agent not yet registered
+ *   connected   — agent_ack received; remote control fully active
  */
-export const wsBridgeStatus = writable(IS_NODE_BACKED ? 'connecting' : 'unavailable')
+export const wsBridgeStatus = writable(IS_NODE_BACKED ? 'available' : 'unavailable')
 
 let _ws = null
 
@@ -32,13 +36,14 @@ export function initWsBridge() {
 }
 
 function _connect() {
-  wsBridgeStatus.set('connecting')
+  // Do not expose a "connecting" transient state — show available until agent_ack
+  wsBridgeStatus.set('available')
 
   let ws
   try {
     ws = new WebSocket(RPC_WS_URL)
   } catch {
-    wsBridgeStatus.set('disconnected')
+    wsBridgeStatus.set('unavailable')
     setTimeout(_connect, 3000)
     return
   }
@@ -53,7 +58,7 @@ function _connect() {
     let msg
     try { msg = JSON.parse(event.data) } catch { return }
 
-    // Server acknowledges agent registration
+    // Server acknowledges agent registration — fully connected
     if (msg.type === 'agent_ack') {
       wsBridgeStatus.set('connected')
       return
@@ -71,7 +76,8 @@ function _connect() {
   ws.onclose = () => {
     if (_ws === ws) {
       _ws = null
-      wsBridgeStatus.set('disconnected')
+      // Drop back to available — server may come back; don't say "unavailable"
+      wsBridgeStatus.set('available')
       setTimeout(_connect, 3000)
     }
   }
