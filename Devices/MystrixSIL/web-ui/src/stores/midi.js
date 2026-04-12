@@ -60,13 +60,14 @@ function formatMidiSummary(status, data0, data1, data2) {
 }
 
 // Special port IDs from OS/Framework/Midi/MidiPacket.h
+// Synth (0x8000) is intentionally excluded — it is an internal port,
+// not a user-addressable physical or logical MIDI port.
 const SPECIAL_PORTS = {
   0x0000: { name: 'Each Class', short: 'Each' },
   0x0001: { name: 'All Ports',  short: 'All'  },
   0x0400: { name: 'Wireless',   short: 'WiFi' },
   0x0500: { name: 'RTP MIDI',   short: 'RTP'  },
   0x0600: { name: 'Custom',     short: 'Cust' },
-  0x8000: { name: 'Synth',      short: 'Synth'},
   0xF000: { name: 'MatrixOS',   short: 'OS'   },
   0xFFFF: { name: 'Invalid',    short: '—'    },
 }
