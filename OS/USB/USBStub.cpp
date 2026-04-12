@@ -4,12 +4,12 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
-// Device.cpp may define this to simulate USB connection state
-extern bool wasmUsbConnected __attribute__((weak));
+// Device.cpp provides a strong definition that reads from std::atomic<bool>.
+// This weak fallback is used when Device.cpp is not linked (non-WASM builds).
+bool __attribute__((weak)) getWasmUsbState() { return false; }
 
 static bool usbConnectedState() {
-  if (&wasmUsbConnected) return wasmUsbConnected;
-  return false;
+  return getWasmUsbState();
 }
 
 // --- MatrixOS::USB ---
