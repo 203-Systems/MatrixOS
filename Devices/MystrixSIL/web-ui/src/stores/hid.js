@@ -103,14 +103,4 @@ export function hookHidTap() {
   }
 }
 
-// WASM RawHID injection
-export function sendRawHid(bytes) {
-  const mod = window.Module
-  if (!mod?._MatrixOS_Wasm_RawHidInject || !mod.HEAPU8) return false
-  const len = Math.min(bytes.length, 32)
-  const ptr = mod._malloc(len)
-  mod.HEAPU8.set(bytes.slice(0, len), ptr)
-  mod._MatrixOS_Wasm_RawHidInject(ptr, len)
-  mod._free(ptr)
-  return true
-}
+export { sendRawHid } from '../handles/hid.js'

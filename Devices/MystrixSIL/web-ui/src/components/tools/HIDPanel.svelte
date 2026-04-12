@@ -1,5 +1,6 @@
 <script>
-  import { hidEvents, hidConnected, clearHidEvents, sendRawHid } from '../../stores/hid.js'
+  import { hidEvents, hidConnected, clearHidEvents } from '../../stores/hid.js'
+  import { sendRawHid } from '../../handles/hid.js'
   import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
 
   let eventBody
