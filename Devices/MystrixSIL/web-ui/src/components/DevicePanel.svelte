@@ -190,6 +190,7 @@
   // Touchbar: per-button pointerdown + pointerenter for drag (wiki model)
   let tbDragging = false
   let tbDragSide = -1
+  let tbHoverSide = -1  // -1=none, 0=left, 1=right
   let tbLeftActive = -1, tbRightActive = -1
 
   const handleTBDown = (event, side, index) => {
@@ -220,6 +221,8 @@
     if (side === 0) tbLeftActive = -1; else tbRightActive = -1
     tbDragging = false
     tbDragSide = -1
+    // Reset hover side if mouse has left the device
+    if (event.type === 'pointercancel') tbHoverSide = -1
   }
 
   onMount(() => {
@@ -235,7 +238,14 @@
 <div class="device-panel">
   <div class="device-grid-area">
     <div class="device-vis" class:vis-inactive={!$moduleReady}>
-      <div class="mystrix" on:pointerup={handleTBUp} on:pointercancel={handleTBUp}>
+      <div class="mystrix"
+        class:mystrix-hover-left={tbHoverSide === 0}
+        class:mystrix-hover-right={tbHoverSide === 1}
+        on:mousemove={(e) => { const r = e.currentTarget.getBoundingClientRect(); tbHoverSide = (e.clientX - r.left) < r.width / 2 ? 0 : 1 }}
+        on:mouseleave={() => { if (!tbDragging) tbHoverSide = -1 }}
+        on:pointerup={handleTBUp}
+        on:pointercancel={handleTBUp}
+      >
 
         <!-- Underglow ring -->
         <div class="mystrix-underglow" aria-hidden="true">
@@ -514,6 +524,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    gap: 4%;
+    padding: 1% 0;
     pointer-events: none;
   }
   .mystrix-touchkey-btn {
@@ -525,28 +537,31 @@
     pointer-events: none;
   }
   .mystrix-touchkey-btn-child {
-    width: 100%;
-    height: 80%;
+    width: 55%;
+    height: 90%;
     border-radius: 9999px;
     background-color: transparent;
-    transform: scale(0.8);
     transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
     pointer-events: auto;
     cursor: pointer;
     touch-action: none;
     opacity: 0;
   }
-  .mystrix:hover .mystrix-touchkey-btn-child {
+  /* Per-side hover: only show the hovered side */
+  .mystrix-hover-left .mystrix-touch-key-column:first-child .mystrix-touchkey-btn-child {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  .mystrix-hover-right .mystrix-touch-key-column:last-child .mystrix-touchkey-btn-child {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.15);
   }
   .mystrix-touchkey-btn-child:hover {
     background-color: rgba(255, 255, 255, 0.28) !important;
-    transform: scale(1.1);
   }
   .mystrix-touchkey-btn-child.mystrix-tb-active {
     background-color: rgba(255, 255, 255, 0.55) !important;
-    transform: scale(1.15);
+    opacity: 1;
   }
 
   .mystrix-center-key {
