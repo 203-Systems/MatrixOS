@@ -3,9 +3,39 @@
 
 #include "MatrixOS.h"
 
+#include <utility>
+
+struct File::Impl {};
+
 // --- File class stubs ---
-File::File() : isOpen(false) {}
-File::~File() { Close(); }
+File::File() : impl_(new Impl()), isOpen(false) {}
+File::File(File&& other) noexcept : impl_(other.impl_), filePath(std::move(other.filePath)), isOpen(other.isOpen) {
+  other.impl_ = nullptr;
+  other.filePath = "";
+  other.isOpen = false;
+}
+
+File& File::operator=(File&& other) noexcept {
+  if (this != &other)
+  {
+    Close();
+    delete impl_;
+    impl_ = other.impl_;
+    filePath = std::move(other.filePath);
+    isOpen = other.isOpen;
+
+    other.impl_ = nullptr;
+    other.filePath = "";
+    other.isOpen = false;
+  }
+
+  return *this;
+}
+
+File::~File() {
+  Close();
+  delete impl_;
+}
 
 string File::Name() { return filePath; }
 bool File::Available() { return false; }

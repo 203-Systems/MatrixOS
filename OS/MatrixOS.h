@@ -11,6 +11,7 @@
 #include "task.h"
 #include "timers.h"
 
+#include "FileSystem/File.h"
 #include "HID/HIDSpecs.h"
 
 // Matrix OS Modules and their API for Application layer or system layer
@@ -179,7 +180,6 @@ namespace RawHID
 {
 size_t Get(uint8_t** report, uint32_t timeoutMs = 0);
 bool Send(const vector<uint8_t>& report);
-bool NewReport(const uint8_t* report, size_t size);
 } // namespace RawHID
 } // namespace HID
 
@@ -235,6 +235,19 @@ bool SetVariable(uint32_t hash, void* pointer, uint16_t length);
 bool DeleteVariable(uint32_t hash);
 } // namespace NVS
 
+namespace FileSystem
+{
+void Init();
+bool Available(void);
+bool Exists(const string& path);
+bool MakeDir(const string& path);
+File Open(const string& path, const string& mode);
+bool Remove(const string& path);
+bool RemoveDir(const string& path);
+bool Rename(const string& from, const string& to);
+vector<string> ListDir(const string& path);
+} // namespace FileSystem
+
 // namespace GPIO
 // {
 //   enum EMode {Input = 1, Output = 2, Pwm = 4, PullUp = 8, PullDown = 16};
@@ -269,9 +282,5 @@ bool DeleteVariable(uint32_t hash);
 //     void Write(uint8_t);
 //   }
 } // namespace MatrixOS
-
-// File API (stubs provided when DEVICE_STORAGE == 0)
-#include "FileSystem/File.h"
-#include "FileSystem/FileSystem.h"
 
 // ui/UIUtilities.h have more callable UI related function

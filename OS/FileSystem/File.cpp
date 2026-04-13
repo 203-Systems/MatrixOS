@@ -1,13 +1,50 @@
 #include "File.h"
 
+#include "FatFS/ff.h"
+
+#include <utility>
+
+struct File::Impl {
+  FIL fileHandle;
+};
+
 // File class implementation
-File::File() : isOpen(false), filePath("") {}
+File::File() : impl_(new Impl()), isOpen(false), filePath("") {}
+
+File::File(File&& other) noexcept : impl_(other.impl_), filePath(std::move(other.filePath)), isOpen(other.isOpen) {
+  other.impl_ = nullptr;
+  other.filePath = "";
+  other.isOpen = false;
+}
+
+File& File::operator=(File&& other) noexcept {
+  if (this != &other)
+  {
+    if (isOpen)
+    {
+      Close();
+    }
+
+    delete impl_;
+    impl_ = other.impl_;
+    filePath = std::move(other.filePath);
+    isOpen = other.isOpen;
+
+    other.impl_ = nullptr;
+    other.filePath = "";
+    other.isOpen = false;
+  }
+
+  return *this;
+}
 
 File::~File() {
   if (isOpen)
   {
     Close();
   }
+
+  delete impl_;
 }
 
 string File::Name() {
@@ -15,16 +52,16 @@ string File::Name() {
 }
 
 bool File::Available() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return false;
-  return !f_eof(&fileHandle);
+  return !f_eof(&impl_->fileHandle);
 }
 
 bool File::Close() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return false;
 
-  FRESULT result = f_close(&fileHandle);
+  FRESULT result = f_close(&impl_->fileHandle);
   isOpen = false;
   filePath = "";
 
@@ -32,27 +69,27 @@ bool File::Close() {
 }
 
 bool File::Flush() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return false;
 
-  FRESULT result = f_sync(&fileHandle);
+  FRESULT result = f_sync(&impl_->fileHandle);
   return (result == FR_OK);
 }
 
 int File::Peek() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return -1;
 
   // Save current position
-  FSIZE_t currentPos = f_tell(&fileHandle);
+  FSIZE_t currentPos = f_tell(&impl_->fileHandle);
 
   // Read one byte
   UINT bytesRead;
   unsigned char byte;
-  FRESULT result = f_read(&fileHandle, &byte, 1, &bytesRead);
+  FRESULT result = f_read(&impl_->fileHandle, &byte, 1, &bytesRead);
 
   // Restore position
-  f_lseek(&fileHandle, currentPos);
+  f_lseek(&impl_->fileHandle, currentPos);
 
   if (result == FR_OK && bytesRead == 1)
   {
@@ -62,17 +99,17 @@ int File::Peek() {
 }
 
 size_t File::Position() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return 0;
-  return f_tell(&fileHandle);
+  return f_tell(&impl_->fileHandle);
 }
 
 void File::Print(const string& data) {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return;
 
   UINT bytesWritten;
-  f_write(&fileHandle, data.c_str(), data.length(), &bytesWritten);
+  f_write(&impl_->fileHandle, data.c_str(), data.length(), &bytesWritten);
 }
 
 void File::Println(const string& data) {
@@ -80,36 +117,36 @@ void File::Println(const string& data) {
 }
 
 bool File::Seek(size_t position, SeekMode whence) {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return false;
 
   FSIZE_t targetPos = position;
 
   if (whence == FROM_CURRENT)
   {
-    targetPos = f_tell(&fileHandle) + position;
+    targetPos = f_tell(&impl_->fileHandle) + position;
   }
   else if (whence == FROM_END)
   {
-    targetPos = f_size(&fileHandle) + position;
+    targetPos = f_size(&impl_->fileHandle) + position;
   }
 
-  FRESULT result = f_lseek(&fileHandle, targetPos);
+  FRESULT result = f_lseek(&impl_->fileHandle, targetPos);
   return (result == FR_OK);
 }
 
 size_t File::Size() {
-  if (!isOpen)
+  if (!impl_ || !isOpen)
     return 0;
-  return f_size(&fileHandle);
+  return f_size(&impl_->fileHandle);
 }
 
 size_t File::Read(void* buffer, size_t length) {
-  if (!isOpen || !buffer)
+  if (!impl_ || !isOpen || !buffer)
     return 0;
 
   UINT bytesRead;
-  FRESULT result = f_read(&fileHandle, buffer, length, &bytesRead);
+  FRESULT result = f_read(&impl_->fileHandle, buffer, length, &bytesRead);
 
   if (result == FR_OK)
   {
@@ -119,11 +156,11 @@ size_t File::Read(void* buffer, size_t length) {
 }
 
 size_t File::Write(const void* buffer, size_t length) {
-  if (!isOpen || !buffer)
+  if (!impl_ || !isOpen || !buffer)
     return 0;
 
   UINT bytesWritten;
-  FRESULT result = f_write(&fileHandle, buffer, length, &bytesWritten);
+  FRESULT result = f_write(&impl_->fileHandle, buffer, length, &bytesWritten);
 
   if (result == FR_OK)
   {
@@ -139,6 +176,11 @@ bool File::IsDirectory() {
 }
 
 bool File::_Open(const string& path, const string& mode) {
+  if (!impl_)
+  {
+    impl_ = new Impl();
+  }
+
   if (isOpen)
   {
     Close();
@@ -170,7 +212,7 @@ bool File::_Open(const string& path, const string& mode) {
     accessMode = FA_READ;
   }
 
-  FRESULT result = f_open(&fileHandle, path.c_str(), accessMode);
+  FRESULT result = f_open(&impl_->fileHandle, path.c_str(), accessMode);
 
   if (result == FR_OK)
   {
