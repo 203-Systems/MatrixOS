@@ -1,14 +1,20 @@
-#include "MatrixOS.h"
+#include "HostIO.h"
+
 #include "MIDI.h"
 #include "Commands/CommandSpecs.h"
+#include "Framework/Midi/MidiPort.h"
 
-#include "../System/System.h"
+#include "System/System.h"
 
 namespace MatrixOS::MIDI
 {
 static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
 static uint32_t droppedAppMidiPackets = 0;
 static uint32_t droppedOversizedSysExMessages = 0;
+
+inline MidiPort* osPort = nullptr;
+inline QueueHandle_t appQueue = nullptr;
+inline TaskHandle_t receiveTask = nullptr;
 
 static void LogDroppedAppMidiPacket() {
   droppedAppMidiPackets++;
@@ -27,20 +33,16 @@ static void LogDroppedOversizedSysEx() {
 }
 
 void Init(void) {
-  // Create the OS MIDI port if it doesn't exist
   if (!osPort)
   {
     osPort = new MidiPort("MatrixOS", MIDI_PORT_OS, MIDI_QUEUE_SIZE);
   }
 
-  // Create the application queue if it doesn't exist
   if (!appQueue)
   {
     appQueue = xQueueCreate(MIDI_QUEUE_SIZE, sizeof(MidiPacket));
   }
 
-  // Create the receive task if it doesn't exist
-  // Only create task if scheduler is already running (ESP32) or will be started later
   if (!receiveTask && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
   {
     xTaskCreate(ReceiveTask, "MIDI_Receive", 2048, NULL, tskIDLE_PRIORITY + 2, &receiveTask);
@@ -56,11 +58,15 @@ bool Get(MidiPacket* midiPacketDest, uint16_t timeoutMs) {
 bool Send(MidiPacket midiPacket, uint16_t targetPort, uint16_t timeoutMs) {
   if (!osPort)
     return false;
-  return osPort->Send(midiPacket, targetPort, timeoutMs);
+  bool result = osPort->Send(midiPacket, targetPort, timeoutMs);
+  if (result)
+  {
+    MystrixSIL::HostIO::TapMidi(1, midiPacket.port, targetPort, midiPacket);
+  }
+  return result;
 }
 
 void ReceiveTask(void* parameters) {
-
   static vector<uint8_t> sysExBuffer;
   static uint16_t activeSysExPort = MIDI_PORT_INVALID;
   static SysExState currentSysExState = SysExState::SYSEX_IDLE;
@@ -69,19 +75,15 @@ void ReceiveTask(void* parameters) {
 
   while (true)
   {
-    // Blocking get from OS port
     if (osPort && osPort->Get(&packet, portMAX_DELAY))
     {
-      // Process the packet (moved from old Receive function)
       bool shouldForwardToApp = true;
 
-      // Handle SysEx
       if (packet.SysEx())
       {
-        // Concurrent SysEx, drop the later one -- TODO: Handle this better
         if (activeSysExPort != MIDI_PORT_INVALID && packet.port != activeSysExPort)
         {
-          continue; // Skip this packet
+          continue;
         }
 
         if (packet.SysExStart())
@@ -97,7 +99,7 @@ void ReceiveTask(void* parameters) {
             activeSysExPort = MIDI_PORT_INVALID;
             currentSysExState = SysExState::SYSEX_IDLE;
           }
-          continue; // Skip this packet
+          continue;
         }
 
         if (currentSysExState != SysExState::SYSEX_RELEASE)
@@ -126,24 +128,25 @@ void ReceiveTask(void* parameters) {
             activeSysExPort = MIDI_PORT_INVALID;
             currentSysExState = SysExState::SYSEX_IDLE;
           }
-          shouldForwardToApp = false; // System handled this packet
+          shouldForwardToApp = false;
         }
       }
 
-      // If current SysEx is the SysexEnd, free up the sysex lock for more sysex.
       if (packet.status == SysExEnd)
       {
         currentSysExState = SysExState::SYSEX_IDLE;
         activeSysExPort = MIDI_PORT_INVALID;
       }
 
-      // Forward to application queue if not handled by system
       if (shouldForwardToApp && appQueue)
       {
-        // Try to send to app queue, drop if full
         if (xQueueSend(appQueue, &packet, 0) != pdTRUE)
         {
           LogDroppedAppMidiPacket();
+        }
+        else
+        {
+          MystrixSIL::HostIO::TapMidi(0, packet.port, 0, packet);
         }
       }
     }
@@ -173,7 +176,6 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) 
     }
   }
 
-  // Send End
   if (includeMeta)
   {
     uint16_t startPtr = length - length % 3;
@@ -215,16 +217,15 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
 
   if (complete)
   {
-    if (sysExBuffer[1] == MIDIv1_UNIVERSAL_NON_REALTIME_ID) // Non real time messages
+    if (sysExBuffer[1] == MIDIv1_UNIVERSAL_NON_REALTIME_ID)
     {
-      if (sysExBuffer[3] == USYSEX_GENERAL_INFO &&
-          sysExBuffer[4] == USYSEX_GI_ID_REQUEST) // General Info - Identity Request I should be check channel here but it doesn't matter
+      if (sysExBuffer[3] == USYSEX_GENERAL_INFO && sysExBuffer[4] == USYSEX_GI_ID_REQUEST)
       {
-#if MATRIXOS_BUILD_VER == 0 // Release Version
+#if MATRIXOS_BUILD_VER == 0
         uint8_t osReleaseVersion = 0;
-#elif (MATRIXOS_BUILD_VER == 4)   // Nighty Version
-        uint8_t osReleaseVersion = 0x31; // 0b0011111 - Shares the same first two bit as release version but the last 5 bits are set
-#elif (MATRIXOS_RELEASE_VER < 32) // Special Release Version
+#elif (MATRIXOS_BUILD_VER == 4)
+        uint8_t osReleaseVersion = 0x31;
+#elif (MATRIXOS_RELEASE_VER < 32)
         uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
 #else
         uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
@@ -243,7 +244,7 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
         SendSysEx(port, sizeof(reply), reply, false);
       }
     }
-    else if (sysExBuffer[1] == MATRIXOS_SYSEX_REQUEST) // Matrix OS specific sysex
+    else if (sysExBuffer[1] == MATRIXOS_SYSEX_REQUEST)
     {
       HandleMatrixOSSysEx(port, sysExBuffer);
     }
@@ -261,11 +262,11 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
   switch (sysExBuffer[2])
   {
   case MATRIXOS_COMMAND_GET_OS_VERSION: {
-#if MATRIXOS_BUILD_VER == 0 // Release Version
+#if MATRIXOS_BUILD_VER == 0
     uint8_t osReleaseVersion = 0;
-#elif (MATRIXOS_BUILD_VER == 4)   // Nighty Version
-    uint8_t osReleaseVersion = 0x31; // 0b0011111 - Shares the same first two bit as release version but the last 5 bits are set
-#elif (MATRIXOS_RELEASE_VER < 32) // Special Release Version
+#elif (MATRIXOS_BUILD_VER == 4)
+    uint8_t osReleaseVersion = 0x31;
+#elif (MATRIXOS_RELEASE_VER < 32)
     uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
 #else
     uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
@@ -295,7 +296,7 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
       break;
     }
     uint32_t appId = ((uint32_t)sysExBuffer[4] << 25) + ((uint32_t)sysExBuffer[5] << 18) + ((uint32_t)sysExBuffer[6] << 11) +
-                      ((uint32_t)sysExBuffer[7] << 4) + ((uint32_t)sysExBuffer[8] >> 3);
+                     ((uint32_t)sysExBuffer[7] << 4) + ((uint32_t)sysExBuffer[8] >> 3);
     SYS::ExecuteAPP(appId);
     break;
   }
@@ -311,14 +312,49 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
     SYS::Reboot();
     break;
   }
-  // case MATRIXOS_COMMAND_SLEEP:
-  // {
-  //   SYS::Sleep();
-  //   break;
-  // }
   default: {
     MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[1]);
   }
   }
 }
 } // namespace MatrixOS::MIDI
+
+namespace MatrixOS::USB::MIDI
+{
+std::vector<MidiPort> ports;
+std::vector<TaskHandle_t> portTasks;
+std::vector<string> portTaskNames;
+
+void portTask(void* param) {
+  uint8_t itf = (uint8_t)(uintptr_t)param;
+  MidiPacket packet;
+  while (true)
+  {
+    (void)ports[itf].Get(&packet, portMAX_DELAY);
+  }
+}
+
+void Init() {
+  for (TaskHandle_t portTaskHandle : portTasks)
+  {
+    vTaskDelete(portTaskHandle);
+  }
+  portTasks.clear();
+  portTaskNames.clear();
+  ports.clear();
+
+  ports.reserve(USB_MIDI_COUNT);
+  portTasks.reserve(USB_MIDI_COUNT);
+
+  for (uint8_t i = 0; i < USB_MIDI_COUNT; i++)
+  {
+    string portname = "USB MIDI " + std::to_string(i + 1);
+    ports.emplace_back(portname, MIDI_PORT_USB + i);
+
+    portTasks.push_back(NULL);
+    portTaskNames.push_back(portname);
+    xTaskCreate(portTask, portTaskNames.back().c_str(), configMINIMAL_STACK_SIZE * 2, (void*)(uintptr_t)i, configMAX_PRIORITIES - 2,
+                &portTasks.back());
+  }
+}
+} // namespace MatrixOS::USB::MIDI

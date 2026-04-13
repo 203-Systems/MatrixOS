@@ -4,20 +4,13 @@
 #include "MatrixOS.h"
 #include "USB.h"
 
-// Device.cpp provides a strong definition for WASM builds.
-// This weak fallback keeps non-WASM targets linkable.
-bool __attribute__((weak)) getWasmUsbState() { return false; }
-
-static bool usbConnectedState() {
-  return getWasmUsbState();
-}
 // --- MatrixOS::USB ---
 namespace MatrixOS::USB
 {
 void Init(USB_MODE mode) { (void)mode; }
 void SetMode(USB_MODE mode) { (void)mode; }
 uint8_t GetMode() { return USB_MODE_NORMAL; }
-bool Connected() { return usbConnectedState(); }
+bool Connected() { return false; }
 
 namespace MIDI
 {
@@ -26,7 +19,7 @@ void Init() {}
 
 namespace CDC
 {
-bool Connected() { return usbConnectedState(); }
+bool Connected() { return false; }
 uint32_t Available() { return 0; }
 void Poll() {}
 

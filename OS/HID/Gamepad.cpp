@@ -2,10 +2,6 @@
 #include "USB.h"
 #include "tusb.h"
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 typedef struct {
   // 32 Buttons, 6 Axis, 2 D-Pads
   int16_t xAxis;
@@ -28,15 +24,6 @@ void Send(void) {
   // tud_hid_n_report(0, REPORT_ID_GAMEPAD, &_report, sizeof(_report));
   // MLOGD("Gamepad", "%d %d %d %d %d %d %d %d", _report.xAxis, _report.yAxis, _report.zAxis, _report.rzAxis, _report.rxAxis,
   // _report.ryAxis, _report.dPad, _report.buttons);
-
-#ifdef __EMSCRIPTEN__
-  MAIN_THREAD_ASYNC_EM_ASM({
-    if (typeof window._matrixos_hid_tap === 'function')
-      window._matrixos_hid_tap(1, 1, $0, $1, $2, $3, $4, $5, $6, $7);
-  }, (int)_report.buttons, (int)_report.dPad,
-     (int)_report.xAxis, (int)_report.yAxis, (int)_report.zAxis,
-     (int)_report.rxAxis, (int)_report.ryAxis, (int)_report.rzAxis);
-#endif
 
   tud_hid_n_report(0, REPORT_ID_GAMEPAD, &_report, 17); // sizeof(_report));
 }

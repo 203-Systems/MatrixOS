@@ -83,6 +83,14 @@ if(DEVICE_TINYUSB)
     if(DEFINED DEVICE_TINYUSB_COMPILE_OPTIONS)
         target_compile_options(MatrixOSUSB PRIVATE ${DEVICE_TINYUSB_COMPILE_OPTIONS})
     endif()
+elseif(DEVICE_CUSTOM_USB_IO)
+    add_library(MatrixOSUSB INTERFACE)
+
+    target_include_directories(MatrixOSUSB INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    target_link_libraries(MatrixOSUSB INTERFACE MatrixOSInterface)
 else()
     # No TinyUSB: build stub USB/HID/MIDI/CDC implementations
     set(PRINTF_DIR ${CMAKE_SOURCE_DIR}/Library/printf/)

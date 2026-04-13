@@ -104,11 +104,26 @@ if(NOT DEFINED DEVICE_TINYUSB)
     set(DEVICE_TINYUSB 1)
 endif()
 
+if(NOT DEFINED DEVICE_CUSTOM_USB_IO)
+  set(DEVICE_CUSTOM_USB_IO 0)
+endif()
+
+if(NOT DEFINED DEVICE_CUSTOM_HID_IO)
+  set(DEVICE_CUSTOM_HID_IO 0)
+endif()
+
+if(NOT DEFINED DEVICE_CUSTOM_MIDI_IO)
+  set(DEVICE_CUSTOM_MIDI_IO 0)
+endif()
+
 # Pass device feature flags as compile definitions to all targets
 add_compile_definitions(
     DEVICE_STORAGE=${DEVICE_STORAGE}
     DEVICE_BATTERY=${DEVICE_BATTERY}
     DEVICE_TINYUSB=${DEVICE_TINYUSB}
+  DEVICE_CUSTOM_USB_IO=${DEVICE_CUSTOM_USB_IO}
+  DEVICE_CUSTOM_HID_IO=${DEVICE_CUSTOM_HID_IO}
+  DEVICE_CUSTOM_MIDI_IO=${DEVICE_CUSTOM_MIDI_IO}
 )
 
 # Set debug flags globally for all targets before adding subdirectories
