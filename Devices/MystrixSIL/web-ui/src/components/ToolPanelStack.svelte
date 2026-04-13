@@ -4,35 +4,25 @@
   import { openTools, closeTool, deviceTools } from '../stores/tools.js'
   import InputPanel from './InputPanel.svelte'
   import LogsPanel from './LogsPanel.svelte'
-  import ApplicationPanel from './tools/ApplicationPanel.svelte'
-  import UIPanel from './tools/UIPanel.svelte'
   import MIDIPanel from './tools/MIDIPanel.svelte'
   import HIDPanel from './tools/HIDPanel.svelte'
   import SerialPanel from './tools/SerialPanel.svelte'
   import UsagePanel from './tools/UsagePanel.svelte'
-  import USBPanel from './tools/USBPanel.svelte'
-  import GyroPanel from './tools/GyroPanel.svelte'
-  import BatteryPanel from './tools/BatteryPanel.svelte'
   import StoragePanel from './tools/StoragePanel.svelte'
   import DeviceHardwarePanel from './tools/DeviceHardwarePanel.svelte'
 
   const panelMap = {
     system: UsagePanel,
-    application: ApplicationPanel,
     input: InputPanel,
     logs: LogsPanel,
-    ui: UIPanel,
     midi: MIDIPanel,
     hid: HIDPanel,
     serial: SerialPanel,
-    usb: USBPanel,
-    gyro: GyroPanel,
-    battery: BatteryPanel,
     storage: StoragePanel,
     'device-hw': DeviceHardwarePanel,
   }
   // Panels that have a tool-hero (helper) section
-  const panelsWithHero = new Set(['system','application','ui','storage','device-hw','midi','hid','serial','input','logs'])
+  const panelsWithHero = new Set(['system', 'storage', 'device-hw', 'midi', 'hid', 'serial', 'input', 'logs'])
 
   const LEFT_NAV_W = 60
   const TRAY_W = 48
@@ -189,10 +179,10 @@
                   title="Help"
                   aria-label="Toggle helper"
                 >
-                  <Help size={14} />
+                  <Help size={16} />
                 </button>
                 <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
-                  <Close size={14} />
+                  <Close size={16} />
                 </button>
               </div>
             </div>

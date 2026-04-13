@@ -1,8 +1,7 @@
 <script>
   import {
-    Keyboard, Terminal, Activity, Screen, Music,
-    Usb, Connect, Meter, Application, Plug,
-    Compass, BatteryFull, DataBase, Restart, Chip
+    Keyboard, Terminal, Activity, Music,
+    Usb, Connect, DataBase, Restart, Chip
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
   import { doReboot } from '../stores/wasm.js'
@@ -10,17 +9,11 @@
 
   const iconMap = {
     system: Activity,
-    application: Application,
     input: Keyboard,
     logs: Terminal,
-    ui: Screen,
     midi: Music,
     hid: Usb,
     serial: Connect,
-    usage: Meter,
-    usb: Plug,
-    gyro: Compass,
-    battery: BatteryFull,
     storage: DataBase,
     'device-hw': Chip,
   }
@@ -40,7 +33,7 @@
       on:click={() => toggleTool(tool.id)}
       title={tool.label}
     >
-      <svelte:component this={iconMap[tool.id]} size={22} />
+      <svelte:component this={iconMap[tool.id]} size={20} />
       <span class="tray-label">{tool.label}</span>
     </button>
   {/each}
@@ -51,7 +44,7 @@
       on:click={doReboot}
       title="Reset emulator"
     >
-      <Restart size={22} />
+      <Restart size={20} />
       <span class="tray-label">Reset</span>
     </button>
   </div>

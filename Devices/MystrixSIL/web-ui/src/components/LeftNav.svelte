@@ -1,17 +1,12 @@
 <script>
-  import { Dashboard, Connect, Chip, Settings } from 'carbon-icons-svelte'
+  import { Dashboard, Connect } from 'carbon-icons-svelte'
 
   export let active = 'device'
   let expanded = false
 
-  const primarySections = [
+  const sections = [
     { id: 'device',     label: 'Device',     icon: Dashboard },
     { id: 'connection', label: 'Connection', icon: Connect },
-    { id: 'firmware',   label: 'Firmware',   icon: Chip },
-  ]
-
-  const secondarySections = [
-    { id: 'settings',   label: 'Settings',   icon: Settings },
   ]
 </script>
 
@@ -23,28 +18,14 @@
   on:mouseleave={() => (expanded = false)}
 >
   <div class="nav-group">
-    {#each primarySections as sec}
+    {#each sections as sec}
       <button
         class="nav-item"
         class:nav-active={active === sec.id}
         on:click={() => (active = sec.id)}
         title={sec.label}
       >
-        <svelte:component this={sec.icon} size={22} />
-        <span class="nav-label">{sec.label}</span>
-      </button>
-    {/each}
-  </div>
-
-  <div class="nav-group nav-group-bottom">
-    {#each secondarySections as sec}
-      <button
-        class="nav-item"
-        class:nav-active={active === sec.id}
-        on:click={() => (active = sec.id)}
-        title={sec.label}
-      >
-        <svelte:component this={sec.icon} size={22} />
+        <svelte:component this={sec.icon} size={20} />
         <span class="nav-label">{sec.label}</span>
       </button>
     {/each}
@@ -72,10 +53,6 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-  }
-  .nav-group-bottom {
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
   }
   .nav-item {
     display: flex;

@@ -275,9 +275,6 @@ export async function restartWasm() {
   }
 }
 
-// Expose for console debugging
-window.matrixosRestart = restartWasm
-
 export function initWasm() {
   checkWasmAvailability()
 
@@ -432,7 +429,6 @@ export function getRuntimeFnState() {
 
 // Accept HMR updates for this module so Vite re-evaluates wasm.js in place
 // (rather than propagating to parent Svelte components and losing context).
-// window.matrixosRestart, doReboot, initWasm, etc. are all updated on re-eval.
 if (import.meta.hot) {
   // Clean up the old module's side effects before the new module takes over.
   // Must mirror the teardown performed by terminateWasmRuntime() + the cleanup

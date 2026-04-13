@@ -1,14 +1,38 @@
 // Tool selection state for the right-side tool tray
 import { writable } from 'svelte/store'
 
+// Tool registry for the Device page
+export const deviceTools = [
+  { id: 'system',    label: 'System' },
+  { id: 'input',     label: 'Input' },
+  { id: 'logs',      label: 'Logs' },
+  { id: 'midi',      label: 'MIDI' },
+  { id: 'hid',       label: 'HID' },
+  { id: 'serial',    label: 'Serial' },
+  { id: 'storage',   label: 'Storage' },
+  { id: 'device-hw', label: 'Hardware' },
+]
+
 const STORAGE_KEY = 'matrixos-open-tools'
+const validToolIds = new Set(deviceTools.map((tool) => tool.id))
+
+function sanitizeOpenTools(value) {
+  if (!Array.isArray(value)) return []
+
+  const seen = new Set()
+  return value.filter((id) => {
+    if (!validToolIds.has(id) || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
 
 function loadOpenTools() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed
+      return sanitizeOpenTools(parsed)
     }
   } catch {}
   return []
@@ -32,17 +56,3 @@ export function toggleTool(id) {
 export function closeTool(id) {
   openTools.update(tools => tools.filter(t => t !== id))
 }
-
-// Tool registry for the Device page
-export const deviceTools = [
-  { id: 'system',      label: 'System' },
-  { id: 'application', label: 'Application' },
-  { id: 'ui',          label: 'UI' },
-  { id: 'input',       label: 'Input' },
-  { id: 'logs',        label: 'Logs' },
-  { id: 'midi',        label: 'MIDI' },
-  { id: 'hid',         label: 'HID' },
-  { id: 'serial',      label: 'Serial' },
-  { id: 'storage',     label: 'Storage' },
-  { id: 'device-hw',   label: 'Device' },
-]

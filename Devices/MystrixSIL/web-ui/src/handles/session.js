@@ -15,6 +15,7 @@ import {
   doReboot, getUptimeMs,
 } from '../stores/wasm.js'
 import { errorCount, warnCount } from '../stores/logs.js'
+import { getUsbAvailable } from './usb.js'
 
 export function getSessionStatus({ sessionId, protocolVersion }) {
   return {
@@ -37,10 +38,11 @@ export function resetSession() {
 
 export function getRuntimeState() {
   const ready = get(moduleReady)
+  const usbConnected = getUsbAvailable()
   return {
     status: get(runtimeStatus),
     uptimeMs: getUptimeMs(),
-    usbConnected: false, // USB runtime state not yet exposed via WASM exports
+    usbConnected: usbConnected == null ? false : usbConnected,
     activeApp: ready ? { name: 'Running', id: 'runtime' } : null,
     // Use MatrixOS log store counts — do not mix in emulator-host JS errors
     warningCount: get(warnCount),

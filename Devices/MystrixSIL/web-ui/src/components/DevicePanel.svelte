@@ -68,7 +68,7 @@
       mod._MatrixOS_Wasm_KeypadTick()
     }
 
-    const heap = mod.HEAPU8 || window.HEAPU8
+    const heap = mod.HEAPU8 || Reflect.get(window, 'HEAPU8')
     if (!heap || !mod._MatrixOS_Wasm_GetFrameBuffer) return
 
     const width = mod._MatrixOS_Wasm_GetWidth?.() ?? fallbackSize
@@ -241,6 +241,8 @@
       <div class="mystrix"
         class:mystrix-hover-left={tbHoverSide === 0}
         class:mystrix-hover-right={tbHoverSide === 1}
+        role="group"
+        aria-label="Virtual Mystrix device surface"
         on:mousemove={(e) => { const r = e.currentTarget.getBoundingClientRect(); const relX = (e.clientX - r.left) / r.width; tbHoverSide = relX < 0.05 ? 0 : relX > 0.95 ? 1 : -1 }}
         on:mouseleave={() => { if (!tbDragging) tbHoverSide = -1 }}
         on:pointerup={handleTBUp}

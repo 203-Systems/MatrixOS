@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.vite
+.svelte-kit
+coverage
+.vercel
 *.local
 
 # Editor directories and files
