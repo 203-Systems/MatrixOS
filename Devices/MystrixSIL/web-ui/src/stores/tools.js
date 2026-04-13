@@ -4,8 +4,10 @@ import { writable } from 'svelte/store'
 // Tool registry for the Device page
 export const deviceTools = [
   { id: 'system',    label: 'System' },
+  { id: 'application', label: 'Application' },
   { id: 'input',     label: 'Input' },
   { id: 'logs',      label: 'Logs' },
+  { id: 'ui',        label: 'UI' },
   { id: 'midi',      label: 'MIDI' },
   { id: 'hid',       label: 'HID' },
   { id: 'serial',    label: 'Serial' },

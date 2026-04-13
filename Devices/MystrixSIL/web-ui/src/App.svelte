@@ -8,6 +8,7 @@
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
   import ConnectionPage from './components/ConnectionPage.svelte'
+  import FirmwarePage from './components/FirmwarePage.svelte'
   import ToolTray from './components/ToolTray.svelte'
   import ToolPanelStack from './components/ToolPanelStack.svelte'
   import { detectBrowserCapabilities } from './stores/tooling.js'
@@ -19,7 +20,7 @@
   onMount(() => {
     try {
       const stored = window.localStorage.getItem(sectionPrefKey)
-      if (['device', 'connection'].includes(stored)) {
+      if (['device', 'connection', 'firmware'].includes(stored)) {
         activeSection = stored
       }
     } catch {}
@@ -55,8 +56,10 @@
     <main class="workspace">
       {#if activeSection === 'device'}
         <DevicePanel />
-      {:else}
+      {:else if activeSection === 'connection'}
         <ConnectionPage />
+      {:else if activeSection === 'firmware'}
+        <FirmwarePage />
       {/if}
     </main>
 

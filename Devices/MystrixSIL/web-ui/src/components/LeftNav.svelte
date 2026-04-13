@@ -1,5 +1,5 @@
 <script>
-  import { Dashboard, Connect } from 'carbon-icons-svelte'
+  import { Dashboard, Connect, Chip } from 'carbon-icons-svelte'
 
   export let active = 'device'
   let expanded = false
@@ -7,6 +7,7 @@
   const sections = [
     { id: 'device',     label: 'Device',     icon: Dashboard },
     { id: 'connection', label: 'Connection', icon: Connect },
+    { id: 'firmware',   label: 'Firmware',   icon: Chip },
   ]
 </script>
 

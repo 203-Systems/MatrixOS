@@ -1,7 +1,7 @@
 <script>
   import {
     Keyboard, Terminal, Activity, Music,
-    Usb, Connect, DataBase, Restart, Chip
+    Usb, Connect, DataBase, Restart, Chip, Application, Screen
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
   import { doReboot } from '../stores/wasm.js'
@@ -9,8 +9,10 @@
 
   const iconMap = {
     system: Activity,
+    application: Application,
     input: Keyboard,
     logs: Terminal,
+    ui: Screen,
     midi: Music,
     hid: Usb,
     serial: Connect,

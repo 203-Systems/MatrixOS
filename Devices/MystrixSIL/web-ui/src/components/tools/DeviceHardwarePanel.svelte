@@ -1,5 +1,5 @@
 <script>
-  import { Usb } from 'carbon-icons-svelte'
+  import { Usb, BatteryCharging, BatteryFull, Compass } from 'carbon-icons-svelte'
   import { moduleReady } from '../../stores/wasm.js'
   import { getUsbAvailable, setUsbAvailable } from '../../handles/usb.js'
 
@@ -7,6 +7,8 @@
   export let onCloseHero = () => {}
 
   let usbConnected = false
+  let batteryPct = 80
+  let charging = false
 
   $: if ($moduleReady) {
     const current = getUsbAvailable()
@@ -27,14 +29,17 @@
   {#if showHero}
   <section class="tool-hero">
     <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
-    <div class="tool-hero-title">Hardware</div>
+    <div class="tool-hero-title-row">
+      <div class="tool-hero-title">Hardware</div>
+      <span class="status-pill status-warn">Under Construction</span>
+    </div>
     <div class="tool-hero-desc">
-      Control the USB link state exposed to the MystrixSIL runtime.
+      Control the USB link state exposed to the MystrixSIL runtime and stage battery / gyro simulation work in progress.
     </div>
   </section>
   {/if}
 
-  <div class="tool-section-title">USB Link</div>
+  <div class="tool-section-title">USB</div>
   <button
     class="hw-strip"
     class:hw-on={usbConnected}
@@ -53,6 +58,52 @@
       {usbConnected ? 'Disconnect' : 'Connect'}
     </div>
   </button>
+
+  <div class="tool-section-title-row hw-section-title-row">
+    <div class="tool-section-title hw-section-title">Battery</div>
+    <span class="status-pill status-warn">Under Construction</span>
+  </div>
+  <button
+    class="hw-strip"
+    class:hw-on={charging}
+    on:click={() => charging = !charging}
+    aria-pressed={charging}
+  >
+    <div class="hw-strip-left">
+      <span class="hw-icon" class:hw-icon-on={charging}><BatteryCharging size={16} /></span>
+      <div class="hw-label-stack">
+        <span class="hw-title">Charging</span>
+        <span class="hw-state">{charging ? 'On' : 'Off'}</span>
+      </div>
+    </div>
+    <div class="hw-strip-action">
+      {charging ? 'Disconnect' : 'Connect'}
+    </div>
+  </button>
+
+  <div class="hw-level-strip">
+    <div class="hw-level-header">
+      <div class="hw-strip-left">
+        <span class="hw-icon"><BatteryFull size={16} /></span>
+        <div class="hw-label-stack">
+          <span class="hw-title">Battery Level</span>
+        </div>
+      </div>
+      <span class="hw-level-pct">{batteryPct}%</span>
+    </div>
+    <div class="hw-level-slider-row">
+      <input class="hw-slider" type="range" min="0" max="100" bind:value={batteryPct} />
+    </div>
+  </div>
+
+  <div class="tool-section-title-row hw-section-title-row">
+    <div class="tool-section-title hw-section-title">Gyro</div>
+    <span class="status-pill status-warn">Under Construction</span>
+  </div>
+  <div class="hw-wip-row">
+    <span class="hw-icon hw-icon-wip"><Compass size={15} /></span>
+    <span class="hw-wip-label">Gyroscope simulation is under construction.</span>
+  </div>
 </div>
 
 <style>
@@ -70,6 +121,21 @@
     letter-spacing: 0.06em;
     color: var(--muted);
     padding: 8px 2px 4px;
+  }
+
+  .hw-section-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 2px 6px;
+  }
+
+  .hw-section-title {
+    padding: 0;
+  }
+
+  .hw-section-title-row :global(.status-pill) {
+    align-self: center;
   }
 
   .hw-strip {
@@ -135,6 +201,10 @@
     color: #6bdd8b;
   }
 
+  .hw-icon-wip {
+    opacity: 0.5;
+  }
+
   .hw-label-stack {
     display: flex;
     flex-direction: column;
@@ -158,5 +228,90 @@
 
   .hw-strip.hw-on .hw-state {
     color: #6bdd8b;
+  }
+
+  .hw-level-strip {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+  }
+
+  .hw-level-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .hw-level-pct {
+    font-size: 0.76rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .hw-level-slider-row {
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .hw-slider {
+    width: 100%;
+    cursor: pointer;
+    display: block;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border);
+    outline: none;
+  }
+
+  .hw-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .hw-slider:hover::-webkit-slider-thumb {
+    background: var(--accent);
+  }
+
+  .hw-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: none;
+    cursor: pointer;
+  }
+
+  .hw-slider:hover::-moz-range-thumb {
+    background: var(--accent);
+  }
+
+  .hw-wip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.01);
+    opacity: 0.6;
+  }
+
+  .hw-wip-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-style: italic;
   }
 </style>

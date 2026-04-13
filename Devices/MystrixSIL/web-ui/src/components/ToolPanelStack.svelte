@@ -8,13 +8,17 @@
   import HIDPanel from './tools/HIDPanel.svelte'
   import SerialPanel from './tools/SerialPanel.svelte'
   import SystemPanel from './tools/SystemPanel.svelte'
+  import ApplicationPanel from './tools/ApplicationPanel.svelte'
+  import UIPanel from './tools/UIPanel.svelte'
   import StoragePanel from './tools/StoragePanel.svelte'
   import DeviceHardwarePanel from './tools/DeviceHardwarePanel.svelte'
 
   const panelMap = {
     system: SystemPanel,
+    application: ApplicationPanel,
     input: InputPanel,
     logs: LogsPanel,
+    ui: UIPanel,
     midi: MIDIPanel,
     hid: HIDPanel,
     serial: SerialPanel,
@@ -22,7 +26,7 @@
     'device-hw': DeviceHardwarePanel,
   }
   // Panels that have a tool-hero (helper) section
-  const panelsWithHero = new Set(['system', 'storage', 'device-hw', 'midi', 'hid', 'serial', 'input', 'logs'])
+  const panelsWithHero = new Set(['system', 'application', 'storage', 'device-hw', 'midi', 'hid', 'serial', 'input', 'logs', 'ui'])
 
   const LEFT_NAV_W = 60
   const TRAY_W = 48
