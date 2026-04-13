@@ -1,6 +1,7 @@
 #include "HostIO.h"
 
-#include "MIDI.h"
+#include "MIDI/MIDI.h"
+#include "USB/USB.h"
 #include "Commands/CommandSpecs.h"
 #include "Framework/Midi/MidiPort.h"
 
@@ -11,10 +12,6 @@ namespace MatrixOS::MIDI
 static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
 static uint32_t droppedAppMidiPackets = 0;
 static uint32_t droppedOversizedSysExMessages = 0;
-
-inline MidiPort* osPort = nullptr;
-inline QueueHandle_t appQueue = nullptr;
-inline TaskHandle_t receiveTask = nullptr;
 
 static void LogDroppedAppMidiPacket() {
   droppedAppMidiPackets++;

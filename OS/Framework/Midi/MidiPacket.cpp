@@ -7,41 +7,40 @@ MidiPacket::MidiPacket() // Place Holder data
   this->status = EMidiStatus::None;
 }
 
-MidiPacket::MidiPacket(EMidiStatus status, ...) {
+MidiPacket::MidiPacket(EMidiStatus status, int data0, int data1, int data2) {
   this->port = MIDI_PORT_INVALID;
   this->status = status;
-  va_list valst;
-  va_start(valst, status);
+  uint8_t statusByte = static_cast<uint8_t>(status);
   switch (status)
   {
   case EMidiStatus::NoteOn:
   case EMidiStatus::NoteOff:
   case EMidiStatus::AfterTouch:
   case EMidiStatus::ControlChange:
-    data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-    data[1] = (uint8_t)va_arg(valst, int);
-    data[2] = (uint8_t)va_arg(valst, int);
+    data[0] = (uint8_t)((statusByte & 0xF0) | (static_cast<uint8_t>(data0) & 0x0f));
+    data[1] = static_cast<uint8_t>(data1);
+    data[2] = static_cast<uint8_t>(data2);
     break;
   case EMidiStatus::ProgramChange:
   case EMidiStatus::ChannelPressure:
-    data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-    data[1] = (uint8_t)va_arg(valst, int);
+    data[0] = (uint8_t)((statusByte & 0xF0) | (static_cast<uint8_t>(data0) & 0x0f));
+    data[1] = static_cast<uint8_t>(data1);
     break;
   case EMidiStatus::PitchChange: {
-    data[0] = (uint8_t)((status & 0xF0) | ((uint8_t)va_arg(valst, int) & 0x0f));
-    uint16_t value = (uint16_t)va_arg(valst, int);
+    data[0] = (uint8_t)((statusByte & 0xF0) | (static_cast<uint8_t>(data0) & 0x0f));
+    uint16_t value = static_cast<uint16_t>(data1);
     data[1] = (uint8_t)(value & 0x7F);
     data[2] = (uint8_t)((value >> 7) & 0x7F);
     break;
   }
   case EMidiStatus::MTCQuarterFrame:
   case EMidiStatus::SongSelect:
-    data[0] = status;
-    data[1] = (uint8_t)va_arg(valst, int);
+    data[0] = statusByte;
+    data[1] = static_cast<uint8_t>(data0);
     break;
   case EMidiStatus::SongPosition: {
-    data[0] = status;
-    uint16_t value = (uint16_t)va_arg(valst, int);
+    data[0] = statusByte;
+    uint16_t value = static_cast<uint16_t>(data0);
     data[1] = (uint8_t)(value & 0x7F);
     data[2] = (uint8_t)((value >> 7) & 0x7F);
     break;
@@ -54,19 +53,18 @@ MidiPacket::MidiPacket(EMidiStatus status, ...) {
   case EMidiStatus::Stop:
   case EMidiStatus::ActiveSense:
   case EMidiStatus::Reset:
-    data[0] = status;
+    data[0] = statusByte;
     break;
   case EMidiStatus::SysExData:
   case EMidiStatus::SysExEnd:
-    data[0] = (uint8_t)va_arg(valst, int);
-    data[1] = (uint8_t)va_arg(valst, int);
-    data[2] = (uint8_t)va_arg(valst, int);
+    data[0] = static_cast<uint8_t>(data0);
+    data[1] = static_cast<uint8_t>(data1);
+    data[2] = static_cast<uint8_t>(data2);
     break;
   default:
-    data[0] = status;
+    data[0] = statusByte;
     break;
   }
-  va_end(valst);
 }
 
 // Static factory methods for channel messages

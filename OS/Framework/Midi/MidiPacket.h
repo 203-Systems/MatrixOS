@@ -50,7 +50,7 @@ struct MidiPacket {
 
   // Constructors
   MidiPacket(); // Place Holder data
-  MidiPacket(EMidiStatus status, ...);
+  MidiPacket(EMidiStatus status, int data0 = 0, int data1 = 0, int data2 = 0);
 
   // Static factory methods for channel messages
   static MidiPacket NoteOn(uint8_t channel, uint8_t note, uint8_t velocity = 127);

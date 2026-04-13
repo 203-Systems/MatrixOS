@@ -1,6 +1,6 @@
 #include "HostIO.h"
 
-#include "USB.h"
+#include "USB/USB.h"
 #include "message_buffer.h"
 
 #include <atomic>
@@ -12,6 +12,22 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+
+namespace MatrixOS::HID::Gamepad
+{
+typedef struct {
+  int16_t xAxis;
+  int16_t yAxis;
+  int16_t zAxis;
+  int16_t rzAxis;
+  int16_t rxAxis;
+  int16_t ryAxis;
+  uint8_t dPad;
+  uint32_t buttons;
+} HID_GamepadReport_Data_t;
+
+extern HID_GamepadReport_Data_t _report;
+} // namespace MatrixOS::HID::Gamepad
 
 namespace MystrixSIL::HostIO
 {
@@ -31,19 +47,7 @@ typedef union __attribute__((packed, aligned(1))) {
   uint8_t keys[8];
 } HID_KeyboardReport_Data_t;
 
-typedef struct {
-  int16_t xAxis;
-  int16_t yAxis;
-  int16_t zAxis;
-  int16_t rzAxis;
-  int16_t rxAxis;
-  int16_t ryAxis;
-  uint8_t dPad;
-  uint32_t buttons;
-} HID_GamepadReport_Data_t;
-
 HID_KeyboardReport_Data_t keyboardReport = {};
-HID_GamepadReport_Data_t gamepadReport = {};
 
 MessageBufferHandle_t rawhidMessageBuffer = nullptr;
 uint8_t rawhidReportBuffer[32];
@@ -63,9 +67,9 @@ void TapGamepadTx() {
   MAIN_THREAD_ASYNC_EM_ASM({
     if (typeof window._matrixos_hid_tap === 'function')
       window._matrixos_hid_tap(1, 1, $0, $1, $2, $3, $4, $5, $6, $7);
-  }, (int)gamepadReport.buttons, (int)gamepadReport.dPad,
-     (int)gamepadReport.xAxis, (int)gamepadReport.yAxis, (int)gamepadReport.zAxis,
-     (int)gamepadReport.rxAxis, (int)gamepadReport.ryAxis, (int)gamepadReport.rzAxis);
+  }, (int)MatrixOS::HID::Gamepad::_report.buttons, (int)MatrixOS::HID::Gamepad::_report.dPad,
+     (int)MatrixOS::HID::Gamepad::_report.xAxis, (int)MatrixOS::HID::Gamepad::_report.yAxis, (int)MatrixOS::HID::Gamepad::_report.zAxis,
+     (int)MatrixOS::HID::Gamepad::_report.rxAxis, (int)MatrixOS::HID::Gamepad::_report.ryAxis, (int)MatrixOS::HID::Gamepad::_report.rzAxis);
 #endif
 }
 
@@ -310,9 +314,9 @@ bool Ready() {
 }
 
 void Reset() {
-  RawHID::Init();
+  MystrixSIL::HostIO::ResetRawHidBuffer();
   memset(&MystrixSIL::HostIO::keyboardReport, 0, sizeof(MystrixSIL::HostIO::keyboardReport));
-  memset(&MystrixSIL::HostIO::gamepadReport, 0, sizeof(MystrixSIL::HostIO::gamepadReport));
+  memset(&Gamepad::_report, 0, sizeof(Gamepad::_report));
 }
 
 void Init() {
@@ -357,6 +361,8 @@ void ReleaseAll() {
 
 namespace Gamepad
 {
+HID_GamepadReport_Data_t _report = {};
+
 void Send() {
   MystrixSIL::HostIO::TapGamepadTx();
 }
@@ -368,17 +374,17 @@ void Tap(uint8_t buttonId, uint16_t lengthMs) {
 }
 
 void Press(uint8_t buttonId) {
-  MystrixSIL::HostIO::gamepadReport.buttons |= (uint32_t)1 << buttonId;
+  _report.buttons |= (uint32_t)1 << buttonId;
   Send();
 }
 
 void Release(uint8_t buttonId) {
-  MystrixSIL::HostIO::gamepadReport.buttons &= ~((uint32_t)1 << buttonId);
+  _report.buttons &= ~((uint32_t)1 << buttonId);
   Send();
 }
 
 void ReleaseAll(void) {
-  memset(&MystrixSIL::HostIO::gamepadReport, 0, sizeof(MystrixSIL::HostIO::gamepadReport));
+  memset(&_report, 0, sizeof(_report));
   Send();
 }
 
@@ -394,42 +400,42 @@ void Button(uint8_t buttonId, bool state) {
 }
 
 void Buttons(uint32_t buttonState) {
-  MystrixSIL::HostIO::gamepadReport.buttons = buttonState;
+  _report.buttons = buttonState;
   Send();
 }
 
 void XAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.xAxis = value;
+  _report.xAxis = value;
   Send();
 }
 
 void YAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.yAxis = value;
+  _report.yAxis = value;
   Send();
 }
 
 void ZAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.zAxis = value;
+  _report.zAxis = value;
   Send();
 }
 
 void RXAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.rxAxis = value;
+  _report.rxAxis = value;
   Send();
 }
 
 void RYAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.ryAxis = value;
+  _report.ryAxis = value;
   Send();
 }
 
 void RZAxis(int16_t value) {
-  MystrixSIL::HostIO::gamepadReport.rzAxis = value;
+  _report.rzAxis = value;
   Send();
 }
 
 void DPad(GamepadDPadDirection direction) {
-  MystrixSIL::HostIO::gamepadReport.dPad = direction;
+  _report.dPad = direction;
   Send();
 }
 } // namespace Gamepad
