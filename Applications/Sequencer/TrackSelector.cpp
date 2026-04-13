@@ -11,8 +11,8 @@ Dimension TrackSelector::GetSize() {
   return Dimension(8, 1);
 }
 
-void TrackSelector::OnChange(std::function<void(uint8_t)> callback) {
-  changeCallback = callback;
+void TrackSelector::OnChange(UICallback<void(uint8_t)> callback) {
+  changeCallback = std::move(callback);
 }
 
 bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
@@ -28,7 +28,7 @@ bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
         sequencer->ClearActiveNotes();
         sequencer->stepSelected.clear();
         sequencer->patternSelected.clear();
-        if (changeCallback != nullptr)
+        if (changeCallback)
         {
           (changeCallback)(xy.x);
         }
@@ -48,7 +48,7 @@ bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
         sequencer->ClearActiveNotes();
         sequencer->stepSelected.clear();
         sequencer->patternSelected.clear();
-        if (changeCallback != nullptr)
+        if (changeCallback)
         {
           (changeCallback)(xy.x);
         }

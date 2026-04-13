@@ -2,7 +2,6 @@
 
 #include "MatrixOS.h"
 #include "UI/UI.h"
-#include <functional>
 #include <set>
 
 #include "Sequencer.h"

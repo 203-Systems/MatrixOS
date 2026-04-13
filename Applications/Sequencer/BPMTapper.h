@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <deque>
-#include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
@@ -13,7 +12,7 @@ public:
   string name;
   Color color;
   Dimension dimension;
-  std::function<void(uint16_t)> callback;
+  UICallback<void(uint16_t)> callback;
 
   std::deque<uint64_t> tap_times;
 
@@ -42,8 +41,8 @@ public:
     this->dimension = dimension;
   }
 
-  void OnChange(std::function<void(uint16_t)> callback) {
-    this->callback = callback;
+  template <typename F> void OnChange(F&& callback) {
+    this->callback = UICallback<void(uint16_t)>(static_cast<F&&>(callback));
   }
 
   void CalculateBPM() {

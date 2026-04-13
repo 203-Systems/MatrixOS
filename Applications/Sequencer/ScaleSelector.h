@@ -2,14 +2,13 @@
 
 #include "MatrixOS.h"
 #include "UI/UI.h"
-#include <functional>
 
 class ScaleSelector : public UIComponent {
 public:
   ScaleSelector(Color color);
 
-  void SetScaleFunc(std::function<uint16_t()> func);
-  void OnChange(std::function<void(uint16_t)> callback);
+  void SetScaleFunc(UICallback<uint16_t()> func);
+  void OnChange(UICallback<void(uint16_t)> callback);
 
   Color GetColor();
   Dimension GetSize() override;
@@ -18,6 +17,6 @@ public:
 
 private:
   Color color;
-  std::function<uint16_t()> getScale;
-  std::function<void(uint16_t)> onChange;
+  UICallback<uint16_t()> getScale;
+  UICallback<void(uint16_t)> onChange;
 };

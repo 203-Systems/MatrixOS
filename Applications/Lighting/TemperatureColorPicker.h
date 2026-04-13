@@ -1,5 +1,4 @@
 #include <cmath>
-#include <functional>
 #include "MatrixOS.h"
 #include "UI/UI.h"
 
@@ -9,13 +8,13 @@ public:
   Dimension dimension;
   uint16_t begin;
   uint16_t step;
-  std::function<void(Color)> callback;
+  UICallback<void(Color)> callback;
 
-  UITemperatureColorSelector(Dimension dimension, std::function<void(Color)> callback, uint16_t begin = 300, uint16_t end = 6700) {
+  UITemperatureColorSelector(Dimension dimension, UICallback<void(Color)> callback, uint16_t begin = 300, uint16_t end = 6700) {
     this->dimension = dimension;
     this->step = (end - begin) / dimension.Area();
     this->begin = begin;
-    this->callback = callback;
+    this->callback = std::move(callback);
   }
 
   virtual Dimension GetSize() {
@@ -165,7 +164,10 @@ public:
       uint8_t index = (dimension.y - xy.y - 1) * dimension.x + xy.x;
       uint16_t temp = begin + step * index;
       Color color = TemperatureToRGB(temp);
-      callback(color);
+      if (callback)
+      {
+        callback(color);
+      }
     }
     else if (keypadInfo->state == KeypadState::Hold)
     {

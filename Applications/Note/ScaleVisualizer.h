@@ -1,5 +1,5 @@
-#include <functional>
 #include "MatrixOS.h"
+#include "UI/UI.h"
 
 class NoteScaleVisualizer : public UIComponent {
 public:
@@ -21,12 +21,12 @@ public:
     this->rootOffsetColor = rootOffsetColor;
   }
 
-  void OnChange(std::function<void()> callback) {
-    onChange = callback;
+  template <typename F> void OnChange(F&& callback) {
+    onChange = UICallback<void()>(static_cast<F&&>(callback));
   }
 
 private:
-  std::function<void()> onChange;
+  UICallback<void()> onChange;
 
   virtual Color GetColor() {
     return color;

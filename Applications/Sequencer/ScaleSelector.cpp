@@ -17,12 +17,12 @@ constexpr const char* scaleNames[16] = {
 
 ScaleSelector::ScaleSelector(Color color) : color(color) {}
 
-void ScaleSelector::SetScaleFunc(std::function<uint16_t()> func) {
-  getScale = func;
+void ScaleSelector::SetScaleFunc(UICallback<uint16_t()> func) {
+  getScale = std::move(func);
 }
 
-void ScaleSelector::OnChange(std::function<void(uint16_t)> callback) {
-  onChange = callback;
+void ScaleSelector::OnChange(UICallback<void(uint16_t)> callback) {
+  onChange = std::move(callback);
 }
 
 Color ScaleSelector::GetColor() {

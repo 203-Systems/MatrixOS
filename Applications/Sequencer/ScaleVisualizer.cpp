@@ -6,18 +6,18 @@ SequencerScaleVisualizer::SequencerScaleVisualizer(Color color, Color rootColor,
   this->rootOffsetColor = rootOffsetColor;
 }
 
-void SequencerScaleVisualizer::SetGetRootKeyFunc(std::function<uint8_t()> func) {
-  getRootKey = func;
+void SequencerScaleVisualizer::SetGetRootKeyFunc(UICallback<uint8_t()> func) {
+  getRootKey = std::move(func);
 }
-void SequencerScaleVisualizer::SetGetRootOffsetFunc(std::function<uint8_t()> func) {
-  getRootOffset = func;
+void SequencerScaleVisualizer::SetGetRootOffsetFunc(UICallback<uint8_t()> func) {
+  getRootOffset = std::move(func);
 }
-void SequencerScaleVisualizer::SetGetScaleFunc(std::function<uint16_t()> func) {
-  getScale = func;
+void SequencerScaleVisualizer::SetGetScaleFunc(UICallback<uint16_t()> func) {
+  getScale = std::move(func);
 }
 
-void SequencerScaleVisualizer::OnChange(std::function<void(uint8_t, uint8_t, uint16_t)> callback) {
-  onChange = callback;
+void SequencerScaleVisualizer::OnChange(UICallback<void(uint8_t, uint8_t, uint16_t)> callback) {
+  onChange = std::move(callback);
 }
 
 Color SequencerScaleVisualizer::GetColor() {

@@ -2,7 +2,6 @@
 
 #include "UI/UI.h"
 #include "Sequencer.h"
-#include <functional>
 
 // A preconfigured save UI component for the Sequencer menu
 class SaveButton : public UIComponent {
