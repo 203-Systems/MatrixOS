@@ -12,6 +12,7 @@ export const wasmMissing = writable(false)
 export const runtimeStatus = writable('Waiting for runtime…')
 export const versionLabel = writable('…')
 export const buildIdentity = writable('Matrix OS')
+export const buildTime = writable('—')
 
 let wasmSignature = null
 let reloadTimer = 0
@@ -249,6 +250,7 @@ export async function restartWasm() {
     runtimeStatus.set('Restarting…')
     versionLabel.set('…')
     buildIdentity.set('Matrix OS')
+    buildTime.set('—')
     wasmMissing.set(false)
     wasmSignature = null
 
@@ -339,6 +341,10 @@ export function initWasm() {
     if (mod._MatrixOS_Wasm_GetBuildIdentityString && mod.UTF8ToString) {
       const ptr = mod._MatrixOS_Wasm_GetBuildIdentityString()
       if (ptr) buildIdentity.set(mod.UTF8ToString(ptr))
+    }
+    if (mod._MatrixOS_Wasm_GetBuildTimeString && mod.UTF8ToString) {
+      const ptr = mod._MatrixOS_Wasm_GetBuildTimeString()
+      if (ptr) buildTime.set(mod.UTF8ToString(ptr))
     }
   }
 

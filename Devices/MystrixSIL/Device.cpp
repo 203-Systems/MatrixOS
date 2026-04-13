@@ -55,6 +55,10 @@ string BuildVersionLabel() {
   return "Matrix OS " XSTR(MATRIXOS_MAJOR_VER) "." XSTR(MATRIXOS_MINOR_VER) MATRIXOS_MINOR_VERSION_STRING;
 }
 
+string BuildTimeLabel() {
+  return __DATE__ " " __TIME__;
+}
+
 string BuildIdentityLabel() {
   string version = BuildVersionLabel();
 #if defined(MATRIXOS_BUILD_RELEASE)
@@ -93,6 +97,7 @@ string BuildIdentityLabel() {
 }
 
 string wasmVersionLabel = BuildVersionLabel();
+string wasmBuildTimeLabel = BuildTimeLabel();
 string wasmBuildIdentityLabel = BuildIdentityLabel();
 
 void BuildLEDIndexMap(Direction rotation) {
@@ -637,6 +642,10 @@ const char* MatrixOS_Wasm_GetVersionString(void) {
 
 const char* MatrixOS_Wasm_GetBuildIdentityString(void) {
   return wasmBuildIdentityLabel.c_str();
+}
+
+const char* MatrixOS_Wasm_GetBuildTimeString(void) {
+  return wasmBuildTimeLabel.c_str();
 }
 
 void MatrixOS_Wasm_SetUsbAvailable(int available) {

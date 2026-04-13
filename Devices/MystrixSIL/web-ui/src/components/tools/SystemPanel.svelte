@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { formatBytes, usageSnapshot } from '../../stores/tooling.js'
-  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs, buildIdentity } from '../../stores/wasm.js'
+  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs, buildIdentity, buildTime } from '../../stores/wasm.js'
   import { errorCount, warnCount, logMessages } from '../../stores/logs.js'
   export let showHero = true
   export let onCloseHero = () => {}
@@ -99,6 +99,12 @@
         <span class="tool-card-label">Build Hash</span>
         <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
           {$wasmMissing ? 'Missing' : buildMeta.buildHash}
+        </span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Build Time</span>
+        <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
+          {$wasmMissing ? 'Missing' : $buildTime}
         </span>
       </div>
     </div>
