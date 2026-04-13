@@ -101,10 +101,6 @@
           {$wasmMissing ? 'Missing' : buildMeta.buildHash}
         </span>
       </div>
-      <div class="tool-card">
-        <span class="tool-card-label">Uptime</span>
-        <span class="tool-card-value">{uptime}</span>
-      </div>
     </div>
   </section>
 
@@ -128,8 +124,8 @@
         <span class="tool-card-value">{$logMessages.length}</span>
       </div>
       <div class="tool-card">
-        <span class="tool-card-label">Input events</span>
-        <span class="tool-card-value">{$usageSnapshot.inputEventCount}</span>
+        <span class="tool-card-label">Uptime</span>
+        <span class="tool-card-value">{uptime}</span>
       </div>
     </div>
   </section>
