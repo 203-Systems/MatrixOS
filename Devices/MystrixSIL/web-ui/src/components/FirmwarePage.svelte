@@ -1,20 +1,80 @@
 <script>
+  import { IS_NODE_BACKED } from '../stores/rpc.js'
+  import { buildIdentity, buildTime } from '../stores/wasm.js'
+
   let searchQuery = ''
   let activeTag = 'all'
+  let localBuildLoaded = true
+  let loadedReleaseHash = ''
 
-  const tags = ['all', 'Stable', 'Beta', 'Nightly', 'InDev']
+  const tags = ['all', 'Release', 'Release Candidate', 'Beta', 'Nightly']
+
+  function parseBuildIdentity(identity) {
+    const fallback = {
+      version: identity || '—',
+      buildType: '—',
+      buildHash: '—'
+    }
+
+    if (!identity) return fallback
+
+    const parts = identity.split('•').map((part) => part.trim()).filter(Boolean)
+    if (!parts.length) return fallback
+
+    const version = parts[0] || fallback.version
+    const dirty = parts.some((part) => /^dirty$/i.test(part))
+    const remainder = parts.slice(1).join(' ').trim()
+
+    if (!remainder) {
+      return {
+        version,
+        buildType: '—',
+        buildHash: dirty ? '(Dirty)' : '—'
+      }
+    }
+
+    const hashMatch = remainder.match(/\b([0-9a-f]{7,40})\b/i)
+    const buildHash = hashMatch ? `${hashMatch[1]}${dirty ? ' (Dirty)' : ''}` : (dirty ? `${remainder} (Dirty)` : remainder)
+    const buildType = hashMatch ? remainder.slice(0, hashMatch.index).trim() || '—' : remainder
+
+    return {
+      version,
+      buildType,
+      buildHash
+    }
+  }
+
+  $: localBuildMeta = parseBuildIdentity($buildIdentity)
+
+  function buildTypeClass(buildType) {
+    const value = (buildType || '').toLowerCase()
+    if (value.includes('release candidate') || value.includes('rc')) return 'build-type-rc'
+    if (value.includes('beta')) return 'build-type-beta'
+    if (value.includes('nightly')) return 'build-type-nightly'
+    if (value.includes('indev') || value.includes('dev')) return 'build-type-indev'
+    if (value.includes('release')) return 'build-type-release'
+    return 'build-type-neutral'
+  }
+
+  function handleLocalBuildLoad() {
+    localBuildLoaded = true
+  }
+
+  function handleReleaseLoad(fw) {
+    loadedReleaseHash = fw.buildHash
+  }
 
   const placeholderFirmware = [
-    { name: 'Matrix OS 4.0 InDev', version: 'v4.0.0-indev.4', date: '2026-04-12', tag: 'InDev' },
-    { name: 'Matrix OS 4.0 Nightly', version: 'v4.0.0-nightly.17', date: '2026-04-09', tag: 'Nightly' },
-    { name: 'Matrix OS 3.9 Beta', version: 'v3.9.0-beta.5', date: '2026-03-30', tag: 'Beta' },
-    { name: 'Matrix OS 3.8 Stable', version: 'v3.8.2', date: '2026-02-18', tag: 'Stable' },
+    { name: 'Matrix OS 4.0 RC 1', version: 'v4.0.0-rc.1', buildHash: 'a91f3c7', date: '2026-04-12', channel: 'Release Candidate' },
+    { name: 'Matrix OS 4.0 Nightly', version: 'v4.0.0-nightly.17', buildHash: 'f54c91a', date: '2026-04-09', channel: 'Nightly' },
+    { name: 'Matrix OS 3.9 Beta', version: 'v3.9.0-beta.5', buildHash: '4b108de', date: '2026-03-30', channel: 'Beta' },
+    { name: 'Matrix OS 3.8 Release', version: 'v3.8.2', buildHash: '93ac2e4', date: '2026-02-18', channel: 'Release' },
   ]
 
   $: filteredFirmware = placeholderFirmware.filter((fw) => {
-    const tagMatch = activeTag === 'all' || fw.tag === activeTag
+    const tagMatch = activeTag === 'all' || fw.channel === activeTag
     const q = searchQuery.trim().toLowerCase()
-    const textMatch = !q || fw.name.toLowerCase().includes(q) || fw.version.toLowerCase().includes(q)
+    const textMatch = !q || fw.name.toLowerCase().includes(q) || fw.version.toLowerCase().includes(q) || fw.buildHash.toLowerCase().includes(q)
     return tagMatch && textMatch
   })
 </script>
@@ -30,7 +90,35 @@
     </div>
   </section>
 
+  {#if IS_NODE_BACKED}
   <section class="tool-section">
+    <div class="tool-section-title">Local Build</div>
+    <div class="tool-grid">
+      <div class="tool-card">
+        <span class="tool-card-label">Name</span>
+        <span class="tool-card-value">{localBuildMeta.version}</span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Build Type</span>
+        <span class={`tool-card-value ${buildTypeClass(localBuildMeta.buildType)}`}>{localBuildMeta.buildType}</span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Build Hash</span>
+        <span class="tool-card-value">{localBuildMeta.buildHash}</span>
+      </div>
+      <div class="tool-card">
+        <span class="tool-card-label">Build Date</span>
+        <span class="tool-card-value">{$buildTime}</span>
+      </div>
+      <button class="local-build-load-btn" on:click={handleLocalBuildLoad}>
+        {localBuildLoaded ? 'Reload' : 'Load'}
+      </button>
+    </div>
+  </section>
+  {/if}
+
+  <section class="tool-section">
+    <div class="tool-section-title">Official Release</div>
     <div class="fw-toolbar">
       <div class="fw-tag-filter">
         {#each tags as tag}
@@ -44,7 +132,7 @@
       <input
         class="fw-search"
         type="search"
-        placeholder="Search firmware..."
+        placeholder="Search firmware/version/hash..."
         bind:value={searchQuery}
       />
     </div>
@@ -52,16 +140,24 @@
     <div class="fw-table">
       <div class="fw-header-row">
         <span class="fw-col-name">Name</span>
-        <span class="fw-col-ver">Release Version</span>
-        <span class="fw-col-tag">Tag</span>
+        <span class="fw-col-channel">Channel</span>
+        <span class="fw-col-ver">Build String</span>
+        <span class="fw-col-hash">Build Hash</span>
         <span class="fw-col-date">Release Date</span>
+        <span class="fw-col-action"></span>
       </div>
       {#each filteredFirmware as fw}
         <div class="fw-row">
           <span class="fw-col-name fw-name">{fw.name}</span>
+          <span class="fw-col-channel"><span class="fw-channel fw-channel-{fw.channel.toLowerCase().replace(/\s+/g, '-')}">{fw.channel}</span></span>
           <span class="fw-col-ver fw-mono">{fw.version}</span>
-          <span class="fw-col-tag"><span class="fw-channel fw-channel-{fw.tag.toLowerCase()}">{fw.tag}</span></span>
+          <span class="fw-col-hash fw-mono">{fw.buildHash}</span>
           <span class="fw-col-date fw-mono">{fw.date}</span>
+          <span class="fw-col-action">
+            <button class="fw-row-load-btn" on:click={() => handleReleaseLoad(fw)}>
+              {loadedReleaseHash === fw.buildHash ? 'Reload' : 'Load'}
+            </button>
+          </span>
         </div>
       {/each}
       {#if filteredFirmware.length === 0}
@@ -75,11 +171,34 @@
   .firmware-page {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 16px 20px;
+    gap: 24px;
+    padding: 24px 28px;
     height: 100%;
     overflow-y: auto;
   }
+  .local-build-load-btn {
+    border: 1px solid rgba(76, 201, 240, 0.45);
+    color: #b9ebff;
+    background: rgba(76, 201, 240, 0.12);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .local-build-load-btn:hover {
+    background: rgba(76, 201, 240, 0.18);
+    border-color: rgba(76, 201, 240, 0.72);
+  }
+  .build-type-release { color: #5bea8c; }
+  .build-type-rc { color: #8db5ff; }
+  .build-type-beta { color: #63d8ff; }
+  .build-type-nightly { color: #ffd27e; }
+  .build-type-indev { color: #ff8f8f; }
+  .build-type-neutral { color: #5bea8c; }
   .fw-toolbar {
     display: flex;
     align-items: center;
@@ -107,6 +226,23 @@
     border-color: var(--accent);
     color: var(--accent);
     background: rgba(76, 201, 240, 0.07);
+  }
+  .fw-row-load-btn {
+    border: 1px solid rgba(76, 201, 240, 0.45);
+    color: #b9ebff;
+    background: rgba(76, 201, 240, 0.12);
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .fw-row-load-btn:hover {
+    background: rgba(76, 201, 240, 0.18);
+    border-color: rgba(76, 201, 240, 0.72);
   }
   .fw-search {
     flex: 1;
@@ -151,9 +287,11 @@
   }
   .fw-row:hover { background: rgba(255,255,255,0.04); }
   .fw-col-name { flex: 1; min-width: 0; }
-  .fw-col-ver { width: 180px; flex-shrink: 0; }
-  .fw-col-tag { width: 84px; flex-shrink: 0; }
+  .fw-col-ver { width: 160px; flex-shrink: 0; }
+  .fw-col-channel { width: 150px; flex-shrink: 0; }
+  .fw-col-hash { width: 100px; flex-shrink: 0; }
   .fw-col-date { width: 120px; flex-shrink: 0; }
+  .fw-col-action { width: 90px; flex-shrink: 0; text-align: right; }
   .fw-name { font-weight: 500; color: var(--text); }
   .fw-mono { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
   .fw-channel {
@@ -165,10 +303,10 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  .fw-channel-stable { background: rgba(61,214,140,0.12); color: #3dd68c; }
+  .fw-channel-release { background: rgba(61,214,140,0.12); color: #3dd68c; }
+  .fw-channel-release-candidate { background: rgba(140,170,255,0.14); color: #9db9ff; }
   .fw-channel-beta { background: rgba(76,201,240,0.1); color: #4cc9f0; }
   .fw-channel-nightly { background: rgba(247,194,102,0.1); color: #f7c266; }
-  .fw-channel-indev { background: rgba(255,107,107,0.1); color: #ff8b8b; }
   .fw-empty {
     padding: 24px;
     text-align: center;
@@ -176,4 +314,5 @@
     font-size: 0.78rem;
     opacity: 0.6;
   }
+
 </style>
