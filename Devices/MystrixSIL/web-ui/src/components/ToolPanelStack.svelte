@@ -7,12 +7,12 @@
   import MIDIPanel from './tools/MIDIPanel.svelte'
   import HIDPanel from './tools/HIDPanel.svelte'
   import SerialPanel from './tools/SerialPanel.svelte'
-  import UsagePanel from './tools/UsagePanel.svelte'
+  import SystemPanel from './tools/SystemPanel.svelte'
   import StoragePanel from './tools/StoragePanel.svelte'
   import DeviceHardwarePanel from './tools/DeviceHardwarePanel.svelte'
 
   const panelMap = {
-    system: UsagePanel,
+    system: SystemPanel,
     input: InputPanel,
     logs: LogsPanel,
     midi: MIDIPanel,
