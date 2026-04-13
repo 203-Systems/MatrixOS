@@ -6,8 +6,6 @@
 #include "../USB/USB.h"
 #include "../LED/LED.h"
 #include "../Input/Input.h"
-#include "../FileSystem/File.h"
-#include "../FileSystem/FileSystem.h"
 #include "../MIDI/MIDI.h"
 #include "task.h"
 

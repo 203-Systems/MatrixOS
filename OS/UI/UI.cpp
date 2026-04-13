@@ -152,8 +152,6 @@ void UI::AllowExit(bool allow) {
   disableExit = !allow;
 }
 
-// Setters are now inline templates in UI.h
-
 void UI::ClearUIComponents() {
   uiComponents.clear();
 }
