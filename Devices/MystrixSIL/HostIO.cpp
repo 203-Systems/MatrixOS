@@ -85,7 +85,7 @@ void TapRawHid(int direction, const uint8_t* report, size_t size) {
         for (var i = 0; i < $2; i++) data.push(HEAPU8[$1 + i]);
         window._matrixos_hid_tap(2, $0, data);
       }
-      _free($1);
+      if (typeof Module !== 'undefined' && Module._free) Module._free($1);
     }, direction, (int)(uintptr_t)tapBuf, (int)size);
   }
 #else
@@ -183,7 +183,7 @@ void TapSerial(int direction, const string& text) {
     MAIN_THREAD_ASYNC_EM_ASM({
       if (typeof window._matrixos_serial_tap === 'function')
         window._matrixos_serial_tap($0, UTF8ToString($1));
-      _free($1);
+      if (typeof Module !== 'undefined' && Module._free) Module._free($1);
     }, direction, tapStr);
   }
 #else
