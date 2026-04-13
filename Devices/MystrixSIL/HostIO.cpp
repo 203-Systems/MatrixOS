@@ -148,13 +148,17 @@ bool SetKeyboardKey(KeyboardKeycode keycode, bool state) {
 }
 
 void EnsureRawHidBuffer() {
+  if (!rawhidMessageBuffer)
+  {
+    rawhidMessageBuffer = xMessageBufferCreate(128);
+  }
+}
+
+void ResetRawHidBuffer() {
+  EnsureRawHidBuffer();
   if (rawhidMessageBuffer)
   {
     xMessageBufferReset(rawhidMessageBuffer);
-  }
-  else
-  {
-    rawhidMessageBuffer = xMessageBufferCreate(128);
   }
 }
 } // namespace
@@ -433,7 +437,7 @@ void DPad(GamepadDPadDirection direction) {
 namespace RawHID
 {
 void Init() {
-  MystrixSIL::HostIO::EnsureRawHidBuffer();
+  MystrixSIL::HostIO::ResetRawHidBuffer();
 }
 
 size_t Get(uint8_t** report, uint32_t timeoutMs) {

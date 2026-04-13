@@ -57,6 +57,8 @@ namespace MatrixOS::FileSystem
 {
   void Init() {}
   bool Available() { return false; }
+  string TranslatePath(const string& path) { return ""; }
+  void EnsureAppDirectory() {}
   bool Exists(const string& path) { return false; }
   bool MakeDir(const string& path) { return false; }
   File Open(const string& path, const string& mode) { return File(); }

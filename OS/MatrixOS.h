@@ -239,6 +239,8 @@ namespace FileSystem
 {
 void Init();
 bool Available(void);
+string TranslatePath(const string& path);
+void EnsureAppDirectory();
 bool Exists(const string& path);
 bool MakeDir(const string& path);
 File Open(const string& path, const string& mode);

@@ -10,12 +10,6 @@ namespace MatrixOS::USB::CDC
 void WriteChar(char c, void* arg);
 }
 
-namespace MatrixOS::FileSystem
-{
-extern string TranslatePath(const string& path);
-extern void EnsureAppDirectory();
-} // namespace MatrixOS::FileSystem
-
 // Platform abstraction functions for PikaPython
 extern "C" {
 char pika_platform_getchar() {
