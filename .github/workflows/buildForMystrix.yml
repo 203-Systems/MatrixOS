@@ -361,20 +361,13 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          loader_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.js"
-          wasm_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.wasm"
-          bundle_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.zip"
+          package_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.mspkg"
 
-          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
-          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
-
-          zip -j -q "out/$bundle_asset" \
+          zip -j -q "out/$package_asset" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
 
-          loader_sha=$(sha256sum "out/$loader_asset" | awk '{print $1}')
-          wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
-          bundle_sha=$(sha256sum "out/$bundle_asset" | awk '{print $1}')
+          package_sha=$(sha256sum "out/$package_asset" | awk '{print $1}')
 
           export METADATA_OUTPUT="out/MystrixSIL.json"
           export METADATA_TAG="$RELEASE_TAG"
@@ -388,12 +381,8 @@ jobs:
           export METADATA_COMMIT="$COMMIT_SHORT"
           export METADATA_PRERELEASE="$PRERELEASE"
           export METADATA_DEVICE="MystrixSIL"
-          export METADATA_LOADER_NAME="$loader_asset"
-          export METADATA_LOADER_SHA="$loader_sha"
-          export METADATA_WASM_NAME="$wasm_asset"
-          export METADATA_WASM_SHA="$wasm_sha"
-          export METADATA_BUNDLE_NAME="$bundle_asset"
-          export METADATA_BUNDLE_SHA="$bundle_sha"
+          export METADATA_BUNDLE_NAME="$package_asset"
+          export METADATA_BUNDLE_SHA="$package_sha"
           node Tools/release/write-device-metadata.mjs
 
       - name: Upload MystrixSIL artifact bundle
@@ -503,14 +492,9 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          loader_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.js"
-          wasm_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.wasm"
-          bundle_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.zip"
+          package_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
 
-          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
-          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
-
-          zip -j -q "out/$bundle_asset" \
+          zip -j -q "out/$package_asset" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
 
@@ -548,7 +532,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-files metadata
-          find artifacts -type f \( -name '*.uf2' -o -name '*.js' -o -name '*.wasm' -o -name '*.zip' \) -exec cp {} release-files/ \;
+          find artifacts -type f \( -name '*.uf2' -o -name '*.mspkg' \) -exec cp {} release-files/ \;
           find artifacts -type f -name '*.json' -exec cp {} metadata/ \;
 
       - name: Create or update GitHub Release
