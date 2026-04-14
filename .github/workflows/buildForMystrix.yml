@@ -21,7 +21,7 @@ on:
           - nightly
           - development
       release_ver:
-        description: RC/Beta number. Ignored for release, nightly, and development.
+        description: RC/Beta number in the range 1-31. Ignored for release, nightly, and development.
         required: false
         type: string
         default: '1'
@@ -83,6 +83,41 @@ jobs:
         run: |
           set -euo pipefail
 
+          append_output() {
+            local key="$1"
+            local value="$2"
+            local delimiter="EOF_$(date +%s%N)_$RANDOM"
+
+            {
+              printf '%s<<%s\n' "$key" "$delimiter"
+              printf '%s\n' "$value"
+              printf '%s\n' "$delimiter"
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          validate_release_ver() {
+            local value="$1"
+            local channel_name="$2"
+
+            if [[ -z "$value" ]]; then
+              printf '1\n'
+              return
+            fi
+
+            if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+              echo "workflow_dispatch.release_ver must be an integer in the range 1-31 for ${channel_name} builds" >&2
+              exit 1
+            fi
+
+            local normalized=$((10#$value))
+            if (( normalized < 1 || normalized > 31 )); then
+              echo "workflow_dispatch.release_ver must be in the range 1-31 for ${channel_name} builds" >&2
+              exit 1
+            fi
+
+            printf '%s\n' "$normalized"
+          }
+
           major=$(awk '/^#define MATRIXOS_MAJOR_VER / {print $3}' OS/System/Parameters.h)
           minor=$(awk '/^#define MATRIXOS_MINOR_VER / {print $3}' OS/System/Parameters.h)
           patch=$(awk '/^#define MATRIXOS_PATCH_VER / {print $3}' OS/System/Parameters.h)
@@ -108,11 +143,6 @@ jobs:
             publish="false"
           fi
 
-          release_ver="${INPUT_RELEASE_VER:-0}"
-          if [[ -z "$release_ver" ]]; then
-            release_ver="0"
-          fi
-
           case "$channel" in
             release)
               build_target="build-release"
@@ -128,9 +158,7 @@ jobs:
               channel_label="Release Candidate"
               channel_slug="rc"
               prerelease="true"
-              if [[ "$release_ver" == "0" ]]; then
-                release_ver="1"
-              fi
+              release_ver=$(validate_release_ver "${INPUT_RELEASE_VER:-}" "rc")
               default_tag="${base_version}-rc.${release_ver}"
               default_name="Matrix OS ${display_version} RC ${release_ver}"
               ;;
@@ -139,9 +167,7 @@ jobs:
               channel_label="Beta"
               channel_slug="beta"
               prerelease="true"
-              if [[ "$release_ver" == "0" ]]; then
-                release_ver="1"
-              fi
+              release_ver=$(validate_release_ver "${INPUT_RELEASE_VER:-}" "beta")
               default_tag="${base_version}-beta.${release_ver}"
               default_name="Matrix OS ${display_version} Beta ${release_ver}"
               ;;
@@ -171,25 +197,33 @@ jobs:
 
           release_tag="${INPUT_TAG_NAME:-$default_tag}"
           release_name="${INPUT_RELEASE_NAME:-$default_name}"
-          asset_suffix=$(echo "$release_tag" | tr '/ ' '--')
 
-          {
-            echo "asset_suffix=$asset_suffix"
-            echo "base_version=$base_version"
-            echo "build_target=$build_target"
-            echo "channel=$channel"
-            echo "channel_label=$channel_label"
-            echo "channel_slug=$channel_slug"
-            echo "commit_short=$commit_short"
-            echo "display_version=$display_version"
-            echo "generated_at=$generated_at"
-            echo "prerelease=$prerelease"
-            echo "publish=$publish"
-            echo "release_date=$release_date"
-            echo "release_name=$release_name"
-            echo "release_tag=$release_tag"
-            echo "release_ver=$release_ver"
-          } >> "$GITHUB_OUTPUT"
+          if ! git check-ref-format --allow-onelevel "refs/tags/$release_tag" >/dev/null 2>&1; then
+            echo "Invalid release tag: $release_tag" >&2
+            exit 1
+          fi
+
+          asset_suffix=$(printf '%s' "$release_tag" | tr -cs 'A-Za-z0-9._-' '-')
+          asset_suffix=$(printf '%s' "$asset_suffix" | sed 's/^-*//; s/-*$//')
+          if [[ -z "$asset_suffix" ]]; then
+            asset_suffix="matrixos-${channel_slug}-${commit_short}"
+          fi
+
+          append_output "asset_suffix" "$asset_suffix"
+          append_output "base_version" "$base_version"
+          append_output "build_target" "$build_target"
+          append_output "channel" "$channel"
+          append_output "channel_label" "$channel_label"
+          append_output "channel_slug" "$channel_slug"
+          append_output "commit_short" "$commit_short"
+          append_output "display_version" "$display_version"
+          append_output "generated_at" "$generated_at"
+          append_output "prerelease" "$prerelease"
+          append_output "publish" "$publish"
+          append_output "release_date" "$release_date"
+          append_output "release_name" "$release_name"
+          append_output "release_tag" "$release_tag"
+          append_output "release_ver" "$release_ver"
 
   build-firmware:
     needs: prepare
@@ -243,27 +277,21 @@ jobs:
 
           firmware_sha=$(sha256sum "out/$asset_name" | awk '{print $1}')
 
-          cat > "out/${DEVICE}.json" <<EOF
-          {
-            "tag": "${RELEASE_TAG}",
-            "name": "${RELEASE_NAME}",
-            "channel": "${CHANNEL_LABEL}",
-            "channelSlug": "${CHANNEL_SLUG}",
-            "version": "${BASE_VERSION}",
-            "displayVersion": "Matrix OS ${DISPLAY_VERSION}",
-            "date": "${RELEASE_DATE}",
-            "generatedAt": "${GENERATED_AT}",
-            "commit": "${COMMIT_SHORT}",
-            "prerelease": ${PRERELEASE},
-            "device": "${DEVICE}",
-            "assets": {
-              "firmware": {
-                "name": "${asset_name}",
-                "sha256": "${firmware_sha}"
-              }
-            }
-          }
-          EOF
+          export METADATA_OUTPUT="out/${DEVICE}.json"
+          export METADATA_TAG="$RELEASE_TAG"
+          export METADATA_NAME="$RELEASE_NAME"
+          export METADATA_CHANNEL="$CHANNEL_LABEL"
+          export METADATA_CHANNEL_SLUG="$CHANNEL_SLUG"
+          export METADATA_VERSION="$BASE_VERSION"
+          export METADATA_DISPLAY_VERSION="Matrix OS ${DISPLAY_VERSION}"
+          export METADATA_DATE="$RELEASE_DATE"
+          export METADATA_GENERATED_AT="$GENERATED_AT"
+          export METADATA_COMMIT="$COMMIT_SHORT"
+          export METADATA_PRERELEASE="$PRERELEASE"
+          export METADATA_DEVICE="$DEVICE"
+          export METADATA_FIRMWARE_NAME="$asset_name"
+          export METADATA_FIRMWARE_SHA="$firmware_sha"
+          node Tools/release/write-device-metadata.mjs
 
       - name: Upload ${{ matrix.device }} artifact bundle
         uses: actions/upload-artifact@v4
@@ -335,33 +363,47 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
+          loader_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.js"
           wasm_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.wasm"
+          bundle_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.zip"
 
+          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
 
-          wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
+          export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
+          python3 - <<'PY'
+import os
+import zipfile
 
-          cat > "out/MystrixSIL.json" <<EOF
-          {
-            "tag": "${RELEASE_TAG}",
-            "name": "${RELEASE_NAME}",
-            "channel": "${CHANNEL_LABEL}",
-            "channelSlug": "${CHANNEL_SLUG}",
-            "version": "${BASE_VERSION}",
-            "displayVersion": "Matrix OS ${DISPLAY_VERSION}",
-            "date": "${RELEASE_DATE}",
-            "generatedAt": "${GENERATED_AT}",
-            "commit": "${COMMIT_SHORT}",
-            "prerelease": ${PRERELEASE},
-            "device": "MystrixSIL",
-            "assets": {
-              "wasm": {
-                "name": "${wasm_asset}",
-                "sha256": "${wasm_sha}"
-              }
-            }
-          }
-          EOF
+bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
+with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
+    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
+    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
+PY
+
+          loader_sha=$(sha256sum "out/$loader_asset" | awk '{print $1}')
+          wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
+          bundle_sha=$(sha256sum "out/$bundle_asset" | awk '{print $1}')
+
+          export METADATA_OUTPUT="out/MystrixSIL.json"
+          export METADATA_TAG="$RELEASE_TAG"
+          export METADATA_NAME="$RELEASE_NAME"
+          export METADATA_CHANNEL="$CHANNEL_LABEL"
+          export METADATA_CHANNEL_SLUG="$CHANNEL_SLUG"
+          export METADATA_VERSION="$BASE_VERSION"
+          export METADATA_DISPLAY_VERSION="Matrix OS ${DISPLAY_VERSION}"
+          export METADATA_DATE="$RELEASE_DATE"
+          export METADATA_GENERATED_AT="$GENERATED_AT"
+          export METADATA_COMMIT="$COMMIT_SHORT"
+          export METADATA_PRERELEASE="$PRERELEASE"
+          export METADATA_DEVICE="MystrixSIL"
+          export METADATA_LOADER_NAME="$loader_asset"
+          export METADATA_LOADER_SHA="$loader_sha"
+          export METADATA_WASM_NAME="$wasm_asset"
+          export METADATA_WASM_SHA="$wasm_sha"
+          export METADATA_BUNDLE_NAME="$bundle_asset"
+          export METADATA_BUNDLE_SHA="$bundle_sha"
+          node Tools/release/write-device-metadata.mjs
 
       - name: Upload MystrixSIL artifact bundle
         uses: actions/upload-artifact@v4
@@ -371,7 +413,7 @@ jobs:
           if-no-files-found: error
 
   build-firmware-dev:
-    if: needs.prepare.outputs.channel != 'development'
+    if: needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development'
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
@@ -419,7 +461,7 @@ jobs:
           if-no-files-found: error
 
   build-sil-dev:
-    if: needs.prepare.outputs.channel != 'development'
+    if: needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development'
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -470,9 +512,23 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
+          loader_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.js"
           wasm_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.wasm"
+          bundle_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.zip"
 
+          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
+
+          export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
+          python3 - <<'PY'
+import os
+import zipfile
+
+bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
+with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
+    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
+    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
+PY
 
       - name: Upload MystrixSIL development artifact bundle
         uses: actions/upload-artifact@v4
@@ -500,6 +556,7 @@ jobs:
       - name: Download build bundles
         uses: actions/download-artifact@v4
         with:
+          pattern: release-*
           path: artifacts
 
       - name: Collect release files and metadata
