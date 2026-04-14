@@ -34,15 +34,13 @@ on:
         required: false
         type: string
       publish:
-        description: Publish GitHub Release assets and refresh Pages manifest
+        description: Publish GitHub Release assets
         required: true
         type: boolean
         default: true
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 env:
   ESP_IDF_VERSION: v5.3.4
@@ -315,10 +313,10 @@ jobs:
           set -euo pipefail
           if command -v sudo >/dev/null 2>&1; then
             sudo apt-get update
-            sudo apt-get install -y cmake make
+            sudo apt-get install -y cmake make zip
           else
             apt-get update
-            apt-get install -y cmake make
+            apt-get install -y cmake make zip
           fi
 
       - name: Install Emscripten SDK
@@ -370,16 +368,9 @@ jobs:
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
 
-          export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
-          python3 - <<'PY'
-            import os
-            import zipfile
-
-            bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
-            with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
-              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
-              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
-            PY
+          zip -j -q "out/$bundle_asset" \
+            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
+            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
 
           loader_sha=$(sha256sum "out/$loader_asset" | awk '{print $1}')
           wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
@@ -476,10 +467,10 @@ jobs:
           set -euo pipefail
           if command -v sudo >/dev/null 2>&1; then
             sudo apt-get update
-            sudo apt-get install -y cmake make
+            sudo apt-get install -y cmake make zip
           else
             apt-get update
-            apt-get install -y cmake make
+            apt-get install -y cmake make zip
           fi
 
       - name: Install Emscripten SDK
@@ -519,16 +510,9 @@ jobs:
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" "out/$loader_asset"
           cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
 
-          export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
-          python3 - <<'PY'
-            import os
-            import zipfile
-
-            bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
-            with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
-              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
-              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
-            PY
+          zip -j -q "out/$bundle_asset" \
+            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
+            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
 
       - name: Upload MystrixSIL development artifact bundle
         uses: actions/upload-artifact@v4
@@ -563,7 +547,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p release-files metadata pages
+          mkdir -p release-files metadata
           find artifacts -type f \( -name '*.uf2' -o -name '*.js' -o -name '*.wasm' -o -name '*.zip' \) -exec cp {} release-files/ \;
           find artifacts -type f -name '*.json' -exec cp {} metadata/ \;
 
@@ -581,56 +565,3 @@ jobs:
             Channel: ${{ needs.prepare.outputs.channel_label }}
             Commit: ${{ needs.prepare.outputs.commit_short }}
             Generated at: ${{ needs.prepare.outputs.generated_at }}
-
-      - name: Download current Pages manifest if available
-        shell: bash
-        env:
-          MANIFEST_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/manifest.json
-        run: |
-          set -euo pipefail
-          curl -fsSL "$MANIFEST_URL" -o pages/existing-manifest.json || true
-
-      - name: Generate Pages manifest
-        shell: bash
-        env:
-          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
-        run: |
-          set -euo pipefail
-          node Tools/release/generate-manifest.mjs \
-            --metadata-dir metadata \
-            --output pages/manifest.json \
-            --repository "${GITHUB_REPOSITORY}" \
-            --generated-at "$GENERATED_AT" \
-            --existing pages/existing-manifest.json
-
-          cat > pages/index.html <<'EOF'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <title>MatrixOS Release Manifest</title>
-          </head>
-          <body>
-            <p>MatrixOS release manifest: <a href="./manifest.json">manifest.json</a></p>
-          </body>
-          </html>
-          EOF
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: pages
-
-  deploy-pages:
-    if: needs.prepare.outputs.publish == 'true'
-    needs:
-      - prepare
-      - publish-release
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy Pages artifact
-        id: deployment
-        uses: actions/deploy-pages@v4
