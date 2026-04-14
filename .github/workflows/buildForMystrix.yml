@@ -323,7 +323,7 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.mspkg"
+          package_asset="MatrixOS-MystrixSIL-${ASSET_SUFFIX}.mspkg"
 
           zip -j -q "out/$package_asset" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
@@ -436,7 +436,7 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
+          package_asset="MatrixOS-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
 
           zip -j -q "out/$package_asset" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
@@ -508,7 +508,7 @@ jobs:
           export INDEX_PRERELEASE="$PRERELEASE"
           export INDEX_MYSTRIX1_FILES="MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
           export INDEX_MYSTRIX2_FILES="MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
-          export INDEX_MYSTRIXSIL_FILES="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.mspkg"
+          export INDEX_MYSTRIXSIL_FILES="MatrixOS-MystrixSIL-${ASSET_SUFFIX}.mspkg"
           node Tools/release/write-device-metadata.mjs
 
       - name: Create or update GitHub Release
