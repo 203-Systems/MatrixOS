@@ -24,6 +24,7 @@ enum TLSIndex {
 
 static void ResetAppEnvironment() {
   MatrixOS::Input::ClearInputBuffer();
+  Device::Input::SuppressActiveInputs();
   MatrixOS::LED::Reset();
   MatrixOS::USB::SetMode(USB_MODE_NORMAL);
   MatrixOS::HID::Reset();
