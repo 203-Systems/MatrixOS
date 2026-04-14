@@ -11,57 +11,44 @@ function requireEnv(name) {
   return value
 }
 
-function optionalAsset(nameEnv, shaEnv, urlEnv) {
-  const name = process.env[nameEnv]
-  if (!name) {
-    return null
+function optionalFileList(name) {
+  const value = process.env[name]
+  if (!value) {
+    return []
   }
 
-  const asset = {
-    name,
-    sha256: process.env[shaEnv] || ''
-  }
-
-  const url = process.env[urlEnv]
-  if (url) {
-    asset.url = url
-  }
-
-  return asset
+  return value
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
 }
 
-const assets = {}
-for (const [assetKey, nameEnv, shaEnv, urlEnv] of [
-  ['firmware', 'METADATA_FIRMWARE_NAME', 'METADATA_FIRMWARE_SHA', 'METADATA_FIRMWARE_URL'],
-  ['loader', 'METADATA_LOADER_NAME', 'METADATA_LOADER_SHA', 'METADATA_LOADER_URL'],
-  ['wasm', 'METADATA_WASM_NAME', 'METADATA_WASM_SHA', 'METADATA_WASM_URL'],
-  ['bundle', 'METADATA_BUNDLE_NAME', 'METADATA_BUNDLE_SHA', 'METADATA_BUNDLE_URL']
+const devices = {}
+for (const [deviceName, envName] of [
+  ['Mystrix1', 'INDEX_MYSTRIX1_FILES'],
+  ['Mystrix2', 'INDEX_MYSTRIX2_FILES'],
+  ['MystrixSIL', 'INDEX_MYSTRIXSIL_FILES']
 ]) {
-  const asset = optionalAsset(nameEnv, shaEnv, urlEnv)
-  if (asset) {
-    assets[assetKey] = asset
+  const files = optionalFileList(envName)
+  if (files.length > 0) {
+    devices[deviceName] = { files }
   }
 }
 
-if (Object.keys(assets).length === 0) {
-  throw new Error('At least one metadata asset must be provided')
+const index = {
+  tag: requireEnv('INDEX_TAG'),
+  name: requireEnv('INDEX_NAME'),
+  channel: requireEnv('INDEX_CHANNEL'),
+  channelSlug: requireEnv('INDEX_CHANNEL_SLUG'),
+  version: requireEnv('INDEX_VERSION'),
+  displayVersion: requireEnv('INDEX_DISPLAY_VERSION'),
+  date: requireEnv('INDEX_DATE'),
+  generatedAt: requireEnv('INDEX_GENERATED_AT'),
+  commit: requireEnv('INDEX_COMMIT'),
+  prerelease: /^true$/i.test(requireEnv('INDEX_PRERELEASE')),
+  devices,
 }
 
-const metadata = {
-  tag: requireEnv('METADATA_TAG'),
-  name: requireEnv('METADATA_NAME'),
-  channel: requireEnv('METADATA_CHANNEL'),
-  channelSlug: requireEnv('METADATA_CHANNEL_SLUG'),
-  version: requireEnv('METADATA_VERSION'),
-  displayVersion: requireEnv('METADATA_DISPLAY_VERSION'),
-  date: requireEnv('METADATA_DATE'),
-  generatedAt: requireEnv('METADATA_GENERATED_AT'),
-  commit: requireEnv('METADATA_COMMIT'),
-  prerelease: /^true$/i.test(requireEnv('METADATA_PRERELEASE')),
-  device: requireEnv('METADATA_DEVICE'),
-  assets
-}
-
-const outputPath = path.resolve(requireEnv('METADATA_OUTPUT'))
+const outputPath = path.resolve(requireEnv('INDEX_OUTPUT'))
 fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-fs.writeFileSync(outputPath, `${JSON.stringify(metadata, null, 2)}\n`, 'utf8')
+fs.writeFileSync(outputPath, `${JSON.stringify(index, null, 2)}\n`, 'utf8')

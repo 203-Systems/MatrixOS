@@ -9,13 +9,13 @@ Status: addressed.
 What changed:
 
 - The prepare job now writes every output through a multiline-safe helper that uses the documented delimiter form for GITHUB_OUTPUT.
-- Release metadata JSON is no longer assembled with shell heredoc interpolation. The workflow now calls Tools/release/write-device-metadata.mjs so release_name, release_tag, and the rest of the metadata are serialized by a real JSON writer.
+- The published release index is no longer assembled with shell heredoc interpolation. The workflow now calls a dedicated Node script so release_name, release_tag, and the rest of the release metadata are serialized by a real JSON writer.
 - release_tag is additionally validated with git check-ref-format before any asset packaging happens.
 
 Result:
 
 - Newlines in release_name no longer corrupt GITHUB_OUTPUT.
-- Quotes and backslashes in metadata fields no longer produce invalid JSON.
+- Quotes and backslashes in release metadata fields no longer produce invalid JSON.
 - Invalid manual tag overrides now fail early with a clear workflow error.
 
 ## 3. publish-release race with development artifacts
@@ -39,13 +39,17 @@ Status: addressed by design change.
 
 Disposition:
 
-- Development artifacts are no longer part of the publishing path, so they are intentionally excluded from Pages manifest generation.
-- That removes the prior half-published state where GitHub Release assets and manifest contents could diverge.
+- Development artifacts are no longer part of the publishing path, so they are intentionally excluded from the published release index.
+- That removes the prior half-published state where preview artifacts and published release contents could diverge.
 
 Result:
 
-- Published releases and generated manifest entries now describe the same release asset set.
+- Published releases now contain the same release asset set that the UI-side deployment can point at, plus one lightweight `index.json` that lists per-device filenames.
 - Development builds remain available only as non-publish preview artifacts.
+
+## Hosting model note
+
+The repository's web UI is served through Vercel, not GitHub Pages. The workflow therefore no longer attempts to publish a Pages manifest or deploy a Pages site. Instead, publish mode updates the GitHub Release and attaches one lightweight `index.json` alongside the firmware/runtime assets.
 
 ## 5. MystrixSIL release packaging incomplete
 
@@ -53,15 +57,14 @@ Status: addressed.
 
 What changed:
 
-- The MystrixSIL release package now ships MatrixOSHost.js and MatrixOSHost.wasm together.
-- The workflow also emits a self-contained zip bundle that preserves the canonical filenames inside the archive.
-- The non-publish MystrixSIL preview artifact was aligned to the same JS + WASM + zip shape so dry-run downloads are usable too.
-- Metadata for MystrixSIL now records loader, wasm, and bundle assets.
+- The MystrixSIL release output is now a single self-contained `.mspkg` package that carries MatrixOSHost.js and MatrixOSHost.wasm together.
+- The non-publish MystrixSIL preview artifact was aligned to the same package shape so dry-run downloads are usable too.
+- The published `index.json` exposes only the package filename for MystrixSIL, while firmware devices expose their UF2 filenames.
 
 Why this closes the issue:
 
 - The current MystrixSIL frontend boot path fetches MatrixOSHost.js first and then resolves MatrixOSHost.wasm through that loader.
-- Shipping the loader plus the wasm, and providing a bundled archive, makes the published simulator artifact self-contained instead of relying on an implicit local pairing.
+- Packaging the loader and wasm into one `.mspkg` makes the published simulator artifact self-contained instead of relying on an implicit local pairing.
 
 ## 6. release_ver validation and transport consistency
 

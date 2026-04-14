@@ -253,17 +253,7 @@ jobs:
         shell: bash
         env:
           ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
-          BASE_VERSION: ${{ needs.prepare.outputs.base_version }}
-          CHANNEL_LABEL: ${{ needs.prepare.outputs.channel_label }}
-          CHANNEL_SLUG: ${{ needs.prepare.outputs.channel_slug }}
-          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
           DEVICE: ${{ matrix.device }}
-          DISPLAY_VERSION: ${{ needs.prepare.outputs.display_version }}
-          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
-          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
-          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
-          RELEASE_NAME: ${{ needs.prepare.outputs.release_name }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
         run: |
           set -euo pipefail
           sudo chown -R "$(id -u):$(id -g)" build
@@ -272,24 +262,6 @@ jobs:
           source_file="build/${DEVICE}/MatrixOS-${DEVICE}.uf2"
           asset_name="MatrixOS-${DEVICE}-${ASSET_SUFFIX}.uf2"
           cp "$source_file" "out/$asset_name"
-
-          firmware_sha=$(sha256sum "out/$asset_name" | awk '{print $1}')
-
-          export METADATA_OUTPUT="out/${DEVICE}.json"
-          export METADATA_TAG="$RELEASE_TAG"
-          export METADATA_NAME="$RELEASE_NAME"
-          export METADATA_CHANNEL="$CHANNEL_LABEL"
-          export METADATA_CHANNEL_SLUG="$CHANNEL_SLUG"
-          export METADATA_VERSION="$BASE_VERSION"
-          export METADATA_DISPLAY_VERSION="Matrix OS ${DISPLAY_VERSION}"
-          export METADATA_DATE="$RELEASE_DATE"
-          export METADATA_GENERATED_AT="$GENERATED_AT"
-          export METADATA_COMMIT="$COMMIT_SHORT"
-          export METADATA_PRERELEASE="$PRERELEASE"
-          export METADATA_DEVICE="$DEVICE"
-          export METADATA_FIRMWARE_NAME="$asset_name"
-          export METADATA_FIRMWARE_SHA="$firmware_sha"
-          node Tools/release/write-device-metadata.mjs
 
       - name: Upload ${{ matrix.device }} artifact bundle
         uses: actions/upload-artifact@v4
@@ -347,16 +319,6 @@ jobs:
         shell: bash
         env:
           ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
-          BASE_VERSION: ${{ needs.prepare.outputs.base_version }}
-          CHANNEL_LABEL: ${{ needs.prepare.outputs.channel_label }}
-          CHANNEL_SLUG: ${{ needs.prepare.outputs.channel_slug }}
-          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
-          DISPLAY_VERSION: ${{ needs.prepare.outputs.display_version }}
-          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
-          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
-          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
-          RELEASE_NAME: ${{ needs.prepare.outputs.release_name }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
         run: |
           set -euo pipefail
 
@@ -366,24 +328,6 @@ jobs:
           zip -j -q "out/$package_asset" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
             "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
-
-          package_sha=$(sha256sum "out/$package_asset" | awk '{print $1}')
-
-          export METADATA_OUTPUT="out/MystrixSIL.json"
-          export METADATA_TAG="$RELEASE_TAG"
-          export METADATA_NAME="$RELEASE_NAME"
-          export METADATA_CHANNEL="$CHANNEL_LABEL"
-          export METADATA_CHANNEL_SLUG="$CHANNEL_SLUG"
-          export METADATA_VERSION="$BASE_VERSION"
-          export METADATA_DISPLAY_VERSION="Matrix OS ${DISPLAY_VERSION}"
-          export METADATA_DATE="$RELEASE_DATE"
-          export METADATA_GENERATED_AT="$GENERATED_AT"
-          export METADATA_COMMIT="$COMMIT_SHORT"
-          export METADATA_PRERELEASE="$PRERELEASE"
-          export METADATA_DEVICE="MystrixSIL"
-          export METADATA_BUNDLE_NAME="$package_asset"
-          export METADATA_BUNDLE_SHA="$package_sha"
-          node Tools/release/write-device-metadata.mjs
 
       - name: Upload MystrixSIL artifact bundle
         uses: actions/upload-artifact@v4
@@ -531,9 +475,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p release-files metadata
+          mkdir -p release-files
           find artifacts -type f \( -name '*.uf2' -o -name '*.mspkg' \) -exec cp {} release-files/ \;
-          find artifacts -type f -name '*.json' -exec cp {} metadata/ \;
+
+      - name: Generate release index
+        shell: bash
+        env:
+          BASE_VERSION: ${{ needs.prepare.outputs.base_version }}
+          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
+          DISPLAY_VERSION: ${{ needs.prepare.outputs.display_version }}
+          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
+          RELEASE_NAME: ${{ needs.prepare.outputs.release_name }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          CHANNEL_LABEL: ${{ needs.prepare.outputs.channel_label }}
+          CHANNEL_SLUG: ${{ needs.prepare.outputs.channel_slug }}
+          ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
+        run: |
+          set -euo pipefail
+
+          export INDEX_OUTPUT="release-files/index.json"
+          export INDEX_TAG="$RELEASE_TAG"
+          export INDEX_NAME="$RELEASE_NAME"
+          export INDEX_CHANNEL="$CHANNEL_LABEL"
+          export INDEX_CHANNEL_SLUG="$CHANNEL_SLUG"
+          export INDEX_VERSION="$BASE_VERSION"
+          export INDEX_DISPLAY_VERSION="Matrix OS ${DISPLAY_VERSION}"
+          export INDEX_DATE="$RELEASE_DATE"
+          export INDEX_GENERATED_AT="$GENERATED_AT"
+          export INDEX_COMMIT="$COMMIT_SHORT"
+          export INDEX_PRERELEASE="$PRERELEASE"
+          export INDEX_MYSTRIX1_FILES="MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
+          export INDEX_MYSTRIX2_FILES="MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
+          export INDEX_MYSTRIXSIL_FILES="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.mspkg"
+          node Tools/release/write-device-metadata.mjs
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
