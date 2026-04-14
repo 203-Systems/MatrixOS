@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { formatBytes, usageSnapshot } from '../../stores/tooling.js'
-  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs, buildIdentity, buildTime } from '../../stores/wasm.js'
+  import { moduleReady, wasmMissing, runtimeStatus, getUptimeMs, buildMetadata } from '../../stores/wasm.js'
   import { errorCount, warnCount, logMessages } from '../../stores/logs.js'
   export let showHero = true
   export let onCloseHero = () => {}
@@ -9,42 +9,7 @@
   let uptime = '—'
   let uptimeTimer
 
-  function parseBuildIdentity(identity) {
-    const fallback = {
-      version: identity || '—',
-      buildType: '—',
-      buildHash: '—'
-    }
-
-    if (!identity) return fallback
-
-    const parts = identity.split('•').map((part) => part.trim()).filter(Boolean)
-    if (!parts.length) return fallback
-
-    const version = parts[0] || fallback.version
-    const dirty = parts.some((part) => /^dirty$/i.test(part))
-    const remainder = parts.slice(1).join(' ').trim()
-
-    if (!remainder) {
-      return {
-        version,
-        buildType: '—',
-        buildHash: dirty ? '(Dirty)' : '—'
-      }
-    }
-
-    const hashMatch = remainder.match(/\b([0-9a-f]{7,40})\b/i)
-    const buildHash = hashMatch ? `${hashMatch[1]}${dirty ? ' (Dirty)' : ''}` : (dirty ? `${remainder} (Dirty)` : remainder)
-    const buildType = hashMatch ? remainder.slice(0, hashMatch.index).trim() || '—' : remainder
-
-    return {
-      version,
-      buildType,
-      buildHash
-    }
-  }
-
-  $: buildMeta = parseBuildIdentity($buildIdentity)
+  $: buildMeta = $buildMetadata
 
   function formatUptime(ms) {
     if (!ms) return '—'
@@ -104,7 +69,7 @@
       <div class="tool-card">
         <span class="tool-card-label">Build Time</span>
         <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
-          {$wasmMissing ? 'Missing' : $buildTime}
+          {$wasmMissing ? 'Missing' : buildMeta.buildTime}
         </span>
       </div>
     </div>

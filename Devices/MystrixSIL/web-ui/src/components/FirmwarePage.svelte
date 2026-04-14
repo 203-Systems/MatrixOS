@@ -1,6 +1,7 @@
 <script>
   import { IS_NODE_BACKED } from '../stores/rpc.js'
-  import { buildIdentity, buildTime } from '../stores/wasm.js'
+  import { buildMetadata } from '../stores/wasm.js'
+  import { buildTypeClass } from '../buildMetadata.js'
 
   let searchQuery = ''
   let activeTag = 'all'
@@ -9,52 +10,7 @@
 
   const tags = ['all', 'Release', 'Release Candidate', 'Beta', 'Nightly']
 
-  function parseBuildIdentity(identity) {
-    const fallback = {
-      version: identity || '—',
-      buildType: '—',
-      buildHash: '—'
-    }
-
-    if (!identity) return fallback
-
-    const parts = identity.split('•').map((part) => part.trim()).filter(Boolean)
-    if (!parts.length) return fallback
-
-    const version = parts[0] || fallback.version
-    const dirty = parts.some((part) => /^dirty$/i.test(part))
-    const remainder = parts.slice(1).join(' ').trim()
-
-    if (!remainder) {
-      return {
-        version,
-        buildType: '—',
-        buildHash: dirty ? '(Dirty)' : '—'
-      }
-    }
-
-    const hashMatch = remainder.match(/\b([0-9a-f]{7,40})\b/i)
-    const buildHash = hashMatch ? `${hashMatch[1]}${dirty ? ' (Dirty)' : ''}` : (dirty ? `${remainder} (Dirty)` : remainder)
-    const buildType = hashMatch ? remainder.slice(0, hashMatch.index).trim() || '—' : remainder
-
-    return {
-      version,
-      buildType,
-      buildHash
-    }
-  }
-
-  $: localBuildMeta = parseBuildIdentity($buildIdentity)
-
-  function buildTypeClass(buildType) {
-    const value = (buildType || '').toLowerCase()
-    if (value.includes('release candidate') || value.includes('rc')) return 'build-type-rc'
-    if (value.includes('beta')) return 'build-type-beta'
-    if (value.includes('nightly')) return 'build-type-nightly'
-    if (value.includes('indev') || value.includes('dev')) return 'build-type-indev'
-    if (value.includes('release')) return 'build-type-release'
-    return 'build-type-neutral'
-  }
+  $: localBuildMeta = $buildMetadata
 
   function handleLocalBuildLoad() {
     localBuildLoaded = true
@@ -108,7 +64,7 @@
       </div>
       <div class="tool-card">
         <span class="tool-card-label">Build Date</span>
-        <span class="tool-card-value">{$buildTime}</span>
+        <span class="tool-card-value">{localBuildMeta.buildTime}</span>
       </div>
       <button class="local-build-load-btn" on:click={handleLocalBuildLoad}>
         {localBuildLoaded ? 'Reload' : 'Load'}

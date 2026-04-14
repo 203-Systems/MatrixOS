@@ -25,8 +25,6 @@
     storage: StoragePanel,
     'device-hw': DeviceHardwarePanel,
   }
-  // Panels that have a tool-hero (helper) section
-  const panelsWithHero = new Set(['system', 'application', 'storage', 'device-hw', 'midi', 'hid', 'serial', 'input', 'logs', 'ui'])
 
   const LEFT_NAV_W = 60
   const TRAY_W = 48

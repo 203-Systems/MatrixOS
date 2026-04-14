@@ -5,6 +5,7 @@ import { hookHidTap, clearHidEvents } from './hid.js'
 import { hookSerialTap, clearSerialEvents } from './serial.js'
 import { clearLogs } from './logs.js'
 import { clearInputEvents } from './input.js'
+import { EMPTY_BUILD_METADATA, parseBuildIdentity, parseBuildMetadataJson } from '../buildMetadata.js'
 
 export const moduleRef = writable(null)
 export const moduleReady = writable(false)
@@ -13,6 +14,7 @@ export const runtimeStatus = writable('Waiting for runtime…')
 export const versionLabel = writable('…')
 export const buildIdentity = writable('Matrix OS')
 export const buildTime = writable('—')
+export const buildMetadata = writable(EMPTY_BUILD_METADATA)
 
 let wasmSignature = null
 let reloadTimer = 0
@@ -22,6 +24,21 @@ let _restartInProgress = false
 let _currentBlobUrl = null
 
 const isHtmlResponse = (r) => (r.headers.get('content-type') || '').includes('text/html')
+
+function readBuildMetadata(mod, fallback = {}) {
+  if (mod._MatrixOS_Wasm_GetBuildMetadataJson && mod.UTF8ToString) {
+    const ptr = mod._MatrixOS_Wasm_GetBuildMetadataJson()
+    if (ptr) {
+      const parsed = parseBuildMetadataJson(mod.UTF8ToString(ptr))
+      if (parsed) return parsed
+    }
+  }
+
+  return parseBuildIdentity(fallback.buildIdentity, {
+    buildTime: fallback.buildTime,
+    version: fallback.version,
+  })
+}
 
 export async function checkWasmAvailability() {
   try {
@@ -251,6 +268,7 @@ export async function restartWasm() {
     versionLabel.set('…')
     buildIdentity.set('Matrix OS')
     buildTime.set('—')
+    buildMetadata.set(EMPTY_BUILD_METADATA)
     wasmMissing.set(false)
     wasmSignature = null
 
@@ -334,17 +352,45 @@ export function initWasm() {
     runtimeStatus.set('Live')
     // Ensure USB starts connected so boot animation auto-progresses
     if (mod._MatrixOS_Wasm_SetUsbAvailable) mod._MatrixOS_Wasm_SetUsbAvailable(1)
+    let nextVersionLabel = ''
+    let nextBuildIdentity = ''
+    let nextBuildTime = ''
     if (mod._MatrixOS_Wasm_GetVersionString && mod.UTF8ToString) {
       const ptr = mod._MatrixOS_Wasm_GetVersionString()
-      if (ptr) versionLabel.set(mod.UTF8ToString(ptr))
+      if (ptr) {
+        nextVersionLabel = mod.UTF8ToString(ptr)
+        versionLabel.set(nextVersionLabel)
+      }
     }
     if (mod._MatrixOS_Wasm_GetBuildIdentityString && mod.UTF8ToString) {
       const ptr = mod._MatrixOS_Wasm_GetBuildIdentityString()
-      if (ptr) buildIdentity.set(mod.UTF8ToString(ptr))
+      if (ptr) {
+        nextBuildIdentity = mod.UTF8ToString(ptr)
+        buildIdentity.set(nextBuildIdentity)
+      }
     }
     if (mod._MatrixOS_Wasm_GetBuildTimeString && mod.UTF8ToString) {
       const ptr = mod._MatrixOS_Wasm_GetBuildTimeString()
-      if (ptr) buildTime.set(mod.UTF8ToString(ptr))
+      if (ptr) {
+        nextBuildTime = mod.UTF8ToString(ptr)
+        buildTime.set(nextBuildTime)
+      }
+    }
+
+    const nextBuildMetadata = readBuildMetadata(mod, {
+      version: nextVersionLabel,
+      buildIdentity: nextBuildIdentity,
+      buildTime: nextBuildTime,
+    })
+    buildMetadata.set(nextBuildMetadata)
+    if (nextBuildMetadata.version !== EMPTY_BUILD_METADATA.version) {
+      versionLabel.set(nextBuildMetadata.version)
+    }
+    if (nextBuildMetadata.buildIdentity) {
+      buildIdentity.set(nextBuildMetadata.buildIdentity)
+    }
+    if (nextBuildMetadata.buildTime !== EMPTY_BUILD_METADATA.buildTime) {
+      buildTime.set(nextBuildMetadata.buildTime)
     }
   }
 
