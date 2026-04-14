@@ -59,35 +59,92 @@ string BuildTimeLabel() {
   return __DATE__ " " __TIME__;
 }
 
+string BuildTypeLabel() {
+#if defined(MATRIXOS_BUILD_RELEASE)
+  return "Release";
+#elif defined(MATRIXOS_BUILD_RELEASE_CANDIDATE)
+  return "RC " XSTR(MATRIXOS_RELEASE_VER);
+#elif defined(MATRIXOS_BUILD_BETA)
+  return "Beta " XSTR(MATRIXOS_RELEASE_VER);
+#elif defined(MATRIXOS_BUILD_NIGHTY)
+  return "Nightly";
+#elif defined(MATRIXOS_BUILD_INDEV)
+  return "InDev";
+#else
+  return "";
+#endif
+}
+
+string BuildChannelKey() {
+#if defined(MATRIXOS_BUILD_RELEASE)
+  return "release";
+#elif defined(MATRIXOS_BUILD_RELEASE_CANDIDATE)
+  return "release-candidate";
+#elif defined(MATRIXOS_BUILD_BETA)
+  return "beta";
+#elif defined(MATRIXOS_BUILD_NIGHTY)
+  return "nightly";
+#elif defined(MATRIXOS_BUILD_INDEV)
+  return "indev";
+#else
+  return "";
+#endif
+}
+
+string BuildHashLabel() {
+#if defined(MATRIXOS_BUILD_NIGHTY) || defined(MATRIXOS_BUILD_INDEV)
+  return MATRIXOS_GIT_HASH;
+#else
+  return "";
+#endif
+}
+
+string JsonEscape(const string& value) {
+  string escaped;
+  escaped.reserve(value.size() + 8);
+  for (char character : value)
+  {
+    switch (character)
+    {
+      case '\\':
+        escaped += "\\\\";
+        break;
+      case '"':
+        escaped += "\\\"";
+        break;
+      case '\n':
+        escaped += "\\n";
+        break;
+      case '\r':
+        escaped += "\\r";
+        break;
+      case '\t':
+        escaped += "\\t";
+        break;
+      default:
+        escaped += character;
+        break;
+    }
+  }
+  return escaped;
+}
+
 string BuildIdentityLabel() {
   string version = BuildVersionLabel();
-#if defined(MATRIXOS_BUILD_RELEASE)
-  string channel = "Release";
-#elif defined(MATRIXOS_BUILD_RELEASE_CANDIDATE)
-  string channel = "RC " XSTR(MATRIXOS_RELEASE_VER);
-#elif defined(MATRIXOS_BUILD_BETA)
-  string channel = "Beta " XSTR(MATRIXOS_RELEASE_VER);
-#elif defined(MATRIXOS_BUILD_NIGHTY)
-  string channel = "Nightly";
-#elif defined(MATRIXOS_BUILD_INDEV)
-  string channel = "InDev";
-#else
-  string channel = "";
-#endif
+  string buildType = BuildTypeLabel();
+  string buildHash = BuildHashLabel();
 
   string identity = version;
-  if (!channel.empty())
+  if (!buildType.empty())
   {
-    identity += " • " + channel;
+    identity += " • " + buildType;
   }
 
-#if defined(MATRIXOS_BUILD_NIGHTY) || defined(MATRIXOS_BUILD_INDEV)
-  if (strlen(MATRIXOS_GIT_HASH) > 0)
+  if (!buildHash.empty())
   {
     identity += " ";
-    identity += MATRIXOS_GIT_HASH;
+    identity += buildHash;
   }
-#endif
 
 #if MATRIXOS_GIT_DIRTY
   identity += " • Dirty";
@@ -96,9 +153,24 @@ string BuildIdentityLabel() {
   return identity;
 }
 
+string BuildMetadataJson() {
+  string json = "{";
+  json += "\"version\":\"" + JsonEscape(BuildVersionLabel()) + "\",";
+  json += "\"buildType\":\"" + JsonEscape(BuildTypeLabel()) + "\",";
+  json += "\"buildHashRaw\":\"" + JsonEscape(BuildHashLabel()) + "\",";
+  json += "\"buildTime\":\"" + JsonEscape(BuildTimeLabel()) + "\",";
+  json += "\"buildIdentity\":\"" + JsonEscape(BuildIdentityLabel()) + "\",";
+  json += "\"channel\":\"" + JsonEscape(BuildChannelKey()) + "\",";
+  json += "\"releaseVersion\":" + std::to_string(MATRIXOS_RELEASE_VER) + ",";
+  json += "\"dirty\":" + string(MATRIXOS_GIT_DIRTY ? "true" : "false");
+  json += "}";
+  return json;
+}
+
 string wasmVersionLabel = BuildVersionLabel();
 string wasmBuildTimeLabel = BuildTimeLabel();
 string wasmBuildIdentityLabel = BuildIdentityLabel();
+string wasmBuildMetadataJson = BuildMetadataJson();
 
 void BuildLEDIndexMap(Direction rotation) {
   for (uint16_t y = 0; y < Y_SIZE; y++)
@@ -646,6 +718,10 @@ const char* MatrixOS_Wasm_GetBuildIdentityString(void) {
 
 const char* MatrixOS_Wasm_GetBuildTimeString(void) {
   return wasmBuildTimeLabel.c_str();
+}
+
+const char* MatrixOS_Wasm_GetBuildMetadataJson(void) {
+  return wasmBuildMetadataJson.c_str();
 }
 
 void MatrixOS_Wasm_SetUsbAvailable(int available) {

@@ -21,6 +21,8 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$Mode,
 
+  [string]$ReleaseVer = '',
+
   [string]$Generator = 'Unix Makefiles'
 )
 
@@ -137,6 +139,24 @@ function Invoke-Step {
   }
 }
 
+function Get-ConfigureArguments {
+  $args = @(
+    'cmake',
+    '-S', $RepoRoot,
+    '-B', $BuildDir,
+    "-DFAMILY=$Family",
+    "-DDEVICE=$Device",
+    "-DMODE=$Mode",
+    '-G', $Generator
+  )
+
+  if ($ReleaseVer -and $ReleaseVer.Trim().Length -gt 0) {
+    $args += "-DMATRIXOS_RELEASE_VER_OVERRIDE=$ReleaseVer"
+  }
+
+  return $args
+}
+
 Push-Location $RepoRoot
 try {
   switch ($Action) {
@@ -147,26 +167,15 @@ try {
 
     'configure' {
       Enable-Emscripten
-      Invoke-Step -FilePath 'emcmake' -ArgumentList @(
-        'cmake',
-        '-S', $RepoRoot,
-        '-B', $BuildDir,
-        "-DFAMILY=$Family",
-        "-DDEVICE=$Device",
-        "-DMODE=$Mode",
-        '-G', $Generator
-      )
+      Invoke-Step -FilePath 'emcmake' -ArgumentList (Get-ConfigureArguments)
     }
 
     'build' {
       Enable-Emscripten
 
-      $cache = Join-Path $BuildDir 'CMakeCache.txt'
-      if (-not (Test-Path $cache)) {
-        & $PSCommandPath configure -RepoRoot $RepoRoot -BuildDir $BuildDir -WebUiDir $WebUiDir -Family $Family -Device $Device -Mode $Mode -Generator $Generator
-        if ($LASTEXITCODE -ne 0) {
-          throw "Configure step failed with exit code $LASTEXITCODE"
-        }
+      & $PSCommandPath configure -RepoRoot $RepoRoot -BuildDir $BuildDir -WebUiDir $WebUiDir -Family $Family -Device $Device -Mode $Mode -ReleaseVer $ReleaseVer -Generator $Generator
+      if ($LASTEXITCODE -ne 0) {
+        throw "Configure step failed with exit code $LASTEXITCODE"
       }
 
       Invoke-Step -FilePath 'cmake' -ArgumentList @('--build', $BuildDir)

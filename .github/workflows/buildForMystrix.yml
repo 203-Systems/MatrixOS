@@ -1,48 +1,579 @@
-name: Build for Mystrix
+name: MatrixOS Build and Release
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel to build and publish
+        required: true
+        type: choice
+        default: release
+        options:
+          - release
+          - rc
+          - beta
+          - nightly
+          - development
+      release_ver:
+        description: RC/Beta number. Ignored for release, nightly, and development.
+        required: false
+        type: string
+        default: '1'
+      tag_name:
+        description: Optional GitHub release tag override
+        required: false
+        type: string
+      release_name:
+        description: Optional GitHub release title override
+        required: false
+        type: string
+      publish:
+        description: Publish GitHub Release assets and refresh Pages manifest
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  ESP_IDF_VERSION: v5.3.4
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
-
+    outputs:
+      asset_suffix: ${{ steps.meta.outputs.asset_suffix }}
+      base_version: ${{ steps.meta.outputs.base_version }}
+      build_target: ${{ steps.meta.outputs.build_target }}
+      channel: ${{ steps.meta.outputs.channel }}
+      channel_label: ${{ steps.meta.outputs.channel_label }}
+      channel_slug: ${{ steps.meta.outputs.channel_slug }}
+      commit_short: ${{ steps.meta.outputs.commit_short }}
+      display_version: ${{ steps.meta.outputs.display_version }}
+      generated_at: ${{ steps.meta.outputs.generated_at }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+      publish: ${{ steps.meta.outputs.publish }}
+      release_date: ${{ steps.meta.outputs.release_date }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      release_ver: ${{ steps.meta.outputs.release_ver }}
     steps:
-    - name: Checkout Repository with Submodules
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Build Matrix OS
-      uses: espressif/esp-idf-ci-action@v1
-      with:
-        esp_idf_version: v5.3.1
-        target: esp32s3
-        path: '.'
-        command: make DEVICE=Mystrix fullclean build-nightly uf2
+      - name: Compute release metadata
+        id: meta
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_CHANNEL: ${{ github.event.inputs.channel || '' }}
+          INPUT_PUBLISH: ${{ github.event.inputs.publish || '' }}
+          INPUT_RELEASE_NAME: ${{ github.event.inputs.release_name || '' }}
+          INPUT_RELEASE_VER: ${{ github.event.inputs.release_ver || '' }}
+          INPUT_TAG_NAME: ${{ github.event.inputs.tag_name || '' }}
+        run: |
+          set -euo pipefail
 
-    - name: Get Commit Info
-      id: commit_info
-      run: |
-        echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-        echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          major=$(awk '/^#define MATRIXOS_MAJOR_VER / {print $3}' OS/System/Parameters.h)
+          minor=$(awk '/^#define MATRIXOS_MINOR_VER / {print $3}' OS/System/Parameters.h)
+          patch=$(awk '/^#define MATRIXOS_PATCH_VER / {print $3}' OS/System/Parameters.h)
+          commit_short=$(git rev-parse --short=8 HEAD)
+          release_date=$(date -u +'%Y-%m-%d')
+          date_compact=$(date -u +'%Y%m%d')
+          generated_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
-    - name: Rename UF2 File
-      run: |
-        OLD_FILENAME="build/Mystrix/MatrixOS-Mystrix.uf2"
-        NEW_FILENAME="build/Mystrix/MatrixOS-Mystrix-nightly-${{ env.CURRENT_DATE }}-${{ env.COMMIT_HASH }}.uf2"
-        sudo chown -R $(whoami):$(whoami) build/
-        sudo chmod -R 755 build/
-        cp "$OLD_FILENAME" "$NEW_FILENAME"
-        echo "NEW_FILENAME=$NEW_FILENAME" >> $GITHUB_ENV
-        echo "Renamed to: $NEW_FILENAME"
+          display_version="${major}.${minor}"
+          if [[ "$patch" != "0" ]]; then
+            display_version="${display_version}.${patch}"
+          fi
+          base_version="v${major}.${minor}.${patch}"
 
-    - name: Upload UF2 Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: MatrixOS-Mystrix-nightly-${{ env.CURRENT_DATE }}-${{ env.COMMIT_HASH }}
-        path: ${{ env.NEW_FILENAME }}
-        if-no-files-found: error
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            channel="$INPUT_CHANNEL"
+            publish="$INPUT_PUBLISH"
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            channel="nightly"
+            publish="true"
+          else
+            channel="nightly"
+            publish="false"
+          fi
+
+          release_ver="${INPUT_RELEASE_VER:-0}"
+          if [[ -z "$release_ver" ]]; then
+            release_ver="0"
+          fi
+
+          case "$channel" in
+            release)
+              build_target="build-release"
+              channel_label="Release"
+              channel_slug="release"
+              prerelease="false"
+              release_ver="0"
+              default_tag="$base_version"
+              default_name="Matrix OS ${display_version} Release"
+              ;;
+            rc)
+              build_target="build-rc"
+              channel_label="Release Candidate"
+              channel_slug="rc"
+              prerelease="true"
+              if [[ "$release_ver" == "0" ]]; then
+                release_ver="1"
+              fi
+              default_tag="${base_version}-rc.${release_ver}"
+              default_name="Matrix OS ${display_version} RC ${release_ver}"
+              ;;
+            beta)
+              build_target="build-beta"
+              channel_label="Beta"
+              channel_slug="beta"
+              prerelease="true"
+              if [[ "$release_ver" == "0" ]]; then
+                release_ver="1"
+              fi
+              default_tag="${base_version}-beta.${release_ver}"
+              default_name="Matrix OS ${display_version} Beta ${release_ver}"
+              ;;
+            nightly)
+              build_target="build-nightly"
+              channel_label="Nightly"
+              channel_slug="nightly"
+              prerelease="true"
+              release_ver="0"
+              default_tag="nightly-${date_compact}-${commit_short}"
+              default_name="Matrix OS ${display_version} Nightly ${release_date} ${commit_short}"
+              ;;
+            development)
+              build_target="build-dev"
+              channel_label="Development"
+              channel_slug="development"
+              prerelease="true"
+              release_ver="0"
+              default_tag="development-${date_compact}-${commit_short}"
+              default_name="Matrix OS ${display_version} Development ${release_date} ${commit_short}"
+              ;;
+            *)
+              echo "Unsupported channel: $channel" >&2
+              exit 1
+              ;;
+          esac
+
+          release_tag="${INPUT_TAG_NAME:-$default_tag}"
+          release_name="${INPUT_RELEASE_NAME:-$default_name}"
+          asset_suffix=$(echo "$release_tag" | tr '/ ' '--')
+
+          {
+            echo "asset_suffix=$asset_suffix"
+            echo "base_version=$base_version"
+            echo "build_target=$build_target"
+            echo "channel=$channel"
+            echo "channel_label=$channel_label"
+            echo "channel_slug=$channel_slug"
+            echo "commit_short=$commit_short"
+            echo "display_version=$display_version"
+            echo "generated_at=$generated_at"
+            echo "prerelease=$prerelease"
+            echo "publish=$publish"
+            echo "release_date=$release_date"
+            echo "release_name=$release_name"
+            echo "release_tag=$release_tag"
+            echo "release_ver=$release_ver"
+          } >> "$GITHUB_OUTPUT"
+
+  build-firmware:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device:
+          - Mystrix1
+          - Mystrix2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build ${{ matrix.device }} UF2
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ env.ESP_IDF_VERSION }}
+          target: esp32s3
+          path: .
+          command: >-
+            make DEVICE=${{ matrix.device }} FAMILY=${{ matrix.device }}
+            RELEASE_VER=${{ needs.prepare.outputs.release_ver }}
+            fullclean ${{ needs.prepare.outputs.build_target }} uf2
+
+      - name: Package ${{ matrix.device }} release artifact
+        shell: bash
+        env:
+          ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
+          BASE_VERSION: ${{ needs.prepare.outputs.base_version }}
+          CHANNEL_LABEL: ${{ needs.prepare.outputs.channel_label }}
+          CHANNEL_SLUG: ${{ needs.prepare.outputs.channel_slug }}
+          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
+          DEVICE: ${{ matrix.device }}
+          DISPLAY_VERSION: ${{ needs.prepare.outputs.display_version }}
+          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
+          RELEASE_NAME: ${{ needs.prepare.outputs.release_name }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          sudo chown -R "$(id -u):$(id -g)" build
+
+          mkdir -p out
+          source_file="build/${DEVICE}/MatrixOS-${DEVICE}.uf2"
+          asset_name="MatrixOS-${DEVICE}-${ASSET_SUFFIX}.uf2"
+          cp "$source_file" "out/$asset_name"
+
+          firmware_sha=$(sha256sum "out/$asset_name" | awk '{print $1}')
+
+          cat > "out/${DEVICE}.json" <<EOF
+          {
+            "tag": "${RELEASE_TAG}",
+            "name": "${RELEASE_NAME}",
+            "channel": "${CHANNEL_LABEL}",
+            "channelSlug": "${CHANNEL_SLUG}",
+            "version": "${BASE_VERSION}",
+            "displayVersion": "Matrix OS ${DISPLAY_VERSION}",
+            "date": "${RELEASE_DATE}",
+            "generatedAt": "${GENERATED_AT}",
+            "commit": "${COMMIT_SHORT}",
+            "prerelease": ${PRERELEASE},
+            "device": "${DEVICE}",
+            "assets": {
+              "firmware": {
+                "name": "${asset_name}",
+                "sha256": "${firmware_sha}"
+              }
+            }
+          }
+          EOF
+
+      - name: Upload ${{ matrix.device }} artifact bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.device }}
+          path: out/*
+          if-no-files-found: error
+
+  build-sil:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install MystrixSIL build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y cmake make
+          else
+            apt-get update
+            apt-get install -y cmake make
+          fi
+
+      - name: Install Emscripten SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          pushd "$RUNNER_TEMP/emsdk"
+          ./emsdk install 4.0.12
+          ./emsdk activate 4.0.12
+          popd
+
+      - name: Build MystrixSIL runtime
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ needs.prepare.outputs.build_target }}
+          RELEASE_VER: ${{ needs.prepare.outputs.release_ver }}
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          export CMAKE="$(command -v cmake)"
+          export EMCMAKE="$(command -v emcmake)"
+          "$CMAKE" --version
+          make DEVICE=MystrixSIL FAMILY=MystrixSIL fullclean
+          make DEVICE=MystrixSIL FAMILY=MystrixSIL RELEASE_VER="$RELEASE_VER" "$BUILD_TARGET"
+
+      - name: Package MystrixSIL release bundle
+        shell: bash
+        env:
+          ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
+          BASE_VERSION: ${{ needs.prepare.outputs.base_version }}
+          CHANNEL_LABEL: ${{ needs.prepare.outputs.channel_label }}
+          CHANNEL_SLUG: ${{ needs.prepare.outputs.channel_slug }}
+          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
+          DISPLAY_VERSION: ${{ needs.prepare.outputs.display_version }}
+          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
+          RELEASE_NAME: ${{ needs.prepare.outputs.release_name }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p out
+          wasm_asset="MatrixOSHost-MystrixSIL-${ASSET_SUFFIX}.wasm"
+
+          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
+
+          wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
+
+          cat > "out/MystrixSIL.json" <<EOF
+          {
+            "tag": "${RELEASE_TAG}",
+            "name": "${RELEASE_NAME}",
+            "channel": "${CHANNEL_LABEL}",
+            "channelSlug": "${CHANNEL_SLUG}",
+            "version": "${BASE_VERSION}",
+            "displayVersion": "Matrix OS ${DISPLAY_VERSION}",
+            "date": "${RELEASE_DATE}",
+            "generatedAt": "${GENERATED_AT}",
+            "commit": "${COMMIT_SHORT}",
+            "prerelease": ${PRERELEASE},
+            "device": "MystrixSIL",
+            "assets": {
+              "wasm": {
+                "name": "${wasm_asset}",
+                "sha256": "${wasm_sha}"
+              }
+            }
+          }
+          EOF
+
+      - name: Upload MystrixSIL artifact bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-MystrixSIL
+          path: out/*
+          if-no-files-found: error
+
+  build-firmware-dev:
+    if: needs.prepare.outputs.channel != 'development'
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device:
+          - Mystrix1
+          - Mystrix2
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build ${{ matrix.device }} development UF2
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ env.ESP_IDF_VERSION }}
+          target: esp32s3
+          path: .
+          command: >-
+            make DEVICE=${{ matrix.device }} FAMILY=${{ matrix.device }}
+            fullclean build-dev uf2
+
+      - name: Package ${{ matrix.device }} development artifact
+        shell: bash
+        env:
+          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
+          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
+          DEVICE: ${{ matrix.device }}
+        run: |
+          set -euo pipefail
+          sudo chown -R "$(id -u):$(id -g)" build
+
+          mkdir -p out
+          source_file="build/${DEVICE}/MatrixOS-${DEVICE}.uf2"
+          asset_name="MatrixOS-${DEVICE}-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+          cp "$source_file" "out/$asset_name"
+
+      - name: Upload ${{ matrix.device }} development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-${{ matrix.device }}
+          path: out/*
+          if-no-files-found: error
+
+  build-sil-dev:
+    if: needs.prepare.outputs.channel != 'development'
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install MystrixSIL build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y cmake make
+          else
+            apt-get update
+            apt-get install -y cmake make
+          fi
+
+      - name: Install Emscripten SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          pushd "$RUNNER_TEMP/emsdk"
+          ./emsdk install 4.0.12
+          ./emsdk activate 4.0.12
+          popd
+
+      - name: Build MystrixSIL development runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          export CMAKE="$(command -v cmake)"
+          export EMCMAKE="$(command -v emcmake)"
+          "$CMAKE" --version
+          make DEVICE=MystrixSIL FAMILY=MystrixSIL fullclean
+          make DEVICE=MystrixSIL FAMILY=MystrixSIL build-dev
+
+      - name: Package MystrixSIL development artifact bundle
+        shell: bash
+        env:
+          COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
+          RELEASE_DATE: ${{ needs.prepare.outputs.release_date }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p out
+          wasm_asset="MatrixOSHost-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.wasm"
+
+          cp "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm" "out/$wasm_asset"
+
+      - name: Upload MystrixSIL development artifact bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: development-MystrixSIL
+          path: out/*
+          if-no-files-found: error
+
+  publish-release:
+    if: needs.prepare.outputs.publish == 'true'
+    needs:
+      - prepare
+      - build-firmware
+      - build-sil
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download build bundles
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect release files and metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-files metadata pages
+          find artifacts -type f \( -name '*.uf2' -o -name '*.js' -o -name '*.wasm' -o -name '*.zip' \) -exec cp {} release-files/ \;
+          find artifacts -type f -name '*.json' -exec cp {} metadata/ \;
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          name: ${{ needs.prepare.outputs.release_name }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ needs.prepare.outputs.prerelease == 'true' }}
+          fail_on_unmatched_files: true
+          files: |
+            release-files/*
+          body: |
+            Channel: ${{ needs.prepare.outputs.channel_label }}
+            Commit: ${{ needs.prepare.outputs.commit_short }}
+            Generated at: ${{ needs.prepare.outputs.generated_at }}
+
+      - name: Download current Pages manifest if available
+        shell: bash
+        env:
+          MANIFEST_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/manifest.json
+        run: |
+          set -euo pipefail
+          curl -fsSL "$MANIFEST_URL" -o pages/existing-manifest.json || true
+
+      - name: Generate Pages manifest
+        shell: bash
+        env:
+          GENERATED_AT: ${{ needs.prepare.outputs.generated_at }}
+        run: |
+          set -euo pipefail
+          node Tools/release/generate-manifest.mjs \
+            --metadata-dir metadata \
+            --output pages/manifest.json \
+            --repository "${GITHUB_REPOSITORY}" \
+            --generated-at "$GENERATED_AT" \
+            --existing pages/existing-manifest.json
+
+          cat > pages/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>MatrixOS Release Manifest</title>
+          </head>
+          <body>
+            <p>MatrixOS release manifest: <a href="./manifest.json">manifest.json</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  deploy-pages:
+    if: needs.prepare.outputs.publish == 'true'
+    needs:
+      - prepare
+      - publish-release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

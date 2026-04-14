@@ -93,6 +93,11 @@ else()
     message( FATAL_ERROR "MODE is not defined" )
 endif()
 
+if(DEFINED MATRIXOS_RELEASE_VER_OVERRIDE)
+  message(STATUS "Overriding MATRIXOS_RELEASE_VER=${MATRIXOS_RELEASE_VER_OVERRIDE}")
+  add_compile_definitions(MATRIXOS_RELEASE_VER_OVERRIDE=${MATRIXOS_RELEASE_VER_OVERRIDE})
+endif()
+
 # Load device feature flags before processing subdirectories
 if(NOT EXISTS ${FAMILY_PATH}/Config.cmake)
     message(FATAL_ERROR "Config.cmake not found in ${FAMILY_PATH}. Please create this file to define DEVICE_STORAGE and DEVICE_BATTERY.")

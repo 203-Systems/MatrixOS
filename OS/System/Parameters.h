@@ -25,7 +25,11 @@
 #define MATRIXOS_MAJOR_VER 4
 #define MATRIXOS_MINOR_VER 0
 #define MATRIXOS_PATCH_VER 0
+#ifdef MATRIXOS_RELEASE_VER_OVERRIDE
+#define MATRIXOS_RELEASE_VER MATRIXOS_RELEASE_VER_OVERRIDE // This is for beta etc, doesn't take effect in Stable Release. It should also never be 0
+#else
 #define MATRIXOS_RELEASE_VER 0 // This is for beta etc, doesn't take effect in Stable Release. It should also never be 0
+#endif
 
 #include "ReleaseConfig.h"
 
