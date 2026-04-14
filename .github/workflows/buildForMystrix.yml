@@ -372,14 +372,14 @@ jobs:
 
           export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
           python3 - <<'PY'
-import os
-import zipfile
+            import os
+            import zipfile
 
-bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
-with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
-    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
-    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
-PY
+            bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
+            with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
+              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
+              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
+            PY
 
           loader_sha=$(sha256sum "out/$loader_asset" | awk '{print $1}')
           wasm_sha=$(sha256sum "out/$wasm_asset" | awk '{print $1}')
@@ -521,14 +521,14 @@ PY
 
           export MATRIXOS_SIL_BUNDLE_PATH="out/$bundle_asset"
           python3 - <<'PY'
-import os
-import zipfile
+            import os
+            import zipfile
 
-bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
-with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
-    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
-    bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
-PY
+            bundle_path = os.environ['MATRIXOS_SIL_BUNDLE_PATH']
+            with zipfile.ZipFile(bundle_path, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
+              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js', arcname='MatrixOSHost.js')
+              bundle.write('build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm', arcname='MatrixOSHost.wasm')
+            PY
 
       - name: Upload MystrixSIL development artifact bundle
         uses: actions/upload-artifact@v4
