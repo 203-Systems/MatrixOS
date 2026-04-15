@@ -133,9 +133,15 @@ add_compile_definitions(
 
 # Set debug flags globally for all targets before adding subdirectories
 if(MODE STREQUAL "DEVELOPMENT" OR MODE STREQUAL "UNDEFINED")
+  if(EMSCRIPTEN)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O0")
+    message(STATUS "Building Emscripten debug symbols: -g3 -O0")
+  else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -Og")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Og")
     message(STATUS "Building with debug symbols: -g3 -Og")
+  endif()
 endif()
 
 add_subdirectory(${FAMILY_PATH})

@@ -368,7 +368,7 @@ export async function restartWasm() {
     // Phase 1: Teardown
     moduleReady.set(false)
     moduleRef.set(null)
-    runtimeStatus.set('Restarting…')
+    runtimeStatus.set('Starting…')
     versionLabel.set('…')
     buildIdentity.set('Matrix OS')
     buildTime.set('—')

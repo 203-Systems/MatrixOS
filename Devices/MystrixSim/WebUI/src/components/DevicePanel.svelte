@@ -14,6 +14,10 @@
   const highlightBoost = 70
   const highlightAlpha = 0.85
   const highlightMidAlpha = 0.45
+  const LOAD_FIRMWARE_GRACE_MS = 2500
+  const LAST_FIRMWARE_AVAILABILITY_KEY = 'matrixos-last-firmware-availability'
+  const LAST_FIRMWARE_AVAILABILITY_LOADED = 'loaded'
+  const LAST_FIRMWARE_AVAILABILITY_MISSING = 'missing'
 
   let grid
   let keypadEls = Array(64).fill(null)
@@ -24,6 +28,45 @@
   let fnPointerId = null
   let activeCell = null
   let rafId = 0
+  let loadFirmwareGraceExpired = true
+  let loadFirmwareGraceTimer = 0
+  let startupFirmwareAvailability = ''
+
+  const isRuntimeMissingStatus = (status) => status === 'WASM not loaded' || status === 'Firmware Not Loaded'
+
+  const readLastFirmwareAvailability = () => {
+    try {
+      return window.localStorage.getItem(LAST_FIRMWARE_AVAILABILITY_KEY) || ''
+    } catch {
+      return ''
+    }
+  }
+
+  const writeLastFirmwareAvailability = (value) => {
+    if (!value) return
+    try {
+      window.localStorage.setItem(LAST_FIRMWARE_AVAILABILITY_KEY, value)
+    } catch {}
+  }
+
+  const clearLoadFirmwareGraceTimer = () => {
+    if (!loadFirmwareGraceTimer) return
+    clearTimeout(loadFirmwareGraceTimer)
+    loadFirmwareGraceTimer = 0
+  }
+
+  const armLoadFirmwareGraceTimer = () => {
+    clearLoadFirmwareGraceTimer()
+    if (startupFirmwareAvailability !== LAST_FIRMWARE_AVAILABILITY_LOADED) {
+      loadFirmwareGraceExpired = true
+      return
+    }
+    loadFirmwareGraceExpired = false
+    loadFirmwareGraceTimer = window.setTimeout(() => {
+      loadFirmwareGraceExpired = true
+      loadFirmwareGraceTimer = 0
+    }, LOAD_FIRMWARE_GRACE_MS)
+  }
 
   const clamp = (v) => Math.max(0, Math.min(255, v))
   const overlayChannel = (v) => Math.round(baseOverlay + (255 - baseOverlay) * (clamp(v) / 255))
@@ -192,7 +235,22 @@
   let tbDragSide = -1
   let tbHoverSide = -1  // -1=none, 0=left, 1=right
   let tbLeftActive = -1, tbRightActive = -1
-  $: showLoadFirmwareLink = !$moduleReady && ($wasmMissing || $runtimeStatus === 'WASM not loaded' || $runtimeStatus === 'Firmware Not Loaded')
+  $: runtimeMissingState = !$moduleReady && ($wasmMissing || isRuntimeMissingStatus($runtimeStatus))
+  $: suppressLoadFirmwareLink = runtimeMissingState
+    && startupFirmwareAvailability === LAST_FIRMWARE_AVAILABILITY_LOADED
+    && !loadFirmwareGraceExpired
+  $: showLoadFirmwareLink = runtimeMissingState && !suppressLoadFirmwareLink
+  $: overlayStatus = suppressLoadFirmwareLink ? 'Starting…' : $runtimeStatus
+
+  $: if ($moduleReady) {
+    writeLastFirmwareAvailability(LAST_FIRMWARE_AVAILABILITY_LOADED)
+    loadFirmwareGraceExpired = true
+    clearLoadFirmwareGraceTimer()
+  }
+
+  $: if (!$moduleReady && showLoadFirmwareLink) {
+    writeLastFirmwareAvailability(LAST_FIRMWARE_AVAILABILITY_MISSING)
+  }
 
   function openFirmwarePage(event) {
     event.preventDefault()
@@ -232,11 +290,14 @@
   }
 
   onMount(() => {
+    startupFirmwareAvailability = readLastFirmwareAvailability()
+    armLoadFirmwareGraceTimer()
     lastColors.fill('')
     lastUnderglowColors.fill('')
     renderFrame()
     return () => {
       if (rafId) cancelAnimationFrame(rafId)
+      clearLoadFirmwareGraceTimer()
     }
   })
 </script>
@@ -362,7 +423,7 @@
           {#if showLoadFirmwareLink}
             <a class="vis-link" href="#firmware" on:click={openFirmwarePage}>Load Firmware</a>
           {:else}
-            <div class="vis-status" class:vis-error={$wasmMissing}>{$runtimeStatus}</div>
+            <div class="vis-status" class:vis-error={$wasmMissing && !suppressLoadFirmwareLink}>{overlayStatus}</div>
           {/if}
         </div>
       {/if}
