@@ -528,7 +528,13 @@ jobs:
             export INDEX_INDEV_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-indev-${RELEASE_DATE}-${COMMIT_SHORT}.msfw"
           fi
 
-          node Tools/release/write-device-metadata.mjs
+          NODE_BIN="${EMSDK_NODE:-$(command -v nodejs 2>/dev/null || command -v node 2>/dev/null)}"
+          if [[ -z "$NODE_BIN" ]]; then
+            echo "Node.js is required to generate release metadata." >&2
+            exit 1
+          fi
+
+          "$NODE_BIN" Tools/release/write-device-metadata.mjs
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
