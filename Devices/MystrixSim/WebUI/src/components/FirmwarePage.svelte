@@ -182,10 +182,19 @@
 		return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`
 	}
 
+	function parseReleaseTimestamp(value) {
+		const text = String(value || '').trim()
+		if (!text) return 0
+
+		const date = new Date(text)
+		return Number.isNaN(date.getTime()) ? 0 : date.getTime()
+	}
+
 	function expandRelease(release) {
 		if (release?.draft) return []
 
 		const releaseName = release?.name || release?.tag_name || 'Matrix OS Release'
+		const releaseTimestamp = parseReleaseTimestamp(release?.published_at || release?.created_at)
 
 		return (release?.assets || [])
 			.filter((asset) => hasFirmwarePackageSuffix(asset?.name) && /MystrixSim/i.test(asset.name))
@@ -196,6 +205,7 @@
 				version: release?.tag_name || '—',
 				buildHash: extractBuildHash(release?.tag_name, asset?.name, release?.target_commitish),
 				date: formatReleaseDateTime(release?.published_at || release?.created_at),
+				releaseTimestamp,
 				assetName: asset.name,
 				assetApiUrl: asset.url,
 				assetDownloadUrl: asset.browser_download_url,
@@ -220,7 +230,14 @@
 				throw new Error('GitHub releases returned an unexpected payload.')
 			}
 
-			releaseFirmware = payload.flatMap(expandRelease)
+			releaseFirmware = payload
+				.flatMap(expandRelease)
+				.sort((left, right) => {
+					if (right.releaseTimestamp !== left.releaseTimestamp) {
+						return right.releaseTimestamp - left.releaseTimestamp
+					}
+					return String(left.assetName || '').localeCompare(String(right.assetName || ''))
+				})
 		} catch (error) {
 			releaseFirmware = []
 			releasesError = error instanceof Error ? error.message : String(error)
