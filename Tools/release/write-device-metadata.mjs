@@ -23,19 +23,39 @@ function optionalFileList(name) {
     .filter(Boolean)
 }
 
-const devices = {}
-for (const [deviceName, envName] of [
-  ['Mystrix1', 'INDEX_MYSTRIX1_FILES'],
-  ['Mystrix2', 'INDEX_MYSTRIX2_FILES'],
-  ['MystrixSim', 'INDEX_MYSTRIXSIM_FILES']
+function optionalDeviceGroup(prefix) {
+  const devices = {}
+
+  for (const [deviceName, envName] of [
+    ['Mystrix1', `${prefix}_MYSTRIX1_FILES`],
+    ['Mystrix2', `${prefix}_MYSTRIX2_FILES`],
+    ['MystrixSim', `${prefix}_MYSTRIXSIM_FILES`]
+  ]) {
+    const files = optionalFileList(envName)
+    if (files.length > 0) {
+      devices[deviceName] = { files }
+    }
+  }
+
+  return devices
+}
+
+const release = {}
+for (const [channelName, prefix] of [
+  ['release', 'INDEX_RELEASE'],
+  ['rc', 'INDEX_RC'],
+  ['beta', 'INDEX_BETA'],
+  ['nightly', 'INDEX_NIGHTLY'],
+  ['development', 'INDEX_DEVELOPMENT']
 ]) {
-  const files = optionalFileList(envName)
-  if (files.length > 0) {
-    devices[deviceName] = { files }
+  const devices = optionalDeviceGroup(prefix)
+  if (Object.keys(devices).length > 0) {
+    release[channelName] = devices
   }
 }
 
 const index = {
+  schemaVersion: 2,
   tag: requireEnv('INDEX_TAG'),
   name: requireEnv('INDEX_NAME'),
   channel: requireEnv('INDEX_CHANNEL'),
@@ -46,7 +66,7 @@ const index = {
   generatedAt: requireEnv('INDEX_GENERATED_AT'),
   commit: requireEnv('INDEX_COMMIT'),
   prerelease: /^true$/i.test(requireEnv('INDEX_PRERELEASE')),
-  devices,
+  release,
 }
 
 const outputPath = path.resolve(requireEnv('INDEX_OUTPUT'))

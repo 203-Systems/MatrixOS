@@ -175,7 +175,7 @@ jobs:
               channel_slug="nightly"
               prerelease="true"
               release_ver="0"
-              default_tag="nightly-${date_compact}-${commit_short}"
+              default_tag="release-${date_compact}-${commit_short}"
               default_name="Matrix OS ${display_version} Nightly ${release_date} ${commit_short}"
               ;;
             development)
@@ -337,7 +337,7 @@ jobs:
           if-no-files-found: error
 
   build-firmware-dev:
-    if: needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development'
+    if: needs.prepare.outputs.channel == 'nightly' || (needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development')
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
@@ -385,7 +385,7 @@ jobs:
           if-no-files-found: error
 
   build-sil-dev:
-    if: needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development'
+    if: needs.prepare.outputs.channel == 'nightly' || (needs.prepare.outputs.publish != 'true' && needs.prepare.outputs.channel != 'development')
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -450,11 +450,13 @@ jobs:
           if-no-files-found: error
 
   publish-release:
-    if: needs.prepare.outputs.publish == 'true'
+    if: ${{ always() && needs.prepare.outputs.publish == 'true' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     needs:
       - prepare
       - build-firmware
       - build-sil
+      - build-firmware-dev
+      - build-sil-dev
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -469,6 +471,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: release-*
+          path: artifacts
+
+      - name: Download development bundles
+        if: needs.prepare.outputs.channel == 'nightly'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: development-*
           path: artifacts
 
       - name: Collect release files and metadata
@@ -495,6 +504,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          channel_prefix=$(printf '%s' "$CHANNEL_SLUG" | tr '[:lower:]' '[:upper:]')
+
           export INDEX_OUTPUT="release-files/index.json"
           export INDEX_TAG="$RELEASE_TAG"
           export INDEX_NAME="$RELEASE_NAME"
@@ -506,9 +517,17 @@ jobs:
           export INDEX_GENERATED_AT="$GENERATED_AT"
           export INDEX_COMMIT="$COMMIT_SHORT"
           export INDEX_PRERELEASE="$PRERELEASE"
-          export INDEX_MYSTRIX1_FILES="MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
-          export INDEX_MYSTRIX2_FILES="MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
-          export INDEX_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
+
+          export "INDEX_${channel_prefix}_MYSTRIX1_FILES=MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
+          export "INDEX_${channel_prefix}_MYSTRIX2_FILES=MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
+          export "INDEX_${channel_prefix}_MYSTRIXSIM_FILES=MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
+
+          if [[ "$CHANNEL_SLUG" == "nightly" ]]; then
+            export INDEX_DEVELOPMENT_MYSTRIX1_FILES="MatrixOS-Mystrix1-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+            export INDEX_DEVELOPMENT_MYSTRIX2_FILES="MatrixOS-Mystrix2-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+            export INDEX_DEVELOPMENT_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
+          fi
+
           node Tools/release/write-device-metadata.mjs
 
       - name: Create or update GitHub Release
