@@ -16,12 +16,20 @@ export const buildIdentity = writable('Matrix OS')
 export const buildTime = writable('—')
 export const buildMetadata = writable(EMPTY_BUILD_METADATA)
 
+const DEFAULT_RUNTIME_ASSET_SOURCE = Object.freeze({
+  kind: 'bundled',
+  jsUrl: '/MatrixOSHost.js',
+  wasmUrl: '/MatrixOSHost.wasm',
+})
+
 let wasmSignature = null
 let reloadTimer = 0
 let _currentCleanup = null
 let _restartInProgress = false
 // Blob URL for the current injected MatrixOSHost.js — revoked on next teardown.
 let _currentBlobUrl = null
+let _runtimeAssetSource = { ...DEFAULT_RUNTIME_ASSET_SOURCE }
+let _retiredRuntimeAssetBlobUrls = []
 
 const isHtmlResponse = (r) => (r.headers.get('content-type') || '').includes('text/html')
 
@@ -40,12 +48,81 @@ function readBuildMetadata(mod, fallback = {}) {
   })
 }
 
+function getRuntimeAssetSource() {
+  return _runtimeAssetSource
+}
+
+function isBundledRuntimeSource() {
+  return getRuntimeAssetSource().kind === 'bundled'
+}
+
+function queueRuntimeAssetBlobUrlsForRevoke(urls) {
+  urls.forEach((url) => {
+    if (url) _retiredRuntimeAssetBlobUrls.push(url)
+  })
+}
+
+function retireCurrentRuntimeAssetSource() {
+  if (getRuntimeAssetSource().kind !== 'package') return
+  queueRuntimeAssetBlobUrlsForRevoke([
+    getRuntimeAssetSource().jsUrl,
+    getRuntimeAssetSource().wasmUrl,
+  ])
+}
+
+function revokeRetiredRuntimeAssetBlobUrls() {
+  if (_retiredRuntimeAssetBlobUrls.length === 0) return
+  _retiredRuntimeAssetBlobUrls.forEach((url) => {
+    try { URL.revokeObjectURL(url) } catch {}
+  })
+  _retiredRuntimeAssetBlobUrls = []
+}
+
+export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixOSHost.mspkg' }) {
+  const normalizedJsText = typeof jsText === 'string' ? jsText : ''
+  const normalizedWasmBytes = wasmBytes instanceof Uint8Array ? wasmBytes : new Uint8Array(wasmBytes || [])
+
+  if (normalizedJsText.trim() === '') {
+    throw new Error(`Package ${label} is missing MatrixOSHost.js`)
+  }
+  if (normalizedWasmBytes.byteLength === 0) {
+    throw new Error(`Package ${label} is missing MatrixOSHost.wasm`)
+  }
+
+  const nextSource = {
+    kind: 'package',
+    label,
+    jsUrl: URL.createObjectURL(new Blob([normalizedJsText], { type: 'application/javascript' })),
+    wasmUrl: URL.createObjectURL(new Blob([normalizedWasmBytes], { type: 'application/wasm' })),
+  }
+
+  retireCurrentRuntimeAssetSource()
+  _runtimeAssetSource = nextSource
+  await restartWasm()
+}
+
+export async function useBundledRuntime() {
+  if (isBundledRuntimeSource()) {
+    await restartWasm()
+    return
+  }
+
+  retireCurrentRuntimeAssetSource()
+  _runtimeAssetSource = { ...DEFAULT_RUNTIME_ASSET_SOURCE }
+  await restartWasm()
+}
+
 export async function checkWasmAvailability() {
+  if (!isBundledRuntimeSource()) {
+    wasmMissing.set(false)
+    return true
+  }
+
   try {
-    const r = await fetch('/MatrixOSHost.wasm', { method: 'HEAD', cache: 'no-store' })
+    const r = await fetch(getRuntimeAssetSource().wasmUrl, { method: 'HEAD', cache: 'no-store' })
     if ((!r.ok && r.status === 404) || (r.ok && isHtmlResponse(r))) {
       wasmMissing.set(true)
-      runtimeStatus.set('WASM image missing')
+      runtimeStatus.set('Firmware Not Loaded')
       return false
     }
     if (r.ok) wasmMissing.set(false)
@@ -56,18 +133,20 @@ export async function checkWasmAvailability() {
 }
 
 async function checkWasmUpdate() {
+  if (!isBundledRuntimeSource()) return
+
   try {
-    const r = await fetch('/MatrixOSHost.wasm', { method: 'HEAD', cache: 'no-store' })
+    const r = await fetch(getRuntimeAssetSource().wasmUrl, { method: 'HEAD', cache: 'no-store' })
     if (!r.ok) {
       if (r.status === 404) {
         wasmMissing.set(true)
-        runtimeStatus.set('WASM image missing')
+        runtimeStatus.set('Firmware Not Loaded')
       }
       return
     }
     if (isHtmlResponse(r)) {
       wasmMissing.set(true)
-      runtimeStatus.set('WASM image missing')
+      runtimeStatus.set('Firmware Not Loaded')
       return
     }
     wasmMissing.set(false)
@@ -118,6 +197,7 @@ function terminateWasmRuntime() {
     try { URL.revokeObjectURL(_currentBlobUrl) } catch {}
     _currentBlobUrl = null
   }
+  revokeRetiredRuntimeAssetBlobUrls()
 
   document.querySelectorAll('script[src*="MatrixOSHost.js"]').forEach(el => el.remove())
   // Emscripten may define HEAPU8 as non-configurable — use assignment, not delete
@@ -127,6 +207,8 @@ function terminateWasmRuntime() {
 
 /** Set up a fresh window.Module with all required callbacks. */
 function prepareFreshModule() {
+  const { jsUrl, wasmUrl } = getRuntimeAssetSource()
+
   window.MatrixOSLogBuffer = []
 
   window.MatrixOSRuntimeReady = new Promise((resolve) => {
@@ -140,8 +222,13 @@ function prepareFreshModule() {
       // document.currentScript is null, so Emscripten sets _scriptName=undefined.
       // This causes pthread workers to be created at URL 'undefined' → HTTP 404/HTML.
       // mainScriptUrlOrBlob overrides the worker URL — Emscripten checks this first.
-      mainScriptUrlOrBlob: `${location.origin}/MatrixOSHost.js`,
-      locateFile: (path) => path ? `/${path}` : '/',
+      mainScriptUrlOrBlob: jsUrl,
+      locateFile: (path) => {
+        if (!path) return '/'
+        if (/\.wasm(?:$|\?)/.test(path)) return wasmUrl
+        if (/^(?:blob:|https?:|\/)/.test(path)) return path
+        return `/${path}`
+      },
       print: (...args) => {
         console.log(...args)
         if (window.MatrixOSLogDispatch) window.MatrixOSLogDispatch('log', args)
@@ -190,15 +277,16 @@ async function injectWasmScript() {
   // 3. locateFile in workers: pthread workers run in a scope without
   //    window.Module (window is undefined in workers). We add a fallback
   //    locateFile in the preamble for the worker context.
-  const url = `/MatrixOSHost.js?t=${Date.now()}`
+  const { jsUrl, wasmUrl } = getRuntimeAssetSource()
+  const url = isBundledRuntimeSource() ? `${jsUrl}?t=${Date.now()}` : jsUrl
   let text
   try {
-    const r = await fetch(url, { cache: 'no-store' })
+    const r = await fetch(url, { cache: isBundledRuntimeSource() ? 'no-store' : 'default' })
     if (!r.ok) throw new Error(`HTTP ${r.status}`)
     text = await r.text()
   } catch (e) {
     wasmMissing.set(true)
-    runtimeStatus.set('WASM image missing')
+    runtimeStatus.set('Firmware Not Loaded')
     throw new Error(`Failed to fetch MatrixOSHost.js: ${e.message}`)
   }
 
@@ -208,7 +296,8 @@ async function injectWasmScript() {
   //   - locateFile fallback ensures workers can find MatrixOSHost.wasm
   const preamble = [
     `var Module = (typeof window !== 'undefined' ? window.Module : null) || {};`,
-    `if (!Module.locateFile) Module.locateFile = function(path) { return '/' + path; };`,
+    `var __matrixosWasmUrl = ${JSON.stringify(wasmUrl)};`,
+    `Module.locateFile = function(path) { if (path && /\\.wasm(?:$|\\?)/.test(path)) return __matrixosWasmUrl; if (!path) return '/'; if (/^(?:blob:|https?:|\\/)/.test(path)) return path; return '/' + path; };`,
   ].join('\n') + '\n'
 
   const wrapped = preamble + text
@@ -224,7 +313,7 @@ async function injectWasmScript() {
     if (window.Module) window.Module.mainScriptUrlOrBlob = blobUrl
   } catch {
     // Blob URLs may be unavailable in some environments — fall back gracefully.
-    if (window.Module) window.Module.mainScriptUrlOrBlob = `${location.origin}/MatrixOSHost.js`
+    if (window.Module) window.Module.mainScriptUrlOrBlob = jsUrl
   }
 
   try {
@@ -233,7 +322,7 @@ async function injectWasmScript() {
   } catch (e) {
     if (blobUrl) { try { URL.revokeObjectURL(blobUrl) } catch {} }
     wasmMissing.set(true)
-    runtimeStatus.set('WASM image missing')
+    runtimeStatus.set('Firmware Not Loaded')
     throw new Error(`Failed to execute MatrixOSHost.js: ${e.message}`)
   }
   // Store the blob URL at module level. It must remain alive while any pthread
@@ -316,7 +405,7 @@ export function initWasm() {
   mod.onAbort = (what) => {
     if (typeof prevAbort === 'function') prevAbort(what)
     wasmMissing.set(true)
-    runtimeStatus.set('WASM image missing')
+    runtimeStatus.set('Firmware Not Loaded')
   }
 
   // Hot-reload polling

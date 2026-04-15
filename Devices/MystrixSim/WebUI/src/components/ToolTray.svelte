@@ -4,8 +4,10 @@
     Usb, Connect, DataBase, Restart, Chip, Application, Screen
   } from 'carbon-icons-svelte'
   import { openTools, toggleTool, deviceTools } from '../stores/tools.js'
-  import { doReboot } from '../stores/wasm.js'
+  import { doReboot, moduleReady } from '../stores/wasm.js'
   let expanded = false
+
+  $: resetDisabled = !$moduleReady
 
   const iconMap = {
     system: Activity,
@@ -43,8 +45,9 @@
   <div class="tray-footer">
     <button
       class="tray-btn tray-reset"
+      disabled={resetDisabled}
       on:click={doReboot}
-      title="Reset emulator"
+      title={resetDisabled ? 'Firmware not loaded' : 'Reset emulator'}
     >
       <Restart size={20} />
       <span class="tray-label">Reset</span>
@@ -97,6 +100,16 @@
     color: var(--text);
     background: rgba(255, 255, 255, 0.03);
   }
+  .tray-btn:disabled {
+    cursor: not-allowed;
+    color: rgba(201, 207, 219, 0.42);
+    background: rgba(255, 255, 255, 0.02);
+    border-right-color: transparent;
+  }
+  .tray-btn:disabled:hover {
+    color: rgba(201, 207, 219, 0.42);
+    background: rgba(255, 255, 255, 0.02);
+  }
   .tray-active {
     color: var(--accent);
     border-right-color: var(--accent);
@@ -117,6 +130,11 @@
   .tray-reset:hover {
     color: #ffd4bc;
     background: rgba(255, 148, 89, 0.08);
+  }
+  .tray-reset:disabled,
+  .tray-reset:disabled:hover {
+    color: rgba(201, 207, 219, 0.42);
+    background: rgba(255, 255, 255, 0.02);
   }
   .tray-label {
     display: inline-block;

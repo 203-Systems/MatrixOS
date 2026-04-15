@@ -15,6 +15,7 @@
     "ws": "^8.20.0"
   },
   "dependencies": {
-    "carbon-icons-svelte": "^13.8.0"
+    "carbon-icons-svelte": "^13.8.0",
+    "jszip": "^3.10.1"
   }
 }

@@ -16,23 +16,35 @@
   let activeSection = 'device'
 
   const sectionPrefKey = 'matrixos-active-section'
+  const validSections = ['device', 'connection', 'firmware']
 
   onMount(() => {
     try {
       const stored = window.localStorage.getItem(sectionPrefKey)
-      if (['device', 'connection', 'firmware'].includes(stored)) {
+      if (validSections.includes(stored)) {
         activeSection = stored
       }
     } catch {}
+
+    const handleSectionNavigation = (event) => {
+      const next = typeof event.detail === 'string' ? event.detail : event.detail?.section
+      if (validSections.includes(next)) {
+        activeSection = next
+      }
+    }
+
+    window.addEventListener('matrixos:navigate-section', handleSectionNavigation)
 
     detectBrowserCapabilities()
 
     const restoreLogging = hookModuleLogging()
     const restoreWasm = initWasm()
+    const restoreWsBridge = initWsBridge()
     initRpc()
-    initWsBridge()
 
     return () => {
+      window.removeEventListener('matrixos:navigate-section', handleSectionNavigation)
+      if (restoreWsBridge) restoreWsBridge()
       if (restoreWasm) restoreWasm()
       if (restoreLogging) restoreLogging()
     }

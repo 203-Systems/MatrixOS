@@ -190,7 +190,12 @@ try {
       New-Item -ItemType Directory -Force -Path $publicDir | Out-Null
       Copy-Item -Force $jsSrc (Join-Path $publicDir 'MatrixOSHost.js')
       Copy-Item -Force $wasmSrc (Join-Path $publicDir 'MatrixOSHost.wasm')
-      Write-Host "[MystrixSim] Copied MatrixOSHost.js and MatrixOSHost.wasm to $publicDir"
+
+      $packageScript = Join-Path $WebUiDir 'tools\package-runtime.mjs'
+      $packageOut = Join-Path $publicDir 'MatrixOS.mspkg'
+      Invoke-Step -FilePath 'node' -ArgumentList @($packageScript, (Join-Path $publicDir 'MatrixOSHost.js'), (Join-Path $publicDir 'MatrixOSHost.wasm'), $packageOut)
+
+      Write-Host "[MystrixSim] Copied MatrixOSHost.js, MatrixOSHost.wasm, and MatrixOS.mspkg to $publicDir"
     }
 
     'run' {

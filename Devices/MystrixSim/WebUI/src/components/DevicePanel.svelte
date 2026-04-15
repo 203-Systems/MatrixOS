@@ -192,6 +192,12 @@
   let tbDragSide = -1
   let tbHoverSide = -1  // -1=none, 0=left, 1=right
   let tbLeftActive = -1, tbRightActive = -1
+  $: showLoadFirmwareLink = !$moduleReady && ($wasmMissing || $runtimeStatus === 'WASM not loaded' || $runtimeStatus === 'Firmware Not Loaded')
+
+  function openFirmwarePage(event) {
+    event.preventDefault()
+    window.dispatchEvent(new CustomEvent('matrixos:navigate-section', { detail: 'firmware' }))
+  }
 
   const handleTBDown = (event, side, index) => {
     if (!get(moduleReady)) return
@@ -353,7 +359,11 @@
 
       {#if !$moduleReady}
         <div class="vis-overlay" aria-live="polite">
-          <div class="vis-status" class:vis-error={$wasmMissing}>{$runtimeStatus}</div>
+          {#if showLoadFirmwareLink}
+            <a class="vis-link" href="#firmware" on:click={openFirmwarePage}>Load Firmware</a>
+          {:else}
+            <div class="vis-status" class:vis-error={$wasmMissing}>{$runtimeStatus}</div>
+          {/if}
         </div>
       {/if}
     </div><!-- end device-vis -->
@@ -404,6 +414,30 @@
     font-size: 0.8rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+  }
+  .vis-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    background: #1b323b;
+    border: 1px solid #4cc9f0;
+    color: #dff6ff;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    text-transform: uppercase;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.12s;
+  }
+  .vis-link:hover {
+    color: #f3fbff;
+    border-color: #74d8f5;
+    background: #24424d;
+    transform: translateY(-1px);
   }
   .vis-error {
     border-color: rgba(255, 107, 107, 0.5);
