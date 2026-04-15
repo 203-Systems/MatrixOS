@@ -7,7 +7,7 @@ import JSZip from 'jszip'
 const [jsPath, wasmPath, outputPath] = process.argv.slice(2)
 
 if (!jsPath || !wasmPath || !outputPath) {
-  throw new Error('Usage: node package-runtime.mjs <MatrixOSHost.js> <MatrixOSHost.wasm> <output.mspkg>')
+  throw new Error('Usage: node package-runtime.mjs <MatrixOSHost.js> <MatrixOSHost.wasm> <output.msfw>')
 }
 
 const zip = new JSZip()

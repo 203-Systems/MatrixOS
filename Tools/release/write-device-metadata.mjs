@@ -46,7 +46,7 @@ for (const [channelName, prefix] of [
   ['rc', 'INDEX_RC'],
   ['beta', 'INDEX_BETA'],
   ['nightly', 'INDEX_NIGHTLY'],
-  ['development', 'INDEX_DEVELOPMENT']
+  ['indev', 'INDEX_INDEV']
 ]) {
   const devices = optionalDeviceGroup(prefix)
   if (Object.keys(devices).length > 0) {

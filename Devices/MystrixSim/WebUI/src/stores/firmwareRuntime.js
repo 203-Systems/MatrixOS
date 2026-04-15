@@ -6,9 +6,9 @@ import {
   readFirmwareSourcePrefs,
   writeFirmwareSourcePrefs,
 } from './firmwareSource.js'
-import { extractMspkgPackage, sha256Hex } from '../firmwarePackage.js'
+import { extractFirmwarePackage, FIRMWARE_PACKAGE_SUFFIX, sha256Hex } from '../firmwarePackage.js'
 
-const LOCAL_BUILD_PACKAGE_URL = '/MatrixOS.mspkg'
+const LOCAL_BUILD_PACKAGE_URL = `/MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
 
 export const activeFirmwareSource = writable(/** @type {string} */ (FIRMWARE_SOURCE.LOCAL_BUILD))
 
@@ -37,7 +37,7 @@ async function readLocalBuildPackage() {
     return {
       bytes,
       metadata: {
-        label: 'MatrixOS.mspkg',
+        label: `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`,
         packageHash,
         savedAt: new Date().toISOString(),
       },
@@ -48,7 +48,7 @@ async function readLocalBuildPackage() {
 }
 
 async function activatePackageSource(sourceId, { bytes, label, metadata }) {
-  const runtimeAssets = await extractMspkgPackage(bytes, label)
+  const runtimeAssets = await extractFirmwarePackage(bytes, label)
   await loadRuntimeAssetPair({ ...runtimeAssets, label })
   activeFirmwareSource.set(sourceId)
 
@@ -67,7 +67,7 @@ async function restoreStoredSource(sourceId) {
       return false
     }
 
-    const label = stored.label || stored.metadata?.label || 'MatrixOS.mspkg'
+    const label = stored.label || stored.metadata?.label || `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
     await activatePackageSource(sourceId, {
       bytes: stored.packageBytes,
       label,
@@ -107,7 +107,7 @@ async function initializeFirmwareRuntime() {
   if (prefs.autoUseLocalBuild && localBuildPackage && localBuildChanged) {
     const nextMetadata = await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
       bytes: localBuildPackage.bytes,
-      label: 'MatrixOS.mspkg',
+      label: `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`,
       metadata: localBuildPackage.metadata,
     })
     persistPrefsWith({
@@ -122,7 +122,7 @@ async function initializeFirmwareRuntime() {
     if (!currentRuntimeLoaded() && localBuildPackage) {
       const nextMetadata = await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
         bytes: localBuildPackage.bytes,
-        label: 'MatrixOS.mspkg',
+        label: `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`,
         metadata: localBuildPackage.metadata,
       })
       persistPrefsWith({ localBuildHash: nextMetadata.packageHash })

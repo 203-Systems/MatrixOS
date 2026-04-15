@@ -4,7 +4,7 @@
 	import { activeFirmwareSource, ensureFirmwareRuntimeSource, setActiveFirmwareSource } from '../stores/firmwareRuntime.js'
 	import { IS_NODE_BACKED } from '../stores/rpc.js'
 	import { buildTypeClass } from '../buildMetadata.js'
-	import { MSPKG_SUFFIX, extractMspkgPackage, sha256Hex, toArrayBuffer } from '../firmwarePackage.js'
+	import { extractFirmwarePackage, FIRMWARE_PACKAGE_ACCEPT, FIRMWARE_PACKAGE_SUFFIX, hasFirmwarePackageSuffix, sha256Hex, toArrayBuffer } from '../firmwarePackage.js'
 	import {
 		FIRMWARE_SOURCE,
 		loadStoredPackage,
@@ -15,8 +15,9 @@
 
 	const RELEASES_WEB_URL = 'https://github.com/203Null/MatrixOS/releases'
 	const RELEASES_API_URL = 'https://api.github.com/repos/203Null/MatrixOS/releases'
-	const LOCAL_BUILD_PACKAGE_URL = '/MatrixOS.mspkg'
-	const LOCAL_BUILD_PACKAGE_DETAIL = 'Devices/MystrixSim/WebUI/public/MatrixOS.mspkg'
+	const LOCAL_BUILD_PACKAGE_URL = `/MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
+	const LOCAL_BUILD_PACKAGE_NAME = `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
+	const LOCAL_BUILD_PACKAGE_DETAIL = `Devices/MystrixSim/WebUI/public/${LOCAL_BUILD_PACKAGE_NAME}`
 	const SOURCE_OPTIONS = [
 		{ id: FIRMWARE_SOURCE.LOCAL_BUILD, label: 'Local Build' },
 		{ id: FIRMWARE_SOURCE.OFFICIAL_RELEASE, label: 'Official Release' },
@@ -27,7 +28,7 @@
 	function createSourceState() {
 		return {
 			[FIRMWARE_SOURCE.LOCAL_BUILD]: {
-				label: 'MatrixOS.mspkg',
+				label: LOCAL_BUILD_PACKAGE_NAME,
 				detail: LOCAL_BUILD_PACKAGE_DETAIL,
 				packageHash: '',
 				available: false,
@@ -130,7 +131,7 @@
 		if (sourceId === FIRMWARE_SOURCE.LOCAL_BUILD) {
 			return entry?.available
 				? `${entry.detail} • ${shortHash(entry.packageHash)}`
-				: `${LOCAL_BUILD_PACKAGE_DETAIL} • waiting for MatrixOS.mspkg`
+				: `${LOCAL_BUILD_PACKAGE_DETAIL} • waiting for ${LOCAL_BUILD_PACKAGE_NAME}`
 		}
 
 		if (!entry) {
@@ -150,7 +151,7 @@
 	}
 
 	function normalizeChannel(assetName, release) {
-		if (/development/i.test(assetName)) return 'InDev'
+		if (/(?:indev|development)/i.test(assetName)) return 'InDev'
 
 		const text = `${release?.name || ''} ${release?.tag_name || ''}`.toLowerCase()
 		if (!release?.prerelease) return 'Release'
@@ -186,7 +187,7 @@
 		const releaseName = release?.name || release?.tag_name || 'Matrix OS Release'
 
 		return (release?.assets || [])
-			.filter((asset) => asset?.name?.endsWith(MSPKG_SUFFIX) && /MystrixSim/i.test(asset.name))
+			.filter((asset) => hasFirmwarePackageSuffix(asset?.name) && /MystrixSim/i.test(asset.name))
 			.map((asset) => ({
 				key: `${release.id}:${asset.id}`,
 				name: releaseName,
@@ -240,7 +241,7 @@
 			const bytes = await fetchPackageBytes(LOCAL_BUILD_PACKAGE_URL, { cache: 'no-store' })
 			const packageHash = await sha256Hex(bytes)
 			const metadata = {
-				label: 'MatrixOS.mspkg',
+				label: LOCAL_BUILD_PACKAGE_NAME,
 				detail: LOCAL_BUILD_PACKAGE_DETAIL,
 				packageHash,
 				available: true,
@@ -250,7 +251,7 @@
 			return { bytes, metadata }
 		} catch {
 			updateSourceState(FIRMWARE_SOURCE.LOCAL_BUILD, {
-				label: 'MatrixOS.mspkg',
+				label: LOCAL_BUILD_PACKAGE_NAME,
 				detail: LOCAL_BUILD_PACKAGE_DETAIL,
 				packageHash: '',
 				available: false,
@@ -266,7 +267,7 @@
 			statusMessage = '',
 		} = options
 
-		const runtimeAssets = await extractMspkgPackage(bytes, label)
+		const runtimeAssets = await extractFirmwarePackage(bytes, label)
 		await loadRuntimeAssetPair({ ...runtimeAssets, label })
 		setActiveFirmwareSource(sourceId)
 
@@ -281,7 +282,7 @@
 		if (sourceId === FIRMWARE_SOURCE.LOCAL_BUILD) {
 			localBuildHash = packageHash
 			updateSourceState(FIRMWARE_SOURCE.LOCAL_BUILD, {
-				label: 'MatrixOS.mspkg',
+				label: LOCAL_BUILD_PACKAGE_NAME,
 				detail: LOCAL_BUILD_PACKAGE_DETAIL,
 				packageHash,
 				available: true,
@@ -330,7 +331,7 @@
 				return false
 			}
 
-			const label = stored.label || stored.metadata?.label || 'MatrixOS.mspkg'
+			const label = stored.label || stored.metadata?.label || LOCAL_BUILD_PACKAGE_NAME
 			const metadata = stored.metadata || null
 			await activatePackageSource(sourceId, {
 				bytes: stored.packageBytes,
@@ -372,7 +373,7 @@
 		if (autoUseLocalBuild && localBuildPackage && localBuildChanged) {
 			await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
 				bytes: localBuildPackage.bytes,
-				label: 'MatrixOS.mspkg',
+				label: LOCAL_BUILD_PACKAGE_NAME,
 				metadata: localBuildPackage.metadata,
 			}, {
 				persistStoredPackage: false,
@@ -387,7 +388,7 @@
 			if (!currentRuntimeLoaded && localBuildPackage) {
 				await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
 					bytes: localBuildPackage.bytes,
-					label: 'MatrixOS.mspkg',
+					label: LOCAL_BUILD_PACKAGE_NAME,
 					metadata: localBuildPackage.metadata,
 				}, {
 					persistStoredPackage: false,
@@ -412,12 +413,12 @@
 	async function loadLocalBuildPackage() {
 		const localBuildPackage = await readLocalBuildPackage()
 		if (!localBuildPackage) {
-			throw new Error('Local build package MatrixOS.mspkg was not found.')
+			throw new Error(`Local build package ${LOCAL_BUILD_PACKAGE_NAME} was not found.`)
 		}
 
 		await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
 			bytes: localBuildPackage.bytes,
-			label: 'MatrixOS.mspkg',
+			label: LOCAL_BUILD_PACKAGE_NAME,
 			metadata: localBuildPackage.metadata,
 		}, {
 			persistStoredPackage: false,
@@ -612,7 +613,7 @@
 					</button>
 				</div>
 
-				<input class="fw-file-input" bind:this={packageInput} type="file" accept=".mspkg,application/zip" on:change={handleUserPackageSelection} />
+				<input class="fw-file-input" bind:this={packageInput} type="file" accept={FIRMWARE_PACKAGE_ACCEPT} on:change={handleUserPackageSelection} />
 			</div>
 		</div>
 

@@ -175,17 +175,17 @@ jobs:
               channel_slug="nightly"
               prerelease="true"
               release_ver="0"
-              default_tag="release-${date_compact}-${commit_short}"
+              default_tag="nightly-${date_compact}-${commit_short}"
               default_name="Matrix OS ${display_version} Nightly ${release_date} ${commit_short}"
               ;;
             development)
               build_target="build-dev"
-              channel_label="Development"
-              channel_slug="development"
+              channel_label="InDev"
+              channel_slug="indev"
               prerelease="true"
               release_ver="0"
-              default_tag="development-${date_compact}-${commit_short}"
-              default_name="Matrix OS ${display_version} Development ${release_date} ${commit_short}"
+              default_tag="indev-${date_compact}-${commit_short}"
+              default_name="Matrix OS ${display_version} InDev ${release_date} ${commit_short}"
               ;;
             *)
               echo "Unsupported channel: $channel" >&2
@@ -323,7 +323,7 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
+          package_asset="MatrixOS-MystrixSim-${ASSET_SUFFIX}.msfw"
 
           zip -j -q "out/$package_asset" \
             "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.js" \
@@ -352,7 +352,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build ${{ matrix.device }} development UF2
+      - name: Build ${{ matrix.device }} InDev UF2
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: ${{ env.ESP_IDF_VERSION }}
@@ -362,7 +362,7 @@ jobs:
             make DEVICE=${{ matrix.device }} FAMILY=${{ matrix.device }}
             fullclean build-dev uf2
 
-      - name: Package ${{ matrix.device }} development artifact
+      - name: Package ${{ matrix.device }} InDev artifact
         shell: bash
         env:
           COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
@@ -374,13 +374,13 @@ jobs:
 
           mkdir -p out
           source_file="build/${DEVICE}/MatrixOS-${DEVICE}.uf2"
-          asset_name="MatrixOS-${DEVICE}-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+          asset_name="MatrixOS-${DEVICE}-indev-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
           cp "$source_file" "out/$asset_name"
 
-      - name: Upload ${{ matrix.device }} development artifact
+      - name: Upload ${{ matrix.device }} InDev artifact
         uses: actions/upload-artifact@v4
         with:
-          name: development-${{ matrix.device }}
+          name: indev-${{ matrix.device }}
           path: out/*
           if-no-files-found: error
 
@@ -416,7 +416,7 @@ jobs:
           ./emsdk activate 4.0.12
           popd
 
-      - name: Build MystrixSim development runtime
+      - name: Build MystrixSim InDev runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -427,7 +427,7 @@ jobs:
           make DEVICE=MystrixSim FAMILY=MystrixSim fullclean
           make DEVICE=MystrixSim FAMILY=MystrixSim build-dev
 
-      - name: Package MystrixSim development artifact bundle
+      - name: Package MystrixSim InDev artifact bundle
         shell: bash
         env:
           COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
@@ -436,16 +436,16 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOS-MystrixSim-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
+          package_asset="MatrixOS-MystrixSim-indev-${RELEASE_DATE}-${COMMIT_SHORT}.msfw"
 
           zip -j -q "out/$package_asset" \
             "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.js" \
             "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.wasm"
 
-      - name: Upload MystrixSim development artifact bundle
+      - name: Upload MystrixSim InDev artifact bundle
         uses: actions/upload-artifact@v4
         with:
-          name: development-MystrixSim
+          name: indev-MystrixSim
           path: out/*
           if-no-files-found: error
 
@@ -473,11 +473,11 @@ jobs:
           pattern: release-*
           path: artifacts
 
-      - name: Download development bundles
+      - name: Download InDev bundles
         if: needs.prepare.outputs.channel == 'nightly'
         uses: actions/download-artifact@v4
         with:
-          pattern: development-*
+          pattern: indev-*
           path: artifacts
 
       - name: Collect release files and metadata
@@ -485,7 +485,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-files
-          find artifacts -type f \( -name '*.uf2' -o -name '*.mspkg' \) -exec cp {} release-files/ \;
+          find artifacts -type f \( -name '*.uf2' -o -name '*.msfw' -o -name '*.mspkg' \) -exec cp {} release-files/ \;
 
       - name: Generate release index
         shell: bash
@@ -520,12 +520,12 @@ jobs:
 
           export "INDEX_${channel_prefix}_MYSTRIX1_FILES=MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
           export "INDEX_${channel_prefix}_MYSTRIX2_FILES=MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
-          export "INDEX_${channel_prefix}_MYSTRIXSIM_FILES=MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
+          export "INDEX_${channel_prefix}_MYSTRIXSIM_FILES=MatrixOS-MystrixSim-${ASSET_SUFFIX}.msfw"
 
           if [[ "$CHANNEL_SLUG" == "nightly" ]]; then
-            export INDEX_DEVELOPMENT_MYSTRIX1_FILES="MatrixOS-Mystrix1-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
-            export INDEX_DEVELOPMENT_MYSTRIX2_FILES="MatrixOS-Mystrix2-development-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
-            export INDEX_DEVELOPMENT_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
+            export INDEX_INDEV_MYSTRIX1_FILES="MatrixOS-Mystrix1-indev-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+            export INDEX_INDEV_MYSTRIX2_FILES="MatrixOS-Mystrix2-indev-${RELEASE_DATE}-${COMMIT_SHORT}.uf2"
+            export INDEX_INDEV_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-indev-${RELEASE_DATE}-${COMMIT_SHORT}.msfw"
           fi
 
           node Tools/release/write-device-metadata.mjs

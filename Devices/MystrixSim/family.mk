@@ -2,7 +2,7 @@ WEB_UI_DIR := Devices/MystrixSim/WebUI
 WEB_PUBLIC_DIR := $(WEB_UI_DIR)/public
 WEB_OUTPUT_JS := $(BUILD)/Devices/MystrixSim/MatrixOSHost.js
 WEB_OUTPUT_WASM := $(BUILD)/Devices/MystrixSim/MatrixOSHost.wasm
-WEB_OUTPUT_PACKAGE := $(WEB_PUBLIC_DIR)/MatrixOS.mspkg
+WEB_OUTPUT_PACKAGE := $(WEB_PUBLIC_DIR)/MatrixOS.msfw
 WEB_PACKAGE_SCRIPT := $(WEB_UI_DIR)/tools/package-runtime.mjs
 
 EMCMAKE ?= emcmake

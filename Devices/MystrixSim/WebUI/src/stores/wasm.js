@@ -82,7 +82,7 @@ function revokeRetiredRuntimeAssetBlobUrls() {
   _retiredRuntimeAssetBlobUrls = []
 }
 
-export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixOSHost.mspkg' }) {
+export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixOS.msfw' }) {
   const normalizedJsText = typeof jsText === 'string' ? jsText : ''
   const normalizedWasmBytes = wasmBytes instanceof Uint8Array ? wasmBytes : new Uint8Array(wasmBytes || [])
 

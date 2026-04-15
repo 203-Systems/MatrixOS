@@ -190,10 +190,10 @@ try {
       New-Item -ItemType Directory -Force -Path $publicDir | Out-Null
 
       $packageScript = Join-Path $WebUiDir 'tools\package-runtime.mjs'
-      $packageOut = Join-Path $publicDir 'MatrixOS.mspkg'
+      $packageOut = Join-Path $publicDir 'MatrixOS.msfw'
       Invoke-Step -FilePath 'node' -ArgumentList @($packageScript, $jsSrc, $wasmSrc, $packageOut)
 
-      Write-Host "[MystrixSim] Wrote MatrixOS.mspkg to $publicDir"
+      Write-Host "[MystrixSim] Wrote MatrixOS.msfw to $publicDir"
     }
 
     'run' {

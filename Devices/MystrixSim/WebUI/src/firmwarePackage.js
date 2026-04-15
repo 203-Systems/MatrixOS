@@ -1,6 +1,13 @@
 import JSZip from 'jszip'
 
-export const MSPKG_SUFFIX = '.mspkg'
+export const FIRMWARE_PACKAGE_SUFFIX = '.msfw'
+export const LEGACY_FIRMWARE_PACKAGE_SUFFIX = '.mspkg'
+export const FIRMWARE_PACKAGE_ACCEPT = `${FIRMWARE_PACKAGE_SUFFIX},${LEGACY_FIRMWARE_PACKAGE_SUFFIX},application/zip`
+
+export function hasFirmwarePackageSuffix(name = '') {
+  const normalized = String(name || '').toLowerCase()
+  return normalized.endsWith(FIRMWARE_PACKAGE_SUFFIX) || normalized.endsWith(LEGACY_FIRMWARE_PACKAGE_SUFFIX)
+}
 
 function normalizeBytes(input) {
   if (input instanceof Uint8Array) return input
@@ -8,7 +15,7 @@ function normalizeBytes(input) {
   return new Uint8Array(input || [])
 }
 
-export async function extractMspkgPackage(input, label = 'MatrixOS.mspkg') {
+export async function extractFirmwarePackage(input, label = `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`) {
   const zip = await JSZip.loadAsync(input)
   const files = Object.values(zip.files).filter((entry) => !entry.dir)
   const jsEntry = files.find((entry) => entry.name.split('/').pop() === 'MatrixOSHost.js')
@@ -25,6 +32,8 @@ export async function extractMspkgPackage(input, label = 'MatrixOS.mspkg') {
 
   return { jsText, wasmBytes }
 }
+
+export const extractMspkgPackage = extractFirmwarePackage
 
 export async function sha256Hex(input) {
   const bytes = normalizeBytes(input)
