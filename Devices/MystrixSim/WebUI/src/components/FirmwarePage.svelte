@@ -249,7 +249,19 @@
 	async function fetchPackageBytes(url, init = {}) {
 		const response = await fetch(url, init)
 		if (!response.ok) {
-			throw new Error(`Package request failed: HTTP ${response.status}`)
+			let detail = ''
+			try {
+				const contentType = response.headers.get('content-type') || ''
+				if (contentType.includes('application/json')) {
+					const payload = await response.json()
+					detail = payload?.error ? `: ${payload.error}` : ''
+				} else {
+					const text = (await response.text()).trim()
+					if (text) detail = `: ${text}`
+				}
+			} catch {}
+
+			throw new Error(`Package request failed: HTTP ${response.status}${detail}`)
 		}
 		return await response.arrayBuffer()
 	}
