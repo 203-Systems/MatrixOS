@@ -15,7 +15,7 @@
     if ($wsBridgeStatus === 'available') return 'WebSocket Server Ready'
     return 'WebSocket Server Unavailable'
   })()
-  $: displayIdentity = $buildIdentity.replace(' • ', ' | ')
+  $: displayIdentity = $buildIdentity.split(' • ').join(' | ')
 </script>
 
 <header class="top-bar">
