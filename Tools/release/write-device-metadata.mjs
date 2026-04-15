@@ -27,7 +27,7 @@ const devices = {}
 for (const [deviceName, envName] of [
   ['Mystrix1', 'INDEX_MYSTRIX1_FILES'],
   ['Mystrix2', 'INDEX_MYSTRIX2_FILES'],
-  ['MystrixSIL', 'INDEX_MYSTRIXSIL_FILES']
+  ['MystrixSim', 'INDEX_MYSTRIXSIM_FILES']
 ]) {
   const files = optionalFileList(envName)
   if (files.length > 0) {

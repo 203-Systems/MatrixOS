@@ -279,7 +279,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install MystrixSIL build dependencies
+      - name: Install MystrixSim build dependencies
         shell: bash
         run: |
           set -euo pipefail
@@ -301,7 +301,7 @@ jobs:
           ./emsdk activate 4.0.12
           popd
 
-      - name: Build MystrixSIL runtime
+      - name: Build MystrixSim runtime
         shell: bash
         env:
           BUILD_TARGET: ${{ needs.prepare.outputs.build_target }}
@@ -312,10 +312,10 @@ jobs:
           export CMAKE="$(command -v cmake)"
           export EMCMAKE="$(command -v emcmake)"
           "$CMAKE" --version
-          make DEVICE=MystrixSIL FAMILY=MystrixSIL fullclean
-          make DEVICE=MystrixSIL FAMILY=MystrixSIL RELEASE_VER="$RELEASE_VER" "$BUILD_TARGET"
+          make DEVICE=MystrixSim FAMILY=MystrixSim fullclean
+          make DEVICE=MystrixSim FAMILY=MystrixSim RELEASE_VER="$RELEASE_VER" "$BUILD_TARGET"
 
-      - name: Package MystrixSIL release bundle
+      - name: Package MystrixSim release bundle
         shell: bash
         env:
           ASSET_SUFFIX: ${{ needs.prepare.outputs.asset_suffix }}
@@ -323,16 +323,16 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOS-MystrixSIL-${ASSET_SUFFIX}.mspkg"
+          package_asset="MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
 
           zip -j -q "out/$package_asset" \
-            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
-            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
+            "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.js" \
+            "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.wasm"
 
-      - name: Upload MystrixSIL artifact bundle
+      - name: Upload MystrixSim artifact bundle
         uses: actions/upload-artifact@v4
         with:
-          name: release-MystrixSIL
+          name: release-MystrixSim
           path: out/*
           if-no-files-found: error
 
@@ -394,7 +394,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install MystrixSIL build dependencies
+      - name: Install MystrixSim build dependencies
         shell: bash
         run: |
           set -euo pipefail
@@ -416,7 +416,7 @@ jobs:
           ./emsdk activate 4.0.12
           popd
 
-      - name: Build MystrixSIL development runtime
+      - name: Build MystrixSim development runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -424,10 +424,10 @@ jobs:
           export CMAKE="$(command -v cmake)"
           export EMCMAKE="$(command -v emcmake)"
           "$CMAKE" --version
-          make DEVICE=MystrixSIL FAMILY=MystrixSIL fullclean
-          make DEVICE=MystrixSIL FAMILY=MystrixSIL build-dev
+          make DEVICE=MystrixSim FAMILY=MystrixSim fullclean
+          make DEVICE=MystrixSim FAMILY=MystrixSim build-dev
 
-      - name: Package MystrixSIL development artifact bundle
+      - name: Package MystrixSim development artifact bundle
         shell: bash
         env:
           COMMIT_SHORT: ${{ needs.prepare.outputs.commit_short }}
@@ -436,16 +436,16 @@ jobs:
           set -euo pipefail
 
           mkdir -p out
-          package_asset="MatrixOS-MystrixSIL-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
+          package_asset="MatrixOS-MystrixSim-development-${RELEASE_DATE}-${COMMIT_SHORT}.mspkg"
 
           zip -j -q "out/$package_asset" \
-            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.js" \
-            "build/MystrixSIL/Devices/MystrixSIL/MatrixOSHost.wasm"
+            "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.js" \
+            "build/MystrixSim/Devices/MystrixSim/MatrixOSHost.wasm"
 
-      - name: Upload MystrixSIL development artifact bundle
+      - name: Upload MystrixSim development artifact bundle
         uses: actions/upload-artifact@v4
         with:
-          name: development-MystrixSIL
+          name: development-MystrixSim
           path: out/*
           if-no-files-found: error
 
@@ -508,7 +508,7 @@ jobs:
           export INDEX_PRERELEASE="$PRERELEASE"
           export INDEX_MYSTRIX1_FILES="MatrixOS-Mystrix1-${ASSET_SUFFIX}.uf2"
           export INDEX_MYSTRIX2_FILES="MatrixOS-Mystrix2-${ASSET_SUFFIX}.uf2"
-          export INDEX_MYSTRIXSIL_FILES="MatrixOS-MystrixSIL-${ASSET_SUFFIX}.mspkg"
+          export INDEX_MYSTRIXSIM_FILES="MatrixOS-MystrixSim-${ASSET_SUFFIX}.mspkg"
           node Tools/release/write-device-metadata.mjs
 
       - name: Create or update GitHub Release

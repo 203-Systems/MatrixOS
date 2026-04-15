@@ -1,7 +1,0 @@
-# Device feature configuration for MystrixSIL (web emulator)
-set(DEVICE_STORAGE 0)
-set(DEVICE_BATTERY 0)
-set(DEVICE_TINYUSB 0)
-set(DEVICE_CUSTOM_USB_IO 1)
-set(DEVICE_CUSTOM_HID_IO 1)
-set(DEVICE_CUSTOM_MIDI_IO 1)
