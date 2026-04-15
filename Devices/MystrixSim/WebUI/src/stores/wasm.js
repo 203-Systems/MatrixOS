@@ -30,6 +30,7 @@ let _restartInProgress = false
 let _currentBlobUrl = null
 let _runtimeAssetSource = { ...DEFAULT_RUNTIME_ASSET_SOURCE }
 let _retiredRuntimeAssetBlobUrls = []
+let _lastRuntimeLoadError = null
 
 const isHtmlResponse = (r) => (r.headers.get('content-type') || '').includes('text/html')
 
@@ -299,6 +300,7 @@ async function injectWasmScript() {
   } catch (e) {
     wasmMissing.set(true)
     runtimeStatus.set('Firmware Not Loaded')
+    _lastRuntimeLoadError = e instanceof Error ? e : new Error(String(e))
     throw new Error(`Failed to fetch MatrixOSHost.js: ${e.message}`)
   }
 
@@ -335,6 +337,7 @@ async function injectWasmScript() {
     if (blobUrl) { try { URL.revokeObjectURL(blobUrl) } catch {} }
     wasmMissing.set(true)
     runtimeStatus.set('Firmware Not Loaded')
+    _lastRuntimeLoadError = e instanceof Error ? e : new Error(String(e))
     throw new Error(`Failed to execute MatrixOSHost.js: ${e.message}`)
   }
   // Store the blob URL at module level. It must remain alive while any pthread
@@ -372,6 +375,7 @@ export async function restartWasm() {
     buildMetadata.set(EMPTY_BUILD_METADATA)
     wasmMissing.set(false)
     wasmSignature = null
+    _lastRuntimeLoadError = null
 
     if (_currentCleanup) { _currentCleanup(); _currentCleanup = null }
     terminateWasmRuntime()
@@ -392,14 +396,45 @@ export async function restartWasm() {
 
     // Phase 3: Re-init
     initWasm()
+    await waitForRuntimeLive()
 
     console.info('[MystrixSim] Runtime hot-restart complete — polling for readiness')
   } catch (e) {
     console.error('[MystrixSim] Hot-restart failed:', e)
     runtimeStatus.set('Restart failed')
+    _lastRuntimeLoadError = e instanceof Error ? e : new Error(String(e))
+    throw _lastRuntimeLoadError
   } finally {
     _restartInProgress = false
   }
+}
+
+function waitForRuntimeLive(timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const startedAt = Date.now()
+
+    const check = () => {
+      if (get(moduleReady)) {
+        resolve()
+        return
+      }
+
+      const status = get(runtimeStatus)
+      if (get(wasmMissing) || status === 'Firmware Not Loaded' || status === 'WASM not loaded' || status === 'Restart failed') {
+        reject(_lastRuntimeLoadError || new Error(status || 'Runtime failed to start.'))
+        return
+      }
+
+      if (Date.now() - startedAt >= timeoutMs) {
+        reject(_lastRuntimeLoadError || new Error('Runtime startup timed out.'))
+        return
+      }
+
+      setTimeout(check, 50)
+    }
+
+    check()
+  })
 }
 
 export function initWasm() {
@@ -432,6 +467,7 @@ export function initWasm() {
     if (typeof prevAbort === 'function') prevAbort(what)
     wasmMissing.set(true)
     runtimeStatus.set('Firmware Not Loaded')
+    _lastRuntimeLoadError = what instanceof Error ? what : new Error(String(what || 'Runtime aborted.'))
   }
 
   // Hot-reload polling

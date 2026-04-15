@@ -12,16 +12,29 @@
  */
 
 import { WebSocketServer } from 'ws'
+import { GITHUB_RELEASE_ASSET_PROXY_PATH, handleGitHubReleaseAssetProxy } from './server/github-release-asset-proxy.js'
 
 export const RPC_WS_PORT = 4002
 export const RPC_DISCOVERY_PATH = '/__matrixos/rpc-status'
 
 export function rpcServerPlugin() {
+    function installReleaseAssetProxy(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url ? req.url.split('?')[0] : ''
+        if (url !== GITHUB_RELEASE_ASSET_PROXY_PATH) {
+          next()
+          return
+        }
+
+        void handleGitHubReleaseAssetProxy(req, res, req.url)
+      })
+    }
+
   return {
     name: 'matrixos-rpc-server',
-    apply: 'serve',
 
     configureServer(server) {
+      installReleaseAssetProxy(server)
       const wss = new WebSocketServer({ port: RPC_WS_PORT })
 
       function getExternalConnectionCount() {
@@ -101,5 +114,9 @@ export function rpcServerPlugin() {
 
       server.httpServer?.once('close', () => wss.close())
     },
+
+		configurePreviewServer(server) {
+			installReleaseAssetProxy(server)
+		},
   }
 }

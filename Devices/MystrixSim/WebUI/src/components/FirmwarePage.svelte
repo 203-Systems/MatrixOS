@@ -15,6 +15,7 @@
 
 	const RELEASES_WEB_URL = 'https://github.com/203Null/MatrixOS/releases'
 	const RELEASES_API_URL = 'https://api.github.com/repos/203Null/MatrixOS/releases'
+	const RELEASE_ASSET_PROXY_PATH = '/api/firmware-release'
 	const LOCAL_BUILD_PACKAGE_URL = `/MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
 	const LOCAL_BUILD_PACKAGE_NAME = `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
 	const LOCAL_BUILD_PACKAGE_DETAIL = `Devices/MystrixSim/WebUI/public/${LOCAL_BUILD_PACKAGE_NAME}`
@@ -234,6 +235,12 @@
 			throw new Error(`Package request failed: HTTP ${response.status}`)
 		}
 		return await response.arrayBuffer()
+	}
+
+	function buildReleaseAssetProxyUrl(assetApiUrl) {
+		const url = new URL(RELEASE_ASSET_PROXY_PATH, window.location.origin)
+		url.searchParams.set('assetApiUrl', assetApiUrl)
+		return url.toString()
 	}
 
 	async function readLocalBuildPackage() {
@@ -520,9 +527,7 @@
 		setActionStatus(`Downloading ${fw.assetName}…`)
 
 		try {
-			const bytes = await fetchPackageBytes(fw.assetApiUrl, {
-				headers: { Accept: 'application/octet-stream' },
-			})
+			const bytes = await fetchPackageBytes(buildReleaseAssetProxyUrl(fw.assetApiUrl))
 			const packageHash = await sha256Hex(bytes)
 
 			await activatePackageSource(FIRMWARE_SOURCE.OFFICIAL_RELEASE, {
@@ -541,7 +546,7 @@
 			}, {
 				persistStoredPackage: true,
 				setAsSelected: true,
-				statusMessage: `${fw.assetName} loaded from GitHub Releases.`,
+				statusMessage: `${fw.assetName} loaded from official releases.`,
 			})
 		} catch (error) {
 			setActionError(error)
