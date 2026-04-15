@@ -83,6 +83,31 @@ function revokeRetiredRuntimeAssetBlobUrls() {
   _retiredRuntimeAssetBlobUrls = []
 }
 
+async function validateRuntimeWasmBytes(wasmBytes, label) {
+  if (!WebAssembly.validate(wasmBytes)) {
+    throw new Error(`Package ${label} contains an invalid MatrixOSHost.wasm.`)
+  }
+
+  try {
+    await WebAssembly.compile(wasmBytes)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`Package ${label} failed WebAssembly validation: ${message}`)
+  }
+}
+
+function getOptionalModuleValue(mod, key) {
+  if (!mod) return null
+
+  const descriptor = Object.getOwnPropertyDescriptor(mod, key)
+  if (!descriptor) return null
+  if ('value' in descriptor) return descriptor.value ?? null
+
+  // Old Emscripten bundles install throwing getters for unexported runtime
+  // methods. Treat accessor-only symbols as unavailable instead of touching them.
+  return null
+}
+
 export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixOS.msfw' }) {
   const normalizedJsText = typeof jsText === 'string' ? jsText : ''
   const normalizedWasmBytes = wasmBytes instanceof Uint8Array ? wasmBytes : new Uint8Array(wasmBytes || [])
@@ -93,6 +118,8 @@ export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixO
   if (normalizedWasmBytes.byteLength === 0) {
     throw new Error(`Package ${label} is missing MatrixOSHost.wasm`)
   }
+
+  await validateRuntimeWasmBytes(normalizedWasmBytes, label)
 
   const nextSource = {
     kind: 'package',
@@ -193,12 +220,13 @@ function terminateWasmRuntime() {
   if (!mod) return
 
   try {
-    if (mod.PThread) {
-      if (typeof mod.PThread.terminateAllThreads === 'function') {
-        mod.PThread.terminateAllThreads()
+    const pthreadRuntime = getOptionalModuleValue(mod, 'PThread')
+    if (pthreadRuntime) {
+      if (typeof pthreadRuntime.terminateAllThreads === 'function') {
+        pthreadRuntime.terminateAllThreads()
       } else {
-        ;(mod.PThread.runningWorkers || []).forEach(w => { try { w.terminate() } catch {} })
-        ;(mod.PThread.unusedWorkers || []).forEach(w => { try { w.terminate() } catch {} })
+        ;(pthreadRuntime.runningWorkers || []).forEach(w => { try { w.terminate() } catch {} })
+        ;(pthreadRuntime.unusedWorkers || []).forEach(w => { try { w.terminate() } catch {} })
       }
     }
   } catch (e) {
