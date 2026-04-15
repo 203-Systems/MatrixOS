@@ -13,8 +13,8 @@
 		writeFirmwareSourcePrefs,
 	} from '../stores/firmwareSource.js'
 
-	const RELEASES_WEB_URL = 'https://github.com/203Null/MatrixOS/releases'
-	const RELEASES_API_URL = 'https://api.github.com/repos/203Null/MatrixOS/releases'
+	const RELEASES_WEB_URL = 'https://github.com/203-Systems/MatrixOS/releases'
+	const RELEASES_API_URL = 'https://api.github.com/repos/203-Systems/MatrixOS/releases'
 	const RELEASE_ASSET_PROXY_PATH = '/api/firmware-release'
 	const LOCAL_BUILD_PACKAGE_URL = `/MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
 	const LOCAL_BUILD_PACKAGE_NAME = `MatrixOS${FIRMWARE_PACKAGE_SUFFIX}`
