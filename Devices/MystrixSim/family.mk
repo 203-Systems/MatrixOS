@@ -4,6 +4,7 @@ WEB_OUTPUT_JS := $(BUILD)/Devices/MystrixSim/MatrixOSHost.js
 WEB_OUTPUT_WASM := $(BUILD)/Devices/MystrixSim/MatrixOSHost.wasm
 WEB_OUTPUT_PACKAGE := $(WEB_PUBLIC_DIR)/MatrixOS.msfw
 WEB_PACKAGE_SCRIPT := $(WEB_UI_DIR)/tools/package-runtime.mjs
+WEB_VALIDATE_SCRIPT := $(FAMILY_PATH)/tools/validate-runtime-wasm.mjs
 
 EMCMAKE ?= emcmake
 CMAKE ?= cmake
@@ -48,6 +49,7 @@ web-copy:
 		echo "MystrixSim packaging requires Node.js (EMSDK_NODE, nodejs, or node) in PATH."; \
 		exit 1; \
 	fi; \
+	"$$NODE_BIN" $(WEB_VALIDATE_SCRIPT) $(WEB_OUTPUT_WASM); \
 	"$$NODE_BIN" $(WEB_PACKAGE_SCRIPT) $(WEB_OUTPUT_JS) $(WEB_OUTPUT_WASM) $(WEB_OUTPUT_PACKAGE)
 
 run:

@@ -189,8 +189,10 @@ try {
 
       New-Item -ItemType Directory -Force -Path $publicDir | Out-Null
 
+      $validateScript = Join-Path $RepoRoot 'Devices\MystrixSim\tools\validate-runtime-wasm.mjs'
       $packageScript = Join-Path $WebUiDir 'tools\package-runtime.mjs'
       $packageOut = Join-Path $publicDir 'MatrixOS.msfw'
+      Invoke-Step -FilePath 'node' -ArgumentList @($validateScript, $wasmSrc)
       Invoke-Step -FilePath 'node' -ArgumentList @($packageScript, $jsSrc, $wasmSrc, $packageOut)
 
       Write-Host "[MystrixSim] Wrote MatrixOS.msfw to $publicDir"
