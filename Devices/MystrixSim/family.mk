@@ -43,7 +43,7 @@ endif
 
 web-copy:
 	$(CMAKE) -E make_directory $(WEB_PUBLIC_DIR)
-	@NODE_BIN="${EMSDK_NODE:-$$(command -v nodejs 2>/dev/null || command -v node 2>/dev/null)}"; \
+	@NODE_BIN="$${EMSDK_NODE:-$$(command -v nodejs 2>/dev/null || command -v node 2>/dev/null)}"; \
 	if [ -z "$$NODE_BIN" ]; then \
 		echo "MystrixSim packaging requires Node.js (EMSDK_NODE, nodejs, or node) in PATH."; \
 		exit 1; \
