@@ -1,5 +1,5 @@
 const ALLOWED_ASSET_API_HOST = 'api.github.com'
-const ALLOWED_ASSET_API_PATH = /^\/repos\/203Null\/MatrixOS\/releases\/assets\/\d+$/
+const ALLOWED_ASSET_API_PATH = /^\/repos\/(?:203Null|203-Systems)\/MatrixOS\/releases\/assets\/\d+$/
 
 export const GITHUB_RELEASE_ASSET_PROXY_PATH = '/api/firmware-release'
 
