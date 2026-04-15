@@ -17,9 +17,9 @@ export const buildTime = writable('—')
 export const buildMetadata = writable(EMPTY_BUILD_METADATA)
 
 const DEFAULT_RUNTIME_ASSET_SOURCE = Object.freeze({
-  kind: 'bundled',
-  jsUrl: '/MatrixOSHost.js',
-  wasmUrl: '/MatrixOSHost.wasm',
+  kind: 'none',
+  jsUrl: '',
+  wasmUrl: '',
 })
 
 let wasmSignature = null
@@ -54,6 +54,10 @@ function getRuntimeAssetSource() {
 
 function isBundledRuntimeSource() {
   return getRuntimeAssetSource().kind === 'bundled'
+}
+
+function hasRuntimeAssetSource() {
+  return getRuntimeAssetSource().kind !== 'none'
 }
 
 function queueRuntimeAssetBlobUrlsForRevoke(urls) {
@@ -102,7 +106,7 @@ export async function loadRuntimeAssetPair({ jsText, wasmBytes, label = 'MatrixO
 }
 
 export async function useBundledRuntime() {
-  if (isBundledRuntimeSource()) {
+  if (!hasRuntimeAssetSource()) {
     await restartWasm()
     return
   }
@@ -113,6 +117,12 @@ export async function useBundledRuntime() {
 }
 
 export async function checkWasmAvailability() {
+  if (!hasRuntimeAssetSource()) {
+    wasmMissing.set(true)
+    runtimeStatus.set('Firmware Not Loaded')
+    return false
+  }
+
   if (!isBundledRuntimeSource()) {
     wasmMissing.set(false)
     return true
@@ -128,6 +138,8 @@ export async function checkWasmAvailability() {
     if (r.ok) wasmMissing.set(false)
     return r.ok
   } catch {
+    wasmMissing.set(true)
+    runtimeStatus.set('Firmware Not Loaded')
     return false
   }
 }
@@ -368,6 +380,12 @@ export async function restartWasm() {
     // Brief pause to let workers drain
     await new Promise(r => setTimeout(r, 150))
 
+    if (!hasRuntimeAssetSource()) {
+      wasmMissing.set(true)
+      runtimeStatus.set('Firmware Not Loaded')
+      return
+    }
+
     // Phase 2: Fresh load
     prepareFreshModule()
     await injectWasmScript()
@@ -385,6 +403,14 @@ export async function restartWasm() {
 }
 
 export function initWasm() {
+  if (!hasRuntimeAssetSource()) {
+    moduleReady.set(false)
+    moduleRef.set(null)
+    wasmMissing.set(true)
+    runtimeStatus.set('Firmware Not Loaded')
+    return () => {}
+  }
+
   checkWasmAvailability()
 
   const mod = window.Module ?? null

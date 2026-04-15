@@ -43,9 +43,7 @@ endif
 
 web-copy:
 	$(CMAKE) -E make_directory $(WEB_PUBLIC_DIR)
-	$(CMAKE) -E copy_if_different $(WEB_OUTPUT_JS) $(WEB_PUBLIC_DIR)/MatrixOSHost.js
-	$(CMAKE) -E copy_if_different $(WEB_OUTPUT_WASM) $(WEB_PUBLIC_DIR)/MatrixOSHost.wasm
-	node $(WEB_PACKAGE_SCRIPT) $(WEB_PUBLIC_DIR)/MatrixOSHost.js $(WEB_PUBLIC_DIR)/MatrixOSHost.wasm $(WEB_OUTPUT_PACKAGE)
+	node $(WEB_PACKAGE_SCRIPT) $(WEB_OUTPUT_JS) $(WEB_OUTPUT_WASM) $(WEB_OUTPUT_PACKAGE)
 
 run:
 ifeq ($(OS),Windows_NT)

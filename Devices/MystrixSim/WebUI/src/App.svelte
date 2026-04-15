@@ -4,6 +4,7 @@
   import { hookModuleLogging } from './stores/logs.js'
   import { initRpc } from './stores/rpc.js'
   import { initWsBridge } from './stores/wsbridge.js'
+  import { ensureFirmwareRuntimeSource } from './stores/firmwareRuntime.js'
   import TopBar from './components/TopBar.svelte'
   import LeftNav from './components/LeftNav.svelte'
   import DevicePanel from './components/DevicePanel.svelte'
@@ -41,6 +42,9 @@
     const restoreWasm = initWasm()
     const restoreWsBridge = initWsBridge()
     initRpc()
+    void ensureFirmwareRuntimeSource().catch((error) => {
+      console.error('[MystrixSim] Failed to initialize firmware source:', error)
+    })
 
     return () => {
       window.removeEventListener('matrixos:navigate-section', handleSectionNavigation)

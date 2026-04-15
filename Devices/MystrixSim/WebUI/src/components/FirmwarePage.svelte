@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte'
-	import { buildMetadata, loadRuntimeAssetPair } from '../stores/wasm.js'
+	import { buildMetadata, loadRuntimeAssetPair, moduleReady, runtimeStatus, wasmMissing } from '../stores/wasm.js'
+	import { activeFirmwareSource, ensureFirmwareRuntimeSource, setActiveFirmwareSource } from '../stores/firmwareRuntime.js'
 	import { IS_NODE_BACKED } from '../stores/rpc.js'
 	import { buildTypeClass } from '../buildMetadata.js'
 	import { MSPKG_SUFFIX, extractMspkgPackage, sha256Hex, toArrayBuffer } from '../firmwarePackage.js'
@@ -44,6 +45,8 @@
 	let actionError = ''
 	let loadingKey = ''
 	let loadedReleaseAssetName = ''
+	/** @type {string} */
+	let activeSource = FIRMWARE_SOURCE.LOCAL_BUILD
 	let releaseFirmware = []
 	let packageInput = null
 	/** @type {string} */
@@ -52,11 +55,17 @@
 	let localBuildHash = ''
 	let sourceState = createSourceState()
 
+	$: activeSource = $activeFirmwareSource
 	$: currentFirmwareMeta = $buildMetadata
-	$: currentFirmwareSourceLabel = sourceIsAvailable(selectedSource) ? sourceLabel(selectedSource) : 'Not Loaded'
-	$: currentFirmwareUnavailable = currentFirmwareSourceLabel === 'Not Loaded'
+	$: currentRuntimeLoaded = $moduleReady
+		|| currentFirmwareMeta.version !== '—'
+		|| currentFirmwareMeta.buildType !== '—'
+		|| currentFirmwareMeta.buildHash !== '—'
+	$: currentFirmwareUnavailable = !currentRuntimeLoaded
+		&& ($wasmMissing || $runtimeStatus === 'Firmware Not Loaded' || $runtimeStatus === 'WASM not loaded')
+	$: currentFirmwareSourceLabel = currentFirmwareUnavailable ? 'Not Loaded' : sourceLabel(activeSource)
 	$: currentBuildTypeClass = currentFirmwareUnavailable ? 'build-type-muted' : buildTypeClass(currentFirmwareMeta.buildType)
-	$: currentFirmwareSourceClass = currentFirmwareSourceLabel === 'Not Loaded' ? 'fw-source-missing' : ''
+	$: currentFirmwareSourceClass = currentFirmwareUnavailable ? 'fw-source-missing' : ''
 	$: currentBuildTimeDisplay = (() => {
 		const text = String(currentFirmwareMeta.buildTime || '').trim()
 		if (!text || text === '—' || /\butc\b/i.test(text)) {
@@ -259,6 +268,7 @@
 
 		const runtimeAssets = await extractMspkgPackage(bytes, label)
 		await loadRuntimeAssetPair({ ...runtimeAssets, label })
+		setActiveFirmwareSource(sourceId)
 
 		const packageHash = metadata?.packageHash || await sha256Hex(bytes)
 		const nextMetadata = {
@@ -341,10 +351,13 @@
 	}
 
 	async function initializeFirmwareSource() {
+		await ensureFirmwareRuntimeSource()
+
 		const prefs = readFirmwareSourcePrefs()
 		selectedSource = prefs.selectedSource
 		autoUseLocalBuild = prefs.autoUseLocalBuild
 		localBuildHash = prefs.localBuildHash || ''
+		setActiveFirmwareSource(prefs.selectedSource || FIRMWARE_SOURCE.LOCAL_BUILD)
 		updateSourceState(FIRMWARE_SOURCE.OFFICIAL_RELEASE, prefs.sources[FIRMWARE_SOURCE.OFFICIAL_RELEASE] || null)
 		updateSourceState(FIRMWARE_SOURCE.USER_SELECTED, prefs.sources[FIRMWARE_SOURCE.USER_SELECTED] || null)
 
@@ -356,7 +369,7 @@
 			persistFirmwarePrefs()
 		}
 
-		if (autoUseLocalBuild && localBuildPackage && (localBuildChanged || selectedSource === FIRMWARE_SOURCE.LOCAL_BUILD)) {
+		if (autoUseLocalBuild && localBuildPackage && localBuildChanged) {
 			await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
 				bytes: localBuildPackage.bytes,
 				label: 'MatrixOS.mspkg',
@@ -369,11 +382,29 @@
 			return
 		}
 
+		if (selectedSource === FIRMWARE_SOURCE.LOCAL_BUILD) {
+			setActiveFirmwareSource(FIRMWARE_SOURCE.LOCAL_BUILD)
+			if (!currentRuntimeLoaded && localBuildPackage) {
+				await activatePackageSource(FIRMWARE_SOURCE.LOCAL_BUILD, {
+					bytes: localBuildPackage.bytes,
+					label: 'MatrixOS.mspkg',
+					metadata: localBuildPackage.metadata,
+				}, {
+					persistStoredPackage: false,
+					setAsSelected: true,
+					statusMessage: '',
+				})
+			}
+			return
+		}
+
 		if (selectedSource === FIRMWARE_SOURCE.OFFICIAL_RELEASE) {
+			if (activeSource === FIRMWARE_SOURCE.OFFICIAL_RELEASE && currentRuntimeLoaded) return
 			if (await restoreStoredSource(FIRMWARE_SOURCE.OFFICIAL_RELEASE, { silent: true })) return
 		}
 
 		if (selectedSource === FIRMWARE_SOURCE.USER_SELECTED) {
+			if (activeSource === FIRMWARE_SOURCE.USER_SELECTED && currentRuntimeLoaded) return
 			if (await restoreStoredSource(FIRMWARE_SOURCE.USER_SELECTED, { silent: true })) return
 		}
 	}
