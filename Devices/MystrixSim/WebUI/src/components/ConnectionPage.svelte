@@ -1,7 +1,7 @@
 <script>
   import { Wifi, Copy } from 'carbon-icons-svelte'
   import { IS_NODE_BACKED, rpcApi } from '../stores/rpc.js'
-  import { wsBridgeStatus, RPC_WS_URL } from '../stores/wsbridge.js'
+  import { wsBridgeStatus, wsBridgeConnectionCount, RPC_WS_URL } from '../stores/wsbridge.js'
 
   const apiVersion = '0.1'
 
@@ -16,6 +16,14 @@
     available: 'status-live',
     connected: 'status-live',
   }
+
+  $: wsStatusText = (() => {
+    if (!IS_NODE_BACKED) return 'Unavailable'
+    if ($wsBridgeStatus === 'connected') {
+      return `${statusLabel[$wsBridgeStatus]}: ${$wsBridgeConnectionCount}`
+    }
+    return statusLabel[$wsBridgeStatus]
+  })()
 
   const namespaces = [
     {
@@ -201,7 +209,7 @@
     },
     {
       id: 'storage',
-      summary: 'Storage-related APIs. Current V1 surface is the NVS domain.',
+      summary: 'Storage-related APIs. Current V1 surface is NVS domain only.',
       handles: [
         {
           name: 'NVS · storage.nvs.find',
@@ -266,7 +274,7 @@
   <section class="tool-hero">
     <div class="tool-hero-title">Connection</div>
     <div class="tool-hero-desc">
-      Local transport status, in-page dispatcher access, and the full JSON-RPC reference for MystrixSim.
+      Local transport status, in-page dispatcher access, and view JSON-RPC reference.
     </div>
   </section>
 
@@ -288,7 +296,7 @@
               <div class="ws-strip-labels">
                 <span class="ws-strip-title">WebSocket</span>
                 <span class="ws-strip-state">
-                  {IS_NODE_BACKED ? statusLabel[$wsBridgeStatus] : 'Unavailable'}
+                  {wsStatusText}
                 </span>
               </div>
             </div>

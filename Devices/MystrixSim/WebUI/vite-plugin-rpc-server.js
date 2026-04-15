@@ -1,21 +1,20 @@
 /**
  * vite-plugin-rpc-server.js
  *
- * Vite plugin that starts a local WebSocket JSON-RPC server on RPC_WS_PORT
- * when the dev server is running (apply: 'serve').
+ * Starts a local WebSocket server on RPC_WS_PORT when the Vite dev server is
+ * running (apply: 'serve').
  *
- * Architecture:
- *   - External clients connect and send JSON-RPC 2.0 requests
- *   - The browser agent (src/stores/wsbridge.js) connects and registers
- *     with { role: 'agent' } to handle requests inside the live WASM session
- *   - Server proxies client requests → agent, and routes responses back
+ * This server is status-only. The browser page does not connect back to it,
+ * and in-page RPC remains a direct JS API call via window.matrixosRpc.
  *
- * Port must match RPC_WS_PORT in src/stores/wsbridge.js.
+ * External clients may connect so the UI can count them, but JSON-RPC over WS
+ * is intentionally disabled.
  */
 
 import { WebSocketServer } from 'ws'
 
 export const RPC_WS_PORT = 4002
+export const RPC_DISCOVERY_PATH = '/__matrixos/rpc-status'
 
 export function rpcServerPlugin() {
   return {
@@ -25,11 +24,45 @@ export function rpcServerPlugin() {
     configureServer(server) {
       const wss = new WebSocketServer({ port: RPC_WS_PORT })
 
-      /** @type {import('ws').WebSocket|null} */
-      let agentSocket = null
+      function getExternalConnectionCount() {
+        let count = 0
+        for (const client of wss.clients) {
+          if (client.readyState === 1 /* OPEN */) count += 1
+        }
+        return count
+      }
 
-      // proxyId → client WebSocket
-      const pending = new Map()
+      function broadcastConnectionCount() {
+        const externalConnectionCount = getExternalConnectionCount()
+        const payload = JSON.stringify({
+          type: 'connection_count',
+          externalConnectionCount,
+          connectionCount: externalConnectionCount,
+        })
+
+        for (const client of wss.clients) {
+          if (client.readyState === 1 /* OPEN */) {
+            client.send(payload)
+          }
+        }
+      }
+
+      server.middlewares.use((req, res, next) => {
+        const url = req.url ? req.url.split('?')[0] : ''
+        if (url !== RPC_DISCOVERY_PATH) {
+          next()
+          return
+        }
+
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        res.setHeader('Cache-Control', 'no-store')
+        res.end(JSON.stringify({
+          ok: true,
+          wsUrl: `ws://localhost:${RPC_WS_PORT}`,
+          externalConnectionCount: getExternalConnectionCount(),
+        }))
+      })
 
       wss.on('listening', () => {
         console.info(`\n[MatrixOS RPC] WebSocket server ready → ws://localhost:${RPC_WS_PORT}\n`)
@@ -44,46 +77,23 @@ export function rpcServerPlugin() {
       })
 
       wss.on('connection', (ws) => {
+        broadcastConnectionCount()
+
         ws.on('message', (data) => {
           let msg
           try { msg = JSON.parse(data.toString()) } catch { return }
-
-          // ---- Browser agent registration ----
-          if (msg.role === 'agent') {
-            agentSocket = ws
-            ws._isAgent = true
-            ws.send(JSON.stringify({ type: 'agent_ack', port: RPC_WS_PORT }))
-            return
-          }
-
-          // ---- Response coming back from the browser agent ----
-          if (ws._isAgent) {
-            const { __proxyId, response } = msg
-            const clientWs = pending.get(__proxyId)
-            pending.delete(__proxyId)
-            if (clientWs && clientWs.readyState === 1 /* OPEN */) {
-              clientWs.send(JSON.stringify(response))
-            }
-            return
-          }
-
-          // ---- External client request ----
-          if (!agentSocket || agentSocket.readyState !== 1 /* OPEN */) {
-            ws.send(JSON.stringify({
-              jsonrpc: '2.0',
-              id: msg.id ?? null,
-              error: { code: -32603, message: 'Browser agent not connected' },
-            }))
-            return
-          }
-
-          const proxyId = `p-${Date.now()}-${Math.random().toString(36).slice(2)}`
-          pending.set(proxyId, ws)
-          agentSocket.send(JSON.stringify({ ...msg, __proxyId: proxyId }))
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            id: msg.id ?? null,
+            error: {
+              code: -32601,
+              message: 'External WebSocket RPC is disabled. Use window.matrixosRpc in the browser tab.',
+            },
+          }))
         })
 
         ws.on('close', () => {
-          if (ws._isAgent && agentSocket === ws) agentSocket = null
+          broadcastConnectionCount()
         })
 
         ws.on('error', () => {})

@@ -516,7 +516,7 @@ export function initRpc() {
     if (!window.__matrixosRpcReady) {
       window.__matrixosRpcReady = true
       console.info('[MystrixSim] JSON-RPC ready. window.matrixosRpc.call(method, params)')
-      console.info('[MystrixSim] Note: transport is in-page only. No external WebSocket server.')
+      console.info('[MystrixSim] Note: transport is in-page only. The local WebSocket server is status-only.')
     }
   } else {
     // Static build — do not expose the API. Delete any stale reference from HMR.

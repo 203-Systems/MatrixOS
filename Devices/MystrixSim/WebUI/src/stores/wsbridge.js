@@ -1,86 +1,99 @@
 /**
- * wsbridge.js — Browser-side WebSocket agent bridge.
+ * wsbridge.js — WebSocket server status store.
  *
- * In local dev mode (IS_NODE_BACKED), this module connects to the WS RPC
- * server started by vite-plugin-rpc-server.js, registers as the browser
- * agent, and dispatches incoming requests through the canonical rpcApi.
- *
- * Port must match RPC_WS_PORT in vite-plugin-rpc-server.js.
+ * In-page RPC uses window.matrixosRpc directly. The UI does not connect to its
+ * own WebSocket server. We only poll a same-origin discovery endpoint exposed
+ * by vite-plugin-rpc-server.js to learn whether the local WS server exists and
+ * how many external clients are currently connected.
  */
 
 import { writable } from 'svelte/store'
-import { IS_NODE_BACKED, rpcApi } from './rpc.js'
+import { IS_NODE_BACKED } from './rpc.js'
 
 // Must match vite-plugin-rpc-server.js
 export const RPC_WS_PORT = 4002
 export const RPC_WS_URL = IS_NODE_BACKED ? `ws://localhost:${RPC_WS_PORT}` : ''
+const RPC_DISCOVERY_PATH = '/__matrixos/rpc-status'
+const STATUS_POLL_MS = 2000
 
 /**
  * Reactive status for ConnectionPage.svelte and TopBar.svelte.
  * Values: 'unavailable' | 'available' | 'connected'
  *
- *   unavailable — static build or WS server unreachable
- *   available   — WS server is up, socket open, but agent not yet registered
- *   connected   — agent_ack received; remote control fully active
+ *   unavailable — static build only
+ *   available   — node-backed mode is active, but there are no remote WS clients
+ *   connected   — one or more remote WS clients are attached
  */
 export const wsBridgeStatus = writable(IS_NODE_BACKED ? 'available' : 'unavailable')
+export const wsBridgeConnectionCount = writable(0)
 
-let _ws = null
+let _statusRefreshPromise = null
 
 export function initWsBridge() {
   if (!IS_NODE_BACKED) return
-  // Guard against HMR re-registration
-  if (window.__matrixosWsBridgeInit) return
-  window.__matrixosWsBridgeInit = true
-  _connect()
+  if (window.__matrixosWsBridgeDispose) return window.__matrixosWsBridgeDispose
+
+  window.__matrixosWsBridgeStatusInit = true
+  void refreshWsBridgeStatus()
+  const pollHandle = window.setInterval(() => {
+    void refreshWsBridgeStatus()
+  }, STATUS_POLL_MS)
+
+  const dispose = () => {
+    window.clearInterval(pollHandle)
+    if (window.__matrixosWsBridgeDispose === dispose) {
+      window.__matrixosWsBridgeDispose = null
+      window.__matrixosWsBridgeStatusInit = false
+    }
+  }
+
+  window.__matrixosWsBridgeDispose = dispose
+  return dispose
 }
 
-function _connect() {
-  // Do not expose a "connecting" transient state — show available until agent_ack
-  wsBridgeStatus.set('available')
-
-  let ws
-  try {
-    ws = new WebSocket(RPC_WS_URL)
-  } catch {
+export async function refreshWsBridgeStatus() {
+  if (!IS_NODE_BACKED) {
+    wsBridgeConnectionCount.set(0)
     wsBridgeStatus.set('unavailable')
-    setTimeout(_connect, 3000)
     return
   }
 
-  _ws = ws
+  if (_statusRefreshPromise) return _statusRefreshPromise
 
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ role: 'agent' }))
-  }
+  _statusRefreshPromise = _readServerStatus()
+    .then(({ available, externalConnectionCount }) => {
+      const connectionCount = Number(externalConnectionCount) || 0
+      wsBridgeConnectionCount.set(connectionCount)
+      wsBridgeStatus.set(!available ? 'unavailable' : connectionCount > 0 ? 'connected' : 'available')
+    })
+    .catch(() => {
+      wsBridgeConnectionCount.set(0)
+      wsBridgeStatus.set('unavailable')
+    })
+    .finally(() => {
+      _statusRefreshPromise = null
+    })
 
-  ws.onmessage = async (event) => {
-    let msg
-    try { msg = JSON.parse(event.data) } catch { return }
+  return _statusRefreshPromise
+}
 
-    // Server acknowledges agent registration — fully connected
-    if (msg.type === 'agent_ack') {
-      wsBridgeStatus.set('connected')
-      return
+async function _readServerStatus() {
+  try {
+    const response = await fetch(RPC_DISCOVERY_PATH, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+    })
+    if (!response.ok) {
+      return { available: false, externalConnectionCount: 0 }
     }
 
-    // Proxied JSON-RPC request from an external client
-    const { __proxyId, method, params, id } = msg
-    if (!method || __proxyId === undefined) return
-
-    const response = await rpcApi.call(method, params ?? {})
-    response.id = id ?? null
-    ws.send(JSON.stringify({ __proxyId, response }))
-  }
-
-  ws.onclose = () => {
-    if (_ws === ws) {
-      _ws = null
-      // Drop back to available — server may come back; don't say "unavailable"
-      wsBridgeStatus.set('available')
-      setTimeout(_connect, 3000)
+    const payload = await response.json()
+    return {
+      available: true,
+      externalConnectionCount: Number(payload.externalConnectionCount) || 0,
     }
+  } catch {
+    return { available: false, externalConnectionCount: 0 }
   }
-
-  ws.onerror = () => {}
 }

@@ -6,7 +6,15 @@
 
   $: runtimeLive = $moduleReady && !$wasmMissing
   $: runtimeLabel = runtimeLive && $runtimeStatus === 'Live' ? 'Runtime Live' : $runtimeStatus
+  $: remoteUnavailable = IS_NODE_BACKED && $wsBridgeStatus === 'unavailable'
+  $: remoteAvailable = IS_NODE_BACKED && $wsBridgeStatus === 'available'
   $: remoteConnected = IS_NODE_BACKED && $wsBridgeStatus === 'connected'
+  $: remoteLabel = (() => {
+    if (!IS_NODE_BACKED) return ''
+    if ($wsBridgeStatus === 'connected') return 'Remote Client Connected'
+    if ($wsBridgeStatus === 'available') return 'WebSocket Server Ready'
+    return 'WebSocket Server Unavailable'
+  })()
   $: displayIdentity = $buildIdentity.replace(' • ', ' | ')
 </script>
 
@@ -28,9 +36,14 @@
     </span>
     {#if IS_NODE_BACKED}
       <span class="top-bar-divider">|</span>
-      <span class="top-bar-remote" class:remote-active={remoteConnected}>
-        <span class="remote-dot" class:dot-remote-live={remoteConnected}></span>
-        <span class="remote-label">{remoteConnected ? 'Remote Control Connected' : 'Remote Control Ready'}</span>
+      <span class="top-bar-remote">
+        <span
+          class="remote-dot"
+          class:dot-remote-live={remoteConnected}
+          class:dot-remote-ready={remoteAvailable}
+          class:dot-remote-error={remoteUnavailable}
+        ></span>
+        <span class="remote-label">{remoteLabel}</span>
       </span>
     {/if}
     {#if $errorCount > 0 || $warnCount > 0}
@@ -137,6 +150,16 @@
     flex-shrink: 0;
     transition: background 0.2s, opacity 0.2s, box-shadow 0.2s;
   }
+  .dot-remote-error {
+    background: #ff6b6b;
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(255, 107, 107, 0.5);
+  }
+  .dot-remote-ready {
+    background: #3dd68c;
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(61, 214, 140, 0.45);
+  }
   .dot-remote-live {
     background: var(--accent);
     opacity: 1;
@@ -147,9 +170,6 @@
     font-size: 0.84rem;
     white-space: nowrap;
     transition: color 0.2s;
-  }
-  .remote-active .remote-label {
-    color: var(--muted);
   }
   .alert-badge {
     font-size: 0.76rem;
