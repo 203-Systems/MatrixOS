@@ -210,7 +210,7 @@ bool LoadApp(const string& directoryPath, const string& jsonFilepath, vector<Pyt
   // Validate Python file exists
   if (!ValidatePythonFile(directoryPath, appInfo.appMainFile))
   {
-    MLOGW("Shell", "App %s Missing python file %s", appInfo.name.c_str(), directoryPath);
+    MLOGW("Shell", "App %s Missing python file %s", appInfo.name.c_str(), directoryPath.c_str());
     return false;
   }
 

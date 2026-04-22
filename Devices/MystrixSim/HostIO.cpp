@@ -4,10 +4,13 @@
 #include "message_buffer.h"
 
 #include <atomic>
+#include <cctype>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
+#include <mutex>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -34,6 +37,14 @@ namespace MystrixSim::HostIO
 namespace
 {
 std::atomic<bool> usbConnectedState{true};
+std::mutex serialInputMutex;
+std::deque<uint8_t> serialInputBuffer;
+std::mutex pythonInputMutex;
+std::deque<uint8_t> pythonInputBuffer;
+std::atomic<uint8_t> pythonSessionMode{static_cast<uint8_t>(PythonSessionMode::None)};
+std::mutex stagedPythonMutex;
+string stagedPythonPath;
+string stagedPythonContents;
 
 typedef union __attribute__((packed, aligned(1))) {
   uint8_t whole8[0];
@@ -165,6 +176,62 @@ void ResetRawHidBuffer() {
     xMessageBufferReset(rawhidMessageBuffer);
   }
 }
+
+void TapPythonOnMainThread(PythonSessionMode mode, const string& text) {
+#ifdef __EMSCRIPTEN__
+  char* tapStr = strdup(text.c_str());
+  if (tapStr)
+  {
+    MAIN_THREAD_ASYNC_EM_ASM({
+      if (typeof window._matrixos_python_tap === 'function')
+        window._matrixos_python_tap($0, UTF8ToString($1));
+      if (typeof Module !== 'undefined' && Module._free) Module._free($1);
+    }, static_cast<int>(mode), tapStr);
+  }
+#else
+  (void)mode;
+  (void)text;
+#endif
+}
+
+string SanitizePythonFilename(const string& fileName) {
+  string basename = fileName;
+  size_t slash = basename.find_last_of("/\\");
+  if (slash != string::npos)
+  {
+    basename = basename.substr(slash + 1);
+  }
+
+  if (basename.empty())
+  {
+    basename = "uploaded.py";
+  }
+
+  string sanitized;
+  sanitized.reserve(basename.size());
+  for (unsigned char character : basename)
+  {
+    if (std::isalnum(character) || character == '.' || character == '_' || character == '-')
+    {
+      sanitized.push_back(static_cast<char>(character));
+    }
+    else
+    {
+      sanitized.push_back('_');
+    }
+  }
+
+  if (sanitized.empty())
+  {
+    sanitized = "uploaded.py";
+  }
+  if (sanitized.find('.') == string::npos)
+  {
+    sanitized += ".py";
+  }
+
+  return sanitized;
+}
 } // namespace
 
 bool UsbConnected() {
@@ -173,6 +240,168 @@ bool UsbConnected() {
 
 void SetUsbConnected(bool connected) {
   usbConnectedState.store(connected, std::memory_order_release);
+  if (!connected)
+  {
+    ClearSerialInput();
+  }
+}
+
+void QueueSerialInput(const uint8_t* data, size_t size) {
+  if (data == nullptr || size == 0)
+  {
+    return;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(serialInputMutex);
+    for (size_t i = 0; i < size; ++i)
+    {
+      serialInputBuffer.push_back(data[i]);
+    }
+  }
+
+  TapSerial(0, string(reinterpret_cast<const char*>(data), size));
+}
+
+void ClearSerialInput() {
+  std::lock_guard<std::mutex> lock(serialInputMutex);
+  serialInputBuffer.clear();
+}
+
+uint32_t SerialInputAvailable() {
+  std::lock_guard<std::mutex> lock(serialInputMutex);
+  return static_cast<uint32_t>(serialInputBuffer.size());
+}
+
+int ReadSerialInputByte() {
+  std::lock_guard<std::mutex> lock(serialInputMutex);
+  if (serialInputBuffer.empty())
+  {
+    return -1;
+  }
+
+  int value = serialInputBuffer.front();
+  serialInputBuffer.pop_front();
+  return value;
+}
+
+uint32_t ReadSerialInput(void* buffer, uint32_t length) {
+  if (buffer == nullptr || length == 0)
+  {
+    return 0;
+  }
+
+  uint8_t* output = static_cast<uint8_t*>(buffer);
+  std::lock_guard<std::mutex> lock(serialInputMutex);
+  uint32_t count = 0;
+  while (count < length && !serialInputBuffer.empty())
+  {
+    output[count++] = serialInputBuffer.front();
+    serialInputBuffer.pop_front();
+  }
+  return count;
+}
+
+string ReadSerialInputString() {
+  std::lock_guard<std::mutex> lock(serialInputMutex);
+  string text;
+  text.reserve(serialInputBuffer.size());
+  while (!serialInputBuffer.empty())
+  {
+    text.push_back(static_cast<char>(serialInputBuffer.front()));
+    serialInputBuffer.pop_front();
+  }
+  return text;
+}
+
+void QueuePythonInput(const uint8_t* data, size_t size) {
+  if (data == nullptr || size == 0)
+  {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(pythonInputMutex);
+  for (size_t i = 0; i < size; ++i)
+  {
+    pythonInputBuffer.push_back(data[i]);
+  }
+}
+
+void ClearPythonInput() {
+  std::lock_guard<std::mutex> lock(pythonInputMutex);
+  pythonInputBuffer.clear();
+}
+
+uint32_t PythonInputAvailable() {
+  std::lock_guard<std::mutex> lock(pythonInputMutex);
+  return static_cast<uint32_t>(pythonInputBuffer.size());
+}
+
+int ReadPythonInputByte() {
+  std::lock_guard<std::mutex> lock(pythonInputMutex);
+  if (pythonInputBuffer.empty())
+  {
+    return -1;
+  }
+
+  int value = pythonInputBuffer.front();
+  pythonInputBuffer.pop_front();
+  return value;
+}
+
+void SetPythonSessionMode(PythonSessionMode mode) {
+  pythonSessionMode.store(static_cast<uint8_t>(mode), std::memory_order_release);
+  if (mode == PythonSessionMode::None)
+  {
+    ClearPythonInput();
+  }
+}
+
+PythonSessionMode GetPythonSessionMode() {
+  return static_cast<PythonSessionMode>(pythonSessionMode.load(std::memory_order_acquire));
+}
+
+void TapPythonOutput(PythonSessionMode mode, const string& text) {
+  if (text.empty())
+  {
+    return;
+  }
+
+  TapPythonOnMainThread(mode, text);
+}
+
+bool StagePythonScript(const string& fileName, const string& contents) {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  stagedPythonPath = "host:/python/" + SanitizePythonFilename(fileName);
+  stagedPythonContents = contents;
+  return true;
+}
+
+bool GetPythonScript(const string& path, string* contents) {
+  if (contents == nullptr)
+  {
+    return false;
+  }
+
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  if (stagedPythonPath.empty() || path != stagedPythonPath)
+  {
+    return false;
+  }
+
+  *contents = stagedPythonContents;
+  return true;
+}
+
+string GetStagedPythonScriptPath() {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  return stagedPythonPath;
+}
+
+void ClearStagedPythonScript() {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  stagedPythonPath.clear();
+  stagedPythonContents.clear();
 }
 
 void TapSerial(int direction, const string& text) {
@@ -249,7 +478,7 @@ bool Connected() {
 }
 
 uint32_t Available() {
-  return 0;
+  return Connected() ? MystrixSim::HostIO::SerialInputAvailable() : 0;
 }
 
 void Poll() {}
@@ -292,17 +521,31 @@ void VPrintf(string format, va_list valst) {
 void Flush() {}
 
 int8_t Read() {
-  return -1;
+  if (!Connected())
+  {
+    return -1;
+  }
+
+  int value = MystrixSim::HostIO::ReadSerialInputByte();
+  return value < 0 ? -1 : static_cast<int8_t>(value);
 }
 
 uint32_t ReadBytes(void* buffer, uint32_t length) {
-  (void)buffer;
-  (void)length;
-  return 0;
+  if (!Connected())
+  {
+    return 0;
+  }
+
+  return MystrixSim::HostIO::ReadSerialInput(buffer, length);
 }
 
 string ReadString() {
-  return "";
+  if (!Connected())
+  {
+    return "";
+  }
+
+  return MystrixSim::HostIO::ReadSerialInputString();
 }
 } // namespace CDC
 } // namespace MatrixOS::USB
@@ -473,4 +716,34 @@ bool Send(const vector<uint8_t>& report) {
 
 void putchar_(char character) {
   (void)character;
+}
+
+extern "C" {
+uint32_t matrixos_python_input_available() {
+  return MystrixSim::HostIO::PythonInputAvailable();
+}
+
+int matrixos_python_read_byte() {
+  return MystrixSim::HostIO::ReadPythonInputByte();
+}
+
+void matrixos_python_write_bytes(const char* data, uint32_t length) {
+  if (data == nullptr || length == 0)
+  {
+    return;
+  }
+
+  MystrixSim::HostIO::TapPythonOutput(
+      MystrixSim::HostIO::GetPythonSessionMode(),
+      string(data, length));
+}
+
+void matrixos_python_notify_mode(uint8_t mode) {
+  MystrixSim::HostIO::SetPythonSessionMode(
+      static_cast<MystrixSim::HostIO::PythonSessionMode>(mode));
+}
+
+void matrixos_python_clear_input() {
+  MystrixSim::HostIO::ClearPythonInput();
+}
 }

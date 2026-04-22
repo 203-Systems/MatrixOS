@@ -3,26 +3,67 @@
 #include "PikaVM.h"
 #include "PikaObj.h"
 #include "System/System.h"
+#if DEVICE_STORAGE == 1
 #include "FileSystem/FatFS/ff.h"
+#endif
 
-namespace MatrixOS::USB::CDC
+#if MATRIXOS_WEB
+#include "HostIO.h"
+#endif
+
+namespace
 {
-void WriteChar(char c, void* arg);
+void PythonPlatformPrint(const string& text) {
+  matrixos_python_write_bytes(text.c_str(), static_cast<uint32_t>(text.size()));
+}
+
+void PythonPlatformPrintln(const string& text) {
+  PythonPlatformPrint(text);
+  static const char newline[] = "\n\r";
+  matrixos_python_write_bytes(newline, 2);
+}
 }
 
 // Platform abstraction functions for PikaPython
 extern "C" {
-char pika_platform_getchar() {
-  while (!MatrixOS::USB::CDC::Available())
-  {
-    MatrixOS::SYS::DelayMs(1); // Yield to other tasks
-  }
+__attribute__((weak)) uint32_t matrixos_python_input_available() {
+  return MatrixOS::USB::CDC::Available();
+}
+
+__attribute__((weak)) int matrixos_python_read_byte() {
   return MatrixOS::USB::CDC::Read();
 }
 
+__attribute__((weak)) void matrixos_python_write_bytes(const char* data, uint32_t length) {
+  if (data == nullptr || length == 0)
+  {
+    return;
+  }
+  MatrixOS::USB::CDC::Print(string(data, length));
+  MatrixOS::USB::CDC::Flush();
+}
+
+__attribute__((weak)) void matrixos_python_notify_mode(uint8_t mode) {
+  (void)mode;
+}
+
+__attribute__((weak)) void matrixos_python_clear_input() {
+  while (MatrixOS::USB::CDC::Available())
+  {
+    (void)MatrixOS::USB::CDC::Read();
+  }
+}
+
+char pika_platform_getchar() {
+  while (!matrixos_python_input_available())
+  {
+    MatrixOS::SYS::DelayMs(1); // Yield to other tasks
+  }
+  return static_cast<char>(matrixos_python_read_byte());
+}
+
 int pika_platform_putchar(char ch) {
-  MatrixOS::USB::CDC::WriteChar(ch, nullptr);
-  MatrixOS::USB::CDC::Flush(); // Ensure immediate output
+  matrixos_python_write_bytes(&ch, 1);
   return 0;
 }
 
@@ -36,6 +77,7 @@ void pika_platform_reboot(void) {
 }
 
 FILE* pika_platform_fopen(const char* filename, const char* modes) {
+#if DEVICE_STORAGE == 1
 
   FRESULT res;
 
@@ -94,30 +136,46 @@ FILE* pika_platform_fopen(const char* filename, const char* modes) {
   }
 
   return (FILE*)fatFile;
+#else
+  return nullptr;
+#endif
 }
 
 size_t pika_platform_fwrite(const void* ptr, size_t size, size_t n, FILE* stream) {
+#if DEVICE_STORAGE == 1
   FIL* fatFile = (FIL*)stream;
-  size_t len = 0;
-  FRESULT res = f_write(fatFile, ptr, n * size, &len);
-  return len;
+  UINT len = 0;
+  FRESULT res = f_write(fatFile, ptr, static_cast<UINT>(n * size), &len);
+  return (res == FR_OK) ? static_cast<size_t>(len) : 0;
+#else
+  return 0;
+#endif
 }
 
 size_t pika_platform_fread(void* ptr, size_t size, size_t n, FILE* stream) {
+#if DEVICE_STORAGE == 1
   FIL* fatFile = (FIL*)stream;
-  size_t len = 0;
-  FRESULT res = f_read(fatFile, ptr, n * size, &len);
-  return len;
+  UINT len = 0;
+  FRESULT res = f_read(fatFile, ptr, static_cast<UINT>(n * size), &len);
+  return (res == FR_OK) ? static_cast<size_t>(len) : 0;
+#else
+  return 0;
+#endif
 }
 
 int pika_platform_fclose(FILE* stream) {
+#if DEVICE_STORAGE == 1
   FIL* fatFile = (FIL*)stream;
   FRESULT res = f_close(fatFile);
   pika_platform_free(fatFile);
-  return 0;
+  return (res == FR_OK) ? 0 : -1;
+#else
+  return -1;
+#endif
 }
 
 int pika_platform_fseek(FILE* stream, long offset, int whence) {
+#if DEVICE_STORAGE == 1
   FIL* fatFile = (FIL*)stream;
   DWORD fatfsOffset;
   switch (whence)
@@ -137,12 +195,19 @@ int pika_platform_fseek(FILE* stream, long offset, int whence) {
   FRESULT res = f_lseek(fatFile, fatfsOffset);
   int result = (res == FR_OK) ? 0 : -1;
   return result;
+#else
+  return -1;
+#endif
 }
 
 long pika_platform_ftell(FILE* stream) {
+#if DEVICE_STORAGE == 1
   FIL* fatFile = (FIL*)stream;
   long result = f_tell(fatFile);
   return result;
+#else
+  return -1;
+#endif
 }
 
 char* pika_platform_getcwd(char* buf, size_t size) {
@@ -160,6 +225,7 @@ int pika_platform_chdir(const char* path) {
 }
 
 int pika_platform_rmdir(const char* pathname) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
   if (translatedPath.empty())
   {
@@ -168,9 +234,13 @@ int pika_platform_rmdir(const char* pathname) {
   FRESULT res = f_unlink(translatedPath.c_str());
   int result = (res == FR_OK) ? 0 : -1;
   return result;
+#else
+  return -1;
+#endif
 }
 
 int pika_platform_mkdir(const char* pathname, int mode) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
   if (translatedPath.empty())
   {
@@ -181,9 +251,13 @@ int pika_platform_mkdir(const char* pathname, int mode) {
   FRESULT res = f_mkdir(translatedPath.c_str());
   int result = (res == FR_OK) ? 0 : -1;
   return result;
+#else
+  return -1;
+#endif
 }
 
 int pika_platform_remove(const char* pathname) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
   if (translatedPath.empty())
   {
@@ -192,9 +266,13 @@ int pika_platform_remove(const char* pathname) {
   FRESULT res = f_unlink(translatedPath.c_str());
   int result = (res == FR_OK) ? 0 : -1;
   return result;
+#else
+  return -1;
+#endif
 }
 
 int pika_platform_rename(const char* oldpath, const char* newpath) {
+#if DEVICE_STORAGE == 1
   string oldTranslated = MatrixOS::FileSystem::TranslatePath(string(oldpath));
   string newTranslated = MatrixOS::FileSystem::TranslatePath(string(newpath));
   if (oldTranslated.empty() || newTranslated.empty())
@@ -204,9 +282,13 @@ int pika_platform_rename(const char* oldpath, const char* newpath) {
   FRESULT res = f_rename(oldTranslated.c_str(), newTranslated.c_str());
   int result = (res == FR_OK) ? 0 : -1;
   return result;
+#else
+  return -1;
+#endif
 }
 
 char** pika_platform_listdir(const char* path, int* count) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
   if (translatedPath.empty())
   {
@@ -266,9 +348,14 @@ char** pika_platform_listdir(const char* path, int* count) {
 
   *count = idx;
   return filelist;
+#else
+  *count = 0;
+  return nullptr;
+#endif
 }
 
 int pika_platform_path_exists(const char* path) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
   if (translatedPath.empty())
   {
@@ -281,9 +368,13 @@ int pika_platform_path_exists(const char* path) {
   res = f_stat(translatedPath.c_str(), &fno);
   int result = (res == FR_OK) ? 1 : 0;
   return result;
+#else
+  return 0;
+#endif
 }
 
 int pika_platform_path_isdir(const char* path) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
   if (translatedPath.empty())
   {
@@ -300,9 +391,13 @@ int pika_platform_path_isdir(const char* path) {
     isDir = (fno.fattrib & AM_DIR) ? 1 : 0;
   }
   return isDir;
+#else
+  return 0;
+#endif
 }
 
 int pika_platform_path_isfile(const char* path) {
+#if DEVICE_STORAGE == 1
   string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
   if (translatedPath.empty())
   {
@@ -319,21 +414,21 @@ int pika_platform_path_isfile(const char* path) {
     isFile = (fno.fattrib & AM_DIR) == 0 ? 1 : 0;
   }
   return isFile;
+#else
+  return 0;
+#endif
 }
 }
 
 void Python::Setup(const vector<string>& args) {
-  // Flush serial RX buffer
-  while (MatrixOS::USB::CDC::Available())
-  {
-    (void)MatrixOS::USB::CDC::Read();
-  }
+  matrixos_python_clear_input();
 
   pikaMain = pikaPythonInit();
 
   // Check if a script path was provided
   if (!args.empty())
   {
+    matrixos_python_notify_mode(2);
     const string& pythonFilePath = args[0];
     MLOGD("Python", "Executing Python script: %s", pythonFilePath.c_str());
 
@@ -349,19 +444,20 @@ void Python::Setup(const vector<string>& args) {
   }
   else
   {
+    matrixos_python_notify_mode(1);
     // No file specified, start REPL mode
     // Print Matrix OS ASCII art banner
-    MatrixOS::USB::CDC::Println("");
-    MatrixOS::USB::CDC::Println("███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗     ██████╗ ███████╗");
-    MatrixOS::USB::CDC::Println("████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝    ██╔═══██╗██╔════╝");
-    MatrixOS::USB::CDC::Println("██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝     ██║   ██║███████╗");
-    MatrixOS::USB::CDC::Println("██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗     ██║   ██║╚════██║");
-    MatrixOS::USB::CDC::Println("██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗    ╚██████╔╝███████║");
-    MatrixOS::USB::CDC::Println("╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝     ╚═════╝ ╚══════╝");
-    MatrixOS::USB::CDC::Println("Matrix OS Python REPL");
-    MatrixOS::USB::CDC::Println("OS Version: " + MATRIXOS_VERSION_STRING);
-    MatrixOS::USB::CDC::Println("See matrix.203.io for docs and usage guide.");
-    MatrixOS::USB::CDC::Println("");
+    PythonPlatformPrintln("");
+    PythonPlatformPrintln("███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗     ██████╗ ███████╗");
+    PythonPlatformPrintln("████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝    ██╔═══██╗██╔════╝");
+    PythonPlatformPrintln("██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝     ██║   ██║███████╗");
+    PythonPlatformPrintln("██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗     ██║   ██║╚════██║");
+    PythonPlatformPrintln("██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗    ╚██████╔╝███████║");
+    PythonPlatformPrintln("╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝     ╚═════╝ ╚══════╝");
+    PythonPlatformPrintln("Matrix OS Python REPL");
+    PythonPlatformPrintln("OS Version: " + MATRIXOS_VERSION_STRING);
+    PythonPlatformPrintln("See matrix.203.io for docs and usage guide.");
+    PythonPlatformPrintln("");
 
     pikaPythonShell(pikaMain);
   }
@@ -370,6 +466,18 @@ void Python::Setup(const vector<string>& args) {
 }
 
 bool Python::ExecutePythonFile(const string& filePath) {
+#if MATRIXOS_WEB
+  string stagedScript;
+  if (MystrixSim::HostIO::GetPythonScript(filePath, &stagedScript))
+  {
+    MLOGD("Python", "Executing staged host Python script: %s", filePath.c_str());
+    vector<char> buffer(stagedScript.begin(), stagedScript.end());
+    buffer.push_back('\0');
+    pikaVM_run(pikaMain, buffer.data());
+    return true;
+  }
+#endif
+
 #if DEVICE_STORAGE == 1
   size_t lastSlash = filePath.find_last_of('/');
   if (lastSlash == string::npos)
@@ -438,6 +546,7 @@ bool Python::ExecutePythonFile(const string& filePath) {
 }
 
 void Python::End() {
+  matrixos_python_notify_mode(0);
   // Deinitialize PikaPython after shell exits
   obj_deinit(pikaMain);
 }

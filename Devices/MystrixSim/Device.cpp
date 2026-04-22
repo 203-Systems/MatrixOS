@@ -5,6 +5,8 @@
 #include "Device.h"
 #include "HostIO.h"
 #include "MatrixOS.h"
+#include "../../Applications/Application.h"
+#include "System/System.h"
 
 #include <algorithm>
 #include <cmath>
@@ -171,6 +173,17 @@ string wasmVersionLabel = BuildVersionLabel();
 string wasmBuildTimeLabel = BuildTimeLabel();
 string wasmBuildIdentityLabel = BuildIdentityLabel();
 string wasmBuildMetadataJson = BuildMetadataJson();
+string wasmActiveAppName;
+string wasmActiveAppAuthor;
+
+bool IsPythonApplicationInfo(const Application_Info* info) {
+  return info != nullptr && info->author == "203 Systems" && info->name == "Python";
+}
+
+bool HasPythonApplicationRegistered() {
+  const uint32_t pythonAppId = MatrixOS::SYS::GenerateAPPID("203 Systems", "Python");
+  return GetApplications().find(pythonAppId) != GetApplications().end();
+}
 
 void BuildLEDIndexMap(Direction rotation) {
   for (uint16_t y = 0; y < Y_SIZE; y++)
@@ -724,6 +737,73 @@ const char* MatrixOS_Wasm_GetBuildMetadataJson(void) {
   return wasmBuildMetadataJson.c_str();
 }
 
+const char* MatrixOS_Wasm_GetActiveAppName(void) {
+  wasmActiveAppName = MatrixOS::SYS::activeAppInfo ? MatrixOS::SYS::activeAppInfo->name : "";
+  return wasmActiveAppName.c_str();
+}
+
+const char* MatrixOS_Wasm_GetActiveAppAuthor(void) {
+  wasmActiveAppAuthor = MatrixOS::SYS::activeAppInfo ? MatrixOS::SYS::activeAppInfo->author : "";
+  return wasmActiveAppAuthor.c_str();
+}
+
+uint8_t MatrixOS_Wasm_HasPythonApp(void) {
+  return HasPythonApplicationRegistered() ? 1 : 0;
+}
+
+uint8_t MatrixOS_Wasm_IsPythonAppActive(void) {
+  return IsPythonApplicationInfo(MatrixOS::SYS::activeAppInfo) ? 1 : 0;
+}
+
+uint8_t MatrixOS_Wasm_GetPythonSessionMode(void) {
+  return static_cast<uint8_t>(MystrixSim::HostIO::GetPythonSessionMode());
+}
+
+uint8_t MatrixOS_Wasm_PythonEnterRepl(void) {
+  if (!HasPythonApplicationRegistered())
+  {
+    return 0;
+  }
+
+  MatrixOS::SYS::ExecuteAPP("203 Systems", "Python");
+  return 1;
+}
+
+uint8_t MatrixOS_Wasm_PythonStageScript(const char* fileName, const char* data, uint32_t length) {
+  if (fileName == nullptr || (data == nullptr && length > 0))
+  {
+    return 0;
+  }
+
+  return MystrixSim::HostIO::StagePythonScript(string(fileName), string(data ? data : "", length)) ? 1 : 0;
+}
+
+uint8_t MatrixOS_Wasm_PythonRunStaged(void) {
+  if (!HasPythonApplicationRegistered())
+  {
+    return 0;
+  }
+
+  string stagedPath = MystrixSim::HostIO::GetStagedPythonScriptPath();
+  if (stagedPath.empty())
+  {
+    return 0;
+  }
+
+  MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", {stagedPath});
+  return 1;
+}
+
+uint8_t MatrixOS_Wasm_PythonInjectInput(const char* data, uint32_t length) {
+  if (data == nullptr || length == 0)
+  {
+    return 0;
+  }
+
+  MystrixSim::HostIO::QueuePythonInput(reinterpret_cast<const uint8_t*>(data), length);
+  return 1;
+}
+
 void MatrixOS_Wasm_SetUsbAvailable(int available) {
   MystrixSim::HostIO::SetUsbConnected(available != 0);
 }
@@ -793,6 +873,16 @@ void MatrixOS_Wasm_RawHidInject(uint8_t* data, uint32_t length) {
 void MatrixOS_Wasm_SerialWrite(const char* data, uint32_t length) {
   string str(data, length);
   MatrixOS::USB::CDC::Print(str);
+}
+
+uint8_t MatrixOS_Wasm_SerialInjectRx(const char* data, uint32_t length) {
+  if (data == nullptr || length == 0)
+  {
+    return 0;
+  }
+
+  MystrixSim::HostIO::QueueSerialInput(reinterpret_cast<const uint8_t*>(data), length);
+  return 1;
 }
 
 // ---- NVS exports ----

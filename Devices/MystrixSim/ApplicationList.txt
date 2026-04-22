@@ -17,6 +17,7 @@ Dice
 Strum
 Reversi
 Companion
+[System]Python
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot

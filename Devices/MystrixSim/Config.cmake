@@ -1,5 +1,5 @@
 # Device feature configuration for MystrixSim (web emulator)
-set(DEVICE_STORAGE 0)
+set(DEVICE_STORAGE 1)
 set(DEVICE_BATTERY 0)
 set(DEVICE_TINYUSB 0)
 set(DEVICE_CUSTOM_USB_IO 1)

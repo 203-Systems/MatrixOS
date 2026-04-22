@@ -32,6 +32,12 @@ int pika_platform_putchar(char ch);
 int64_t pika_platform_get_tick(void);
 void pika_platform_reboot(void);
 
+uint32_t matrixos_python_input_available();
+int matrixos_python_read_byte();
+void matrixos_python_write_bytes(const char* data, uint32_t length);
+void matrixos_python_notify_mode(uint8_t mode);
+void matrixos_python_clear_input();
+
 // File I/O platform functions
 FILE* pika_platform_fopen(const char* filename, const char* modes);
 size_t pika_platform_fwrite(const void* ptr, size_t size, size_t n, FILE* stream);
