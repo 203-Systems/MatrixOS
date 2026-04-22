@@ -107,7 +107,7 @@ extern "C" {
         return result;
     }
 
-    pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, char* data, int length) {
+    pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, uint8_t* data, int length) {
         std::vector<uint8_t> report;
         report.resize(length);
         memcpy(report.data(), data, length);

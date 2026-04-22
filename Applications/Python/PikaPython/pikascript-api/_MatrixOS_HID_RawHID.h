@@ -17,7 +17,7 @@
 
 PikaObj *New__MatrixOS_HID_RawHID(Args *args);
 
-Arg* _MatrixOS_HID_RawHID_Get(PikaObj *self, PikaObj* timeout_ms);
-pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, uint8_t* report);
+Arg* _MatrixOS_HID_RawHID_Get(PikaObj *self, int timeout_ms);
+pika_bool _MatrixOS_HID_RawHID_Send(PikaObj *self, uint8_t* report, int length);
 
 #endif

@@ -2528,7 +2528,7 @@ PikaObj *New__MatrixOS_HID_Mouse(Args *args){
 
 #ifndef PIKA_MODULE__MATRIXOS_HID_RAWHID_DISABLE
 void _MatrixOS_HID_RawHID_GetMethod(PikaObj *self, Args *_args_){
-    PikaObj* timeout_ms = args_getPtr(_args_, "timeout_ms");
+    int timeout_ms = args_getInt(_args_, "timeout_ms");
     Arg* res = _MatrixOS_HID_RawHID_Get(self, timeout_ms);
     method_returnArg(_args_, res);
 }
@@ -2539,12 +2539,13 @@ method_typedef(
 
 void _MatrixOS_HID_RawHID_SendMethod(PikaObj *self, Args *_args_){
     uint8_t* report = args_getBytes(_args_, "report");
-    pika_bool res = _MatrixOS_HID_RawHID_Send(self, report);
+    int length = args_getInt(_args_, "length");
+    pika_bool res = _MatrixOS_HID_RawHID_Send(self, report, length);
     method_returnBool(_args_, res);
 }
 method_typedef(
     _MatrixOS_HID_RawHID_Send,
-    "Send", "report"
+    "Send", "report,length"
 );
 
 class_def(_MatrixOS_HID_RawHID){
