@@ -1,14 +1,12 @@
 /**
  * vite-plugin-rpc-server.js
  *
- * Starts a local WebSocket server on RPC_WS_PORT when the Vite dev server is
- * running (apply: 'serve').
+ * Starts a local WebSocket JSON-RPC bridge server on RPC_WS_PORT when the Vite
+ * dev server is running (apply: 'serve').
  *
- * This server is status-only. The browser page does not connect back to it,
- * and in-page RPC remains a direct JS API call via window.matrixosRpc.
- *
- * External clients may connect so the UI can count them, but JSON-RPC over WS
- * is intentionally disabled.
+ * The browser page connects back as the active runtime bridge. External
+ * clients can then issue JSON-RPC requests over WebSocket and have them
+ * executed by the live page/runtime.
  */
 
 import { WebSocketServer } from 'ws'
@@ -36,11 +34,17 @@ export function rpcServerPlugin() {
     configureServer(server) {
       installReleaseAssetProxy(server)
       const wss = new WebSocketServer({ port: RPC_WS_PORT })
+      const pendingRequests = new Map()
+      let runtimeClient = null
+
+      function nextRequestId() {
+        return `bridge-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+      }
 
       function getExternalConnectionCount() {
         let count = 0
         for (const client of wss.clients) {
-          if (client.readyState === 1 /* OPEN */) count += 1
+          if (client.readyState === 1 /* OPEN */ && client._matrixRole !== 'runtime') count += 1
         }
         return count
       }
@@ -74,6 +78,7 @@ export function rpcServerPlugin() {
           ok: true,
           wsUrl: `ws://localhost:${RPC_WS_PORT}`,
           externalConnectionCount: getExternalConnectionCount(),
+          runtimeConnected: runtimeClient?.readyState === 1,
         }))
       })
 
@@ -89,23 +94,104 @@ export function rpcServerPlugin() {
         }
       })
 
-      wss.on('connection', (ws) => {
+      wss.on('connection', (ws, request) => {
+        const requestUrl = new URL(request.url ?? '/', `ws://localhost:${RPC_WS_PORT}`)
+        const role = requestUrl.searchParams.get('role') === 'runtime' || ws.protocol === 'matrixos-runtime'
+          ? 'runtime'
+          : 'external'
+        ws._matrixRole = role
+
+        if (role === 'runtime') {
+          if (runtimeClient && runtimeClient !== ws && runtimeClient.readyState === 1) {
+            runtimeClient.close(1000, 'Superseded by a newer MatrixOS runtime bridge')
+          }
+          runtimeClient = ws
+        }
+
         broadcastConnectionCount()
 
         ws.on('message', (data) => {
           let msg
           try { msg = JSON.parse(data.toString()) } catch { return }
-          ws.send(JSON.stringify({
-            jsonrpc: '2.0',
-            id: msg.id ?? null,
-            error: {
-              code: -32601,
-              message: 'External WebSocket RPC is disabled. Use window.matrixosRpc in the browser tab.',
-            },
+
+          if (ws._matrixRole === 'runtime') {
+            if (msg?.type !== 'rpc_response' || !msg.requestId) return
+
+            const pending = pendingRequests.get(msg.requestId)
+            if (!pending) return
+            pendingRequests.delete(msg.requestId)
+
+            if (pending.client.readyState !== 1) return
+
+            pending.client.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: pending.clientRequestId,
+              ...(msg.response?.error ? { error: msg.response.error } : { result: msg.response?.result ?? null }),
+            }))
+            return
+          }
+
+          if (!msg || msg.jsonrpc !== '2.0' || typeof msg.method !== 'string') {
+            ws.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg?.id ?? null,
+              error: {
+                code: -32600,
+                message: 'Invalid request',
+              },
+            }))
+            return
+          }
+
+          if (!runtimeClient || runtimeClient.readyState !== 1) {
+            ws.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id ?? null,
+              error: {
+                code: 4003,
+                message: 'Runtime bridge unavailable. Open the MystrixSim WebUI tab first.',
+              },
+            }))
+            return
+          }
+
+          const requestId = nextRequestId()
+          pendingRequests.set(requestId, {
+            client: ws,
+            clientRequestId: msg.id ?? null,
+          })
+
+          runtimeClient.send(JSON.stringify({
+            type: 'rpc_request',
+            requestId,
+            method: msg.method,
+            params: msg.params ?? {},
           }))
         })
 
         ws.on('close', () => {
+          if (runtimeClient === ws) {
+            runtimeClient = null
+            for (const [requestId, pending] of pendingRequests.entries()) {
+              if (pending.client.readyState === 1) {
+                pending.client.send(JSON.stringify({
+                  jsonrpc: '2.0',
+                  id: pending.clientRequestId,
+                  error: {
+                    code: 4003,
+                    message: 'Runtime bridge disconnected before the request completed.',
+                  },
+                }))
+              }
+              pendingRequests.delete(requestId)
+            }
+          } else {
+            for (const [requestId, pending] of pendingRequests.entries()) {
+              if (pending.client === ws) {
+                pendingRequests.delete(requestId)
+              }
+            }
+          }
           broadcastConnectionCount()
         })
 

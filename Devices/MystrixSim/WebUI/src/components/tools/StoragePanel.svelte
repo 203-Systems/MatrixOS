@@ -1,59 +1,93 @@
 <script>
-  import { onMount, onDestroy } from 'svelte'
-  import { nvsEntries, nvsConnected, refreshNvs, pollNvs, deleteNvsEntry, clearNvs, downloadNvsExport, importNvsFromFile, filesystemMounted, filesystemPath, computeNvsHash } from '../../stores/storage.js'
-  import { Search, Download, Upload, TrashCan, Copy } from 'carbon-icons-svelte'
+  import { onMount } from 'svelte'
+  import { Search, Download, Upload, TrashCan, Copy, DocumentAdd, ArrowLeft } from 'carbon-icons-svelte'
+  import {
+    nvsEntries,
+    nvsConnected,
+    refreshNvs,
+    pollNvs,
+    deleteNvsEntry,
+    clearNvs,
+    downloadNvsExport,
+    importNvsFromFile,
+    filesystemMounted,
+    filesystemPath,
+    filesystemEntries,
+    filesystemBusy,
+    filesystemError,
+    refreshFilesystem,
+    navigateFilesystem,
+    goUpFilesystem,
+    downloadFilesystemExport,
+    importFilesystemArchive,
+    uploadFilesystemFile,
+    downloadFilesystemFile,
+    deleteFilesystemEntry,
+    computeNvsHash,
+  } from '../../stores/storage.js'
+
   export let showHero = true
   export let onCloseHero = () => {}
 
-  let fileInput
+  let nvsImportInput
+  let fsArchiveInput
+  let fsUploadInput
   let keyInput = ''
   let searchQuery = ''
-  let pollTimer
-  // Track which entries are expanded (showing full hex value)
+  let nvsPollTimer
   let expandedHashes = new Set()
 
-  // Derive both numeric and hex forms so template can use either
   $: keyHash = keyInput.length > 0 ? computeNvsHash(keyInput) : null
   $: keyHashHex = keyHash !== null ? '0x' + keyHash.toString(16).padStart(8, '0').toUpperCase() : ''
-
-  // Automatically pipe computed hash into search box
   $: if (keyHashHex) searchQuery = keyHashHex
   $: if (!keyInput) searchQuery = ''
 
-  // Filter entries by search query (matches hash hex, size, or value preview)
   $: filteredEntries = (() => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return $nvsEntries
-    return $nvsEntries.filter(e =>
-      e.hashHex.toLowerCase().includes(q) ||
-      e.preview.toLowerCase().includes(q) ||
-      String(e.size).includes(q)
-    )
+    return $nvsEntries.filter((entry) => (
+      entry.hashHex.toLowerCase().includes(q) ||
+      entry.preview.toLowerCase().includes(q) ||
+      String(entry.size).includes(q)
+    ))
   })()
 
-  onMount(() => {
-    refreshNvs()
-    // Poll for runtime-side NVS writes every 1.5 s
-    pollTimer = setInterval(pollNvs, 1500)
-    return () => clearInterval(pollTimer)
-  })
+  $: fsSegments = (() => {
+    const normalized = String($filesystemPath || '/')
+    if (normalized === '/') return [{ label: 'root', path: '/' }]
 
-  function handleImportClick() { fileInput?.click() }
+    const parts = normalized.split('/').filter(Boolean)
+    let current = ''
+    return [
+      { label: 'root', path: '/' },
+      ...parts.map((segment) => {
+        current += `/${segment}`
+        return { label: segment, path: current }
+      }),
+    ]
+  })()
 
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0]
-    if (file) {
-      await importNvsFromFile(file)
-      e.target.value = ''
-    }
+  function formatBytes(byteCount, isDir = false) {
+    if (isDir) return 'DIR'
+    if (byteCount < 1024) return `${byteCount} B`
+    if (byteCount < 1024 * 1024) return `${(byteCount / 1024).toFixed(1)} KB`
+    return `${(byteCount / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  function handleNvsImportClick() {
+    nvsImportInput?.click()
+  }
+
+  async function handleNvsFileChange(event) {
+    const file = event.currentTarget?.files?.[0]
+    event.currentTarget.value = ''
+    if (!file) return
+    await importNvsFromFile(file)
   }
 
   function toggleExpand(hash) {
-    if (expandedHashes.has(hash)) {
-      expandedHashes.delete(hash)
-    } else {
-      expandedHashes.add(hash)
-    }
+    if (expandedHashes.has(hash)) expandedHashes.delete(hash)
+    else expandedHashes.add(hash)
     expandedHashes = expandedHashes
   }
 
@@ -61,194 +95,314 @@
     const json = JSON.stringify({ hash: entry.hashHex, value: entry.rawBytes })
     navigator.clipboard?.writeText(json)
   }
+
+  function handleFsArchiveClick() {
+    fsArchiveInput?.click()
+  }
+
+  function handleFsUploadClick() {
+    fsUploadInput?.click()
+  }
+
+  async function handleFsArchiveChange(event) {
+    const file = event.currentTarget?.files?.[0]
+    event.currentTarget.value = ''
+    if (!file) return
+    await importFilesystemArchive(file, $filesystemPath)
+  }
+
+  async function handleFsUploadChange(event) {
+    const file = event.currentTarget?.files?.[0]
+    event.currentTarget.value = ''
+    if (!file) return
+    await uploadFilesystemFile(file, $filesystemPath)
+  }
+
+  function openFilesystemEntry(entry) {
+    if (entry.isDir) {
+      navigateFilesystem(entry.path)
+    }
+  }
+
+  onMount(() => {
+    refreshNvs()
+    refreshFilesystem('/')
+    nvsPollTimer = setInterval(pollNvs, 1500)
+    return () => clearInterval(nvsPollTimer)
+  })
 </script>
 
-<div class="storage-panel">
+<div class="tool-surface">
   {#if showHero}
-  <div class="tool-hero">
-    <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
-    <div class="tool-hero-title">Storage</div>
-    <div class="tool-hero-desc">Inspect NVS key-value entries and the virtual filesystem. Look up keys by name, view raw hex values, and export/import snapshots.</div>
-  </div>
+    <section class="tool-hero">
+      <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
+      <div class="tool-hero-title">Storage</div>
+      <div class="tool-hero-desc">
+        Inspect NVS entries and browse the MystrixSim virtual filesystem. Export or import zip snapshots,
+        upload single files into the current directory, and download or delete files directly from the browser.
+      </div>
+    </section>
   {/if}
-  <!-- NVS Section -->
-  <div class="nvs-section">
-    <!-- Header row -->
-    <div class="section-header">
-      <span class="section-title">NVS</span>
-      <span class="section-subtitle">hash → value</span>
-      <span class="section-count">{filteredEntries.length}{filteredEntries.length !== $nvsEntries.length ? ` / ${$nvsEntries.length}` : ''}</span>
+
+  <section class="tool-section">
+    <div class="tool-section-title-row">
+      <div class="tool-section-title">Non-Volatile Storage (NVS)</div>
       <div class="header-actions">
-        <button class="action-btn" on:click={refreshNvs} title="Refresh">↻</button>
-        <button class="action-btn" on:click={downloadNvsExport} title="Export">
-          <Download size={14} />
-        </button>
-        <button class="action-btn" on:click={handleImportClick} title="Import">
-          <Upload size={14} />
-        </button>
-        <button class="action-btn action-danger" on:click={clearNvs} title="Clear all NVS entries">
-          <TrashCan size={14} />
-        </button>
+          <button class="action-btn" on:click={refreshNvs} title="Refresh">↻</button>
+          <button class="action-btn" on:click={downloadNvsExport} title="Export NVS">
+            <Download size={16} />
+          </button>
+          <button class="action-btn" on:click={handleNvsImportClick} title="Import NVS">
+            <Upload size={16} />
+          </button>
+          <button class="action-btn action-danger" on:click={clearNvs} title="Clear all NVS entries">
+            <TrashCan size={16} />
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Integrated key→hash + search toolbar -->
-    <div class="nvs-toolbar">
-      <div class="key-lookup">
-        <input
-          class="key-input"
-          type="text"
-          bind:value={keyInput}
-          placeholder="Key → hash…"
-          spellcheck="false"
-          title="Type a key string — hash is computed live and applied to search"
-        />
+      <div class="nvs-toolbar">
+        <div class="key-lookup">
+          <input
+            class="key-input"
+            type="text"
+            bind:value={keyInput}
+            placeholder="Key → hash…"
+            spellcheck="false"
+            title="Type a key string — hash is computed live and applied to search"
+          />
+        </div>
+        <div class="search-box">
+          <Search size={16} />
+          <input
+            class="search-input"
+            type="text"
+            bind:value={searchQuery}
+            placeholder="Filter by hash or value…"
+            spellcheck="false"
+          />
+        </div>
       </div>
-      <div class="search-box">
-        <Search size={12} />
-        <input
-          class="search-input"
-          type="text"
-          bind:value={searchQuery}
-          placeholder="Filter by hash or value…"
-          spellcheck="false"
-        />
-      </div>
-    </div>
 
-    <input type="file" accept=".bin,.nvs" bind:this={fileInput} on:change={handleFileChange} class="hidden-input" />
+      <input
+        type="file"
+        accept=".bin,.nvs"
+        bind:this={nvsImportInput}
+        on:change={handleNvsFileChange}
+        class="hidden-input"
+      />
 
-    <div class="nvs-body">
-      {#if !$nvsConnected}
-        <div class="empty-msg">NVS bridge not available.</div>
-      {:else if $nvsEntries.length === 0}
-        <div class="empty-msg">NVS store is empty.</div>
-      {:else if filteredEntries.length === 0}
-        <div class="empty-msg">No entries match the filter.</div>
-      {:else}
-        <div class="nvs-table">
-          <div class="nvs-header-row">
-            <span class="nvs-col-hash">Hash</span>
-            <span class="nvs-col-size">Size</span>
-            <span class="nvs-col-value">Value (hex)</span>
-            <span class="nvs-col-actions"></span>
-          </div>
-          {#each filteredEntries as entry (entry.hash)}
-            <div class="nvs-row" class:nvs-row-highlight={keyHash !== null && entry.hash === keyHash}>
-              <span class="nvs-col-hash mono">{entry.hashHex}</span>
-              <span class="nvs-col-size mono">{entry.size}B</span>
-              <span class="nvs-col-value mono">
-                <span
-                  class="nvs-hex-val"
-                  class:nvs-hex-truncated={!expandedHashes.has(entry.hash)}
-                  title={entry.rawBytes}
-                >{entry.rawBytes || '—'}</span>
-                {#if entry.rawBytes && entry.rawBytes.length > 24}
-                  <button class="nvs-expand-btn" on:click={() => toggleExpand(entry.hash)}>
-                    {expandedHashes.has(entry.hash) ? '▲' : '▼'}
-                  </button>
-                {/if}
-              </span>
-              <span class="nvs-col-actions">
-                <button class="row-action" on:click={() => copyEntryAsJson(entry)} title="Copy as JSON">
-                  <Copy size={11} />
-                </button>
-                <button class="row-action" on:click={() => deleteNvsEntry(entry.hash)} title="Delete entry">
-                  <TrashCan size={11} />
-                </button>
-              </span>
+      <div class="section-body">
+        {#if !$nvsConnected}
+          <div class="empty-msg">NVS bridge not available.</div>
+        {:else if $nvsEntries.length === 0}
+          <div class="empty-msg">NVS store is empty.</div>
+        {:else if filteredEntries.length === 0}
+          <div class="empty-msg">No entries match the filter.</div>
+        {:else}
+          <div class="nvs-table">
+            <div class="nvs-header-row">
+              <span class="nvs-col-hash">Hash</span>
+              <span class="nvs-col-size">Size</span>
+              <span class="nvs-col-value">Value (hex)</span>
+              <span class="nvs-col-actions"></span>
             </div>
+            {#each filteredEntries as entry (entry.hash)}
+              <div class="nvs-row" class:nvs-row-highlight={keyHash !== null && entry.hash === keyHash}>
+                <span class="nvs-col-hash mono">{entry.hashHex}</span>
+                <span class="nvs-col-size mono">{entry.size}B</span>
+                <span class="nvs-col-value mono">
+                  <span
+                    class="nvs-hex-val"
+                    class:nvs-hex-truncated={!expandedHashes.has(entry.hash)}
+                    title={entry.rawBytes}
+                  >{entry.rawBytes || '—'}</span>
+                  {#if entry.rawBytes && entry.rawBytes.length > 24}
+                    <button class="nvs-expand-btn" on:click={() => toggleExpand(entry.hash)}>
+                      {expandedHashes.has(entry.hash) ? '▲' : '▼'}
+                    </button>
+                  {/if}
+                </span>
+                <span class="nvs-col-actions">
+                  <button class="row-action" on:click={() => copyEntryAsJson(entry)} title="Copy as JSON">
+                    <Copy size={16} />
+                  </button>
+                  <button class="row-action" on:click={() => deleteNvsEntry(entry.hash)} title="Delete entry">
+                    <TrashCan size={16} />
+                  </button>
+                </span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      {#if keyHash !== null}
+        <div class="section-note">Keys are stored as FNV-1a hashes. Original strings are not recoverable from the NVS backend.</div>
+      {/if}
+  </section>
+
+  <section class="tool-section">
+    <div class="tool-section-title-row">
+      <div class="tool-section-title">File System</div>
+      <div class="header-actions">
+          <button class="action-btn" on:click={() => refreshFilesystem($filesystemPath)} title="Refresh directory">↻</button>
+          <button class="action-btn" on:click={() => downloadFilesystemExport($filesystemPath)} title="Export current directory">
+            <Download size={16} />
+          </button>
+          <button class="action-btn" on:click={handleFsArchiveClick} title="Import zip into current directory">
+            <Upload size={16} />
+          </button>
+          <button class="action-btn" on:click={handleFsUploadClick} title="Upload file into current directory">
+            <DocumentAdd size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div class="fs-toolbar">
+        <button class="path-btn" on:click={goUpFilesystem} disabled={$filesystemPath === '/'} title="Go up"><ArrowLeft size={16} /></button>
+        <div class="fs-breadcrumbs">
+          {#each fsSegments as segment, index (segment.path)}
+            <button class="crumb-btn" on:click={() => navigateFilesystem(segment.path)}>
+              {segment.label}
+            </button>
+            {#if index < fsSegments.length - 1}
+              <span class="crumb-sep">/</span>
+            {/if}
           {/each}
         </div>
-      {/if}
-    </div>
-    {#if keyHash !== null}
-      <div class="nvs-note">Keys are stored as FNV-1a hashes. Original strings are not recoverable from the NVS backend.</div>
-    {/if}
-  </div>
-
-  <!-- Filesystem Section -->
-  <div class="fs-section">
-    <div class="section-header">
-      <span class="section-title">Filesystem</span>
-      <span class="fs-status">{$filesystemMounted ? 'Mounted' : 'Not mounted'}</span>
-    </div>
-    {#if $filesystemMounted}
-      <div class="fs-info">
-        <span class="fs-label">Path:</span>
-        <span class="fs-path mono">{$filesystemPath}</span>
       </div>
-    {:else}
-      <div class="fs-placeholder">Virtual filesystem not available in SIL mode.</div>
-    {/if}
-  </div>
+
+      <input
+        type="file"
+        accept=".zip"
+        bind:this={fsArchiveInput}
+        on:change={handleFsArchiveChange}
+        class="hidden-input"
+      />
+      <input
+        type="file"
+        bind:this={fsUploadInput}
+        on:change={handleFsUploadChange}
+        class="hidden-input"
+      />
+
+      {#if $filesystemBusy}
+        <div class="fs-state-row">Busy: {$filesystemBusy}</div>
+      {/if}
+      {#if $filesystemError}
+        <div class="fs-error-row">{$filesystemError}</div>
+      {/if}
+
+      <div class="section-body">
+        {#if !$filesystemMounted}
+          <div class="empty-msg">Filesystem is not mounted yet.</div>
+        {:else if $filesystemEntries.length === 0}
+          <div class="empty-msg">This directory is empty.</div>
+        {:else}
+          <div class="fs-table">
+            <div class="fs-header-row">
+              <span class="fs-col-name">Name</span>
+              <span class="fs-col-size">Size</span>
+              <span class="fs-col-actions"></span>
+            </div>
+            {#each $filesystemEntries as entry (entry.path)}
+              <div class="fs-row">
+                <button
+                  class="fs-col-name fs-entry-btn"
+                  class:fs-entry-dir={entry.isDir}
+                  on:click={() => openFilesystemEntry(entry)}
+                  title={entry.path}
+                >
+                  <span class="fs-entry-kind">{entry.isDir ? 'DIR' : 'FILE'}</span>
+                  <span class="fs-entry-label mono">{entry.name}</span>
+                </button>
+                <span class="fs-col-size mono">{formatBytes(entry.size, entry.isDir)}</span>
+                <span class="fs-col-actions">
+                  {#if !entry.isDir}
+                    <button class="row-action" on:click={() => downloadFilesystemFile(entry)} title="Download file">
+                      <Download size={16} />
+                    </button>
+                  {/if}
+                  <button class="row-action" on:click={() => deleteFilesystemEntry(entry)} title="Delete entry">
+                    <TrashCan size={16} />
+                  </button>
+                </span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+
+      <div class="section-note">
+        Export and import operate on the current directory as a zip archive. File upload writes a single file into the current directory.
+      </div>
+  </section>
 </div>
 
 <style>
-  .storage-panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 0;
-    padding: 14px;
-    overflow: hidden;
-  }
-
-  /* Header */
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-  }
-  .section-title {
-    font-weight: 600;
-    font-size: 0.82rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-  .section-subtitle {
-    font-size: 0.68rem;
-    font-family: var(--mono);
-    color: var(--muted);
-    opacity: 0.7;
-  }
-  .section-count {
-    font-size: 0.72rem;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
   .header-actions {
     margin-left: auto;
     display: flex;
     gap: 4px;
   }
-  .action-btn {
+
+  .action-btn,
+  .path-btn,
+  .crumb-btn {
     background: none;
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 2px 6px;
     display: inline-flex;
     align-items: center;
-    font-size: 0.78rem;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.74rem;
+    font-family: inherit;
+    min-height: 24px;
   }
-  .action-btn:hover { color: var(--text); border-color: var(--accent); }
-  .action-danger:hover { color: var(--danger); border-color: var(--danger); }
-  .hidden-input { display: none; }
 
-  /* Integrated key→hash + search toolbar */
-  .nvs-toolbar {
+  .action-btn:hover,
+  .path-btn:hover,
+  .crumb-btn:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+
+  .action-btn:disabled,
+  .path-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .action-danger:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .hidden-input {
+    display: none;
+  }
+
+  .section-body {
+    max-height: 260px;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  }
+
+  .nvs-toolbar,
+  .fs-toolbar {
     display: flex;
-    gap: 6px;
     align-items: center;
-    margin-bottom: 6px;
+    gap: 6px;
     flex-shrink: 0;
     flex-wrap: wrap;
   }
+
   .key-lookup {
     display: flex;
     align-items: center;
@@ -256,6 +410,7 @@
     flex: 1;
     min-width: 180px;
   }
+
   .key-input {
     flex: 1;
     font-family: var(--mono);
@@ -267,8 +422,18 @@
     padding: 3px 7px;
     outline: none;
   }
-  .key-input::placeholder { color: var(--muted); opacity: 0.5; }
-  .key-input:focus { border-color: var(--accent); }
+
+  .key-input::placeholder,
+  .search-input::placeholder {
+    color: var(--muted);
+    opacity: 0.55;
+  }
+
+  .key-input:focus,
+  .search-box:focus-within {
+    border-color: var(--accent);
+  }
+
   .search-box {
     display: flex;
     align-items: center;
@@ -281,7 +446,7 @@
     background: var(--bg-2);
     color: var(--muted);
   }
-  .search-box:focus-within { border-color: var(--accent); }
+
   .search-input {
     flex: 1;
     background: none;
@@ -292,34 +457,31 @@
     font-size: 0.72rem;
     min-width: 0;
   }
-  .search-input::placeholder { color: var(--muted); }
 
-  /* NVS table */
-  .nvs-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+  .mono {
+    font-family: var(--mono);
   }
-  .nvs-body {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.12) transparent;
-  }
-  .nvs-table {
+
+  .nvs-table,
+  .fs-table {
     display: flex;
     flex-direction: column;
     gap: 1px;
   }
-  .nvs-header-row, .nvs-row {
+
+  .nvs-header-row,
+  .nvs-row,
+  .fs-header-row,
+  .fs-row {
     display: flex;
     gap: 8px;
-    padding: 4px 6px;
     align-items: center;
-    border-radius: 3px;
+    padding: 5px 6px;
+    border-radius: 4px;
   }
-  .nvs-header-row {
+
+  .nvs-header-row,
+  .fs-header-row {
     font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -331,34 +493,33 @@
     background: var(--panel);
     z-index: 1;
   }
-  .nvs-row {
+
+  .nvs-row,
+  .fs-row {
     font-size: 0.73rem;
     background: rgba(255, 255, 255, 0.015);
   }
-  .nvs-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+  .nvs-row:hover,
+  .fs-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
   .nvs-row-highlight {
     background: rgba(76, 201, 240, 0.06) !important;
-    border-radius: 3px;
   }
-  .mono { font-family: var(--mono); }
-  .nvs-col-hash { width: 72px; flex-shrink: 0; }
-  .nvs-col-size { width: 50px; flex-shrink: 0; text-align: right; }
+
+  .nvs-col-hash { width: 92px; flex-shrink: 0; }
+  .nvs-col-size { width: 52px; flex-shrink: 0; text-align: right; }
   .nvs-col-value { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; }
+  .nvs-col-actions,
+  .fs-col-actions { width: 56px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 2px; }
+
   .nvs-hex-val { min-width: 0; color: var(--text); }
   .nvs-hex-truncated { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nvs-hex-val:not(.nvs-hex-truncated) { white-space: pre-wrap; word-break: break-all; }
-  .nvs-expand-btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.55rem;
-    padding: 0 2px;
-    opacity: 0.6;
-  }
-  .nvs-expand-btn:hover { opacity: 1; }
-  .nvs-col-actions { width: 52px; flex-shrink: 0; display: flex; justify-content: flex-end; gap: 2px; }
+
+  .nvs-expand-btn,
   .row-action {
     background: none;
     border: none;
@@ -368,45 +529,117 @@
     display: inline-flex;
     align-items: center;
     border-radius: 3px;
-    opacity: 0.5;
   }
-  .nvs-row:hover .row-action { opacity: 1; }
-  .row-action:hover { color: var(--accent); }
-  .nvs-note {
-    margin-top: 4px;
-    font-size: 0.66rem;
+
+  .nvs-expand-btn {
+    font-size: 0.55rem;
+    opacity: 0.7;
+  }
+
+  .row-action {
+    opacity: 0.65;
+  }
+
+  .nvs-row:hover .row-action,
+  .fs-row:hover .row-action {
+    opacity: 1;
+  }
+
+  .row-action:hover,
+  .nvs-expand-btn:hover {
+    color: var(--accent);
+  }
+
+  .fs-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+    overflow-x: auto;
+    padding: 1px 0;
+  }
+
+  .crumb-sep {
     color: var(--muted);
-    opacity: 0.55;
-    font-style: italic;
+    opacity: 0.45;
+    font-family: var(--mono);
+  }
+
+  .fs-col-name {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .fs-col-size {
+    width: 64px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .fs-entry-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .fs-entry-btn:hover .fs-entry-label {
+    color: var(--accent);
+  }
+
+  .fs-entry-kind {
+    flex-shrink: 0;
+    width: 34px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .fs-entry-dir .fs-entry-kind {
+    color: #f7c266;
+  }
+
+  .fs-entry-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .section-note,
+  .fs-state-row,
+  .fs-error-row {
+    margin-top: 6px;
+    font-size: 0.68rem;
     flex-shrink: 0;
   }
+
+  .section-note {
+    color: var(--muted);
+    opacity: 0.65;
+    font-style: italic;
+  }
+
+  .fs-state-row {
+    color: var(--muted);
+  }
+
+  .fs-error-row {
+    color: #ff8b8b;
+  }
+
   .empty-msg {
     color: var(--muted);
     font-size: 0.82rem;
     text-align: center;
     padding: 24px;
-    font-family: var(--sans);
-  }
-
-  /* Filesystem */
-  .fs-section {
-    flex-shrink: 0;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-    margin-top: 10px;
-  }
-  .fs-info {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-size: 0.76rem;
-  }
-  .fs-label { color: var(--muted); font-size: 0.72rem; }
-  .fs-path { color: var(--text); font-family: var(--mono); }
-  .fs-placeholder {
-    color: var(--muted);
-    font-size: 0.76rem;
-    font-style: italic;
-    padding: 4px 0;
   }
 </style>

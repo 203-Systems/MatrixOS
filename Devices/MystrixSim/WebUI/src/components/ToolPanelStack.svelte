@@ -1,5 +1,5 @@
 <script>
-  import { onMount, tick } from 'svelte'
+  import { onMount } from 'svelte'
   import { Close, Help } from 'carbon-icons-svelte'
   import { openTools, closeTool, deviceTools } from '../stores/tools.js'
   import InputPanel from './InputPanel.svelte'
@@ -9,6 +9,7 @@
   import SerialPanel from './tools/SerialPanel.svelte'
   import SystemPanel from './tools/SystemPanel.svelte'
   import ApplicationPanel from './tools/ApplicationPanel.svelte'
+  import PythonPanel from './tools/PythonPanel.svelte'
   import UIPanel from './tools/UIPanel.svelte'
   import StoragePanel from './tools/StoragePanel.svelte'
   import DeviceHardwarePanel from './tools/DeviceHardwarePanel.svelte'
@@ -16,6 +17,7 @@
   const panelMap = {
     system: SystemPanel,
     application: ApplicationPanel,
+    python: PythonPanel,
     input: InputPanel,
     logs: LogsPanel,
     ui: UIPanel,
@@ -38,8 +40,6 @@
   let stackWidth = null
   let userOverride = null
   let resizingStack = false
-  let renderKey = 'empty'
-
   function getLabel(id) {
     const tool = deviceTools.find((t) => t.id === id)
     return tool ? tool.label : id
@@ -78,18 +78,15 @@
   function resetLayoutState() {
     stackWidth = null
     userOverride = null
-    renderKey = 'empty'
     persistOverride()
   }
 
-  async function syncWidth(toolIds) {
+  function syncWidth(toolIds) {
     if (toolIds.length === 0) {
       resetLayoutState()
       return
     }
     stackWidth = resolveWidth(toolIds.length)
-    await tick()
-    renderKey = `${toolIds.join('|')}:${stackWidth}`
   }
 
   function startResize(event) {
@@ -152,54 +149,52 @@
 <svelte:window on:resize={handleWindowResize} />
 
 {#if $openTools.length > 0}
-  {#key renderKey}
-    <div
-      class="panel-stack"
-      class:panel-stack-resizing={resizingStack}
-      style="width:{stackWidth ?? 0}px"
-    >
-      <button
-        class="panel-resize-handle"
-        on:pointerdown={startResize}
-        title="Resize tools"
-        aria-label="Resize tools"
-      ></button>
+  <div
+    class="panel-stack"
+    class:panel-stack-resizing={resizingStack}
+    style="width:{stackWidth ?? 0}px"
+  >
+    <button
+      class="panel-resize-handle"
+      on:pointerdown={startResize}
+      title="Resize tools"
+      aria-label="Resize tools"
+    ></button>
 
-      <div
-        class="panel-grid"
-        style="grid-template-columns:repeat({$openTools.length}, minmax({MIN_COL}px, 1fr))"
-      >
-        {#each $openTools as toolId (toolId)}
-          <section class="panel-slot">
-            <div class="panel-header">
-              <span class="panel-title">{getLabel(toolId)}</span>
-              <div class="panel-header-actions">
-                <button
-                  class="panel-help-btn"
-                  class:panel-help-active={helperVisible[toolId]}
-                  on:click={() => helperVisible[toolId] ? closeHelper(toolId) : openHelper(toolId)}
-                  title="Help"
-                  aria-label="Toggle helper"
-                >
-                  <Help size={16} />
-                </button>
-                <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
-                  <Close size={16} />
-                </button>
-              </div>
+    <div
+      class="panel-grid"
+      style="grid-template-columns:repeat({$openTools.length}, minmax({MIN_COL}px, 1fr))"
+    >
+      {#each $openTools as toolId (toolId)}
+        <section class="panel-slot">
+          <div class="panel-header">
+            <span class="panel-title">{getLabel(toolId)}</span>
+            <div class="panel-header-actions">
+              <button
+                class="panel-help-btn"
+                class:panel-help-active={helperVisible[toolId]}
+                on:click={() => helperVisible[toolId] ? closeHelper(toolId) : openHelper(toolId)}
+                title="Help"
+                aria-label="Toggle helper"
+              >
+                <Help size={16} />
+              </button>
+              <button class="panel-close" on:click={() => closeTool(toolId)} title="Close {getLabel(toolId)}">
+                <Close size={16} />
+              </button>
             </div>
-            <div class="panel-body">
-              <svelte:component
-                this={panelMap[toolId]}
-                showHero={helperVisible[toolId]}
-                onCloseHero={() => closeHelper(toolId)}
-              />
-            </div>
-          </section>
-        {/each}
-      </div>
+          </div>
+          <div class="panel-body">
+            <svelte:component
+              this={panelMap[toolId]}
+              showHero={helperVisible[toolId]}
+              onCloseHero={() => closeHelper(toolId)}
+            />
+          </div>
+        </section>
+      {/each}
     </div>
-  {/key}
+  </div>
 {/if}
 
 <style>

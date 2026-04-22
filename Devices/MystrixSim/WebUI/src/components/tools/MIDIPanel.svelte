@@ -107,7 +107,7 @@
   <!-- Filter toolbar -->
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>
-      <Search size={13} />
+      <Search size={16} />
       <input
         type="text"
         class="filter-input"
@@ -122,14 +122,14 @@
       on:click={() => showFilterHelp = !showFilterHelp}
       title="Filter syntax help"
     >
-      <Information size={14} />
+      <Information size={16} />
     </button>
     <button
       class="toolbar-toggle"
       class:toolbar-toggle-active={showTimestamps}
       on:click={() => showTimestamps = !showTimestamps}
       title="Toggle timestamp column"
-    ><Time size={13} /></button>
+    ><Time size={16} /></button>
     <button
       class="toolbar-toggle"
       class:toolbar-toggle-active={showRaw}
@@ -137,7 +137,7 @@
       title="Toggle raw bytes column"
     >RAW</button>
     <button class="clear-btn" on:click={clearMidiEvents} title="Clear MIDI traffic">
-      <TrashCan size={13} />
+      <TrashCan size={16} />
     </button>
   </div>
 
@@ -302,7 +302,9 @@
     gap: 5px;
     flex: 1;
     min-width: 0;
-    padding: 3px 7px;
+    padding: 0 7px;
+    height: 24px;
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 4px;
     background: var(--bg-2);
@@ -327,13 +329,15 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 0 6px;
+    height: 24px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
     font-size: 0.66rem;
     font-family: var(--mono);
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    display: inline-flex;
-    align-items: center;
   }
   .toolbar-toggle:hover { color: var(--text); border-color: var(--accent); }
   .toolbar-toggle-active { color: var(--accent); border-color: rgba(76, 201, 240, 0.4); }
@@ -343,7 +347,9 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 0 5px;
+    height: 24px;
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
   }
@@ -506,18 +512,23 @@
   .sender-field input:focus,
   .sender-field select:focus { border-color: var(--accent); outline: none; }
   .sender-btn {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    background: transparent;
-    color: var(--accent);
+    background: rgba(76, 201, 240, 0.12);
     border: 1px solid var(--accent);
-    border-radius: 4px;
-    padding: 4px 10px;
+    border-radius: 6px;
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0 8px;
+    height: 24px;
+    box-sizing: border-box;
     cursor: pointer;
-    font-weight: 600;
+    transition: background 0.12s, opacity 0.12s;
+    white-space: nowrap;
+    flex-shrink: 0;
     margin-left: auto;
   }
-  .sender-btn:hover { background: rgba(76, 201, 240, 0.12); }
+  .sender-btn:not(:disabled):hover { background: rgba(76, 201, 240, 0.2); }
+  .sender-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .custom-port-input {
     width: 72px;

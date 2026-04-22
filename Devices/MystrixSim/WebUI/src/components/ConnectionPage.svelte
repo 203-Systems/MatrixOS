@@ -209,7 +209,7 @@
     },
     {
       id: 'storage',
-      summary: 'Storage-related APIs. Current V1 surface is NVS domain only.',
+      summary: 'Storage-related APIs for NVS and the browser-backed virtual filesystem.',
       handles: [
         {
           name: 'NVS · storage.nvs.find',
@@ -238,6 +238,48 @@
           params: "{ text: 'settings/wifi' }",
           result: '{ text, hash }',
           example: "await matrixosRpc.call('storage.nvs.computeHash', { text: 'settings/wifi' })",
+        },
+        {
+          name: 'Filesystem · storage.fs.status',
+          purpose: 'Return whether the virtual filesystem is mounted and reachable.',
+          params: '{}',
+          result: '{ mounted }',
+          example: "await matrixosRpc.call('storage.fs.status')",
+        },
+        {
+          name: 'Filesystem · storage.fs.list',
+          purpose: 'List a directory in the virtual filesystem.',
+          params: "{ path: '/' }",
+          result: '{ ok, path, entries: [{ name, path, isDir, size }] }',
+          example: "await matrixosRpc.call('storage.fs.list', { path: '/' })",
+        },
+        {
+          name: 'Filesystem · storage.fs.read',
+          purpose: 'Read a file as utf8, hex, or base64.',
+          params: "{ path: '/notes/test.txt', encoding: 'utf8' }",
+          result: '{ path, size, encoding, data }',
+          example: "await matrixosRpc.call('storage.fs.read', { path: '/notes/test.txt', encoding: 'utf8' })",
+        },
+        {
+          name: 'Filesystem · storage.fs.write',
+          purpose: 'Write a file using utf8, hex, base64, or raw byte-array input.',
+          params: "{ path: '/notes/test.txt', encoding: 'utf8', data: 'hello from rpc' }",
+          result: '{ ok, path, size }',
+          example: "await matrixosRpc.call('storage.fs.write', { path: '/notes/test.txt', encoding: 'utf8', data: 'hello from rpc' })",
+        },
+        {
+          name: 'Filesystem · storage.fs.delete',
+          purpose: 'Delete a file or an empty directory.',
+          params: "{ path: '/notes/test.txt' }",
+          result: '{ ok, path }',
+          example: "await matrixosRpc.call('storage.fs.delete', { path: '/notes/test.txt' })",
+        },
+        {
+          name: 'Filesystem · storage.fs.mkdir',
+          purpose: 'Create a directory, including missing parent folders.',
+          params: "{ path: '/notes/archive' }",
+          result: '{ ok, path }',
+          example: "await matrixosRpc.call('storage.fs.mkdir', { path: '/notes/archive' })",
         },
       ],
     },

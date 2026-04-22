@@ -5,13 +5,15 @@
  *   window.matrixosRpc.call(method, params) → Promise<result>
  *   window.matrixosRpc.subscribe(topic, callback) → unsubscribe()
  *
- * Implements all 22 handles from MystrixSimJsonRpcSpec.md.
+ * Implements the MystrixSim JSON-RPC surface, including NVS and virtual
+ * filesystem storage helpers.
  *
  * Deployment modes:
  *   IS_NODE_BACKED = true  → dev server (npm run dev) or a build with
  *                            VITE_MATRIXOS_RPC_EXTERNAL=true.
  *                            window.matrixosRpc is exposed in this tab.
- *                            No external WebSocket transport is implemented.
+ *                            This tab also bridges external WebSocket JSON-RPC
+ *                            requests to the live runtime.
  *   IS_NODE_BACKED = false → static browser-only build (npm run build).
  *                            window.matrixosRpc is NOT exposed.
  *                            JSON-RPC shows as Unavailable in the UI.
@@ -28,6 +30,14 @@ import { getLedFrame, getLed } from '../handles/led.js'
 import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
 import { sendRawHid } from '../handles/hid.js'
 import { sendSerialText, sendSerialHex } from '../handles/serial.js'
+import {
+  isFilesystemMounted,
+  listFilesystemDirectory,
+  readFilesystemFile,
+  writeFilesystemFile,
+  deleteFilesystemPath,
+  makeFilesystemDirectory,
+} from '../handles/filesystem.js'
 import {
   getSessionStatus,
   pingSession,
@@ -184,6 +194,53 @@ function parseNvsHash(raw) {
     return isNaN(n) ? null : n >>> 0
   }
   return null
+}
+
+function decodeRpcBytes(value, encoding = 'utf8') {
+  if (Array.isArray(value)) {
+    const bytes = value.map((item) => Number(item) & 0xFF)
+    if (bytes.some((item) => Number.isNaN(item))) return null
+    return new Uint8Array(bytes)
+  }
+
+  if (typeof value !== 'string') return null
+
+  if (encoding === 'hex') {
+    const bytes = value
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((item) => parseInt(item, 16))
+    return bytes.some((item) => Number.isNaN(item)) ? null : new Uint8Array(bytes)
+  }
+
+  if (encoding === 'base64') {
+    try {
+      return Uint8Array.from(atob(value), (char) => char.charCodeAt(0))
+    } catch {
+      return null
+    }
+  }
+
+  if (encoding === 'utf8') {
+    return new TextEncoder().encode(value)
+  }
+
+  return null
+}
+
+function encodeRpcBytes(bytes, encoding = 'base64') {
+  const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes ?? [])
+
+  if (encoding === 'hex') {
+    return Array.from(data).map((item) => item.toString(16).padStart(2, '0').toUpperCase()).join(' ')
+  }
+
+  if (encoding === 'utf8') {
+    return new TextDecoder().decode(data)
+  }
+
+  return btoa(String.fromCharCode(...data))
 }
 
 // ---------------------------------------------------------------------------
@@ -448,6 +505,62 @@ const handlers = {
       hash: '0x' + computeNvsHash(text).toString(16).padStart(8, '0').toUpperCase(),
     }
   },
+
+  // ---- Storage / Filesystem ----
+
+  'storage.fs.status': () => ({
+    mounted: isFilesystemMounted(),
+  }),
+
+  'storage.fs.list': (params) => {
+    const path = typeof params?.path === 'string' ? params.path : '/'
+    const result = listFilesystemDirectory(path)
+    return result?.ok
+      ? result
+      : { __error: { ...ERR.UNKNOWN_TARGET, detail: result?.error || 'Failed to list directory.' } }
+  },
+
+  'storage.fs.read': (params) => {
+    const path = params?.path
+    const encoding = params?.encoding ?? 'base64'
+    if (typeof path !== 'string') return { __error: ERR.INVALID_PARAMS }
+
+    const bytes = readFilesystemFile(path)
+    if (bytes == null) return { __error: ERR.UNKNOWN_TARGET }
+
+    return {
+      path,
+      size: bytes.length,
+      encoding,
+      data: encodeRpcBytes(bytes, encoding),
+    }
+  },
+
+  'storage.fs.write': (params) => {
+    const path = params?.path
+    const encoding = params?.encoding ?? 'utf8'
+    const bytes = decodeRpcBytes(params?.data, encoding)
+    if (typeof path !== 'string' || bytes == null) return { __error: ERR.INVALID_PARAMS }
+
+    const ok = writeFilesystemFile(path, bytes)
+    return ok ? { ok: true, path, size: bytes.length } : { __error: ERR.INTERNAL }
+  },
+
+  'storage.fs.delete': (params) => {
+    const path = params?.path
+    if (typeof path !== 'string') return { __error: ERR.INVALID_PARAMS }
+
+    const ok = deleteFilesystemPath(path)
+    return ok ? { ok: true, path } : { __error: ERR.UNKNOWN_TARGET }
+  },
+
+  'storage.fs.mkdir': (params) => {
+    const path = params?.path
+    if (typeof path !== 'string') return { __error: ERR.INVALID_PARAMS }
+
+    const ok = makeFilesystemDirectory(path)
+    return ok ? { ok: true, path } : { __error: ERR.INTERNAL }
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -455,6 +568,8 @@ const handlers = {
 // ---------------------------------------------------------------------------
 
 let _reqCounter = 0
+let _externalRpcBridgeSocket = null
+let _externalRpcBridgeReconnectHandle = 0
 
 async function dispatch(method, params = {}, notifyFn = null) {
   const id = 'rpc-' + (++_reqCounter)
@@ -485,6 +600,68 @@ async function dispatch(method, params = {}, notifyFn = null) {
   }
 }
 
+function getExternalRpcWsUrl() {
+  const host = window.location.hostname || 'localhost'
+  return `ws://${host}:4002/?role=runtime`
+}
+
+function scheduleExternalRpcBridgeReconnect() {
+  if (!IS_NODE_BACKED || _externalRpcBridgeReconnectHandle) return
+
+  _externalRpcBridgeReconnectHandle = window.setTimeout(() => {
+    _externalRpcBridgeReconnectHandle = 0
+    initExternalRpcBridge()
+  }, 1000)
+}
+
+async function handleExternalRpcBridgeMessage(socket, event) {
+  let payload = null
+  try {
+    payload = JSON.parse(event.data)
+  } catch {
+    return
+  }
+
+  if (payload?.type !== 'rpc_request' || !payload.requestId || typeof payload.method !== 'string') {
+    return
+  }
+
+  const response = await dispatch(payload.method, payload.params ?? {})
+  if (socket.readyState !== WebSocket.OPEN) return
+
+  socket.send(JSON.stringify({
+    type: 'rpc_response',
+    requestId: payload.requestId,
+    response,
+  }))
+}
+
+function initExternalRpcBridge() {
+  if (!IS_NODE_BACKED) return
+  if (_externalRpcBridgeSocket && (
+    _externalRpcBridgeSocket.readyState === WebSocket.CONNECTING ||
+    _externalRpcBridgeSocket.readyState === WebSocket.OPEN
+  )) {
+    return
+  }
+
+  const socket = new WebSocket(getExternalRpcWsUrl(), 'matrixos-runtime')
+  _externalRpcBridgeSocket = socket
+
+  socket.addEventListener('message', (event) => {
+    void handleExternalRpcBridgeMessage(socket, event)
+  })
+
+  socket.addEventListener('close', () => {
+    if (_externalRpcBridgeSocket === socket) {
+      _externalRpcBridgeSocket = null
+    }
+    scheduleExternalRpcBridgeReconnect()
+  })
+
+  socket.addEventListener('error', () => {})
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -513,10 +690,11 @@ export function initRpc() {
   // Static builds must not present the JSON-RPC API as available.
   if (IS_NODE_BACKED) {
     window.matrixosRpc = rpcApi
+    initExternalRpcBridge()
     if (!window.__matrixosRpcReady) {
       window.__matrixosRpcReady = true
       console.info('[MystrixSim] JSON-RPC ready. window.matrixosRpc.call(method, params)')
-      console.info('[MystrixSim] Note: transport is in-page only. The local WebSocket server is status-only.')
+      console.info('[MystrixSim] External WebSocket RPC bridge is active while this tab remains open.')
     }
   } else {
     // Static build — do not expose the API. Delete any stale reference from HMR.

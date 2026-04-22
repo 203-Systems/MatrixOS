@@ -5,6 +5,7 @@ import { writable } from 'svelte/store'
 export const deviceTools = [
   { id: 'system',    label: 'System' },
   { id: 'application', label: 'Application' },
+  { id: 'python',    label: 'Python' },
   { id: 'input',     label: 'Input' },
   { id: 'logs',      label: 'Logs' },
   { id: 'ui',        label: 'UI' },

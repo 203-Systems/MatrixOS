@@ -8,7 +8,7 @@
   <section class="tool-hero">
     <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
     <div class="tool-hero-title-row">
-      <div class="tool-hero-title">UI Debug</div>
+      <div class="tool-hero-title">UI</div>
       <span class="status-pill status-warn">Under Construction</span>
     </div>
     <div class="tool-hero-desc">

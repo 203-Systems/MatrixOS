@@ -50,7 +50,7 @@
       </div>
       <div class="tool-card">
         <span class="tool-card-label">OS Version</span>
-        <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
+        <span class="tool-card-value" class:tool-value-error={$wasmMissing}>
           {$wasmMissing ? 'Missing' : buildMeta.version}
         </span>
       </div>
@@ -62,13 +62,13 @@
       </div>
       <div class="tool-card">
         <span class="tool-card-label">Build Hash</span>
-        <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
+        <span class="tool-card-value" class:tool-value-error={$wasmMissing} class:tool-value-warn={!$wasmMissing && buildMeta.dirty}>
           {$wasmMissing ? 'Missing' : buildMeta.buildHash}
         </span>
       </div>
       <div class="tool-card">
         <span class="tool-card-label">Build Time</span>
-        <span class="tool-card-value" class:tool-value-live={!$wasmMissing} class:tool-value-error={$wasmMissing}>
+        <span class="tool-card-value" class:tool-value-error={$wasmMissing}>
           {$wasmMissing ? 'Missing' : buildMeta.buildTime}
         </span>
       </div>

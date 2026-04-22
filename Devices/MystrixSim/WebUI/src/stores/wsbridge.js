@@ -1,10 +1,11 @@
 /**
  * wsbridge.js — WebSocket server status store.
  *
- * In-page RPC uses window.matrixosRpc directly. The UI does not connect to its
- * own WebSocket server. We only poll a same-origin discovery endpoint exposed
- * by vite-plugin-rpc-server.js to learn whether the local WS server exists and
- * how many external clients are currently connected.
+ * In-page RPC still uses window.matrixosRpc directly. Separately, the active
+ * page/runtime now also connects back to the local WebSocket bridge so
+ * external tools can issue JSON-RPC calls against the live runtime. This store
+ * only tracks server availability and external client count via the discovery
+ * endpoint exposed by vite-plugin-rpc-server.js.
  */
 
 import { writable } from 'svelte/store'

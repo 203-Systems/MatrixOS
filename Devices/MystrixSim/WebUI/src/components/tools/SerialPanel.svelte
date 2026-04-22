@@ -2,6 +2,32 @@
   import { serialEvents, serialConnected, clearSerialEvents } from '../../stores/serial.js'
   import { sendSerialText, sendSerialHex } from '../../handles/serial.js'
   import { Search, TrashCan, Information, Time } from 'carbon-icons-svelte'
+
+  const _ansiColorMap = {
+    30: '#60656f', 31: '#ff6b6b', 32: '#6bdd8b', 33: '#f7c266',
+    34: '#6ba7ff', 35: '#d47fff', 36: '#5ad4ff', 37: '#e6e6ea',
+    90: '#9ea1ad', 91: '#ff8b8b', 92: '#7ff7a1', 93: '#ffd27f',
+    94: '#86b8ff', 95: '#e2a0ff', 96: '#8de5ff', 97: '#ffffff'
+  }
+
+  function ansiToSegments(raw) {
+    if (!raw) return [{ text: raw, color: null }]
+    const segments = []
+    let lastIndex = 0
+    let currentColor = null
+    const re = /\x1B\[([0-9;]*)m/g
+    let m
+    while ((m = re.exec(raw)) !== null) {
+      if (m.index > lastIndex) segments.push({ text: raw.slice(lastIndex, m.index), color: currentColor })
+      lastIndex = m.index + m[0].length
+      const parts = m[1].split(';').map(Number).filter(v => !isNaN(v))
+      if (parts.length === 0 || parts.includes(0)) currentColor = null
+      const code = parts.find(v => (v >= 30 && v <= 37) || (v >= 90 && v <= 97))
+      if (code != null && _ansiColorMap[code]) currentColor = _ansiColorMap[code]
+    }
+    if (lastIndex < raw.length) segments.push({ text: raw.slice(lastIndex), color: currentColor })
+    return segments.length ? segments : [{ text: raw, color: null }]
+  }
   export let showHero = true
   export let onCloseHero = () => {}
 
@@ -74,7 +100,7 @@
   <!-- Filter toolbar -->
   <div class="filter-bar">
     <div class="filter-search" class:filter-active={filterQuery}>
-      <Search size={13} />
+      <Search size={16} />
       <input
         type="text"
         class="filter-input"
@@ -89,14 +115,14 @@
       on:click={() => showFilterHelp = !showFilterHelp}
       title="Filter syntax help"
     >
-      <Information size={14} />
+      <Information size={16} />
     </button>
     <button
       class="toolbar-toggle"
       class:toolbar-toggle-active={showTimestamps}
       on:click={() => showTimestamps = !showTimestamps}
       title="Toggle timestamp column"
-    ><Time size={13} /></button>
+    ><Time size={16} /></button>
     <button
       class="toolbar-toggle"
       class:toolbar-toggle-active={viewHex}
@@ -104,7 +130,7 @@
       title="Toggle hex view"
     >HEX</button>
     <button class="clear-btn" on:click={clearSerialEvents} title="Clear serial events">
-      <TrashCan size={13} />
+      <TrashCan size={16} />
     </button>
   </div>
 
@@ -139,7 +165,15 @@
             <span class="event-dir" class:dir-tx={evt.direction === 'TX'} class:dir-rx={evt.direction === 'RX'}>
               {evt.direction}
             </span>
-            <span class="event-data">{viewHex ? evt.hexView : evt.text}</span>
+            <span class="event-data">
+              {#if viewHex}
+                {evt.hexView}
+              {:else}
+                {#each ansiToSegments(evt.text) as seg}
+                  <span style={seg.color ? `color:${seg.color}` : undefined}>{seg.text}</span>
+                {/each}
+              {/if}
+            </span>
           </div>
         {/each}
       {/if}
@@ -162,7 +196,7 @@
       <input
         class="sender-input"
         type="text"
-        placeholder={sendMode === 'hex' ? '48 65 6C 6C 6F' : 'Type message…'}
+        placeholder={sendMode === 'hex' ? 'e.g. DE AD BE EF' : 'Type message…'}
         bind:value={sendValue}
         on:keydown={handleKeydown}
       />
@@ -199,7 +233,9 @@
     gap: 5px;
     flex: 1;
     min-width: 0;
-    padding: 3px 7px;
+    padding: 0 7px;
+    height: 24px;
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 4px;
     background: var(--bg-2);
@@ -224,7 +260,11 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 0 6px;
+    height: 24px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
     font-size: 0.66rem;
     font-family: var(--mono);
     text-transform: uppercase;
@@ -238,7 +278,9 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 5px;
+    padding: 0 5px;
+    height: 24px;
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
   }
@@ -302,7 +344,9 @@
     border-radius: 4px;
     color: var(--muted);
     cursor: pointer;
-    padding: 2px 8px;
+    padding: 0 8px;
+    height: 24px;
+    box-sizing: border-box;
     font-size: 0.7rem;
     font-weight: 600;
   }
@@ -315,10 +359,40 @@
     font-size: 0.68rem;
     color: var(--muted);
     font-family: var(--mono);
-    margin-left: 4px;
+    margin-left: auto;
     cursor: pointer;
+    user-select: none;
   }
-  .newline-opt input { width: 12px; height: 12px; margin: 0; cursor: pointer; }
+  .newline-opt input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    margin: 0;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--bg-2);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 0.1s, background 0.1s;
+  }
+  .newline-opt input:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .newline-opt input:checked::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    width: 4px;
+    height: 7px;
+    border: 1.5px solid #0f1014;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+  }
   .sender-row { display: flex; gap: 6px; }
   .sender-input {
     flex: 1;
@@ -328,23 +402,29 @@
     color: var(--text);
     font-family: var(--mono);
     font-size: 0.76rem;
-    padding: 5px 8px;
+    padding: 0 8px;
+    height: 24px;
+    box-sizing: border-box;
     outline: none;
   }
   .sender-input::placeholder { color: var(--muted); opacity: 0.6; }
   .sender-input:focus { border-color: var(--accent); }
   .send-btn {
-    background: transparent;
+    background: rgba(76, 201, 240, 0.12);
     border: 1px solid var(--accent);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--accent);
-    font-size: 0.74rem;
-    font-weight: 600;
-    padding: 5px 14px;
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0 8px;
+    height: 24px;
+    box-sizing: border-box;
     cursor: pointer;
+    transition: background 0.12s, opacity 0.12s;
+    white-space: nowrap;
   }
-  .send-btn:hover { background: rgba(76, 201, 240, 0.12); }
-  .send-btn:disabled { opacity: 0.4; cursor: default; }
+  .send-btn:not(:disabled):hover { background: rgba(76, 201, 240, 0.2); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .hex-error { font-size: 0.68rem; color: var(--danger); font-family: var(--mono); }
 
   .event-col-header {

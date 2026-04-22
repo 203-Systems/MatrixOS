@@ -8,14 +8,15 @@ function getModule() {
 
 export function sendSerialText(text) {
   const mod = getModule()
-  if (!mod?._MatrixOS_Wasm_SerialWrite) return false
+  const inject = mod?._MatrixOS_Wasm_SerialInjectRx ?? mod?._MatrixOS_Wasm_SerialWrite
+  if (!inject || !mod?._malloc || !mod?.HEAPU8 || !mod?._free) return false
 
   const encoder = new TextEncoder()
   const bytes = encoder.encode(text)
   const ptr = mod._malloc(bytes.length + 1)
   mod.HEAPU8.set(bytes, ptr)
   mod.HEAPU8[ptr + bytes.length] = 0
-  mod._MatrixOS_Wasm_SerialWrite(ptr, bytes.length)
+  inject(ptr, bytes.length)
   mod._free(ptr)
   return true
 }

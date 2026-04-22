@@ -3,6 +3,7 @@ import { writable, get } from 'svelte/store'
 import { hookMidiTap, clearMidiEvents } from './midi.js'
 import { hookHidTap, clearHidEvents } from './hid.js'
 import { hookSerialTap, clearSerialEvents } from './serial.js'
+import { hookPythonTap, clearPythonEvents, resetPythonPanelState } from './python.js'
 import { clearLogs } from './logs.js'
 import { clearInputEvents } from './input.js'
 import { EMPTY_BUILD_METADATA, parseBuildIdentity, parseBuildMetadataJson } from '../buildMetadata.js'
@@ -31,6 +32,103 @@ let _currentBlobUrl = null
 let _runtimeAssetSource = { ...DEFAULT_RUNTIME_ASSET_SOURCE }
 let _retiredRuntimeAssetBlobUrls = []
 let _lastRuntimeLoadError = null
+const FILESYSTEM_STORAGE_KEY = 'matrixos-mystrixsim-filesystem-image-v1'
+
+function bytesToBase64(bytes) {
+  let binary = ''
+  const chunkSize = 0x8000
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length))
+    binary += String.fromCharCode(...chunk)
+  }
+  return btoa(binary)
+}
+
+function base64ToBytes(base64) {
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return bytes
+}
+
+function getRuntimeHeapView() {
+  return globalThis.HEAPU8 || window.HEAPU8 || window.Module?.HEAPU8 || null
+}
+
+function ensureFilesystemBridge() {
+  if (typeof window === 'undefined') return null
+  if (window._matrixos_fs_bridge) return window._matrixos_fs_bridge
+
+  const bridge = {
+    pendingTimer: 0,
+    pendingPtr: 0,
+    pendingLength: 0,
+    key: FILESYSTEM_STORAGE_KEY,
+    loadImage(ptr, length) {
+      try {
+        const encoded = window.localStorage.getItem(this.key)
+        if (!encoded) return 0
+        const heap = getRuntimeHeapView()
+        if (!heap) return -1
+        const bytes = base64ToBytes(encoded)
+        const copyLength = Math.min(bytes.length, length)
+        heap.fill(0, ptr, ptr + length)
+        heap.set(bytes.subarray(0, copyLength), ptr)
+        return copyLength
+      } catch (error) {
+        console.error('[MystrixSim] Failed to load filesystem image:', error)
+        return -1
+      }
+    },
+    flushNow(ptr = this.pendingPtr, length = this.pendingLength) {
+      if (typeof ptr === 'number' && typeof length === 'number' && length > 0) {
+        this.pendingPtr = ptr
+        this.pendingLength = length
+      }
+
+      if (this.pendingTimer) {
+        window.clearTimeout(this.pendingTimer)
+        this.pendingTimer = 0
+      }
+
+      if (!this.pendingLength) return 0
+
+      try {
+        const heap = getRuntimeHeapView()
+        if (!heap) return -1
+        const bytes = heap.slice(this.pendingPtr, this.pendingPtr + this.pendingLength)
+        window.localStorage.setItem(this.key, bytesToBase64(bytes))
+        this.pendingPtr = 0
+        this.pendingLength = 0
+        return bytes.length
+      } catch (error) {
+        console.error('[MystrixSim] Failed to persist filesystem image:', error)
+        return -1
+      }
+    },
+    scheduleSave(ptr, length) {
+      this.pendingPtr = ptr
+      this.pendingLength = length
+      if (this.pendingTimer) {
+        window.clearTimeout(this.pendingTimer)
+      }
+      this.pendingTimer = window.setTimeout(() => {
+        this.flushNow()
+      }, 120)
+    },
+  }
+
+  window._matrixos_fs_bridge = bridge
+  if (!window._matrixos_fs_bridge_unload_installed) {
+    window.addEventListener('beforeunload', () => {
+      try { bridge.flushNow() } catch {}
+    })
+    window._matrixos_fs_bridge_unload_installed = true
+  }
+  return bridge
+}
 
 const isHtmlResponse = (r) => (r.headers.get('content-type') || '').includes('text/html')
 
@@ -216,6 +314,8 @@ const looksLikeMatrixOSLog = (args) => {
 
 /** Terminate the current WASM module and all its pthreads. */
 function terminateWasmRuntime() {
+  try { window._matrixos_fs_bridge?.flushNow() } catch {}
+
   const mod = window.Module
   if (!mod) return
 
@@ -250,6 +350,7 @@ function terminateWasmRuntime() {
 function prepareFreshModule() {
   const { jsUrl, wasmUrl } = getRuntimeAssetSource()
 
+  ensureFilesystemBridge()
   window.MatrixOSLogBuffer = []
 
   window.MatrixOSRuntimeReady = new Promise((resolve) => {
@@ -286,12 +387,18 @@ function prepareFreshModule() {
     }
   })
 
-  window.MatrixOS_Reboot = () => { setTimeout(restartWasm, 0) }
+  window.MatrixOS_Reboot = () => {
+    try { window._matrixos_fs_bridge?.flushNow() } catch {}
+    setTimeout(restartWasm, 0)
+  }
   // Bootloader is distinct from a hot-restart: in the SIL environment there is no
   // actual DFU target, so entering bootloader is represented as a full page reload
   // (restoring the original pre-hot-restart behavior). This keeps it clearly
   // separate from the runtime-only restart path.
-  window.MatrixOS_Bootloader = () => { location.reload() }
+  window.MatrixOS_Bootloader = () => {
+    try { window._matrixos_fs_bridge?.flushNow() } catch {}
+    location.reload()
+  }
 }
 
 /** Dynamically inject MatrixOSHost.js and wait for it to load. */
@@ -380,6 +487,8 @@ function resetRuntimeStores() {
   clearMidiEvents()
   clearHidEvents()
   clearSerialEvents()
+  clearPythonEvents()
+  resetPythonPanelState()
   clearInputEvents()
 }
 
@@ -488,6 +597,7 @@ export function initWasm() {
   const unhookMidi = hookMidiTap()
   const unhookHid = hookHidTap()
   const unhookSerial = hookSerialTap()
+  const unhookPython = hookPythonTap()
 
   // Hook abort
   const prevAbort = mod.onAbort
@@ -578,8 +688,14 @@ export function initWasm() {
   // Upgrade reboot hook to use hot-restart (setTimeout avoids EM_ASM deadlock).
   // Bootloader uses location.reload() — there is no DFU target in the SIL
   // environment, so bootloader semantics are a full page reload, not a hot-restart.
-  window.MatrixOS_Reboot = () => { setTimeout(restartWasm, 0) }
-  window.MatrixOS_Bootloader = () => { location.reload() }
+  window.MatrixOS_Reboot = () => {
+    try { window._matrixos_fs_bridge?.flushNow() } catch {}
+    setTimeout(restartWasm, 0)
+  }
+  window.MatrixOS_Bootloader = () => {
+    try { window._matrixos_fs_bridge?.flushNow() } catch {}
+    location.reload()
+  }
 
   const cleanup = () => {
     if (reloadTimer) clearInterval(reloadTimer)
@@ -587,6 +703,7 @@ export function initWasm() {
     if (unhookMidi) unhookMidi()
     if (unhookHid) unhookHid()
     if (unhookSerial) unhookSerial()
+    if (unhookPython) unhookPython()
   }
   _currentCleanup = cleanup
   return cleanup

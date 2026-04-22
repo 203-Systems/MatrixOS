@@ -313,18 +313,22 @@
   .hex-input::placeholder { color: var(--muted); opacity: 0.5; }
   .hex-input:focus { border-color: var(--accent); outline: none; }
   .sender-btn {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    background: transparent;
-    color: var(--accent);
+    background: rgba(76, 201, 240, 0.12);
     border: 1px solid var(--accent);
-    border-radius: 4px;
-    padding: 4px 10px;
+    border-radius: 6px;
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0 8px;
+    height: 24px;
+    box-sizing: border-box;
     cursor: pointer;
-    font-weight: 600;
+    transition: background 0.12s, opacity 0.12s;
+    white-space: nowrap;
     flex-shrink: 0;
   }
-  .sender-btn:hover { background: rgba(76, 201, 240, 0.12); }
+  .sender-btn:not(:disabled):hover { background: rgba(76, 201, 240, 0.2); }
+  .sender-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .sender-hint {
     display: block;
     font-size: 0.65rem;
