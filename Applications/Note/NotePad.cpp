@@ -169,7 +169,6 @@ bool NotePad::IsNoteHighlighted(uint8_t note) const {
 }
 
 void NotePad::GenerateOctaveKeymap() {
-  noteMap.reserve(dimension.Area());
   int16_t root = 12 * rt->config->octave + rt->config->rootKey + rt->config->rootOffset;
   int16_t nextNote = root;
   uint8_t rootCount = 0;
@@ -228,7 +227,6 @@ void NotePad::GenerateOctaveKeymap() {
 }
 
 void NotePad::GenerateOffsetKeymap() {
-  noteMap.reserve(dimension.Area());
   int16_t root = 12 * rt->config->octave + rt->config->rootKey + rt->config->rootOffset;
   if (!rt->config->enforceScale)
   {
@@ -293,7 +291,6 @@ void NotePad::GenerateOffsetKeymap() {
 }
 
 void NotePad::GenerateChromaticKeymap() {
-  noteMap.reserve(dimension.Area());
   int16_t note = (12 * rt->config->octave) + rt->config->rootKey + rt->config->rootOffset;
   for (uint8_t i = 0; i < dimension.Area(); i++)
   {
@@ -328,7 +325,6 @@ void NotePad::GenerateChromaticKeymap() {
 }
 
 void NotePad::GeneratePianoKeymap() {
-  noteMap.reserve(dimension.Area());
   const int8_t blackKeys[7] = {-1, 1, 3, -1, 6, 8, 10};
   const int8_t whiteKeys[7] = {0, 2, 4, 5, 7, 9, 11};
 
@@ -381,6 +377,7 @@ void NotePad::GeneratePianoKeymap() {
 }
 
 void NotePad::GenerateKeymap() {
+  noteMap.assign(dimension.Area(), 255);
   c_aligned_scale_map =
       ((rt->config->scale << rt->config->rootKey) + ((rt->config->scale & 0xFFF) >> (12 - rt->config->rootKey % 12))) & 0xFFF;
   switch (rt->config->mode)
@@ -413,7 +410,13 @@ void NotePad::GenerateKeymap() {
 void NotePad::FirstScan(Point origin) {
   for (const auto& activeKey : activeKeys)
   {
-    uint8_t note = noteMap[activeKey.position.y * dimension.x + activeKey.position.x];
+    size_t index = activeKey.position.y * dimension.x + activeKey.position.x;
+    if (index >= noteMap.size())
+    {
+      continue;
+    }
+
+    uint8_t note = noteMap[index];
 
     if (note == 255)
     {
@@ -536,7 +539,13 @@ bool NotePad::Render(Point origin) {
 }
 
 bool NotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
-  uint8_t note = noteMap[xy.y * dimension.x + xy.x];
+  size_t index = xy.y * dimension.x + xy.x;
+  if (index >= noteMap.size())
+  {
+    return true;
+  }
+
+  uint8_t note = noteMap[index];
   if (note == 255)
   {
     return true;
