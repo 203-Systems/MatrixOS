@@ -1,14 +1,79 @@
 #include "Sequence.h"
 #include "Scales.h"
+#include <algorithm>
 #include <cmath>
 
 using std::vector;
 
 Sequence::Sequence(uint8_t tracks) {
+  EnsureMutex();
   New(tracks);
 }
 
+Sequence::~Sequence() {
+  if (sequenceMutex)
+  {
+    vSemaphoreDelete(sequenceMutex);
+    sequenceMutex = nullptr;
+  }
+}
+
+void Sequence::EnsureMutex() const {
+  if (sequenceMutex == nullptr)
+  {
+    sequenceMutex = xSemaphoreCreateRecursiveMutex();
+  }
+}
+
+void Sequence::Lock() const {
+  EnsureMutex();
+  if (sequenceMutex)
+  {
+    xSemaphoreTakeRecursive(sequenceMutex, portMAX_DELAY);
+  }
+}
+
+void Sequence::Unlock() const {
+  if (sequenceMutex)
+  {
+    xSemaphoreGiveRecursive(sequenceMutex);
+  }
+}
+
+void Sequence::ResetPlaybackState(uint8_t tracks) {
+  trackPlayback.clear();
+  trackPlayback.resize(tracks);
+  for (auto& tp : trackPlayback)
+  {
+    tp.position.pulse = UINT16_MAX;
+    tp.position.step = 0;
+    tp.position.pattern = 0;
+    tp.position.clip = 0;
+    tp.resumePosition = tp.position;
+    tp.canResume = false;
+    tp.nextClip = 255;
+    tp.lastEventTime = 0;
+    tp.playing = false;
+    tp.noteOffMap.clear();
+    tp.noteOffQueue.clear();
+    tp.recordedNotes.clear();
+  }
+  playing = false;
+  record = false;
+  clocksTillStart = 0;
+  pulseSinceStart = 0;
+  currentPulse = UINT16_MAX;
+  currentStep = 0;
+  lastPulseTime = 0;
+  lastClockTime = 0;
+  currentClock = 0;
+  lastRecordLayer = 0;
+  currentRecordLayer = 0;
+}
+
 void Sequence::New(uint8_t tracks) {
+  SequenceScopedLock lock(*this);
+
   if (tracks > 32)
   {
     // Don't support 32+ tracks
@@ -21,6 +86,7 @@ void Sequence::New(uint8_t tracks) {
   data.beatsPerBar = 4;
   data.beatUnit = 4;
   data.stepDivision = 4;
+  stepDivision = data.stepDivision;
   data.patternLength = 16;
   data.version = SEQUENCE_VERSION;
   data.tracks.clear();
@@ -39,21 +105,7 @@ void Sequence::New(uint8_t tracks) {
     data.tracks[i].clips[0].patterns[0].steps = 16;
   }
 
-  trackPlayback.clear();
-  trackPlayback.resize(tracks);
-  for (auto& tp : trackPlayback)
-  {
-    tp.position.pulse = UINT16_MAX;
-    tp.position.step = 0;
-    tp.position.pattern = 0;
-    tp.position.clip = 0;
-  }
-  pulseSinceStart = 0;
-  currentPulse = UINT16_MAX; // so first increment lands on pulse 0
-  currentStep = 0;
-  lastPulseTime = 0;
-  lastRecordLayer = 0;
-  currentRecordLayer = 0;
+  ResetPlaybackState(tracks);
 
   data.solo = 0;
   data.mute = 0;
@@ -64,7 +116,113 @@ void Sequence::New(uint8_t tracks) {
   UpdateTiming();
 }
 
+void Sequence::SetData(const SequenceData& newData) {
+  SequenceScopedLock lock(*this);
+
+  data = newData;
+  if (data.tracks.empty() || data.tracks.size() > 32)
+  {
+    New(8);
+    return;
+  }
+
+  data.bpm = std::clamp<uint16_t>(data.bpm, 20, 299);
+  data.swing = std::clamp<uint8_t>(data.swing, 20, 80);
+  data.patternLength = std::clamp<uint8_t>(data.patternLength, 1, 64);
+  data.beatsPerBar = std::clamp<uint8_t>(data.beatsPerBar, 1, 16);
+  if (!(data.beatUnit == 1 || data.beatUnit == 2 || data.beatUnit == 4 || data.beatUnit == 8 || data.beatUnit == 16))
+  {
+    data.beatUnit = 4;
+  }
+  if (data.stepDivision == 0 || data.stepDivision > 64)
+  {
+    data.stepDivision = 16;
+  }
+  stepDivision = data.stepDivision;
+
+  uint16_t loadedPulsesPerStep = (PPQN * 4) / stepDivision;
+  if (loadedPulsesPerStep == 0)
+  {
+    data.stepDivision = 16;
+    stepDivision = data.stepDivision;
+    loadedPulsesPerStep = (PPQN * 4) / stepDivision;
+  }
+
+  for (auto& track : data.tracks)
+  {
+    if (track.channel > 15)
+    {
+      track.channel %= 16;
+    }
+
+    for (auto it = track.clips.begin(); it != track.clips.end();)
+    {
+      if (it->first > 127)
+      {
+        it = track.clips.erase(it);
+        continue;
+      }
+
+      SequenceClip& clip = it->second;
+      if (clip.patterns.empty())
+      {
+        clip.patterns.emplace_back();
+      }
+      if (clip.patterns.size() > SEQUENCE_MAX_PATTERN_COUNT)
+      {
+        clip.patterns.resize(SEQUENCE_MAX_PATTERN_COUNT);
+      }
+      for (SequencePattern& pattern : clip.patterns)
+      {
+        if (pattern.steps == 0 || pattern.steps > 64)
+        {
+          pattern.steps = data.patternLength;
+        }
+
+        uint32_t maxPulse = pattern.steps * loadedPulsesPerStep;
+        for (auto evIt = pattern.events.begin(); evIt != pattern.events.end();)
+        {
+          if (evIt->first >= maxPulse)
+          {
+            evIt = pattern.events.erase(evIt);
+          }
+          else
+          {
+            ++evIt;
+          }
+        }
+      }
+      ++it;
+    }
+
+    if (track.clips.empty())
+    {
+      track.clips[0] = SequenceClip();
+      track.clips[0].patterns.emplace_back();
+      track.clips[0].patterns[0].steps = data.patternLength;
+    }
+
+    if (track.activeClip > 127 || track.clips.find(track.activeClip) == track.clips.end())
+    {
+      track.activeClip = track.clips.begin()->first;
+    }
+  }
+
+  ResetPlaybackState(data.tracks.size());
+  for (uint8_t i = 0; i < data.tracks.size(); i++)
+  {
+    trackPlayback[i].position.clip = data.tracks[i].activeClip;
+    trackPlayback[i].resumePosition = trackPlayback[i].position;
+  }
+
+  UpdateEmptyPatternsWithPatternLength();
+  UpdateTiming();
+  dirty = true;
+}
+
 void Sequence::Tick() {
+  SequenceScopedLock lock(*this);
+
   uint32_t now = MatrixOS::SYS::Micros();
 
   // Anchor clock on first tick
@@ -193,6 +351,8 @@ void Sequence::UpdateTiming() {
 
 // Playback control
 void Sequence::Play() {
+  SequenceScopedLock lock(*this);
+
   for (uint8_t track = 0; track < trackPlayback.size(); track++)
   {
     uint8_t currentClip = trackPlayback[track].position.clip;
@@ -201,11 +361,21 @@ void Sequence::Play() {
 }
 
 void Sequence::Play(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= trackPlayback.size())
+    return;
+
   uint8_t currentClip = trackPlayback[track].position.clip;
   PlayClip(track, currentClip);
 }
 
 void Sequence::PlayClip(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= trackPlayback.size() || track >= data.tracks.size())
+    return;
+
   if (!ClipExists(track, clip))
   {
     clip = 254;
@@ -246,6 +416,8 @@ void Sequence::PlayClip(uint8_t track, uint8_t clip) {
 }
 
 void Sequence::PlayClipForAllTracks(uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
   for (uint8_t track = 0; track < data.tracks.size(); track++)
   {
     PlayClip(track, clip);
@@ -253,6 +425,11 @@ void Sequence::PlayClipForAllTracks(uint8_t clip) {
 }
 
 void Sequence::PlayFrom(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= trackPlayback.size() || track >= data.tracks.size())
+    return;
+
   // Validate clip exists
   if (!ClipExists(track, clip))
     return;
@@ -326,6 +503,8 @@ void Sequence::PlayFrom(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t st
 }
 
 void Sequence::Resume() {
+  SequenceScopedLock lock(*this);
+
   if (CanResume() == false)
   {
     return;
@@ -358,6 +537,8 @@ void Sequence::Resume() {
 }
 
 bool Sequence::CanResume() {
+  SequenceScopedLock lock(*this);
+
   if (playing)
     return false;
   for (uint8_t track = 0; track < trackPlayback.size(); track++)
@@ -371,16 +552,22 @@ bool Sequence::CanResume() {
 }
 
 bool Sequence::Playing() {
+  SequenceScopedLock lock(*this);
+
   return playing;
 }
 
 bool Sequence::Playing(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   return trackPlayback[track].playing;
 }
 
 void Sequence::Stop() {
+  SequenceScopedLock lock(*this);
+
   playing = false;
   record = false;
   uint8_t sessionLayer = currentRecordLayer;
@@ -434,6 +621,8 @@ void Sequence::Stop() {
 }
 
 void Sequence::Stop(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
 
@@ -471,6 +660,8 @@ void Sequence::Stop(uint8_t track) {
 }
 
 void Sequence::StopAfter(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
 
@@ -484,40 +675,56 @@ void Sequence::StopAfter(uint8_t track) {
 
 // Recording
 void Sequence::EnableRecord(bool val) {
+  SequenceScopedLock lock(*this);
+
   record = val;
 }
 
 bool Sequence::RecordEnabled() {
+  SequenceScopedLock lock(*this);
+
   return record;
 }
 
 // Clock Output
 void Sequence::EnableClockOutput(bool val) {
+  SequenceScopedLock lock(*this);
+
   clockOutput = val;
 }
 
 bool Sequence::ClockOutputEnabled() {
+  SequenceScopedLock lock(*this);
+
   return clockOutput;
 }
 
 int16_t Sequence::GetClocksTillStart() {
+  SequenceScopedLock lock(*this);
+
   return clocksTillStart;
 }
 
 // Track count
 uint8_t Sequence::GetTrackCount() {
+  SequenceScopedLock lock(*this);
+
   return data.tracks.size();
 }
 
 // Clip management
 uint8_t Sequence::GetClipCount(uint8_t track) {
-  if (track > data.tracks.size())
-    return false;
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size())
+    return 0;
   return data.tracks[track].clips.size();
 }
 
 bool Sequence::ClipExists(uint8_t track, uint8_t clip) {
-  if (track > data.tracks.size())
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size())
     return false;
   if (clip > 127)
     return false;
@@ -525,6 +732,11 @@ bool Sequence::ClipExists(uint8_t track, uint8_t clip) {
 }
 
 bool Sequence::NewClip(uint8_t track, uint8_t clipId) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size() || track >= trackPlayback.size() || clipId > 127)
+    return false;
+
   if (ClipExists(track, clipId))
     return false;
 
@@ -536,6 +748,11 @@ bool Sequence::NewClip(uint8_t track, uint8_t clipId) {
 }
 
 void Sequence::DeleteClip(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size() || track >= trackPlayback.size())
+    return;
+
   if (!ClipExists(track, clip))
     return;
   data.tracks[track].clips.erase(clip);
@@ -574,13 +791,16 @@ void Sequence::DeleteClip(uint8_t track, uint8_t clip) {
 }
 
 void Sequence::CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTrack, uint8_t destClip) {
+  SequenceScopedLock lock(*this);
+
   if (sourceTrack == destTrack && sourceClip == destClip)
   {
     return;
   }
 
   // Check if source clip exists
-  if (!ClipExists(sourceTrack, sourceClip))
+  if (sourceTrack >= data.tracks.size() || destTrack >= data.tracks.size() || sourceTrack >= trackPlayback.size() ||
+      destTrack >= trackPlayback.size() || destClip > 127 || !ClipExists(sourceTrack, sourceClip))
     return;
 
   // If destination clip exists, delete it first
@@ -597,12 +817,16 @@ void Sequence::CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTra
 
 // Pattern management (now with clip parameter)
 uint8_t Sequence::GetPatternCount(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
   if (!ClipExists(track, clip))
     return 0;
   return data.tracks[track].clips[clip].patterns.size();
 }
 
 SequencePattern* Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t pattern) {
+  SequenceScopedLock lock(*this);
+
   if (!ClipExists(track, clip))
     return nullptr;
   auto& pats = data.tracks[track].clips[clip].patterns;
@@ -612,6 +836,8 @@ SequencePattern* Sequence::GetPattern(uint8_t track, uint8_t clip, uint8_t patte
 }
 
 int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps) {
+  SequenceScopedLock lock(*this);
+
   if (!ClipExists(track, clip))
     return -1;
   if (data.tracks[track].clips[clip].patterns.size() >= SEQUENCE_MAX_PATTERN_COUNT)
@@ -629,6 +855,8 @@ int8_t Sequence::NewPattern(uint8_t track, uint8_t clip, uint8_t steps) {
 }
 
 void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
   if (!ClipExists(track, clip))
     return;
 
@@ -641,6 +869,8 @@ void Sequence::ClearAllStepsInClip(uint8_t track, uint8_t clip) {
 }
 
 bool Sequence::PatternClearAll(SequencePattern* pattern) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   if (!pattern->events.empty())
@@ -652,6 +882,8 @@ bool Sequence::PatternClearAll(SequencePattern* pattern) {
 }
 
 bool Sequence::PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, const SequenceEvent& event) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   uint32_t patternLimit = pattern->steps * pulsesPerStep;
@@ -663,6 +895,8 @@ bool Sequence::PatternAddEvent(SequencePattern* pattern, uint16_t timestamp, con
 }
 
 bool Sequence::PatternHasEventInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, SequenceEventType type) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   auto it = pattern->events.lower_bound(startTime);
@@ -678,6 +912,8 @@ bool Sequence::PatternHasEventInRange(SequencePattern* pattern, uint16_t startTi
 }
 
 bool Sequence::PatternClearNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, uint8_t note) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   bool removed = false;
@@ -703,6 +939,8 @@ bool Sequence::PatternClearNotesInRange(SequencePattern* pattern, uint16_t start
 }
 
 bool Sequence::PatternOffsetNotesInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime, int8_t offset) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern || offset == 0)
     return false;
 
@@ -754,6 +992,8 @@ bool Sequence::PatternOffsetNotesInRange(SequencePattern* pattern, uint16_t star
 }
 
 bool Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t startTime, uint16_t endTime) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   bool removed = false;
@@ -770,6 +1010,8 @@ bool Sequence::PatternClearEventsInRange(SequencePattern* pattern, uint16_t star
 }
 
 bool Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, uint16_t pulsesPerStep) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   uint16_t startTime = step * pulsesPerStep;
@@ -778,6 +1020,8 @@ bool Sequence::PatternClearStepEvents(SequencePattern* pattern, uint8_t step, ui
 }
 
 bool Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint8_t dest, uint16_t pulsesPerStep) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern || src == dest)
     return false;
   uint16_t sourceStartTime = src * pulsesPerStep;
@@ -787,6 +1031,8 @@ bool Sequence::PatternCopyStepEvents(SequencePattern* pattern, uint8_t src, uint
 }
 
 bool Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourceStart, uint16_t destStart, uint16_t length) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
   vector<std::pair<uint16_t, SequenceEvent>> eventsToCopy;
@@ -818,6 +1064,8 @@ bool Sequence::PatternCopyEventsInRange(SequencePattern* pattern, uint16_t sourc
 }
 
 bool Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
 
@@ -841,6 +1089,8 @@ bool Sequence::PatternSetLength(SequencePattern* pattern, uint8_t steps) {
 }
 
 bool Sequence::PatternQuantize(SequencePattern* pattern, SequencePattern* patternNext, uint16_t stepPulse) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern || stepPulse == 0)
     return false;
 
@@ -906,6 +1156,8 @@ bool Sequence::PatternQuantize(SequencePattern* pattern, SequencePattern* patter
 }
 
 bool Sequence::DualPatternQuantize(SequencePattern* pattern1, SequencePattern* pattern2, SequencePattern* patternNext, uint16_t stepPulse) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern2)
     return PatternQuantize(pattern1, patternNext, stepPulse);
   if (!pattern1 || stepPulse == 0)
@@ -916,6 +1168,8 @@ bool Sequence::DualPatternQuantize(SequencePattern* pattern1, SequencePattern* p
 }
 
 bool Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern)
     return false;
 
@@ -946,6 +1200,8 @@ bool Sequence::PatternNudge(SequencePattern* pattern, int16_t offsetPulse) {
 }
 
 bool Sequence::DualPatternNudge(SequencePattern* pattern1, SequencePattern* pattern2, int16_t offsetPulse) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern1)
     return false;
 
@@ -1027,6 +1283,8 @@ bool Sequence::DualPatternNudge(SequencePattern* pattern1, SequencePattern* patt
 
 bool Sequence::PatternNudgeInRange(SequencePattern* pattern, uint16_t startTime, uint16_t length, int16_t offsetPulse,
                                    SequencePattern* prevPattern, SequencePattern* nextPattern) {
+  SequenceScopedLock lock(*this);
+
   if (!pattern || offsetPulse == 0 || length == 0)
     return false;
 
@@ -1108,6 +1366,8 @@ bool Sequence::PatternNudgeInRange(SequencePattern* pattern, uint16_t startTime,
 }
 
 void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern) {
+  SequenceScopedLock lock(*this);
+
   if (!ClipExists(track, clip))
     return;
 
@@ -1138,6 +1398,8 @@ void Sequence::DeletePattern(uint8_t track, uint8_t clip, uint8_t pattern) {
 
 void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sourcePattern, uint8_t destTrack, uint8_t destClip,
                            uint8_t destPattern) {
+  SequenceScopedLock lock(*this);
+
   if (sourceTrack == destTrack && sourceClip == destClip && sourcePattern == destPattern)
   {
     return;
@@ -1180,10 +1442,21 @@ void Sequence::CopyPattern(uint8_t sourceTrack, uint8_t sourceClip, uint8_t sour
 
 // Track channel
 uint8_t Sequence::GetChannel(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size())
+    return 0;
+
   return data.tracks[track].channel;
 }
 
 void Sequence::SetChannel(uint8_t track, uint8_t channel) {
+  SequenceScopedLock lock(*this);
+
+  if (track >= data.tracks.size())
+    return;
+
+  channel %= 16;
   if (data.tracks[track].channel != channel)
   {
     data.tracks[track].channel = channel;
@@ -1193,10 +1466,15 @@ void Sequence::SetChannel(uint8_t track, uint8_t channel) {
 
 // BPM
 uint16_t Sequence::GetBPM() {
+  SequenceScopedLock lock(*this);
+
   return data.bpm;
 }
 
 void Sequence::SetBPM(uint16_t bpm) {
+  SequenceScopedLock lock(*this);
+
+  bpm = std::clamp<uint16_t>(bpm, 20, 299);
   if (bpm != data.bpm)
   {
     data.bpm = bpm;
@@ -1207,10 +1485,15 @@ void Sequence::SetBPM(uint16_t bpm) {
 
 // Swing
 uint8_t Sequence::GetSwing() {
+  SequenceScopedLock lock(*this);
+
   return data.swing;
 }
 
 void Sequence::SetSwing(uint8_t swing) {
+  SequenceScopedLock lock(*this);
+
+  swing = std::clamp<uint8_t>(swing, 20, 80);
   if (swing != data.swing)
   {
     data.swing = swing;
@@ -1221,10 +1504,14 @@ void Sequence::SetSwing(uint8_t swing) {
 
 // Step length (division)
 uint8_t Sequence::GetStepDivision() {
+  SequenceScopedLock lock(*this);
+
   return stepDivision;
 }
 
 void Sequence::SetStepDivision(uint8_t stepLen) {
+  SequenceScopedLock lock(*this);
+
   if (stepLen == 0)
   {
     return;
@@ -1232,6 +1519,7 @@ void Sequence::SetStepDivision(uint8_t stepLen) {
   if (stepLen != stepDivision)
   {
     stepDivision = stepLen;
+    data.stepDivision = stepLen;
     UpdateTiming();
     dirty = true;
   }
@@ -1239,10 +1527,15 @@ void Sequence::SetStepDivision(uint8_t stepLen) {
 
 // Pattern Length
 uint8_t Sequence::GetPatternLength() {
+  SequenceScopedLock lock(*this);
+
   return data.patternLength;
 }
 
 void Sequence::SetPatternLength(uint8_t patternLength) {
+  SequenceScopedLock lock(*this);
+
+  patternLength = std::clamp<uint8_t>(patternLength, 1, 64);
   if (patternLength != data.patternLength)
   {
     data.patternLength = patternLength;
@@ -1251,6 +1544,8 @@ void Sequence::SetPatternLength(uint8_t patternLength) {
 }
 
 void Sequence::UpdateEmptyPatternsWithPatternLength() {
+  SequenceScopedLock lock(*this);
+
   // Iterate through all tracks
   for (uint8_t track = 0; track < data.tracks.size(); track++)
   {
@@ -1272,6 +1567,8 @@ void Sequence::UpdateEmptyPatternsWithPatternLength() {
 }
 
 void Sequence::SetTimeSignature(uint8_t beatsPerBar, uint8_t beatUnit) {
+  SequenceScopedLock lock(*this);
+
   if (beatsPerBar == 0 || beatUnit == 0)
   {
     return;
@@ -1308,21 +1605,29 @@ void Sequence::SetTimeSignature(uint8_t beatsPerBar, uint8_t beatUnit) {
 
 // Dirty flag
 bool Sequence::GetDirty() {
+  SequenceScopedLock lock(*this);
+
   return dirty;
 }
 
 void Sequence::SetDirty(bool val) {
+  SequenceScopedLock lock(*this);
+
   dirty = val;
 }
 
 // Solo/Mute/Record bitmap operations
 bool Sequence::GetSolo(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   return (data.solo >> track) & 1;
 }
 
 void Sequence::SetSolo(uint8_t track, bool val) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
   uint32_t mask = 1 << track;
@@ -1354,12 +1659,16 @@ void Sequence::SetSolo(uint8_t track, bool val) {
 }
 
 bool Sequence::GetMute(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   return (data.mute >> track) & 1;
 }
 
 void Sequence::SetMute(uint8_t track, bool val) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
 
@@ -1381,18 +1690,24 @@ void Sequence::SetMute(uint8_t track, bool val) {
 }
 
 bool Sequence::ShouldRecord(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   return GetEnabled(track) && GetRecord(track);
 }
 
 bool Sequence::GetRecord(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   return (data.record >> track) & 1;
 }
 
 void Sequence::SetRecord(uint8_t track, bool val) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
 
@@ -1410,6 +1725,8 @@ void Sequence::SetRecord(uint8_t track, bool val) {
 }
 
 bool Sequence::GetEnabled(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   // Track is disabled if:
   // 1. Track is muted
   // 2. Other tracks have solo (and this track doesn't have solo)
@@ -1423,6 +1740,8 @@ bool Sequence::GetEnabled(uint8_t track) {
 }
 
 bool Sequence::IsNoteActive(uint8_t track, uint8_t note) const {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return false;
   auto it = trackPlayback[track].noteOffMap.find(note);
@@ -1430,12 +1749,16 @@ bool Sequence::IsNoteActive(uint8_t track, uint8_t note) const {
 }
 
 SequencePosition* Sequence::GetPosition(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return nullptr;
   return &trackPlayback[track].position;
 }
 
 void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t step) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
   trackPlayback[track].position.clip = clip;
@@ -1446,7 +1769,11 @@ void Sequence::SetPosition(uint8_t track, uint8_t clip, uint8_t pattern, uint8_t
 }
 
 void Sequence::SetClip(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
+    return;
+  if (!ClipExists(track, clip))
     return;
   trackPlayback[track].position.clip = clip;
   trackPlayback[track].position.pattern = 0;
@@ -1456,6 +1783,8 @@ void Sequence::SetClip(uint8_t track, uint8_t clip) {
 }
 
 void Sequence::SetPattern(uint8_t track, uint8_t pattern) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
   trackPlayback[track].position.pattern = pattern;
@@ -1463,24 +1792,32 @@ void Sequence::SetPattern(uint8_t track, uint8_t pattern) {
 }
 
 uint8_t Sequence::GetNextClip(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return 255;
   return trackPlayback[track].nextClip;
 }
 
 void Sequence::SetNextClip(uint8_t track, uint8_t clip) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
   trackPlayback[track].nextClip = clip;
 }
 
 uint32_t Sequence::GetLastEventTime(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return 0;
   return trackPlayback[track].lastEventTime;
 }
 
 Fract16 Sequence::GetStepProgress() {
+  SequenceScopedLock lock(*this);
+
   if (!playing)
   {
     return 0;
@@ -1501,6 +1838,8 @@ Fract16 Sequence::GetStepProgress() {
 }
 
 uint8_t Sequence::StepProgressBreath(uint8_t lowBound) {
+  SequenceScopedLock lock(*this);
+
   // Get progress through step (0-65535) with swing
   Fract16 progress = GetStepProgress();
 
@@ -1513,6 +1852,7 @@ uint8_t Sequence::StepProgressBreath(uint8_t lowBound) {
 }
 
 Fract16 Sequence::GetQuarterNoteProgress() {
+  SequenceScopedLock lock(*this);
 
   uint32_t usPerQuarterNote = usPerClock * 24; // Clock is 24PPQN
   uint32_t timeElapsedSinceQuarterNote = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
@@ -1527,6 +1867,8 @@ Fract16 Sequence::GetQuarterNoteProgress() {
 }
 
 uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound) {
+  SequenceScopedLock lock(*this);
+
   // Get progress through quarter note (0-65535)
   Fract16 progress = GetQuarterNoteProgress();
 
@@ -1539,6 +1881,8 @@ uint8_t Sequence::QuarterNoteProgressBreath(uint8_t lowBound) {
 }
 
 void Sequence::RecordEvent(MidiPacket packet, uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   // if track is 0xff, determine based on the packet channel.
   if (!record)
     return;
@@ -1685,10 +2029,14 @@ void Sequence::RecordEvent(MidiPacket packet, uint8_t track) {
 }
 
 bool Sequence::CanUndoLastRecord() {
+  SequenceScopedLock lock(*this);
+
   return lastRecordLayer > 0;
 }
 
 void Sequence::UndoLastRecorded() {
+  SequenceScopedLock lock(*this);
+
   if (lastRecordLayer == 0)
   {
     return;
@@ -1727,6 +2075,8 @@ void Sequence::UndoLastRecorded() {
 }
 
 void Sequence::TerminateRecordedNotes(uint8_t track) {
+  SequenceScopedLock lock(*this);
+
   if (track >= trackPlayback.size())
     return;
   auto& recordedNotes = trackPlayback[track].recordedNotes;

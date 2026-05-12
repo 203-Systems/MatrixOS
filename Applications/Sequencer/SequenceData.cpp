@@ -7,6 +7,82 @@
 using std::string;
 using std::vector;
 
+static constexpr uint8_t SEQUENCE_MAX_TRACK_COUNT = 8;
+static constexpr uint8_t SEQUENCE_MAX_PATTERN_LENGTH = 64;
+
+static bool IsValidStepDivision(uint8_t stepDivision) {
+  return stepDivision == 1 || stepDivision == 2 || stepDivision == 4 || stepDivision == 8 || stepDivision == 16 ||
+         stepDivision == 32 || stepDivision == 64;
+}
+
+static bool ValidateSequenceData(const SequenceData& data) {
+  if (data.tracks.empty() || data.tracks.size() > SEQUENCE_MAX_TRACK_COUNT)
+  {
+    MLOGW("SequenceData", "Invalid track count %u", (unsigned)data.tracks.size());
+    return false;
+  }
+  if (data.bpm < 20 || data.bpm > 299 || data.swing < 20 || data.swing > 80 || data.patternLength == 0 ||
+      data.patternLength > SEQUENCE_MAX_PATTERN_LENGTH || data.beatsPerBar == 0 || data.beatsPerBar > 16 ||
+      !(data.beatUnit == 1 || data.beatUnit == 2 || data.beatUnit == 4 || data.beatUnit == 8 || data.beatUnit == 16) ||
+      !IsValidStepDivision(data.stepDivision))
+  {
+    MLOGW("SequenceData", "Invalid header values bpm=%u swing=%u patternLen=%u beats=%u beatUnit=%u stepDiv=%u", data.bpm,
+          data.swing, data.patternLength, data.beatsPerBar, data.beatUnit, data.stepDivision);
+    return false;
+  }
+
+  uint16_t pulsesPerStep = (96 * 4) / data.stepDivision;
+  for (size_t trackIdx = 0; trackIdx < data.tracks.size(); trackIdx++)
+  {
+    const SequenceTrack& track = data.tracks[trackIdx];
+    if (track.channel > 15 || track.clips.empty())
+    {
+      MLOGW("SequenceData", "Invalid track %u channel=%u clips=%u", (unsigned)trackIdx, track.channel, (unsigned)track.clips.size());
+      return false;
+    }
+
+    for (const auto& [clipId, clip] : track.clips)
+    {
+      if (clipId > 127 || clip.patterns.empty() || clip.patterns.size() > SEQUENCE_MAX_PATTERN_COUNT)
+      {
+        MLOGW("SequenceData", "Invalid clip t=%u c=%u patterns=%u", (unsigned)trackIdx, clipId, (unsigned)clip.patterns.size());
+        return false;
+      }
+
+      for (size_t patternIdx = 0; patternIdx < clip.patterns.size(); patternIdx++)
+      {
+        const SequencePattern& pattern = clip.patterns[patternIdx];
+        if (pattern.steps == 0 || pattern.steps > SEQUENCE_MAX_PATTERN_LENGTH)
+        {
+          MLOGW("SequenceData", "Invalid pattern length t=%u c=%u p=%u steps=%u", (unsigned)trackIdx, clipId,
+                (unsigned)patternIdx, pattern.steps);
+          return false;
+        }
+
+        uint32_t maxPulse = pattern.steps * pulsesPerStep;
+        for (const auto& [timestamp, event] : pattern.events)
+        {
+          if (timestamp >= maxPulse)
+          {
+            MLOGW("SequenceData", "Invalid event timestamp t=%u c=%u p=%u ts=%u max=%u", (unsigned)trackIdx, clipId,
+                  (unsigned)patternIdx, timestamp, (unsigned)maxPulse);
+            return false;
+          }
+          if (event.eventType != SequenceEventType::NoteEvent && event.eventType != SequenceEventType::ControlChangeEvent &&
+              event.eventType != SequenceEventType::Invalid)
+          {
+            MLOGW("SequenceData", "Invalid event type t=%u c=%u p=%u type=%u", (unsigned)trackIdx, clipId, (unsigned)patternIdx,
+                  (unsigned)event.eventType);
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
 void SequencePattern::Clear() {
   events.clear();
 }
@@ -148,23 +224,23 @@ static bool ParseHeader(cb0r_s root, SequenceData& out) {
     MLOGW("SequenceData", "Unsupported version %u", out.version);
     return false;
   }
-  if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item) && item.type == CB0R_INT)
     out.bpm = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"swing", &item) && item.type == CB0R_INT)
     out.swing = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 10, (uint8_t*)"patternLen", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 10, (uint8_t*)"patternLen", &item) && item.type == CB0R_INT)
     out.patternLength = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"beats", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 5, (uint8_t*)"beats", &item) && item.type == CB0R_INT)
     out.beatsPerBar = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 8, (uint8_t*)"beatUnit", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 8, (uint8_t*)"beatUnit", &item) && item.type == CB0R_INT)
     out.beatUnit = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 7, (uint8_t*)"stepDiv", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 7, (uint8_t*)"stepDiv", &item) && item.type == CB0R_INT)
     out.stepDivision = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"solo", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"solo", &item) && item.type == CB0R_INT)
     out.solo = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"mute", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 4, (uint8_t*)"mute", &item) && item.type == CB0R_INT)
     out.mute = item.value;
-  if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"rec", &item))
+  if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"rec", &item) && item.type == CB0R_INT)
     out.record = item.value;
   out.tracks.clear();
   return true;
@@ -183,12 +259,16 @@ static bool ParseTrack(cb0r_s node, uint8_t& channel, uint8_t& activeClip) {
     MLOGW("SequenceData", "Track parse failed - channel missing");
     return false;
   }
+  if (item.value > 15)
+    return false;
   channel = item.value;
   if (!cb0r_get(&node, 2, &item) || item.type != CB0R_INT)
   {
     MLOGW("SequenceData", "Track parse failed - activeClip missing");
     return false;
   }
+  if (item.value > 127)
+    return false;
   activeClip = item.value;
   MLOGD("SequenceData", "Parsed Track ch=%u activeClip=%u", channel, activeClip);
   return true;
@@ -208,6 +288,8 @@ static bool ParseClip(cb0r_s node, uint8_t& clipId) {
     MLOGW("SequenceData", "Clip parse failed - id missing");
     return false;
   }
+  if (item.value > 127)
+    return false;
   clipId = item.value;
   MLOGD("SequenceData", "Parsed Clip id=%u", clipId);
   return true;
@@ -227,6 +309,8 @@ static bool ParseEvent(cb0r_s node, SequenceEvent& outEv, uint16_t& timestamp, u
     MLOGW("SequenceData", "Event parse failed - timestamp missing");
     return false;
   }
+  if (item.value > UINT16_MAX)
+    return false;
   timestamp = item.value;
   if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT)
   {
@@ -245,11 +329,11 @@ static bool ParseEvent(cb0r_s node, SequenceEvent& outEv, uint16_t& timestamp, u
     {
       cb0r_s d;
       if (cb0r_get(&payload, 0, &d) && d.type == CB0R_INT)
-        note.note = d.value;
+        note.note = d.value > 127 ? 127 : d.value;
       if (cb0r_get(&payload, 1, &d) && d.type == CB0R_INT)
-        note.velocity = d.value;
+        note.velocity = d.value > 127 ? 127 : d.value;
       if (cb0r_get(&payload, 2, &d) && d.type == CB0R_INT)
-        note.length = d.value;
+        note.length = d.value > UINT16_MAX ? UINT16_MAX : d.value;
       if (cb0r_get(&payload, 3, &d))
       {
         note.aftertouch = (d.type == CB0R_TRUE) || (d.type == CB0R_INT && d.value != 0);
@@ -264,9 +348,9 @@ static bool ParseEvent(cb0r_s node, SequenceEvent& outEv, uint16_t& timestamp, u
     {
       cb0r_s d;
       if (cb0r_get(&payload, 0, &d) && d.type == CB0R_INT)
-        cc.param = d.value;
+        cc.param = d.value > 127 ? 127 : d.value;
       if (cb0r_get(&payload, 1, &d) && d.type == CB0R_INT)
-        cc.value = d.value;
+        cc.value = d.value > 127 ? 127 : d.value;
     }
     outEv = SequenceEvent{SequenceEventType::ControlChangeEvent, cc};
   }
@@ -288,6 +372,11 @@ static bool ParsePattern(cb0r_s node, uint8_t trackId, uint8_t clipId, uint8_t p
   if (!cb0r_get(&node, 1, &item) || item.type != CB0R_INT)
   {
     MLOGW("SequenceData", "Pattern parse failed - steps missing");
+    return false;
+  }
+  if (item.value == 0 || item.value > SEQUENCE_MAX_PATTERN_LENGTH)
+  {
+    MLOGW("SequenceData", "Pattern parse failed - invalid steps %u", (unsigned)item.value);
     return false;
   }
   uint8_t steps = item.value;
@@ -433,6 +522,11 @@ bool DeserializeSequenceData(File& file, SequenceData& out) {
         }
         else if (tag == "c")
         {
+          if (currentTrack == 0xFF)
+          {
+            MLOGW("SequenceData", "Clip before track");
+            return false;
+          }
           uint8_t clipId = 0;
           if (!ParseClip(root, clipId))
           {
@@ -446,6 +540,11 @@ bool DeserializeSequenceData(File& file, SequenceData& out) {
         }
         else if (tag == "p")
         {
+          if (currentTrack == 0xFF)
+          {
+            MLOGW("SequenceData", "Pattern before track");
+            return false;
+          }
           if (!ParsePattern(root, currentTrack, currentClip, nextPattern, out))
           {
             MLOGW("SequenceData", "Failed to parse pattern item t=%u c=%u p=%u", currentTrack, currentClip, nextPattern);
@@ -465,11 +564,11 @@ bool DeserializeSequenceData(File& file, SequenceData& out) {
 
       if (buffer.empty() && eofReached)
       {
-        return headerParsed;
+        return headerParsed && ValidateSequenceData(out);
       }
       break;
     }
   }
 
-  return headerParsed;
+  return headerParsed && ValidateSequenceData(out);
 }

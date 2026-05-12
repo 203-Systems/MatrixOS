@@ -18,6 +18,8 @@ bool PatternPad::TwoPatternMode() {
 }
 
 bool PatternPad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   if (keypadInfo->state != KeypadState::Pressed && keypadInfo->state != KeypadState::Released)
   {
     return true;
@@ -254,6 +256,8 @@ bool PatternPad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool PatternPad::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t track = sequencer->track;
   SequencePosition* pos = sequencer->sequence.GetPosition(track);
   uint8_t clip = pos->clip;

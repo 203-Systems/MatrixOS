@@ -14,6 +14,8 @@ EventDetailView::EventDetailView(Sequencer* sequencer) {
 }
 
 bool EventDetailView::IsEnabled() {
+  SequenceScopedLock lock(sequencer->sequence);
+
   bool enabled = sequencer->currentView == Sequencer::ViewMode::StepDetail;
 
   if (!enabled && wasEnabled == true)
@@ -37,6 +39,8 @@ Dimension EventDetailView::GetSize() {
 }
 
 void EventDetailView::RebuildEventList() {
+  SequenceScopedLock lock(sequencer->sequence);
+
   eventRefs.clear();
 
   position = *sequencer->sequence.GetPosition(sequencer->track);
@@ -75,6 +79,14 @@ void EventDetailView::RebuildEventList() {
 }
 
 bool EventDetailView::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
+  if (eventRefs.empty())
+  {
+    sequencer->SetView(Sequencer::ViewMode::Sequencer);
+    return true;
+  }
+
   bool handled = false;
 
   // Route to appropriate handler based on Y position
@@ -116,6 +128,13 @@ bool EventDetailView::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool EventDetailView::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
+  if (eventRefs.empty())
+  {
+    return false;
+  }
+
   RenderEventSelector(origin);
   RenderMicroStepSelector(origin + Point(0, 1));
 

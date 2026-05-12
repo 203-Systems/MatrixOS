@@ -13,9 +13,16 @@ bool MixerControl::IsEnabled() {
 }
 
 bool MixerControl::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
+  uint8_t track = xy.x;
+  if (track >= sequencer->sequence.GetTrackCount())
+  {
+    return true;
+  }
+
   if (keypadInfo->state == KeypadState::Hold)
   {
-    uint8_t track = xy.x;
     uint8_t row = xy.y;
     // Mute (Y=0)
     if (row == 0)
@@ -35,14 +42,7 @@ bool MixerControl::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   }
   else if (keypadInfo->state == KeypadState::Released && keypadInfo->hold == false)
   {
-    uint8_t track = xy.x;
     uint8_t row = xy.y;
-
-    // Check if track exists
-    if (track >= sequencer->sequence.GetTrackCount())
-    {
-      return true;
-    }
 
     // Mute (Y=0)
     if (row == 0)
@@ -79,6 +79,8 @@ bool MixerControl::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool MixerControl::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
   // Check if any track is in solo mode

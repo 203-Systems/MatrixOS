@@ -1342,6 +1342,14 @@ bool Sequencer::Save(uint16_t slot) {
   if (!BackupSlot(slot))
     return false;
 
+  SequenceData dataSnapshot;
+  SequenceMeta metaSnapshot;
+  {
+    SequenceScopedLock lock(sequence);
+    dataSnapshot = sequence.GetData();
+    metaSnapshot = meta;
+  }
+
   // Write meta first
   File metaFile = MatrixOS::FileSystem::Open(metaPath, "wb");
   if (metaFile.Name().empty())
@@ -1349,7 +1357,7 @@ bool Sequencer::Save(uint16_t slot) {
     MLOGE("Sequencer", "Save - open meta fail %s", metaPath.c_str());
     return false;
   }
-  bool metaOk = SerializeSequenceMeta(meta, metaFile);
+  bool metaOk = SerializeSequenceMeta(metaSnapshot, metaFile);
   size_t metaFileSize = metaFile.Size();
   metaFile.Close();
   if (!metaOk)
@@ -1366,7 +1374,7 @@ bool Sequencer::Save(uint16_t slot) {
     MLOGE("Sequencer", "Save - open fail %s", dataPath.c_str());
     return false;
   }
-  bool dataOk = SerializeSequenceData(sequence.GetData(), dataFile);
+  bool dataOk = SerializeSequenceData(dataSnapshot, dataFile);
   size_t dataFileSize = dataFile.Size();
   dataFile.Close();
   if (!dataOk)
@@ -1440,7 +1448,11 @@ bool Sequencer::Load(uint16_t slot) {
     MLOGE("Sequencer", "Load - open fail %s", dataPath.c_str());
     return false;
   }
-  SequenceData dataCopy = sequence.GetData();
+  SequenceData dataCopy;
+  {
+    SequenceScopedLock lock(sequence);
+    dataCopy = sequence.GetData();
+  }
   bool dataOk = DeserializeSequenceData(dataFile, dataCopy);
   dataFile.Close();
   if (!dataOk)
@@ -1450,8 +1462,33 @@ bool Sequencer::Load(uint16_t slot) {
   }
   MLOGD("Sequencer", "Loaded sequence data from %s", dataPath.c_str());
 
+  if (metaCopy.tracks.size() != dataCopy.tracks.size())
+  {
+    MLOGW("Sequencer", "Load - meta/data track count mismatch meta=%u data=%u", (unsigned)metaCopy.tracks.size(),
+          (unsigned)dataCopy.tracks.size());
+    SequenceMeta normalizedMeta;
+    normalizedMeta.New(dataCopy.tracks.size());
+    normalizedMeta.color = metaCopy.color;
+    normalizedMeta.clockOutput = metaCopy.clockOutput;
+    size_t copyCount = metaCopy.tracks.size() < normalizedMeta.tracks.size() ? metaCopy.tracks.size() : normalizedMeta.tracks.size();
+    for (size_t i = 0; i < copyCount; i++)
+    {
+      normalizedMeta.tracks[i] = metaCopy.tracks[i];
+    }
+    metaCopy = normalizedMeta;
+  }
+
   sequence.SetData(dataCopy);
   meta = metaCopy;
+  if (track >= sequence.GetTrackCount())
+  {
+    track = 0;
+    ClearSelectedNotes();
+    ClearActiveNotes();
+    stepSelected.clear();
+    patternSelected.clear();
+    copySource.Clear();
+  }
   saveSlot = slot;
   sequence.SetDirty(false);
   MLOGD("Sequencer", "Loaded SD slot %u", slot);

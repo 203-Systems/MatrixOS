@@ -16,6 +16,13 @@ void TrackSelector::OnChange(UICallback<void(uint8_t)> callback) {
 }
 
 bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
+  if (xy.x >= sequencer->sequence.GetTrackCount())
+  {
+    return true;
+  }
+
   if (keypadInfo->state == KeypadState::Pressed)
   {
     bool clear;
@@ -75,6 +82,8 @@ bool TrackSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool TrackSelector::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   if (sequencer->ClearActive())
   {
     for (uint8_t i = 0; i < width; i++)

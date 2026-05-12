@@ -30,11 +30,18 @@ bool ClipLauncher::IsEnabled() {
 }
 
 bool ClipLauncher::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   if (keypadInfo->state == KeypadState::Pressed)
   {
     std::pair<uint8_t, uint8_t> pair = XY2Clip(xy);
     uint8_t track = pair.first;
     uint8_t clip = pair.second;
+
+    if (track >= sequencer->sequence.GetTrackCount())
+    {
+      return true;
+    }
 
     // Handle copy mode
     if (sequencer->CopyActive())
@@ -135,6 +142,8 @@ bool ClipLauncher::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool ClipLauncher::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t trackCount = sequencer->sequence.GetTrackCount();
 
   Fract16 quarterNoteProgress = sequencer->sequence.GetQuarterNoteProgress();

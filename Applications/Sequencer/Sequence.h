@@ -14,6 +14,7 @@ struct SequencePosition {
 class Sequence {
 private:
   SequenceData data;
+  mutable SemaphoreHandle_t sequenceMutex = nullptr;
 
   bool dirty = false;
 
@@ -61,6 +62,8 @@ private:
 
   vector<TrackPlayback> trackPlayback;
 
+  void EnsureMutex() const;
+  void ResetPlaybackState(uint8_t tracks);
   void UpdateTiming();
   void ProcessTrack(uint8_t track);
 
@@ -68,6 +71,11 @@ public:
   const static uint16_t PPQN = 96;
 
   Sequence(uint8_t tracks = 8);
+  ~Sequence();
+
+  void Lock() const;
+  void Unlock() const;
+
   void New(uint8_t tracks = 8);
 
   void Tick();
@@ -199,15 +207,22 @@ public:
   const SequenceData& GetData() const {
     return data;
   }
-  void SetData(const SequenceData& newData) {
-    data = newData;
-    UpdateEmptyPatternsWithPatternLength();
-    UpdateTiming();
-    lastRecordLayer = 0;
-    currentRecordLayer = 0;
-    dirty = true;
-  }
+  void SetData(const SequenceData& newData);
 
 private:
   void TerminateRecordedNotes(uint8_t track);
+};
+
+class SequenceScopedLock {
+public:
+  explicit SequenceScopedLock(const Sequence& sequence) : sequence(sequence) {
+    sequence.Lock();
+  }
+
+  ~SequenceScopedLock() {
+    sequence.Unlock();
+  }
+
+private:
+  const Sequence& sequence;
 };

@@ -12,6 +12,8 @@ Dimension SequencerControlBar::GetSize() {
 }
 
 bool SequencerControlBar::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   bool stepSelected = !sequencer->stepSelected.empty();
   bool patternSelected = !sequencer->patternSelected.empty();
   bool trackSelected = sequencer->activeTrackSelected;
@@ -806,6 +808,8 @@ Color SequencerControlBar::GetOctaveMinusColor() {
 }
 
 bool SequencerControlBar::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t breathingScale = sequencer->sequence.QuarterNoteProgressBreath();
   bool patternSelected = !sequencer->patternSelected.empty();
   bool stepSelected = !sequencer->stepSelected.empty();

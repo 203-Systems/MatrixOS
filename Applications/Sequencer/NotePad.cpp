@@ -69,8 +69,7 @@ void SequencerNotePad::GenerateOctaveKeymap() {
   SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
   Dimension dimension = GetSize();
 
-  noteMap.clear();
-  noteMap.reserve(dimension.Area());
+  noteMap.assign(dimension.Area(), 255);
 
   int16_t root = 12 * metaTrack.config.note.octave + metaTrack.config.note.root;
   int16_t nextNote = root;
@@ -135,8 +134,7 @@ void SequencerNotePad::GenerateChromaticKeymap() {
   SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
   Dimension dimension = GetSize();
 
-  noteMap.clear();
-  noteMap.reserve(dimension.Area());
+  noteMap.assign(dimension.Area(), 255);
 
   int16_t note = (12 * metaTrack.config.note.octave) + metaTrack.config.note.root;
   for (uint8_t i = 0; i < dimension.Area(); i++)
@@ -176,8 +174,7 @@ void SequencerNotePad::GeneratePianoKeymap() {
   SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
   Dimension dimension = GetSize();
 
-  noteMap.clear();
-  noteMap.reserve(dimension.Area());
+  noteMap.assign(dimension.Area(), 255);
 
   const int8_t blackKeys[7] = {-1, 1, 3, -1, 6, 8, 10};
   const int8_t whiteKeys[7] = {0, 2, 4, 5, 7, 9, 11};
@@ -232,8 +229,7 @@ void SequencerNotePad::GeneratePianoKeymap() {
 
 void SequencerNotePad::GenerateDrumKeymap() {
   Dimension dimension = GetSize();
-  noteMap.clear();
-  noteMap.reserve(dimension.Area());
+  noteMap.assign(dimension.Area(), 255);
 
   // Placeholder: Fill with 255
   for (uint8_t i = 0; i < dimension.Area(); i++)
@@ -269,12 +265,14 @@ void SequencerNotePad::GenerateDrumKeymap() {
 }
 
 void SequencerNotePad::GenerateKeymap() {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t track = sequencer->track;
   SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 
   if (metaTrack.mode != SequenceTrackMode::NoteTrack && metaTrack.mode != SequenceTrackMode::DrumTrack)
   {
-    noteMap.resize(GetSize().Area(), 255);
+    noteMap.assign(GetSize().Area(), 255);
     return;
   }
 
@@ -316,6 +314,8 @@ void SequencerNotePad::GenerateKeymap() {
 }
 
 void SequencerNotePad::SequencerEvent(const MidiPacket& packet) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   if (testingMode)
   {
     return;
@@ -379,7 +379,15 @@ void SequencerNotePad::SequencerEvent(const MidiPacket& packet) {
 }
 
 bool SequencerNotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
-  uint8_t note = noteMap[xy.y * 8 + xy.x];
+  SequenceScopedLock lock(sequencer->sequence);
+
+  uint8_t index = xy.y * 8 + xy.x;
+  if (index >= noteMap.size())
+  {
+    return true;
+  }
+
+  uint8_t note = noteMap[index];
   if (note == 255)
   {
     return true;
@@ -605,6 +613,8 @@ bool SequencerNotePad::RenderDrum(Point origin) {
 }
 
 void SequencerNotePad::Rescan(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t track = sequencer->track;
   uint8_t channel = sequencer->sequence.GetChannel(track);
 
@@ -645,6 +655,8 @@ void SequencerNotePad::Rescan(Point origin) {
 }
 
 bool SequencerNotePad::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t track = sequencer->track;
   SequenceMetaTrack& metaTrack = sequencer->meta.tracks[track];
 

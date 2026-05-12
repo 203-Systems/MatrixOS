@@ -17,6 +17,8 @@ Dimension PatternSelector::GetSize() {
 }
 
 bool PatternSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   if (xy.y < 2) // Selector part
   {
     uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index
@@ -192,6 +194,8 @@ bool PatternSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 }
 
 bool PatternSelector::Render(Point origin) {
+  SequenceScopedLock lock(sequencer->sequence);
+
   uint8_t track = sequencer->track;
   SequencePosition* pos = sequencer->sequence.GetPosition(track);
   uint8_t clip = pos->clip;

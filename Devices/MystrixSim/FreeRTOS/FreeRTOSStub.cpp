@@ -53,6 +53,9 @@ namespace
     std::mutex mutex;
     std::condition_variable cv;
     int count = 1;
+    bool recursive = false;
+    std::thread::id owner;
+    uint32_t recursiveCount = 0;
   };
 
   struct TimerControl {
@@ -552,6 +555,14 @@ SemaphoreHandle_t xSemaphoreCreateMutex(void)
   return sem;
 }
 
+SemaphoreHandle_t xSemaphoreCreateRecursiveMutex(void)
+{
+  auto* sem = new SemaphoreControl();
+  sem->count = 1;
+  sem->recursive = true;
+  return sem;
+}
+
 BaseType_t xSemaphoreTake(SemaphoreHandle_t semHandle, TickType_t ticksToWait)
 {
   auto* sem = static_cast<SemaphoreControl*>(semHandle);
@@ -598,6 +609,81 @@ BaseType_t xSemaphoreGive(SemaphoreHandle_t semHandle)
 
   {
     std::lock_guard<std::mutex> lock(sem->mutex);
+    if (sem->count < 1)
+    {
+      sem->count++;
+    }
+  }
+  sem->cv.notify_all();
+  return pdTRUE;
+}
+
+BaseType_t xSemaphoreTakeRecursive(SemaphoreHandle_t semHandle, TickType_t ticksToWait)
+{
+  auto* sem = static_cast<SemaphoreControl*>(semHandle);
+  if (!sem)
+  {
+    return pdFALSE;
+  }
+
+  std::unique_lock<std::mutex> lock(sem->mutex);
+  std::thread::id currentThread = std::this_thread::get_id();
+  if (sem->recursive && sem->recursiveCount > 0 && sem->owner == currentThread)
+  {
+    sem->recursiveCount++;
+    return pdTRUE;
+  }
+
+  auto can_take = [sem]() { return sem->count > 0; };
+  if (!can_take())
+  {
+    if (ticksToWait == 0)
+    {
+      return pdFALSE;
+    }
+    if (ticksToWait == portMAX_DELAY)
+    {
+      sem->cv.wait(lock, can_take);
+    }
+    else
+    {
+      sem->cv.wait_for(lock, std::chrono::milliseconds(ticksToWait * portTICK_PERIOD_MS), can_take);
+    }
+  }
+
+  if (!can_take())
+  {
+    return pdFALSE;
+  }
+
+  sem->count--;
+  sem->owner = currentThread;
+  sem->recursiveCount = 1;
+  return pdTRUE;
+}
+
+BaseType_t xSemaphoreGiveRecursive(SemaphoreHandle_t semHandle)
+{
+  auto* sem = static_cast<SemaphoreControl*>(semHandle);
+  if (!sem)
+  {
+    return pdFALSE;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(sem->mutex);
+    if (!sem->recursive || sem->recursiveCount == 0 || sem->owner != std::this_thread::get_id())
+    {
+      return pdFALSE;
+    }
+
+    sem->recursiveCount--;
+    if (sem->recursiveCount > 0)
+    {
+      return pdTRUE;
+    }
+
+    sem->owner = std::thread::id();
     if (sem->count < 1)
     {
       sem->count++;

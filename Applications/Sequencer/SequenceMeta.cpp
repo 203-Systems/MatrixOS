@@ -10,6 +10,7 @@ using std::vector;
 void SequenceMeta::New(uint8_t tracks) {
   const Color colors[8]{Color(0x00FFFF), Color(0x0000FF), Color(0x8000FF), Color(0xFF00FF),
                         Color(0xFF0080), Color(0xFF4000), Color(0xFFFF00), Color(0x00FF40)};
+  constexpr size_t colorCount = sizeof(colors) / sizeof(colors[0]);
 
   this->tracks.clear();
   this->tracks.reserve(tracks);
@@ -21,7 +22,7 @@ void SequenceMeta::New(uint8_t tracks) {
   for (uint8_t i = 0; i < tracks; i++)
   {
     SequenceMetaTrack track;
-    track.color = colors[i];
+    track.color = colors[i % colorCount];
     track.mode = SequenceTrackMode::NoteTrack;
     track.config.note.type = SequenceNoteType::Scale;
     track.config.note.customScale = false;
@@ -112,6 +113,8 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t) {
   if (!cb0r_get(&m, 3, &item) || item.type != CB0R_INT)
     return false;
   t.mode = static_cast<SequenceTrackMode>(item.value);
+  if (t.mode != SequenceTrackMode::NoteTrack && t.mode != SequenceTrackMode::DrumTrack && t.mode != SequenceTrackMode::ControlChangeTrack)
+    return false;
   if (!cb0r_get(&m, 4, &item) || item.type != CB0R_MAP)
     return false;
 
@@ -119,27 +122,29 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t) {
   {
     cb0r_s d;
     auto& n = t.config.note;
-    if (cb0r_find(&item, CB0R_UTF8, 4, (uint8_t*)"type", &d))
+    if (cb0r_find(&item, CB0R_UTF8, 4, (uint8_t*)"type", &d) && d.type == CB0R_INT)
       n.type = static_cast<SequenceNoteType>(d.value);
+    if (n.type != SequenceNoteType::Scale && n.type != SequenceNoteType::Chromatic && n.type != SequenceNoteType::Piano)
+      return false;
     if (cb0r_find(&item, CB0R_UTF8, 6, (uint8_t*)"cscale", &d))
       n.customScale = (d.type == CB0R_TRUE);
     if (cb0r_find(&item, CB0R_UTF8, 7, (uint8_t*)"enforce", &d))
       n.enforceScale = (d.type == CB0R_TRUE);
-    if (cb0r_find(&item, CB0R_UTF8, 5, (uint8_t*)"scale", &d))
-      n.scale = d.value;
-    if (cb0r_find(&item, CB0R_UTF8, 4, (uint8_t*)"root", &d))
-      n.root = d.value;
-    if (cb0r_find(&item, CB0R_UTF8, 6, (uint8_t*)"offset", &d))
-      n.rootOffset = d.value;
-    if (cb0r_find(&item, CB0R_UTF8, 3, (uint8_t*)"oct", &d))
-      n.octave = d.value;
+    if (cb0r_find(&item, CB0R_UTF8, 5, (uint8_t*)"scale", &d) && d.type == CB0R_INT)
+      n.scale = d.value & 0x0FFF;
+    if (cb0r_find(&item, CB0R_UTF8, 4, (uint8_t*)"root", &d) && d.type == CB0R_INT)
+      n.root = d.value % 12;
+    if (cb0r_find(&item, CB0R_UTF8, 6, (uint8_t*)"offset", &d) && d.type == CB0R_INT)
+      n.rootOffset = d.value % 12;
+    if (cb0r_find(&item, CB0R_UTF8, 3, (uint8_t*)"oct", &d) && d.type == CB0R_INT)
+      n.octave = d.value > 9 ? 9 : d.value;
   }
   else
   {
     cb0r_s d;
     auto& c = t.config.cc;
-    if (cb0r_find(&item, CB0R_UTF8, 5, (uint8_t*)"param", &d))
-      c.parameter = d.value;
+    if (cb0r_find(&item, CB0R_UTF8, 5, (uint8_t*)"param", &d) && d.type == CB0R_INT)
+      c.parameter = d.value > 127 ? 127 : d.value;
   }
   return true;
 }
@@ -199,6 +204,12 @@ bool DeserializeSequenceMeta(File& file, SequenceMeta& out) {
   uint8_t trackId = 0;
   while (offset < buffer.size())
   {
+    if (trackId >= 8)
+    {
+      MLOGE("SequenceMeta", "Too many tracks in meta file");
+      return false;
+    }
+
     if (!cb0r_read(buffer.data() + offset, buffer.size() - offset, &root))
     {
       MLOGE("SequenceMeta", "Track %u parse failed", trackId);
@@ -263,9 +274,9 @@ bool DeserializeSequenceMeta(File& file, SequenceMeta& out) {
     trackId++;
   }
 
-  if (trackId == 0)
+  if (trackId == 0 || trackId > 8)
   {
-    MLOGE("SequenceMeta", "No tracks parsed");
+    MLOGE("SequenceMeta", "Invalid track count %u", trackId);
     return false;
   }
 
