@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-#define SEQUENCE_VERSION 3
+#define SEQUENCE_VERSION 4
 #define MIN_SUPPORTED_SEQUENCE_VERSION 3
 
 struct SequencePattern {

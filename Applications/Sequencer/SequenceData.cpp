@@ -218,10 +218,11 @@ static bool ParseHeader(cb0r_s root, SequenceData& out) {
     MLOGW("SequenceData", "Header missing 'ver'");
     return false;
   }
-  out.version = item.value;
-  if (out.version < MIN_SUPPORTED_SEQUENCE_VERSION || out.version > SEQUENCE_VERSION)
+  uint8_t fileVersion = item.value;
+  out.version = fileVersion;
+  if (fileVersion < MIN_SUPPORTED_SEQUENCE_VERSION || fileVersion > SEQUENCE_VERSION)
   {
-    MLOGW("SequenceData", "Unsupported version %u", out.version);
+    MLOGW("SequenceData", "Unsupported version %u", fileVersion);
     return false;
   }
   if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"bpm", &item) && item.type == CB0R_INT)
@@ -242,6 +243,20 @@ static bool ParseHeader(cb0r_s root, SequenceData& out) {
     out.mute = item.value;
   if (cb0r_find(&root, CB0R_UTF8, 3, (uint8_t*)"rec", &item) && item.type == CB0R_INT)
     out.record = item.value;
+
+  // Sequencer Data Migration
+  if (fileVersion == 3)
+  {
+    uint16_t migratedStepDivision = static_cast<uint16_t>(out.stepDivision) * 4;
+    if (migratedStepDivision > UINT8_MAX)
+    {
+      MLOGW("SequenceData", "V3 stepDiv migration overflow stepDiv=%u", out.stepDivision);
+      return false;
+    }
+    out.stepDivision = static_cast<uint8_t>(migratedStepDivision);
+    out.version = SEQUENCE_VERSION;
+    MLOGD("SequenceData", "Migrated v3 stepDiv to %u", out.stepDivision);
+  }
   out.tracks.clear();
   return true;
 }

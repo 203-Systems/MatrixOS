@@ -85,7 +85,7 @@ void Sequence::New(uint8_t tracks) {
   data.swing = 50;
   data.beatsPerBar = 4;
   data.beatUnit = 4;
-  data.stepDivision = 4;
+  data.stepDivision = 16;
   stepDivision = data.stepDivision;
   data.patternLength = 16;
   data.version = SEQUENCE_VERSION;
