@@ -89,6 +89,7 @@ void ReceiveTask(void* parameters) {
           sysExBuffer.reserve(12);
           sysExBuffer.clear();
           activeSysExPort = packet.port;
+          currentSysExState = SysExState::SYSEX_PENDING;
         }
         else if (currentSysExState == SysExState::SYSEX_INVALID)
         {
@@ -102,7 +103,8 @@ void ReceiveTask(void* parameters) {
 
         if (currentSysExState != SysExState::SYSEX_RELEASE)
         {
-          if (sysExBuffer.size() + 3 > MAX_SYSTEM_SYSEX_SIZE)
+          uint8_t packetLength = packet.Length();
+          if (sysExBuffer.size() + packetLength > MAX_SYSTEM_SYSEX_SIZE)
           {
             sysExBuffer.clear();
             LogDroppedOversizedSysEx();
@@ -118,7 +120,7 @@ void ReceiveTask(void* parameters) {
             continue;
           }
 
-          sysExBuffer.insert(sysExBuffer.end(), packet.data, packet.data + 3);
+          sysExBuffer.insert(sysExBuffer.end(), packet.data, packet.data + packetLength);
           currentSysExState = ProcessSysEx(packet.port, sysExBuffer, packet.status == SysExEnd);
 
           if (packet.status == SysExEnd)
