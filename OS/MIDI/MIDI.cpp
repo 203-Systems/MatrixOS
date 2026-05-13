@@ -7,8 +7,10 @@
 namespace MatrixOS::MIDI
 {
 static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
+static constexpr uint32_t SYSEX_INACTIVITY_TIMEOUT_MS = 1000;
 static uint32_t droppedAppMidiPackets = 0;
 static uint32_t droppedOversizedSysExMessages = 0;
+static uint32_t timedOutSysExSessions = 0;
 
 static void LogDroppedAppMidiPacket() {
   droppedAppMidiPackets++;
@@ -24,6 +26,22 @@ static void LogDroppedOversizedSysEx() {
   {
     MLOGW("MIDI", "Dropped oversized system SysEx message(s): %lu", droppedOversizedSysExMessages);
   }
+}
+
+static void LogTimedOutSysExSession() {
+  timedOutSysExSessions++;
+  if (timedOutSysExSessions == 1 || (timedOutSysExSessions % 8) == 0)
+  {
+    MLOGW("MIDI", "Dropped timed out SysEx session(s): %lu", timedOutSysExSessions);
+  }
+}
+
+static void ResetActiveSysExSession(vector<uint8_t>& sysExBuffer, uint16_t& activeSysExPort, SysExState& currentSysExState,
+                                    uint32_t& lastSysExActivityMs) {
+  sysExBuffer.clear();
+  activeSysExPort = MIDI_PORT_INVALID;
+  currentSysExState = SysExState::SYSEX_IDLE;
+  lastSysExActivityMs = 0;
 }
 
 void Init(void) {
@@ -64,6 +82,7 @@ void ReceiveTask(void* parameters) {
   static vector<uint8_t> sysExBuffer;
   static uint16_t activeSysExPort = MIDI_PORT_INVALID;
   static SysExState currentSysExState = SysExState::SYSEX_IDLE;
+  static uint32_t lastSysExActivityMs = 0;
 
   MidiPacket packet;
 
@@ -74,31 +93,47 @@ void ReceiveTask(void* parameters) {
     {
       // Process the packet (moved from old Receive function)
       bool shouldForwardToApp = true;
+      uint32_t nowMs = SYS::Millis();
+
+      if (activeSysExPort != MIDI_PORT_INVALID && (uint32_t)(nowMs - lastSysExActivityMs) > SYSEX_INACTIVITY_TIMEOUT_MS)
+      {
+        ResetActiveSysExSession(sysExBuffer, activeSysExPort, currentSysExState, lastSysExActivityMs);
+        LogTimedOutSysExSession();
+      }
 
       // Handle SysEx
       if (packet.SysEx())
       {
-        // Concurrent SysEx, drop the later one -- TODO: Handle this better
-        if (activeSysExPort != MIDI_PORT_INVALID && packet.port != activeSysExPort)
-        {
-          continue; // Skip this packet
-        }
-
         if (packet.SysExStart())
         {
+          if (activeSysExPort != MIDI_PORT_INVALID && packet.port != activeSysExPort)
+          {
+            continue; // Skip concurrent SysEx from another port
+          }
+
           sysExBuffer.reserve(12);
           sysExBuffer.clear();
           activeSysExPort = packet.port;
           currentSysExState = SysExState::SYSEX_PENDING;
+          lastSysExActivityMs = nowMs;
         }
-        else if (currentSysExState == SysExState::SYSEX_INVALID)
+        else
         {
-          if (packet.status == SysExEnd)
+          if (activeSysExPort != packet.port)
           {
-            activeSysExPort = MIDI_PORT_INVALID;
-            currentSysExState = SysExState::SYSEX_IDLE;
+            continue; // Skip fragments for inactive or concurrent ports
           }
-          continue; // Skip this packet
+
+          lastSysExActivityMs = nowMs;
+
+          if (currentSysExState == SysExState::SYSEX_INVALID)
+          {
+            if (packet.status == SysExEnd)
+            {
+              ResetActiveSysExSession(sysExBuffer, activeSysExPort, currentSysExState, lastSysExActivityMs);
+            }
+            continue; // Skip this packet
+          }
         }
 
         if (currentSysExState != SysExState::SYSEX_RELEASE)
@@ -110,8 +145,7 @@ void ReceiveTask(void* parameters) {
             LogDroppedOversizedSysEx();
             if (packet.status == SysExEnd)
             {
-              activeSysExPort = MIDI_PORT_INVALID;
-              currentSysExState = SysExState::SYSEX_IDLE;
+              ResetActiveSysExSession(sysExBuffer, activeSysExPort, currentSysExState, lastSysExActivityMs);
             }
             else
             {
@@ -125,18 +159,16 @@ void ReceiveTask(void* parameters) {
 
           if (packet.status == SysExEnd)
           {
-            activeSysExPort = MIDI_PORT_INVALID;
-            currentSysExState = SysExState::SYSEX_IDLE;
+            ResetActiveSysExSession(sysExBuffer, activeSysExPort, currentSysExState, lastSysExActivityMs);
           }
           shouldForwardToApp = false; // System handled this packet
         }
       }
 
       // If current SysEx is the SysexEnd, free up the sysex lock for more sysex.
-      if (packet.status == SysExEnd)
+      if (packet.status == SysExEnd && packet.port == activeSysExPort)
       {
-        currentSysExState = SysExState::SYSEX_IDLE;
-        activeSysExPort = MIDI_PORT_INVALID;
+        ResetActiveSysExSession(sysExBuffer, activeSysExPort, currentSysExState, lastSysExActivityMs);
       }
 
       // Forward to application queue if not handled by system
