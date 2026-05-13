@@ -153,6 +153,11 @@ void ReceiveTask(void* parameters) {
 }
 
 bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) {
+  if (data == nullptr || length == 0)
+  {
+    return false;
+  }
+
   if (includeMeta)
   {
     uint8_t header[6] = {MIDIv1_SYSEX_START, SYSEX_MFG_ID[0], SYSEX_MFG_ID[1], SYSEX_MFG_ID[2], SYSEX_FAMILY_ID[0], SYSEX_FAMILY_ID[1]};
@@ -167,7 +172,9 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) 
     }
   }
 
-  for (uint8_t index = 0; index < length - 3 - !includeMeta; index += 3)
+  uint8_t endFrameLength = includeMeta ? (length % 3) : ((length - 1) % 3 + 1);
+  uint16_t dataPacketLength = length - endFrameLength;
+  for (uint16_t index = 0; index < dataPacketLength; index += 3)
   {
     if (!Send(MidiPacket(EMidiStatus::SysExData, data[index], data[index + 1], data[index + 2]), port, 5))
     {
@@ -178,13 +185,12 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) 
   // Send End
   if (includeMeta)
   {
-    uint16_t startPtr = length - length % 3;
     uint8_t footer[3] = {0, 0, 0};
-    for (uint16_t i = startPtr; i < length; i++)
+    for (uint8_t i = 0; i < endFrameLength; i++)
     {
-      footer[i] = data[startPtr + i];
+      footer[i] = data[dataPacketLength + i];
     }
-    footer[length % 3] = MIDIv1_SYSEX_END;
+    footer[endFrameLength] = MIDIv1_SYSEX_END;
 
     if (!Send(MidiPacket(EMidiStatus::SysExEnd, footer[0], footer[1], footer[2]), port, 5))
     {
@@ -193,12 +199,10 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) 
   }
   else
   {
-    uint8_t endFrameLength = ((length - 1) % 3 + 1);
-    uint16_t startPtr = length - endFrameLength;
     uint8_t footer[3] = {0, 0, 0};
     for (uint16_t i = 0; i < endFrameLength; i++)
     {
-      footer[i] = data[startPtr + i];
+      footer[i] = data[dataPacketLength + i];
     }
 
     if (!Send(MidiPacket(EMidiStatus::SysExEnd, footer[0], footer[1], footer[2]), port, 5))
@@ -210,6 +214,11 @@ bool SendSysEx(uint16_t port, uint16_t length, uint8_t* data, bool includeMeta) 
 }
 
 SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool complete) {
+  if (sysExBuffer.empty())
+  {
+    return SysExState::SYSEX_INVALID;
+  }
+
   if (sysExBuffer[0] != MIDIv1_SYSEX_START)
   {
     return SysExState::SYSEX_INVALID;
@@ -217,9 +226,14 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
 
   if (complete)
   {
+    if (sysExBuffer.size() < 2)
+    {
+      return SysExState::SYSEX_INVALID;
+    }
+
     if (sysExBuffer[1] == MIDIv1_UNIVERSAL_NON_REALTIME_ID) // Non real time messages
     {
-      if (sysExBuffer[3] == USYSEX_GENERAL_INFO &&
+      if (sysExBuffer.size() >= 5 && sysExBuffer[3] == USYSEX_GENERAL_INFO &&
           sysExBuffer[4] == USYSEX_GI_ID_REQUEST) // General Info - Identity Request I should be check channel here but it doesn't matter
       {
 #if MATRIXOS_BUILD_VER == 0 // Release Version
@@ -247,7 +261,10 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
     }
     else if (sysExBuffer[1] == MATRIXOS_SYSEX_REQUEST) // Matrix OS specific sysex
     {
-      HandleMatrixOSSysEx(port, sysExBuffer);
+      if (sysExBuffer.size() >= 3)
+      {
+        HandleMatrixOSSysEx(port, sysExBuffer);
+      }
     }
     return SysExState::SYSEX_COMPLETE;
   }
@@ -260,6 +277,11 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
 }
 
 void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
+  if (sysExBuffer.size() < 3)
+  {
+    return;
+  }
+
   switch (sysExBuffer[2])
   {
   case MATRIXOS_COMMAND_GET_OS_VERSION: {
@@ -296,8 +318,11 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
     {
       break;
     }
-    uint32_t appId = ((uint32_t)sysExBuffer[4] << 25) + ((uint32_t)sysExBuffer[5] << 18) + ((uint32_t)sysExBuffer[6] << 11) +
-                      ((uint32_t)sysExBuffer[7] << 4) + ((uint32_t)sysExBuffer[8] >> 3);
+    uint32_t appId = ((uint32_t)sysExBuffer[3] << 25);
+    appId += ((uint32_t)sysExBuffer[4] << 18);
+    appId += ((uint32_t)sysExBuffer[5] << 11);
+    appId += ((uint32_t)sysExBuffer[6] << 4);
+    appId += ((uint32_t)sysExBuffer[7] >> 3);
     SYS::ExecuteAPP(appId);
     break;
   }
@@ -319,7 +344,7 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
   //   break;
   // }
   default: {
-    MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[1]);
+    MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[2]);
   }
   }
 }
