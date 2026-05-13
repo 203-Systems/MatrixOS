@@ -1,6 +1,7 @@
 #include "Performance8x8.h"
 
 static constexpr size_t MAX_PERFORMANCE_SYSEX_SIZE = 768;
+static constexpr uint8_t MAX_PERFORMANCE_MIDI_PACKETS_PER_LOOP = 64;
 
 static Color ApolloColorFrom6Bit(uint8_t red, uint8_t green, uint8_t blue) {
   red &= 0x3F;
@@ -81,9 +82,11 @@ void Performance::Loop() {
   }
 
   struct MidiPacket midiPacket;
-  while (MatrixOS::MIDI::Get(&midiPacket))
+  uint8_t midiPacketsProcessed = 0;
+  while (midiPacketsProcessed < MAX_PERFORMANCE_MIDI_PACKETS_PER_LOOP && MatrixOS::MIDI::Get(&midiPacket))
   {
     MidiEventHandler(midiPacket);
+    midiPacketsProcessed++;
   }
 }
 
@@ -725,9 +728,11 @@ void Performance::ActionMenu() {
 
   actionMenu.SetGlobalLoopFunc([&]() -> void { // Keep buffer updated even when action menu is currently open
     struct MidiPacket midiPacket;
-    while (MatrixOS::MIDI::Get(&midiPacket))
+    uint8_t midiPacketsProcessed = 0;
+    while (midiPacketsProcessed < MAX_PERFORMANCE_MIDI_PACKETS_PER_LOOP && MatrixOS::MIDI::Get(&midiPacket))
     {
       MidiEventHandler(midiPacket);
+      midiPacketsProcessed++;
     }
   });
 
