@@ -27,7 +27,7 @@ public:
   uint8_t canvasLedLayer;
   bool uiOpened = false;
 
-  uint16_t was_combo_key;
+  uint16_t was_combo_key = 0;
 
   // Saved Variables
   CreateSavedVar("Performance", forceSensitive, bool, true);
@@ -39,6 +39,9 @@ public:
   const uint32_t custom_palette_nvs_hash[CUSTOM_PALETTE_COUNT] = {
       StaticHash("203 Systems-Performance-Palette1"), StaticHash("203 Systems-Performance-Palette2"),
       StaticHash("203 Systems-Performance-Palette3"), StaticHash("203 Systems-Performance-Palette4")};
+
+static constexpr size_t MAX_PERFORMANCE_SYSEX_SIZE = 768;
+static constexpr uint8_t MAX_PERFORMANCE_MIDI_PACKETS_PER_LOOP = 64;
 
   void Setup(const vector<string>& args) override;
   void Loop() override;

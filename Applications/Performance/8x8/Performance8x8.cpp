@@ -1,54 +1,17 @@
 #include "Performance8x8.h"
 
-static constexpr size_t MAX_PERFORMANCE_SYSEX_SIZE = 768;
-static constexpr uint8_t MAX_PERFORMANCE_MIDI_PACKETS_PER_LOOP = 64;
-
-static Color ApolloColorFrom6Bit(uint8_t red, uint8_t green, uint8_t blue) {
-  red &= 0x3F;
-  green &= 0x3F;
-  blue &= 0x3F;
-
-  return Color((red << 2) + (red >> 4), (green << 2) + (green >> 4), (blue << 2) + (blue >> 4));
-}
-
-static void ApplyApolloIndex(uint8_t index, Color color, uint8_t targetLayer) {
-  if (index == 0)
-  {
-    MatrixOS::LED::Fill(color, targetLayer);
-  }
-  else if (index < 99)
-  {
-    Point xy = Point(index % 10 - 1, 8 - (index / 10));
-    MatrixOS::LED::SetColor(xy, color, targetLayer);
-  }
-  else if (index == 99)
-  {
-    return;
-  }
-  else if (index < 110)
-  {
-    int8_t row = 108 - index;
-    for (int8_t x = 0; x < 10; x++)
-    {
-      MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
-    }
-  }
-  else if (index < 120)
-  {
-    int8_t column = index - 111;
-    for (int8_t y = 0; y < 10; y++)
-    {
-      MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
-    }
-  }
-}
-
 void Performance::Setup(const vector<string>& args) {
   // Load variable
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
   currentKeymap = 0;
+  was_combo_key = 0;
   sysExOverflow = false;
   sysExBuffer.clear();
+
+  for (uint8_t note = 0; note < 128; note++)
+  {
+    stfuMap[note] = -1;
+  }
 
   MatrixOS::NVS::GetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
   for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
@@ -194,6 +157,11 @@ int8_t Performance::XYToNote(Point xy, bool comboKey) {
 
 void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
   // MLOGD("Performance", "Midi Received %#02X %#02X %#02X", channel, note, velocity);
+  if (note >= 128 || velocity >= 128)
+  {
+    return;
+  }
+
   Point xy = NoteToXY(note);
 
   if (xy && !(velocity == 0 && stfu))
@@ -220,6 +188,46 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
     else
     {
       stfuMap[note] = -1;
+    }
+  }
+}
+
+static Color ApolloColorFrom6Bit(uint8_t red, uint8_t green, uint8_t blue) {
+  red &= 0x3F;
+  green &= 0x3F;
+  blue &= 0x3F;
+
+  return Color((red << 2) + (red >> 4), (green << 2) + (green >> 4), (blue << 2) + (blue >> 4));
+}
+
+static void ApplyApolloIndex(uint8_t index, Color color, uint8_t targetLayer) {
+  if (index == 0)
+  {
+    MatrixOS::LED::Fill(color, targetLayer);
+  }
+  else if (index < 99)
+  {
+    Point xy = Point(index % 10 - 1, 8 - (index / 10));
+    MatrixOS::LED::SetColor(xy, color, targetLayer);
+  }
+  else if (index == 99)
+  {
+    return;
+  }
+  else if (index < 110)
+  {
+    int8_t row = 108 - index;
+    for (int8_t x = 0; x < 10; x++)
+    {
+      MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
+    }
+  }
+  else if (index < 120)
+  {
+    int8_t column = index - 111;
+    for (int8_t y = 0; y < 10; y++)
+    {
+      MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
     }
   }
 }
@@ -627,6 +635,8 @@ void Performance::PaletteViewer(uint8_t customPaletteId) {
           }
         }
       }
+
+      taskYIELD();
     }
   }
 
