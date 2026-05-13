@@ -1,9 +1,53 @@
 #include "Performance8x8.h"
 
+static constexpr size_t MAX_PERFORMANCE_SYSEX_SIZE = 768;
+
+static Color ApolloColorFrom6Bit(uint8_t red, uint8_t green, uint8_t blue) {
+  red &= 0x3F;
+  green &= 0x3F;
+  blue &= 0x3F;
+
+  return Color((red << 2) + (red >> 4), (green << 2) + (green >> 4), (blue << 2) + (blue >> 4));
+}
+
+static void ApplyApolloIndex(uint8_t index, Color color, uint8_t targetLayer) {
+  if (index == 0)
+  {
+    MatrixOS::LED::Fill(color, targetLayer);
+  }
+  else if (index < 99)
+  {
+    Point xy = Point(index % 10 - 1, 8 - (index / 10));
+    MatrixOS::LED::SetColor(xy, color, targetLayer);
+  }
+  else if (index == 99)
+  {
+    return;
+  }
+  else if (index < 110)
+  {
+    int8_t row = 108 - index;
+    for (int8_t x = 0; x < 10; x++)
+    {
+      MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
+    }
+  }
+  else if (index < 120)
+  {
+    int8_t column = index - 111;
+    for (int8_t y = 0; y < 10; y++)
+    {
+      MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
+    }
+  }
+}
+
 void Performance::Setup(const vector<string>& args) {
   // Load variable
   canvasLedLayer = MatrixOS::LED::CurrentLayer();
   currentKeymap = 0;
+  sysExOverflow = false;
+  sysExBuffer.clear();
 
   MatrixOS::NVS::GetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
   for (uint8_t i = 0; i < CUSTOM_PALETTE_COUNT; i++)
@@ -178,25 +222,54 @@ void Performance::NoteHandler(uint8_t channel, uint8_t note, uint8_t velocity) {
 }
 
 void Performance::SysExHandler(MidiPacket midiPacket) {
-  // New SysEx, clear buffer
-  if (sysExBuffer.empty())
+  uint8_t packetLength = midiPacket.Length();
+  if (packetLength == 0)
   {
-    sysExBuffer.reserve(400);
+    return;
   }
 
-  // Insert data to buffer
-  sysExBuffer.insert(sysExBuffer.end(), midiPacket.data, midiPacket.data + midiPacket.Length());
+  if (sysExBuffer.capacity() < MAX_PERFORMANCE_SYSEX_SIZE)
+  {
+    sysExBuffer.reserve(MAX_PERFORMANCE_SYSEX_SIZE);
+  }
 
-  // If not end of sysex, return, do not parse
+  if (sysExOverflow)
+  {
+    if (midiPacket.status == SysExEnd)
+    {
+      sysExOverflow = false;
+    }
+    return;
+  }
+
+  if (sysExBuffer.size() + packetLength > MAX_PERFORMANCE_SYSEX_SIZE)
+  {
+    MLOGW("Performance", "Dropped oversized SysEx message");
+    sysExBuffer.clear();
+    sysExOverflow = midiPacket.status != SysExEnd;
+    return;
+  }
+
+  sysExBuffer.insert(sysExBuffer.end(), midiPacket.data, midiPacket.data + packetLength);
+
   if (midiPacket.status != SysExEnd)
   {
     return;
   }
 
-  // Get rid of the 0xF7 ending byte
-  sysExBuffer.pop_back();
+  if (sysExBuffer.empty() || sysExBuffer.back() != MIDIv1_SYSEX_END)
+  {
+    sysExBuffer.clear();
+    return;
+  }
 
-  // Parsing because sysex is completed
+  sysExBuffer.pop_back();
+  if (sysExBuffer.empty())
+  {
+    sysExBuffer.clear();
+    return;
+  }
+
   switch (sysExBuffer[0])
   {
   case 0x5f: // Apollo batch fill -
@@ -205,7 +278,7 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
     // MLOGD("Performance", "Apollo batch Fill");
     if (sysExBuffer.size() < 5)
     {
-      return;
+      break;
     }
 
     uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
@@ -213,18 +286,12 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
     uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
     while (ptr < sysExBuffer.size())
     {
-      // Extract the color data
-      uint8_t colorR = (sysExBuffer[ptr] & 0x3F);
-      uint8_t colorG = (sysExBuffer[ptr + 1] & 0x3F);
-      uint8_t colorB = (sysExBuffer[ptr + 2] & 0x3F);
+      if (ptr + 2 >= sysExBuffer.size())
+      {
+        break;
+      }
 
-      // Remapped color from 6 bit to 8 bit
-      colorR = (colorR << 2) + (colorR >> 4);
-      colorG = (colorG << 2) + (colorG >> 4);
-      colorB = (colorB << 2) + (colorB >> 4);
-
-      // Create the color
-      Color color = Color(colorR, colorG, colorB);
+      Color color = ApolloColorFrom6Bit(sysExBuffer[ptr], sysExBuffer[ptr + 1], sysExBuffer[ptr + 2]);
 
       // Get how many NN (Note Numbers) follows
       uint8_t nCount = ((sysExBuffer[ptr] & 0x40) >> 4) | ((sysExBuffer[ptr + 1] & 0x40) >> 5) | ((sysExBuffer[ptr + 2] & 0x40) >> 6);
@@ -234,44 +301,24 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
       // If nums of NN is 0, then the next byte is the number of NN
       if (nCount == 0)
       {
+        if (ptr >= sysExBuffer.size())
+        {
+          break;
+        }
         nCount = sysExBuffer[ptr++];
       } // If all 3 bits are 0, then it's 64 (0b111111
 
       // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, nCount);
 
+      if (ptr + nCount > sysExBuffer.size())
+      {
+        break;
+      }
+
       // Goes through all N
       for (uint16_t n = 0; n < nCount; n++)
       {
-        if (sysExBuffer[ptr] == 0) // Global full
-        {
-          MatrixOS::LED::Fill(color, targetLayer);
-        }
-        else if (sysExBuffer[ptr] < 99) // Grid
-        {
-          Point xy = Point(sysExBuffer[ptr] % 10 - 1, 8 - (sysExBuffer[ptr] / 10));
-          // MLOGD("Performance", "Grid %d %d", xy.x, xy.y);
-          MatrixOS::LED::SetColor(xy, color, targetLayer);
-        }
-        else if (sysExBuffer[ptr] == 99) // Mode Light
-        {
-          // Not implemented - Maybe a TODO
-        }
-        else if (sysExBuffer[ptr] < 110) // Row Fill
-        {
-          int8_t row = 108 - sysExBuffer[ptr];
-          for (int8_t x = 0; x < 10; x++)
-          {
-            MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
-          }
-        }
-        else if (sysExBuffer[ptr] < 120) // Column Fill
-        {
-          int8_t column = sysExBuffer[ptr] - 111;
-          for (int8_t y = 0; y < 10; y++)
-          {
-            MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
-          }
-        }
+        ApplyApolloIndex(sysExBuffer[ptr], color, targetLayer);
         ptr++; // Since ptr is the pointer of in vector, we need to read the next NN, inc the ptr by 1
       }
     }
@@ -281,68 +328,33 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
              // https://github.com/mat1jaczyyy/lpp-performance-cfw/blob/0c2ec2a71030306ab7e5491bd49d72440d8c0199/src/sysex/sysex.c#L115
   {
     // MLOGD("Performance", "Apollo batch Fill");
-    if (sysExBuffer.size() < 5)
+    if (sysExBuffer.size() < 5 || ((sysExBuffer.size() - 1) % 4) != 0)
     {
-      return;
+      break;
     }
 
     uint8_t targetLayer = uiOpened ? canvasLedLayer : 0;
 
     uint16_t ptr = 1; // Index 0 is the command 0x5f, we start ptr at 1
-    while (ptr < sysExBuffer.size())
+    while (ptr + 3 < sysExBuffer.size())
     {
-      // Extract the color data
       uint8_t index = sysExBuffer[ptr];
-      uint8_t colorR = (sysExBuffer[ptr + 1] & 0x3F);
-      uint8_t colorG = (sysExBuffer[ptr + 2] & 0x3F);
-      uint8_t colorB = (sysExBuffer[ptr + 3] & 0x3F);
-
-      // Remapped color from 6 bit to 8 bit
-      colorR = (colorR << 2) + (colorR >> 4);
-      colorG = (colorG << 2) + (colorG >> 4);
-      colorB = (colorB << 2) + (colorB >> 4);
-
-      // Create the color
-      Color color = Color(colorR, colorG, colorB);
+      Color color = ApolloColorFrom6Bit(sysExBuffer[ptr + 1], sysExBuffer[ptr + 2], sysExBuffer[ptr + 3]);
 
       ptr += 4; // We finish reading the first 3 bit, inc the ptr by 3
 
       // MLOGD("Performance", "Color: #%.2X%.2X%.2X, NN count: %d", color.R, color.G, color.B, nCount);
-
-      if (index == 0) // Global full
-      {
-        MatrixOS::LED::Fill(color, targetLayer);
-      }
-      else if (index < 99) // Grid
-      {
-        Point xy = Point(index % 10 - 1, 8 - (index / 10));
-        MatrixOS::LED::SetColor(xy, color, targetLayer);
-      }
-      else if (index == 99) // Mode Light
-      {
-        // Not implemented - Maybe a TODO
-      }
-      else if (index < 110) // Row Fill
-      {
-        int8_t row = 108 - index;
-        for (int8_t x = 0; x < 10; x++)
-        {
-          MatrixOS::LED::SetColor(Point(x, row), color, targetLayer);
-        }
-      }
-      else if (index < 120) // Column Fill
-      {
-        int8_t column = index - 111;
-        for (int8_t y = 0; y < 10; y++)
-        {
-          MatrixOS::LED::SetColor(Point(column, y), color, targetLayer);
-        }
-      }
+      ApplyApolloIndex(index, color, targetLayer);
     }
     break;
   }
   case 0x41: // Retina Custom Palette
   {
+    if (sysExBuffer.size() < 2)
+    {
+      break;
+    }
+
     if (sysExBuffer[1] == 0x7B) // Uploading Start
     {
       MLOGD("Performance", "Retina Custom Palette Uploading Start");
@@ -351,24 +363,31 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
     }
     else if (sysExBuffer[1] == 0x3D) // Uploading Write
     {
+      if (sysExBuffer.size() < 3 || ((sysExBuffer.size() - 3) % 4) != 0)
+      {
+        break;
+      }
+
       MLOGD("Performance", "Retina Custom Palette Uploading Write");
       uint8_t paletteToWrite = sysExBuffer[2];
+      if (paletteToWrite >= CUSTOM_PALETTE_COUNT)
+      {
+        break;
+      }
+
       // Read 4 byte at once
       for (uint16_t i = 3; i < sysExBuffer.size(); i += 4)
       {
         uint8_t index = sysExBuffer[i];
-        uint8_t colorR = (sysExBuffer[i + 1] & 0x3F);
-        uint8_t colorG = (sysExBuffer[i + 2] & 0x3F);
-        uint8_t colorB = (sysExBuffer[i + 3] & 0x3F);
+        if (index >= 128)
+        {
+          continue;
+        }
 
-        // Remapped color from 6 bit to 8 bit
-        colorR = (colorR << 2) + (colorR >> 4);
-        colorG = (colorG << 2) + (colorG >> 4);
-        colorB = (colorB << 2) + (colorB >> 4);
+        Color color = ApolloColorFrom6Bit(sysExBuffer[i + 1], sysExBuffer[i + 2], sysExBuffer[i + 3]);
+        custom_palette[paletteToWrite][index] = color;
 
-        custom_palette[paletteToWrite][index] = Color(colorR, colorG, colorB);
-
-        MLOGD("Performance", "Custom Palette %d Index %d Color %d %d %d", paletteToWrite, index, colorR, colorG, colorB);
+        MLOGD("Performance", "Custom Palette %d Index %d Color %d %d %d", paletteToWrite, index, color.R, color.G, color.B);
       }
       custom_palette_available[paletteToWrite] = true;
     }
@@ -384,6 +403,7 @@ void Performance::SysExHandler(MidiPacket midiPacket) {
       }
       MatrixOS::NVS::SetVariable(custom_palette_available_nvs_hash, custom_palette_available, sizeof(custom_palette_available));
     }
+    break;
   }
   default:
     break;

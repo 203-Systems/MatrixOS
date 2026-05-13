@@ -356,6 +356,7 @@ public:
 
 private:
   vector<uint8_t> sysExBuffer;
+  bool sysExOverflow = false;
   int8_t stfuMap[128];
   Timer stfuTimer;
 };
