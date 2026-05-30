@@ -1819,7 +1819,7 @@ uint32_t Sequence::GetLastEventTime(uint8_t track) {
 Fract16 Sequence::GetStepProgress() {
   SequenceScopedLock lock(*this);
 
-  if (!playing)
+  if (!playing || clocksTillStart > 0 || lastPulseTime == 0 || currentPulse == UINT16_MAX)
   {
     return 0;
   }
@@ -1854,6 +1854,11 @@ uint8_t Sequence::StepProgressBreath(uint8_t lowBound) {
 
 Fract16 Sequence::GetQuarterNoteProgress() {
   SequenceScopedLock lock(*this);
+
+  if (lastClockTime == 0)
+  {
+    return 0;
+  }
 
   uint32_t usPerQuarterNote = usPerClock * 24; // Clock is 24PPQN
   uint32_t timeElapsedSinceQuarterNote = (MatrixOS::SYS::Micros() - lastClockTime) + (usPerClock * currentClock);
@@ -2117,9 +2122,10 @@ void Sequence::ProcessTrack(uint8_t track) {
   bool trackEnabled = GetEnabled(track);
 
   SequencePosition& pos = trackPlayback[track].position;
+  bool atBarStart = currentStep == 0 && currentPulse == 0;
 
-  // Check for queued clip change at bar boundary (currentStep == 0)
-  if (trackPlayback[track].nextClip != 255 && currentStep == 0)
+  // Check for queued clip change at bar boundary
+  if (trackPlayback[track].nextClip != 255 && atBarStart)
   {
     if (trackPlayback[track].nextClip == 254)
     {
