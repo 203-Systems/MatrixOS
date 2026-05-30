@@ -19,6 +19,11 @@ Dimension PatternSelector::GetSize() {
 bool PatternSelector::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   SequenceScopedLock lock(sequencer->sequence);
 
+  if ((keypadInfo->state == KeypadState::Pressed || keypadInfo->state == KeypadState::Hold) && sequencer->ShiftActive())
+  {
+    sequencer->ShiftEventOccured();
+  }
+
   if (xy.y < 2) // Selector part
   {
     uint8_t patternIdx = xy.x + xy.y * 8; // Convert 2D coordinates to pattern index

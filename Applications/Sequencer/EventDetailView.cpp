@@ -26,6 +26,7 @@ bool EventDetailView::IsEnabled() {
   if (enabled && wasEnabled == false)
   {
     MatrixOS::Input::ClearInputBuffer();
+    selectedEventValid = false;
     RebuildEventList();
     lastOnTime = MatrixOS::SYS::Millis();
   }
@@ -61,7 +62,7 @@ void EventDetailView::RebuildEventList() {
   while (it != pattern->events.end() && it->first <= endTime)
   {
     eventRefs.push_back(it);
-    if (it == selectedEventIter)
+    if (selectedEventValid && it == selectedEventIter)
     {
       matchedSelection = true;
     }
@@ -70,11 +71,13 @@ void EventDetailView::RebuildEventList() {
 
   if (eventRefs.empty())
   {
+    selectedEventValid = false;
     sequencer->SetView(Sequencer::ViewMode::Sequencer);
   }
   else if (!matchedSelection)
   {
     selectedEventIter = eventRefs.front();
+    selectedEventValid = true;
   }
 }
 
@@ -206,6 +209,7 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo) 
     if (xy.x < eventRefs.size())
     {
       selectedEventIter = eventRefs[xy.x];
+      selectedEventValid = true;
 
       // If it's a note event, send note on
       auto& event = eventRefs[xy.x]->second;
@@ -265,7 +269,7 @@ void EventDetailView::RenderMicroStepSelector(Point origin) {
     Color color = Color(0x404040); // Default: dark gray (empty)
 
     // Check if selected event is in this micro step slot
-    if (selectedEventIter != std::multimap<uint16_t, SequenceEvent>::iterator())
+    if (selectedEventValid)
     {
       uint16_t eventTime = selectedEventIter->first;
       uint16_t relativeTime = eventTime - stepStartTime; // Time within the current step
@@ -324,6 +328,7 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeypadInfo* keypadIn
       auto insertedIter = pattern->events.insert({targetTime, eventData});
       sequencer->sequence.SetDirty();
       selectedEventIter = insertedIter;
+      selectedEventValid = true;
       RebuildEventList();
     }
     return true;
@@ -362,6 +367,7 @@ bool EventDetailView::DeleteEventKeyHandler(Point xy, KeypadInfo* keypadInfo) {
     }
 
     pattern->events.erase(eventIter);
+    selectedEventValid = false;
     sequencer->sequence.SetDirty();
 
     RebuildEventList();

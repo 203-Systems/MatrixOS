@@ -43,6 +43,11 @@ bool ClipLauncher::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
       return true;
     }
 
+    if (sequencer->ShiftActive())
+    {
+      sequencer->ShiftEventOccured();
+    }
+
     // Handle copy mode
     if (sequencer->CopyActive())
     {

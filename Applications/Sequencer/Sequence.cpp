@@ -820,6 +820,24 @@ void Sequence::CopyClip(uint8_t sourceTrack, uint8_t sourceClip, uint8_t destTra
   // Copy entire clip
   data.tracks[destTrack].clips[destClip] = data.tracks[sourceTrack].clips[sourceClip];
 
+  if (trackPlayback[destTrack].position.clip == destClip)
+  {
+    auto& patterns = data.tracks[destTrack].clips[destClip].patterns;
+    if (!patterns.empty())
+    {
+      if (trackPlayback[destTrack].position.pattern >= patterns.size())
+      {
+        trackPlayback[destTrack].position.pattern = patterns.size() - 1;
+      }
+      SequencePattern& pattern = patterns[trackPlayback[destTrack].position.pattern];
+      if (trackPlayback[destTrack].position.step >= pattern.steps)
+      {
+        trackPlayback[destTrack].position.step = 0;
+        trackPlayback[destTrack].position.pulse = UINT16_MAX;
+      }
+    }
+  }
+
   dirty = true;
 }
 

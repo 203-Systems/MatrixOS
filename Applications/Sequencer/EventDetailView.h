@@ -14,6 +14,7 @@ class EventDetailView : public UIComponent {
 
   vector<std::multimap<uint16_t, SequenceEvent>::iterator> eventRefs;
   std::multimap<uint16_t, SequenceEvent>::iterator selectedEventIter;
+  bool selectedEventValid = false;
   SequencePosition position;
   SequencePattern* pattern = nullptr;
 
