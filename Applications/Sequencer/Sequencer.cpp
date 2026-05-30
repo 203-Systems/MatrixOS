@@ -1347,6 +1347,14 @@ bool Sequencer::Save(uint16_t slot) {
   {
     SequenceScopedLock lock(sequence);
     dataSnapshot = sequence.GetData();
+    for (uint8_t trackIdx = 0; trackIdx < dataSnapshot.tracks.size(); trackIdx++)
+    {
+      SequencePosition* pos = sequence.GetPosition(trackIdx);
+      if (pos != nullptr && dataSnapshot.tracks[trackIdx].clips.find(pos->clip) != dataSnapshot.tracks[trackIdx].clips.end())
+      {
+        dataSnapshot.tracks[trackIdx].activeClip = pos->clip;
+      }
+    }
     metaSnapshot = meta;
   }
 

@@ -97,7 +97,7 @@ void Sequence::New(uint8_t tracks) {
     // Create data track
     data.tracks.emplace_back();
     data.tracks[i].channel = i;
-    data.tracks[i].activeClip = i;
+    data.tracks[i].activeClip = 0;
 
     // Create default clip 0 with one pattern
     data.tracks[i].clips[0] = SequenceClip();
@@ -204,7 +204,15 @@ void Sequence::SetData(const SequenceData& newData) {
 
     if (track.activeClip > 127 || track.clips.find(track.activeClip) == track.clips.end())
     {
-      track.activeClip = track.clips.begin()->first;
+      uint8_t lowestClip = track.clips.begin()->first;
+      for (const auto& [clipIdx, clipData] : track.clips)
+      {
+        if (clipIdx < lowestClip)
+        {
+          lowestClip = clipIdx;
+        }
+      }
+      track.activeClip = lowestClip;
     }
   }
 
