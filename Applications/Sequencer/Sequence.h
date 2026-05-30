@@ -169,7 +169,7 @@ public:
   void SetDirty(bool val = true);
 
   bool GetSolo(uint8_t track);
-  void SetSolo(uint8_t track, bool val);
+  void SetSolo(uint8_t track, bool val, bool exclusive = true);
 
   bool GetMute(uint8_t track);
   void SetMute(uint8_t track, bool val);

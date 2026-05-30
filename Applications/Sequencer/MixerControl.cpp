@@ -67,7 +67,13 @@ bool MixerControl::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     // Solo (Y=1)
     else if (row == 1)
     {
-      sequencer->sequence.SetSolo(track, !sequencer->sequence.GetSolo(track));
+      bool solo = sequencer->sequence.GetSolo(track);
+      bool multiSolo = sequencer->ShiftActive();
+      if (multiSolo)
+      {
+        sequencer->ShiftEventOccured();
+      }
+      sequencer->sequence.SetSolo(track, !solo, !multiSolo);
     }
     // Record (Y=2)
     else if (row == 2)

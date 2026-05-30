@@ -1625,26 +1625,24 @@ bool Sequence::GetSolo(uint8_t track) {
   return (data.solo >> track) & 1;
 }
 
-void Sequence::SetSolo(uint8_t track, bool val) {
+void Sequence::SetSolo(uint8_t track, bool val, bool exclusive) {
   SequenceScopedLock lock(*this);
 
   if (track >= trackPlayback.size())
     return;
-  uint32_t mask = 1 << track;
-  bool currentVal = (data.solo >> track) & 1;
+  uint32_t mask = uint32_t(1) << track;
+  uint32_t previousSolo = data.solo;
+  uint32_t nextSolo = val ? (exclusive ? mask : (data.solo | mask)) : (data.solo & ~mask);
 
-  if (currentVal != val)
+  if (previousSolo != nextSolo)
   {
-    if (val)
-      data.solo = mask;
-    else
-      data.solo = 0;
+    data.solo = nextSolo;
 
     // Send all-notes-off on this track's channel when solo state changes
     uint8_t channel = GetChannel(track);
     MatrixOS::MIDI::Send(MidiPacket::ControlChange(channel, 123, 0), MIDI_PORT_ALL);
     // Also send all-notes-off to other channels when soloing to avoid stuck notes
-    if (val)
+    if (val && (exclusive || previousSolo == 0))
     {
       for (uint8_t i = 0; i < trackPlayback.size(); i++)
       {
