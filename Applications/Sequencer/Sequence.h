@@ -178,7 +178,7 @@ public:
   bool GetRecord(uint8_t track);
   void SetRecord(uint8_t track, bool val);
 
-  bool GetEnabled(uint8_t track); // Disabled if mute or other track have solo
+  bool GetEnabled(uint8_t track); // Solo overrides mute; otherwise disabled if muted
 
   bool CanUndoLastRecord();
   void UndoLastRecorded();

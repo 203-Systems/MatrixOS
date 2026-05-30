@@ -1727,16 +1727,11 @@ void Sequence::SetRecord(uint8_t track, bool val) {
 bool Sequence::GetEnabled(uint8_t track) {
   SequenceScopedLock lock(*this);
 
-  // Track is disabled if:
-  // 1. Track is muted
-  // 2. Other tracks have solo (and this track doesn't have solo)
-  if (GetMute(track))
-    return false;
+  // Solo overrides mute while preserving the stored mute state.
+  if (data.solo != 0)
+    return GetSolo(track);
 
-  if (data.solo != 0 && !GetSolo(track))
-    return false;
-
-  return true;
+  return !GetMute(track);
 }
 
 bool Sequence::IsNoteActive(uint8_t track, uint8_t note) const {
