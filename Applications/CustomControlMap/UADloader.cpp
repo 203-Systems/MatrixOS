@@ -47,7 +47,7 @@ bool UADRuntime::CheckVersion(cb0r_t uadMap) {
 bool UADRuntime::LoadActionList(cb0r_t uadMap) {
   cb0r_s actionListCbor;
 
-  if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"actionListCbor", &actionListCbor)) // || actionListCbor.type != CB0R_ARRAY)
+  if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"action_list", &actionListCbor)) // || actionListCbor.type != CB0R_ARRAY)
   {
     MLOGE(TAG, "Action List not found");
     return false;
@@ -59,7 +59,7 @@ bool UADRuntime::LoadActionList(cb0r_t uadMap) {
 bool UADRuntime::LoadEffectList(cb0r_t uadMap) {
   cb0r_s effectListCbor;
 
-  if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"effectListCbor", &effectListCbor)) // || effectListCbor.type != CB0R_ARRAY)
+  if (!cb0r_find(uadMap, CB0R_UTF8, 11, (uint8_t*)"effect_list", &effectListCbor)) // || effectListCbor.type != CB0R_ARRAY)
   {
     MLOGE(TAG, "Effect List not found");
     return false;
