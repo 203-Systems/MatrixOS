@@ -28,6 +28,7 @@ inline StackType_t supervisorStack[configMINIMAL_STACK_SIZE * 4];
 inline StaticTask_t supervisorTaskdef;
 
 inline bool inited = false;
+inline bool appTaskPendingCleanup = false;
 inline Application* activeApp = NULL;
 inline TaskHandle_t activeAppTask = NULL;
 inline uint32_t activeAppId = 0;

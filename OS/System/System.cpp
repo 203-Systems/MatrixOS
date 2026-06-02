@@ -124,8 +124,14 @@ void Supervisor(void* param) {
       exited = false;
     }
 
-    if (activeAppTask == NULL || eTaskGetState(activeAppTask) == eTaskState::eDeleted)
+    if (activeAppTask == NULL)
     {
+      if (appTaskPendingCleanup)
+      {
+        DelayMs(1);
+        appTaskPendingCleanup = false;
+      }
+
       activeAppTask =
           xTaskCreateStatic(ApplicationFactory, "application", APPLICATION_STACK_SIZE, NULL, 1, applicationStack, &applicationTaskdef);
     }
@@ -240,6 +246,8 @@ void ExecuteAPP(string author, string appName, const vector<string>& args) {
 }
 
 void ExitAPP() {
+  TaskHandle_t taskToDelete = activeAppTask;
+
   if (MatrixOS::UserVar::uiAnimation)
   {
     MatrixOS::LED::Fade();
@@ -249,9 +257,9 @@ void ExitAPP() {
     MatrixOS::SYS::DelayMs(crossfadeDuration);
   }
 
-  if (xTaskGetCurrentTaskHandle() != activeAppTask)
+  if (taskToDelete != NULL && xTaskGetCurrentTaskHandle() != taskToDelete)
   {
-    vTaskSuspend(activeAppTask);
+    vTaskSuspend(taskToDelete);
   }
 
   // Safeguard against nullptr before calling End()
@@ -266,13 +274,21 @@ void ExitAPP() {
     activeAppInfo->destructor(activeApp);
   }
 
-  if (activeAppTask != NULL)
+  if (taskToDelete != NULL)
   {
     UI::ExitAllUIs();
-    activeApp = NULL;
-    vTaskDelete(activeAppTask);
   }
+
+  activeApp = NULL;
+  activeAppInfo = NULL;
+  activeAppId = 0;
   activeAppTask = NULL;
+  appTaskPendingCleanup = (taskToDelete != NULL);
+
+  if (taskToDelete != NULL)
+  {
+    vTaskDelete(taskToDelete);
+  }
 }
 
 void ErrorHandler(string error) {
