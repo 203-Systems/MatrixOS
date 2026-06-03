@@ -47,3 +47,4 @@ log.txt
 
 # Local agent/copilot workflow artifacts
 .agent/
+logs
