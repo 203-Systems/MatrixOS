@@ -775,14 +775,19 @@ void Sequencer::BPMSelector() {
   bpmDisplay.SetEnableFunc([&]() -> bool { return !bpmTextDisplay.IsEnabled(); });
   bpmUI.AddUIComponent(bpmDisplay, Point(-1, 0));
 
+  auto applyBPM = [&](uint16_t bpm) -> void {
+    sequence.SetBPM(bpm);
+    bpmValue = sequence.GetBPM();
+    bpmTextDisplay.Disable();
+  };
+
   // BPM Tapper
   SequencerBPMTapper bpmTapper;
   bpmTapper.SetName("Tap Tempo");
   bpmTapper.SetColor(color);
   bpmTapper.SetSize(Dimension(8, 4));
   bpmTapper.OnChange([&](uint16_t tappedBPM) -> void {
-    bpmValue = tappedBPM;
-    bpmTextDisplay.Disable();
+    applyBPM(tappedBPM);
   });
   bpmUI.AddUIComponent(bpmTapper, Point(0, 0));
 
@@ -798,8 +803,7 @@ void Sequencer::BPMSelector() {
   bpmNumberModifier.SetLowerLimit(20);
   bpmNumberModifier.SetUpperLimit(299);
   bpmNumberModifier.OnChange([&](int32_t val) -> void {
-    bpmValue = val;
-    bpmTextDisplay.Disable();
+    applyBPM(static_cast<uint16_t>(val));
   });
   bpmUI.AddUIComponent(bpmNumberModifier, Point(0, 7));
 
@@ -817,8 +821,7 @@ void Sequencer::BPMSelector() {
   resetButton.SetName("Reset BPM");
   resetButton.SetColor(Color::Red);
   resetButton.OnPress([&]() -> void {
-    bpmValue = 120;
-    bpmTextDisplay.Disable();
+    applyBPM(120);
   });
   bpmUI.AddUIComponent(resetButton, Point(7, 6));
 
@@ -881,6 +884,12 @@ void Sequencer::SwingSelector() {
   swingDisplay.SetEnableFunc([&]() -> bool { return !swingTextDisplay.IsEnabled(); });
   swingUI.AddUIComponent(swingDisplay, Point(-1, 0));
 
+  auto applySwing = [&](uint8_t swing) -> void {
+    sequence.SetSwing(swing);
+    swingValue = sequence.GetSwing();
+    swingTextDisplay.Disable();
+  };
+
   const int32_t fineModifier[8]{-10, -5, -2, -1, 1, 2, 5, 10};
   const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
 
@@ -893,9 +902,7 @@ void Sequencer::SwingSelector() {
   swingNumberModifier.SetLowerLimit(20);
   swingNumberModifier.SetUpperLimit(80);
   swingNumberModifier.OnChange([&](int32_t val) -> void {
-    swingValue = val;
-    sequence.SetSwing((uint8_t)val);
-    swingTextDisplay.Disable();
+    applySwing(static_cast<uint8_t>(val));
   });
   swingUI.AddUIComponent(swingNumberModifier, Point(0, 7));
 
@@ -903,9 +910,7 @@ void Sequencer::SwingSelector() {
   resetButton.SetName("Reset Swing");
   resetButton.SetColor(Color::Red);
   resetButton.OnPress([&]() -> void {
-    swingValue = 50;
-    sequence.SetSwing(50);
-    swingTextDisplay.Disable();
+    applySwing(50);
   });
   swingUI.AddUIComponent(resetButton, Point(7, 6));
 
