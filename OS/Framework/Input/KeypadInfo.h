@@ -62,6 +62,7 @@ struct KeypadInfo {
   // Device-layer scan methods (implementations in KeypadInfo.cpp).
   Fract16 ApplyForceCurve(KeypadConfig& config, Fract16 value);
   bool Update(KeypadConfig& config, Fract16 newValue);
+  bool UpdateSemantic(bool active, Fract16 newPressure, Fract16 newVelocity);
   void Suppress();
   uint32_t HoldTime();
 };

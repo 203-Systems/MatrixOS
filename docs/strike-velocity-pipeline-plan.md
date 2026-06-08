@@ -559,11 +559,14 @@ uint8_t pressureRangeAmount;
 ## Progress Notes
 
 - 2026-06-08: `Stage 1` 已完成第一轮实现。
+- 2026-06-08: `Stage 2` 已完成第一轮实现。
 - 已完成内容：ULP 增加 `rawHistory`、`historyIndex`、`count`、`firstSample`、`stableSample`、`sampleRetryCount`，并接入 settling delay + 多采样确认。
 - 已完成内容：Mystrix1 FSR driver 增加读取 ULP history / stable sample / retry count 的接口，为后续 pipeline 重构做准备。
+- 已完成内容：FSR driver 已切到设备层 runtime + semantic update 路径；`KeypadInfo` 新增 semantic helper，generic update 语义下沉为 `hold` / `Pressed` / `Aftertouch` / `Released` 状态推进。
+- 已完成内容：`VelocityResponse` / `PressureCurve` 第一版已 hardcode 到 pipeline，`Released` 事件复用当前 `velocity` 字段，不单独实现 release velocity。
 - 当前验证：相关文件诊断无错误。
 - 当前阻塞：本机缺少 `/tools/cmake/toolchain-esp32s3.cmake` 和 `Ninja`，暂时无法完成 Mystrix1 全量构建验证。
-- 下一步：进入 `Stage 2`，重构 FSR pipeline 和 hardcoded config；`Released` 仅写入 `velocity` 字段，不单独实现 release velocity 算法。
+- 下一步：进入 `Stage 3`，统一迁移主要 app 到 `Pressed -> velocity`、`Aftertouch -> pressure`、`Released -> velocity` 语义。
 
 ### Stage 1: 先重构 ULP [Completed]
 
@@ -582,7 +585,7 @@ uint8_t pressureRangeAmount;
 - ULP 二次采样或三次采样没有把 scanrate 降到不可接受范围。
 - raw history、history index、count 的 ABI 已稳定，后面 pipeline 可以直接依赖。
 
-### Stage 2: 再重构 pipeline 和 hardcoded config
+### Stage 2: 再重构 pipeline 和 hardcoded config [Completed]
 
 目标：把 FSR 语义处理和 generic OS update 的边界重建好，同时先用 hardcode config 跑通，不做 UI。
 

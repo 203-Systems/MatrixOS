@@ -133,6 +133,76 @@ IRAM_ATTR bool KeypadInfo::Update(KeypadConfig& config, Fract16 newValue) {
   return false;
 }
 
+IRAM_ATTR bool KeypadInfo::UpdateSemantic(bool active, Fract16 newPressure, Fract16 newVelocity) {
+  uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
+
+  switch (state)
+  {
+  case KeypadState::Invalid:
+  case KeypadState::Released:
+    state = KeypadState::Idle;
+    lastEventTime = timeNow;
+    suppressed = false;
+    hold = false;
+    pressure = 0;
+    [[fallthrough]];
+  case KeypadState::Idle:
+    if (active)
+    {
+      state = KeypadState::Pressed;
+      lastEventTime = timeNow;
+      pressure = newPressure;
+      velocity = newVelocity;
+      return true & !suppressed;
+    }
+    pressure = 0;
+    velocity = newVelocity;
+    return false;
+
+  case KeypadState::Debouncing:
+  case KeypadState::ReleaseDebouncing:
+  case KeypadState::Pressed:
+  case KeypadState::Hold:
+  case KeypadState::Aftertouch:
+    state = KeypadState::Activated;
+    [[fallthrough]];
+
+  case KeypadState::Activated:
+    if (!active)
+    {
+      state = KeypadState::Released;
+      lastEventTime = timeNow;
+      pressure = 0;
+      velocity = newVelocity;
+      hold = false;
+      return true & !suppressed;
+    }
+
+    velocity = newVelocity;
+
+    if (timeNow - lastEventTime > kHoldThreshold && !hold)
+    {
+      state = KeypadState::Hold;
+      pressure = newPressure;
+      hold = true;
+      return true & !suppressed;
+    }
+
+    if ((DIFFERENCE((uint16_t)newPressure, (uint16_t)pressure) > KEY_SCAN_THRESHOLD) ||
+        ((newPressure != pressure) && newPressure == FRACT16_MAX))
+    {
+      state = KeypadState::Aftertouch;
+      pressure = newPressure;
+      return true & !suppressed;
+    }
+
+    pressure = newPressure;
+    return false;
+  }
+
+  return false;
+}
+
 void KeypadInfo::Suppress() {
   // Suppress all states that Active() considers active, including
   // ReleaseDebouncing.  A key in release-debounce will eventually
