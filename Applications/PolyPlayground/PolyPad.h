@@ -99,7 +99,7 @@ public:
     }
     if (keypadInfo->state == KeypadState::Pressed)
     {
-      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keypadInfo->pressure.to7bits() : 0x7F));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOn(config->channel, note, config->forceSensitive ? keypadInfo->velocity.to7bits() : 0x7F));
       lastNote = note;
       activeNotes[note]++; // If this key doesn't exist, unordered_map will auto assign it to 0.
     }

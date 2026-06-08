@@ -510,7 +510,8 @@ void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
     return;
   }
 
-  Fract16 force = keypadInfo->pressure;
+  Fract16 noteVelocity = keypadInfo->velocity;
+  Fract16 pressure = keypadInfo->pressure;
 
   if (!forceSensitive)
   {
@@ -518,19 +519,16 @@ void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
     {
       return;
     };
-    if (force > 0)
-    {
-      force = FRACT16_MAX;
-    };
+    noteVelocity = FRACT16_MAX;
   }
 
   if (keypadInfo->state == KeypadState::Pressed)
   {
-    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, force.to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, noteVelocity.to7bits()), MIDI_PORT_ALL);
   }
   else if (keypadInfo->state == KeypadState::Aftertouch)
   {
-    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, force.to7bits()), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, pressure.to7bits()), MIDI_PORT_ALL);
   }
   else if (keypadInfo->state == KeypadState::Released)
   {

@@ -403,7 +403,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     uint8_t velocity = 127;
     if (sequencer->meta.tracks[track].velocitySensitive)
     {
-      velocity = keypadInfo->pressure.to7bits();
+      velocity = keypadInfo->velocity.to7bits();
     }
     sequencer->noteSelected[note] = velocity;
     packet = MidiPacket::NoteOn(channel, note, velocity);
