@@ -10,6 +10,7 @@
 
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_12
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
+#define ULP_HISTORY_SIZE 8
 
 extern const uint8_t ulp_fsr_keypad_bin_start[] asm("_binary_ulp_fsr_keypad_bin_start");
 extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_end");
@@ -144,6 +145,35 @@ uint32_t GetScanCount() {
 uint16_t GetRawReading(uint8_t x, uint8_t y) {
   uint16_t (*result)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_result;
   return result[x][y];
+}
+
+uint16_t GetFirstReading(uint8_t x, uint8_t y) {
+  uint16_t (*samples)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_first_sample;
+  return samples[x][y];
+}
+
+uint16_t GetStableReading(uint8_t x, uint8_t y) {
+  uint16_t (*samples)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_stable_sample;
+  return samples[x][y];
+}
+
+uint16_t GetSampleRetryCount(uint8_t x, uint8_t y) {
+  uint16_t (*retries)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_sample_retry_count;
+  return retries[x][y];
+}
+
+uint16_t GetHistoryIndex() {
+  return ulp_history_index;
+}
+
+uint16_t GetHistoryReading(uint8_t historyIndex, uint8_t x, uint8_t y) {
+  if (historyIndex >= ULP_HISTORY_SIZE)
+  {
+    return 0;
+  }
+
+  uint16_t (*history)[X_SIZE][Y_SIZE] = (uint16_t (*)[X_SIZE][Y_SIZE]) & ulp_raw_history;
+  return (*history)[historyIndex][x][y];
 }
 
 void Start() {
