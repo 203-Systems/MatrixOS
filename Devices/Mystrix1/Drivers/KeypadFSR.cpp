@@ -66,32 +66,14 @@ struct FSRKeyRuntime {
   Fract16 strikeVelocity = 0;
 };
 
-struct StrikeVelocityDebugInfo {
-  uint16_t latestHistoryIndex = 0;
-  uint16_t baseline = 0;
-  uint16_t peak = 0;
-  uint8_t sampleCount = 0;
-  uint8_t lane1Count = 0;
-  uint8_t lane2Count = 0;
-  uint32_t delta = 0;
-  uint32_t lane1Slope = 0;
-  uint32_t lane2Slope = 0;
-  uint32_t regressionSlope = 0;
-  uint32_t normalized = 0;
-};
-
 inline constexpr UserKeypadConfig kDefaultUserKeypadConfig = {
     .velocityResponse = VelocityResponse::Balanced,
     .pressureCurve = PressureCurve::Linear,
 };
 
-inline constexpr uint32_t kUlpScanRateLogIntervalMs = 1000;
-
 Fract16 (*lowThresholds)[X_SIZE][Y_SIZE] = nullptr;
 Fract16 (*highThresholds)[X_SIZE][Y_SIZE] = nullptr;
 FSRKeyRuntime keypadRuntime[X_SIZE][Y_SIZE] = {};
-uint32_t lastUlpScanRateLogMs = 0;
-uint32_t lastUlpScanRateCount = 0;
 
 CreateSavedVar("ForceCalibration", lowOffset, int16_t, 0);
 CreateSavedVar("ForceCalibration", highOffset, int16_t, 0);
@@ -192,7 +174,7 @@ inline Fract16 CalculatePressure(KeypadInfo& key, KeypadConfig& config, Fract16 
   return ApplyPressureCurvePreset(normalized, kDefaultUserKeypadConfig.pressureCurve);
 }
 
-Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex, StrikeVelocityDebugInfo* debugInfo = nullptr) {
+Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex) {
   uint16_t latestHistoryIndex = GetLatestHistoryIndex();
   uint16_t baseline = GetHistoryReading(startHistoryIndex, x, y);
   uint16_t peak = baseline;
@@ -237,7 +219,6 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
     historyIndex = (historyIndex + 1) % ULP_HISTORY_SIZE;
   }
 
-  uint32_t delta = peak > baseline ? (peak - baseline) : 0;
   uint32_t lane1Slope = CalculateRegressionSlope(lane1SumY, lane1SumXY, lane1Count);
   uint32_t lane2Slope = CalculateRegressionSlope(lane2SumY, lane2SumXY, lane2Count);
   uint32_t activeLaneCount = (lane1Count > 0 ? 1u : 0u) + (lane2Count > 0 ? 1u : 0u);
@@ -249,21 +230,6 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
   }
 
   uint32_t normalized = std::min<uint32_t>((regressionSlope * UINT16_MAX) / VELOCITY_SLOPE_DENOMINATOR, UINT16_MAX);
-
-  if (debugInfo != nullptr)
-  {
-    debugInfo->latestHistoryIndex = latestHistoryIndex;
-    debugInfo->baseline = baseline;
-    debugInfo->peak = peak;
-    debugInfo->sampleCount = sampleCount;
-    debugInfo->lane1Count = lane1Count;
-    debugInfo->lane2Count = lane2Count;
-    debugInfo->delta = delta;
-    debugInfo->lane1Slope = lane1Slope;
-    debugInfo->lane2Slope = lane2Slope;
-    debugInfo->regressionSlope = regressionSlope;
-    debugInfo->normalized = normalized;
-  }
 
   return EnsureNoteVelocity(ApplyVelocityResponsePreset(Fract16((uint16_t)normalized), kDefaultUserKeypadConfig.velocityResponse));
 }
@@ -385,19 +351,9 @@ uint16_t GetRawReading(uint8_t x, uint8_t y) {
   return result[x][y];
 }
 
-uint16_t GetFirstReading(uint8_t x, uint8_t y) {
-  uint16_t (*samples)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_first_sample;
-  return samples[x][y];
-}
-
 uint16_t GetStableReading(uint8_t x, uint8_t y) {
   uint16_t (*samples)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_stable_sample;
   return samples[x][y];
-}
-
-uint16_t GetSampleRetryCount(uint8_t x, uint8_t y) {
-  uint16_t (*retries)[Y_SIZE] = (uint16_t (*)[Y_SIZE]) & ulp_sample_retry_count;
-  return retries[x][y];
 }
 
 uint16_t GetHistoryIndex() {
@@ -426,17 +382,6 @@ IRAM_ATTR bool Scan() {
 
   KeypadConfig config = keypadConfig;
   uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
-  uint32_t scanCount = GetScanCount();
-
-  if (timeNow - lastUlpScanRateLogMs >= kUlpScanRateLogIntervalMs)
-  {
-    uint32_t elapsedMs = lastUlpScanRateLogMs == 0 ? 0 : (timeNow - lastUlpScanRateLogMs);
-    uint32_t deltaCount = scanCount - lastUlpScanRateCount;
-    uint32_t scansPerSecond = (elapsedMs > 0) ? ((deltaCount * 1000u) / elapsedMs) : 0;
-    MLOGD("KeypadFSR", "ULP scan rate=%lu Hz delta=%lu elapsed=%lu count=%lu", scansPerSecond, deltaCount, elapsedMs, scanCount);
-    lastUlpScanRateLogMs = timeNow;
-    lastUlpScanRateCount = scanCount;
-  }
 
   for (uint8_t y = 0; y < Y_SIZE; y++)
   {
@@ -475,34 +420,8 @@ IRAM_ATTR bool Scan() {
           }
           else if (timeNow - runtime.stateStartMs > config.debounce)
           {
-            StrikeVelocityDebugInfo strikeDebug;
             runtime.state = FSRRuntimeState::Active;
-            runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex, &strikeDebug);
-            MLOGD(
-                "KeypadFSR",
-              "strike x=%u y=%u velocity=%u baseline=%u peak=%u delta=%lu samples=%u lane1=%u lane2=%u slope1=%lu slope2=%lu slope=%lu normalized=%lu startIdx=%u latestIdx=%u filtered=%u stable=%u result=%u retry=%u low=%u press=%u high=%u",
-                x,
-                y,
-                (uint16_t)runtime.strikeVelocity,
-                strikeDebug.baseline,
-                strikeDebug.peak,
-                strikeDebug.delta,
-                strikeDebug.sampleCount,
-              strikeDebug.lane1Count,
-              strikeDebug.lane2Count,
-              strikeDebug.lane1Slope,
-              strikeDebug.lane2Slope,
-              strikeDebug.regressionSlope,
-                strikeDebug.normalized,
-                runtime.pressHistoryIndex,
-                strikeDebug.latestHistoryIndex,
-                (uint16_t)filteredReading,
-                (uint16_t)stableReading,
-                GetRawReading(x, y),
-                GetSampleRetryCount(x, y),
-                (uint16_t)config.lowThreshold,
-                pressThreshold,
-                (uint16_t)config.highThreshold);
+            runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex);
             updated = keyState.UpdateSemantic(true, CalculatePressure(keyState, config, filteredReading), runtime.strikeVelocity);
           }
           break;
