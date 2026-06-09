@@ -641,7 +641,7 @@ void SequencerNotePad::Rescan(Point origin) {
           uint8_t velocity = 127;
           if (sequencer->meta.tracks[track].velocitySensitive)
           {
-            velocity = keypadState.pressure.to7bits();
+            velocity = keypadState.velocity.to7bits();
           }
           sequencer->noteSelected[note] = velocity;
           MidiPacket packet = MidiPacket::NoteOn(channel, note, velocity);

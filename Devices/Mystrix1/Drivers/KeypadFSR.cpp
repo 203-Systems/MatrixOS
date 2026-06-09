@@ -14,12 +14,11 @@
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_12
 #define VELOCITY_SENSITIVE_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
 #define ULP_HISTORY_SIZE 8
-#define VELOCITY_SLOPE_DENOMINATOR 4096
 
-inline constexpr uint8_t kVelocityRegressionLaneSamples = 4;
-inline constexpr uint8_t kVelocityRegressionTotalSamples = kVelocityRegressionLaneSamples * 2;
+inline constexpr uint8_t velocityRegressionLaneSamples = 4;
+inline constexpr uint8_t velocityRegressionTotalSamples = velocityRegressionLaneSamples * 2;
 
-static_assert(ULP_HISTORY_SIZE >= kVelocityRegressionTotalSamples, "ULP history must fit the velocity regression window");
+static_assert(ULP_HISTORY_SIZE >= velocityRegressionTotalSamples, "ULP history must fit the velocity regression window");
 
 extern const uint8_t ulp_fsr_keypad_bin_start[] asm("_binary_ulp_fsr_keypad_bin_start");
 extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_end");
@@ -27,29 +26,28 @@ extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_en
 #define FORCE_CALIBRATION_LOW_HASH StaticHash("MATRIX—FORCE-CALIBRATION-LOW")
 #define FORCE_CALIBRATION_HIGH_HASH StaticHash("MATRIX—FORCE-CALIBRATION-HIGH")
 
-namespace MatrixOS::USB
-{
-bool Connected();
-}
-
 namespace Device::KeyPad::FSR
 {
-enum class VelocityResponse : uint8_t {
-  Soft = 50,
-  Balanced = 100,
-  Hard = 200,
+enum class VelocityResponse : int8_t {
+  VerySoft = -10,
+  Soft = -5,
+  Balanced = 0,
+  Hard = 5,
+  VeryHard = 10,
 };
 
-enum class PressureCurve : uint8_t {
-  Linear = 10,
-  Soft = 20,
-  Hard = 30,
-  LogFast = 40,
+enum class PressureCurve : int8_t {
+  VerySlowRise = -10,
+  SlowRise = -5,
+  Linear = 0,
+  FastRise = 5,
+  VeryFastRise = 10,
 };
 
 struct UserKeypadConfig {
   VelocityResponse velocityResponse;
   PressureCurve pressureCurve;
+  uint8_t maxPressurePercentage;
 };
 
 enum class FSRRuntimeState : uint8_t {
@@ -62,13 +60,17 @@ enum class FSRRuntimeState : uint8_t {
 struct FSRKeyRuntime {
   FSRRuntimeState state = FSRRuntimeState::Idle;
   uint32_t stateStartMs = 0;
-  uint16_t pressHistoryIndex = 0;
+  uint16_t lastCapturedHistoryIndex = 0;
+  uint32_t lastCapturedUlpCount = 0;
+  uint8_t strikeSampleCount = 0;
+  uint16_t strikeSamples[velocityRegressionTotalSamples] = {};
   Fract16 strikeVelocity = 0;
 };
 
-inline constexpr UserKeypadConfig kDefaultUserKeypadConfig = {
+inline constexpr UserKeypadConfig defaultUserKeypadConfig = {
     .velocityResponse = VelocityResponse::Balanced,
     .pressureCurve = PressureCurve::Linear,
+    .maxPressurePercentage = 100,
 };
 
 Fract16 (*lowThresholds)[X_SIZE][Y_SIZE] = nullptr;
@@ -80,6 +82,7 @@ CreateSavedVar("ForceCalibration", highOffset, int16_t, 0);
 
 uint16_t GetHistoryIndex();
 uint16_t GetHistoryReading(uint8_t historyIndex, uint8_t x, uint8_t y);
+uint32_t GetScanCount();
 
 inline uint32_t Fract16Multiply(uint16_t left, uint16_t right) {
   return ((uint32_t)left * (uint32_t)right) / UINT16_MAX;
@@ -87,42 +90,24 @@ inline uint32_t Fract16Multiply(uint16_t left, uint16_t right) {
 
 inline Fract16 ApplyPressureCurvePreset(Fract16 normalized, PressureCurve curve) {
   uint16_t x = (uint16_t)normalized;
-  uint32_t squared = Fract16Multiply(x, x);
+  int8_t curveAmount = static_cast<int8_t>(curve);
 
-  switch (curve)
+  if (curveAmount == 0)
   {
-    case PressureCurve::Soft:
-    {
-      uint32_t eased = (uint32_t)x + (uint32_t)x - squared;
-      return Fract16((uint16_t)std::min<uint32_t>(eased, UINT16_MAX));
-    }
-    case PressureCurve::Hard:
-      return Fract16((uint16_t)squared);
-    case PressureCurve::LogFast:
-      return Fract16((uint16_t)Fract16Multiply((uint16_t)squared, x));
-    case PressureCurve::Linear:
-    default:
-      return normalized;
+    return normalized;
   }
+
+  uint32_t squared = Fract16Multiply(x, x);
+  uint32_t fastRise = std::min<uint32_t>((uint32_t)x + (uint32_t)x - squared, UINT16_MAX);
+  uint32_t target = curveAmount > 0 ? fastRise : squared;
+  uint32_t weight = std::min<uint32_t>(curveAmount < 0 ? -curveAmount : curveAmount, 10);
+  uint32_t mixed = (((uint32_t)x * (10 - weight)) + (target * weight)) / 10;
+  return Fract16((uint16_t)std::min<uint32_t>(mixed, UINT16_MAX));
 }
 
-inline Fract16 ApplyVelocityResponsePreset(Fract16 normalized, VelocityResponse response) {
-  uint16_t x = (uint16_t)normalized;
-  uint32_t squared = Fract16Multiply(x, x);
-
-  switch (response)
-  {
-    case VelocityResponse::Soft:
-    {
-      uint32_t eased = (uint32_t)x + (uint32_t)x - squared;
-      return Fract16((uint16_t)std::min<uint32_t>(eased, UINT16_MAX));
-    }
-    case VelocityResponse::Hard:
-      return Fract16((uint16_t)squared);
-    case VelocityResponse::Balanced:
-    default:
-      return normalized;
-  }
+inline uint32_t CalculatePressureFullScaleRange(uint32_t calibratedRange, uint8_t maxPressurePercentage) {
+  uint32_t percentage = maxPressurePercentage == 0 ? 100 : maxPressurePercentage;
+  return (calibratedRange * percentage) / 100;
 }
 
 inline Fract16 EnsureNoteVelocity(Fract16 velocity) {
@@ -149,6 +134,32 @@ inline uint32_t SumSquaresOneToN(uint8_t count) {
   return ((uint32_t)count * (uint32_t)(count + 1) * (uint32_t)((count * 2) + 1)) / 6;
 }
 
+inline Fract16 NormalizeVelocitySlope(uint32_t regressionSlope, VelocityResponse response) {
+  uint32_t fullScaleSlope;
+  switch (response)
+  {
+    case VelocityResponse::VerySoft:
+      fullScaleSlope = 2304;
+      break;
+    case VelocityResponse::Soft:
+      fullScaleSlope = 2816;
+      break;
+    case VelocityResponse::Hard:
+      fullScaleSlope = 5376;
+      break;
+    case VelocityResponse::VeryHard:
+      fullScaleSlope = 6656;
+      break;
+    case VelocityResponse::Balanced:
+    default:
+      fullScaleSlope = 4096;
+      break;
+  }
+
+  uint32_t normalized = std::min<uint32_t>((regressionSlope * UINT16_MAX) / fullScaleSlope, UINT16_MAX);
+  return Fract16((uint16_t)normalized);
+}
+
 inline uint32_t CalculateRegressionSlope(uint32_t sumY, uint32_t sumXY, uint8_t sampleCount) {
   if (sampleCount == 0)
   {
@@ -165,21 +176,100 @@ inline uint32_t CalculateRegressionSlope(uint32_t sumY, uint32_t sumXY, uint8_t 
     return sumY;
   }
 
-  uint32_t numerator = (n * sumXY) - (sumX * sumY);
-  return numerator / denominator;
+  int64_t numerator = ((int64_t)n * (int64_t)sumXY) - ((int64_t)sumX * (int64_t)sumY);
+  if (numerator <= 0)
+  {
+    return 0;
+  }
+
+  return (uint32_t)(numerator / denominator);
 }
 
-inline Fract16 CalculatePressure(KeypadInfo& key, KeypadConfig& config, Fract16 filteredReading) {
-  Fract16 normalized = key.ApplyForceCurve(config, filteredReading);
-  return ApplyPressureCurvePreset(normalized, kDefaultUserKeypadConfig.pressureCurve);
+inline Fract16 CalculatePressure(KeypadConfig& config, Fract16 filteredReading) {
+  if (!config.applyCurve)
+  {
+    return filteredReading;
+  }
+
+  uint16_t reading = (uint16_t)filteredReading;
+  uint16_t lowThreshold = (uint16_t)config.lowThreshold;
+  uint16_t highThreshold = (uint16_t)config.highThreshold;
+
+  if (reading <= lowThreshold)
+  {
+    return 0;
+  }
+
+  uint32_t calibratedRange = highThreshold > lowThreshold ? (uint32_t)(highThreshold - lowThreshold) : 1;
+  uint32_t fullScaleRange = std::max<uint32_t>(CalculatePressureFullScaleRange(calibratedRange, defaultUserKeypadConfig.maxPressurePercentage), 1);
+  uint32_t usablePressure = (uint32_t)reading - lowThreshold;
+  uint32_t normalized = std::min<uint32_t>((usablePressure * UINT16_MAX) / fullScaleRange, UINT16_MAX);
+
+  return ApplyPressureCurvePreset(Fract16((uint16_t)normalized), defaultUserKeypadConfig.pressureCurve);
 }
 
-Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex) {
+inline void ResetStrikeCapture(FSRKeyRuntime& runtime) {
+  runtime.lastCapturedHistoryIndex = 0;
+  runtime.lastCapturedUlpCount = 0;
+  runtime.strikeSampleCount = 0;
+}
+
+inline void AppendStrikeSample(FSRKeyRuntime& runtime, uint16_t reading) {
+  if (runtime.strikeSampleCount >= velocityRegressionTotalSamples)
+  {
+    return;
+  }
+
+  runtime.strikeSamples[runtime.strikeSampleCount++] = reading;
+}
+
+void CaptureNewStrikeSamples(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
+  uint32_t currentUlpCount = GetScanCount();
+  uint32_t deltaCount = currentUlpCount - runtime.lastCapturedUlpCount;
+
+  if (deltaCount == 0 || runtime.strikeSampleCount >= velocityRegressionTotalSamples)
+  {
+    return;
+  }
+
+  uint32_t framesToCapture = std::min<uint32_t>(deltaCount, ULP_HISTORY_SIZE);
+  uint16_t historyIndex = deltaCount >= ULP_HISTORY_SIZE
+                              ? (GetHistoryIndex() + ULP_HISTORY_SIZE - framesToCapture) % ULP_HISTORY_SIZE
+                              : (runtime.lastCapturedHistoryIndex + 1) % ULP_HISTORY_SIZE;
+
+  for (uint32_t frame = 0; frame < framesToCapture && runtime.strikeSampleCount < velocityRegressionTotalSamples; frame++)
+  {
+    AppendStrikeSample(runtime, GetHistoryReading(historyIndex, x, y));
+    runtime.lastCapturedHistoryIndex = historyIndex;
+    historyIndex = (historyIndex + 1) % ULP_HISTORY_SIZE;
+  }
+
+  runtime.lastCapturedUlpCount = currentUlpCount;
+}
+
+void StartStrikeCapture(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
+  ResetStrikeCapture(runtime);
+
   uint16_t latestHistoryIndex = GetLatestHistoryIndex();
-  uint16_t baseline = GetHistoryReading(startHistoryIndex, x, y);
-  uint16_t peak = baseline;
-  uint8_t sampleCount = 0;
-  uint16_t historyIndex = startHistoryIndex;
+  uint16_t previousHistoryIndex = GetPreviousHistoryIndex(latestHistoryIndex);
+
+  runtime.lastCapturedHistoryIndex = latestHistoryIndex;
+  runtime.lastCapturedUlpCount = GetScanCount();
+
+  AppendStrikeSample(runtime, GetHistoryReading(previousHistoryIndex, x, y));
+  if (latestHistoryIndex != previousHistoryIndex)
+  {
+    AppendStrikeSample(runtime, GetHistoryReading(latestHistoryIndex, x, y));
+  }
+}
+
+Fract16 CalculateStrikeVelocity(const FSRKeyRuntime& runtime) {
+  if (runtime.strikeSampleCount == 0)
+  {
+    return EnsureNoteVelocity(0);
+  }
+
+  uint16_t baseline = runtime.strikeSamples[0];
   uint8_t lane1Count = 0;
   uint8_t lane2Count = 0;
   uint32_t lane1SumY = 0;
@@ -187,16 +277,11 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
   uint32_t lane2SumY = 0;
   uint32_t lane2SumXY = 0;
 
-  while (true)
+  for (uint8_t sampleIndex = 0; sampleIndex < runtime.strikeSampleCount; sampleIndex++)
   {
-    uint16_t reading = GetHistoryReading(historyIndex, x, y);
-    if (reading > peak)
-    {
-      peak = reading;
-    }
-
+    uint16_t reading = runtime.strikeSamples[sampleIndex];
     uint16_t adjustedReading = reading > baseline ? (reading - baseline) : 0;
-    if ((sampleCount % 2) == 0)
+    if ((sampleIndex % 2) == 0)
     {
       lane1Count++;
       lane1SumY += adjustedReading;
@@ -208,15 +293,6 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
       lane2SumY += adjustedReading;
       lane2SumXY += (uint32_t)lane2Count * adjustedReading;
     }
-
-    sampleCount++;
-
-    if (historyIndex == latestHistoryIndex || sampleCount >= kVelocityRegressionTotalSamples)
-    {
-      break;
-    }
-
-    historyIndex = (historyIndex + 1) % ULP_HISTORY_SIZE;
   }
 
   uint32_t lane1Slope = CalculateRegressionSlope(lane1SumY, lane1SumXY, lane1Count);
@@ -229,9 +305,7 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
     regressionSlope = (lane1Slope + lane2Slope) / activeLaneCount;
   }
 
-  uint32_t normalized = std::min<uint32_t>((regressionSlope * UINT16_MAX) / VELOCITY_SLOPE_DENOMINATOR, UINT16_MAX);
-
-  return EnsureNoteVelocity(ApplyVelocityResponsePreset(Fract16((uint16_t)normalized), kDefaultUserKeypadConfig.velocityResponse));
+  return EnsureNoteVelocity(NormalizeVelocitySlope(regressionSlope, defaultUserKeypadConfig.velocityResponse));
 }
 
 void Init() {
@@ -409,7 +483,13 @@ IRAM_ATTR bool Scan() {
           {
             runtime.state = FSRRuntimeState::DebouncingPress;
             runtime.stateStartMs = timeNow;
-            runtime.pressHistoryIndex = GetPreviousHistoryIndex(GetLatestHistoryIndex());
+            StartStrikeCapture(runtime, x, y);
+          }
+          else
+          {
+            keyState.UpdateSemantic(false, 0, 0);
+            runtime.strikeVelocity = 0;
+            ResetStrikeCapture(runtime);
           }
           break;
 
@@ -417,12 +497,17 @@ IRAM_ATTR bool Scan() {
           if (!abovePressThreshold)
           {
             runtime.state = FSRRuntimeState::Idle;
+            ResetStrikeCapture(runtime);
           }
-          else if (timeNow - runtime.stateStartMs > config.debounce)
+          else
           {
-            runtime.state = FSRRuntimeState::Active;
-            runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex);
-            updated = keyState.UpdateSemantic(true, CalculatePressure(keyState, config, filteredReading), runtime.strikeVelocity);
+            CaptureNewStrikeSamples(runtime, x, y);
+            if (timeNow - runtime.stateStartMs > config.debounce)
+            {
+              runtime.state = FSRRuntimeState::Active;
+              runtime.strikeVelocity = CalculateStrikeVelocity(runtime);
+              updated = keyState.UpdateSemantic(true, CalculatePressure(config, filteredReading), runtime.strikeVelocity);
+            }
           }
           break;
 
@@ -439,11 +524,12 @@ IRAM_ATTR bool Scan() {
               runtime.state = FSRRuntimeState::Idle;
               updated = keyState.UpdateSemantic(false, 0, runtime.strikeVelocity);
               runtime.strikeVelocity = 0;
+              ResetStrikeCapture(runtime);
             }
           }
           else
           {
-            updated = keyState.UpdateSemantic(true, CalculatePressure(keyState, config, filteredReading), runtime.strikeVelocity);
+            updated = keyState.UpdateSemantic(true, CalculatePressure(config, filteredReading), runtime.strikeVelocity);
           }
           break;
 
@@ -457,6 +543,7 @@ IRAM_ATTR bool Scan() {
             runtime.state = FSRRuntimeState::Idle;
             updated = keyState.UpdateSemantic(false, 0, runtime.strikeVelocity);
             runtime.strikeVelocity = 0;
+            ResetStrikeCapture(runtime);
           }
           break;
       }

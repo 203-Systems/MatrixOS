@@ -129,17 +129,6 @@ void NotePad::RemoveActiveKey(Point position) {
       activeKeys.end());
 }
 
-void NotePad::UpdateActiveKeyVelocity(Point position, Fract16 velocity) {
-  for (auto& key : activeKeys)
-  {
-    if (key.position == position)
-    {
-      key.velocity = velocity;
-      break;
-    }
-  }
-}
-
 // Note highlighting for visualizing notes from external MIDI input.
 void NotePad::SetNoteHighlight(uint8_t note, bool highlight) {
   if (note >= 128)
@@ -559,9 +548,8 @@ bool NotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   }
   else if (rt->config->forceSensitive && keypadInfo->state == KeypadState::Aftertouch)
   {
-    Fract16 velocity = keypadInfo->pressure;
-    rt->midiPipeline.Send(MidiPacket::AfterTouch(rt->config->channel, note, velocity.to7bits()));
-    UpdateActiveKeyVelocity(xy, velocity);
+    Fract16 pressure = keypadInfo->pressure;
+    rt->midiPipeline.Send(MidiPacket::AfterTouch(rt->config->channel, note, pressure.to7bits()));
   }
   else if (keypadInfo->state == KeypadState::Released)
   {

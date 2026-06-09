@@ -211,8 +211,8 @@ latencyMs ~= sampleCount * 1000 / ulpFrameRate
 pressure 模式第一版应该简单。用户不需要理解太多手感参数，只需要三类概念：
 
 - Activation Threshold: 什么时候算按下。来自每格 low calibration 加全局 offset。
-- Pressure Curve: 当前压力如何映射到 0 到 127，可以先提供 Linear / Soft / Hard / LogFast 或直接用一个默认曲线。
-- Max Pressure: 多少压力映射到 127。来自每格 high calibration 加全局 offset。
+- Pressure Curve: 当前压力如何映射到 0 到 127，可以先提供 SlowRise / Linear / FastRise 这类曲线形状预设，避免和 Soft / Hard 力度词混用。
+- Max Pressure: 多少压力映射到 127。默认是 calibration 的 full range，UI 可以直接显示为百分比。
 
 设备层内部仍然可以保留 aftertouch threshold、decimation、release hysteresis 等工程参数，但不建议第一版暴露给用户。这样 UI 和调参路径更像乐器：先校准 activation 和 max，再选择一条 pressure curve。
 
@@ -421,69 +421,76 @@ UI 文案和用户设置页不是这一轮主路径。第一版先允许 app 直
 建议草案：
 
 ```cpp
-enum class VelocityResponse : uint8_t {
-  Soft = 10,
-  Balanced = 20,
-  Hard = 30,
+enum class VelocityResponse : int8_t {
+  VerySoft = -10,
+  Soft = -5,
+  Balanced = 0,
+  Hard = 5,
+  VeryHard = 10,
 };
 
-enum class PressureCurve : uint8_t {
-  Linear = 10,
-  Soft = 20,
-  Hard = 30,
-  LogFast = 40,
+enum class PressureCurve : int8_t {
+  VerySlowRise = -10,
+  SlowRise = -5,
+  Linear = 0,
+  FastRise = 5,
+  VeryFastRise = 10,
 };
 
 struct UserKeypadConfig {
   VelocityResponse velocityResponse;
   PressureCurve pressureCurve;
+  uint8_t maxPressurePercentage;
 };
 ```
 
-这里建议 **直接给真实数字编码**，不要依赖 enum 顺序。原因：
+enum 建议 **直接给真实数字编码**，不要依赖 enum 顺序。原因：
 
 - NVS 持久化更稳定，后面插入新项不会把旧值含义全部打乱。
-- 调试日志和 MIDI / serial debug 输出更直观，看到 `20` 就知道是 `Balanced` 或 `Soft` 这类明确配置，而不是“第二个枚举值”。
+- 调试日志和 MIDI / serial debug 输出更直观，看到 `-5`、`0`、`5` 就知道是偏软、平衡、偏硬或偏快/偏慢的明确配置，而不是“第二个枚举值”。
 - 以后如果要兼容导入导出配置、SysEx、web-ui、设备间同步，数字协议值会更稳。
 
 推荐规则：
 
-- 预留间隔编码，使用 `10, 20, 30...`，不要用 `0, 1, 2...`。
-- `0` 保留给 `Unknown / Uninitialized / Default fallback`。
-- 新曲线以后插入 `15`、`25` 这类值时，不会破坏已有配置。
+- 预留间隔编码，使用 `-10, -5, 0, 5, 10` 这类有方向的值，不要用 `0, 1, 2...`。
+- `0` 代表中性默认值。
+- 新曲线以后插入 `-7`、`7` 这类值时，不会破坏已有配置。
 
 建议默认值：
 
 ```cpp
-inline constexpr VelocityResponse kDefaultVelocityResponse = VelocityResponse::Balanced;
-inline constexpr PressureCurve kDefaultPressureCurve = PressureCurve::Linear;
+inline constexpr VelocityResponse defaultVelocityResponse = VelocityResponse::Balanced;
+inline constexpr PressureCurve defaultPressureCurve = PressureCurve::Linear;
+inline constexpr uint8_t defaultMaxPressurePercentage = 100;
 ```
 
 NVS 存储建议：
 
 ```cpp
 struct StoredUserKeypadConfig {
-  uint8_t velocityResponse;
-  uint8_t pressureCurve;
+  int8_t velocityResponse;
+  int8_t pressureCurve;
+  uint8_t maxPressurePercentage;
 };
 ```
 
 读取时做一次 decode：
 
 ```cpp
-VelocityResponse DecodeVelocityResponse(uint8_t value);
-PressureCurve DecodePressureCurve(uint8_t value);
+VelocityResponse DecodeVelocityResponse(int8_t value);
+PressureCurve DecodePressureCurve(int8_t value);
+uint8_t DecodeMaxPressurePercentage(uint8_t value);
 ```
 
 未知值一律 fallback 到默认值，并打一个 warning log。
 
 但这部分不需要卡在第一轮实现里。当前更合理的优先级是：
 
-- 先 hardcode `kDefaultVelocityResponse` 和 `kDefaultPressureCurve`。
+- 先 hardcode `defaultVelocityResponse`、`defaultPressureCurve` 和 `defaultMaxPressurePercentage`。
 - 等 ULP 和 pipeline 跑通、手感确认后，再决定是否把它们落到 NVS。
 - UI 放到更后面，不阻塞主线。
 
-pressure 不建议做成通用拟合器或可编辑贝塞尔曲线。第一版保留少量曲线预设就够了，但这些曲线内部完全可以是非线性的，支持“缓入快出”或“快入缓出”。也就是说，`PressureCurve` 对外是 enum，对内实现可以是查表或曲线拟合。
+pressure 不建议做成通用拟合器或可编辑贝塞尔曲线。第一版保留少量曲线预设就够了，但 enum 的数值应该直接作为曲线参数进入同一条计算路径，支持 SlowRise / Linear / FastRise 这类“前段更平”或“前段更快起来”的形状。
 
 `VelocityResponse` 也建议保持纯 enum，不要再叠一个 amount 数值。理由很简单：如果 enum 已经承担“响应性格”语义，再加一个连续强度，最终会把用户界面重新带回难以理解的二维调参。第一版先把 velocity 做成少量明确预设，更容易调，也更容易测试。
 
@@ -498,26 +505,29 @@ struct VelocityResponseProfile {
 };
 
 struct PressureCurveProfile {
-  uint8_t code;
+  int8_t code;
   const char* name;
-  uint16_t lutId;
+  int8_t curveAmount;
 };
 ```
 
 示意映射：
 
-- `VelocityResponse::Soft = 10`: 更容易出高 velocity，使用更激进的斜率曲线。
-- `VelocityResponse::Balanced = 20`: 默认。
-- `VelocityResponse::Hard = 30`: 需要更大的 strike slope 才到高 velocity。
-- `PressureCurve::Linear = 10`: 线性映射。
-- `PressureCurve::Soft = 20`: 前段更快起来，轻压就有明显 pressure。
-- `PressureCurve::Hard = 30`: 前段更平，后段上升更快。
-- `PressureCurve::LogFast = 40`: 缓入快出，适合强调后段压力控制。
+- `VelocityResponse::Soft = -5`: 更容易出高 velocity，使用较低的满速斜率。
+- `VelocityResponse::Balanced = 0`: 默认。
+- `VelocityResponse::Hard = 5`: 需要更大的 strike slope 才到高 velocity。
+- `maxPressurePercentage = 100`: 默认 full range。
+- `maxPressurePercentage = 50`: 一半 calibration range 就映射到满 pressure。
+- `maxPressurePercentage = 150`: 需要 1.5 倍 calibration range 才映射到满 pressure。
+- `PressureCurve::SlowRise = -5`: 前段更平，后段上升更快。
+- `PressureCurve::Linear = 0`: 线性映射。
+- `PressureCurve::FastRise = 5`: 前段更快起来，轻压就有明显 pressure。
 
 新增演奏响应设置建议放在设备设置或 Note/Performance 共用设置里，但第一版保持少量用户能理解的选项：
 
-- Velocity Response: Soft / Balanced / Hard。
-- Pressure Curve: Linear / Soft / Hard / LogFast。
+- Velocity Response: VerySoft / Soft / Balanced / Hard / VeryHard。
+- Max Pressure: 百分比，例如 50% / 100% / 150%。
+- Pressure Curve: VerySlowRise / SlowRise / Linear / FastRise / VeryFastRise。
 
 先不暴露的工程参数：
 
@@ -626,13 +636,15 @@ uint8_t pressureRangeAmount;
 
 1. 把 `UserKeypadConfig` 写入 NVS，补 decode / encode helper 和 fallback。
 2. 再补 Velocity Response / Pressure Curve 的 UI。
-3. 最后做 240 / 300 / 480 Hz 和不同 ULP 策略的系统级调优。
+3. 补 release velocity：不新增 app-facing 字段，继续使用 `Released.velocity`，但数值改为释放阶段的下降速度。
+4. 最后做 240 / 300 / 480 Hz 和不同 ULP 策略的系统级调优。
 
 验收：
 
 - NVS 里保存的是固定数字编码，不依赖枚举顺序。
 - 未知配置值会 fallback 到默认值，不会导致异常手感。
 - UI 只是暴露已验证过的 profile，不重新引入新的不确定性。
+- `Released.velocity` 能反映松手速度，而不是继续复用 note-on strike velocity。
 - CPU 占用和 LED/UI 刷新没有明显退化。
 
 ## 测试计划
@@ -640,9 +652,10 @@ uint8_t pressureRangeAmount;
 ### 单元级
 
 - 给 velocity calculator 输入固定 sample 序列，验证 slow/fast strike 输出排序正确。
+- 给 release velocity calculator 输入固定下降 sample 序列，验证 slow/fast release 输出排序正确。
 - 验证 VelocityResponse 数字编码和输出 profile 映射正确。
 - 验证 Pressure Curve 输出单调，且 Max Pressure 对应 127。
-- 验证 `Released` 事件继续带 `velocity` 字段，但第一版不单独计算 release velocity。
+- 验证 `Released` 事件继续带 `velocity` 字段；当前版本可暂时复用 strike velocity，后续版本应切到 release velocity。
 - 验证 aftertouch threshold 只按 `pressure` 变化触发。
 
 ### 设备级
