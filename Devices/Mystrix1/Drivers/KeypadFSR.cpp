@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "Device.h"
+#include "MatrixOS.h"
 
 #include "esp_adc/adc_oneshot.h"
 
@@ -29,9 +30,9 @@ bool Connected();
 namespace Device::KeyPad::FSR
 {
 enum class VelocityResponse : uint8_t {
-  Soft = 10,
-  Balanced = 20,
-  Hard = 30,
+  Soft = 50,
+  Balanced = 100,
+  Hard = 200,
 };
 
 enum class PressureCurve : uint8_t {
@@ -60,14 +61,30 @@ struct FSRKeyRuntime {
   Fract16 strikeVelocity = 0;
 };
 
+struct StrikeVelocityDebugInfo {
+  uint16_t latestHistoryIndex = 0;
+  uint16_t baseline = 0;
+  uint16_t peak = 0;
+  uint8_t sampleCount = 0;
+  uint8_t samplesToPeak = 0;
+  uint32_t delta = 0;
+  uint32_t elapsedSamples = 0;
+  uint32_t rawSlope = 0;
+  uint32_t normalized = 0;
+};
+
 inline constexpr UserKeypadConfig kDefaultUserKeypadConfig = {
     .velocityResponse = VelocityResponse::Balanced,
     .pressureCurve = PressureCurve::Linear,
 };
 
+inline constexpr uint32_t kUlpScanRateLogIntervalMs = 1000;
+
 Fract16 (*lowThresholds)[X_SIZE][Y_SIZE] = nullptr;
 Fract16 (*highThresholds)[X_SIZE][Y_SIZE] = nullptr;
 FSRKeyRuntime keypadRuntime[X_SIZE][Y_SIZE] = {};
+uint32_t lastUlpScanRateLogMs = 0;
+uint32_t lastUlpScanRateCount = 0;
 
 CreateSavedVar("ForceCalibration", lowOffset, int16_t, 0);
 CreateSavedVar("ForceCalibration", highOffset, int16_t, 0);
@@ -131,22 +148,32 @@ inline uint16_t GetLatestHistoryIndex() {
   return (GetHistoryIndex() + ULP_HISTORY_SIZE - 1) % ULP_HISTORY_SIZE;
 }
 
+inline uint16_t GetPreviousHistoryIndex(uint16_t historyIndex) {
+  return (historyIndex + ULP_HISTORY_SIZE - 1) % ULP_HISTORY_SIZE;
+}
+
 inline Fract16 CalculatePressure(KeypadInfo& key, KeypadConfig& config, Fract16 filteredReading) {
   Fract16 normalized = key.ApplyForceCurve(config, filteredReading);
   return ApplyPressureCurvePreset(normalized, kDefaultUserKeypadConfig.pressureCurve);
 }
 
-Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex) {
+Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex, StrikeVelocityDebugInfo* debugInfo = nullptr) {
   uint16_t latestHistoryIndex = GetLatestHistoryIndex();
-  uint16_t first = GetHistoryReading(startHistoryIndex, x, y);
-  uint16_t peak = first;
+  uint16_t baseline = GetHistoryReading(startHistoryIndex, x, y);
+  uint16_t peak = baseline;
   uint8_t sampleCount = 0;
+  uint8_t samplesToPeak = 0;
   uint16_t historyIndex = startHistoryIndex;
 
   while (true)
   {
     uint16_t reading = GetHistoryReading(historyIndex, x, y);
-    peak = std::max<uint16_t>(peak, reading);
+    baseline = std::min<uint16_t>(baseline, reading);
+    if (reading > peak)
+    {
+      peak = reading;
+      samplesToPeak = sampleCount;
+    }
     sampleCount++;
 
     if (historyIndex == latestHistoryIndex || sampleCount >= ULP_HISTORY_SIZE)
@@ -157,10 +184,24 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
     historyIndex = (historyIndex + 1) % ULP_HISTORY_SIZE;
   }
 
-  uint32_t delta = peak > first ? (peak - first) : 0;
-  uint32_t elapsedSamples = std::max<uint32_t>(sampleCount - 1, 1);
+  uint32_t delta = peak > baseline ? (peak - baseline) : 0;
+  uint32_t elapsedSamples = std::max<uint32_t>(samplesToPeak, 1);
   uint32_t rawSlope = delta / elapsedSamples;
   uint32_t normalized = std::min<uint32_t>((rawSlope * UINT16_MAX) / VELOCITY_SLOPE_DENOMINATOR, UINT16_MAX);
+
+  if (debugInfo != nullptr)
+  {
+    debugInfo->latestHistoryIndex = latestHistoryIndex;
+    debugInfo->baseline = baseline;
+    debugInfo->peak = peak;
+    debugInfo->sampleCount = sampleCount;
+    debugInfo->samplesToPeak = samplesToPeak;
+    debugInfo->delta = delta;
+    debugInfo->elapsedSamples = elapsedSamples;
+    debugInfo->rawSlope = rawSlope;
+    debugInfo->normalized = normalized;
+  }
+
   return EnsureNoteVelocity(ApplyVelocityResponsePreset(Fract16((uint16_t)normalized), kDefaultUserKeypadConfig.velocityResponse));
 }
 
@@ -306,7 +347,7 @@ uint16_t GetHistoryReading(uint8_t historyIndex, uint8_t x, uint8_t y) {
     return 0;
   }
 
-  uint16_t (*history)[X_SIZE][Y_SIZE] = (uint16_t (*)[X_SIZE][Y_SIZE]) & ulp_raw_history;
+  uint16_t (*history)[ULP_HISTORY_SIZE][X_SIZE][Y_SIZE] = (uint16_t (*)[ULP_HISTORY_SIZE][X_SIZE][Y_SIZE]) & ulp_raw_history;
   return (*history)[historyIndex][x][y];
 }
 
@@ -322,6 +363,18 @@ IRAM_ATTR bool Scan() {
 
   KeypadConfig config = keypadConfig;
   uint32_t timeNow = (uint32_t)MatrixOS::SYS::Millis();
+  uint32_t scanCount = GetScanCount();
+
+  if (timeNow - lastUlpScanRateLogMs >= kUlpScanRateLogIntervalMs)
+  {
+    uint32_t elapsedMs = lastUlpScanRateLogMs == 0 ? 0 : (timeNow - lastUlpScanRateLogMs);
+    uint32_t deltaCount = scanCount - lastUlpScanRateCount;
+    uint32_t scansPerSecond = (elapsedMs > 0) ? ((deltaCount * 1000u) / elapsedMs) : 0;
+    MLOGD("KeypadFSR", "ULP scan rate=%lu Hz delta=%lu elapsed=%lu count=%lu", scansPerSecond, deltaCount, elapsedMs, scanCount);
+    lastUlpScanRateLogMs = timeNow;
+    lastUlpScanRateCount = scanCount;
+  }
+
   for (uint8_t y = 0; y < Y_SIZE; y++)
   {
     for (uint8_t x = 0; x < X_SIZE; x++)
@@ -348,7 +401,7 @@ IRAM_ATTR bool Scan() {
           {
             runtime.state = FSRRuntimeState::DebouncingPress;
             runtime.stateStartMs = timeNow;
-            runtime.pressHistoryIndex = GetLatestHistoryIndex();
+            runtime.pressHistoryIndex = GetPreviousHistoryIndex(GetLatestHistoryIndex());
           }
           break;
 
@@ -359,8 +412,32 @@ IRAM_ATTR bool Scan() {
           }
           else if (timeNow - runtime.stateStartMs > config.debounce)
           {
+            StrikeVelocityDebugInfo strikeDebug;
             runtime.state = FSRRuntimeState::Active;
-            runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex);
+            runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex, &strikeDebug);
+            MLOGD(
+                "KeypadFSR",
+                "strike x=%u y=%u velocity=%u baseline=%u peak=%u delta=%lu samples=%u toPeak=%u elapsed=%lu slope=%lu normalized=%lu startIdx=%u latestIdx=%u filtered=%u stable=%u raw=%u retry=%u low=%u press=%u high=%u",
+                x,
+                y,
+                (uint16_t)runtime.strikeVelocity,
+                strikeDebug.baseline,
+                strikeDebug.peak,
+                strikeDebug.delta,
+                strikeDebug.sampleCount,
+                strikeDebug.samplesToPeak,
+                strikeDebug.elapsedSamples,
+                strikeDebug.rawSlope,
+                strikeDebug.normalized,
+                runtime.pressHistoryIndex,
+                strikeDebug.latestHistoryIndex,
+                (uint16_t)filteredReading,
+                (uint16_t)stableReading,
+                GetRawReading(x, y),
+                GetSampleRetryCount(x, y),
+                (uint16_t)config.lowThreshold,
+                pressThreshold,
+                (uint16_t)config.highThreshold);
             updated = keyState.UpdateSemantic(true, CalculatePressure(keyState, config, filteredReading), runtime.strikeVelocity);
           }
           break;
