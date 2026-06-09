@@ -62,8 +62,8 @@ struct FSRKeyRuntime {
   uint32_t stateStartMs = 0;
   uint16_t lastCapturedHistoryIndex = 0;
   uint32_t lastCapturedUlpCount = 0;
-  uint8_t strikeSampleCount = 0;
-  uint16_t strikeSamples[velocityRegressionTotalSamples] = {};
+  uint8_t velocitySampleCount = 0;
+  uint16_t velocitySamples[velocityRegressionTotalSamples] = {};
   Fract16 strikeVelocity = 0;
 };
 
@@ -208,26 +208,26 @@ inline Fract16 CalculatePressure(KeypadConfig& config, Fract16 filteredReading) 
   return ApplyPressureCurvePreset(Fract16((uint16_t)normalized), defaultUserKeypadConfig.pressureCurve);
 }
 
-inline void ResetStrikeCapture(FSRKeyRuntime& runtime) {
+inline void ResetVelocityCapture(FSRKeyRuntime& runtime) {
   runtime.lastCapturedHistoryIndex = 0;
   runtime.lastCapturedUlpCount = 0;
-  runtime.strikeSampleCount = 0;
+  runtime.velocitySampleCount = 0;
 }
 
-inline void AppendStrikeSample(FSRKeyRuntime& runtime, uint16_t reading) {
-  if (runtime.strikeSampleCount >= velocityRegressionTotalSamples)
+inline void AppendVelocitySample(FSRKeyRuntime& runtime, uint16_t reading) {
+  if (runtime.velocitySampleCount >= velocityRegressionTotalSamples)
   {
     return;
   }
 
-  runtime.strikeSamples[runtime.strikeSampleCount++] = reading;
+  runtime.velocitySamples[runtime.velocitySampleCount++] = reading;
 }
 
-void CaptureNewStrikeSamples(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
+void CaptureNewVelocitySamples(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
   uint32_t currentUlpCount = GetScanCount();
   uint32_t deltaCount = currentUlpCount - runtime.lastCapturedUlpCount;
 
-  if (deltaCount == 0 || runtime.strikeSampleCount >= velocityRegressionTotalSamples)
+  if (deltaCount == 0 || runtime.velocitySampleCount >= velocityRegressionTotalSamples)
   {
     return;
   }
@@ -237,9 +237,9 @@ void CaptureNewStrikeSamples(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
                               ? (GetHistoryIndex() + ULP_HISTORY_SIZE - framesToCapture) % ULP_HISTORY_SIZE
                               : (runtime.lastCapturedHistoryIndex + 1) % ULP_HISTORY_SIZE;
 
-  for (uint32_t frame = 0; frame < framesToCapture && runtime.strikeSampleCount < velocityRegressionTotalSamples; frame++)
+  for (uint32_t frame = 0; frame < framesToCapture && runtime.velocitySampleCount < velocityRegressionTotalSamples; frame++)
   {
-    AppendStrikeSample(runtime, GetHistoryReading(historyIndex, x, y));
+    AppendVelocitySample(runtime, GetHistoryReading(historyIndex, x, y));
     runtime.lastCapturedHistoryIndex = historyIndex;
     historyIndex = (historyIndex + 1) % ULP_HISTORY_SIZE;
   }
@@ -247,8 +247,8 @@ void CaptureNewStrikeSamples(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
   runtime.lastCapturedUlpCount = currentUlpCount;
 }
 
-void StartStrikeCapture(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
-  ResetStrikeCapture(runtime);
+void StartVelocityCapture(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
+  ResetVelocityCapture(runtime);
 
   uint16_t latestHistoryIndex = GetLatestHistoryIndex();
   uint16_t previousHistoryIndex = GetPreviousHistoryIndex(latestHistoryIndex);
@@ -256,20 +256,20 @@ void StartStrikeCapture(FSRKeyRuntime& runtime, uint8_t x, uint8_t y) {
   runtime.lastCapturedHistoryIndex = latestHistoryIndex;
   runtime.lastCapturedUlpCount = GetScanCount();
 
-  AppendStrikeSample(runtime, GetHistoryReading(previousHistoryIndex, x, y));
+  AppendVelocitySample(runtime, GetHistoryReading(previousHistoryIndex, x, y));
   if (latestHistoryIndex != previousHistoryIndex)
   {
-    AppendStrikeSample(runtime, GetHistoryReading(latestHistoryIndex, x, y));
+    AppendVelocitySample(runtime, GetHistoryReading(latestHistoryIndex, x, y));
   }
 }
 
-Fract16 CalculateStrikeVelocity(const FSRKeyRuntime& runtime) {
-  if (runtime.strikeSampleCount == 0)
+Fract16 CalculateEdgeVelocity(const FSRKeyRuntime& runtime, bool risingEdge) {
+  if (runtime.velocitySampleCount == 0)
   {
-    return EnsureNoteVelocity(0);
+    return 0;
   }
 
-  uint16_t baseline = runtime.strikeSamples[0];
+  uint16_t baseline = runtime.velocitySamples[0];
   uint8_t lane1Count = 0;
   uint8_t lane2Count = 0;
   uint32_t lane1SumY = 0;
@@ -277,10 +277,12 @@ Fract16 CalculateStrikeVelocity(const FSRKeyRuntime& runtime) {
   uint32_t lane2SumY = 0;
   uint32_t lane2SumXY = 0;
 
-  for (uint8_t sampleIndex = 0; sampleIndex < runtime.strikeSampleCount; sampleIndex++)
+  for (uint8_t sampleIndex = 0; sampleIndex < runtime.velocitySampleCount; sampleIndex++)
   {
-    uint16_t reading = runtime.strikeSamples[sampleIndex];
-    uint16_t adjustedReading = reading > baseline ? (reading - baseline) : 0;
+    uint16_t reading = runtime.velocitySamples[sampleIndex];
+    uint16_t adjustedReading = risingEdge
+                                   ? (reading > baseline ? (reading - baseline) : 0)
+                                   : (reading < baseline ? (baseline - reading) : 0);
     if ((sampleIndex % 2) == 0)
     {
       lane1Count++;
@@ -305,7 +307,15 @@ Fract16 CalculateStrikeVelocity(const FSRKeyRuntime& runtime) {
     regressionSlope = (lane1Slope + lane2Slope) / activeLaneCount;
   }
 
-  return EnsureNoteVelocity(NormalizeVelocitySlope(regressionSlope, defaultUserKeypadConfig.velocityResponse));
+  return NormalizeVelocitySlope(regressionSlope, defaultUserKeypadConfig.velocityResponse);
+}
+
+Fract16 CalculateStrikeVelocity(const FSRKeyRuntime& runtime) {
+  return EnsureNoteVelocity(CalculateEdgeVelocity(runtime, true));
+}
+
+Fract16 CalculateReleaseVelocity(const FSRKeyRuntime& runtime) {
+  return CalculateEdgeVelocity(runtime, false);
 }
 
 void Init() {
@@ -483,13 +493,13 @@ IRAM_ATTR bool Scan() {
           {
             runtime.state = FSRRuntimeState::DebouncingPress;
             runtime.stateStartMs = timeNow;
-            StartStrikeCapture(runtime, x, y);
+            StartVelocityCapture(runtime, x, y);
           }
           else
           {
             keyState.UpdateSemantic(false, 0, 0);
             runtime.strikeVelocity = 0;
-            ResetStrikeCapture(runtime);
+            ResetVelocityCapture(runtime);
           }
           break;
 
@@ -497,11 +507,11 @@ IRAM_ATTR bool Scan() {
           if (!abovePressThreshold)
           {
             runtime.state = FSRRuntimeState::Idle;
-            ResetStrikeCapture(runtime);
+            ResetVelocityCapture(runtime);
           }
           else
           {
-            CaptureNewStrikeSamples(runtime, x, y);
+            CaptureNewVelocitySamples(runtime, x, y);
             if (timeNow - runtime.stateStartMs > config.debounce)
             {
               runtime.state = FSRRuntimeState::Active;
@@ -514,6 +524,7 @@ IRAM_ATTR bool Scan() {
         case FSRRuntimeState::Active:
           if (!aboveReleaseThreshold)
           {
+            StartVelocityCapture(runtime, x, y);
             if (config.debounce > 0)
             {
               runtime.state = FSRRuntimeState::DebouncingRelease;
@@ -521,10 +532,11 @@ IRAM_ATTR bool Scan() {
             }
             else
             {
+              Fract16 releaseVelocity = CalculateReleaseVelocity(runtime);
               runtime.state = FSRRuntimeState::Idle;
-              updated = keyState.UpdateSemantic(false, 0, runtime.strikeVelocity);
+              updated = keyState.UpdateSemantic(false, 0, releaseVelocity);
               runtime.strikeVelocity = 0;
-              ResetStrikeCapture(runtime);
+              ResetVelocityCapture(runtime);
             }
           }
           else
@@ -537,13 +549,20 @@ IRAM_ATTR bool Scan() {
           if (aboveReleaseThreshold)
           {
             runtime.state = FSRRuntimeState::Active;
+            ResetVelocityCapture(runtime);
           }
           else if (timeNow - runtime.stateStartMs > config.debounce)
           {
+            CaptureNewVelocitySamples(runtime, x, y);
+            Fract16 releaseVelocity = CalculateReleaseVelocity(runtime);
             runtime.state = FSRRuntimeState::Idle;
-            updated = keyState.UpdateSemantic(false, 0, runtime.strikeVelocity);
+            updated = keyState.UpdateSemantic(false, 0, releaseVelocity);
             runtime.strikeVelocity = 0;
-            ResetStrikeCapture(runtime);
+            ResetVelocityCapture(runtime);
+          }
+          else
+          {
+            CaptureNewVelocitySamples(runtime, x, y);
           }
           break;
       }

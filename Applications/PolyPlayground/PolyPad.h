@@ -109,7 +109,7 @@ public:
     }
     else if (keypadInfo->state == KeypadState::Released)
     {
-      MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, 0));
+      MatrixOS::MIDI::Send(MidiPacket::NoteOff(config->channel, note, config->forceSensitive ? keypadInfo->velocity.to7bits() : 0));
       if (activeNotes[note]-- <= 1)
       {
         activeNotes.erase(note);

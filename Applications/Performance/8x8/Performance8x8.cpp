@@ -532,7 +532,7 @@ void Performance::GridKeyEvent(Point xy, KeypadInfo* keypadInfo) {
   }
   else if (keypadInfo->state == KeypadState::Released)
   {
-    MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, 0), MIDI_PORT_ALL);
+    MatrixOS::MIDI::Send(MidiPacket::NoteOff(0, note, forceSensitive ? keypadInfo->velocity.to7bits() : 0), MIDI_PORT_ALL);
   }
 }
 

@@ -421,7 +421,8 @@ bool SequencerNotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   {
     // Remove note from selection
     sequencer->noteSelected.erase(note);
-    packet = MidiPacket::NoteOff(channel, note, 0);
+    uint8_t releaseVelocity = sequencer->meta.tracks[track].velocitySensitive ? keypadInfo->velocity.to7bits() : 0;
+    packet = MidiPacket::NoteOff(channel, note, releaseVelocity);
   }
 
   if (packet.Status() == EMidiStatus::None)

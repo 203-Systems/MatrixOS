@@ -553,7 +553,8 @@ bool NotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   }
   else if (keypadInfo->state == KeypadState::Released)
   {
-    rt->midiPipeline.Send(MidiPacket::NoteOff(rt->config->channel, note, 0));
+    uint8_t releaseVelocity = rt->config->forceSensitive ? keypadInfo->velocity.to7bits() : 0;
+    rt->midiPipeline.Send(MidiPacket::NoteOff(rt->config->channel, note, releaseVelocity));
     RemoveActiveKey(xy);
     DecrementActiveNote(note);
   }

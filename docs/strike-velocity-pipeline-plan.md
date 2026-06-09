@@ -6,9 +6,9 @@ MatrixOS 需要把压力键盘的两个演奏维度拆清楚：`pressure` 表示
 
 - `Pressed`: `velocity` 是本次触发的 strike velocity。
 - `Aftertouch` 和 `Hold`: `pressure` 持续更新，`velocity` 保留本次触发的 strike velocity。
-- `Released`: `velocity` 继续复用同一个字段。第一版不单独计算 release velocity，先保留当前 strike velocity 或当前事件 velocity 语义即可。
+- `Released`: `velocity` 继续复用同一个字段，但数值表示释放阶段的 release velocity。
 
-应用层不应该再用 `pressure` 当 note-on velocity。正确消费方式是：Note On 读 `velocity`，Aftertouch 读 `pressure`。第一版 Note Off 可以继续保持现有发送方式，不要求消费单独的 release velocity。
+应用层不应该再用 `pressure` 当 note-on velocity。正确消费方式是：Note On 读 `Pressed.velocity`，Aftertouch 读 `pressure`，Note Off 在支持力度的演奏路径里读 `Released.velocity`。
 
 ## 当前状态
 
@@ -67,7 +67,7 @@ struct KeypadInfo {
 建议补充注释和文档语义：
 
 - `pressure`: 当前绝对压力。`Pressed` 时是按下瞬间压力，`Aftertouch` 时持续变化，`Released` 时可以清零或保留最后值。
-- `velocity`: 事件速度。`Pressed` 是 strike velocity，其他 active 状态保持 strike velocity；`Released` 第一版继续复用这个字段，但不单独计算 release velocity。
+- `velocity`: 事件速度。`Pressed` 是 strike velocity，其他 active 状态保持 strike velocity；`Released` 是 release velocity。
 - `KeypadCapabilities.hasVelocity`: 只有当设备能产生独立 strike velocity 时才为 true。Mystrix1 Pro 完成实现后应为 true；binary keypad 仍为 false。
 
 ## 状态机所有权
@@ -153,8 +153,8 @@ struct KeypadSemanticInput {
 
 1. active 状态下 fast/smooth force 低于 `lowThreshold` 或 release threshold。
 2. 进入 `DebouncingRelease`，确认释放不是瞬时抖动。
-3. 第一版不单独计算 release velocity。
-4. 设备层生成 `releaseEdge = true`，并继续复用当前 `velocity` 字段。
+3. 从 ULP history 读取释放阶段的下降样本，计算 release velocity。
+4. 设备层生成 `releaseEdge = true`，并把 release velocity 写入同一个 `velocity` 字段。
 5. generic update 负责把事件规范化成 `KeypadState::Released`，更新 `lastEventTime` 并清掉 `hold`。
 6. `pressure` 可清零，避免应用误读 Released 的 pressure。
 
@@ -573,9 +573,9 @@ uint8_t pressureRangeAmount;
 - 已完成内容：ULP 增加 `rawHistory`、`historyIndex`、`count`、`firstSample`、`stableSample`、`sampleRetryCount`，并接入 settling delay + 多采样确认。
 - 已完成内容：Mystrix1 FSR driver 增加读取 ULP history / stable sample / retry count 的接口，为后续 pipeline 重构做准备。
 - 已完成内容：FSR driver 已切到设备层 runtime + semantic update 路径；`KeypadInfo` 新增 semantic helper，generic update 语义下沉为 `hold` / `Pressed` / `Aftertouch` / `Released` 状态推进。
-- 已完成内容：`VelocityResponse` / `PressureCurve` 第一版已 hardcode 到 pipeline，`Released` 事件复用当前 `velocity` 字段，不单独实现 release velocity。
-- 当前验证：相关文件诊断无错误。
-- 当前阻塞：本机缺少 `/tools/cmake/toolchain-esp32s3.cmake` 和 `Ninja`，暂时无法完成 Mystrix1 全量构建验证。
+- 已完成内容：`VelocityResponse` / `PressureCurve` 第一版已 hardcode 到 pipeline，`Released` 事件复用当前 `velocity` 字段承载 release velocity。
+- 当前验证：`. C:\espressif\v5.3.4\export.ps1; make build` 可完成 Mystrix1 全量构建。
+- 当前阻塞：无。
 - 当前状态：`Stage 1` 到 `Stage 3` 已完成，可以进入 demo / 实机测试阶段。
 
 ### Stage 1: 先重构 ULP [Completed]
@@ -603,7 +603,7 @@ uint8_t pressureRangeAmount;
 2. 重构 `KeypadInfo::Update()` 或新增轻量 generic helper，让它只处理 `hold`、`lastEventTime` 和通用事件状态。
 3. 让 FSR velocity tracker 从 ULP history 读样本，完成 strike velocity 计算。
 4. 定义 `UserKeypadConfig`、默认值、enum code、profile / LUT 表，但第一版只 hardcode 默认配置。
-5. `Pressed` 写 `velocity`，`Aftertouch` 更新 `pressure`，`Released` 继续复用当前 `velocity` 字段，但不单独实现 release velocity。
+5. `Pressed` 写 strike velocity，`Aftertouch` 更新 `pressure` 并保持 strike velocity，`Released` 写 release velocity。
 6. aftertouch threshold、decimation、velocity sample count、release 策略先保持工程默认，不做 UI。
 7. NVS 持久化也先不阻塞主线；如果需要，可以在这阶段末尾再补。
 
@@ -620,7 +620,7 @@ uint8_t pressureRangeAmount;
 
 1. 统一把 `Pressed` 的 Note On 改为读取 `keypadInfo->velocity`。
 2. 统一把 `Aftertouch` 改为读取 `keypadInfo->pressure`。
-3. `Released` 先保持现有 NoteOff 发送方式，不强制接入 release velocity。
+3. `Released` 的 NoteOff 在 force/velocity-sensitive 路径读取 release velocity；非力度路径保持 velocity 0。
 4. 第一批迁移 Performance、Note、Sequencer、PolyPlayground 等主要 pad app。
 5. 跑 MIDI monitor 和手感对比，确认事件顺序和数值语义都正确。
 
@@ -628,7 +628,7 @@ uint8_t pressureRangeAmount;
 
 - app 层不再把 `pressure` 当 note-on velocity。
 - Performance / Note / Sequencer 行为一致。
-- MIDI monitor 里事件顺序正确：NoteOn velocity，然后 pressure aftertouch，release 时正常 NoteOff。
+- MIDI monitor 里事件顺序正确：NoteOn strike velocity，然后 pressure aftertouch，release 时 NoteOff 带 release velocity。
 
 ### 后续项: 持久化、UI 和刷新率调优
 
@@ -636,15 +636,13 @@ uint8_t pressureRangeAmount;
 
 1. 把 `UserKeypadConfig` 写入 NVS，补 decode / encode helper 和 fallback。
 2. 再补 Velocity Response / Pressure Curve 的 UI。
-3. 补 release velocity：不新增 app-facing 字段，继续使用 `Released.velocity`，但数值改为释放阶段的下降速度。
-4. 最后做 240 / 300 / 480 Hz 和不同 ULP 策略的系统级调优。
+3. 最后做 240 / 300 / 480 Hz 和不同 ULP 策略的系统级调优。
 
 验收：
 
 - NVS 里保存的是固定数字编码，不依赖枚举顺序。
 - 未知配置值会 fallback 到默认值，不会导致异常手感。
 - UI 只是暴露已验证过的 profile，不重新引入新的不确定性。
-- `Released.velocity` 能反映松手速度，而不是继续复用 note-on strike velocity。
 - CPU 占用和 LED/UI 刷新没有明显退化。
 
 ## 测试计划
@@ -655,7 +653,7 @@ uint8_t pressureRangeAmount;
 - 给 release velocity calculator 输入固定下降 sample 序列，验证 slow/fast release 输出排序正确。
 - 验证 VelocityResponse 数字编码和输出 profile 映射正确。
 - 验证 Pressure Curve 输出单调，且 Max Pressure 对应 127。
-- 验证 `Released` 事件继续带 `velocity` 字段；当前版本可暂时复用 strike velocity，后续版本应切到 release velocity。
+- 验证 `Released` 事件继续带 `velocity` 字段，且数值来自 release velocity。
 - 验证 aftertouch threshold 只按 `pressure` 变化触发。
 
 ### 设备级
@@ -681,7 +679,7 @@ uint8_t pressureRangeAmount;
 - velocity 算法不能依赖 filtered pressure，否则会被 IIR 抹平。
 - 提高 OS update 频率不是第一优先级；先验证 ULP history 是否足够。
 - aftertouch 频率必须有工程默认 decimation 或去重，否则可能刷爆 MIDI 输出。
-- `Released` 事件虽然继续带 `velocity` 字段，但第一版 app 不要求把它当 release velocity 使用。
+- `Released` 事件继续带 `velocity` 字段；演奏 app 的 force-sensitive NoteOff 应消费 release velocity，非力度路径可继续发送 0。
 - 不要让设备层和 generic update 在 debounce / threshold / curve 上重复判断；这些传感器语义必须只在设备层做一次。
 - generic update 继续负责 hold 和通用事件状态时，要保证它消费的是“已处理语义输入”，而不是重新推断 FSR 原始值。
 

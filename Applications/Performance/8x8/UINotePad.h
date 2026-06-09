@@ -74,7 +74,7 @@ public:
     }
     else if (keypadInfo->state == KeypadState::Released)
     {
-      MatrixOS::MIDI::Send(MidiPacket::NoteOn(channel, note, 0), MIDI_PORT_ALL);
+      MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, note, forceSensitive ? keypadInfo->velocity.to7bits() : 0), MIDI_PORT_ALL);
     }
     return true;
   }
