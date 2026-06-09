@@ -16,6 +16,11 @@
 #define ULP_HISTORY_SIZE 8
 #define VELOCITY_SLOPE_DENOMINATOR 4096
 
+inline constexpr uint8_t kVelocityRegressionLaneSamples = 4;
+inline constexpr uint8_t kVelocityRegressionTotalSamples = kVelocityRegressionLaneSamples * 2;
+
+static_assert(ULP_HISTORY_SIZE >= kVelocityRegressionTotalSamples, "ULP history must fit the velocity regression window");
+
 extern const uint8_t ulp_fsr_keypad_bin_start[] asm("_binary_ulp_fsr_keypad_bin_start");
 extern const uint8_t ulp_fsr_keypad_bin_end[] asm("_binary_ulp_fsr_keypad_bin_end");
 
@@ -66,10 +71,12 @@ struct StrikeVelocityDebugInfo {
   uint16_t baseline = 0;
   uint16_t peak = 0;
   uint8_t sampleCount = 0;
-  uint8_t samplesToPeak = 0;
+  uint8_t lane1Count = 0;
+  uint8_t lane2Count = 0;
   uint32_t delta = 0;
-  uint32_t elapsedSamples = 0;
-  uint32_t rawSlope = 0;
+  uint32_t lane1Slope = 0;
+  uint32_t lane2Slope = 0;
+  uint32_t regressionSlope = 0;
   uint32_t normalized = 0;
 };
 
@@ -152,6 +159,34 @@ inline uint16_t GetPreviousHistoryIndex(uint16_t historyIndex) {
   return (historyIndex + ULP_HISTORY_SIZE - 1) % ULP_HISTORY_SIZE;
 }
 
+inline uint32_t SumOneToN(uint8_t count) {
+  return ((uint32_t)count * (uint32_t)(count + 1)) / 2;
+}
+
+inline uint32_t SumSquaresOneToN(uint8_t count) {
+  return ((uint32_t)count * (uint32_t)(count + 1) * (uint32_t)((count * 2) + 1)) / 6;
+}
+
+inline uint32_t CalculateRegressionSlope(uint32_t sumY, uint32_t sumXY, uint8_t sampleCount) {
+  if (sampleCount == 0)
+  {
+    return 0;
+  }
+
+  uint32_t n = (uint32_t)sampleCount + 1;
+  uint32_t sumX = SumOneToN(sampleCount);
+  uint32_t sumXSquared = SumSquaresOneToN(sampleCount);
+  uint32_t denominator = (n * sumXSquared) - (sumX * sumX);
+
+  if (denominator == 0)
+  {
+    return sumY;
+  }
+
+  uint32_t numerator = (n * sumXY) - (sumX * sumY);
+  return numerator / denominator;
+}
+
 inline Fract16 CalculatePressure(KeypadInfo& key, KeypadConfig& config, Fract16 filteredReading) {
   Fract16 normalized = key.ApplyForceCurve(config, filteredReading);
   return ApplyPressureCurvePreset(normalized, kDefaultUserKeypadConfig.pressureCurve);
@@ -162,21 +197,39 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
   uint16_t baseline = GetHistoryReading(startHistoryIndex, x, y);
   uint16_t peak = baseline;
   uint8_t sampleCount = 0;
-  uint8_t samplesToPeak = 0;
   uint16_t historyIndex = startHistoryIndex;
+  uint8_t lane1Count = 0;
+  uint8_t lane2Count = 0;
+  uint32_t lane1SumY = 0;
+  uint32_t lane1SumXY = 0;
+  uint32_t lane2SumY = 0;
+  uint32_t lane2SumXY = 0;
 
   while (true)
   {
     uint16_t reading = GetHistoryReading(historyIndex, x, y);
-    baseline = std::min<uint16_t>(baseline, reading);
     if (reading > peak)
     {
       peak = reading;
-      samplesToPeak = sampleCount;
     }
+
+    uint16_t adjustedReading = reading > baseline ? (reading - baseline) : 0;
+    if ((sampleCount % 2) == 0)
+    {
+      lane1Count++;
+      lane1SumY += adjustedReading;
+      lane1SumXY += (uint32_t)lane1Count * adjustedReading;
+    }
+    else
+    {
+      lane2Count++;
+      lane2SumY += adjustedReading;
+      lane2SumXY += (uint32_t)lane2Count * adjustedReading;
+    }
+
     sampleCount++;
 
-    if (historyIndex == latestHistoryIndex || sampleCount >= ULP_HISTORY_SIZE)
+    if (historyIndex == latestHistoryIndex || sampleCount >= kVelocityRegressionTotalSamples)
     {
       break;
     }
@@ -185,9 +238,17 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
   }
 
   uint32_t delta = peak > baseline ? (peak - baseline) : 0;
-  uint32_t elapsedSamples = std::max<uint32_t>(samplesToPeak, 1);
-  uint32_t rawSlope = delta / elapsedSamples;
-  uint32_t normalized = std::min<uint32_t>((rawSlope * UINT16_MAX) / VELOCITY_SLOPE_DENOMINATOR, UINT16_MAX);
+  uint32_t lane1Slope = CalculateRegressionSlope(lane1SumY, lane1SumXY, lane1Count);
+  uint32_t lane2Slope = CalculateRegressionSlope(lane2SumY, lane2SumXY, lane2Count);
+  uint32_t activeLaneCount = (lane1Count > 0 ? 1u : 0u) + (lane2Count > 0 ? 1u : 0u);
+  uint32_t regressionSlope = 0;
+
+  if (activeLaneCount > 0)
+  {
+    regressionSlope = (lane1Slope + lane2Slope) / activeLaneCount;
+  }
+
+  uint32_t normalized = std::min<uint32_t>((regressionSlope * UINT16_MAX) / VELOCITY_SLOPE_DENOMINATOR, UINT16_MAX);
 
   if (debugInfo != nullptr)
   {
@@ -195,10 +256,12 @@ Fract16 CalculateStrikeVelocity(uint8_t x, uint8_t y, uint16_t startHistoryIndex
     debugInfo->baseline = baseline;
     debugInfo->peak = peak;
     debugInfo->sampleCount = sampleCount;
-    debugInfo->samplesToPeak = samplesToPeak;
+    debugInfo->lane1Count = lane1Count;
+    debugInfo->lane2Count = lane2Count;
     debugInfo->delta = delta;
-    debugInfo->elapsedSamples = elapsedSamples;
-    debugInfo->rawSlope = rawSlope;
+    debugInfo->lane1Slope = lane1Slope;
+    debugInfo->lane2Slope = lane2Slope;
+    debugInfo->regressionSlope = regressionSlope;
     debugInfo->normalized = normalized;
   }
 
@@ -417,7 +480,7 @@ IRAM_ATTR bool Scan() {
             runtime.strikeVelocity = CalculateStrikeVelocity(x, y, runtime.pressHistoryIndex, &strikeDebug);
             MLOGD(
                 "KeypadFSR",
-                "strike x=%u y=%u velocity=%u baseline=%u peak=%u delta=%lu samples=%u toPeak=%u elapsed=%lu slope=%lu normalized=%lu startIdx=%u latestIdx=%u filtered=%u stable=%u raw=%u retry=%u low=%u press=%u high=%u",
+              "strike x=%u y=%u velocity=%u baseline=%u peak=%u delta=%lu samples=%u lane1=%u lane2=%u slope1=%lu slope2=%lu slope=%lu normalized=%lu startIdx=%u latestIdx=%u filtered=%u stable=%u result=%u retry=%u low=%u press=%u high=%u",
                 x,
                 y,
                 (uint16_t)runtime.strikeVelocity,
@@ -425,9 +488,11 @@ IRAM_ATTR bool Scan() {
                 strikeDebug.peak,
                 strikeDebug.delta,
                 strikeDebug.sampleCount,
-                strikeDebug.samplesToPeak,
-                strikeDebug.elapsedSamples,
-                strikeDebug.rawSlope,
+              strikeDebug.lane1Count,
+              strikeDebug.lane2Count,
+              strikeDebug.lane1Slope,
+              strikeDebug.lane2Slope,
+              strikeDebug.regressionSlope,
                 strikeDebug.normalized,
                 runtime.pressHistoryIndex,
                 strikeDebug.latestHistoryIndex,
