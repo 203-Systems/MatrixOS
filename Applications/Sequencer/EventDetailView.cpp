@@ -105,7 +105,11 @@ bool EventDetailView::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
     }
     else if (xy.x == 7)
     {
-      handled = DeleteEventKeyHandler(xy, keypadInfo);
+      auto& event = selectedEventIter->second;
+      if (event.eventType == SequenceEventType::NoteEvent)
+      {
+        handled = NoteConfigKeyHandler(Point(7, 0), keypadInfo);
+      }
     }
   }
   else
@@ -208,6 +212,11 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo) 
     // Clicking on row Y=0 selects an event
     if (xy.x < eventRefs.size())
     {
+      if (sequencer->ClearActive())
+      {
+        return DeleteEventAtIndex(xy.x);
+      }
+
       selectedEventIter = eventRefs[xy.x];
       selectedEventValid = true;
 
@@ -257,6 +266,34 @@ bool EventDetailView::EventSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo) 
   return false;
 }
 
+bool EventDetailView::DeleteEventAtIndex(uint8_t eventIndex) {
+  if (eventIndex >= eventRefs.size())
+  {
+    return false;
+  }
+
+  uint8_t channel = sequencer->sequence.GetChannel(sequencer->track);
+  auto eventIter = eventRefs[eventIndex];
+  SequenceEvent eventData = eventIter->second;
+
+  if (eventData.eventType == SequenceEventType::NoteEvent)
+  {
+    const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventData.data);
+    auto noteIt = sequencer->noteActive.find(noteData.note);
+    if (noteIt != sequencer->noteActive.end())
+    {
+      sequencer->noteActive.erase(noteIt);
+      MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note), MIDI_PORT_ALL);
+    }
+  }
+
+  pattern->events.erase(eventIter);
+  selectedEventValid = false;
+  sequencer->sequence.SetDirty();
+  RebuildEventList();
+  return true;
+}
+
 void EventDetailView::RenderMicroStepSelector(Point origin) {
   // Render micro step positions on Y=1 row (only 6 positions)
   uint16_t pulsesPerStep = sequencer->sequence.GetPulsesPerStep();
@@ -294,20 +331,6 @@ void EventDetailView::RenderMicroStepSelector(Point origin) {
 
     MatrixOS::LED::SetColor(point, color);
   }
-
-  // Delete button at X=7 (global), render bright red (or white when pressed)
-  Point deletePoint = origin + Point(7, 0);
-  bool deleteActive = false;
-  {
-    const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
-    InputId id; InputSnapshot snap;
-    if (grid && MatrixOS::Input::GetInputAt(grid->clusterId, deletePoint, &id) &&
-        MatrixOS::Input::GetState(id, &snap) && snap.inputClass == InputClass::Keypad) {
-      deleteActive = snap.keypad.Active();
-    }
-  }
-  Color deleteColor = deleteActive ? Color::White : Color::Red;
-  MatrixOS::LED::SetColor(deletePoint, deleteColor);
 }
 
 bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo) {
@@ -342,46 +365,10 @@ bool EventDetailView::MicroStepSelectorKeyHandler(Point xy, KeypadInfo* keypadIn
   return false;
 }
 
-bool EventDetailView::DeleteEventKeyHandler(Point xy, KeypadInfo* keypadInfo) {
-  if (keypadInfo->state == KeypadState::Hold)
-  {
-    MatrixOS::UIUtility::TextScroll("Delete Event", Color(0xFF0000));
-    return true;
-  }
-  else if (keypadInfo->state == KeypadState::Released)
-  {
-    uint8_t channel = sequencer->sequence.GetChannel(sequencer->track);
-
-    auto eventIter = selectedEventIter;
-    SequenceEvent eventData = eventIter->second;
-
-    if (eventData.eventType == SequenceEventType::NoteEvent)
-    {
-      const SequenceEventNote& noteData = std::get<SequenceEventNote>(eventData.data);
-      auto noteIt = sequencer->noteActive.find(noteData.note);
-      if (noteIt != sequencer->noteActive.end())
-      {
-        sequencer->noteActive.erase(noteIt);
-        MatrixOS::MIDI::Send(MidiPacket::NoteOff(channel, noteData.note), MIDI_PORT_ALL);
-      }
-    }
-
-    pattern->events.erase(eventIter);
-    selectedEventValid = false;
-    sequencer->sequence.SetDirty();
-
-    RebuildEventList();
-
-    return true;
-  }
-
-  return false;
-}
-
 void EventDetailView::RenderNoteConfig(Point origin) {
   SequenceEventNote& noteData = std::get<SequenceEventNote>(selectedEventIter->second.data);
   Color modeColor = noteData.aftertouch ? aftertouchColor : noteColor;
-  MatrixOS::LED::SetColor(origin + Point(7, 0), modeColor);
+  MatrixOS::LED::SetColor(origin + Point(7, -1), modeColor);
 
   RenderLengthSelector(origin + Point(0, 1));
   RenderVelocitySelector(origin + Point(0, 3));

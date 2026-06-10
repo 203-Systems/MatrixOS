@@ -40,11 +40,11 @@ private:
   // Event selector (Y=0 row)
   void RenderEventSelector(Point origin);
   bool EventSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
+  bool DeleteEventAtIndex(uint8_t eventIndex);
 
   // Micro step selector (Y=1 row)
   void RenderMicroStepSelector(Point origin);
   bool MicroStepSelectorKeyHandler(Point xy, KeypadInfo* keypadInfo);
-  bool DeleteEventKeyHandler(Point xy, KeypadInfo* keypadInfo);
 
   // Note event configuration
   void RenderNoteConfig(Point origin);

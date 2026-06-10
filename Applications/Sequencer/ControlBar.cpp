@@ -327,6 +327,11 @@ bool SequencerControlBar::HandleClearKey(KeypadInfo* keypadInfo) {
     sequencer->clear = true;
     sequencer->copy = false;
 
+    if (sequencer->currentView == Sequencer::ViewMode::StepDetail)
+    {
+      return true;
+    }
+
     SequencePosition* pos = sequencer->sequence.GetPosition(sequencer->track);
 
     if (sequencer->activeTrackSelected)
