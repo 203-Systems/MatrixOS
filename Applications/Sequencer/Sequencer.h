@@ -107,6 +107,7 @@ public:
   void ColorSelector();
   void LayoutSelector();
   void ChannelSelector();
+  void VelocityConfigMenu();
   void BPMSelector();
   void SwingSelector();
   void TimeSignatureSelector();

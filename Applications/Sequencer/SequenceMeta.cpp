@@ -55,8 +55,8 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, File& file) {
   {
     const SequenceMetaTrack& t = meta.tracks[i];
     buffer.clear();
-    // ["t", color, vel, mode, cfg]
-    cb_write_uint(buffer, CB0R_ARRAY, 5);
+    // ["t", color, vel, mode, cfg, defaultVelocity]
+    cb_write_uint(buffer, CB0R_ARRAY, 6);
     cb_write_text(buffer, "t");
     cb_write_uint(buffer, CB0R_INT, t.color.RGB());
     cb_write_bool(buffer, t.velocitySensitive);
@@ -92,6 +92,7 @@ bool SerializeSequenceMeta(const SequenceMeta& meta, File& file) {
       MLOGD("SequenceMeta", "Serialize track %u mode=cc color=0x%06X vel=%d param=%u", (unsigned)i, t.color.RGB(),
             t.velocitySensitive ? 1 : 0, (unsigned)c.parameter);
     }
+    cb_write_uint(buffer, CB0R_INT, t.defaultVelocity);
     if (file.Write(buffer.data(), buffer.size()) != buffer.size())
       return false;
   }
@@ -117,6 +118,7 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t) {
     return false;
   if (!cb0r_get(&m, 4, &item) || item.type != CB0R_MAP)
     return false;
+  t.defaultVelocity = 127;
 
   if (t.mode == SequenceTrackMode::NoteTrack || t.mode == SequenceTrackMode::DrumTrack)
   {
@@ -145,6 +147,15 @@ static bool ParseTrackMeta(cb0r_s m, SequenceMetaTrack& t) {
     auto& c = t.config.cc;
     if (cb0r_find(&item, CB0R_UTF8, 5, (uint8_t*)"param", &d) && d.type == CB0R_INT)
       c.parameter = d.value > 127 ? 127 : d.value;
+  }
+
+  if (m.length > 5 && cb0r_get(&m, 5, &item) && item.type == CB0R_INT)
+  {
+    t.defaultVelocity = item.value > 127 ? 127 : item.value;
+  }
+  if (t.defaultVelocity == 0)
+  {
+    t.defaultVelocity = 127;
   }
   return true;
 }

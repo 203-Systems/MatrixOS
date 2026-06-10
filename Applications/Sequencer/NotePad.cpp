@@ -400,7 +400,7 @@ bool SequencerNotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 
   if (keypadInfo->state == KeypadState::Pressed)
   {
-    uint8_t velocity = 127;
+    uint8_t velocity = sequencer->meta.tracks[track].defaultVelocity;
     if (sequencer->meta.tracks[track].velocitySensitive)
     {
       velocity = keypadInfo->velocity.to7bits();
@@ -639,7 +639,7 @@ void SequencerNotePad::Rescan(Point origin) {
         uint8_t note = noteMap[y * 8 + x];
         if (note != 255)
         {
-          uint8_t velocity = 127;
+          uint8_t velocity = sequencer->meta.tracks[track].defaultVelocity;
           if (sequencer->meta.tracks[track].velocitySensitive)
           {
             velocity = keypadState.velocity.to7bits();

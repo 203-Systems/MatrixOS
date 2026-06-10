@@ -170,29 +170,18 @@ void Sequencer::SequencerMenu() {
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   sequencerMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
-  UIButton forceSensitiveToggle;
-  forceSensitiveToggle.SetName("Velocity Sensitive");
+  UIButton velocityConfigBtn;
+  velocityConfigBtn.SetName("Velocity Sensitive");
   const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
   KeypadCapabilities caps;
   bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
-  if (hasVelocity)
-  {
-    forceSensitiveToggle.SetColorFunc([&]() -> Color { return Color(0x00FFB0).DimIfNot(meta.tracks[track].velocitySensitive); });
-    forceSensitiveToggle.OnPress([&]() -> void {
-      meta.tracks[track].velocitySensitive = !meta.tracks[track].velocitySensitive;
-      sequence.SetDirty();
-    });
-    forceSensitiveToggle.OnHold([&]() -> void {
-      MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " + (meta.tracks[track].velocitySensitive ? "On" : "Off"),
-                                      forceSensitiveToggle.GetColor());
-    });
-  }
-  else
-  {
-    forceSensitiveToggle.SetColor(Color(0x00FFB0).Dim());
-    forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
-  }
-  sequencerMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
+  velocityConfigBtn.SetColorFunc([&]() -> Color { return Color(0x00FFB0).DimIfNot(hasVelocity && meta.tracks[track].velocitySensitive); });
+  velocityConfigBtn.OnPress([&]() -> void { VelocityConfigMenu(); });
+  velocityConfigBtn.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(velocityConfigBtn.GetName() + " " + (meta.tracks[track].velocitySensitive ? "On" : "Off"),
+                                    velocityConfigBtn.GetColor());
+  });
+  sequencerMenu.AddUIComponent(velocityConfigBtn, Point(7, 5));
 
   // Left side, Sequencer Global settings
   UIButton bpmSelectorBtn;
@@ -725,6 +714,103 @@ void Sequencer::ChannelSelector() {
   {
     sequence.SetChannel(track, channel);
   }
+}
+
+void Sequencer::VelocityConfigMenu() {
+  Color color = Color(0x00FFB0);
+  UI velocityConfigMenu("Velocity Config", color, false);
+
+  if (track >= meta.tracks.size())
+  {
+    return;
+  }
+
+  int32_t velocityValue = meta.tracks[track].defaultVelocity;
+
+  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+  KeypadCapabilities caps;
+  bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
+
+  const int32_t velocityModifiers[8] = {-16, -8, -4, -1, 1, 4, 8, 16};
+  const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+
+  UIButton velocityToggle;
+  velocityToggle.SetName("Velocity");
+  velocityToggle.SetColorFunc([&]() -> Color { return color.DimIfNot(hasVelocity && meta.tracks[track].velocitySensitive); });
+  velocityToggle.OnPress([&]() -> void {
+    if (!hasVelocity)
+    {
+      MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", color);
+      return;
+    }
+
+    meta.tracks[track].velocitySensitive = !meta.tracks[track].velocitySensitive;
+    sequence.SetDirty();
+  });
+  velocityToggle.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(string("Velocity ") + (meta.tracks[track].velocitySensitive ? "On" : "Off"),
+                                    velocityToggle.GetColor());
+  });
+  velocityConfigMenu.AddUIComponent(velocityToggle, Point(0, 0));
+
+  UITimedDisplay velocityTextDisplay(UINT32_MAX);
+  velocityTextDisplay.SetDimension(Dimension(8, 4));
+  velocityTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // V
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+
+    // E
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+    // L
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+  });
+  velocityTextDisplay.SetDisableOnTap(false);
+  velocityTextDisplay.SetEnableFunc([&]() -> bool { return meta.tracks[track].velocitySensitive; });
+  velocityConfigMenu.AddUIComponent(velocityTextDisplay, Point(0, 2));
+
+  UI4pxNumber velocityDisplay;
+  velocityDisplay.SetName("Default Velocity");
+  velocityDisplay.SetColor(color);
+  velocityDisplay.SetDigits(3);
+  velocityDisplay.SetValuePointer(&velocityValue);
+  velocityDisplay.SetAlternativeColor(Color::White);
+  velocityDisplay.SetEnableFunc([&]() -> bool { return !meta.tracks[track].velocitySensitive; });
+  velocityConfigMenu.AddUIComponent(velocityDisplay, Point(-1, 2));
+
+  UINumberModifier velocityModifier;
+  velocityModifier.SetColor(color);
+  velocityModifier.SetLength(8);
+  velocityModifier.SetValuePointer(&velocityValue);
+  velocityModifier.SetModifiers(velocityModifiers);
+  velocityModifier.SetControlGradient(modifierGradient);
+  velocityModifier.SetLowerLimit(1);
+  velocityModifier.SetUpperLimit(127);
+  velocityModifier.SetEnableFunc([&]() -> bool { return !meta.tracks[track].velocitySensitive; });
+  velocityModifier.OnChange([&](int32_t value) -> void {
+    velocityValue = value;
+    meta.tracks[track].defaultVelocity = (uint8_t)value;
+    sequence.SetDirty();
+  });
+  velocityConfigMenu.AddUIComponent(velocityModifier, Point(0, 7));
+
+  velocityConfigMenu.Start();
 }
 
 void Sequencer::BPMSelector() {
