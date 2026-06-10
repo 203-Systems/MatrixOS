@@ -2,14 +2,21 @@
 #include "USB.h"
 #include "HID.h"
 #include "tusb.h"
-#include "Commands/CommandSpecs.h"
+#include "Commands/CommandHandler.h"
 #include "message_buffer.h"
 
 #include "../System/System.h"
 
 namespace MatrixOS::HID::RawHID
 {
+static constexpr size_t RAW_HID_REPORT_SIZE = 32;
 MessageBufferHandle_t rawhidMessageBuffer;
+
+static bool SendCommandReply(const vector<uint8_t>& reply, bool end, void* context) {
+  (void)end;
+  (void)context;
+  return Send(reply);
+}
 
 void Init() {
   if (rawhidMessageBuffer)
@@ -25,47 +32,7 @@ void Init() {
 bool HandleMatrixOSHID(const uint8_t* report, size_t size) {
   // MLOGD("RAW HID", "Received MatrixOS HID Command: %d", report[0]);
 
-  switch (report[0])
-  {
-  case MATRIXOS_COMMAND_GET_OS_VERSION: {
-    vector<uint8_t> reply = {MATRIXOS_COMMAND_GET_OS_VERSION | 0x80,
-                             MATRIXOS_MAJOR_VER,
-                             MATRIXOS_MINOR_VER,
-                             MATRIXOS_PATCH_VER,
-                             MATRIXOS_BUILD_VER,
-                             MATRIXOS_RELEASE_VER};
-    return Send(reply);
-  }
-  case MATRIXOS_COMMAND_GET_APP_ID: {
-    vector<uint8_t> reply = {MATRIXOS_COMMAND_GET_APP_ID | 0x80, (uint8_t)(SYS::activeAppId >> 24), (uint8_t)(SYS::activeAppId >> 16),
-                             (uint8_t)(SYS::activeAppId >> 8), (uint8_t)(SYS::activeAppId)};
-    return Send(reply);
-  }
-  case MATRIXOS_COMMAND_ENTER_APP_VIA_ID: {
-    if (size != 9)
-    {
-      return false;
-    }
-    uint32_t appId = ((uint32_t)report[1] << 24) + ((uint32_t)report[2] << 16) + ((uint32_t)report[3] << 8) + ((uint32_t)report[4]);
-    SYS::ExecuteAPP(appId);
-    return true;
-  }
-  case MATRIXOS_COMMAND_QUIT_APP: {
-    SYS::ExitAPP();
-    return true;
-  }
-  case MATRIXOS_COMMAND_BOOTLOADER: {
-    SYS::Bootloader();
-    return true;
-  }
-  case MATRIXOS_COMMAND_REBOOT: {
-    SYS::Reboot();
-    return true;
-  }
-  default: {
-    return false;
-  }
-  }
+  return Command::Handle(report, size, Command::Encoding::HID, RAW_HID_REPORT_SIZE, SendCommandReply, nullptr);
 }
 
 bool NewReport(const uint8_t* report, size_t size) {
@@ -76,10 +43,10 @@ bool NewReport(const uint8_t* report, size_t size) {
   return false;
 }
 
-uint8_t reportBuffer[32];
+uint8_t reportBuffer[RAW_HID_REPORT_SIZE];
 
 size_t Get(uint8_t** report, uint32_t timeoutMs) {
-  size_t received = xMessageBufferReceive(rawhidMessageBuffer, (void*)&reportBuffer, 32, pdMS_TO_TICKS(timeoutMs));
+  size_t received = xMessageBufferReceive(rawhidMessageBuffer, (void*)&reportBuffer, RAW_HID_REPORT_SIZE, pdMS_TO_TICKS(timeoutMs));
 
   if (received > 0)
   {
@@ -90,15 +57,16 @@ size_t Get(uint8_t** report, uint32_t timeoutMs) {
 }
 
 bool Send(const vector<uint8_t>& report) {
-  if (report.size() > 32)
+  if (report.size() > RAW_HID_REPORT_SIZE)
   {
     MatrixOS::SYS::ErrorHandler("HID Report too large");
+    return false;
   }
-  uint8_t reportBuffer[32];
+  uint8_t reportBuffer[RAW_HID_REPORT_SIZE];
   memcpy(reportBuffer, report.data(), report.size());
-  memset(reportBuffer + report.size(), 0, 32 - report.size());
+  memset(reportBuffer + report.size(), 0, RAW_HID_REPORT_SIZE - report.size());
 
-  return tud_hid_report(255, reportBuffer, 32);
+  return tud_hid_report(255, reportBuffer, RAW_HID_REPORT_SIZE);
 }
 } // namespace MatrixOS::HID::RawHID
 

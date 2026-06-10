@@ -31,10 +31,11 @@
 #define MATRIXOS_COMMAND_ENTER_APP_VIA_ID 0x18 // [MATRIXOS_COMMAND_ENTER_APP, app_id] Enters the app with the given app_id
 #define MATRIXOS_COMMAND_QUIT_APP 0x1F         // [MATRIXOS_COMMAND_QUIT_APP] Quits the current app
 
-#define MATRIXOS_COMMAND_BOOTLOADER 0x40    // [MATRIXOS_COMMAND_BOOTLOADER] Enters the bootloader
-#define MATRIXOS_COMMAND_REBOOT 0x41        // [MATRIXOS_COMMAND_REBOOT] Reboots the device
-#define MATRIXOS_COMMAND_SLEEP 0x42         // [MATRIXOS_COMMAND_SLEEP] Puts the device to sleep
-#define MATRIXOS_COMMAND_OPEN_SETTINGS 0x43 // [MATRIXOS_COMMAND_OPEN_SETTINGS] Opens the settings menu
+#define MATRIXOS_COMMAND_BOOTLOADER 0x40          // [MATRIXOS_COMMAND_BOOTLOADER] Enters the bootloader
+#define MATRIXOS_COMMAND_REBOOT 0x41              // [MATRIXOS_COMMAND_REBOOT] Reboots the device
+#define MATRIXOS_COMMAND_SLEEP 0x42               // [MATRIXOS_COMMAND_SLEEP] Puts the device to sleep
+#define MATRIXOS_COMMAND_OPEN_SETTINGS 0x43       // [MATRIXOS_COMMAND_OPEN_SETTINGS] Opens the settings menu
+#define MATRIXOS_COMMAND_OPEN_DEVELOPER_APP 0x44  // [MATRIXOS_COMMAND_OPEN_DEVELOPER_APP] Opens the developer app
 #define MATRIXOS_COMMAND_FACTORY_RESET                                                                                                     \
   0x4F // [MATRIXOS_COMMAND_FACTORY_RESET] Resets the device to factory settings.Require user confirmation. Return
        // [MATRIXOS_COMMAND_FACTORY_RESET, wiped as 1 or canceled as 0]
@@ -48,15 +49,16 @@
   0x53 // [MATRIXOS_COMMAND_LED_FILL_PARTITION, partition, color, layer as optional] Fills the partition with the color. (Matrix OS api
        // takes in the string name of the partition, I think we should just use index here. let's assume user knows the index. Or we take in
        // hash)
-#define MATRIXOS_COMMAND_LED_UPDATE 0x54      // [MATRIXOS_COMMAND_LED_UPDATE, layer as optional] Updates the LED screen
-#define MATRIXOS_COMMAND_LED_CREATELAYER 0x55 // [MATRIXOS_COMMAND_LED_CREATELAYER, layer] Creates a new layer
+#define MATRIXOS_COMMAND_LED_UPDATE 0x54 // [MATRIXOS_COMMAND_LED_UPDATE, layer as optional] Updates the LED screen
+#define MATRIXOS_COMMAND_LED_CREATELAYER                                                                                                \
+  0x55 // [MATRIXOS_COMMAND_LED_CREATELAYER, crossfade as optional] Creates a new layer and returns its id
 #define MATRIXOS_COMMAND_LED_COPYLAYER                                                                                                     \
   0x56 // [MATRIXOS_COMMAND_LED_COPYLAYER, from_layer, to_layer] Copies the content of from_layer to to_layer
-#define MATRIXOS_COMMAND_LED_DESTROYLAYER 0x57   // [MATRIXOS_COMMAND_LED_DESTROYLAYER, layer] Destroys the layer
+#define MATRIXOS_COMMAND_LED_DESTROYLAYER                                                                                                \
+  0x57 // [MATRIXOS_COMMAND_LED_DESTROYLAYER, crossfade as optional] Destroys the current layer and returns whether it was destroyed
 #define MATRIXOS_COMMAND_LED_SET_BRIGHTNESS 0x59 // [MATRIXOS_COMMAND_LED_SET_BRIGHTNESS, brightness] Sets the brightness of the screen
 #define MATRIXOS_COMMAND_LED_FADE                                                                                                          \
-  0x5A // [MATRIXOS_COMMAND_LED_FADE, start_color, end_color, duration, layer as optional] Fades the screen from start color to end color in
-       // duration
+  0x5A // [MATRIXOS_COMMAND_LED_FADE, crossfade as optional] Fades from the previous layer buffer to the current layer buffer
 #define MATRIXOS_COMMAND_GET_LED_CURRENT_LAYER                                                                                             \
   0x5C                                           // Returns [MATRIXOS_COMMAND_LED_GET_CURRENT_LAYER, current_layer] Gets the current layer
 #define MATRIXOS_COMMAND_GET_LED_BRIGHTNESS 0x5D // Returns [MATRIXOS_COMMAND_GET_BRIGHTNESS, brightness] Gets the brightness of the screen

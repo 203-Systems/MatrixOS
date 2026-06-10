@@ -1,4 +1,4 @@
-file(GLOB_RECURSE FRAMEWORK_HEADERS "*.h" "Types/*.h" "Utils/*.h" "Timer/*.h" "Storage/*.h" "Midi/*.h" "Logging/*.h" "Geometry/*.h" "Commands/*.h" "Color/*.h")
+file(GLOB_RECURSE FRAMEWORK_HEADERS "*.h" "Types/*.h" "Utils/*.h" "Timer/*.h" "Storage/*.h" "Midi/*.h" "Logging/*.h" "Geometry/*.h" "Color/*.h")
 file(GLOB_RECURSE FRAMEWORK_SOURCES "*.cpp" "Timer/*.cpp" "Color/*.cpp")
 
 add_library(MatrixOSFramework
@@ -16,7 +16,6 @@ target_include_directories(MatrixOSFramework PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging
     ${CMAKE_CURRENT_SOURCE_DIR}/Input
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry
-    ${CMAKE_CURRENT_SOURCE_DIR}/Commands
     ${CMAKE_CURRENT_SOURCE_DIR}/Color
 )
 

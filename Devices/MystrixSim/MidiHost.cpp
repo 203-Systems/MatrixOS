@@ -2,7 +2,7 @@
 
 #include "MIDI/MIDI.h"
 #include "USB/USB.h"
-#include "Commands/CommandSpecs.h"
+#include "Commands/CommandHandler.h"
 #include "Framework/Midi/MidiPort.h"
 
 #include "System/System.h"
@@ -10,10 +10,41 @@
 namespace MatrixOS::MIDI
 {
 static constexpr size_t MAX_SYSTEM_SYSEX_SIZE = 1024;
+static constexpr size_t MATRIXOS_SYSEX_REPLY_OVERHEAD = 3;
 static constexpr uint32_t SYSEX_INACTIVITY_TIMEOUT_MS = 1000;
 static uint32_t droppedAppMidiPackets = 0;
 static uint32_t droppedOversizedSysExMessages = 0;
 static uint32_t timedOutSysExSessions = 0;
+
+struct MatrixOSSysExReplyContext {
+  uint16_t port;
+};
+
+static bool SendMatrixOSSysExReply(const vector<uint8_t>& reply, bool end, void* context) {
+  if (context == nullptr)
+  {
+    return false;
+  }
+
+  (void)end;
+
+  for (uint8_t byte : reply)
+  {
+    if ((byte & 0x80) != 0)
+    {
+      return false;
+    }
+  }
+
+  MatrixOSSysExReplyContext* replyContext = static_cast<MatrixOSSysExReplyContext*>(context);
+  vector<uint8_t> sysExReply;
+  sysExReply.reserve(reply.size() + 3);
+  sysExReply.push_back(MIDIv1_SYSEX_START);
+  sysExReply.push_back(MATRIXOS_SYSEX_RESPONSE);
+  sysExReply.insert(sysExReply.end(), reply.begin(), reply.end());
+  sysExReply.push_back(MIDIv1_SYSEX_END);
+  return SendSysEx(replyContext->port, sysExReply.size(), sysExReply.data(), false);
+}
 
 static void LogDroppedAppMidiPacket() {
   droppedAppMidiPackets++;
@@ -308,70 +339,19 @@ SysExState ProcessSysEx(uint16_t port, vector<uint8_t>& sysExBuffer, bool comple
 }
 
 void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
-  if (sysExBuffer.size() < 3)
+  if (sysExBuffer.size() < 4 || sysExBuffer.back() != MIDIv1_SYSEX_END)
   {
     return;
   }
 
-  switch (sysExBuffer[2])
+  MatrixOSSysExReplyContext replyContext = {port};
+  const uint8_t* request = sysExBuffer.data() + 2;
+  size_t requestSize = sysExBuffer.size() - 3;
+  size_t maxReplyLength = MAX_SYSTEM_SYSEX_SIZE - MATRIXOS_SYSEX_REPLY_OVERHEAD;
+
+  if (!Command::Handle(request, requestSize, Command::Encoding::SysEx7Bit, maxReplyLength, SendMatrixOSSysExReply, &replyContext))
   {
-  case MATRIXOS_COMMAND_GET_OS_VERSION: {
-#if MATRIXOS_BUILD_VER == 0
-    uint8_t osReleaseVersion = 0;
-#elif (MATRIXOS_BUILD_VER == 4)
-    uint8_t osReleaseVersion = 0x31;
-#elif (MATRIXOS_RELEASE_VER < 32)
-    uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + MATRIXOS_RELEASE_VER;
-#else
-    uint8_t osReleaseVersion = (MATRIXOS_BUILD_VER << 5) + 0x1F;
-#endif
-    uint8_t reply[] = {MIDIv1_SYSEX_START, MATRIXOS_SYSEX_RESPONSE, MATRIXOS_COMMAND_GET_OS_VERSION,
-                       MATRIXOS_MAJOR_VER, MATRIXOS_MINOR_VER,      MATRIXOS_PATCH_VER,
-                       osReleaseVersion,   MIDIv1_SYSEX_END};
-    SendSysEx(port, sizeof(reply), reply, false);
-  }
-  break;
-  case MATRIXOS_COMMAND_GET_APP_ID: {
-    uint8_t reply[] = {MIDIv1_SYSEX_START,
-                       MATRIXOS_SYSEX_RESPONSE,
-                       MATRIXOS_COMMAND_GET_APP_ID,
-                       (uint8_t)((SYS::activeAppId >> 25) & 0x7F),
-                       (uint8_t)((SYS::activeAppId >> 18) & 0x7F),
-                       (uint8_t)((SYS::activeAppId >> 11) & 0x7F),
-                       (uint8_t)((SYS::activeAppId >> 4) & 0x7F),
-                       (uint8_t)((SYS::activeAppId << 3) & 0x7F),
-                       MIDIv1_SYSEX_END};
-    SendSysEx(port, sizeof(reply), reply, false);
-  }
-  break;
-  case MATRIXOS_COMMAND_ENTER_APP_VIA_ID: {
-    if (sysExBuffer.size() != 9)
-    {
-      break;
-    }
-    uint32_t appId = ((uint32_t)sysExBuffer[3] << 25);
-    appId += ((uint32_t)sysExBuffer[4] << 18);
-    appId += ((uint32_t)sysExBuffer[5] << 11);
-    appId += ((uint32_t)sysExBuffer[6] << 4);
-    appId += ((uint32_t)sysExBuffer[7] >> 3);
-    SYS::ExecuteAPP(appId);
-    break;
-  }
-  case MATRIXOS_COMMAND_QUIT_APP: {
-    SYS::ExitAPP();
-    break;
-  }
-  case MATRIXOS_COMMAND_BOOTLOADER: {
-    SYS::Bootloader();
-    break;
-  }
-  case MATRIXOS_COMMAND_REBOOT: {
-    SYS::Reboot();
-    break;
-  }
-  default: {
     MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[2]);
-  }
   }
 }
 } // namespace MatrixOS::MIDI

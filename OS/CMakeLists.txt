@@ -5,6 +5,7 @@ add_subdirectory(LED)
 add_subdirectory(Logging)
 add_subdirectory(MIDI)
 add_subdirectory(System)
+add_subdirectory(Commands)
 add_subdirectory(NVS)
 add_subdirectory(UI)
 add_subdirectory(Framework)
@@ -31,5 +32,6 @@ target_link_libraries(MatrixOS PUBLIC
     MatrixOSUI
     MatrixOSHID
     MatrixOSMIDI
+    MatrixOSCommands
     MatrixOSFile
 )
