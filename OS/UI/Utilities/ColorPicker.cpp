@@ -112,7 +112,7 @@ bool ColorPicker(Color& color, bool shade) {
   colorPicker.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
     if (inputEvent->id == InputId::FunctionKey())
     {
-      if (inputEvent->keypad.state == KeypadState::Pressed)
+      if (inputEvent->keypad.state == KeypadState::Released)
       {
         aborted = true;
         colorPicker.Exit();
