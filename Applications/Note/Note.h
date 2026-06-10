@@ -7,7 +7,7 @@
 #include "Application.h"
 #include "MidiClock.h"
 
-#define NOTE_APP_VERSION 2
+#define NOTE_APP_VERSION 3
 
 #define NOTE_CONFIGS_HASH StaticHash("203 Systems-Note-NotePadConfigs")
 #define CUSTOM_SCALES_HASH StaticHash("203 Systems-Note-CustomScales")
@@ -50,6 +50,7 @@ public:
   void ScaleSelector();
   void LayoutSelector();
   void ChannelSelector();
+  void VelocityConfigMenu();
   void ColorSelector();
   void ArpConfigMenu();
 

@@ -66,6 +66,7 @@ struct NotePadConfig {
   ColorMode colorMode = ROOT_N_SCALE;
   bool useWhiteAsOutOfScale = false;
   ArpeggiatorConfig arpConfig;
+  uint8_t defaultVelocity = 127;
 };
 
 struct NotePadRuntime {

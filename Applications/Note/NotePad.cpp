@@ -541,7 +541,7 @@ bool NotePad::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
   }
   if (keypadInfo->state == KeypadState::Pressed)
   {
-    Fract16 velocity = rt->config->forceSensitive ? keypadInfo->velocity : Fract16(0x7F << 9);
+    Fract16 velocity = rt->config->forceSensitive ? keypadInfo->velocity : Fract16(rt->config->defaultVelocity << 9);
     rt->midiPipeline.Send(MidiPacket::NoteOn(rt->config->channel, note, velocity.to7bits()));
     AddActiveKey(xy, velocity);
     IncrementActiveNote(note);

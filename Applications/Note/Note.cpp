@@ -3,6 +3,7 @@
 #include "ScaleModifier.h"
 #include "UnderglowLight.h"
 #include "NoteControlBar.h"
+#include "NoteConfigMigration.h"
 #include "ArpDirVisualizer.h"
 #include "RhythmVisualizer.h"
 #include "InfDisplay.h"
@@ -16,26 +17,8 @@ void Note::Setup(const vector<string>& args) {
   notePadConfigs[1].rootColor = Color(0x8000FF);
   notePadConfigs[1].channel = 2;
 
-  // Load From NVS
-  if (nvsVersion == (uint32_t)NOTE_APP_VERSION)
+  if (LoadOrUpgradeNoteConfigs(notePadConfigs, (uint32_t)nvsVersion) != NoteConfigNVSLoadResult::Current)
   {
-    size_t storedSize = MatrixOS::NVS::GetSize(NOTE_CONFIGS_HASH);
-
-    // Check if stored size matches current structure size
-    if (storedSize == sizeof(notePadConfigs))
-    {
-      MatrixOS::NVS::GetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
-    }
-    else
-    {
-      // Size mismatch - structure has changed, use defaults and save them
-      MLOGD("Note", "Config size mismatch: stored=%d, expected=%d. Using defaults.", storedSize, sizeof(notePadConfigs));
-      SaveConfigs();
-    }
-  }
-  else
-  {
-    SaveConfigs();
     nvsVersion = NOTE_APP_VERSION;
   }
 
@@ -78,31 +61,21 @@ void Note::Setup(const vector<string>& args) {
   channelSelectorBtn.OnPress([&]() -> void { ChannelSelector(); });
   actionMenu.AddUIComponent(channelSelectorBtn, Point(7, 4));
 
-  UIButton forceSensitiveToggle;
-  forceSensitiveToggle.SetName("Velocity Sensitive");
+  UIButton velocityConfigBtn;
+  velocityConfigBtn.SetName("Velocity Sensitive");
   const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
   KeypadCapabilities caps;
   bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
-  if (hasVelocity)
-  {
-    forceSensitiveToggle.SetColorFunc(
-        [&]() -> Color { return Color(0x00FFB0).DimIfNot(notePadConfigs[activeConfig.Get()].forceSensitive); });
-    forceSensitiveToggle.OnPress([&]() -> void {
-      notePadConfigs[activeConfig.Get()].forceSensitive = !notePadConfigs[activeConfig.Get()].forceSensitive;
-      configModified = true;
-    });
-    forceSensitiveToggle.OnHold([&]() -> void {
-      MatrixOS::UIUtility::TextScroll(forceSensitiveToggle.GetName() + " " +
-                                          (notePadConfigs[activeConfig.Get()].forceSensitive ? "On" : "Off"),
-                                      forceSensitiveToggle.GetColor());
-    });
-  }
-  else
-  {
-    forceSensitiveToggle.SetColor(Color(0x00FFB0).Dim());
-    forceSensitiveToggle.OnHold([&]() -> void { MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", Color(0x00FFB0)); });
-  }
-  actionMenu.AddUIComponent(forceSensitiveToggle, Point(7, 5));
+  velocityConfigBtn.SetColorFunc([&]() -> Color {
+    return Color(0x00FFB0).DimIfNot(hasVelocity && notePadConfigs[activeConfig.Get()].forceSensitive);
+  });
+  velocityConfigBtn.OnPress([&]() -> void { VelocityConfigMenu(); });
+  velocityConfigBtn.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(velocityConfigBtn.GetName() + " " +
+                                        (notePadConfigs[activeConfig.Get()].forceSensitive ? "On" : "Off"),
+                                    velocityConfigBtn.GetColor());
+  });
+  actionMenu.AddUIComponent(velocityConfigBtn, Point(7, 5));
 
   UIButton notepad1SelectBtn;
   notepad1SelectBtn.SetName("Note Pad 1");
@@ -1015,6 +988,103 @@ void Note::ChannelSelector() {
   }
 }
 
+void Note::VelocityConfigMenu() {
+  Color color = Color(0x00FFB0);
+  UI velocityConfigMenu("Velocity Config", color, false);
+  bool configModified = false;
+  int32_t velocityValue = notePadConfigs[activeConfig].defaultVelocity;
+
+  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+  KeypadCapabilities caps;
+  bool hasVelocity = grid && MatrixOS::Input::GetKeypadCapabilities(grid->clusterId, &caps) && caps.hasVelocity;
+
+  const int32_t velocityModifiers[8] = {-16, -8, -4, -1, 1, 4, 8, 16};
+  const uint8_t modifierGradient[8] = {255, 127, 64, 32, 32, 64, 127, 255};
+
+  UIButton velocityToggle;
+  velocityToggle.SetName("Velocity");
+  velocityToggle.SetColorFunc([&]() -> Color { return color.DimIfNot(hasVelocity && notePadConfigs[activeConfig].forceSensitive); });
+  velocityToggle.OnPress([&]() -> void {
+    if (!hasVelocity)
+    {
+      MatrixOS::UIUtility::TextScroll("Velocity Sensitivity Not Supported", color);
+      return;
+    }
+
+    notePadConfigs[activeConfig].forceSensitive = !notePadConfigs[activeConfig].forceSensitive;
+    configModified = true;
+  });
+  velocityToggle.OnHold([&]() -> void {
+    MatrixOS::UIUtility::TextScroll(string("Velocity ") + (notePadConfigs[activeConfig].forceSensitive ? "On" : "Off"),
+                                    velocityToggle.GetColor());
+  });
+  velocityConfigMenu.AddUIComponent(velocityToggle, Point(0, 0));
+
+  UITimedDisplay velocityTextDisplay(UINT32_MAX);
+  velocityTextDisplay.SetDimension(Dimension(8, 4));
+  velocityTextDisplay.SetRenderFunc([&](Point origin) -> void {
+    // V
+    MatrixOS::LED::SetColor(origin + Point(0, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(0, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(1, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(2, 2), color);
+
+    // E
+    MatrixOS::LED::SetColor(origin + Point(3, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 2), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(3, 3), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 0), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 1), Color::White);
+    MatrixOS::LED::SetColor(origin + Point(4, 3), Color::White);
+
+    // L
+    MatrixOS::LED::SetColor(origin + Point(6, 0), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 1), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 2), color);
+    MatrixOS::LED::SetColor(origin + Point(6, 3), color);
+    MatrixOS::LED::SetColor(origin + Point(7, 3), color);
+  });
+  velocityTextDisplay.SetDisableOnTap(false);
+  velocityTextDisplay.SetEnableFunc([&]() -> bool { return notePadConfigs[activeConfig].forceSensitive; });
+  velocityConfigMenu.AddUIComponent(velocityTextDisplay, Point(0, 2));
+
+  UI4pxNumber velocityDisplay;
+  velocityDisplay.SetName("Default Velocity");
+  velocityDisplay.SetColor(color);
+  velocityDisplay.SetDigits(3);
+  velocityDisplay.SetValuePointer(&velocityValue);
+  velocityDisplay.SetAlternativeColor(Color::White);
+  velocityDisplay.SetEnableFunc([&]() -> bool { return !notePadConfigs[activeConfig].forceSensitive; });
+  velocityConfigMenu.AddUIComponent(velocityDisplay, Point(-1, 2));
+
+  UINumberModifier velocityModifier;
+  velocityModifier.SetColor(color);
+  velocityModifier.SetLength(8);
+  velocityModifier.SetValuePointer(&velocityValue);
+  velocityModifier.SetModifiers(velocityModifiers);
+  velocityModifier.SetControlGradient(modifierGradient);
+  velocityModifier.SetLowerLimit(1);
+  velocityModifier.SetUpperLimit(127);
+  velocityModifier.SetEnableFunc([&]() -> bool { return !notePadConfigs[activeConfig].forceSensitive; });
+  velocityModifier.OnChange([&](int32_t value) -> void {
+    velocityValue = value;
+    notePadConfigs[activeConfig].defaultVelocity = (uint8_t)value;
+    configModified = true;
+  });
+  velocityConfigMenu.AddUIComponent(velocityModifier, Point(0, 7));
+
+  velocityConfigMenu.Start();
+
+  if (configModified)
+  {
+    SaveConfigs();
+  }
+}
+
 void Note::ArpConfigMenu() {
   UI arpConfigMenu("Arpeggiator Config", Color(0x80FF00));
   bool configModified = false;
@@ -1797,7 +1867,7 @@ void Note::ArpConfigMenu() {
 }
 
 void Note::SaveConfigs() {
-  MatrixOS::NVS::SetVariable(NOTE_CONFIGS_HASH, notePadConfigs, sizeof(notePadConfigs));
+  SaveNoteConfigsToNVS(notePadConfigs);
 }
 
 void Note::Tick() {
