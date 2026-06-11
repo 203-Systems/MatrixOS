@@ -326,6 +326,14 @@ bool GetInputByXY(Point point, InputId* id) {
 }
 
 bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
+  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
+  bool isFunctionKey = id == InputId::FunctionKey();
+  bool isGridKey = grid != nullptr && id.clusterId == grid->clusterId;
+  if (!isFunctionKey && !isGridKey)
+  {
+    return false;
+  }
+
   InputSnapshot snapshot;
   if (!MatrixOS::Input::GetState(id, &snapshot) || snapshot.inputClass != InputClass::Keypad)
   {
@@ -333,7 +341,14 @@ bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
   }
 
   Point point = Point::Invalid();
-  MatrixOS::Input::GetPosition(id, &point);
+  if (isGridKey && (!MatrixOS::Input::GetPosition(id, &point) || !point))
+  {
+    return false;
+  }
+  if (isFunctionKey)
+  {
+    point = Point::Origin();
+  }
 
   data->push_back(INPUT_EVENT_KEY_INFO);
   data->push_back(id.clusterId);
@@ -341,8 +356,8 @@ bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
   {
     data->push_back((uint8_t)(id.memberId >> 8));
     data->push_back((uint8_t)id.memberId);
-    data->push_back((uint8_t)(int8_t)(point ? point.x : 0));
-    data->push_back((uint8_t)(int8_t)(point ? point.y : 0));
+    data->push_back((uint8_t)(int8_t)point.x);
+    data->push_back((uint8_t)(int8_t)point.y);
     data->push_back((uint8_t)snapshot.keypad.state);
     data->push_back((uint8_t)(snapshot.keypad.pressure.value >> 8));
     data->push_back((uint8_t)snapshot.keypad.pressure.value);
@@ -353,8 +368,8 @@ bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
 
   data->push_back((uint8_t)(id.memberId & 0x7F));
   data->push_back((uint8_t)((id.memberId >> 7) & 0x7F));
-  data->push_back(EncodeInt7(point ? point.x : 0));
-  data->push_back(EncodeInt7(point ? point.y : 0));
+  data->push_back(EncodeInt7(point.x));
+  data->push_back(EncodeInt7(point.y));
   data->push_back((uint8_t)snapshot.keypad.state & 0x7F);
   data->push_back(To7Bit(snapshot.keypad.pressure.value));
   data->push_back(To7Bit(snapshot.keypad.velocity.value));

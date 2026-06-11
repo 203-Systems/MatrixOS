@@ -196,6 +196,17 @@ SysEx `KEY_INFO` data:
 [cluster, member_lsb7, member_msb7, x_i7, y_i7, state, pressure7, velocity7]
 ```
 
+`KEY_INFO` 的 key 身份由 `cluster + member` 决定，`x/y` 只是有坐标 input 的位置数据。Host 不应该只用 `x/y` 判断一个 key。
+
+V1 key cluster:
+
+| Cluster | Member | Meaning | XY |
+| --- | --- | --- | --- |
+| `0x00` | `0x0000` | Function Key | 忽略，当前填 `0, 0` |
+| `0x01` | grid member id | Primary grid key | 有效 grid 坐标 |
+
+其他 cluster 是保留或设备扩展。Host 如果只想 mirror 主网格，应只处理 `cluster = 0x01`。Host 如果想 mirror 实体设备输入到虚拟 Mystrix，应把 `cluster = 0x00, member = 0x0000` 映射到虚拟 Function Key。
+
 `velocity` 的含义跟 `state` 有关：按下时是 strike velocity，释放时是 release velocity。
 
 ## HID API
