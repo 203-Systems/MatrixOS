@@ -33,6 +33,7 @@ Dice
 Strum
 Reversi
 Companion
+DeveloperApp
 # PolyPlayground
 [System]Python
 

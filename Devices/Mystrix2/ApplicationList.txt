@@ -33,8 +33,9 @@ Dice
 Strum
 Reversi
 Companion
+DeveloperApp
 # PolyPlayground
-# [System]Python  # Disabled: input API migration in progress (Phase 4–7)
+# [System]Python  # Disabled: input API migration in progress
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot
