@@ -28,14 +28,15 @@
 #define MATRIXOS_COMMAND_GET_APP_AUTHOR 0x12 // Returns [MATRIXOS_COMMAND_GET_APP_AUTHOR, app_author] app author as null terminated array
 #define MATRIXOS_COMMAND_GET_APP_VERSION                                                                                                   \
   0x13 // Returns [MATRIXOS_COMMAND_GET_APP_VERSION, app_version] app version as null terminated array
-#define MATRIXOS_COMMAND_ENTER_APP_VIA_ID 0x18 // [MATRIXOS_COMMAND_ENTER_APP, app_id] Enters the app with the given app_id
-#define MATRIXOS_COMMAND_QUIT_APP 0x1F         // [MATRIXOS_COMMAND_QUIT_APP] Quits the current app
+#define MATRIXOS_COMMAND_ENTER_APP_VIA_ID                                                                                                  \
+  0x18 // [MATRIXOS_COMMAND_ENTER_APP, app_id] Enters the app with the given app_id. Returns ack.
+#define MATRIXOS_COMMAND_QUIT_APP 0x1F // [MATRIXOS_COMMAND_QUIT_APP] Quits the current app. Returns ack.
 
-#define MATRIXOS_COMMAND_BOOTLOADER 0x40          // [MATRIXOS_COMMAND_BOOTLOADER] Enters the bootloader
-#define MATRIXOS_COMMAND_REBOOT 0x41              // [MATRIXOS_COMMAND_REBOOT] Reboots the device
-#define MATRIXOS_COMMAND_SLEEP 0x42               // [MATRIXOS_COMMAND_SLEEP] Puts the device to sleep
-#define MATRIXOS_COMMAND_OPEN_SETTINGS 0x43       // [MATRIXOS_COMMAND_OPEN_SETTINGS] Opens the settings menu
-#define MATRIXOS_COMMAND_OPEN_DEVELOPER_APP 0x44  // [MATRIXOS_COMMAND_OPEN_DEVELOPER_APP] Opens the developer app
+#define MATRIXOS_COMMAND_BOOTLOADER 0x40          // [MATRIXOS_COMMAND_BOOTLOADER] Enters the bootloader. Returns ack.
+#define MATRIXOS_COMMAND_REBOOT 0x41              // [MATRIXOS_COMMAND_REBOOT] Reboots the device. Returns ack.
+#define MATRIXOS_COMMAND_SLEEP 0x42               // [MATRIXOS_COMMAND_SLEEP] Sleeps briefly. Returns ack.
+#define MATRIXOS_COMMAND_OPEN_SETTINGS 0x43       // [MATRIXOS_COMMAND_OPEN_SETTINGS] Opens the settings menu. Returns ack.
+#define MATRIXOS_COMMAND_OPEN_DEVELOPER_APP 0x44  // [MATRIXOS_COMMAND_OPEN_DEVELOPER_APP] Opens the developer app. Returns ack.
 #define MATRIXOS_COMMAND_FACTORY_RESET                                                                                                     \
   0x4F // [MATRIXOS_COMMAND_FACTORY_RESET] Resets the device to factory settings.Require user confirmation. Return
        // [MATRIXOS_COMMAND_FACTORY_RESET, wiped as 1 or canceled as 0]

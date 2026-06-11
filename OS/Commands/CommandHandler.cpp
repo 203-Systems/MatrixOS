@@ -7,6 +7,7 @@
 namespace MatrixOS::Command
 {
 static constexpr uint8_t DEFAULT_LAYER = 255;
+static constexpr uint32_t ACTION_ACK_DELAY_MS = 20;
 
 static bool SendReply(const vector<uint8_t>& reply, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext);
 
@@ -16,6 +17,19 @@ static uint8_t ResponseCommand(uint8_t command, Encoding encoding) {
     return command | 0x80;
   }
   return command;
+}
+
+static bool SendCommandAck(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext) {
+  return SendReply(vector<uint8_t>{ResponseCommand(command, encoding)}, maxReplyLength, replyCallback, replyContext);
+}
+
+static bool SendCommandAckAndDelay(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext) {
+  if (!SendCommandAck(command, encoding, maxReplyLength, replyCallback, replyContext))
+  {
+    return false;
+  }
+  SYS::DelayMs(ACTION_ACK_DELAY_MS);
+  return true;
 }
 
 static void AppendString(vector<uint8_t>* reply, const string& value) {
@@ -443,23 +457,54 @@ bool Handle(const uint8_t* request, size_t size, Encoding encoding, size_t maxRe
       return false;
     }
 
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
     SYS::ExecuteAPP(appId);
     return true;
   }
   case MATRIXOS_COMMAND_QUIT_APP: {
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
     SYS::ExitAPP();
     return true;
   }
   case MATRIXOS_COMMAND_BOOTLOADER: {
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
     SYS::Bootloader();
     return true;
   }
   case MATRIXOS_COMMAND_REBOOT: {
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
     SYS::Reboot();
     return true;
   }
+  case MATRIXOS_COMMAND_SLEEP: {
+    return SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext);
+  }
   case MATRIXOS_COMMAND_OPEN_SETTINGS: {
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
     SYS::OpenSetting();
+    return true;
+  }
+  case MATRIXOS_COMMAND_OPEN_DEVELOPER_APP: {
+    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+    {
+      return false;
+    }
+    SYS::ExecuteAPP("203 Systems", "DeveloperApp");
     return true;
   }
   case MATRIXOS_COMMAND_LED_SET_COLOR_XY: {
