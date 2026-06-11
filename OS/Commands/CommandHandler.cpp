@@ -504,7 +504,7 @@ bool Handle(const uint8_t* request, size_t size, Encoding encoding, size_t maxRe
     {
       return false;
     }
-    SYS::ExecuteAPP("203 Systems", "DeveloperApp");
+    SYS::ExecuteAPP("203 Systems", "Developer");
     return true;
   }
   case MATRIXOS_COMMAND_LED_SET_COLOR_XY: {

@@ -3,10 +3,10 @@
 #include "Application.h"
 #include "MatrixOS.h"
 
-class DeveloperApp : public Application {
+class Developer : public Application {
 public:
   inline static Application_Info info = {
-      .name = "DeveloperApp",
+      .name = "Developer",
       .author = "203 Systems",
       .color = Color::White,
       .version = 1,

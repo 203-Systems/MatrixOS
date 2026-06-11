@@ -1,4 +1,4 @@
-#include "DeveloperApp.h"
+#include "Developer.h"
 
 #include "MIDI/MIDI.h"
 
@@ -589,7 +589,7 @@ void HandleMIDIControlChange(const MidiPacket& packet) {
 }
 } // namespace
 
-void DeveloperApp::Setup(const vector<string>& args) {
+void Developer::Setup(const vector<string>& args) {
   (void)args;
   hidKeyReportEnabled = false;
   midiKeyReportEnabled = false;
@@ -598,20 +598,20 @@ void DeveloperApp::Setup(const vector<string>& args) {
   sysExBuffer.reserve(MAX_SYSEX_SIZE);
 }
 
-void DeveloperApp::Loop() {
+void Developer::Loop() {
   DrainInput();
   DrainHID();
   DrainMIDI();
   MatrixOS::SYS::DelayMs(1);
 }
 
-void DeveloperApp::End() {
+void Developer::End() {
   sysExBuffer.clear();
   activeSysExPort = MIDI_PORT_INVALID;
   sysExReportPort = MIDI_PORT_INVALID;
 }
 
-void DeveloperApp::DrainInput() {
+void Developer::DrainInput() {
   InputEvent event;
   while (MatrixOS::Input::Get(&event, 0))
   {
@@ -619,7 +619,7 @@ void DeveloperApp::DrainInput() {
   }
 }
 
-void DeveloperApp::DrainHID() {
+void Developer::DrainHID() {
   uint8_t* report = nullptr;
   size_t size = 0;
   while ((size = MatrixOS::HID::RawHID::Get(&report, 0)) > 0)
@@ -628,7 +628,7 @@ void DeveloperApp::DrainHID() {
   }
 }
 
-void DeveloperApp::DrainMIDI() {
+void Developer::DrainMIDI() {
   MidiPacket packet;
   while (MatrixOS::MIDI::Get(&packet, 0))
   {
@@ -636,7 +636,7 @@ void DeveloperApp::DrainMIDI() {
   }
 }
 
-void DeveloperApp::HandleInputEvent(const InputEvent& event) {
+void Developer::HandleInputEvent(const InputEvent& event) {
   if (event.inputClass != InputClass::Keypad)
   {
     return;
@@ -658,7 +658,7 @@ void DeveloperApp::HandleInputEvent(const InputEvent& event) {
   }
 }
 
-void DeveloperApp::HandleHIDReport(const uint8_t* report, size_t size) {
+void Developer::HandleHIDReport(const uint8_t* report, size_t size) {
   if (report == nullptr || size < HID_HEADER_SIZE)
   {
     SendHIDError(0, 0, ERROR_BAD_LENGTH);
@@ -695,7 +695,7 @@ void DeveloperApp::HandleHIDReport(const uint8_t* report, size_t size) {
   SendHIDError(seq, command, ResultToErrorCode(reply.result));
 }
 
-void DeveloperApp::HandleMIDIPacket(const MidiPacket& packet) {
+void Developer::HandleMIDIPacket(const MidiPacket& packet) {
   switch (packet.Status())
   {
   case EMidiStatus::Start:
@@ -718,7 +718,7 @@ void DeveloperApp::HandleMIDIPacket(const MidiPacket& packet) {
   }
 }
 
-void DeveloperApp::HandleSysExPacket(const MidiPacket& packet) {
+void Developer::HandleSysExPacket(const MidiPacket& packet) {
   if (packet.SysExStart())
   {
     sysExBuffer.clear();
@@ -746,7 +746,7 @@ void DeveloperApp::HandleSysExPacket(const MidiPacket& packet) {
   }
 }
 
-void DeveloperApp::HandleSysExMessage(uint16_t port, const vector<uint8_t>& message) {
+void Developer::HandleSysExMessage(uint16_t port, const vector<uint8_t>& message) {
   if (message.size() < 8 || message[0] != MIDIv1_SYSEX_START || message.back() != MIDIv1_SYSEX_END || message[1] != SYSEX_MFG_ID[0] ||
       message[2] != SYSEX_MFG_ID[1] || message[3] != SYSEX_MFG_ID[2] || message[4] != SYSEX_FAMILY_ID[0] || message[5] != SYSEX_FAMILY_ID[1])
   {

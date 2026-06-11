@@ -17,7 +17,7 @@ Dice
 Strum
 Reversi
 Companion
-DeveloperApp
+Developer
 [System]Python
 
 # Boot animation
