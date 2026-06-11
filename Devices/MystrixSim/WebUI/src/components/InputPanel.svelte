@@ -22,9 +22,10 @@
     const q = filterQuery.trim().toLowerCase()
     if (!q) return $inputEvents
     const typeM = q.match(/\btype:(grid|fn|function|touchbar)\b/)
-    const stateM = q.match(/\bstate:(press|release|hold)\b/)
+    const stateM = q.match(/\bstate:(press|release|hold|aftertouch|active)\b/)
     const plain = q.replace(/\b(type|state):\S+/g, '').trim()
     return $inputEvents.filter(evt => {
+      const state = inputState(evt).toLowerCase()
       if (typeM) {
         const t = typeM[1]
         if ((t === 'grid') && evt.type !== 'grid') return false
@@ -35,10 +36,13 @@
         const s = stateM[1]
         if (s === 'press' && !evt.pressed) return false
         if (s === 'release' && evt.pressed) return false
+        if (s === 'hold' && state !== 'hold') return false
+        if (s === 'aftertouch' && state !== 'aftertouch') return false
+        if (s === 'active' && state !== 'activated') return false
       }
       if (plain) {
         const typeLabel = evt.type === 'fn' ? 'function key' : evt.type === 'touchbar' ? 'touchbar' : 'grid'
-        const stateLabel = evt.pressed ? 'press' : 'release'
+        const stateLabel = inputLabel(evt).toLowerCase()
         const posLabel = evt.type === 'grid' ? `${evt.x},${evt.y}` : evt.type === 'touchbar' ? `${evt.x === 0 ? 'left' : 'right'} ${evt.y}` : ''
         return typeLabel.includes(plain) || stateLabel.includes(plain) || posLabel.includes(plain) || evt.timestamp.includes(plain)
       }
@@ -50,6 +54,39 @@
     requestAnimationFrame(() => {
       if (eventBody) eventBody.scrollTop = eventBody.scrollHeight
     })
+  }
+
+  function inputState(evt) {
+    return evt.state || (evt.pressed ? 'Pressed' : 'Released')
+  }
+
+  function inputLabel(evt) {
+    const state = inputState(evt)
+    if (state === 'Released') return 'Release'
+    if (state === 'Aftertouch') return 'Aftertouch'
+    if (state === 'Hold') return 'Hold'
+    if (state === 'Activated') return 'Press'
+    return state
+  }
+
+  function inputIcon(evt) {
+    const state = inputState(evt)
+    if (state === 'Released') return '▲'
+    if (state === 'Aftertouch') return '◆'
+    if (state === 'Hold') return '●'
+    return '▼'
+  }
+
+  function percent(value) {
+    return Math.round((value / 127) * 100)
+  }
+
+  function inputDetail(evt) {
+    const state = inputState(evt)
+    if (state === 'Released' && evt.velocity != null) return `Release Velocity ${percent(evt.velocity)}%`
+    if ((state === 'Pressed' || state === 'Activated') && evt.velocity != null) return `Velocity ${percent(evt.velocity)}%`
+    if ((state === 'Aftertouch' || state === 'Hold') && evt.pressure != null) return `Pressure ${percent(evt.pressure)}%`
+    return ''
   }
 </script>
 
@@ -96,7 +133,7 @@
   {#if showFilterHelp}
     <div class="filter-help">
       <span><code>type:grid</code> or <code>type:fn</code> — event type</span>
-      <span><code>state:press</code> or <code>state:release</code> — state</span>
+      <span><code>state:press</code>, <code>state:release</code>, <code>state:hold</code>, <code>state:aftertouch</code> — state</span>
       <span>Plain text matches position, type, and state.</span>
     </div>
   {/if}
@@ -119,7 +156,14 @@
         <div class="empty-msg">{$inputEvents.length === 0 ? 'No input events yet.' : 'No events match the filter.'}</div>
       {:else}
         {#each filteredEvents as evt (evt.id)}
-          <div class="event-row" class:event-press={evt.pressed} class:event-release={!evt.pressed} class:no-time={!showTimestamps}>
+          <div
+            class="event-row"
+            class:event-press={evt.pressed}
+            class:event-release={!evt.pressed}
+            class:event-aftertouch={inputState(evt) === 'Aftertouch'}
+            class:event-hold={inputState(evt) === 'Hold'}
+            class:no-time={!showTimestamps}
+          >
             {#if showTimestamps}<span class="col-time event-time">{evt.timestamp}</span>{/if}
             <span class="col-type event-type">
               {#if evt.type === 'grid'}
@@ -131,9 +175,9 @@
               {/if}
             </span>
             <span class="col-event event-state">
-              {evt.pressed ? '▼ Press' : '▲ Release'}
-              {#if evt.type === 'grid' && evt.pressed && evt.velocity != null}
-                <span class="event-vel"> — Velocity {Math.round((evt.velocity / 127) * 100)}%</span>
+              {inputIcon(evt)} {inputLabel(evt)}
+              {#if inputDetail(evt)}
+                <span class="event-vel"> — {inputDetail(evt)}</span>
               {/if}
             </span>
           </div>
@@ -277,8 +321,10 @@
   .event-state { color: var(--muted); }
   .event-press .event-state { color: #6bdd8b; }
   .event-release .event-state { color: #9ea1ad; }
+  .event-aftertouch .event-state { color: #f7c266; }
+  .event-hold .event-state { color: #b9ebff; }
   .event-vel {
-    color: #6bdd8b;
+    color: inherit;
     font-size: 0.7rem;
     opacity: 0.9;
   }

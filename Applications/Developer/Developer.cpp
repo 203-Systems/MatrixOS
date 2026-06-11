@@ -540,17 +540,11 @@ bool GetInputByXY(Point point, InputId* id) {
   return MatrixOS::Input::GetInputAt(grid->clusterId, point, id);
 }
 
-bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
+bool EncodeKeyInfo(InputId id, const KeypadInfo& keypad, Transport transport, vector<uint8_t>* data) {
   const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
   bool isFunctionKey = id == InputId::FunctionKey();
   bool isGridKey = grid != nullptr && id.clusterId == grid->clusterId;
   if (!isFunctionKey && !isGridKey)
-  {
-    return false;
-  }
-
-  InputSnapshot snapshot;
-  if (!MatrixOS::Input::GetState(id, &snapshot) || snapshot.inputClass != InputClass::Keypad)
   {
     return false;
   }
@@ -573,11 +567,11 @@ bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
     data->push_back((uint8_t)id.memberId);
     data->push_back((uint8_t)(int8_t)point.x);
     data->push_back((uint8_t)(int8_t)point.y);
-    data->push_back((uint8_t)snapshot.keypad.state);
-    data->push_back((uint8_t)(snapshot.keypad.pressure.value >> 8));
-    data->push_back((uint8_t)snapshot.keypad.pressure.value);
-    data->push_back((uint8_t)(snapshot.keypad.velocity.value >> 8));
-    data->push_back((uint8_t)snapshot.keypad.velocity.value);
+    data->push_back((uint8_t)keypad.state);
+    data->push_back((uint8_t)(keypad.pressure.value >> 8));
+    data->push_back((uint8_t)keypad.pressure.value);
+    data->push_back((uint8_t)(keypad.velocity.value >> 8));
+    data->push_back((uint8_t)keypad.velocity.value);
     return true;
   }
 
@@ -585,10 +579,20 @@ bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
   data->push_back((uint8_t)((id.memberId >> 7) & 0x7F));
   data->push_back(EncodeInt7(point.x));
   data->push_back(EncodeInt7(point.y));
-  data->push_back((uint8_t)snapshot.keypad.state & 0x7F);
-  data->push_back(To7Bit(snapshot.keypad.pressure.value));
-  data->push_back(To7Bit(snapshot.keypad.velocity.value));
+  data->push_back((uint8_t)keypad.state & 0x7F);
+  data->push_back(To7Bit(keypad.pressure.value));
+  data->push_back(To7Bit(keypad.velocity.value));
   return true;
+}
+
+bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
+  InputSnapshot snapshot;
+  if (!MatrixOS::Input::GetState(id, &snapshot) || snapshot.inputClass != InputClass::Keypad)
+  {
+    return false;
+  }
+
+  return EncodeKeyInfo(id, snapshot.keypad, transport, data);
 }
 
 CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t length, Transport transport, bool* inputReportEnabled) {
@@ -712,7 +716,7 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
 
 void SendHIDInputEvent(const InputEvent& event) {
   vector<uint8_t> data;
-  if (EncodeKeyInfo(event.id, Transport::HID, &data))
+  if (EncodeKeyInfo(event.id, event.keypad, Transport::HID, &data))
   {
     SendHIDPacket(REPLY_INPUT_EVENT, data);
   }
@@ -720,7 +724,7 @@ void SendHIDInputEvent(const InputEvent& event) {
 
 void SendSysExInputEvent(uint16_t port, const InputEvent& event) {
   vector<uint8_t> data;
-  if (EncodeKeyInfo(event.id, Transport::SysEx, &data))
+  if (EncodeKeyInfo(event.id, event.keypad, Transport::SysEx, &data))
   {
     SendSysExPacket(port, REPLY_INPUT_EVENT, data);
   }

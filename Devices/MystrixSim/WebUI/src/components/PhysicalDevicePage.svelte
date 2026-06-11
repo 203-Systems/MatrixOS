@@ -50,7 +50,7 @@
   </section>
 
   <section class="tool-section">
-    <div class="tool-section-title">Current Hardware</div>
+    <div class="tool-section-title">Active Hardware</div>
     <div class="physical-current-layout">
       <div class="tool-grid physical-current-grid">
         <div class="tool-card physical-device-card">
