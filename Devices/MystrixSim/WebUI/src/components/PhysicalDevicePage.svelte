@@ -30,6 +30,17 @@
     if (event.type === 'touchbar') return `Touch ${event.x}:${event.y}`
     return event.type || 'Input'
   }
+
+  function inputStateLabel(event) {
+    return event.state || (event.pressed ? 'Pressed' : 'Released')
+  }
+
+  function inputDetail(event) {
+    const parts = []
+    if (event.velocity != null) parts.push(`vel ${event.velocity}`)
+    if (event.pressure != null) parts.push(`press ${event.pressure}`)
+    return parts.length > 0 ? parts.join(' / ') : '-'
+  }
 </script>
 
 <div class="tool-surface physical-page">
@@ -98,9 +109,14 @@
           <div class="physical-input-row">
             <span class="physical-input-time">{event.timestamp}</span>
             <span class="physical-input-name">{inputLabel(event)}</span>
-            <span class:physical-input-press={event.pressed} class="physical-input-state">
-              {event.pressed ? 'Press' : 'Release'}
+            <span
+              class:physical-input-press={event.pressed}
+              class:physical-input-aftertouch={inputStateLabel(event) === 'Aftertouch'}
+              class="physical-input-state"
+            >
+              {inputStateLabel(event)}
             </span>
+            <span class="physical-input-detail">{inputDetail(event)}</span>
           </div>
         {/each}
       {/if}
@@ -193,7 +209,7 @@
   .physical-input-row,
   .physical-input-empty {
     display: grid;
-    grid-template-columns: 96px minmax(0, 1fr) 72px;
+    grid-template-columns: 96px minmax(0, 1fr) 92px 128px;
     gap: 10px;
     align-items: center;
     padding: 8px 10px;
@@ -218,12 +234,20 @@
     white-space: nowrap;
   }
   .physical-input-state {
-    justify-self: end;
     color: #ffb2b2;
     font-weight: 700;
   }
   .physical-input-press {
     color: #6bdd8b;
+  }
+  .physical-input-aftertouch {
+    color: #f7c266;
+  }
+  .physical-input-detail {
+    justify-self: end;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   @media (max-width: 1100px) {
     .physical-current-layout {
@@ -252,9 +276,13 @@
     }
     .physical-input-row,
     .physical-input-empty {
-      grid-template-columns: 82px minmax(0, 1fr) 64px;
+      grid-template-columns: 82px minmax(0, 1fr) 84px;
       gap: 8px;
       font-size: 0.78rem;
+    }
+    .physical-input-detail {
+      grid-column: 2 / -1;
+      justify-self: start;
     }
   }
 </style>

@@ -2,10 +2,21 @@
   import { moduleReady, wasmMissing, runtimeStatus, buildIdentity } from '../stores/wasm.js'
   import { errorCount, warnCount } from '../stores/logs.js'
   import { IS_NODE_BACKED } from '../stores/rpc.js'
+  import { physicalDeviceState } from '../stores/physicalDevice.js'
   import { wsBridgeStatus } from '../stores/wsbridge.js'
 
   $: runtimeLive = $moduleReady && !$wasmMissing
   $: runtimeLabel = runtimeLive && $runtimeStatus === 'Live' ? 'Runtime Live' : $runtimeStatus
+  $: hardwareConnected = $physicalDeviceState.connected && $physicalDeviceState.developerReady
+  $: hardwareConnecting = $physicalDeviceState.connecting || ($physicalDeviceState.connected && !$physicalDeviceState.developerReady)
+  $: hardwareError = Boolean($physicalDeviceState.error)
+  $: hardwareLabel = hardwareConnected
+    ? 'Hardware Connected'
+    : hardwareConnecting
+      ? 'Hardware Connecting'
+      : hardwareError
+        ? 'Hardware Error'
+        : 'Hardware Disconnected'
   $: remoteUnavailable = IS_NODE_BACKED && $wsBridgeStatus === 'unavailable'
   $: remoteAvailable = IS_NODE_BACKED && $wsBridgeStatus === 'available'
   $: remoteConnected = IS_NODE_BACKED && $wsBridgeStatus === 'connected'
@@ -33,6 +44,16 @@
         class:dot-loading={!$moduleReady && !$wasmMissing}
       ></span>
       <span class="status-label">{runtimeLabel}</span>
+    </span>
+    <span class="top-bar-divider">|</span>
+    <span class="top-bar-hardware">
+      <span
+        class="hardware-dot"
+        class:dot-hardware-live={hardwareConnected}
+        class:dot-hardware-loading={hardwareConnecting}
+        class:dot-hardware-error={hardwareError}
+      ></span>
+      <span class="hardware-label">{hardwareLabel}</span>
     </span>
     {#if IS_NODE_BACKED}
       <span class="top-bar-divider">|</span>
@@ -140,6 +161,43 @@
     align-items: center;
     gap: 7px;
     min-width: 0;
+  }
+  .top-bar-hardware {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  .hardware-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--muted);
+    opacity: 0.65;
+    flex-shrink: 0;
+    transition: background 0.2s, opacity 0.2s, box-shadow 0.2s;
+  }
+  .dot-hardware-live {
+    background: #3dd68c;
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(61, 214, 140, 0.45);
+  }
+  .dot-hardware-loading {
+    background: #f7c266;
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(247, 194, 102, 0.4);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .dot-hardware-error {
+    background: #ff6b6b;
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(255, 107, 107, 0.5);
+  }
+  .hardware-label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    white-space: nowrap;
+    transition: color 0.2s;
   }
   .remote-dot {
     width: 8px;

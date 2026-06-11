@@ -55,7 +55,7 @@
   function sendHex() {
     const bytes = parseHex(hexInput)
     if (!bytes) return
-    if (bytes.length > 32) return
+    if (bytes.length > 63) return
     sendRawHid(bytes)
     hexInput = ''
   }
@@ -154,7 +154,7 @@
       />
       <button class="sender-btn" on:click={sendHex} title="Send raw HID bytes">Send</button>
     </div>
-    <span class="sender-hint">Max 32 bytes, space-separated hex</span>
+    <span class="sender-hint">Max 63 bytes, space-separated hex</span>
   </div>
 </div>
 
