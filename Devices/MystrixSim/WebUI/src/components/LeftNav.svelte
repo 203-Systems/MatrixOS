@@ -1,11 +1,12 @@
 <script>
-  import { Dashboard, Connect, Chip } from 'carbon-icons-svelte'
+  import { Dashboard, Connect, Chip, Usb } from 'carbon-icons-svelte'
 
   export let active = 'device'
   let expanded = false
 
   const sections = [
     { id: 'device',     label: 'Device',     icon: Dashboard },
+    { id: 'physical',   label: 'Hardware',   icon: Usb },
     { id: 'connection', label: 'Connection', icon: Connect },
     { id: 'firmware',   label: 'Firmware',   icon: Chip },
   ]

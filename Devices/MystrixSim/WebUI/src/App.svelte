@@ -10,14 +10,16 @@
   import DevicePanel from './components/DevicePanel.svelte'
   import ConnectionPage from './components/ConnectionPage.svelte'
   import FirmwarePage from './components/FirmwarePage.svelte'
+  import PhysicalDevicePage from './components/PhysicalDevicePage.svelte'
   import ToolTray from './components/ToolTray.svelte'
   import ToolPanelStack from './components/ToolPanelStack.svelte'
   import { detectBrowserCapabilities } from './stores/tooling.js'
+  import { disposePhysicalBridge, initializePhysicalBridge } from './stores/physicalDevice.js'
 
   let activeSection = 'device'
 
   const sectionPrefKey = 'matrixos-active-section'
-  const validSections = ['device', 'connection', 'firmware']
+  const validSections = ['device', 'physical', 'connection', 'firmware']
 
   onMount(() => {
     try {
@@ -37,6 +39,7 @@
     window.addEventListener('matrixos:navigate-section', handleSectionNavigation)
 
     detectBrowserCapabilities()
+    void initializePhysicalBridge()
 
     const restoreLogging = hookModuleLogging()
     const restoreWasm = initWasm()
@@ -51,6 +54,7 @@
       if (restoreWsBridge) restoreWsBridge()
       if (restoreWasm) restoreWasm()
       if (restoreLogging) restoreLogging()
+      disposePhysicalBridge()
     }
   })
 
@@ -72,6 +76,8 @@
     <main class="workspace">
       {#if activeSection === 'device'}
         <DevicePanel />
+      {:else if activeSection === 'physical'}
+        <PhysicalDevicePage />
       {:else if activeSection === 'connection'}
         <ConnectionPage />
       {:else if activeSection === 'firmware'}

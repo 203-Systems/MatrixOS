@@ -45,6 +45,13 @@ import {
   getRuntimeState,
   getRuntimeAppState,
 } from '../handles/session.js'
+import {
+  connectPhysicalDevice,
+  disconnectPhysicalDevice,
+  getPhysicalDeviceSnapshot,
+  initializePhysicalBridge,
+  listPhysicalHidDevices,
+} from './physicalDevice.js'
 
 // ---------------------------------------------------------------------------
 // Deployment mode
@@ -265,6 +272,26 @@ const handlers = {
   'runtime.getState': () => getRuntimeState(),
 
   'runtime.getAppState': () => getRuntimeAppState(),
+
+  // ---- Physical Hardware ----
+
+  'physical.state': () => getPhysicalDeviceSnapshot(),
+
+  'physical.list': async () => {
+    await initializePhysicalBridge()
+    return { devices: await listPhysicalHidDevices() }
+  },
+
+  'physical.connect': async (params) => {
+    await initializePhysicalBridge()
+    await connectPhysicalDevice({ useAuthorized: params?.useAuthorized !== false })
+    return getPhysicalDeviceSnapshot()
+  },
+
+  'physical.disconnect': async () => {
+    await disconnectPhysicalDevice()
+    return getPhysicalDeviceSnapshot()
+  },
 
   // ---- Input ----
 
@@ -584,7 +611,7 @@ async function dispatch(method, params = {}, notifyFn = null) {
   }
 
   try {
-    const result = handler(params, notifyFn)
+    const result = await handler(params, notifyFn)
     if (result?.__error) {
       return { jsonrpc: '2.0', id, error: result.__error }
     }
