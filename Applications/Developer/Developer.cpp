@@ -5,8 +5,8 @@
 namespace
 {
 constexpr uint8_t PROTOCOL_VERSION = 0x01;
-constexpr size_t HID_REPORT_SIZE = 32;
-constexpr size_t HID_HEADER_SIZE = 4;
+constexpr size_t HID_REPORT_SIZE = 63;
+constexpr uint8_t MAX_HID_REPORTS_PER_LOOP = 4;
 constexpr size_t MAX_SYSEX_SIZE = 256;
 
 constexpr uint8_t COMMAND_PING = 0x00;
@@ -14,8 +14,7 @@ constexpr uint8_t COMMAND_SET_INPUT_REPORT = 0x01;
 constexpr uint8_t COMMAND_EXIT_APP = 0x02;
 constexpr uint8_t COMMAND_LED_WRITE_INDEX = 0x10;
 constexpr uint8_t COMMAND_LED_WRITE_XY = 0x11;
-constexpr uint8_t COMMAND_LED_WRITE_INDEX_BULK = 0x18;
-constexpr uint8_t COMMAND_LED_WRITE_XY_BULK = 0x19;
+constexpr uint8_t COMMAND_LED_WRITE_INDEX_RANGE = 0x12;
 constexpr uint8_t COMMAND_LED_CANVAS_UPDATE = 0x20;
 constexpr uint8_t COMMAND_LED_CLEAR_SCREEN = 0x21;
 constexpr uint8_t COMMAND_KEY_READ_INDEX = 0x30;
@@ -26,7 +25,6 @@ constexpr uint8_t REPLY_ERROR = 0x81;
 constexpr uint8_t REPLY_INPUT_EVENT = 0x90;
 
 constexpr uint8_t STATUS_OK = 0x00;
-constexpr uint8_t ERROR_BAD_VERSION = 0x01;
 constexpr uint8_t ERROR_BAD_LENGTH = 0x02;
 constexpr uint8_t ERROR_BAD_PAYLOAD = 0x03;
 constexpr uint8_t ERROR_UNKNOWN_COMMAND = 0x7F;
@@ -36,9 +34,14 @@ constexpr uint8_t INPUT_REPORT_KEY_INFO = 0x01;
 constexpr uint8_t INPUT_EVENT_KEY_INFO = 0x01;
 
 constexpr uint8_t LED_FLAG_CANVAS = 0x01;
-constexpr uint8_t LED_FLAG_RGBW = 0x02;
-constexpr uint8_t LED_FLAGS_MASK = LED_FLAG_CANVAS | LED_FLAG_RGBW;
+constexpr uint8_t LED_FLAG_COLOR_MODE_SHIFT = 1;
+constexpr uint8_t LED_FLAG_COLOR_MODE_MASK = 0x0E;
+constexpr uint8_t LED_FLAGS_MASK = LED_FLAG_CANVAS | LED_FLAG_COLOR_MODE_MASK;
 constexpr uint8_t LED_CLEAR_FLAG_REFRESH = 0x01;
+
+constexpr uint8_t LED_COLOR_RGB24 = 0x00;
+constexpr uint8_t LED_COLOR_RGBW32 = 0x01;
+constexpr uint8_t LED_COLOR_RGB565 = 0x02;
 
 enum class Transport : uint8_t {
   HID,
@@ -56,6 +59,7 @@ struct CommandReply {
   CommandResult result = CommandResult::OK;
   vector<uint8_t> data;
   bool exitApp = false;
+  bool skipAck = false;
 };
 
 uint8_t To7Bit(uint16_t value) {
@@ -130,28 +134,28 @@ uint8_t ResultToErrorCode(CommandResult result) {
   }
 }
 
-void SendHIDPacket(uint8_t seq, uint8_t command, const vector<uint8_t>& payload) {
+void SendHIDPacket(uint8_t command, const vector<uint8_t>& payload) {
   vector<uint8_t> report;
   report.reserve(HID_REPORT_SIZE);
-  report.push_back(PROTOCOL_VERSION);
-  report.push_back(seq);
   report.push_back(command);
-  report.push_back((uint8_t)payload.size());
   report.insert(report.end(), payload.begin(), payload.end());
   MatrixOS::HID::RawHID::Send(report);
 }
 
-void SendHIDAck(uint8_t seq, uint8_t command, const vector<uint8_t>& data = {}) {
+void SendHIDReply(uint8_t command, uint8_t status, const vector<uint8_t>& data = {}) {
   vector<uint8_t> payload;
-  payload.reserve(data.size() + 2);
-  payload.push_back(command);
-  payload.push_back(STATUS_OK);
+  payload.reserve(data.size() + 1);
+  payload.push_back(status);
   payload.insert(payload.end(), data.begin(), data.end());
-  SendHIDPacket(seq, REPLY_ACK, payload);
+  SendHIDPacket(command | 0x80, payload);
 }
 
-void SendHIDError(uint8_t seq, uint8_t command, uint8_t errorCode) {
-  SendHIDPacket(seq, REPLY_ERROR, vector<uint8_t>{command, errorCode});
+void SendHIDAck(uint8_t command, const vector<uint8_t>& data = {}) {
+  SendHIDReply(command, STATUS_OK, data);
+}
+
+void SendHIDError(uint8_t command, uint8_t errorCode) {
+  SendHIDReply(command, errorCode);
 }
 
 bool SendSysExPacket(uint16_t port, uint8_t command, const vector<uint8_t>& payload) {
@@ -186,89 +190,235 @@ bool ValidateWriteFlags(uint8_t flags) {
   return (flags & ~LED_FLAGS_MASK) == 0;
 }
 
-size_t LedEntrySize(bool rgbw) {
-  return rgbw ? 6 : 5;
+uint8_t LedColorMode(uint8_t flags) {
+  return (flags & LED_FLAG_COLOR_MODE_MASK) >> LED_FLAG_COLOR_MODE_SHIFT;
 }
 
-Color DecodeColor(const uint8_t* payload, bool rgbw, Transport transport) {
-  if (transport == Transport::HID)
+size_t LedColorSize(uint8_t colorMode, Transport transport) {
+  switch (colorMode)
   {
-    return Color(payload[0], payload[1], payload[2], rgbw ? payload[3] : 0);
+  case LED_COLOR_RGB24:
+    return 3;
+  case LED_COLOR_RGBW32:
+    return 4;
+  case LED_COLOR_RGB565:
+    return transport == Transport::HID ? 2 : 0;
+  default:
+    return 0;
   }
-  return Color(To8BitFrom7Bit(payload[0]), To8BitFrom7Bit(payload[1]), To8BitFrom7Bit(payload[2]),
-               rgbw ? To8BitFrom7Bit(payload[3]) : 0);
 }
 
-bool WriteLedEntry(const uint8_t* entry, bool byIndex, bool rgbw, Transport transport) {
-  size_t colorOffset = byIndex ? 2 : 2;
-  Color color = DecodeColor(entry + colorOffset, rgbw, transport);
+Color DecodeRgb565(uint16_t value) {
+  uint8_t r5 = (value >> 11) & 0x1F;
+  uint8_t g6 = (value >> 5) & 0x3F;
+  uint8_t b5 = value & 0x1F;
+  return Color((r5 << 3) | (r5 >> 2), (g6 << 2) | (g6 >> 4), (b5 << 3) | (b5 >> 2));
+}
 
-  if (byIndex)
+Color DecodeColor(const uint8_t* payload, uint8_t colorMode, Transport transport) {
+  switch (colorMode)
   {
-    uint16_t index = DecodeIndex(entry, transport);
-    if (Device::LED::ID2Index(index) == UINT16_MAX)
+  case LED_COLOR_RGB24:
+    if (transport == Transport::HID)
     {
-      return false;
+      return Color(payload[0], payload[1], payload[2]);
     }
-    MatrixOS::LED::SetColor(index, color);
-    return true;
+    return Color(To8BitFrom7Bit(payload[0]), To8BitFrom7Bit(payload[1]), To8BitFrom7Bit(payload[2]));
+  case LED_COLOR_RGBW32:
+    if (transport == Transport::HID)
+    {
+      return Color(payload[0], payload[1], payload[2], payload[3]);
+    }
+    return Color(To8BitFrom7Bit(payload[0]), To8BitFrom7Bit(payload[1]), To8BitFrom7Bit(payload[2]), To8BitFrom7Bit(payload[3]));
+  case LED_COLOR_RGB565:
+    return DecodeRgb565(((uint16_t)payload[0] << 8) | payload[1]);
+  default:
+    return Color::Black;
   }
+}
 
-  Point point;
-  if (transport == Transport::HID)
-  {
-    point = Point((int8_t)entry[0], (int8_t)entry[1]);
-  }
-  else
-  {
-    point = Point(DecodeInt7(entry[0]), DecodeInt7(entry[1]));
-  }
-
-  if (Device::LED::XY2Index(point) == UINT16_MAX)
+bool IsLedInPartition(uint16_t index, uint8_t partition) {
+  if (partition >= Device::LED::partitions.size())
   {
     return false;
   }
 
-  MatrixOS::LED::SetColor(point, color);
-  return true;
+  const LEDPartition& ledPartition = Device::LED::partitions[partition];
+  return index >= ledPartition.start && index < ledPartition.start + ledPartition.size;
 }
 
-CommandResult HandleLedWrite(const uint8_t* payload, size_t length, bool byIndex, bool bulk, Transport transport) {
-  if (length < (bulk ? 2u : 1u))
+CommandResult PrepareLedWrite(const uint8_t* payload, size_t length, Transport transport, uint8_t* flags, uint8_t* partition, uint8_t* count,
+                              size_t* colorSize) {
+  if (length < 3)
   {
     return CommandResult::BadLength;
   }
 
-  uint8_t flags = payload[0];
-  if (!ValidateWriteFlags(flags))
+  *flags = payload[0];
+  *partition = payload[1];
+  *count = payload[2];
+  if (!ValidateWriteFlags(*flags))
+  {
+    return CommandResult::BadPayload;
+  }
+  if (*partition >= Device::LED::partitions.size())
   {
     return CommandResult::BadPayload;
   }
 
-  bool rgbw = (flags & LED_FLAG_RGBW) != 0;
-  bool canvasOnly = (flags & LED_FLAG_CANVAS) != 0;
-  size_t entrySize = LedEntrySize(rgbw);
-  size_t offset = bulk ? 2 : 1;
-  uint8_t count = bulk ? payload[1] : 1;
-  if (count == 0 || length != offset + entrySize * count)
+  *colorSize = LedColorSize(LedColorMode(*flags), transport);
+  if (*colorSize == 0)
+  {
+    return CommandResult::BadPayload;
+  }
+  if (*count == 0)
+  {
+    return CommandResult::BadPayload;
+  }
+  return CommandResult::OK;
+}
+
+CommandResult HandleLedWriteIndex(const uint8_t* payload, size_t length, Transport transport) {
+  uint8_t flags = 0;
+  uint8_t partition = 0;
+  uint8_t count = 0;
+  size_t colorSize = 0;
+  CommandResult result = PrepareLedWrite(payload, length, transport, &flags, &partition, &count, &colorSize);
+  if (result != CommandResult::OK)
+  {
+    return result;
+  }
+
+  size_t entrySize = 2 + colorSize;
+  size_t requiredLength = 3 + entrySize * count;
+  if (length < requiredLength || (transport == Transport::SysEx && length != requiredLength))
   {
     return CommandResult::BadLength;
   }
-
   if (transport == Transport::SysEx && !Is7BitData(payload, length))
   {
     return CommandResult::BadPayload;
   }
 
-  for (uint8_t i = 0; i < count; i++)
+  uint8_t colorMode = LedColorMode(flags);
+  for (size_t i = 0; i < count; i++)
   {
-    if (!WriteLedEntry(payload + offset + entrySize * i, byIndex, rgbw, transport))
+    const uint8_t* entry = payload + 3 + entrySize * i;
+    uint16_t index = DecodeIndex(entry, transport);
+    if (Device::LED::ID2Index(index) == UINT16_MAX || !IsLedInPartition(index, partition))
     {
       return CommandResult::BadPayload;
     }
+    MatrixOS::LED::SetColor(index, DecodeColor(entry + 2, colorMode, transport));
   }
 
-  if (!canvasOnly)
+  if ((flags & LED_FLAG_CANVAS) == 0)
+  {
+    MatrixOS::LED::Update();
+  }
+  return CommandResult::OK;
+}
+
+CommandResult HandleLedWriteXY(const uint8_t* payload, size_t length, Transport transport) {
+  uint8_t flags = 0;
+  uint8_t partition = 0;
+  uint8_t count = 0;
+  size_t colorSize = 0;
+  CommandResult result = PrepareLedWrite(payload, length, transport, &flags, &partition, &count, &colorSize);
+  if (result != CommandResult::OK)
+  {
+    return result;
+  }
+
+  size_t entrySize = 2 + colorSize;
+  size_t requiredLength = 3 + entrySize * count;
+  if (length < requiredLength || (transport == Transport::SysEx && length != requiredLength))
+  {
+    return CommandResult::BadLength;
+  }
+  if (transport == Transport::SysEx && !Is7BitData(payload, length))
+  {
+    return CommandResult::BadPayload;
+  }
+
+  uint8_t colorMode = LedColorMode(flags);
+  for (size_t i = 0; i < count; i++)
+  {
+    const uint8_t* entry = payload + 3 + entrySize * i;
+    Point point = transport == Transport::HID ? Point((int8_t)entry[0], (int8_t)entry[1]) : Point(DecodeInt7(entry[0]), DecodeInt7(entry[1]));
+    uint16_t index = Device::LED::XY2Index(point);
+    if (index == UINT16_MAX || !IsLedInPartition(index, partition))
+    {
+      return CommandResult::BadPayload;
+    }
+    MatrixOS::LED::SetColor(point, DecodeColor(entry + 2, colorMode, transport));
+  }
+
+  if ((flags & LED_FLAG_CANVAS) == 0)
+  {
+    MatrixOS::LED::Update();
+  }
+  return CommandResult::OK;
+}
+
+CommandResult HandleLedWriteIndexRange(const uint8_t* payload, size_t length, Transport transport) {
+  uint8_t flags = 0;
+  uint8_t partition = 0;
+  uint8_t count = 0;
+  if (length < 5)
+  {
+    return CommandResult::BadLength;
+  }
+
+  flags = payload[0];
+  partition = payload[1];
+  if (!ValidateWriteFlags(flags) || partition >= Device::LED::partitions.size())
+  {
+    return CommandResult::BadPayload;
+  }
+
+  uint16_t startIndex = DecodeIndex(payload + 2, transport);
+  count = payload[4];
+  if (count == 0)
+  {
+    return CommandResult::BadPayload;
+  }
+
+  size_t colorSize = 0;
+  colorSize = LedColorSize(LedColorMode(flags), transport);
+  if (colorSize == 0)
+  {
+    return CommandResult::BadPayload;
+  }
+
+  size_t requiredLength = 5 + colorSize * count;
+  if (length < requiredLength || (transport == Transport::SysEx && length != requiredLength))
+  {
+    return CommandResult::BadLength;
+  }
+  if (transport == Transport::SysEx && !Is7BitData(payload, length))
+  {
+    return CommandResult::BadPayload;
+  }
+
+  uint16_t ledCount = MatrixOS::LED::GetLEDCount();
+  if (startIndex >= ledCount || (uint32_t)startIndex + count > ledCount)
+  {
+    return CommandResult::BadPayload;
+  }
+  if (!IsLedInPartition(startIndex, partition) || !IsLedInPartition((uint16_t)(startIndex + count - 1), partition))
+  {
+    return CommandResult::BadPayload;
+  }
+
+  uint8_t colorMode = LedColorMode(flags);
+  const uint8_t* colors = payload + 5;
+  for (size_t i = 0; i < count; i++)
+  {
+    MatrixOS::LED::SetColor((uint16_t)(startIndex + i), DecodeColor(colors + colorSize * i, colorMode, transport));
+  }
+
+  if ((flags & LED_FLAG_CANVAS) == 0)
   {
     MatrixOS::LED::Update();
   }
@@ -293,6 +443,71 @@ CommandResult HandleClearScreen(const uint8_t* payload, size_t length) {
     MatrixOS::LED::Update();
   }
   return CommandResult::OK;
+}
+
+bool GetHIDPayloadLength(uint8_t command, const uint8_t* payload, size_t size, size_t* length) {
+  switch (command)
+  {
+  case COMMAND_PING:
+  case COMMAND_EXIT_APP:
+  case COMMAND_LED_CANVAS_UPDATE:
+    *length = 0;
+    return true;
+  case COMMAND_SET_INPUT_REPORT:
+  case COMMAND_KEY_READ_INDEX:
+  case COMMAND_KEY_READ_XY:
+    if (size < 2)
+    {
+      return false;
+    }
+    *length = 2;
+    return true;
+  case COMMAND_LED_CLEAR_SCREEN:
+    *length = size == 0 ? 0 : 1;
+    return true;
+  case COMMAND_LED_WRITE_INDEX:
+  case COMMAND_LED_WRITE_XY: {
+    if (size < 3)
+    {
+      return false;
+    }
+    size_t colorSize = LedColorSize(LedColorMode(payload[0]), Transport::HID);
+    if (colorSize == 0 || payload[2] == 0)
+    {
+      *length = 3;
+      return true;
+    }
+    size_t requiredLength = 3 + (2 + colorSize) * payload[2];
+    if (size < requiredLength)
+    {
+      return false;
+    }
+    *length = requiredLength;
+    return true;
+  }
+  case COMMAND_LED_WRITE_INDEX_RANGE: {
+    if (size < 5)
+    {
+      return false;
+    }
+    size_t colorSize = LedColorSize(LedColorMode(payload[0]), Transport::HID);
+    if (colorSize == 0 || payload[4] == 0)
+    {
+      *length = 5;
+      return true;
+    }
+    size_t requiredLength = 5 + colorSize * payload[4];
+    if (size < requiredLength)
+    {
+      return false;
+    }
+    *length = requiredLength;
+    return true;
+  }
+  default:
+    *length = size;
+    return true;
+  }
 }
 
 bool GetInputByIndex(uint16_t index, InputId* id) {
@@ -421,16 +636,16 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
     return reply;
   }
   case COMMAND_LED_WRITE_INDEX:
-    reply.result = HandleLedWrite(payload, length, true, false, transport);
+    reply.result = HandleLedWriteIndex(payload, length, transport);
+    reply.skipAck = reply.result == CommandResult::OK;
     return reply;
   case COMMAND_LED_WRITE_XY:
-    reply.result = HandleLedWrite(payload, length, false, false, transport);
+    reply.result = HandleLedWriteXY(payload, length, transport);
+    reply.skipAck = reply.result == CommandResult::OK;
     return reply;
-  case COMMAND_LED_WRITE_INDEX_BULK:
-    reply.result = HandleLedWrite(payload, length, true, true, transport);
-    return reply;
-  case COMMAND_LED_WRITE_XY_BULK:
-    reply.result = HandleLedWrite(payload, length, false, true, transport);
+  case COMMAND_LED_WRITE_INDEX_RANGE:
+    reply.result = HandleLedWriteIndexRange(payload, length, transport);
+    reply.skipAck = reply.result == CommandResult::OK;
     return reply;
   case COMMAND_LED_CANVAS_UPDATE: {
     if (length != 0)
@@ -439,10 +654,12 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
       return reply;
     }
     MatrixOS::LED::Update();
+    reply.skipAck = true;
     return reply;
   }
   case COMMAND_LED_CLEAR_SCREEN:
     reply.result = HandleClearScreen(payload, length);
+    reply.skipAck = reply.result == CommandResult::OK;
     return reply;
   case COMMAND_KEY_READ_INDEX: {
     if (length != 2)
@@ -497,7 +714,7 @@ void SendHIDInputEvent(const InputEvent& event) {
   vector<uint8_t> data;
   if (EncodeKeyInfo(event.id, Transport::HID, &data))
   {
-    SendHIDPacket(0, REPLY_INPUT_EVENT, data);
+    SendHIDPacket(REPLY_INPUT_EVENT, data);
   }
 }
 
@@ -546,7 +763,6 @@ void SendMIDIInputEvent(const InputEvent& event) {
   case KeypadState::Pressed:
     MatrixOS::MIDI::Send(MidiPacket::NoteOn(0, note, velocity));
     break;
-  case KeypadState::Hold:
   case KeypadState::Aftertouch:
     MatrixOS::MIDI::Send(MidiPacket::AfterTouch(0, note, pressure));
     break;
@@ -622,9 +838,11 @@ void Developer::DrainInput() {
 void Developer::DrainHID() {
   uint8_t* report = nullptr;
   size_t size = 0;
-  while ((size = MatrixOS::HID::RawHID::Get(&report, 0)) > 0)
+  uint8_t reportCount = 0;
+  while (reportCount < MAX_HID_REPORTS_PER_LOOP && (size = MatrixOS::HID::RawHID::Get(&report, 0)) > 0)
   {
     HandleHIDReport(report, size);
+    reportCount++;
   }
 }
 
@@ -638,6 +856,10 @@ void Developer::DrainMIDI() {
 
 void Developer::HandleInputEvent(const InputEvent& event) {
   if (event.inputClass != InputClass::Keypad)
+  {
+    return;
+  }
+  if (event.keypad.state == KeypadState::Hold)
   {
     return;
   }
@@ -659,32 +881,27 @@ void Developer::HandleInputEvent(const InputEvent& event) {
 }
 
 void Developer::HandleHIDReport(const uint8_t* report, size_t size) {
-  if (report == nullptr || size < HID_HEADER_SIZE)
+  if (report == nullptr || size == 0)
   {
-    SendHIDError(0, 0, ERROR_BAD_LENGTH);
+    SendHIDError(0, ERROR_BAD_LENGTH);
     return;
   }
 
-  uint8_t version = report[0];
-  uint8_t seq = report[1];
-  uint8_t command = report[2];
-  uint8_t length = report[3];
-  if (version != PROTOCOL_VERSION)
+  uint8_t command = report[0];
+  size_t payloadLength = 0;
+  if (!GetHIDPayloadLength(command, report + 1, size - 1, &payloadLength))
   {
-    SendHIDError(seq, command, ERROR_BAD_VERSION);
+    SendHIDError(command, ERROR_BAD_LENGTH);
     return;
   }
 
-  if (length > size - HID_HEADER_SIZE || length > HID_REPORT_SIZE - HID_HEADER_SIZE)
-  {
-    SendHIDError(seq, command, ERROR_BAD_LENGTH);
-    return;
-  }
-
-  CommandReply reply = ExecuteCommand(command, report + HID_HEADER_SIZE, length, Transport::HID, &hidKeyReportEnabled);
+  CommandReply reply = ExecuteCommand(command, report + 1, payloadLength, Transport::HID, &hidKeyReportEnabled);
   if (reply.result == CommandResult::OK)
   {
-    SendHIDAck(seq, command, reply.data);
+    if (!reply.skipAck)
+    {
+      SendHIDAck(command, reply.data);
+    }
     if (reply.exitApp)
     {
       Exit();
@@ -692,7 +909,7 @@ void Developer::HandleHIDReport(const uint8_t* report, size_t size) {
     return;
   }
 
-  SendHIDError(seq, command, ResultToErrorCode(reply.result));
+  SendHIDError(command, ResultToErrorCode(reply.result));
 }
 
 void Developer::HandleMIDIPacket(const MidiPacket& packet) {
@@ -769,7 +986,10 @@ void Developer::HandleSysExMessage(uint16_t port, const vector<uint8_t>& message
     {
       sysExReportPort = sysExKeyReportEnabled ? port : MIDI_PORT_INVALID;
     }
-    SendSysExAck(port, command, reply.data);
+    if (!reply.skipAck)
+    {
+      SendSysExAck(port, command, reply.data);
+    }
     if (reply.exitApp)
     {
       Exit();

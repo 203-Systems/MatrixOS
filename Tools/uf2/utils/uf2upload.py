@@ -19,7 +19,7 @@ MYSTRIX_PID_MASK = 0xFFC0
 MYSTRIX_PID_BASES = {0x1040, 0x1080}
 SYSTEM_REPORT_ID = 0xCB
 MATRIXOS_COMMAND_BOOTLOADER = 0x40
-HID_REPORT_SIZE = 32
+HID_REPORT_SIZES = (63, 32)
 HID_WRITE_DELAY = 0.05
 BOOTLOADER_WAIT_TIMEOUT = 10.0
 BOOTLOADER_WAIT_INTERVAL = 0.25
@@ -100,8 +100,8 @@ def get_matrixos_hid_devices():
     devices.sort(key = hid_path_text, reverse = True)
     return system_devices or devices
 
-def make_bootloader_report():
-    return bytes([SYSTEM_REPORT_ID, MATRIXOS_COMMAND_BOOTLOADER] + [0] * (HID_REPORT_SIZE - 1))
+def make_bootloader_report(report_size):
+    return bytes([SYSTEM_REPORT_ID, MATRIXOS_COMMAND_BOOTLOADER] + [0] * (report_size - 1))
 
 def send_bootloader_command(device):
     try:
@@ -109,8 +109,19 @@ def send_bootloader_command(device):
 
         hid_device = hid.device()
         hid_device.open_path(device["path"])
-        sent = hid_device.write(make_bootloader_report()) > 0
-        time.sleep(HID_WRITE_DELAY)
+        sent = False
+        last_error = None
+        for report_size in HID_REPORT_SIZES:
+            try:
+                sent = hid_device.write(make_bootloader_report(report_size)) > 0
+                if sent:
+                    break
+            except Exception as error:
+                last_error = error
+        if not sent and last_error is not None:
+            raise last_error
+        if sent:
+            time.sleep(HID_WRITE_DELAY)
         hid_device.close()
         return sent
     except Exception as error:

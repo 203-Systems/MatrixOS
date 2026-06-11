@@ -57,19 +57,19 @@
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
       /* Report ID for APP command */\
       0x85, 255, \
-      /* Input Report (64 bytes) */ \
+      /* Input Report (63 bytes + report ID) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 32                                      ),\
+      HID_REPORT_COUNT( 63                                      ),\
       HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
-      /* Output Report (64 bytes) */ \
+      /* Output Report (63 bytes + report ID) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 32                                      ),\
+      HID_REPORT_COUNT( 63                                      ),\
       HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
     HID_COLLECTION_END,\
     HID_USAGE_PAGE_N ( HID_USAGE_PAGE_VENDOR, 2   ),\
@@ -77,19 +77,19 @@
     HID_COLLECTION   ( HID_COLLECTION_APPLICATION ),\
       /* Report ID for System command */\
       0x85, 0xCB, \
-      /* Input Report (64 bytes) */ \
+      /* Input Report (63 bytes + report ID) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 32                                      ),\
+      HID_REPORT_COUNT( 63                                      ),\
       HID_INPUT       ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
-      /* Output Report (64 bytes) */ \
+      /* Output Report (63 bytes + report ID) */ \
       HID_USAGE   ( 0x10                                    ),\
       HID_LOGICAL_MIN ( 0                                       ),\
       HID_LOGICAL_MAX ( 255                                     ),\
       HID_REPORT_SIZE ( 8                                       ),\
-      HID_REPORT_COUNT( 32                                      ),\
+      HID_REPORT_COUNT( 63                                      ),\
       HID_OUTPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE  ),\
     HID_COLLECTION_END,\
 
