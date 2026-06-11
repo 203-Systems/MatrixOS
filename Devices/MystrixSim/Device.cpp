@@ -207,6 +207,26 @@ std::map<uint32_t, vector<char>> nvsStore;
 std::mutex nvsMutex;
 
 // Emit input event to OS, respecting suppression
+KeyState* GetKeyState(InputId id) {
+  if (id.clusterId == 0 && id.memberId == 0)
+  {
+    return &fnState;
+  }
+  if (id.clusterId == 1 && id.memberId < X_SIZE * Y_SIZE)
+  {
+    return &gridState[id.memberId];
+  }
+  if (id.clusterId == 2 && id.memberId < 8)
+  {
+    return &touchbarLeftState[id.memberId];
+  }
+  if (id.clusterId == 3 && id.memberId < 8)
+  {
+    return &touchbarRightState[id.memberId];
+  }
+  return nullptr;
+}
+
 bool EmitKeyEvent(InputId id, KeyState* ks) {
   if (ks->suppressed)
   {
@@ -222,6 +242,46 @@ bool EmitKeyEvent(InputId id, KeyState* ks) {
   event.inputClass = InputClass::Keypad;
   event.keypad = ks->info;
   return MatrixOS::Input::NewEvent(event);
+}
+
+bool ApplyKeyInfoEvent(InputId id, KeypadState state, uint16_t pressure, uint16_t velocity) {
+  KeyState* ks = GetKeyState(id);
+  if (ks == nullptr)
+  {
+    return false;
+  }
+
+  switch (state)
+  {
+  case KeypadState::Activated:
+  case KeypadState::Pressed:
+    ks->info.state = state;
+    ks->info.pressure = pressure;
+    ks->info.velocity = velocity;
+    ks->info.hold = false;
+    ks->info.lastEventTime = (uint32_t)MatrixOS::SYS::Millis();
+    return EmitKeyEvent(id, ks);
+  case KeypadState::Hold:
+    ks->info.state = state;
+    ks->info.pressure = pressure;
+    ks->info.velocity = velocity;
+    ks->info.hold = true;
+    return EmitKeyEvent(id, ks);
+  case KeypadState::Aftertouch:
+    ks->info.state = state;
+    ks->info.pressure = pressure;
+    ks->info.velocity = velocity;
+    return EmitKeyEvent(id, ks);
+  case KeypadState::Released:
+    ks->info.state = state;
+    ks->info.pressure = pressure;
+    ks->info.velocity = velocity;
+    ks->info.hold = false;
+    ks->info.lastEventTime = (uint32_t)MatrixOS::SYS::Millis();
+    return EmitKeyEvent(id, ks);
+  default:
+    return false;
+  }
 }
 
 bool TickHoldEvent(InputId id, KeyState* ks, uint32_t now) {
@@ -361,23 +421,7 @@ void SuppressActiveInputs() {
 }
 
 bool GetState(InputId id, InputSnapshot* snapshot) {
-  KeyState* ks = nullptr;
-  if (id.clusterId == 0 && id.memberId == 0)
-  {
-    ks = &fnState;
-  }
-  else if (id.clusterId == 1 && id.memberId < X_SIZE * Y_SIZE)
-  {
-    ks = &gridState[id.memberId];
-  }
-  else if (id.clusterId == 2 && id.memberId < 8)
-  {
-    ks = &touchbarLeftState[id.memberId];
-  }
-  else if (id.clusterId == 3 && id.memberId < 8)
-  {
-    ks = &touchbarRightState[id.memberId];
-  }
+  KeyState* ks = GetKeyState(id);
   if (!ks)
     return false;
 
@@ -391,7 +435,13 @@ bool GetState(InputId id, InputSnapshot* snapshot) {
 bool GetKeypadCapabilities(uint8_t clusterId, KeypadCapabilities* caps) {
   if (clusterId > 3)
     return false;
-  // All SIL clusters are binary keypads: no pressure, aftertouch, velocity, or position
+
+  if (clusterId == 1)
+  {
+    *caps = {true, true, true, false};
+    return true;
+  }
+
   *caps = {false, false, false, false};
   return true;
 }
@@ -622,55 +672,15 @@ void MatrixOS_Wasm_KeyEvent(uint16_t x, uint16_t y, bool pressed) {
   if (x >= X_SIZE || y >= Y_SIZE)
     return;
   uint16_t keyIndex = y * X_SIZE + x;
-
-  KeyState* ks = &gridState[keyIndex];
-  if (pressed && !ks->info.Active())
-  {
-    ks->info.pressure = 65535;
-    ks->info.velocity = 65535;
-    ks->info.state = KeypadState::Pressed;
-    ks->info.hold = false;
-    ks->info.lastEventTime = Device::Millis();
-  }
-  else if (!pressed && ks->info.Active())
-  {
-    ks->info.pressure = 0;
-    ks->info.velocity = 0;
-    ks->info.state = KeypadState::Released;
-    ks->info.lastEventTime = Device::Millis();
-  }
-  else
-  {
-    return;
-  }
-
-  InputId id = {1, keyIndex};
-  EmitKeyEvent(id, ks);
+  (void)ApplyKeyInfoEvent({1, keyIndex}, pressed ? KeypadState::Pressed : KeypadState::Released, pressed ? 65535 : 0, pressed ? 65535 : 0);
 }
 
 void MatrixOS_Wasm_FnEvent(bool pressed) {
-  if (pressed && !fnState.info.Active())
-  {
-    fnState.info.pressure = 65535;
-    fnState.info.velocity = 65535;
-    fnState.info.state = KeypadState::Pressed;
-    fnState.info.hold = false;
-    fnState.info.lastEventTime = Device::Millis();
-  }
-  else if (!pressed && fnState.info.Active())
-  {
-    fnState.info.pressure = 0;
-    fnState.info.velocity = 0;
-    fnState.info.state = KeypadState::Released;
-    fnState.info.lastEventTime = Device::Millis();
-  }
-  else
-  {
-    return;
-  }
+  (void)ApplyKeyInfoEvent(InputId::FunctionKey(), pressed ? KeypadState::Pressed : KeypadState::Released, pressed ? 65535 : 0, pressed ? 65535 : 0);
+}
 
-  InputId id = InputId::FunctionKey();
-  EmitKeyEvent(id, &fnState);
+uint8_t MatrixOS_Wasm_KeyInfoEvent(uint8_t clusterId, uint16_t memberId, uint8_t state, uint16_t pressure, uint16_t velocity) {
+  return ApplyKeyInfoEvent({clusterId, memberId}, (KeypadState)state, pressure, velocity) ? 1 : 0;
 }
 
 void MatrixOS_Wasm_KeypadTick(void) {
@@ -864,7 +874,7 @@ void MatrixOS_Wasm_MidiInject(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2
 // ---- RawHID injection ----
 
 void MatrixOS_Wasm_RawHidInject(uint8_t* data, uint32_t length) {
-  if (length > 32) length = 32;
+  if (length > 63) length = 63;
   (void)MystrixSim::HostIO::NewRawHidReport(data, length);
 }
 

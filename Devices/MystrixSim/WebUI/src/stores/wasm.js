@@ -721,6 +721,12 @@ export function sendFnKey(pressed) {
   mod._MatrixOS_Wasm_FnEvent(pressed ? 1 : 0)
 }
 
+export function sendKeyInfoEvent(clusterId, memberId, state, pressure, velocity) {
+  const mod = get(moduleRef)
+  if (!mod?._MatrixOS_Wasm_KeyInfoEvent) return false
+  return mod._MatrixOS_Wasm_KeyInfoEvent(clusterId, memberId, state, pressure, velocity) !== 0
+}
+
 // side: 0 = left touchbar, 1 = right touchbar; index: 0..7
 export function sendTouchBarKey(side, index, pressed) {
   const mod = get(moduleRef)

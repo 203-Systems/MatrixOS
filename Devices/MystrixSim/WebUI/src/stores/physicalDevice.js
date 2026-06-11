@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store'
-import { moduleReady, moduleRef, sendFnKey, sendGridKey, tickKeypad } from './wasm.js'
+import { moduleReady, moduleRef, sendFnKey, sendGridKey, sendKeyInfoEvent, tickKeypad } from './wasm.js'
 import { logInputEvent } from './input.js'
 
 const VENDOR_ID_203_SYSTEMS = 0x0203
@@ -8,8 +8,8 @@ const MATRIXOS_USAGE = 0x01
 
 const SYSTEM_REPORT_ID = 0xCB
 const APP_REPORT_ID = 0xFF
-const APP_REPORT_SIZE = 32
-const APP_HEADER_SIZE = 4
+const APP_REPORT_SIZE = 63
+const APP_COMMAND_SIZE = 1
 const PROTOCOL_VERSION = 0x01
 
 const COMMAND_GET_APP_ID = 0x10
@@ -18,11 +18,9 @@ const COMMAND_OPEN_DEVELOPER_APP = 0x44
 const COMMAND_PING = 0x00
 const COMMAND_SET_INPUT_REPORT = 0x01
 const COMMAND_EXIT_APP = 0x02
-const COMMAND_LED_WRITE_INDEX_BULK = 0x18
+const COMMAND_LED_WRITE_INDEX_RANGE = 0x12
 const COMMAND_LED_CANVAS_UPDATE = 0x20
 
-const REPLY_ACK = 0x80
-const REPLY_ERROR = 0x81
 const REPLY_INPUT_EVENT = 0x90
 
 const INPUT_REPORT_KEY_INFO = 0x01
@@ -32,17 +30,28 @@ const INPUT_CLUSTER_PRIMARY_GRID = 0x01
 const INPUT_MEMBER_FUNCTION = 0x0000
 
 const LED_FLAG_CANVAS = 0x01
-const LED_FLAG_RGBW = 0x02
-const LED_BULK_RGBW_ENTRY_SIZE = 6
-const LED_BULK_RGBW_MAX_COUNT = Math.floor((APP_REPORT_SIZE - APP_HEADER_SIZE - 2) / LED_BULK_RGBW_ENTRY_SIZE)
+const LED_FLAG_COLOR_MODE_SHIFT = 1
+const LED_COLOR_RGB565 = 0x02
+const LED_PARTITION_GRID = 0x00
+const LED_PARTITION_UNDERGLOW = 0x01
+const LED_PARTITION_UNDERGLOW_START = 64
+const LED_RANGE_RGB565_HEADER_SIZE = 5
+const LED_RANGE_RGB565_MAX_COUNT = Math.floor((APP_REPORT_SIZE - APP_COMMAND_SIZE - LED_RANGE_RGB565_HEADER_SIZE) / 2)
 
 const KEYPAD_STATE_ACTIVATED = 1
 const KEYPAD_STATE_PRESSED = 2
 const KEYPAD_STATE_HOLD = 3
 const KEYPAD_STATE_AFTERTOUCH = 4
 const KEYPAD_STATE_RELEASED = 5
+const KEYPAD_STATE_NAMES = {
+  [KEYPAD_STATE_ACTIVATED]: 'Activated',
+  [KEYPAD_STATE_PRESSED]: 'Pressed',
+  [KEYPAD_STATE_HOLD]: 'Hold',
+  [KEYPAD_STATE_AFTERTOUCH]: 'Aftertouch',
+  [KEYPAD_STATE_RELEASED]: 'Released',
+}
 
-const MIRROR_INTERVAL_MS = 83
+const MIRROR_INTERVAL_MS = 17
 const KEYPAD_TICK_INTERVAL_MS = 16
 const DEVELOPER_APP_START_DELAY_MS = 250
 
@@ -72,7 +81,6 @@ const initialState = {
 export const physicalDeviceState = writable({ ...initialState })
 
 let activeDevice = null
-let seq = 1
 let pendingReplies = new Map()
 let pendingSystemReplies = new Map()
 let mirrorTimer = 0
@@ -80,9 +88,11 @@ let keypadTickTimer = 0
 let mirrorBusy = false
 let lastMirrorFrame = null
 let lastMirrorFrameAt = 0
+let pendingFullSyncIndexes = null
 let activePhysicalGridKeys = new Set()
 let activePhysicalFnKey = false
 let disconnectHookInstalled = false
+let userDisconnected = false
 
 function setState(patch) {
   physicalDeviceState.update((state) => ({ ...state, ...patch }))
@@ -92,14 +102,12 @@ function getState() {
   return get(physicalDeviceState)
 }
 
-function nextSeq() {
-  const value = seq
-  seq = seq >= 255 ? 1 : seq + 1
-  return value
-}
-
 function signedByte(value) {
   return value > 127 ? value - 256 : value
+}
+
+function to7Bit(value) {
+  return Math.max(0, Math.min(127, value >> 9))
 }
 
 function delay(ms) {
@@ -131,18 +139,15 @@ function sortPhysicalDevices(devices) {
   })
 }
 
-function makeAppReport(command, payload = [], reportSeq = nextSeq()) {
-  if (payload.length > APP_REPORT_SIZE - APP_HEADER_SIZE) {
+function makeAppReport(command, payload = []) {
+  if (payload.length > APP_REPORT_SIZE - APP_COMMAND_SIZE) {
     throw new Error(`DeveloperApp payload is too long: ${payload.length}`)
   }
 
   const report = new Uint8Array(APP_REPORT_SIZE)
-  report[0] = PROTOCOL_VERSION
-  report[1] = reportSeq
-  report[2] = command
-  report[3] = payload.length
-  report.set(payload, APP_HEADER_SIZE)
-  return { report, reportSeq }
+  report[0] = command
+  report.set(payload, APP_COMMAND_SIZE)
+  return report
 }
 
 function reportError(error) {
@@ -153,7 +158,7 @@ function reportError(error) {
 function releasePhysicalKeys() {
   if (activePhysicalFnKey) {
     sendFnKey(false)
-    logInputEvent('fn', 0, 0, false)
+    logInputEvent('fn', 0, 0, 'Released', 0, 0)
     activePhysicalFnKey = false
   }
 
@@ -163,7 +168,7 @@ function releasePhysicalKeys() {
     const y = Number(yText)
     if (Number.isInteger(x) && Number.isInteger(y)) {
       sendGridKey(x, y, false)
-      logInputEvent('grid', x, y, false)
+      logInputEvent('grid', x, y, 'Released', 0, 0)
     }
   })
   activePhysicalGridKeys.clear()
@@ -184,30 +189,32 @@ function clearPendingReplies(error = new Error('Device disconnected')) {
   pendingSystemReplies.clear()
 }
 
-function resolvePendingReply(reportSeq, value) {
-  const pending = pendingReplies.get(reportSeq)
+function resolvePendingReply(replyCommand, value) {
+  const pending = pendingReplies.get(replyCommand)
   if (!pending) return
 
   window.clearTimeout(pending.timer)
-  pendingReplies.delete(reportSeq)
+  pendingReplies.delete(replyCommand)
   pending.resolve(value)
 }
 
-function rejectPendingReply(reportSeq, error) {
-  const pending = pendingReplies.get(reportSeq)
+function rejectPendingReply(replyCommand, error) {
+  const pending = pendingReplies.get(replyCommand)
   if (!pending) return
 
   window.clearTimeout(pending.timer)
-  pendingReplies.delete(reportSeq)
+  pendingReplies.delete(replyCommand)
   pending.reject(error)
 }
 
 async function sendSystemReport(payload) {
   if (!activeDevice?.opened) throw new Error('No physical device is open')
-  const report = payload instanceof Uint8Array ? payload : new Uint8Array(payload)
-  if (report.length > APP_REPORT_SIZE) {
-    throw new Error(`System payload is too long: ${report.length}`)
+  const source = payload instanceof Uint8Array ? payload : new Uint8Array(payload)
+  if (source.length > APP_REPORT_SIZE) {
+    throw new Error(`System payload is too long: ${source.length}`)
   }
+  const report = new Uint8Array(APP_REPORT_SIZE)
+  report.set(source)
   await activeDevice.sendReport(SYSTEM_REPORT_ID, report)
 }
 
@@ -231,16 +238,17 @@ async function sendDeveloperCommand(command, payload = [], options = {}) {
   if (!activeDevice?.opened) throw new Error('No physical device is open')
 
   const { waitForAck = true, timeoutMs = 800 } = options
-  const { report, reportSeq } = makeAppReport(command, payload)
+  const report = makeAppReport(command, payload)
 
   let replyPromise = null
   if (waitForAck) {
+    const replyCommand = command | 0x80
     replyPromise = new Promise((resolve, reject) => {
       const timer = window.setTimeout(() => {
-        pendingReplies.delete(reportSeq)
+        pendingReplies.delete(replyCommand)
         reject(new Error(`DeveloperApp command 0x${command.toString(16)} timed out`))
       }, timeoutMs)
-      pendingReplies.set(reportSeq, { command, resolve, reject, timer })
+      pendingReplies.set(replyCommand, { command, resolve, reject, timer })
     })
   }
 
@@ -249,25 +257,20 @@ async function sendDeveloperCommand(command, payload = [], options = {}) {
 }
 
 function parseAppReply(data) {
-  if (data.length < APP_HEADER_SIZE || data[0] !== PROTOCOL_VERSION) return
+  if (data.length === 0) return
 
-  const reportSeq = data[1]
-  const replyCommand = data[2]
-  const length = Math.min(data[3], data.length - APP_HEADER_SIZE)
-  const payload = data.slice(APP_HEADER_SIZE, APP_HEADER_SIZE + length)
+  const replyCommand = data[0]
+  const payload = data.slice(1)
 
-  if (replyCommand === REPLY_ACK) {
-    const command = payload[0] ?? 0
-    const status = payload[1] ?? 0
-    const replyData = payload.slice(2)
-    resolvePendingReply(reportSeq, { command, status, data: replyData })
-    return
-  }
-
-  if (replyCommand === REPLY_ERROR) {
-    const command = payload[0] ?? 0
-    const errorCode = payload[1] ?? 0
-    rejectPendingReply(reportSeq, new Error(`DeveloperApp command 0x${command.toString(16)} failed: 0x${errorCode.toString(16)}`))
+  if ((replyCommand & 0x80) !== 0 && pendingReplies.has(replyCommand)) {
+    const command = replyCommand & 0x7F
+    const status = payload[0] ?? 0
+    const replyData = payload.slice(1)
+    if (status === 0) {
+      resolvePendingReply(replyCommand, { command, status, data: replyData })
+    } else {
+      rejectPendingReply(replyCommand, new Error(`DeveloperApp command 0x${command.toString(16)} failed: 0x${status.toString(16)}`))
+    }
     return
   }
 
@@ -294,12 +297,12 @@ function parseSystemReply(data) {
 function handleInputReport(event) {
   const data = new Uint8Array(event.data.buffer, event.data.byteOffset, event.data.byteLength)
 
-  if (event.reportId === APP_REPORT_ID && data[0] === PROTOCOL_VERSION) {
+  if (event.reportId === APP_REPORT_ID) {
     parseAppReply(data)
     return
   }
 
-  if (event.reportId === SYSTEM_REPORT_ID || event.reportId === APP_REPORT_ID) {
+  if (event.reportId === SYSTEM_REPORT_ID) {
     parseSystemReply(data)
   }
 }
@@ -311,21 +314,33 @@ function isPressedState(state) {
     || state === KEYPAD_STATE_AFTERTOUCH
 }
 
+function forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y) {
+  if (sendKeyInfoEvent(clusterId, memberId, state, pressure, velocity)) return
+
+  const pressed = isPressedState(state)
+  if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
+    sendFnKey(pressed)
+  } else if (clusterId === INPUT_CLUSTER_PRIMARY_GRID) {
+    sendGridKey(x, y, pressed)
+  }
+}
+
 function handleInputEvent(payload) {
   if (!getState().inputForwardingEnabled || payload[0] !== INPUT_EVENT_KEY_INFO || payload.length < 11) return
 
   const clusterId = payload[1]
   const memberId = (payload[2] << 8) | payload[3]
   const state = payload[6]
+  const pressure = (payload[7] << 8) | payload[8]
+  const velocity = (payload[9] << 8) | payload[10]
   const pressed = isPressedState(state)
+  const stateName = KEYPAD_STATE_NAMES[state] || `State ${state}`
   if (!pressed && state !== KEYPAD_STATE_RELEASED) return
 
   if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
-    if (pressed === activePhysicalFnKey) return
-
     activePhysicalFnKey = pressed
-    sendFnKey(pressed)
-    logInputEvent('fn', 0, 0, pressed)
+    forwardInputEvent(clusterId, memberId, state, pressure, velocity, 0, 0)
+    logInputEvent('fn', 0, 0, stateName, to7Bit(velocity), to7Bit(pressure))
     setState({ inputEvents: getState().inputEvents + 1 })
     updateKeypadTickLoop()
     return
@@ -338,14 +353,11 @@ function handleInputEvent(payload) {
   if (x < 0 || y < 0 || x >= 8 || y >= 8) return
 
   const key = `${x},${y}`
-  const wasPressed = activePhysicalGridKeys.has(key)
-  if (pressed === wasPressed) return
-
   if (pressed) activePhysicalGridKeys.add(key)
   else activePhysicalGridKeys.delete(key)
 
-  sendGridKey(x, y, pressed)
-  logInputEvent('grid', x, y, pressed)
+  forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y)
+  logInputEvent('grid', x, y, stateName, to7Bit(velocity), to7Bit(pressure))
   setState({ inputEvents: getState().inputEvents + 1 })
   updateKeypadTickLoop()
 }
@@ -367,11 +379,21 @@ function collectChangedLedIndexes(frame) {
   const changed = []
 
   if (!lastMirrorFrame || lastMirrorFrame.length !== frame.length) {
-    for (let index = 0; index < ledCount; index++) changed.push(index)
+    if (!pendingFullSyncIndexes) {
+      pendingFullSyncIndexes = new Set()
+      for (let index = 0; index < ledCount; index++) pendingFullSyncIndexes.add(index)
+    }
+    pendingFullSyncIndexes.forEach((index) => changed.push(index))
     return changed
   }
 
+  if (pendingFullSyncIndexes) {
+    pendingFullSyncIndexes.forEach((index) => changed.push(index))
+  }
+
   for (let index = 0; index < ledCount; index++) {
+    if (pendingFullSyncIndexes?.has(index)) continue
+
     const base = index * 4
     if (
       frame[base] !== lastMirrorFrame[base]
@@ -386,18 +408,79 @@ function collectChangedLedIndexes(frame) {
   return changed
 }
 
-async function uploadLedChunk(frame, indexes) {
-  const payload = [
-    LED_FLAG_CANVAS | LED_FLAG_RGBW,
-    indexes.length,
-  ]
+function updateMirrorFrameCache(frame, indexes) {
+  if (!lastMirrorFrame || lastMirrorFrame.length !== frame.length) {
+    lastMirrorFrame = new Uint8Array(frame.length)
+  }
 
   indexes.forEach((index) => {
     const base = index * 4
-    payload.push((index >> 8) & 0xFF, index & 0xFF, frame[base], frame[base + 1], frame[base + 2], frame[base + 3])
+    lastMirrorFrame[base] = frame[base]
+    lastMirrorFrame[base + 1] = frame[base + 1]
+    lastMirrorFrame[base + 2] = frame[base + 2]
+    lastMirrorFrame[base + 3] = frame[base + 3]
+    pendingFullSyncIndexes?.delete(index)
   })
 
-  await sendDeveloperCommand(COMMAND_LED_WRITE_INDEX_BULK, payload, { waitForAck: false })
+  if (pendingFullSyncIndexes?.size === 0) {
+    pendingFullSyncIndexes = null
+  }
+}
+
+function encodeRgb565(r, g, b) {
+  return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+}
+
+function collectChangedLedSections(indexes) {
+  const sections = []
+  let offset = 0
+
+  while (offset < indexes.length) {
+    let startIndex = indexes[offset]
+    const partition = startIndex < LED_PARTITION_UNDERGLOW_START ? LED_PARTITION_GRID : LED_PARTITION_UNDERGLOW
+    const partitionEnd = partition === LED_PARTITION_GRID ? LED_PARTITION_UNDERGLOW_START : Infinity
+    let count = 1
+    offset++
+
+    while (offset < indexes.length && indexes[offset] === startIndex + count && indexes[offset] < partitionEnd) {
+      count++
+      offset++
+    }
+
+    while (count > 0) {
+      const sectionCount = Math.min(count, LED_RANGE_RGB565_MAX_COUNT)
+      sections.push({ partition, startIndex, count: sectionCount })
+      startIndex += sectionCount
+      count -= sectionCount
+    }
+  }
+
+  return sections
+}
+
+async function uploadRgb565Section(frame, section) {
+  const { partition, startIndex, count } = section
+  const payload = [
+    LED_FLAG_CANVAS | (LED_COLOR_RGB565 << LED_FLAG_COLOR_MODE_SHIFT),
+    partition,
+    (startIndex >> 8) & 0xFF,
+    startIndex & 0xFF,
+    count,
+  ]
+
+  for (let offset = 0; offset < count; offset++) {
+    const base = (startIndex + offset) * 4
+    const color = encodeRgb565(frame[base], frame[base + 1], frame[base + 2])
+    payload.push((color >> 8) & 0xFF, color & 0xFF)
+  }
+
+  await sendDeveloperCommand(COMMAND_LED_WRITE_INDEX_RANGE, payload, { waitForAck: false })
+}
+
+async function uploadRgb565Sections(frame, sections) {
+  for (const section of sections) {
+    await uploadRgb565Section(frame, section)
+  }
 }
 
 async function uploadMirrorFrame() {
@@ -412,14 +495,12 @@ async function uploadMirrorFrame() {
 
   mirrorBusy = true
   try {
-    for (let offset = 0; offset < changed.length; offset += LED_BULK_RGBW_MAX_COUNT) {
-      await uploadLedChunk(frame, changed.slice(offset, offset + LED_BULK_RGBW_MAX_COUNT))
-    }
+    await uploadRgb565Sections(frame, collectChangedLedSections(changed))
     await sendDeveloperCommand(COMMAND_LED_CANVAS_UPDATE, [], { waitForAck: false })
+    updateMirrorFrameCache(frame, changed)
     const now = performance.now()
     const mirrorFps = lastMirrorFrameAt > 0 ? 1000 / Math.max(1, now - lastMirrorFrameAt) : 0
     lastMirrorFrameAt = now
-    lastMirrorFrame = frame
     setState({
       mirroredFrames: state.mirroredFrames + 1,
       mirroredLeds: state.mirroredLeds + changed.length,
@@ -438,6 +519,7 @@ function startMirrorLoop() {
   if (mirrorTimer) return
 
   lastMirrorFrame = null
+  pendingFullSyncIndexes = null
   mirrorTimer = window.setInterval(uploadMirrorFrame, MIRROR_INTERVAL_MS)
   void uploadMirrorFrame()
 }
@@ -448,6 +530,7 @@ function stopMirrorLoop() {
   window.clearInterval(mirrorTimer)
   mirrorTimer = 0
   lastMirrorFrame = null
+  pendingFullSyncIndexes = null
   lastMirrorFrameAt = 0
 }
 
@@ -559,7 +642,10 @@ export async function initializePhysicalBridge() {
   if (!supported) return
 
   installDisconnectHook()
-  await refreshPhysicalDevices()
+  const devices = await refreshPhysicalDevices()
+  if (!userDisconnected && !activeDevice && devices.length > 0) {
+    await connectPhysicalDevice({ useAuthorized: true, auto: true })
+  }
 }
 
 export async function refreshPhysicalDevices() {
@@ -600,7 +686,8 @@ export async function connectPhysicalDevice(options = {}) {
     return
   }
 
-  setState({ connecting: true, error: '', status: 'Selecting HID device' })
+  userDisconnected = false
+  setState({ connecting: true, error: '', status: options.useAuthorized ? 'Connecting' : 'Selecting HID device' })
   try {
     const devices = options.useAuthorized
       ? await refreshPhysicalDevices()
@@ -661,6 +748,7 @@ export async function connectPhysicalDevice(options = {}) {
 }
 
 export async function disconnectPhysicalDevice() {
+  userDisconnected = true
   stopMirrorLoop()
   clearPendingReplies()
   releasePhysicalKeys()

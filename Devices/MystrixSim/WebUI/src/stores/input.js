@@ -19,15 +19,27 @@ function timestamp() {
   }) + '.' + String(now.getMilliseconds()).padStart(3, '0')
 }
 
-export function logInputEvent(type, x, y, pressed, velocity = null) {
+function stateIsPressed(state) {
+  return state === 'Activated'
+    || state === 'Pressed'
+    || state === 'Hold'
+    || state === 'Aftertouch'
+}
+
+export function logInputEvent(type, x, y, stateOrPressed, velocity = null, pressure = null) {
+  const state = typeof stateOrPressed === 'string' ? stateOrPressed : (stateOrPressed ? 'Pressed' : 'Released')
+  const pressed = stateIsPressed(state)
   // MystrixSim binary keypad: press velocity is always 127 (100%), release is 0
   const vel = velocity !== null ? velocity : (type === 'grid' ? (pressed ? 127 : 0) : null)
+  const press = pressure !== null ? pressure : (type === 'grid' ? (pressed ? 127 : 0) : null)
   const entry = {
     id: counter++,
     type,
     x,
     y,
     pressed,
+    state,
+    pressure: press,
     velocity: vel,
     timestamp: timestamp()
   }

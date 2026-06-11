@@ -7,7 +7,7 @@ export function sendRawHid(bytes) {
   if (!mod?._MatrixOS_Wasm_RawHidInject || !mod.HEAPU8) return false
 
   const payload = bytes instanceof Uint8Array ? bytes : Uint8Array.from(bytes ?? [])
-  const len = Math.min(payload.length, 32)
+  const len = Math.min(payload.length, 63)
   const ptr = mod._malloc(len)
   mod.HEAPU8.set(payload.slice(0, len), ptr)
   mod._MatrixOS_Wasm_RawHidInject(ptr, len)

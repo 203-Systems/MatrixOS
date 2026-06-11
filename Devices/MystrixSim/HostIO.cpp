@@ -61,7 +61,9 @@ typedef union __attribute__((packed, aligned(1))) {
 HID_KeyboardReport_Data_t keyboardReport = {};
 
 MessageBufferHandle_t rawhidMessageBuffer = nullptr;
-uint8_t rawhidReportBuffer[32];
+constexpr size_t RAW_HID_MESSAGE_BUFFER_SIZE = 384;
+constexpr size_t RAW_HID_REPORT_SIZE = 63;
+uint8_t rawhidReportBuffer[RAW_HID_REPORT_SIZE];
 
 void TapKeyboardTx() {
 #ifdef __EMSCRIPTEN__
@@ -165,7 +167,7 @@ bool SetKeyboardKey(KeyboardKeycode keycode, bool state) {
 void EnsureRawHidBuffer() {
   if (!rawhidMessageBuffer)
   {
-    rawhidMessageBuffer = xMessageBufferCreate(128);
+    rawhidMessageBuffer = xMessageBufferCreate(RAW_HID_MESSAGE_BUFFER_SIZE);
   }
 }
 
@@ -691,8 +693,8 @@ void Init() {
 
 size_t Get(uint8_t** report, uint32_t timeoutMs) {
   MystrixSim::HostIO::EnsureRawHidBuffer();
-  size_t received = xMessageBufferReceive(MystrixSim::HostIO::rawhidMessageBuffer, (void*)&MystrixSim::HostIO::rawhidReportBuffer, 32,
-                                          pdMS_TO_TICKS(timeoutMs));
+  size_t received = xMessageBufferReceive(MystrixSim::HostIO::rawhidMessageBuffer, (void*)&MystrixSim::HostIO::rawhidReportBuffer,
+                                          MystrixSim::HostIO::RAW_HID_REPORT_SIZE, pdMS_TO_TICKS(timeoutMs));
   if (received > 0)
   {
     *report = MystrixSim::HostIO::rawhidReportBuffer;
@@ -701,13 +703,13 @@ size_t Get(uint8_t** report, uint32_t timeoutMs) {
 }
 
 bool Send(const vector<uint8_t>& report) {
-  if (report.size() > 32)
+  if (report.size() > MystrixSim::HostIO::RAW_HID_REPORT_SIZE)
   {
     MatrixOS::SYS::ErrorHandler("HID Report too large");
   }
 
-  uint8_t reportBuffer[32] = {};
-  memcpy(reportBuffer, report.data(), std::min<size_t>(report.size(), 32));
+  uint8_t reportBuffer[MystrixSim::HostIO::RAW_HID_REPORT_SIZE] = {};
+  memcpy(reportBuffer, report.data(), std::min<size_t>(report.size(), MystrixSim::HostIO::RAW_HID_REPORT_SIZE));
   MystrixSim::HostIO::TapRawHid(1, reportBuffer, sizeof(reportBuffer));
   return Ready();
 }
