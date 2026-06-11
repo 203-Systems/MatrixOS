@@ -1,11 +1,12 @@
 <script>
   import { onMount } from 'svelte'
-  import { Power, Usb } from 'carbon-icons-svelte'
+  import { Power, Restart, Usb } from 'carbon-icons-svelte'
   import {
     connectPhysicalDevice,
     disconnectPhysicalDevice,
     initializePhysicalBridge,
     physicalDeviceState,
+    reconnectPhysicalDevice,
   } from '../stores/physicalDevice.js'
   import { inputEvents } from '../stores/input.js'
 
@@ -77,7 +78,19 @@
 
       <div class="physical-action-panel">
         {#if $physicalDeviceState.connected}
-          <button class="physical-action physical-action-muted" on:click={disconnectPhysicalDevice}>
+          <button
+            class="physical-action"
+            disabled={$physicalDeviceState.connecting}
+            on:click={reconnectPhysicalDevice}
+          >
+            <Restart size={18} />
+            <span>{$physicalDeviceState.connecting ? 'Reconnecting' : 'Reconnect'}</span>
+          </button>
+          <button
+            class="physical-action physical-action-muted"
+            disabled={$physicalDeviceState.connecting}
+            on:click={disconnectPhysicalDevice}
+          >
             <Power size={18} />
             <span>Disconnect</span>
           </button>
@@ -145,11 +158,14 @@
   .physical-action-panel {
     width: 260px;
     display: flex;
+    flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
   .physical-action {
     width: 100%;
-    min-height: 100%;
+    min-height: 0;
+    flex: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;

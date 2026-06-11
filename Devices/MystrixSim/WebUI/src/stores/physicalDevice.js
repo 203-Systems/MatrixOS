@@ -614,6 +614,19 @@ async function configureInputReports() {
   ])
 }
 
+async function initializeDeveloperSession(status = 'Connecting') {
+  stopMirrorLoop()
+  releasePhysicalKeys()
+  clearPendingReplies(new Error('Developer session reinitializing'))
+  setState({ developerReady: false, error: '', status })
+
+  await refreshActiveAppId()
+  await enterDeveloperApp()
+  await refreshActiveAppId()
+  await configureInputReports()
+  if (getState().mirrorEnabled) startMirrorLoop()
+}
+
 function handleDisconnect(event) {
   if (event.device !== activeDevice) return
   clearPendingReplies()
@@ -719,7 +732,6 @@ export async function connectPhysicalDevice(options = {}) {
     clearPendingReplies(new Error('Replaced by a new physical device'))
 
     setState({
-      connecting: false,
       connected: true,
       developerReady: false,
       deviceName: activeDevice.productName || 'Mystrix',
@@ -727,11 +739,8 @@ export async function connectPhysicalDevice(options = {}) {
     })
 
     await refreshPhysicalDevices()
-    await refreshActiveAppId()
-    await enterDeveloperApp()
-    await refreshActiveAppId()
-    await configureInputReports()
-    if (getState().mirrorEnabled) startMirrorLoop()
+    await initializeDeveloperSession('Connecting')
+    setState({ connecting: false, status: 'Connected' })
   } catch (error) {
     try {
       if (activeDevice?.opened) {
@@ -743,6 +752,33 @@ export async function connectPhysicalDevice(options = {}) {
     stopMirrorLoop()
     releasePhysicalKeys()
     setState({ connecting: false, connected: false, developerReady: false, deviceName: '' })
+    reportError(error)
+  }
+}
+
+export async function reconnectPhysicalDevice() {
+  if (!activeDevice) {
+    await connectPhysicalDevice({ useAuthorized: true })
+    return
+  }
+
+  userDisconnected = false
+  setState({ connecting: true, error: '', connected: true, developerReady: false, status: 'Reconnecting' })
+  try {
+    if (!activeDevice.opened) {
+      await activeDevice.open()
+    }
+
+    activeDevice.removeEventListener('inputreport', handleInputReport)
+    activeDevice.addEventListener('inputreport', handleInputReport)
+    setState({ deviceName: activeDevice.productName || 'Mystrix' })
+
+    await initializeDeveloperSession('Reconnecting')
+    setState({ connecting: false, status: 'Connected' })
+  } catch (error) {
+    stopMirrorLoop()
+    releasePhysicalKeys()
+    setState({ connecting: false, developerReady: false })
     reportError(error)
   }
 }
