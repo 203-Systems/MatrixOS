@@ -52,8 +52,85 @@
 
   function sanitizeStreamText(text) {
     return String(text || '')
-      .replace(/\r/g, '')
       .replace(/^[A-Za-z]:\\[^\n]*\n?/gm, '')
+  }
+
+  function renderTerminalText(text) {
+    const lines = [[]]
+    let row = 0
+    let column = 0
+    const stream = sanitizeStreamText(text)
+
+    const ensureLine = () => {
+      if (!lines[row]) lines[row] = []
+    }
+
+    const writeCharacter = (character) => {
+      ensureLine()
+      while (lines[row].length < column) lines[row].push(' ')
+      lines[row][column] = character
+      column += 1
+    }
+
+    for (let index = 0; index < stream.length; index += 1) {
+      const character = stream[index]
+
+      if (character === '\b') {
+        if (column > 0) column -= 1
+        continue
+      }
+
+      if (character === '\r') {
+        column = 0
+        continue
+      }
+
+      if (character === '\n') {
+        row += 1
+        column = 0
+        ensureLine()
+        continue
+      }
+
+      if (character === '\t') {
+        const spaces = 4 - (column % 4)
+        for (let space = 0; space < spaces; space += 1) writeCharacter(' ')
+        continue
+      }
+
+      if (character === '\x1b' && stream[index + 1] === '[') {
+        let sequenceEnd = index + 2
+        while (sequenceEnd < stream.length && /[0-9;]/.test(stream[sequenceEnd])) {
+          sequenceEnd += 1
+        }
+
+        const command = stream[sequenceEnd]
+        const values = stream.slice(index + 2, sequenceEnd).split(';').map((value) => Number(value) || 0)
+        const amount = values[0] || 1
+
+        if (command === 'D') column = Math.max(0, column - amount)
+        else if (command === 'C') column += amount
+        else if (command === 'G') column = Math.max(0, amount - 1)
+        else if (command === 'K') {
+          ensureLine()
+          if (values[0] === 2) {
+            lines[row] = []
+            column = 0
+          } else {
+            lines[row].length = column
+          }
+        }
+
+        if (command) index = sequenceEnd
+        continue
+      }
+
+      if (character < ' ') continue
+
+      writeCharacter(character)
+    }
+
+    return lines.map((line) => line.join('').replace(/\s+$/u, '')).join('\n')
   }
 
   function formatBytes(byteCount) {
@@ -206,7 +283,7 @@
       return
     }
     if (event.key === 'Enter') { event.preventDefault(); sendPythonInput('\n'); return }
-    if (event.key === 'Backspace') { event.preventDefault(); sendPythonInput('\x7f'); return }
+    if (event.key === 'Backspace') { event.preventDefault(); sendPythonInput('\b'); return }
     if (event.key === 'Tab') { event.preventDefault(); sendPythonInput('\t'); return }
     if (event.key.length === 1) { event.preventDefault(); sendPythonInput(event.key) }
   }
@@ -229,7 +306,7 @@
   $: sessionPythonEvents = $pythonEvents.filter((event) => event.id >= ($pythonPanelSessionStartId ?? 0))
   $: sessionReplEvents = sessionPythonEvents.filter((event) => event.mode === 'repl' || event.mode === 'unknown')
   $: sessionAppEvents = sessionPythonEvents.filter((event) => event.mode === 'app')
-  $: replTranscript = sessionReplEvents.map((event) => sanitizeStreamText(event.text)).join('')
+  $: replTranscript = renderTerminalText(sessionReplEvents.map((event) => event.text).join(''))
   $: appLogEvents = sessionAppEvents.map((event) => ({
     ...event,
     cleanText: sanitizeStreamText(event.text),
