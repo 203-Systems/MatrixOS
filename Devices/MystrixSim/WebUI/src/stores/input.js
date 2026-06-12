@@ -22,6 +22,10 @@ function timestamp() {
 function stateIsPressed(state) {
   return state === 'Activated'
     || state === 'Pressed'
+}
+
+function stateIsActive(state) {
+  return stateIsPressed(state)
     || state === 'Hold'
     || state === 'Aftertouch'
 }
@@ -29,15 +33,17 @@ function stateIsPressed(state) {
 export function logInputEvent(type, x, y, stateOrPressed, velocity = null, pressure = null) {
   const state = typeof stateOrPressed === 'string' ? stateOrPressed : (stateOrPressed ? 'Pressed' : 'Released')
   const pressed = stateIsPressed(state)
+  const active = stateIsActive(state)
   // MystrixSim binary keypad: press velocity is always 127 (100%), release is 0
-  const vel = velocity !== null ? velocity : (type === 'grid' ? (pressed ? 127 : 0) : null)
-  const press = pressure !== null ? pressure : (type === 'grid' ? (pressed ? 127 : 0) : null)
+  const vel = velocity !== null ? velocity : (type === 'grid' ? (active ? 127 : 0) : null)
+  const press = pressure !== null ? pressure : (type === 'grid' ? (active ? 127 : 0) : null)
   const entry = {
     id: counter++,
     type,
     x,
     y,
     pressed,
+    active,
     state,
     pressure: press,
     velocity: vel,
@@ -53,12 +59,12 @@ export function logInputEvent(type, x, y, stateOrPressed, velocity = null, press
     activeGridKeys.update(keys => {
       const next = new Set(keys)
       const key = `${x},${y}`
-      if (pressed) next.add(key)
+      if (active) next.add(key)
       else next.delete(key)
       return next
     })
   } else if (type === 'fn') {
-    fnKeyActive.set(pressed)
+    fnKeyActive.set(active)
   }
 }
 

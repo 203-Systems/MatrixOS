@@ -310,6 +310,10 @@ function handleInputReport(event) {
 function isPressedState(state) {
   return state === KEYPAD_STATE_ACTIVATED
     || state === KEYPAD_STATE_PRESSED
+}
+
+function isActiveState(state) {
+  return isPressedState(state)
     || state === KEYPAD_STATE_HOLD
     || state === KEYPAD_STATE_AFTERTOUCH
 }
@@ -317,7 +321,9 @@ function isPressedState(state) {
 function forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y) {
   if (sendKeyInfoEvent(clusterId, memberId, state, pressure, velocity)) return
 
-  const pressed = isPressedState(state)
+  if (state !== KEYPAD_STATE_RELEASED && !isPressedState(state)) return
+
+  const pressed = state !== KEYPAD_STATE_RELEASED
   if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
     sendFnKey(pressed)
   } else if (clusterId === INPUT_CLUSTER_PRIMARY_GRID) {
@@ -333,12 +339,19 @@ function handleInputEvent(payload) {
   const state = payload[6]
   const pressure = (payload[7] << 8) | payload[8]
   const velocity = (payload[9] << 8) | payload[10]
-  const pressed = isPressedState(state)
+  const active = isActiveState(state)
   const stateName = KEYPAD_STATE_NAMES[state] || `State ${state}`
-  if (!pressed && state !== KEYPAD_STATE_RELEASED) return
+  if (!active && state !== KEYPAD_STATE_RELEASED) return
 
   if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
-    activePhysicalFnKey = pressed
+    if (!isPressedState(state) && state !== KEYPAD_STATE_RELEASED && !activePhysicalFnKey) return
+
+    if (state === KEYPAD_STATE_RELEASED) {
+      activePhysicalFnKey = false
+    } else if (isPressedState(state)) {
+      activePhysicalFnKey = true
+    }
+
     forwardInputEvent(clusterId, memberId, state, pressure, velocity, 0, 0)
     logInputEvent('fn', 0, 0, stateName, to7Bit(velocity), to7Bit(pressure))
     setState({ inputEvents: getState().inputEvents + 1 })
@@ -353,8 +366,10 @@ function handleInputEvent(payload) {
   if (x < 0 || y < 0 || x >= 8 || y >= 8) return
 
   const key = `${x},${y}`
-  if (pressed) activePhysicalGridKeys.add(key)
-  else activePhysicalGridKeys.delete(key)
+  if (!isPressedState(state) && state !== KEYPAD_STATE_RELEASED && !activePhysicalGridKeys.has(key)) return
+
+  if (state === KEYPAD_STATE_RELEASED) activePhysicalGridKeys.delete(key)
+  else if (isPressedState(state) || activePhysicalGridKeys.has(key)) activePhysicalGridKeys.add(key)
 
   forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y)
   logInputEvent('grid', x, y, stateName, to7Bit(velocity), to7Bit(pressure))

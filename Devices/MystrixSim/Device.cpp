@@ -322,25 +322,41 @@ bool ApplyKeyInfoEvent(InputId id, KeypadState state, uint16_t pressure, uint16_
     ks->info.velocity = velocity;
     ks->info.hold = false;
     ks->info.lastEventTime = (uint32_t)MatrixOS::SYS::Millis();
-    return EmitKeyEvent(id, ks);
+    (void)EmitKeyEvent(id, ks);
+    return true;
   case KeypadState::Hold:
+    if (!ks->info.Active())
+    {
+      return false;
+    }
     ks->info.state = state;
     ks->info.pressure = pressure;
     ks->info.velocity = velocity;
     ks->info.hold = true;
-    return EmitKeyEvent(id, ks);
+    (void)EmitKeyEvent(id, ks);
+    return true;
   case KeypadState::Aftertouch:
+    if (!ks->info.Active())
+    {
+      return false;
+    }
     ks->info.state = state;
     ks->info.pressure = pressure;
     ks->info.velocity = velocity;
-    return EmitKeyEvent(id, ks);
+    (void)EmitKeyEvent(id, ks);
+    return true;
   case KeypadState::Released:
+    if (!ks->info.Active())
+    {
+      return false;
+    }
     ks->info.state = state;
     ks->info.pressure = pressure;
     ks->info.velocity = velocity;
     ks->info.hold = false;
     ks->info.lastEventTime = (uint32_t)MatrixOS::SYS::Millis();
-    return EmitKeyEvent(id, ks);
+    (void)EmitKeyEvent(id, ks);
+    return true;
   default:
     return false;
   }
