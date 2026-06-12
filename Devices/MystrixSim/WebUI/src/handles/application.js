@@ -13,6 +13,38 @@ function readModuleString(exportName) {
   return mod.UTF8ToString(ptr).trim()
 }
 
+export function getApplicationState() {
+  const mod = getModule()
+  if (!mod?._MatrixOS_Wasm_GetApplicationListJson || !mod?.UTF8ToString) {
+    return { activeApp: null, activeAppId: null, applications: [], available: false }
+  }
+
+  const ptr = mod._MatrixOS_Wasm_GetApplicationListJson()
+  if (!ptr) {
+    return { activeApp: null, activeAppId: null, applications: [], available: true }
+  }
+
+  try {
+    const parsed = JSON.parse(mod.UTF8ToString(ptr))
+    return {
+      activeApp: parsed.activeApp ?? null,
+      activeAppId: parsed.activeAppId ?? null,
+      applications: Array.isArray(parsed.applications) ? parsed.applications : [],
+      available: true,
+    }
+  } catch {
+    return { activeApp: null, activeAppId: null, applications: [], available: true }
+  }
+}
+
+export function launchApplication(appId) {
+  const mod = getModule()
+  if (!mod?._MatrixOS_Wasm_LaunchApp) return false
+
+  mod._MatrixOS_Wasm_LaunchApp(appId >>> 0)
+  return true
+}
+
 export function getActiveAppSummary() {
   const name = readModuleString('_MatrixOS_Wasm_GetActiveAppName')
   if (!name) return null

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <map>
@@ -173,6 +174,7 @@ string wasmVersionLabel = BuildVersionLabel();
 string wasmBuildTimeLabel = BuildTimeLabel();
 string wasmBuildIdentityLabel = BuildIdentityLabel();
 string wasmBuildMetadataJson = BuildMetadataJson();
+string wasmApplicationListJson;
 string wasmActiveAppName;
 string wasmActiveAppAuthor;
 
@@ -183,6 +185,66 @@ bool IsPythonApplicationInfo(const Application_Info* info) {
 bool HasPythonApplicationRegistered() {
   const uint32_t pythonAppId = MatrixOS::SYS::GenerateAPPID("203 Systems", "Python");
   return GetApplications().find(pythonAppId) != GetApplications().end();
+}
+
+string FormatColorHex(Color color) {
+  char buffer[8];
+  snprintf(buffer, sizeof(buffer), "#%02X%02X%02X", color.R, color.G, color.B);
+  return string(buffer);
+}
+
+string BuildApplicationInfoJson(uint32_t appId, const Application_Info* info) {
+  string reference = info != nullptr ? info->author + "-" + info->name : "";
+  string json = "{";
+  json += "\"id\":" + std::to_string(appId) + ",";
+  json += "\"idHex\":\"0x";
+  char idBuffer[9];
+  snprintf(idBuffer, sizeof(idBuffer), "%08lX", (unsigned long)appId);
+  json += idBuffer;
+  json += "\",";
+  json += "\"reference\":\"" + JsonEscape(reference) + "\",";
+  json += "\"name\":\"" + JsonEscape(info != nullptr ? info->name : "") + "\",";
+  json += "\"author\":\"" + JsonEscape(info != nullptr ? info->author : "") + "\",";
+  json += "\"version\":" + std::to_string(info != nullptr ? info->version : 0) + ",";
+  json += "\"color\":\"" + FormatColorHex(info != nullptr ? info->color : Color::Black) + "\",";
+  json += "\"visible\":";
+  json += info != nullptr && info->visibility ? "true" : "false";
+  json += ",";
+  json += "\"system\":";
+  json += info != nullptr && info->isSystem ? "true" : "false";
+  json += "}";
+  return json;
+}
+
+string BuildApplicationListJson() {
+  string json = "{";
+  json += "\"activeAppId\":" + std::to_string(MatrixOS::SYS::activeAppId) + ",";
+  json += "\"activeApp\":";
+  json += MatrixOS::SYS::activeAppInfo == nullptr ? "null" : BuildApplicationInfoJson(MatrixOS::SYS::activeAppId, MatrixOS::SYS::activeAppInfo);
+  json += ",\"applications\":[";
+
+  bool first = true;
+  auto& applications = GetApplications();
+  auto& applicationIds = GetApplicationIDs();
+  for (const auto& [order, appId] : applicationIds)
+  {
+    (void)order;
+    auto application = applications.find(appId);
+    if (application == applications.end())
+    {
+      continue;
+    }
+
+    if (!first)
+    {
+      json += ",";
+    }
+    first = false;
+    json += BuildApplicationInfoJson(appId, application->second);
+  }
+
+  json += "]}";
+  return json;
 }
 
 void BuildLEDIndexMap(Direction rotation) {
@@ -755,6 +817,15 @@ const char* MatrixOS_Wasm_GetActiveAppName(void) {
 const char* MatrixOS_Wasm_GetActiveAppAuthor(void) {
   wasmActiveAppAuthor = MatrixOS::SYS::activeAppInfo ? MatrixOS::SYS::activeAppInfo->author : "";
   return wasmActiveAppAuthor.c_str();
+}
+
+const char* MatrixOS_Wasm_GetApplicationListJson(void) {
+  wasmApplicationListJson = BuildApplicationListJson();
+  return wasmApplicationListJson.c_str();
+}
+
+void MatrixOS_Wasm_LaunchApp(uint32_t appId) {
+  MatrixOS::SYS::ExecuteAPP(appId);
 }
 
 uint8_t MatrixOS_Wasm_HasPythonApp(void) {
