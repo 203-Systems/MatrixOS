@@ -5,3 +5,6 @@ import _MatrixOS_Utils
 
 def StringHash(text: str) -> int:
     return _MatrixOS_Utils.StringHash(text)
+
+def string_hash(text: str) -> int:
+    return StringHash(text)

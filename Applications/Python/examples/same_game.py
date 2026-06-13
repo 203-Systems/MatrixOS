@@ -85,7 +85,7 @@ def random_color():
 
 def seed_random():
     global random_seed
-    random_seed = MatrixOS.SYS.Millis() & 0x7FFFFFFF
+    random_seed = MatrixOS.SYS.millis() & 0x7FFFFFFF
     if random_seed == 0:
         random_seed = 1
 
@@ -122,7 +122,7 @@ def reset_game():
     score = 0
     last_color = num_colors
     game_state = SETUP_BOARD
-    last_event_ms = MatrixOS.SYS.Millis()
+    last_event_ms = MatrixOS.SYS.millis()
     pending_function_press = False
     pending_cell_x = -1
     pending_cell_y = -1
@@ -140,11 +140,11 @@ def fill_underglow(color):
 
 def render_board_cells():
     for index in range(CELL_COUNT):
-        MatrixOS.LED.SetColorByID(index, get_cell_color(board[index]))
+        MatrixOS.LED.set_color_by_id(index, get_cell_color(board[index]))
 
 
 def render_game():
-    now = MatrixOS.SYS.Millis()
+    now = MatrixOS.SYS.millis()
     render_board_cells()
 
     if game_state == ENDED:
@@ -180,7 +180,7 @@ def color_button_3():
 
 def render_settings_background():
     for index in range(CELL_COUNT):
-        MatrixOS.LED.SetColorByID(index, COLORS[EMPTY])
+        MatrixOS.LED.set_color_by_id(index, COLORS[EMPTY])
     fill_underglow(Color(0x00FFFF))
 
 
@@ -352,7 +352,7 @@ def place(x, y):
     if cleared > 0:
         score += cleared * (cleared - 2)
         game_state = MOVING
-        last_event_ms = MatrixOS.SYS.Millis()
+        last_event_ms = MatrixOS.SYS.millis()
 
 
 def update_game():
@@ -365,7 +365,7 @@ def update_game():
     if game_state == SETTINGS:
         return
 
-    now = MatrixOS.SYS.Millis()
+    now = MatrixOS.SYS.millis()
 
     if game_state == SETUP_BOARD:
         if now - last_event_ms >= STEP_MS:
@@ -451,10 +451,10 @@ def process_pending_input():
     global pending_cell_y
 
     if main_ui is not None:
-        event = main_ui.PullInput()
+        event = main_ui.pull_input()
         while event is not None:
             handle_key_input(event)
-            event = main_ui.PullInput()
+            event = main_ui.pull_input()
 
     if pending_function_press:
         pending_function_press = False
@@ -477,9 +477,9 @@ def handle_key_input(event):
     global pending_cell_x
     global pending_cell_y
 
-    cluster_id = event.ClusterId()
-    state = event.KeyState()
-    member_id = event.MemberId()
+    cluster_id = event.cluster_id()
+    state = event.key_state()
+    member_id = event.member_id()
 
     if cluster_id == 0 and member_id == 0:
         if state == KeyState.PRESSED:
@@ -495,27 +495,27 @@ def handle_key_input(event):
     if cluster_id != 1 or member_id >= CELL_COUNT:
         return True
 
-    pending_cell_x = member_id % WIDTH
-    pending_cell_y = member_id // WIDTH
+    pending_cell_x = event.x()
+    pending_cell_y = event.y()
 
     return True
 
 def add_button(ui, button, x, y, height, name, color_func, press_func):
-    button.SetName(name)
-    button.SetSize(Dimension(1, height))
-    button.SetColorFunc(color_func)
-    button.SetEnableFunc(settings_enabled)
-    button.OnPress(press_func)
-    ui.AddUIComponent(button, Point(x, y))
+    button.set_name(name)
+    button.set_size(Dimension(1, height))
+    button.set_color_func(color_func)
+    button.set_enable_func(settings_enabled)
+    button.on_press(press_func)
+    ui.add(button, Point(x, y))
 
 
 reset_game()
 
 main_ui = MatrixOS_UI.UI("SameGame", Color(0xFFFFFF))
-main_ui.AllowExit(False)
-main_ui.SetFPS(60)
-main_ui.SetLoopFunc(update_game)
-main_ui.SetPreRenderFunc(render_ui)
+main_ui.allow_exit(False)
+main_ui.set_fps(60)
+main_ui.set_loop_func(update_game)
+main_ui.set_pre_render_func(render_ui)
 
 color_2_button = MatrixOS_UIButton.UIButton()
 color_3_button = MatrixOS_UIButton.UIButton()
@@ -528,11 +528,11 @@ add_button(main_ui, color_3_button, 1, 0, 3, "3 Colors", color_button_1, set_thr
 add_button(main_ui, color_4_button, 2, 0, 4, "4 Colors", color_button_2, set_four_colors)
 add_button(main_ui, color_5_button, 3, 0, 5, "5 Colors", color_button_3, set_five_colors)
 
-reset_button.SetName("Reset")
-reset_button.SetSize(Dimension(1, 2))
-reset_button.SetColor(Color(0xFF0000))
-reset_button.SetEnableFunc(settings_enabled)
-reset_button.OnPress(reset_from_settings)
-main_ui.AddUIComponent(reset_button, Point(7, 3))
+reset_button.set_name("Reset")
+reset_button.set_size(Dimension(1, 2))
+reset_button.set_color(Color(0xFF0000))
+reset_button.set_enable_func(settings_enabled)
+reset_button.on_press(reset_from_settings)
+main_ui.add(reset_button, Point(7, 3))
 
-main_ui.Start()
+main_ui.start()

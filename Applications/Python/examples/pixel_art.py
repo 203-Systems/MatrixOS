@@ -1,6 +1,5 @@
 import MatrixOS
 from MatrixOS_Color import Color
-from MatrixOS_Point import Point
 import MatrixOS_InputClass as InputClass
 from MatrixOS_KeyState import KeyState
 
@@ -38,7 +37,7 @@ def color_index(x, y):
 
 
 def draw_cell(x, y, color_index_value):
-    MatrixOS.LED.SetColor(Point(x, y), PICKER_COLORS[color_index_value])
+    MatrixOS.LED.set_color_xy(x, y, PICKER_COLORS[color_index_value])
 
 
 def draw_canvas():
@@ -51,7 +50,7 @@ def draw_canvas():
         for x in range(8):
             draw_cell(x, 0, x)
 
-    MatrixOS.LED.Update()
+    MatrixOS.LED.show()
 
 
 def show_picker():
@@ -67,8 +66,8 @@ def hide_picker():
 
 
 def paint_position(position):
-    x = position.X()
-    y = position.Y()
+    x = position.x()
+    y = position.y()
     index = color_index(x, y)
     color_grid[index] = active_color_index
     draw_canvas()
@@ -77,17 +76,17 @@ def paint_position(position):
 def handle_keypad_event(event):
     global active_color_index
 
-    if event.InputClass() != InputClass.KEYPAD:
+    if event.input_class() != InputClass.KEYPAD:
         return True
 
-    info = event.Keypad()
+    info = event.keypad()
     if info is None:
         return True
 
-    state = info.State()
-    input_id = event.Id()
+    state = info.state()
+    input_id = event.id()
 
-    if input_id == MatrixOS.Input.FunctionKey():
+    if input_id == MatrixOS.Input.function_key():
         if state == KeyState.HOLD:
             return False
 
@@ -101,12 +100,12 @@ def handle_keypad_event(event):
     if state != KeyState.PRESSED:
         return True
 
-    position = MatrixOS.Input.GetPosition(input_id)
+    position = MatrixOS.Input.get_position(input_id)
     if position is None:
         return True
 
-    x = position.X()
-    y = position.Y()
+    x = position.x()
+    y = position.y()
 
     if x < -1 or x > 8 or y < 0 or y >= 8:
         return True
@@ -120,16 +119,16 @@ def handle_keypad_event(event):
 
 
 setup_grid()
-MatrixOS.Input.ClearInputBuffer()
-MatrixOS.LED.Fill(PICKER_COLORS[BLACK_INDEX])
+MatrixOS.Input.clear_input_buffer()
+MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
 show_picker()
 
 while True:
-    event = MatrixOS.Input.GetEvent(0)
+    event = MatrixOS.Input.get_event(0)
     if event is not None:
         if not handle_keypad_event(event):
             break
-    MatrixOS.SYS.DelayMs(16)
+    MatrixOS.SYS.sleep_ms(16)
 
-MatrixOS.LED.Fill(PICKER_COLORS[BLACK_INDEX])
-MatrixOS.LED.Update()
+MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
+MatrixOS.LED.show()

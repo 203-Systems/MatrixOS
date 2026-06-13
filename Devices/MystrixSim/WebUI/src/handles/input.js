@@ -9,9 +9,17 @@
  *   'grid:X,Y'         — a grid key at column X, row Y (0-based, 0..7)
  */
 
-import { sendGridKey, sendFnKey } from '../stores/wasm.js'
+import { sendKeyInfoEvent } from '../stores/wasm.js'
 
 export const INPUT_GRID_SIZE = 8
+
+const INPUT_CLUSTER_FUNCTION = 0
+const INPUT_CLUSTER_PRIMARY_GRID = 1
+const INPUT_MEMBER_FUNCTION = 0
+const KEYPAD_STATE_PRESSED = 2
+const KEYPAD_STATE_RELEASED = 5
+const DEFAULT_PRESSURE = 65535
+const DEFAULT_VELOCITY = 65535
 
 /**
  * Parse a string input ID into a structured target descriptor.
@@ -51,10 +59,15 @@ export function listInputs() {
  * Hold is OS-generated after the hold threshold and cannot be injected.
  */
 export function executeInput(target, action) {
+  const state = action === 'Press' ? KEYPAD_STATE_PRESSED : KEYPAD_STATE_RELEASED
+  const pressure = action === 'Press' ? DEFAULT_PRESSURE : 0
+  const velocity = action === 'Press' ? DEFAULT_VELOCITY : 0
+
   if (target.kind === 'functionKey') {
-    sendFnKey(action === 'Press')
+    sendKeyInfoEvent(INPUT_CLUSTER_FUNCTION, INPUT_MEMBER_FUNCTION, state, pressure, velocity)
   } else if (target.kind === 'gridKey') {
-    sendGridKey(target.x, target.y, action === 'Press')
+    const memberId = target.y * INPUT_GRID_SIZE + target.x
+    sendKeyInfoEvent(INPUT_CLUSTER_PRIMARY_GRID, memberId, state, pressure, velocity)
   }
 }
 
