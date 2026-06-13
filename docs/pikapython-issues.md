@@ -97,10 +97,8 @@ Fix:
 - Fixed `SaveCallbackObjToPikaObj()` to return `True` on success and `False` on failure.
 - Removed the extra callback pre-free and let `obj_setArg()` own replacement.
 - Made the UI constructor tolerate a missing argument tuple.
-- Removed a double-free in `SetInputHandler()`: `pika_runFunction1_ex()` already owns and frees the
-  argument passed into the callback.
 - Updated `same_game.py` to use `MatrixOS_UI.UI`, `SetLoopFunc()`, `SetPreRenderFunc()`,
-  `SetInputHandler()`, `MatrixOS_UIButton.UIButton`, `SetEnableFunc()`, `SetColorFunc()`, and `OnPress()`.
+  `PullInput()`, `MatrixOS_UIButton.UIButton`, `SetEnableFunc()`, `SetColorFunc()`, and `OnPress()`.
 
 Follow-up:
 
@@ -132,30 +130,34 @@ Fix direction:
 - Add a stress regression that writes all 64 LEDs repeatedly from Python using both `SetColor()` and
   `SetColorByID()`.
 
-## 2026-06-12: Native callbacks with Python object arguments are unstable
+## 2026-06-12: UI input callbacks must be polled from Python
 
-Observed while testing SameGame input through `UI.SetInputHandler()`.
+Observed while testing SameGame input through a native UI input callback.
 
-The setter can be installed, but dispatching an input event into a Python callback with an `InputEvent`
-object argument caused WASM `unwind` failures. The callback body could be as small as:
+Calling Python directly from the native UI input dispatch path is unstable in MystrixSim/PikaPython.
+The setter could be installed, but dispatching an input event into Python could trigger WASM `unwind`
+failures. The callback body could be as small as:
 
 ```python
-def handler(event):
+def handler(code):
     return True
 ```
 
-Workaround:
+Fix:
 
-- Prefer normal UI components (`UIButton.OnPress`, `SetEnableFunc`, `SetColorFunc`) for interactive
-  Python examples.
-- For global state such as the Function key, poll with `MatrixOS.Input.GetState()` from the UI loop.
-- SameGame now uses 64 board `UIButton` components and polls the Function key instead of using
-  `SetInputHandler()`.
+- `UI` now captures keypad input into its native queue instead of invoking Python from the input
+  dispatch stack.
+- Python UI loops call `ui.PullInput()` and process pure Python `KeyEvent` objects from normal Python
+  loop code.
+- Unread queued input is cleared after each UI loop callback.
+- SameGame uses this UI wrapper path for board and Function key input, while its settings menu still
+  uses `UIButton` callbacks.
 
 Fix direction:
 
-- Add a focused binding test for one-argument native-to-Python callbacks.
-- Revisit ownership of temporary `PikaObj` arguments passed through `pika_runFunction1_ex()`.
+- Keep native-to-Python callbacks for simple UI lifecycle hooks where they already run on the UI loop.
+- Prefer queued polling for hot input paths or callbacks that originate in device/input dispatch.
+- Add a regression that presses and releases Function Key while a Python UI is active.
 
 ## 2026-06-12: Returned closures do not reliably capture locals
 
@@ -170,8 +172,7 @@ def make_color_func(index):
     return color_func
 ```
 
-Default-argument capture did not fix it in PikaPython. SameGame now uses static named callbacks for
-board presses, and updates button colors from the main render path.
+Default-argument capture did not fix it in PikaPython.
 
 Fix direction:
 

@@ -2860,6 +2860,15 @@ PikaObj *New__MatrixOS_InputEvent(Args *args){
 #endif
 
 #ifndef PIKA_MODULE__MATRIXOS_INPUTEVENT_DISABLE
+void _MatrixOS_InputEvent_InputEvent_ClusterIdMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputEvent_InputEvent_ClusterId(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_ClusterId,
+    "ClusterId", ""
+);
+
 void _MatrixOS_InputEvent_InputEvent_IdMethod(PikaObj *self, Args *_args_){
     PikaObj* res = _MatrixOS_InputEvent_InputEvent_Id(self);
     method_returnObj(_args_, res);
@@ -2878,6 +2887,52 @@ method_typedef(
     "InputClass", ""
 );
 
+void _MatrixOS_InputEvent_InputEvent_KeyActiveMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputEvent_InputEvent_KeyActive(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_KeyActive,
+    "KeyActive", ""
+);
+
+void _MatrixOS_InputEvent_InputEvent_KeyForceMethod(PikaObj *self, Args *_args_){
+    pika_float res = _MatrixOS_InputEvent_InputEvent_KeyForce(self);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_KeyForce,
+    "KeyForce", ""
+);
+
+void _MatrixOS_InputEvent_InputEvent_KeyHoldMethod(PikaObj *self, Args *_args_){
+    pika_bool res = _MatrixOS_InputEvent_InputEvent_KeyHold(self);
+    method_returnBool(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_KeyHold,
+    "KeyHold", ""
+);
+
+void _MatrixOS_InputEvent_InputEvent_KeyStateMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputEvent_InputEvent_KeyState(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_KeyState,
+    "KeyState", ""
+);
+
+void _MatrixOS_InputEvent_InputEvent_KeyValueMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    pika_float res = _MatrixOS_InputEvent_InputEvent_KeyValue(self, index);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_KeyValue,
+    "KeyValue", "index"
+);
+
 void _MatrixOS_InputEvent_InputEvent_KeypadMethod(PikaObj *self, Args *_args_){
     Arg* res = _MatrixOS_InputEvent_InputEvent_Keypad(self);
     method_returnArg(_args_, res);
@@ -2885,6 +2940,15 @@ void _MatrixOS_InputEvent_InputEvent_KeypadMethod(PikaObj *self, Args *_args_){
 method_typedef(
     _MatrixOS_InputEvent_InputEvent_Keypad,
     "Keypad", ""
+);
+
+void _MatrixOS_InputEvent_InputEvent_MemberIdMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_InputEvent_InputEvent_MemberId(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_InputEvent_InputEvent_MemberId,
+    "MemberId", ""
 );
 
 void _MatrixOS_InputEvent_InputEvent___bool__Method(PikaObj *self, Args *_args_){
@@ -2907,10 +2971,17 @@ method_typedef(
 class_def(_MatrixOS_InputEvent_InputEvent){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_InputEvent_InputEvent_Id, 5862418),
+    method_def(_MatrixOS_InputEvent_InputEvent_KeyHold, 90138677),
     method_def(_MatrixOS_InputEvent_InputEvent_InputClass, 149188171),
     method_def(_MatrixOS_InputEvent_InputEvent___bool__, 632207565),
+    method_def(_MatrixOS_InputEvent_InputEvent_KeyForce, 824727453),
+    method_def(_MatrixOS_InputEvent_InputEvent_KeyState, 840306159),
+    method_def(_MatrixOS_InputEvent_InputEvent_KeyValue, 843193131),
     method_def(_MatrixOS_InputEvent_InputEvent___init__, 904762485),
     method_def(_MatrixOS_InputEvent_InputEvent_Keypad, 1043978755),
+    method_def(_MatrixOS_InputEvent_InputEvent_KeyActive, 1236373226),
+    method_def(_MatrixOS_InputEvent_InputEvent_ClusterId, 1568627924),
+    method_def(_MatrixOS_InputEvent_InputEvent_MemberId, 1872971978),
 };
 class_inhert(_MatrixOS_InputEvent_InputEvent, TinyObj);
 
@@ -4922,6 +4993,15 @@ method_typedef(
     "Exit", ""
 );
 
+void _MatrixOS_UI_UI_PullInputCodeMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_UI_UI_PullInputCode(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_UI_UI_PullInputCode,
+    "PullInputCode", ""
+);
+
 void _MatrixOS_UI_UI_SetColorMethod(PikaObj *self, Args *_args_){
     PikaObj* color = args_getPtr(_args_, "color");
     _MatrixOS_UI_UI_SetColor(self, color);
@@ -4948,16 +5028,6 @@ void _MatrixOS_UI_UI_SetFPSMethod(PikaObj *self, Args *_args_){
 method_typedef(
     _MatrixOS_UI_UI_SetFPS,
     "SetFPS", "fps"
-);
-
-void _MatrixOS_UI_UI_SetInputHandlerMethod(PikaObj *self, Args *_args_){
-    Arg* input_handler = args_getArg(_args_, "input_handler");
-    pika_bool res = _MatrixOS_UI_UI_SetInputHandler(self, input_handler);
-    method_returnBool(_args_, res);
-}
-method_typedef(
-    _MatrixOS_UI_UI_SetInputHandler,
-    "SetInputHandler", "input_handler"
 );
 
 void _MatrixOS_UI_UI_SetLoopFuncMethod(PikaObj *self, Args *_args_){
@@ -5041,11 +5111,11 @@ class_def(_MatrixOS_UI_UI){
     method_def(_MatrixOS_UI_UI_SetColor, 123130384),
     method_def(_MatrixOS_UI_UI_Close, 217614907),
     method_def(_MatrixOS_UI_UI_Start, 236861875),
+    method_def(_MatrixOS_UI_UI_PullInputCode, 335495533),
     method_def(_MatrixOS_UI_UI_SetLoopFunc, 403850743),
     method_def(_MatrixOS_UI_UI_SetSetupFunc, 513484014),
     method_def(_MatrixOS_UI_UI___init__, 904762485),
     method_def(_MatrixOS_UI_UI_AllowExit, 915050654),
-    method_def(_MatrixOS_UI_UI_SetInputHandler, 1139319007),
     method_def(_MatrixOS_UI_UI_SetEndFunc, 1330365108),
     method_def(_MatrixOS_UI_UI_SetFPS, 1356835898),
     method_def(_MatrixOS_UI_UI_ShouldCreatenewLEDLayer, 1465366404),

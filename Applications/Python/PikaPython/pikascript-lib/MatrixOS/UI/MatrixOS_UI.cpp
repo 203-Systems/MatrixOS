@@ -5,7 +5,67 @@
 #include "../PikaObjUtils.h"
 #include "../PikaCallbackUtils.h"
 
+struct PythonUIInputQueue {
+    static constexpr uint8_t SIZE = 16;
+    uint32_t codes[SIZE] = {};
+    uint8_t head = 0;
+    uint8_t tail = 0;
+    uint8_t count = 0;
+
+    void Push(uint32_t code) {
+        codes[tail] = code;
+        tail = (tail + 1) % SIZE;
+        if (count < SIZE) {
+            count++;
+        } else {
+            head = (head + 1) % SIZE;
+        }
+    }
+
+    bool Pop(uint32_t* code) {
+        if (count == 0) return false;
+        *code = codes[head];
+        head = (head + 1) % SIZE;
+        count--;
+        return true;
+    }
+
+    void Clear() {
+        head = 0;
+        tail = 0;
+        count = 0;
+    }
+};
+
+static PythonUIInputQueue* GetInputQueue(PikaObj* self) {
+    return (PythonUIInputQueue*)obj_getPtr(self, (char*)"_inputQueue");
+}
+
+static void InstallInputCapture(UI* ui, PythonUIInputQueue* queue) {
+    if (!ui || !queue) return;
+
+    ui->SetInputEventHandler([queue](InputEvent* inputEvent) -> bool {
+        if (inputEvent->inputClass != InputClass::Keypad) return false;
+
+        uint32_t code = (uint32_t)inputEvent->id.clusterId |
+                        ((uint32_t)inputEvent->keypad.state << 8) |
+                        ((uint32_t)inputEvent->id.memberId << 16);
+        queue->Push(code);
+        return false;
+    });
+}
+
 extern "C" {
+    int _MatrixOS_UI_UI_PullInputCode(PikaObj *self) {
+        if (!self) return -1;
+
+        PythonUIInputQueue* queue = GetInputQueue(self);
+        if (!queue) return -1;
+
+        uint32_t code = 0;
+        if (!queue->Pop(&code)) return -1;
+        return (int)code;
+    }
 
     // UI constructor - supports optional parameters with progressive fill
     // Native UI object is heap-allocated via handle wrapper.
@@ -40,6 +100,12 @@ extern "C" {
 
         createCppHandleInPikaObj<UI>(self, name, color, newLEDLayer);
         InitCallbackContext(self);
+
+        PythonUIInputQueue* queue = new PythonUIInputQueue();
+        obj_setPtr(self, (char*)"_inputQueue", queue);
+
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
+        InstallInputCapture(ui, queue);
     }
 
     // Close method - deterministic teardown.
@@ -54,7 +120,12 @@ extern "C" {
         ClearCallbackInPikaObj(self, (char*)"endFunc");
         ClearCallbackInPikaObj(self, (char*)"preRenderFunc");
         ClearCallbackInPikaObj(self, (char*)"postRenderFunc");
-        ClearCallbackInPikaObj(self, (char*)"inputHandler");
+
+        PythonUIInputQueue* queue = GetInputQueue(self);
+        if (queue) {
+            delete queue;
+            obj_setPtr(self, (char*)"_inputQueue", nullptr);
+        }
 
         DestroyCallbackContext(self);
         return true;
@@ -132,6 +203,10 @@ extern "C" {
         ui->SetLoopFunc([ctx]() {
             Arg* result = SafeCallCallback0(ctx, (char*)"loopFunc");
             if (result) arg_deinit(result);
+
+            PikaObj* owner = ctx ? ctx->owner : nullptr;
+            PythonUIInputQueue* queue = GetInputQueue(owner);
+            if (queue) queue->Clear();
         });
 
         return true;
@@ -183,42 +258,6 @@ extern "C" {
         ui->SetPostRenderFunc([ctx]() {
             Arg* result = SafeCallCallback0(ctx, (char*)"postRenderFunc");
             if (result) arg_deinit(result);
-        });
-
-        return true;
-    }
-
-    // Forward declarations for InputEvent/InputId Python object constructors
-    PikaObj* New__MatrixOS_InputEvent_InputEvent(Args *args);
-    PikaObj* New__MatrixOS_InputId_InputId(Args *args);
-
-    // SetInputHandler — passes InputEvent directly to the Python callback.
-    pika_bool _MatrixOS_UI_UI_SetInputHandler(PikaObj *self, Arg* input_handler) {
-        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
-        if (!ui) return false;
-        if (!input_handler) return false;
-
-        if (!SaveCallbackObjToPikaObj(self, (char*)"inputHandler", input_handler)) return false;
-        PythonCallbackContext* ctx = GetCallbackContext(self);
-
-        ui->SetInputEventHandler([ctx](InputEvent* inputEvent) -> bool {
-            if (!ctx || !ctx->alive) return false;
-
-            PikaObj* eventObj = newNormalObj(New__MatrixOS_InputEvent_InputEvent);
-            copyCppValueIntoPikaObj<InputEvent>(eventObj, *inputEvent);
-            Arg* eventArg = arg_newRef(eventObj);
-
-            Arg* result = SafeCallCallback1(ctx, (char*)"inputHandler", eventArg);
-
-            bool retval = false;
-            if (result) {
-                if (arg_getType(result) == ARG_TYPE_BOOL) {
-                    retval = arg_getBool(result);
-                }
-                arg_deinit(result);
-            }
-
-            return retval;
         });
 
         return true;

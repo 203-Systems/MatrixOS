@@ -59,7 +59,7 @@ extern "C" {
         UIButton* button = getCppHandlePtrInPikaObj<UIButton>(self);
         if (!button) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         button->SetColorFunc([ctx]() -> Color {
@@ -67,7 +67,7 @@ extern "C" {
             Arg* result = SafeCallCallback0(ctx, (char*)"colorFunc");
 
             if (result) {
-                if (arg_getType(result) == ARG_TYPE_OBJECT) {
+                if (arg_isObject(result)) {
                     PikaObj* colorObj = arg_getObj(result);
                     Color* color = getCppValuePtrInPikaObj<Color>(colorObj);
                     if (color) {
@@ -100,7 +100,7 @@ extern "C" {
         UIButton* button = getCppHandlePtrInPikaObj<UIButton>(self);
         if (!button) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"pressCallback", pressCallback);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"pressCallback", pressCallback)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         button->OnPress([ctx]() {
@@ -116,7 +116,7 @@ extern "C" {
         UIButton* button = getCppHandlePtrInPikaObj<UIButton>(self);
         if (!button) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"holdCallback", holdCallback);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"holdCallback", holdCallback)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         button->OnHold([ctx]() {

@@ -30,6 +30,50 @@ extern "C" {
         return (int)evt->inputClass;
     }
 
+    int _MatrixOS_InputEvent_InputEvent_ClusterId(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt) return 0;
+        return evt->id.clusterId;
+    }
+
+    int _MatrixOS_InputEvent_InputEvent_MemberId(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt) return 0;
+        return evt->id.memberId;
+    }
+
+    int _MatrixOS_InputEvent_InputEvent_KeyState(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt || evt->inputClass != ::InputClass::Keypad) return 0;
+        return (int)evt->keypad.state;
+    }
+
+    pika_float _MatrixOS_InputEvent_InputEvent_KeyForce(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt || evt->inputClass != ::InputClass::Keypad) return 0.0f;
+        return (float)evt->keypad.pressure;
+    }
+
+    pika_float _MatrixOS_InputEvent_InputEvent_KeyValue(PikaObj *self, int index) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt || evt->inputClass != ::InputClass::Keypad) return 0.0f;
+        if (index == 0) return (float)evt->keypad.pressure;
+        if (index == 1) return (float)evt->keypad.velocity;
+        return 0.0f;
+    }
+
+    pika_bool _MatrixOS_InputEvent_InputEvent_KeyHold(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt || evt->inputClass != ::InputClass::Keypad) return false;
+        return evt->keypad.hold;
+    }
+
+    pika_bool _MatrixOS_InputEvent_InputEvent_KeyActive(PikaObj *self) {
+        InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);
+        if (!evt || evt->inputClass != ::InputClass::Keypad) return false;
+        return evt->keypad.Active();
+    }
+
     // Returns KeypadInfo if this is a keypad event, else None
     Arg* _MatrixOS_InputEvent_InputEvent_Keypad(PikaObj *self) {
         InputEvent* evt = getCppValuePtrInPikaObj<InputEvent>(self);

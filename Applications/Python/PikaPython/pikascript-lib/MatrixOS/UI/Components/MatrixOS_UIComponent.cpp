@@ -44,7 +44,7 @@ extern "C" {
         UIComponent* component = getCppHandlePtrInPikaObj<UIComponent>(self);
         if (!component) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"enableFunc", enableFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"enableFunc", enableFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         component->SetEnableFunc([ctx]() -> bool {

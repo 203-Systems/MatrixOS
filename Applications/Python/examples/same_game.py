@@ -5,6 +5,7 @@ from MatrixOS_Color import Color
 from MatrixOS_Dimension import Dimension
 from MatrixOS_Point import Point
 import MatrixOS_ColorEffects as ColorEffects
+from MatrixOS_KeyState import KeyState
 
 
 WIDTH = 8
@@ -48,8 +49,9 @@ game_state = SETUP_BOARD
 last_event_ms = 0
 random_seed = 1
 main_ui = None
-fn_was_active = False
-board_buttons = []
+pending_function_press = False
+pending_cell_x = -1
+pending_cell_y = -1
 
 
 def xy_index(x, y):
@@ -111,6 +113,9 @@ def reset_game():
     global last_color
     global game_state
     global last_event_ms
+    global pending_function_press
+    global pending_cell_x
+    global pending_cell_y
 
     seed_random()
     reset_board()
@@ -118,6 +123,9 @@ def reset_game():
     last_color = num_colors
     game_state = SETUP_BOARD
     last_event_ms = MatrixOS.SYS.Millis()
+    pending_function_press = False
+    pending_cell_x = -1
+    pending_cell_y = -1
 
 
 def get_cell_color(cell):
@@ -137,7 +145,6 @@ def render_board_cells():
 
 def render_game():
     now = MatrixOS.SYS.Millis()
-    sync_board_buttons()
     render_board_cells()
 
     if game_state == ENDED:
@@ -353,7 +360,7 @@ def update_game():
     global game_state
     global last_event_ms
 
-    update_function_key()
+    process_pending_input()
 
     if game_state == SETTINGS:
         return
@@ -438,358 +445,60 @@ def settings_enabled():
     return game_state == SETTINGS
 
 
-def update_function_key():
-    global fn_was_active
+def process_pending_input():
+    global pending_function_press
+    global pending_cell_x
+    global pending_cell_y
 
-    snapshot = MatrixOS.Input.GetState(MatrixOS.Input.FunctionKey())
-    active = False
+    if main_ui is not None:
+        event = main_ui.PullInput()
+        while event is not None:
+            handle_key_input(event)
+            event = main_ui.PullInput()
 
-    if snapshot is not None:
-        info = snapshot.Keypad()
-        if info is not None:
-            active = info.Active()
-
-    if active and not fn_was_active:
+    if pending_function_press:
+        pending_function_press = False
         if game_state == SETTINGS:
             exit_settings()
         else:
             enter_settings()
+        return
 
-    fn_was_active = active
+    if pending_cell_x >= 0 and pending_cell_y >= 0:
+        x = pending_cell_x
+        y = pending_cell_y
+        pending_cell_x = -1
+        pending_cell_y = -1
+        place(x, y)
 
 
-def board_enabled():
-    return game_state == WAITING
+def handle_key_input(event):
+    global pending_function_press
+    global pending_cell_x
+    global pending_cell_y
 
+    cluster_id = event.ClusterId()
+    state = event.KeyState()
+    member_id = event.MemberId()
 
-def sync_board_buttons():
-    for index in range(len(board_buttons)):
-        board_buttons[index].SetColor(get_cell_color(board[index]))
+    if cluster_id == 0 and member_id == 0:
+        if state == KeyState.PRESSED:
+            pending_function_press = True
+        return True
 
+    if game_state == SETTINGS:
+        return False
 
-def press_cell_0():
-    place(0, 0)
+    if state != KeyState.PRESSED:
+        return True
 
+    if cluster_id != 1 or member_id >= CELL_COUNT:
+        return True
 
-def press_cell_1():
-    place(1, 0)
+    pending_cell_x = member_id % WIDTH
+    pending_cell_y = member_id // WIDTH
 
-
-def press_cell_2():
-    place(2, 0)
-
-
-def press_cell_3():
-    place(3, 0)
-
-
-def press_cell_4():
-    place(4, 0)
-
-
-def press_cell_5():
-    place(5, 0)
-
-
-def press_cell_6():
-    place(6, 0)
-
-
-def press_cell_7():
-    place(7, 0)
-
-
-def press_cell_8():
-    place(0, 1)
-
-
-def press_cell_9():
-    place(1, 1)
-
-
-def press_cell_10():
-    place(2, 1)
-
-
-def press_cell_11():
-    place(3, 1)
-
-
-def press_cell_12():
-    place(4, 1)
-
-
-def press_cell_13():
-    place(5, 1)
-
-
-def press_cell_14():
-    place(6, 1)
-
-
-def press_cell_15():
-    place(7, 1)
-
-
-def press_cell_16():
-    place(0, 2)
-
-
-def press_cell_17():
-    place(1, 2)
-
-
-def press_cell_18():
-    place(2, 2)
-
-
-def press_cell_19():
-    place(3, 2)
-
-
-def press_cell_20():
-    place(4, 2)
-
-
-def press_cell_21():
-    place(5, 2)
-
-
-def press_cell_22():
-    place(6, 2)
-
-
-def press_cell_23():
-    place(7, 2)
-
-
-def press_cell_24():
-    place(0, 3)
-
-
-def press_cell_25():
-    place(1, 3)
-
-
-def press_cell_26():
-    place(2, 3)
-
-
-def press_cell_27():
-    place(3, 3)
-
-
-def press_cell_28():
-    place(4, 3)
-
-
-def press_cell_29():
-    place(5, 3)
-
-
-def press_cell_30():
-    place(6, 3)
-
-
-def press_cell_31():
-    place(7, 3)
-
-
-def press_cell_32():
-    place(0, 4)
-
-
-def press_cell_33():
-    place(1, 4)
-
-
-def press_cell_34():
-    place(2, 4)
-
-
-def press_cell_35():
-    place(3, 4)
-
-
-def press_cell_36():
-    place(4, 4)
-
-
-def press_cell_37():
-    place(5, 4)
-
-
-def press_cell_38():
-    place(6, 4)
-
-
-def press_cell_39():
-    place(7, 4)
-
-
-def press_cell_40():
-    place(0, 5)
-
-
-def press_cell_41():
-    place(1, 5)
-
-
-def press_cell_42():
-    place(2, 5)
-
-
-def press_cell_43():
-    place(3, 5)
-
-
-def press_cell_44():
-    place(4, 5)
-
-
-def press_cell_45():
-    place(5, 5)
-
-
-def press_cell_46():
-    place(6, 5)
-
-
-def press_cell_47():
-    place(7, 5)
-
-
-def press_cell_48():
-    place(0, 6)
-
-
-def press_cell_49():
-    place(1, 6)
-
-
-def press_cell_50():
-    place(2, 6)
-
-
-def press_cell_51():
-    place(3, 6)
-
-
-def press_cell_52():
-    place(4, 6)
-
-
-def press_cell_53():
-    place(5, 6)
-
-
-def press_cell_54():
-    place(6, 6)
-
-
-def press_cell_55():
-    place(7, 6)
-
-
-def press_cell_56():
-    place(0, 7)
-
-
-def press_cell_57():
-    place(1, 7)
-
-
-def press_cell_58():
-    place(2, 7)
-
-
-def press_cell_59():
-    place(3, 7)
-
-
-def press_cell_60():
-    place(4, 7)
-
-
-def press_cell_61():
-    place(5, 7)
-
-
-def press_cell_62():
-    place(6, 7)
-
-
-def press_cell_63():
-    place(7, 7)
-
-
-BOARD_PRESS_FUNCS = [
-    press_cell_0,
-    press_cell_1,
-    press_cell_2,
-    press_cell_3,
-    press_cell_4,
-    press_cell_5,
-    press_cell_6,
-    press_cell_7,
-    press_cell_8,
-    press_cell_9,
-    press_cell_10,
-    press_cell_11,
-    press_cell_12,
-    press_cell_13,
-    press_cell_14,
-    press_cell_15,
-    press_cell_16,
-    press_cell_17,
-    press_cell_18,
-    press_cell_19,
-    press_cell_20,
-    press_cell_21,
-    press_cell_22,
-    press_cell_23,
-    press_cell_24,
-    press_cell_25,
-    press_cell_26,
-    press_cell_27,
-    press_cell_28,
-    press_cell_29,
-    press_cell_30,
-    press_cell_31,
-    press_cell_32,
-    press_cell_33,
-    press_cell_34,
-    press_cell_35,
-    press_cell_36,
-    press_cell_37,
-    press_cell_38,
-    press_cell_39,
-    press_cell_40,
-    press_cell_41,
-    press_cell_42,
-    press_cell_43,
-    press_cell_44,
-    press_cell_45,
-    press_cell_46,
-    press_cell_47,
-    press_cell_48,
-    press_cell_49,
-    press_cell_50,
-    press_cell_51,
-    press_cell_52,
-    press_cell_53,
-    press_cell_54,
-    press_cell_55,
-    press_cell_56,
-    press_cell_57,
-    press_cell_58,
-    press_cell_59,
-    press_cell_60,
-    press_cell_61,
-    press_cell_62,
-    press_cell_63
-]
-
+    return True
 
 def add_button(ui, button, x, y, height, name, color_func, press_func):
     button.SetName(name)
@@ -800,17 +509,6 @@ def add_button(ui, button, x, y, height, name, color_func, press_func):
     ui.AddUIComponent(button, Point(x, y))
 
 
-def add_board_button(ui, x, y):
-    button = MatrixOS_UIButton.UIButton()
-    button.SetName("Cell")
-    button.SetSize(Dimension(1, 1))
-    button.SetColor(get_cell_color(get_cell(x, y)))
-    button.SetEnableFunc(board_enabled)
-    button.OnPress(BOARD_PRESS_FUNCS[xy_index(x, y)])
-    ui.AddUIComponent(button, Point(x, y))
-    board_buttons.append(button)
-
-
 reset_game()
 
 main_ui = MatrixOS_UI.UI("SameGame", Color(0xFFFFFF))
@@ -818,10 +516,6 @@ main_ui.AllowExit(False)
 main_ui.SetFPS(60)
 main_ui.SetLoopFunc(update_game)
 main_ui.SetPreRenderFunc(render_ui)
-
-for board_y in range(HEIGHT):
-    for board_x in range(WIDTH):
-        add_board_button(main_ui, board_x, board_y)
 
 color_2_button = MatrixOS_UIButton.UIButton()
 color_3_button = MatrixOS_UIButton.UIButton()
@@ -842,7 +536,3 @@ reset_button.OnPress(reset_from_settings)
 main_ui.AddUIComponent(reset_button, Point(7, 3))
 
 main_ui.Start()
-main_ui.Close()
-
-MatrixOS.LED.Fill(Color(0x000000))
-MatrixOS.LED.Update()

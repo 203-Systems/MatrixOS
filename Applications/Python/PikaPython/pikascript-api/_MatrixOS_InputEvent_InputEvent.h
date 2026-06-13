@@ -17,9 +17,16 @@
 
 PikaObj *New__MatrixOS_InputEvent_InputEvent(Args *args);
 
+int _MatrixOS_InputEvent_InputEvent_ClusterId(PikaObj *self);
 PikaObj* _MatrixOS_InputEvent_InputEvent_Id(PikaObj *self);
 int _MatrixOS_InputEvent_InputEvent_InputClass(PikaObj *self);
+pika_bool _MatrixOS_InputEvent_InputEvent_KeyActive(PikaObj *self);
+pika_float _MatrixOS_InputEvent_InputEvent_KeyForce(PikaObj *self);
+pika_bool _MatrixOS_InputEvent_InputEvent_KeyHold(PikaObj *self);
+int _MatrixOS_InputEvent_InputEvent_KeyState(PikaObj *self);
+pika_float _MatrixOS_InputEvent_InputEvent_KeyValue(PikaObj *self, int index);
 Arg* _MatrixOS_InputEvent_InputEvent_Keypad(PikaObj *self);
+int _MatrixOS_InputEvent_InputEvent_MemberId(PikaObj *self);
 pika_bool _MatrixOS_InputEvent_InputEvent___bool__(PikaObj *self);
 void _MatrixOS_InputEvent_InputEvent___init__(PikaObj *self);
 

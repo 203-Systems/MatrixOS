@@ -1,24 +1,19 @@
 # MatrixOS Python Interface - UI
 # Core UI class for creating user interfaces.
 #
-# Input handler example (input-centric, not keypad-assumed):
-#
-#   def on_input(event):
-#       if event.InputClass() != InputClass.KEYPAD:
-#           return False
-#       info = event.Keypad()
-#       if info is None:
-#           return False
-#       # handle keypad event using info.State(), info.Force(), etc.
-#       return True
+# Input capture example:
 #
 #   ui = MatrixOS.UI("Demo", Color(0xFFFFFF))
-#   ui.SetInputHandler(on_input)
+#   event = ui.PullInput()
+#   if event is not None:
+#       cluster_id = event.ClusterId()
+#       state = event.KeyState()
+#       member_id = event.MemberId()
+#
 #   ui.Start()
 
 from MatrixOS_UIComponent import UIComponent
 from MatrixOS_Point import Point
-from MatrixOS_InputEvent import InputEvent
 from MatrixOS_Color import Color
 
 class UI:
@@ -41,11 +36,10 @@ class UI:
     def SetPreRenderFunc(self, pre_renderFunc: any) -> bool: ...
     def SetPostRenderFunc(self, post_renderFunc: any) -> bool: ...
 
-    # Set the input handler callback.
-    # The handler receives an InputEvent and must return bool
-    # (True = consumed, False = propagate).
-    # Check event.InputClass() before accessing keypad-specific payload.
-    def SetInputHandler(self, input_handler: any) -> bool: ...
+    # Pull one queued keypad input code, or -1 when the queue is empty.
+    # Most apps should use MatrixOS_UI.UI.PullInput(), which wraps this as
+    # KeyEvent or None.
+    def PullInputCode(self) -> int: ...
 
     # UI Component management
     def AddUIComponent(self, uiComponent: UIComponent, xy: Point) -> None: ...
