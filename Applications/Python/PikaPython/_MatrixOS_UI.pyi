@@ -12,7 +12,7 @@
 #       # handle keypad event using info.State(), info.Force(), etc.
 #       return True
 #
-#   ui = MatrixOS.UI.UI("Demo", Color(0xFFFFFF))
+#   ui = MatrixOS.UI("Demo", Color(0xFFFFFF))
 #   ui.SetInputHandler(on_input)
 #   ui.Start()
 

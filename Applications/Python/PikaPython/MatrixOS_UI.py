@@ -1,4 +1,4 @@
-from _MatrixOS_UI import UI
+import _MatrixOS_UI
 
 from MatrixOS_UIComponent import UIComponent
 from MatrixOS_UIButton import UIButton
