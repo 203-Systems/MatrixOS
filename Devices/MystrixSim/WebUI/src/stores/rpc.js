@@ -285,6 +285,31 @@ async function waitForPythonMode(mode, timeoutMs = 1800) {
   return isPythonAppActive() && getPythonSessionMode() === mode
 }
 
+async function waitForPythonLaunch(mode, timeoutMs = 1800, startEventCount = get(pythonEvents).length) {
+  const deadline = Date.now() + timeoutMs
+  let sawActive = false
+
+  while (Date.now() < deadline) {
+    const active = isPythonAppActive()
+    const currentMode = getPythonSessionMode()
+
+    if (active && currentMode === mode) return { ok: true, mode: currentMode }
+    if (active) sawActive = true
+
+    if (get(pythonEvents).length > startEventCount) {
+      return { ok: true, mode: currentMode, completed: !active }
+    }
+
+    if (sawActive && !active) {
+      return { ok: true, mode: currentMode, completed: true }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+
+  return { ok: false, mode: getPythonSessionMode() }
+}
+
 // ---------------------------------------------------------------------------
 // RPC method handlers
 // ---------------------------------------------------------------------------
@@ -539,11 +564,12 @@ const handlers = {
     if (isPythonAppActive()) {
       return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
     }
+    const startEventCount = get(pythonEvents).length
     if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
 
-    const ok = await waitForPythonMode('app', params?.timeoutMs ?? 1800)
-    return ok
-      ? { ok: true, mode: getPythonSessionMode() }
+    const launched = await waitForPythonLaunch('app', params?.timeoutMs ?? 1800, startEventCount)
+    return launched.ok
+      ? { ok: true, mode: launched.mode, completed: launched.completed === true }
       : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
   },
 
@@ -555,11 +581,12 @@ const handlers = {
       return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
     }
     if (!stagePythonScript(name, text)) return { __error: ERR.UNSUPPORTED }
+    const startEventCount = get(pythonEvents).length
     if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
 
-    const ok = await waitForPythonMode('app', params?.timeoutMs ?? 1800)
-    return ok
-      ? { ok: true, name, size: text.length, mode: getPythonSessionMode() }
+    const launched = await waitForPythonLaunch('app', params?.timeoutMs ?? 1800, startEventCount)
+    return launched.ok
+      ? { ok: true, name, size: text.length, mode: launched.mode, completed: launched.completed === true }
       : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
   },
 

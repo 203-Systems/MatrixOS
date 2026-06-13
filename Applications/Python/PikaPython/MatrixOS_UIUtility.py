@@ -16,6 +16,9 @@ def TextScroll(text: str, color: Color, speed: int = 10, loop: bool = False) -> 
     """
     _MatrixOS_UIUtility.TextScroll(text, color, speed, loop)
 
+def text_scroll(text: str, color: Color, speed: int = 10, loop: bool = False) -> None:
+    TextScroll(text, color, speed, loop)
+
 def NumberSelector8x8(value: int, color: Color, name: str, lower_limit: int = INT_MIN, upper_limit: int = INT_MAX) -> int:
     """Interactive number selector on 8x8 grid
 
@@ -31,6 +34,9 @@ def NumberSelector8x8(value: int, color: Color, name: str, lower_limit: int = IN
     """
     return _MatrixOS_UIUtility.NumberSelector8x8(value, color, name, lower_limit, upper_limit)
 
+def number_selector_8x8(value: int, color: Color, name: str, lower_limit: int = INT_MIN, upper_limit: int = INT_MAX) -> int:
+    return NumberSelector8x8(value, color, name, lower_limit, upper_limit)
+
 def ColorPicker() -> any:
     """Interactive color picker interface
 
@@ -38,3 +44,6 @@ def ColorPicker() -> any:
         Selected color or None
     """
     return _MatrixOS_UIUtility.ColorPicker()
+
+def color_picker() -> any:
+    return ColorPicker()

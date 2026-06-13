@@ -163,3 +163,63 @@ Goal: make the public Python API pleasant without destabilizing the generated na
 - Consider adding a dedicated Python app input service if non-UI Python scripts need reliable event
   polling. It should mirror the UI-owned queue approach instead of exposing the global OS queue as the
   primary high-level API.
+
+## 2026-06-13: Partition and Cluster Introspection
+
+Goal: expose device layout information to Python apps without making app code depend on C++ binding
+objects directly.
+
+### Implemented
+
+- `_MatrixOS_LED` now exposes native LED partition primitives:
+  `GetPartitionCount()`, `GetPartitionName(index)`, `GetPartitionStart(index)`,
+  `GetPartitionSize(index)`, `GetPartitionType(index)`, `GetPartitionDefaultMultiplier(index)`, and
+  `GetPartitionIndex(name)`.
+- `MatrixOS_LED` wraps those primitives with `LEDPartition` objects and helpers:
+  `partition_count()`, `get_partition(index)`, `get_partition_by_name(name)`, and `partitions()`.
+- `InputId(cluster_id, member_id)` is now constructible from Python, so UI `KeyEvent.id()` can return
+  a real MatrixOS input id instead of forcing apps to carry separate cluster/member integers.
+- `MatrixOS_Input` now exposes keypad cluster helpers:
+  `get_cluster(target)`, `keypad_clusters()`, `keypad_cluster(name="")`, and `primary_grid()`.
+- Native input cluster objects are wrapped with `InputClusterView` on lowercase/Pythonic APIs. The
+  compatibility `GetClusters()` call still returns raw native objects, while app-facing helpers return
+  objects with both PascalCase and lowercase methods.
+- `MatrixOS_Input.get_state()` now returns `InputSnapshotView`, matching the existing event and keypad
+  proxy style.
+
+### API Shape
+
+Typical app code can now ask the device what exists before assuming an 8x8 grid:
+
+```python
+grid = MatrixOS.Input.primary_grid()
+if grid is not None:
+    width = grid.width()
+    height = grid.height()
+
+for partition in MatrixOS.LED.partitions():
+    print(partition.name, partition.start, partition.size)
+```
+
+The design keeps native modules as small data providers and keeps policy, naming, and Python
+ergonomics in the facade layer. This matches the `pika_lvgl` pattern more closely than expanding the
+native bindings into a second full object model.
+
+### Tests
+
+- `test_pythonic_facades.py` covers LED partition lookup and partition metadata helpers.
+- `test_framework_facades.py` covers dimension, input cluster, and input snapshot views.
+- `test_input_facades.py` covers input proxy unwrapping, cluster lookup, keypad cluster selection, and
+  primary grid access.
+- `test_ui_key_event.py` covers `KeyEvent.id()` and the pure-Python event-to-`InputId` conversion.
+- MystrixSim RPC smoke verified LED partition discovery and input cluster discovery in the live
+  PikaPython runtime. The stable remote path is currently `python.stage` followed by
+  `python.runStaged`; `python.runText` can race against short scripts that exit before the RPC wait
+  loop observes app mode.
+- Runtime smoke also found that dense expressions containing multiple object method calls can
+  misparse in PikaPython. Examples should assign object method results to local variables before
+  combining them in prints or larger expressions.
+- MIDI packet factory results are native packet objects, so lowercase methods attached to the Python
+  subclass are not reliable on those returned values. `MatrixOS_MIDI` now re-exports module-level
+  field helpers such as `velocity(packet)`, `status(packet)`, and `set_velocity(packet, value)` for a
+  Pythonic path that works with native-returned packets.

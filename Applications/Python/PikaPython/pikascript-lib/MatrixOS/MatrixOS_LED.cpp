@@ -84,4 +84,56 @@ extern "C" {
     int _MatrixOS_LED_GetLEDCount(PikaObj *self) {
         return MatrixOS::LED::GetLEDCount();
     }
+
+    int _MatrixOS_LED_GetPartitionCount(PikaObj *self) {
+        return (int)Device::LED::partitions.size();
+    }
+
+    char* _MatrixOS_LED_GetPartitionName(PikaObj *self, int index) {
+        if (index < 0 || index >= (int)Device::LED::partitions.size()) {
+            return (char*)"";
+        }
+        return (char*)Device::LED::partitions[index].name.c_str();
+    }
+
+    int _MatrixOS_LED_GetPartitionStart(PikaObj *self, int index) {
+        if (index < 0 || index >= (int)Device::LED::partitions.size()) {
+            return -1;
+        }
+        return Device::LED::partitions[index].start;
+    }
+
+    int _MatrixOS_LED_GetPartitionSize(PikaObj *self, int index) {
+        if (index < 0 || index >= (int)Device::LED::partitions.size()) {
+            return 0;
+        }
+        return Device::LED::partitions[index].size;
+    }
+
+    int _MatrixOS_LED_GetPartitionType(PikaObj *self, int index) {
+        if (index < 0 || index >= (int)Device::LED::partitions.size()) {
+            return 0;
+        }
+        return (int)Device::LED::partitions[index].type;
+    }
+
+    pika_float _MatrixOS_LED_GetPartitionDefaultMultiplier(PikaObj *self, int index) {
+        if (index < 0 || index >= (int)Device::LED::partitions.size()) {
+            return 0.0f;
+        }
+        return Device::LED::partitions[index].default_multiplier;
+    }
+
+    int _MatrixOS_LED_GetPartitionIndex(PikaObj *self, char* name) {
+        if (!name) {
+            return -1;
+        }
+        string target(name);
+        for (uint16_t i = 0; i < Device::LED::partitions.size(); i++) {
+            if (Device::LED::partitions[i].name == target) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

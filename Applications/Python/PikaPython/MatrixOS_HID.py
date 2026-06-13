@@ -9,3 +9,6 @@ import MatrixOS_HID_Touch as Touch
 
 def Ready() -> bool:
     return _MatrixOS_HID.Ready()
+
+def ready() -> bool:
+    return Ready()

@@ -178,3 +178,72 @@ Fix direction:
 
 - Avoid returned closures in shipped examples.
 - Add a small closure/default-argument regression before using CPython closure patterns.
+
+## 2026-06-13: Multiple object method calls in one expression can misparse
+
+Observed while smoke testing the Python facade in MystrixSim.
+
+This script failed even though each method works when called on its own:
+
+```python
+grid = MatrixOS.Input.primary_grid()
+print("grid", grid.cluster_id(), grid.name(), grid.width(), grid.height(), grid.input_count())
+```
+
+PikaPython reported:
+
+```text
+NameError: name 'grid.cluster_id' is not defined
+```
+
+The same calls pass when values are assigned first:
+
+```python
+cluster_id = grid.cluster_id()
+name = grid.name()
+width = grid.width()
+height = grid.height()
+input_count = grid.input_count()
+print("grid", cluster_id, name, width, height, input_count)
+```
+
+Fix direction:
+
+- Keep object facade methods available; single calls are stable in runtime smoke.
+- In shipped examples, avoid packing several object method calls into one expression.
+- Prefer local variables for debug prints and non-trivial expressions.
+- Add a parser regression before relying on dense CPython-style expressions in examples.
+
+## 2026-06-13: Native-subclass factory results can lose Python methods
+
+Observed while testing `MatrixOS.MIDI.note_on()`.
+
+`MatrixOS_MidiPacket.MidiPacket` originally added lowercase methods such as `velocity()` by
+subclassing the native `_MatrixOS_MidiPacket.MidiPacket`. Factory methods like `NoteOn()` return a
+native packet object, so the returned object does not reliably have the Python subclass methods:
+
+```python
+packet = MatrixOS.MIDI.note_on(0, 60, 100)
+packet.velocity()
+```
+
+PikaPython reported:
+
+```text
+NameError: name 'packet.velocity' is not defined
+```
+
+A pure Python wrapper object was tested, but that shape caused `import MatrixOS` to hang in the
+runtime, so the stable path is:
+
+```python
+packet = MatrixOS.MIDI.note_on(0, 60, 100)
+velocity = MatrixOS.MIDI.velocity(packet)
+```
+
+Fix direction:
+
+- Keep native packet PascalCase methods as the compatibility baseline.
+- Use module-level helper functions for Pythonic field access on native-returned packets.
+- Avoid wrapping native MIDI packet objects until PikaPython object lifecycle behavior is better
+  understood.

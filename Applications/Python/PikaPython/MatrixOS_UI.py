@@ -4,6 +4,7 @@ from MatrixOS_UIComponent import UIComponent
 from MatrixOS_UIButton import UIButton
 from MatrixOS_UISelector import UISelector
 from MatrixOS_UI4pxNumber import UI4pxNumber
+from MatrixOS_InputId import InputId
 
 class KeyEvent:
     def __init__(self, code: int):
@@ -26,6 +27,18 @@ class KeyEvent:
 
     def member_id(self) -> int:
         return self.MemberId()
+
+    def input_id(self) -> int:
+        return self.MemberId()
+
+    def Id(self):
+        return InputId(self.ClusterId(), self.MemberId())
+
+    def id(self):
+        return self.Id()
+
+    def as_input_id(self):
+        return self.Id()
 
     def X(self) -> int:
         if self.ClusterId() == 1:
@@ -72,6 +85,12 @@ class KeyEvent:
 
     def is_function_key(self) -> bool:
         return self.IsFunctionKey()
+
+    def IsGrid(self) -> bool:
+        return self.ClusterId() == 1
+
+    def is_grid(self) -> bool:
+        return self.IsGrid()
 
 class UI(_MatrixOS_UI.UI):
     def PullInput(self) -> any:

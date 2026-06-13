@@ -6,8 +6,21 @@
 extern "C" {
     PikaObj* New__MatrixOS_InputId_InputId(Args *args);
 
-    // InputId constructor — default creates an invalid InputId
-    void _MatrixOS_InputId_InputId___init__(PikaObj *self) {
+    // InputId constructor
+    // 0 args - invalid InputId
+    // 2 ints - cluster id and member id
+    void _MatrixOS_InputId_InputId___init__(PikaObj *self, PikaTuple* val) {
+        int arg_count = val == nullptr ? 0 : pikaTuple_getSize(val);
+        if (arg_count >= 2) {
+            int clusterId = pikaTuple_getInt(val, 0);
+            int memberId = pikaTuple_getInt(val, 1);
+            InputId id;
+            id.clusterId = (uint8_t)clusterId;
+            id.memberId = (uint16_t)memberId;
+            copyCppValueIntoPikaObj<InputId>(self, id);
+            return;
+        }
+
         createCppValueInPikaObj<InputId>(self);
     }
 

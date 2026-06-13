@@ -3076,11 +3076,12 @@ method_typedef(
 );
 
 void _MatrixOS_InputId_InputId___init__Method(PikaObj *self, Args *_args_){
-    _MatrixOS_InputId_InputId___init__(self);
+    PikaTuple* val = args_getTuple(_args_, "val");
+    _MatrixOS_InputId_InputId___init__(self, val);
 }
 method_typedef(
     _MatrixOS_InputId_InputId___init__,
-    "__init__", ""
+    "__init__", "*val"
 );
 
 void _MatrixOS_InputId_InputId___ne__Method(PikaObj *self, Args *_args_){
@@ -3416,6 +3417,75 @@ method_typedef(
     "GetLEDCount", ""
 );
 
+void _MatrixOS_LED_GetPartitionCountMethod(PikaObj *self, Args *_args_){
+    int res = _MatrixOS_LED_GetPartitionCount(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionCount,
+    "GetPartitionCount", ""
+);
+
+void _MatrixOS_LED_GetPartitionDefaultMultiplierMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    pika_float res = _MatrixOS_LED_GetPartitionDefaultMultiplier(self, index);
+    method_returnFloat(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionDefaultMultiplier,
+    "GetPartitionDefaultMultiplier", "index"
+);
+
+void _MatrixOS_LED_GetPartitionIndexMethod(PikaObj *self, Args *_args_){
+    char* name = args_getStr(_args_, "name");
+    int res = _MatrixOS_LED_GetPartitionIndex(self, name);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionIndex,
+    "GetPartitionIndex", "name"
+);
+
+void _MatrixOS_LED_GetPartitionNameMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    char* res = _MatrixOS_LED_GetPartitionName(self, index);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionName,
+    "GetPartitionName", "index"
+);
+
+void _MatrixOS_LED_GetPartitionSizeMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    int res = _MatrixOS_LED_GetPartitionSize(self, index);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionSize,
+    "GetPartitionSize", "index"
+);
+
+void _MatrixOS_LED_GetPartitionStartMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    int res = _MatrixOS_LED_GetPartitionStart(self, index);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionStart,
+    "GetPartitionStart", "index"
+);
+
+void _MatrixOS_LED_GetPartitionTypeMethod(PikaObj *self, Args *_args_){
+    int index = args_getInt(_args_, "index");
+    int res = _MatrixOS_LED_GetPartitionType(self, index);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _MatrixOS_LED_GetPartitionType,
+    "GetPartitionType", "index"
+);
+
 void _MatrixOS_LED_NextBrightnessMethod(PikaObj *self, Args *_args_){
     _MatrixOS_LED_NextBrightness(self);
 }
@@ -3487,6 +3557,9 @@ method_typedef(
 class_def(_MatrixOS_LED){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_LED_SetColor, 123130384),
+    method_def(_MatrixOS_LED_GetPartitionCount, 239152712),
+    method_def(_MatrixOS_LED_GetPartitionIndex, 246213495),
+    method_def(_MatrixOS_LED_GetPartitionStart, 258285485),
     method_def(_MatrixOS_LED_NextBrightness, 258496765),
     method_def(_MatrixOS_LED_SetColorByID, 465016696),
     method_def(_MatrixOS_LED_CurrentLayer, 629016229),
@@ -3494,9 +3567,13 @@ class_def(_MatrixOS_LED){
     method_def(_MatrixOS_LED_PauseUpdate, 737763366),
     method_def(_MatrixOS_LED_CopyLayer, 747289405),
     method_def(_MatrixOS_LED_DestroyLayer, 1168464492),
+    method_def(_MatrixOS_LED_GetPartitionDefaultMultiplier, 1172144171),
     method_def(_MatrixOS_LED_SetBrightnessMultiplier, 1324853969),
     method_def(_MatrixOS_LED_GetLEDCount, 1329998115),
     method_def(_MatrixOS_LED_Update, 1447607432),
+    method_def(_MatrixOS_LED_GetPartitionName, 1764658912),
+    method_def(_MatrixOS_LED_GetPartitionSize, 1764847738),
+    method_def(_MatrixOS_LED_GetPartitionType, 1764900769),
     method_def(_MatrixOS_LED_CreateLayer, 1811885430),
     method_def(_MatrixOS_LED_FillPartition, 1977799494),
     method_def(_MatrixOS_LED_Fade, 2089098229),

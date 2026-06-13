@@ -11,3 +11,15 @@ def Release(keycode: int) -> None:
 
 def ReleaseAll() -> None:
     _MatrixOS_HID_Consumer.ReleaseAll()
+
+def write(keycode: int) -> None:
+    Write(keycode)
+
+def press(keycode: int) -> None:
+    Press(keycode)
+
+def release(keycode: int) -> None:
+    Release(keycode)
+
+def release_all() -> None:
+    ReleaseAll()

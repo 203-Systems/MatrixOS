@@ -26,9 +26,11 @@ extern "C" {
         InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UISelector>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
+        ClearCallbackInPikaObj(self, (char*)"enableFunc");
         ClearCallbackInPikaObj(self, (char*)"getValueFunc");
         ClearCallbackInPikaObj(self, (char*)"changeCallback");
         ClearCallbackInPikaObj(self, (char*)"colorFunc");
+        ClearCallbackInPikaObj(self, (char*)"individualColorFunc");
         ClearCallbackInPikaObj(self, (char*)"nameFunc");
         DestroyCallbackContext(self);
         return true;
@@ -39,7 +41,7 @@ extern "C" {
         UISelector* selector = getCppHandlePtrInPikaObj<UISelector>(self);
         if (!selector) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"getValueFunc", getValueFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"getValueFunc", getValueFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         selector->SetValueFunc([ctx]() -> uint16_t {
@@ -124,7 +126,7 @@ extern "C" {
         UISelector* selector = getCppHandlePtrInPikaObj<UISelector>(self);
         if (!selector) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"changeCallback", changeCallback);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"changeCallback", changeCallback)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         selector->OnChange([ctx](uint16_t value) {
@@ -143,7 +145,7 @@ extern "C" {
         UISelector* selector = getCppHandlePtrInPikaObj<UISelector>(self);
         if (!selector) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         selector->SetColorFunc([ctx]() -> Color {
@@ -172,13 +174,13 @@ extern "C" {
         UISelector* selector = getCppHandlePtrInPikaObj<UISelector>(self);
         if (!selector) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"individualColorFunc", colorFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         selector->SetIndividualColorFunc([ctx](uint16_t index) -> Color {
             Color retval = Color::White;
             Arg* indexArg = arg_newInt(index);
-            Arg* result = SafeCallCallback1(ctx, (char*)"colorFunc", indexArg);
+            Arg* result = SafeCallCallback1(ctx, (char*)"individualColorFunc", indexArg);
 
             if (result) {
                 if (arg_getType(result) == ARG_TYPE_OBJECT) {
@@ -203,7 +205,7 @@ extern "C" {
         UISelector* selector = getCppHandlePtrInPikaObj<UISelector>(self);
         if (!selector) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"nameFunc", nameFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"nameFunc", nameFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         selector->SetIndividualNameFunc([ctx](uint16_t index) -> string {

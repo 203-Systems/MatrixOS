@@ -1,6 +1,6 @@
 import MatrixOS
+import MatrixOS_UI
 from MatrixOS_Color import Color
-import MatrixOS_InputClass as InputClass
 from MatrixOS_KeyState import KeyState
 
 
@@ -65,28 +65,17 @@ def hide_picker():
     draw_canvas()
 
 
-def paint_position(position):
-    x = position.x()
-    y = position.y()
+def paint_cell(x, y):
     index = color_index(x, y)
     color_grid[index] = active_color_index
     draw_canvas()
 
 
-def handle_keypad_event(event):
+def handle_key_event(event):
     global active_color_index
 
-    if event.input_class() != InputClass.KEYPAD:
-        return True
-
-    info = event.keypad()
-    if info is None:
-        return True
-
-    state = info.state()
-    input_id = event.id()
-
-    if input_id == MatrixOS.Input.function_key():
+    state = event.key_state()
+    if event.is_function_key():
         if state == KeyState.HOLD:
             return False
 
@@ -100,12 +89,11 @@ def handle_keypad_event(event):
     if state != KeyState.PRESSED:
         return True
 
-    position = MatrixOS.Input.get_position(input_id)
-    if position is None:
+    if not event.is_grid():
         return True
 
-    x = position.x()
-    y = position.y()
+    x = event.x()
+    y = event.y()
 
     if x < -1 or x > 8 or y < 0 or y >= 8:
         return True
@@ -113,22 +101,29 @@ def handle_keypad_event(event):
     if x >= 0 and x < 8 and picker_showing and y == 0:
         active_color_index = x
     else:
-        paint_position(position)
+        paint_cell(x, y)
 
     return True
 
 
+def loop():
+    event = main_ui.pull_input()
+    while event is not None:
+        if not handle_key_event(event):
+            main_ui.exit()
+            return
+        event = main_ui.pull_input()
+
+
 setup_grid()
-MatrixOS.Input.clear_input_buffer()
 MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
 show_picker()
 
-while True:
-    event = MatrixOS.Input.get_event(0)
-    if event is not None:
-        if not handle_keypad_event(event):
-            break
-    MatrixOS.SYS.sleep_ms(16)
+main_ui = MatrixOS_UI.UI("PixelArt", Color(0xFFFFFF))
+main_ui.allow_exit(False)
+main_ui.set_fps(60)
+main_ui.set_loop_func(loop)
+main_ui.start()
 
 MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
 MatrixOS.LED.show()

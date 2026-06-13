@@ -38,3 +38,42 @@ def RZAxis(value: int) -> None:
 
 def DPad(direction: int) -> None:
     _MatrixOS_HID_Gamepad.DPad(direction)
+
+def tap(button_id: int, length_ms: int = 100) -> None:
+    Tap(button_id, length_ms)
+
+def press(button_id: int) -> None:
+    Press(button_id)
+
+def release(button_id: int) -> None:
+    Release(button_id)
+
+def release_all() -> None:
+    ReleaseAll()
+
+def button(button_id: int, state: bool) -> None:
+    Button(button_id, state)
+
+def buttons(button_mask: int) -> None:
+    Buttons(button_mask)
+
+def x_axis(value: int) -> None:
+    XAxis(value)
+
+def y_axis(value: int) -> None:
+    YAxis(value)
+
+def z_axis(value: int) -> None:
+    ZAxis(value)
+
+def rx_axis(value: int) -> None:
+    RXAxis(value)
+
+def ry_axis(value: int) -> None:
+    RYAxis(value)
+
+def rz_axis(value: int) -> None:
+    RZAxis(value)
+
+def dpad(direction: int) -> None:
+    DPad(direction)

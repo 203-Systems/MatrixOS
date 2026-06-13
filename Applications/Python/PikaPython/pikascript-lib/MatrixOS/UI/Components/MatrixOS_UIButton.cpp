@@ -26,6 +26,7 @@ extern "C" {
         InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UIButton>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
+        ClearCallbackInPikaObj(self, (char*)"enableFunc");
         ClearCallbackInPikaObj(self, (char*)"colorFunc");
         ClearCallbackInPikaObj(self, (char*)"pressCallback");
         ClearCallbackInPikaObj(self, (char*)"holdCallback");

@@ -1,5 +1,26 @@
 import _MatrixOS_SYS
 
+class SystemVersion:
+    def __init__(self, value):
+        self.value = value
+
+    def major(self) -> int:
+        return self.value[0]
+
+    def minor(self) -> int:
+        return self.value[1]
+
+    def patch(self) -> int:
+        return self.value[2]
+
+    def build(self) -> int:
+        if len(self.value) < 4:
+            return 0
+        return self.value[3]
+
+    def tuple(self):
+        return self.value
+
 def Reboot() -> None:
     _MatrixOS_SYS.Reboot()
 
@@ -60,3 +81,6 @@ def GetVersion() -> tuple:
 
 def get_version() -> tuple:
     return GetVersion()
+
+def version():
+    return SystemVersion(GetVersion())

@@ -23,7 +23,7 @@ PikaObj* _MatrixOS_InputId_InputId_Invalid(PikaObj *self);
 int _MatrixOS_InputId_InputId_MemberId(PikaObj *self);
 pika_bool _MatrixOS_InputId_InputId___bool__(PikaObj *self);
 pika_bool _MatrixOS_InputId_InputId___eq__(PikaObj *self, PikaObj* other);
-void _MatrixOS_InputId_InputId___init__(PikaObj *self);
+void _MatrixOS_InputId_InputId___init__(PikaObj *self, PikaTuple* val);
 pika_bool _MatrixOS_InputId_InputId___ne__(PikaObj *self, PikaObj* other);
 
 #endif

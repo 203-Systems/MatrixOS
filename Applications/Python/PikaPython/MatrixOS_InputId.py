@@ -53,3 +53,6 @@ class InputIdView:
 
     def __bool__(self) -> bool:
         return bool(self.native)
+
+def input_id(cluster_id: int, member_id: int):
+    return InputId(cluster_id, member_id)

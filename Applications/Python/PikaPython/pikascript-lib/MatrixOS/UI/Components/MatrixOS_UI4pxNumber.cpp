@@ -26,6 +26,7 @@ extern "C" {
         InvalidateCallbackContext(self);
         destroyCppHandleInPikaObj<UI4pxNumber>(self);
         obj_setPtr(self, (char*)"_component", nullptr);
+        ClearCallbackInPikaObj(self, (char*)"enableFunc");
         ClearCallbackInPikaObj(self, (char*)"getValueFunc");
         ClearCallbackInPikaObj(self, (char*)"colorFunc");
         DestroyCallbackContext(self);
@@ -88,7 +89,7 @@ extern "C" {
         UI4pxNumber* number = getCppHandlePtrInPikaObj<UI4pxNumber>(self);
         if (!number) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"getValueFunc", getValueFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"getValueFunc", getValueFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         number->SetValueFunc([ctx]() -> int32_t {
@@ -113,7 +114,7 @@ extern "C" {
         UI4pxNumber* number = getCppHandlePtrInPikaObj<UI4pxNumber>(self);
         if (!number) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"colorFunc", colorFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         number->SetColorFunc([ctx](uint16_t digit) -> Color {
