@@ -4914,6 +4914,14 @@ method_typedef(
     "Close", ""
 );
 
+void _MatrixOS_UI_UI_ExitMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_UI_UI_Exit(self);
+}
+method_typedef(
+    _MatrixOS_UI_UI_Exit,
+    "Exit", ""
+);
+
 void _MatrixOS_UI_UI_SetColorMethod(PikaObj *self, Args *_args_){
     PikaObj* color = args_getPtr(_args_, "color");
     _MatrixOS_UI_UI_SetColor(self, color);
@@ -5045,6 +5053,7 @@ class_def(_MatrixOS_UI_UI){
     method_def(_MatrixOS_UI_UI_SetName, 1826218642),
     method_def(_MatrixOS_UI_UI_ClearUIComponents, 1827221072),
     method_def(_MatrixOS_UI_UI_SetPreRenderFunc, 2034883332),
+    method_def(_MatrixOS_UI_UI_Exit, 2089087519),
 };
 class_inhert(_MatrixOS_UI_UI, TinyObj);
 

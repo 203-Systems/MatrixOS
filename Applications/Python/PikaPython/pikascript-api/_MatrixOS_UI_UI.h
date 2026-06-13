@@ -21,6 +21,7 @@ void _MatrixOS_UI_UI_AddUIComponent(PikaObj *self, PikaObj* uiComponent, PikaObj
 void _MatrixOS_UI_UI_AllowExit(PikaObj *self, pika_bool allow);
 void _MatrixOS_UI_UI_ClearUIComponents(PikaObj *self);
 pika_bool _MatrixOS_UI_UI_Close(PikaObj *self);
+void _MatrixOS_UI_UI_Exit(PikaObj *self);
 void _MatrixOS_UI_UI_SetColor(PikaObj *self, PikaObj* color);
 pika_bool _MatrixOS_UI_UI_SetEndFunc(PikaObj *self, Arg* endFunc);
 void _MatrixOS_UI_UI_SetFPS(PikaObj *self, int fps);

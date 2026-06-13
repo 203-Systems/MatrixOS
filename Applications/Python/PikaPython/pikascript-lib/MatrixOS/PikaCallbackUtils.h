@@ -79,17 +79,12 @@ inline void DestroyCallbackContext(PikaObj* self)
 
 inline bool SaveCallbackObjToPikaObj(PikaObj *self, char* name, Arg* callback)
 {
-    Arg* existing_callback = obj_getArg(self, name);
-    if (existing_callback) {
-        arg_deinit(existing_callback);
-    }
-
     if(obj_setArg(self, name, callback) != PIKA_RES_OK)
     {
-        return true;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 // Remove a single named callback from the wrapper.

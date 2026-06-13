@@ -10,7 +10,7 @@ extern "C" {
     // UI constructor - supports optional parameters with progressive fill
     // Native UI object is heap-allocated via handle wrapper.
     void _MatrixOS_UI_UI___init__(PikaObj *self, PikaTuple* val) {
-        int arg_count = pikaTuple_getSize(val);
+        int arg_count = val == nullptr ? 0 : pikaTuple_getSize(val);
 
         // Start with defaults
         string name = "";
@@ -20,7 +20,9 @@ extern "C" {
         // Progressive fill based on available arguments
         if (arg_count >= 1) {
             char* name_arg = pikaTuple_getStr(val, 0);
-            name = string(name_arg);
+            if (name_arg) {
+                name = string(name_arg);
+            }
         }
 
         if (arg_count >= 2) {
@@ -66,6 +68,14 @@ extern "C" {
         ui->Start();
     }
 
+    // Exit method
+    void _MatrixOS_UI_UI_Exit(PikaObj *self) {
+        UI* ui = getCppHandlePtrInPikaObj<UI>(self);
+        if (!ui) return;
+
+        ui->Exit();
+    }
+
     // SetName method
     void _MatrixOS_UI_UI_SetName(PikaObj *self, char* name) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
@@ -97,8 +107,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetSetupFunc(PikaObj *self, Arg* setupFunc) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!setupFunc) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"setupFunc", setupFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"setupFunc", setupFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetSetupFunc([ctx]() {
@@ -113,8 +124,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetLoopFunc(PikaObj *self, Arg* loopFunc) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!loopFunc) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"loopFunc", loopFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"loopFunc", loopFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetLoopFunc([ctx]() {
@@ -129,8 +141,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetEndFunc(PikaObj *self, Arg* endFunc) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!endFunc) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"endFunc", endFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"endFunc", endFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetEndFunc([ctx]() {
@@ -145,8 +158,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetPreRenderFunc(PikaObj *self, Arg* pre_renderFunc) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!pre_renderFunc) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"preRenderFunc", pre_renderFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"preRenderFunc", pre_renderFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetPreRenderFunc([ctx]() {
@@ -161,8 +175,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetPostRenderFunc(PikaObj *self, Arg* post_renderFunc) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!post_renderFunc) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"postRenderFunc", post_renderFunc);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"postRenderFunc", post_renderFunc)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetPostRenderFunc([ctx]() {
@@ -181,8 +196,9 @@ extern "C" {
     pika_bool _MatrixOS_UI_UI_SetInputHandler(PikaObj *self, Arg* input_handler) {
         UI* ui = getCppHandlePtrInPikaObj<UI>(self);
         if (!ui) return false;
+        if (!input_handler) return false;
 
-        SaveCallbackObjToPikaObj(self, (char*)"inputHandler", input_handler);
+        if (!SaveCallbackObjToPikaObj(self, (char*)"inputHandler", input_handler)) return false;
         PythonCallbackContext* ctx = GetCallbackContext(self);
 
         ui->SetInputEventHandler([ctx](InputEvent* inputEvent) -> bool {
@@ -190,7 +206,7 @@ extern "C" {
 
             PikaObj* eventObj = newNormalObj(New__MatrixOS_InputEvent_InputEvent);
             copyCppValueIntoPikaObj<InputEvent>(eventObj, *inputEvent);
-            Arg* eventArg = arg_newObj(eventObj);
+            Arg* eventArg = arg_newRef(eventObj);
 
             Arg* result = SafeCallCallback1(ctx, (char*)"inputHandler", eventArg);
 
@@ -201,7 +217,6 @@ extern "C" {
                 }
                 arg_deinit(result);
             }
-            arg_deinit(eventArg);
 
             return retval;
         });
