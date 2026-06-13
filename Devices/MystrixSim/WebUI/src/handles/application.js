@@ -2,8 +2,14 @@ function getModule() {
   return window.Module ?? null
 }
 
+function isRuntimeReady(mod) {
+  return !!mod && (mod.runtimeReady || mod.calledRun)
+}
+
 function readModuleString(exportName) {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return ''
+
   const reader = mod?.[exportName]
   if (!reader || !mod?.UTF8ToString) return ''
 
@@ -15,7 +21,7 @@ function readModuleString(exportName) {
 
 export function getApplicationState() {
   const mod = getModule()
-  if (!mod?._MatrixOS_Wasm_GetApplicationListJson || !mod?.UTF8ToString) {
+  if (!isRuntimeReady(mod) || !mod?._MatrixOS_Wasm_GetApplicationListJson || !mod?.UTF8ToString) {
     return { activeApp: null, activeAppId: null, applications: [], available: false }
   }
 
@@ -39,6 +45,7 @@ export function getApplicationState() {
 
 export function launchApplication(appId) {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (!mod?._MatrixOS_Wasm_LaunchApp) return false
 
   mod._MatrixOS_Wasm_LaunchApp(appId >>> 0)

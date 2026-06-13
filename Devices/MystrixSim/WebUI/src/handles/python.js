@@ -4,6 +4,10 @@ function getModule() {
   return window.Module ?? null
 }
 
+function isRuntimeReady(mod) {
+  return !!mod && (mod.runtimeReady || mod.calledRun)
+}
+
 function withUtf8Pointer(mod, text, callback) {
   if (!mod?._malloc || !mod?._free || !mod?.HEAPU8) return false
 
@@ -22,11 +26,13 @@ function withUtf8Pointer(mod, text, callback) {
 
 export function hasPythonApp() {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   return !!mod?._MatrixOS_Wasm_HasPythonApp && mod._MatrixOS_Wasm_HasPythonApp() !== 0
 }
 
 export function isPythonAppActive() {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (mod?._MatrixOS_Wasm_IsPythonAppActive) {
     return mod._MatrixOS_Wasm_IsPythonAppActive() !== 0
   }
@@ -35,6 +41,7 @@ export function isPythonAppActive() {
 
 export function getPythonSessionMode() {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return 'none'
   if (!mod?._MatrixOS_Wasm_GetPythonSessionMode) {
     return isPythonAppActive() ? 'repl' : 'none'
   }
@@ -49,12 +56,14 @@ export function getPythonSessionMode() {
 
 export function enterPythonRepl() {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (!mod?._MatrixOS_Wasm_PythonEnterRepl) return false
   return mod._MatrixOS_Wasm_PythonEnterRepl() !== 0
 }
 
 export function stagePythonScript(fileName, text) {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (!mod?._MatrixOS_Wasm_PythonStageScript) return false
 
   return withUtf8Pointer(mod, fileName, (namePtr) => (
@@ -66,12 +75,14 @@ export function stagePythonScript(fileName, text) {
 
 export function runStagedPythonScript() {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (!mod?._MatrixOS_Wasm_PythonRunStaged) return false
   return mod._MatrixOS_Wasm_PythonRunStaged() !== 0
 }
 
 export function sendPythonInput(text) {
   const mod = getModule()
+  if (!isRuntimeReady(mod)) return false
   if (!mod?._MatrixOS_Wasm_PythonInjectInput) return false
 
   return withUtf8Pointer(mod, text, (textPtr, textLength) => (

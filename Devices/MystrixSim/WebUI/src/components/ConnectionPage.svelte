@@ -208,6 +208,47 @@
       ],
     },
     {
+      id: 'python',
+      summary: 'Python app launch, input, and output subscription.',
+      handles: [
+        {
+          name: 'python.status',
+          purpose: 'Return Python availability and current session mode.',
+          params: '{}',
+          result: '{ available, active, mode }',
+          example: "await matrixosRpc.call('python.status')",
+        },
+        {
+          name: 'python.runText',
+          purpose: 'Stage and run a Python script in app mode.',
+          params: "{ name: 'pixel_art.py', text: 'print(1)' }",
+          result: '{ ok, name, size, mode }',
+          example: "await matrixosRpc.call('python.runText', { name: 'pixel_art.py', text })",
+        },
+        {
+          name: 'python.input',
+          purpose: 'Send text into the Python REPL or running Python input stream.',
+          params: "{ text: 'print(1)\\n' }",
+          result: '{ ok: true }',
+          example: "await matrixosRpc.call('python.input', { text: 'print(1)\\n' })",
+        },
+        {
+          name: 'python.getOutput',
+          purpose: 'Read captured Python output history.',
+          params: "{ last: 20, mode: 'app' }",
+          result: '{ entries: [...] }',
+          example: "await matrixosRpc.call('python.getOutput', { last: 20 })",
+        },
+        {
+          name: 'python.subscribe',
+          purpose: 'Subscribe to Python stdout/stderr stream events.',
+          params: '{ } with callback on the caller side',
+          result: '{ ok: true }',
+          example: "await matrixosRpc.subscribe('python', callback)",
+        },
+      ],
+    },
+    {
       id: 'storage',
       summary: 'Storage-related APIs for NVS and the browser-backed virtual filesystem.',
       handles: [

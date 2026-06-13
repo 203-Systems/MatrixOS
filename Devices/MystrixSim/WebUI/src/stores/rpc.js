@@ -24,12 +24,22 @@ import { logMessages } from './logs.js'
 import { midiEvents, midiPorts } from './midi.js'
 import { hidEvents } from './hid.js'
 import { serialEvents } from './serial.js'
+import { pythonEvents } from './python.js'
 import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
 import { listInputs, executeInputEvents, getActiveInputs } from '../handles/input.js'
 import { getLedFrame, getLed } from '../handles/led.js'
 import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
 import { sendRawHid } from '../handles/hid.js'
 import { sendSerialText, sendSerialHex } from '../handles/serial.js'
+import {
+  hasPythonApp,
+  isPythonAppActive,
+  getPythonSessionMode,
+  enterPythonRepl,
+  stagePythonScript,
+  runStagedPythonScript,
+  sendPythonInput,
+} from '../handles/python.js'
 import {
   isFilesystemMounted,
   listFilesystemDirectory,
@@ -118,7 +128,7 @@ function installErrorCollectors() {
 // Subscription system (MIDI / HID / Serial push notifications)
 // ---------------------------------------------------------------------------
 
-const _subs = { midi: [], hid: [], serial: [] }
+const _subs = { midi: [], hid: [], serial: [], python: [] }
 
 function _subscribe(topic, callback) {
   if (!_subs[topic]) return () => {}
@@ -139,6 +149,7 @@ function initSubscriptionBridge() {
   let prevMidi   = get(midiEvents).length
   let prevHid    = get(hidEvents).length
   let prevSerial = get(serialEvents).length
+  let prevPython = get(pythonEvents).length
 
   midiEvents.subscribe(evts => {
     if (evts.length > prevMidi) {
@@ -186,6 +197,19 @@ function initSubscriptionBridge() {
       })
     }
     prevSerial = evts.length
+  })
+
+  pythonEvents.subscribe(evts => {
+    if (evts.length > prevPython) {
+      evts.slice(prevPython).forEach(evt => {
+        _subs.python.forEach(cb => cb({
+          timestamp: new Date().toISOString(),
+          mode: evt.mode,
+          payload: evt.text,
+        }))
+      })
+    }
+    prevPython = evts.length
   })
 }
 
@@ -248,6 +272,17 @@ function encodeRpcBytes(bytes, encoding = 'base64') {
   }
 
   return btoa(String.fromCharCode(...data))
+}
+
+async function waitForPythonMode(mode, timeoutMs = 1800) {
+  const deadline = Date.now() + timeoutMs
+
+  while (Date.now() < deadline) {
+    if (isPythonAppActive() && getPythonSessionMode() === mode) return true
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+
+  return isPythonAppActive() && getPythonSessionMode() === mode
 }
 
 // ---------------------------------------------------------------------------
@@ -468,6 +503,95 @@ const handlers = {
   'serial.subscribe': (params, notifyFn) => {
     if (typeof notifyFn !== 'function') return { __error: ERR.INVALID_PARAMS }
     const unsub = _subscribe('serial', notifyFn)
+    return { ok: true, __cleanup: unsub }
+  },
+
+  // ---- Python ----
+
+  'python.status': () => ({
+    available: hasPythonApp(),
+    active: isPythonAppActive(),
+    mode: getPythonSessionMode(),
+  }),
+
+  'python.enterRepl': async (params) => {
+    if (isPythonAppActive()) {
+      return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
+    }
+    if (!enterPythonRepl()) return { __error: ERR.UNSUPPORTED }
+
+    const ok = await waitForPythonMode('repl', params?.timeoutMs ?? 1800)
+    return ok
+      ? { ok: true, mode: getPythonSessionMode() }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python REPL did not become active.' } }
+  },
+
+  'python.stage': (params) => {
+    const name = params?.name ?? params?.fileName ?? 'remote.py'
+    const text = params?.text
+    if (typeof name !== 'string' || typeof text !== 'string') return { __error: ERR.INVALID_PARAMS }
+
+    const ok = stagePythonScript(name, text)
+    return ok ? { ok: true, name, size: text.length } : { __error: ERR.UNSUPPORTED }
+  },
+
+  'python.runStaged': async (params) => {
+    if (isPythonAppActive()) {
+      return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
+    }
+    if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
+
+    const ok = await waitForPythonMode('app', params?.timeoutMs ?? 1800)
+    return ok
+      ? { ok: true, mode: getPythonSessionMode() }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
+  },
+
+  'python.runText': async (params) => {
+    const name = params?.name ?? params?.fileName ?? 'remote.py'
+    const text = params?.text
+    if (typeof name !== 'string' || typeof text !== 'string') return { __error: ERR.INVALID_PARAMS }
+    if (isPythonAppActive()) {
+      return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
+    }
+    if (!stagePythonScript(name, text)) return { __error: ERR.UNSUPPORTED }
+    if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
+
+    const ok = await waitForPythonMode('app', params?.timeoutMs ?? 1800)
+    return ok
+      ? { ok: true, name, size: text.length, mode: getPythonSessionMode() }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
+  },
+
+  'python.input': (params) => {
+    const text = params?.text
+    if (typeof text !== 'string') return { __error: ERR.INVALID_PARAMS }
+
+    const ok = sendPythonInput(text)
+    return ok ? { ok: true } : { __error: ERR.UNSUPPORTED }
+  },
+
+  'python.getOutput': (params) => {
+    let entries = get(pythonEvents).map(evt => ({
+      timestamp: evt.timestamp,
+      mode: evt.mode,
+      text: evt.text,
+    }))
+
+    if (params?.mode) {
+      entries = entries.filter(evt => evt.mode === params.mode)
+    }
+
+    if (typeof params?.last === 'number') {
+      entries = entries.slice(-params.last)
+    }
+
+    return { entries }
+  },
+
+  'python.subscribe': (params, notifyFn) => {
+    if (typeof notifyFn !== 'function') return { __error: ERR.INVALID_PARAMS }
+    const unsub = _subscribe('python', notifyFn)
     return { ok: true, __cleanup: unsub }
   },
 
