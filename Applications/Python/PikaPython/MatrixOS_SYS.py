@@ -31,6 +31,10 @@ def bootloader() -> None:
     _MatrixOS_SYS.Bootloader()
 
 
+def exit_app() -> None:
+    _MatrixOS_SYS.ExitAPP()
+
+
 def sleep_ms(ms: int) -> None:
     _MatrixOS_SYS.DelayMs(ms)
 

@@ -526,16 +526,13 @@ def render_if_needed():
         LED.update()
 
 
-def main_loop():
-    reset_game()
-    Input.clear_input_buffer()
+def loop():
+    if not app_running:
+        return
 
-    while app_running:
-        update_game()
-        render_if_needed()
-        SYS.task_yield()
-
-    Input.clear_input_buffer()
+    update_game()
+    render_if_needed()
 
 
-main_loop()
+reset_game()
+Input.clear_input_buffer()

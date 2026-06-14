@@ -12,6 +12,10 @@ extern "C" {
         MatrixOS::SYS::Bootloader();
     }
 
+    void _MatrixOS_SYS_ExitAPP(PikaObj *self) {
+        MatrixOS::SYS::ExitAPP();
+    }
+
     void _MatrixOS_SYS_DelayMs(PikaObj *self, int ms) {
         MatrixOS::SYS::DelayMs(ms);
     }

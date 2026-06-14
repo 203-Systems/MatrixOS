@@ -18,6 +18,12 @@ import MatrixOS_Timer as _Timer
 import MatrixOS_UI as _UI
 import MatrixOS_UIUtility as _UIUtility
 import MatrixOS_USB as _USB
+import MatrixOS_ColorEffects as ColorEffects
+from MatrixOS_Color import Color
+from MatrixOS_Dimension import Dimension
+from MatrixOS_KeyState import KeyState
+from MatrixOS_Point import Point
+from MatrixOS_Timer import Timer
 
 
 class _SystemAPI:
@@ -26,6 +32,9 @@ class _SystemAPI:
 
     def bootloader(self) -> None:
         _SYS.bootloader()
+
+    def exit_app(self) -> None:
+        _SYS.exit_app()
 
     def sleep_ms(self, ms: int) -> None:
         _SYS.sleep_ms(ms)
@@ -396,12 +405,6 @@ LED = _LedAPI()
 Input = _InputAPI()
 Framework = _FrameworkAPI()
 UI = _UiAPI()
-Timer = _Timer.Timer
-Color = _Framework.Color
-Point = _Framework.Point
-Dimension = _Framework.Dimension
-KeyState = _Framework.KeyState
-ColorEffects = _Framework.ColorEffects
 MIDI = _MidiAPI()
 NVS = _NvsAPI()
 HID = _HidAPI()

@@ -169,6 +169,7 @@ sys.modules["_MatrixOS_Input"] = input_native
 sys_native = types.ModuleType("_MatrixOS_SYS")
 sys_native.Reboot = lambda: None
 sys_native.Bootloader = lambda: None
+sys_native.ExitAPP = lambda: None
 sys_native.DelayMs = lambda ms: None
 sys_native.TaskYield = lambda: None
 sys_native.Millis = lambda: 1000
@@ -255,6 +256,7 @@ sys.modules["_MatrixOS_HID_Keyboard"].ReleaseAll = lambda: None
 sys.modules["_MatrixOS_HID_RawHID"].Get = lambda timeout_ms: b""
 sys.modules["_MatrixOS_HID_RawHID"].Send = lambda report, length: True
 sys.modules["_MatrixOS_ColorEffects"].Rainbow = lambda period, offset: NativeColor()
+sys.modules["_MatrixOS_ColorEffects"].ColorBreathLowBound = lambda color, low_bound, period, offset: color
 sys.modules["_MatrixOS_Utils"].StringHash = lambda text: len(text)
 sys.modules["_MatrixOS_UI"].UI = object
 sys.modules["_MatrixOS_UIComponent"].UIComponent = object
@@ -292,16 +294,20 @@ def test_matrixos_top_level_facade_is_pythonic_only():
     assert MatrixOS.Input.FUNCTION_KEY == MatrixOS.Input.function_key()
     assert MatrixOS.Input.get_position(NativeInputId()).x() == 2
     assert MatrixOS.SYS.millis() == 1000
+    MatrixOS.SYS.exit_app()
     assert MatrixOS.LED.fill_partition("Grid", NativeColor())
     assert MatrixOS.HID.ready()
     assert MatrixOS.USB.connected()
     assert MatrixOS.UI.Button is not None
     assert MatrixOS.Timer is not None
     assert MatrixOS.ColorEffects.rainbow() is not None
+    assert MatrixOS.ColorEffects.color_breath_low_bound(NativeColor(), 64, 2000, 1) is not None
 
     assert not hasattr(MatrixOS.Input, "GetPosition")
     assert not hasattr(MatrixOS.Input, "FunctionKey")
+    assert not hasattr(MatrixOS.Input, "suppress_active_inputs")
     assert not hasattr(MatrixOS.SYS, "DelayMs")
+    assert not hasattr(MatrixOS.SYS, "ExitAPP")
     assert not hasattr(MatrixOS.SYS, "TaskYield")
     assert not hasattr(MatrixOS.LED, "FillPartition")
     assert not hasattr(MatrixOS.MIDI, "Send")

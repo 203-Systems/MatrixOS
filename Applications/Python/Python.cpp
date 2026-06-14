@@ -436,6 +436,14 @@ void Python::Setup(const vector<string>& args) {
     if (ExecutePythonFile(pythonFilePath))
     {
       MLOGD("Python", "Python script executed successfully");
+      Arg* loopMethod = obj_getMethodArg(pikaMain, (char*)"loop");
+      if (loopMethod != nullptr)
+      {
+        arg_deinit(loopMethod);
+        hasLoop = true;
+        MLOGD("Python", "Python script loop() registered");
+        return;
+      }
     }
     else
     {
@@ -463,6 +471,15 @@ void Python::Setup(const vector<string>& args) {
   }
 
   Exit();
+}
+
+void Python::Loop() {
+  if (!hasLoop)
+  {
+    return;
+  }
+
+  obj_run(pikaMain, (char*)"loop()");
 }
 
 bool Python::ExecutePythonFile(const string& filePath) {
@@ -547,6 +564,7 @@ bool Python::ExecutePythonFile(const string& filePath) {
 
 void Python::End() {
   matrixos_python_notify_mode(0);
+  hasLoop = false;
   // Deinitialize PikaPython after shell exits
   obj_deinit(pikaMain);
 }

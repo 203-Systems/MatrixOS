@@ -295,6 +295,13 @@ bool EmitKeyEvent(InputId id, KeyState* ks) {
     if (!ks->info.Active())
     {
       ks->suppressed = false;
+      if (ks->info.state == KeypadState::Released)
+      {
+        ks->info.state = KeypadState::Idle;
+        ks->info.pressure = 0;
+        ks->info.velocity = 0;
+        ks->info.hold = false;
+      }
     }
     return false;
   }

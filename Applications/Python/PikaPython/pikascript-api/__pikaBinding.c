@@ -4311,6 +4311,14 @@ method_typedef(
     "ExecuteAPPByID", "app_id,args"
 );
 
+void _MatrixOS_SYS_ExitAPPMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_SYS_ExitAPP(self);
+}
+method_typedef(
+    _MatrixOS_SYS_ExitAPP,
+    "ExitAPP", ""
+);
+
 void _MatrixOS_SYS_GetVersionMethod(PikaObj *self, Args *_args_){
     PikaObj* res = _MatrixOS_SYS_GetVersion(self);
     method_returnObj(_args_, res);
@@ -4372,6 +4380,7 @@ class_def(_MatrixOS_SYS){
     method_def(_MatrixOS_SYS_Millis, 1126521967),
     method_def(_MatrixOS_SYS_TaskYield, 1147822799),
     method_def(_MatrixOS_SYS_Reboot, 1317099344),
+    method_def(_MatrixOS_SYS_ExitAPP, 1657393376),
     method_def(_MatrixOS_SYS_DelayMs, 1772772468),
     method_def(_MatrixOS_SYS_ExecuteAPP, 2062655097),
 };

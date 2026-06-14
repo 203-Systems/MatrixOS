@@ -1,23 +1,23 @@
 import MatrixOS
-from MatrixOS_Color import Color
-from MatrixOS_KeyState import KeyState
 
 
 PICKER_COLORS = [
-    Color(0xFF0000),
-    Color(0xFFFF00),
-    Color(0x00FF00),
-    Color(0x00FFFF),
-    Color(0x0000FF),
-    Color(0xFF00FF),
-    Color(0xFFFFFF),
-    Color(0x000000),
+    MatrixOS.Color(0xFF0000),
+    MatrixOS.Color(0xFFFF00),
+    MatrixOS.Color(0x00FF00),
+    MatrixOS.Color(0x00FFFF),
+    MatrixOS.Color(0x0000FF),
+    MatrixOS.Color(0xFF00FF),
+    MatrixOS.Color(0xFFFFFF),
+    MatrixOS.Color(0x000000),
 ]
 
 BLACK_INDEX = 7
 active_color_index = 6
 picker_showing = True
 color_grid = []
+app_running = True
+function_key = MatrixOS.Input.function_key()
 
 
 def setup_grid():
@@ -72,57 +72,50 @@ def paint_cell(x, y):
 
 def handle_key_event(event):
     global active_color_index
+    global app_running
 
-    state = event.key_state()
-    if event.is_function_key():
-        if state == KeyState.HOLD:
-            return False
-
-        if state == KeyState.RELEASED:
+    if event.id() == function_key:
+        if event.is_hold():
+            app_running = False
+            MatrixOS.SYS.exit_app()
+            return
+        if event.is_released():
             if picker_showing:
                 hide_picker()
             else:
                 show_picker()
-        return True
+        return
 
-    if state != KeyState.PRESSED:
-        return True
+    if not event.is_pressed():
+        return
 
-    if not event.is_grid():
-        return True
+    xy = MatrixOS.Input.try_get_point(event.id())
+    if xy is None:
+        return
 
-    x = event.x()
-    y = event.y()
+    x = xy.x()
+    y = xy.y()
 
     if x < -1 or x > 8 or y < 0 or y >= 8:
-        return True
+        return
 
     if x >= 0 and x < 8 and picker_showing and y == 0:
         active_color_index = x
     else:
         paint_cell(x, y)
 
-    return True
-
 
 def loop():
-    event = main_ui.pull_input()
+    if not app_running:
+        return
+
+    event = MatrixOS.Input.get_event()
     while event is not None:
-        if not handle_key_event(event):
-            main_ui.exit()
-            return
-        event = main_ui.pull_input()
+        handle_key_event(event)
+        event = MatrixOS.Input.get_event()
 
 
 setup_grid()
 MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
 show_picker()
-
-main_ui = MatrixOS.UI.UI("PixelArt", Color(0xFFFFFF))
-main_ui.allow_exit(False)
-main_ui.set_fps(60)
-main_ui.set_loop_func(loop)
-main_ui.start()
-
-MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
-MatrixOS.LED.show()
+MatrixOS.Input.clear_input_buffer()

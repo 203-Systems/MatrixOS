@@ -17,8 +17,10 @@ public:
   };
 
   PikaObj* pikaMain;
+  bool hasLoop = false;
 
   void Setup(const vector<string>& args) override;
+  void Loop() override;
   void End() override;
 
 private:
