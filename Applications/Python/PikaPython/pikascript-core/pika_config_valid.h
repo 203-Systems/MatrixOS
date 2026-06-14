@@ -93,6 +93,10 @@ extern "C" {
             #define PIKA_SHELL_HISTORY_ENABLE 0
         #endif
 
+        #ifndef PIKA_TAB_ENABLE
+            #define PIKA_TAB_ENABLE 0
+        #endif
+
     #endif
 
     /* default optimize */
@@ -119,7 +123,7 @@ extern "C" {
             #define PIKA_ARG_CACHE_ENABLE 1
         #endif
     #endif
-    
+
     /* auto config for syntax level */
     #if PIKA_SYNTAX_LEVEL == PIKA_SYNTAX_LEVEL_MINIMAL
         #ifndef PIKA_SYNTAX_SLICE_ENABLE
@@ -137,11 +141,11 @@ extern "C" {
         #ifndef PIKA_STD_DEVICE_UNIX_TIME_ENABLE
             #define PIKA_STD_DEVICE_UNIX_TIME_ENABLE 0
         #endif
-        
+
         #ifndef PIKA_SYNTAX_EXCEPTION_ENABLE
             #define PIKA_SYNTAX_EXCEPTION_ENABLE 0
         #endif
-        
+
         #ifndef PIKA_SYNTAX_IMPORT_EX_ENABLE
             #define PIKA_SYNTAX_IMPORT_EX_ENABLE 0
         #endif
@@ -174,11 +178,11 @@ extern "C" {
         #ifndef PIKA_STD_DEVICE_UNIX_TIME_ENABLE
             #define PIKA_STD_DEVICE_UNIX_TIME_ENABLE 1
         #endif
-        
+
         #ifndef PIKA_SYNTAX_EXCEPTION_ENABLE
             #define PIKA_SYNTAX_EXCEPTION_ENABLE 1
         #endif
-        
+
         #ifndef PIKA_SYNTAX_IMPORT_EX_ENABLE
             #define PIKA_SYNTAX_IMPORT_EX_ENABLE 1
         #endif
@@ -241,7 +245,7 @@ extern "C" {
     #ifndef PIKA_INIT_STRING_ENABLE
         #define PIKA_INIT_STRING_ENABLE 0
     #endif
-    
+
     #ifndef PIKA_SYNTAX_SLICE_ENABLE
         #define PIKA_SYNTAX_SLICE_ENABLE 1
     #endif
@@ -256,7 +260,7 @@ extern "C" {
 
     #ifndef PIKA_SYNTAX_IMPORT_EX_ENABLE
         #define PIKA_SYNTAX_IMPORT_EX_ENABLE 1
-    #endif      
+    #endif
 
     #ifndef PIKA_PLOOC_ENABLE
         #define PIKA_PLOOC_ENABLE 0
@@ -329,11 +333,11 @@ extern "C" {
     #ifndef PIKA_INSTRUCT_YIELD_PERIOD
         #define PIKA_INSTRUCT_YIELD_PERIOD 1
     #endif
-    
+
     #ifndef PIKA_INSTRUCT_EXTENSION_ENABLE
         #define PIKA_INSTRUCT_EXTENSION_ENABLE 1
     #endif
-    
+
     #ifndef PIKA_INSTRUCT_SIGNATURE_DICT_COUNT
         #define PIKA_INSTRUCT_SIGNATURE_DICT_COUNT 1
     #endif
@@ -346,7 +350,7 @@ extern "C" {
     #ifndef PIKA_STRING_UTF8_ENABLE
         #define PIKA_STRING_UTF8_ENABLE 1
     #endif
-    
+
     #ifndef PIKA_PRINT_LLD_ENABLE
         #define PIKA_PRINT_LLD_ENABLE 1
     #endif
@@ -406,7 +410,7 @@ extern "C" {
     #ifndef PIKA_EVENT_PICKUP_MAX
         #define PIKA_EVENT_PICKUP_MAX 2
     #endif
-        
+
     #ifndef PIKA_BYTECODE_ONLY_ENABLE
         #define PIKA_BYTECODE_ONLY_ENABLE 0
     #endif
@@ -426,7 +430,7 @@ extern "C" {
     #ifndef PIKA_ZEUSOS_ENABLE
         #define PIKA_ZEUSOS_ENABLE 0
     #endif
-    
+
     #ifndef PIKA_LINUX_COMPATIBLE
         #define PIKA_LINUX_COMPATIBLE 0
     #endif
@@ -479,6 +483,10 @@ extern "C" {
         #define PIKA_EVENT_THREAD_ENABLE 1
     #endif
 
+    #ifndef PIKA_COROUTINE_ENABLE
+        #define PIKA_COROUTINE_ENABLE 0
+    #endif
+
     #ifndef PIKA_GC_MARK_SWEEP_ENABLE
         #define PIKA_GC_MARK_SWEEP_ENABLE 0
     #endif
@@ -493,6 +501,10 @@ extern "C" {
 
     #ifndef PIKA_SHELL_HISTORY_ENABLE
         #define PIKA_SHELL_HISTORY_ENABLE 1
+    #endif
+
+    #ifndef PIKA_TAB_ENABLE
+        #define PIKA_TAB_ENABLE 0
     #endif
 
     #ifndef PIKA_SHELL_HISTORY_NUM
@@ -516,6 +528,9 @@ extern "C" {
     #endif
 
     /* configuration validation */
+#if PIKA_COROUTINE_ENABLE && PIKA_EVENT_THREAD_ENABLE
+    #error "PIKA_COROUTINE_ENABLE can not used with PIKA_EVENT_THREAD_ENABLE"
+#endif
 
 #endif
 #ifdef __cplusplus

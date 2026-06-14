@@ -300,6 +300,8 @@ def test_matrixos_top_level_facade_is_pythonic_only():
     assert MatrixOS.USB.connected()
     assert MatrixOS.UI.Button is not None
     assert MatrixOS.Timer is not None
+    assert MatrixOS.Utils.string_hash("Matrix") == 6
+    assert MatrixOS.Utils.saved_var_hash("Dice", "mode") == len("Dice-mode")
     assert MatrixOS.ColorEffects.rainbow() is not None
     assert MatrixOS.ColorEffects.color_breath_low_bound(NativeColor(), 64, 2000, 1) is not None
 

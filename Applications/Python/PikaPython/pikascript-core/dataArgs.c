@@ -529,9 +529,15 @@ char* strsFormatArg(Args* out_buffs, char* fmt, Arg* arg) {
                 fmt = strsReplace(&buffs, fmt, sym, "%f");
                 break;
             }
+            if (type == ARG_TYPE_BOOL) {
+                fmt = strsReplace(&buffs, fmt, sym, "%d");
+                break;
+            }
             if (type == ARG_TYPE_POINTER) {
                 fmt = strsReplace(&buffs, fmt, sym, "%p");
                 break;
+            } else {
+                fmt = strsReplace(&buffs, fmt, sym, "%s");
             }
         }
     }
@@ -550,9 +556,21 @@ char* strsFormatArg(Args* out_buffs, char* fmt, Arg* arg) {
         res = strsFormat(&buffs, PIKA_SPRINTF_BUFF_SIZE, fmt, val);
         goto __exit;
     }
+    if (ARG_TYPE_BOOL == type) {
+        pika_bool val = arg_getBool(arg);
+        res = strsFormat(&buffs, PIKA_SPRINTF_BUFF_SIZE, fmt, val);
+        goto __exit;
+    }
     if (ARG_TYPE_NONE == type) {
         res = strsFormat(&buffs, PIKA_SPRINTF_BUFF_SIZE, fmt, "None");
         goto __exit;
+    } else {
+        Arg* arg_str = arg_toStrArg(arg);
+        if (NULL != arg_str) {
+            res = strsFormat(&buffs, PIKA_SPRINTF_BUFF_SIZE, fmt,
+                             arg_getStr(arg_str));
+            arg_deinit(arg_str);
+        }
     }
 __exit:
     if (NULL != res) {

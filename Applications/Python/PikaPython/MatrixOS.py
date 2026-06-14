@@ -18,6 +18,7 @@ import MatrixOS_Timer as _Timer
 import MatrixOS_UI as _UI
 import MatrixOS_UIUtility as _UIUtility
 import MatrixOS_USB as _USB
+import MatrixOS_Utils as _Utils
 import MatrixOS_ColorEffects as ColorEffects
 from MatrixOS_Color import Color
 from MatrixOS_Dimension import Dimension
@@ -400,6 +401,14 @@ class _UiUtilityAPI:
         return _UIUtility.color_picker()
 
 
+class _UtilsAPI:
+    def string_hash(self, text: str) -> int:
+        return _Utils.string_hash(text)
+
+    def saved_var_hash(self, scope: str, name: str) -> int:
+        return _Utils.string_hash(scope + "-" + name)
+
+
 SYS = _SystemAPI()
 LED = _LedAPI()
 Input = _InputAPI()
@@ -410,3 +419,4 @@ NVS = _NvsAPI()
 HID = _HidAPI()
 USB = _UsbAPI()
 UIUtility = _UiUtilityAPI()
+Utils = _UtilsAPI()

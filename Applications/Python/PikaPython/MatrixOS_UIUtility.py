@@ -1,5 +1,5 @@
 import _MatrixOS_UIUtility
-from MatrixOS_Color import Color
+from MatrixOS_Color import Color, _wrap
 
 
 INT_MIN = -2147483648
@@ -19,4 +19,7 @@ def number_selector_8x8(value: int, color: Color, name: str, lower_limit: int = 
 
 
 def color_picker() -> any:
-    return _MatrixOS_UIUtility.ColorPicker()
+    color = _MatrixOS_UIUtility.ColorPicker()
+    if color is None:
+        return None
+    return _wrap(color)

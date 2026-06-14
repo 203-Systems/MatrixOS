@@ -1,4 +1,2 @@
 main
 PikaStdLib
-ctypes
-os

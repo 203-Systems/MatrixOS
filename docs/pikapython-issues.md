@@ -241,3 +241,62 @@ Fix direction:
 - Use module-level helper functions for Pythonic field access on native-returned packets.
 - Avoid wrapping native MIDI packet objects until PikaPython object lifecycle behavior is better
   understood.
+
+## 2026-06-14: Conditional expressions can be tokenized into invalid variable names
+
+Observed while porting the Dice app.
+
+This valid CPython expression:
+
+```python
+effect = rolling_underglow_effect if rolling else confirmed_underglow_effect
+```
+
+failed in PikaPython with a generated variable-like name:
+
+```text
+NameError: name 'rolling_underglow_effect if rollingelseconfirmed_underglow_effect' is not defined
+```
+
+Workaround:
+
+- Avoid Python conditional expressions (`a if condition else b`) in shipped examples.
+- Write explicit `if` / `else` blocks instead.
+
+Fix direction:
+
+- Add a tiny parser/runtime regression for conditional expressions before using them in examples.
+- Re-test after any PikaPython engine refresh.
+
+## 2026-06-14: UI callbacks can lose module-level variable references
+
+Observed while testing the Dice settings UI.
+
+A top-level variable used from a UI callback:
+
+```python
+confirmed_rainbow = False
+
+def confirmed_rainbow_button_color():
+    return ColorEffects.rainbow(3000).dim_if_not(confirmed_rainbow)
+```
+
+failed at runtime:
+
+```text
+NameError: name 'confirmed_rainbow' is not defined
+```
+
+This happened even though the variable was defined at module scope. The callback path appears to lose
+or mis-resolve some module-level symbols.
+
+Workaround:
+
+- Avoid relying on complex module-level state reads directly inside UI callbacks.
+- Prefer simple helper functions, explicit state accessors, or state containers that have been smoke
+  tested in the PikaPython runtime.
+
+Fix direction:
+
+- Build a minimal UI callback regression that reads module-level bool/int/string variables.
+- Re-test after any PikaPython engine refresh.

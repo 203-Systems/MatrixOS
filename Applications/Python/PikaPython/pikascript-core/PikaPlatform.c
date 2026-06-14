@@ -50,11 +50,6 @@
 
 #if PIKA_WIN_PTHREAD_ENABLE
 
-struct timeval {
-    long tv_sec;   // Seconds
-    long tv_usec;  // Microseconds
-};
-
 static void usleep(unsigned long usec) {
     HANDLE timer;
     LARGE_INTEGER interval;
@@ -612,7 +607,7 @@ PIKA_WEAK void pika_platform_thread_yield(void) {
     pika_thread_idle_hook();
 #if PIKA_FREERTOS_ENABLE
     vTaskDelay(1);
-#elif defined(_WIN32)
+#elif defined(_WIN32) && !defined(CROSS_BUILD)
     SwitchToThread();
 #elif defined(__linux)
     sched_yield();
@@ -725,7 +720,7 @@ PIKA_WEAK uint64_t pika_platform_thread_self(void) {
 #if defined(__linux)
     return (uint64_t)pthread_self();
 #elif PIKA_WIN_PTHREAD_ENABLE
-    return (uint64_t)(pthread_self().p);
+    return (uint64_t)(pthread_self());
 #elif PIKA_FREERTOS_ENABLE
     return (uint64_t)xTaskGetCurrentTaskHandle();
 #elif PIKA_RTTHREAD_ENABLE
