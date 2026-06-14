@@ -6,6 +6,19 @@
 
 namespace MatrixOS::UIUtility
 {
+static bool FunctionKeyReleaseReceived() {
+  InputEvent inputEvent;
+  while (MatrixOS::Input::Get(&inputEvent))
+  {
+    if (inputEvent.inputClass == InputClass::Keypad && inputEvent.id == InputId::FunctionKey() &&
+        inputEvent.keypad.state == KeypadState::Released)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 // This function displays a given string on the LED screen in a given color, at a given scroll speed, optionally
 // looping
 void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
@@ -108,10 +121,7 @@ void TextScrollSlow(string text, Color color, uint16_t speed, bool loop) {
             while (!textScrollTimer.Tick(speed))
             {
               UI::GlobalLoops();
-              MatrixOS::Input::ClearInputBuffer();
-              InputSnapshot fnSnap;
-              if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
-                  fnSnap.keypad.state == KeypadState::Released)
+              if (FunctionKeyReleaseReceived())
               {
                 MatrixOS::Input::ClearInputBuffer();
                 MatrixOS::LED::DestroyLayer();
@@ -231,10 +241,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed))
           {
             UI::GlobalLoops();
-            MatrixOS::Input::ClearInputBuffer();
-            InputSnapshot fnSnap;
-            if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
-                fnSnap.keypad.state == KeypadState::Released)
+            if (FunctionKeyReleaseReceived())
             {
               MatrixOS::Input::ClearInputBuffer();
               MatrixOS::LED::DestroyLayer();
@@ -267,10 +274,7 @@ void TextScrollFast(string text, Color color, uint16_t speed, bool loop) {
           while (!textScrollTimer.Tick(speed * 4))
           {
             UI::GlobalLoops();
-            MatrixOS::Input::ClearInputBuffer();
-            InputSnapshot fnSnap;
-            if (MatrixOS::Input::GetState(InputId::FunctionKey(), &fnSnap) &&
-                fnSnap.keypad.state == KeypadState::Released)
+            if (FunctionKeyReleaseReceived())
             {
               MatrixOS::Input::ClearInputBuffer();
               MatrixOS::LED::DestroyLayer();
