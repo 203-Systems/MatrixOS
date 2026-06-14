@@ -451,6 +451,7 @@ def add_settings_button(ui, x, height, name, color_func, press_func):
     button.set_color_func(color_func)
     button.on_press(press_func)
     ui.add(button, Point(x, 0))
+    return button
 
 
 def add_reset_button(ui):
@@ -460,6 +461,7 @@ def add_reset_button(ui):
     button.set_color(Color(0xFF0000))
     button.on_press(reset_game)
     ui.add(button, Point(7, 3))
+    return button
 
 
 def process_settings_input():
@@ -489,11 +491,11 @@ def open_settings_ui():
     settings_ui.set_loop_func(process_settings_input)
     settings_ui.set_pre_render_func(render_settings_background)
 
-    add_settings_button(settings_ui, 0, 2, "2 Colors", color_button_2, set_two_colors)
-    add_settings_button(settings_ui, 1, 3, "3 Colors", color_button_3, set_three_colors)
-    add_settings_button(settings_ui, 2, 4, "4 Colors", color_button_4, set_four_colors)
-    add_settings_button(settings_ui, 3, 5, "5 Colors", color_button_5, set_five_colors)
-    add_reset_button(settings_ui)
+    color_2_button = add_settings_button(settings_ui, 0, 2, "2 Colors", color_button_2, set_two_colors)
+    color_3_button = add_settings_button(settings_ui, 1, 3, "3 Colors", color_button_3, set_three_colors)
+    color_4_button = add_settings_button(settings_ui, 2, 4, "4 Colors", color_button_4, set_four_colors)
+    color_5_button = add_settings_button(settings_ui, 3, 5, "5 Colors", color_button_5, set_five_colors)
+    reset_button = add_reset_button(settings_ui)
 
     settings_ui.start()
     settings_ui.close()

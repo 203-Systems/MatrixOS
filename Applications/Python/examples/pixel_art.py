@@ -1,121 +1,132 @@
 import MatrixOS
 
 
+LED = MatrixOS.LED
+SYS = MatrixOS.SYS
+Input = MatrixOS.Input
+Color = MatrixOS.Color
+
+
+WIDTH = 8
+HEIGHT = 8
+CANVAS_WIDTH = WIDTH + 2
+BLACK_INDEX = 7
+
 PICKER_COLORS = [
-    MatrixOS.Color(0xFF0000),
-    MatrixOS.Color(0xFFFF00),
-    MatrixOS.Color(0x00FF00),
-    MatrixOS.Color(0x00FFFF),
-    MatrixOS.Color(0x0000FF),
-    MatrixOS.Color(0xFF00FF),
-    MatrixOS.Color(0xFFFFFF),
-    MatrixOS.Color(0x000000),
+    Color(0xFF0000),
+    Color(0xFFFF00),
+    Color(0x00FF00),
+    Color(0x00FFFF),
+    Color(0x0000FF),
+    Color(0xFF00FF),
+    Color(0xFFFFFF),
+    Color(0x000000),
 ]
 
-BLACK_INDEX = 7
 active_color_index = 6
-picker_showing = True
-color_grid = []
+picker_visible = True
+canvas = []
 app_running = True
-function_key = MatrixOS.Input.function_key()
+function_key = Input.function_key()
 
 
-def setup_grid():
-    global color_grid
-    color_grid = []
-    for index in range(80):
-        color_grid.append(BLACK_INDEX)
+def canvas_index(x, y):
+    return (x + 1) * HEIGHT + y
 
 
-def grid_index(x):
-    return x + 1
+def in_canvas(x, y):
+    return x >= -1 and x <= WIDTH and y >= 0 and y < HEIGHT
 
 
-def color_index(x, y):
-    return grid_index(x) * 8 + y
+def reset_canvas():
+    global canvas
+
+    canvas = []
+    for index in range(CANVAS_WIDTH * HEIGHT):
+        canvas.append(BLACK_INDEX)
 
 
-def draw_cell(x, y, color_index_value):
-    MatrixOS.LED.set_color_xy(x, y, PICKER_COLORS[color_index_value])
+def draw_canvas_cell(x, y):
+    LED.set_color_xy(x, y, PICKER_COLORS[canvas[canvas_index(x, y)]])
+
+
+def draw_picker():
+    if not picker_visible:
+        return
+
+    for x in range(WIDTH):
+        LED.set_color_xy(x, 0, PICKER_COLORS[x])
 
 
 def draw_canvas():
-    for x in range(-1, 9):
-        for y in range(8):
-            index = color_index(x, y)
-            draw_cell(x, y, color_grid[index])
+    for x in range(-1, WIDTH + 1):
+        for y in range(HEIGHT):
+            draw_canvas_cell(x, y)
 
-    if picker_showing:
-        for x in range(8):
-            draw_cell(x, 0, x)
-
-    MatrixOS.LED.show()
+    draw_picker()
+    LED.show()
 
 
-def show_picker():
-    global picker_showing
-    picker_showing = True
-    draw_canvas()
+def toggle_picker():
+    global picker_visible
 
-
-def hide_picker():
-    global picker_showing
-    picker_showing = False
+    picker_visible = not picker_visible
     draw_canvas()
 
 
 def paint_cell(x, y):
-    index = color_index(x, y)
-    color_grid[index] = active_color_index
+    canvas[canvas_index(x, y)] = active_color_index
     draw_canvas()
 
 
-def handle_key_event(event):
+def select_or_paint(x, y):
     global active_color_index
-    global app_running
 
-    if event.id() == function_key:
-        if event.is_hold():
-            app_running = False
-            MatrixOS.SYS.exit_app()
-            return
-        if event.is_released():
-            if picker_showing:
-                hide_picker()
-            else:
-                show_picker()
+    if not in_canvas(x, y):
         return
 
-    if not event.is_pressed():
-        return
-
-    xy = MatrixOS.Input.try_get_point(event.id())
-    if xy is None:
-        return
-
-    x = xy.x()
-    y = xy.y()
-
-    if x < -1 or x > 8 or y < 0 or y >= 8:
-        return
-
-    if x >= 0 and x < 8 and picker_showing and y == 0:
+    if picker_visible and y == 0 and x >= 0 and x < WIDTH:
         active_color_index = x
     else:
         paint_cell(x, y)
 
 
-def loop():
-    if not app_running:
+def handle_function_key(event):
+    global app_running
+
+    if event.is_hold():
+        app_running = False
+        SYS.exit_app()
+    elif event.is_released():
+        toggle_picker()
+
+
+def handle_input(event):
+    if event.id() == function_key:
+        handle_function_key(event)
         return
 
-    event = MatrixOS.Input.get_event()
+    if not event.is_pressed():
+        return
+
+    xy = Input.try_get_point(event.id())
+    if xy is not None:
+        select_or_paint(xy.x(), xy.y())
+
+
+def process_input():
+    event = Input.get_event()
     while event is not None:
-        handle_key_event(event)
-        event = MatrixOS.Input.get_event()
+        handle_input(event)
+        event = Input.get_event()
 
 
-setup_grid()
-MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
-show_picker()
-MatrixOS.Input.clear_input_buffer()
+def loop():
+    if app_running:
+        process_input()
+
+
+reset_canvas()
+LED.fill(PICKER_COLORS[BLACK_INDEX])
+draw_canvas()
+Input.clear_input_buffer()
