@@ -310,7 +310,15 @@ bool EmitKeyEvent(InputId id, KeyState* ks) {
   event.id = id;
   event.inputClass = InputClass::Keypad;
   event.keypad = ks->info;
-  return MatrixOS::Input::NewEvent(event);
+  bool emitted = MatrixOS::Input::NewEvent(event);
+  if (ks->info.state == KeypadState::Released)
+  {
+    ks->info.state = KeypadState::Idle;
+    ks->info.pressure = 0;
+    ks->info.velocity = 0;
+    ks->info.hold = false;
+  }
+  return emitted;
 }
 
 bool ApplyKeyInfoEvent(InputId id, KeypadState state, uint16_t pressure, uint16_t velocity) {
