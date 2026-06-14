@@ -1,5 +1,4 @@
 import MatrixOS
-import MatrixOS_UI
 from MatrixOS_Color import Color
 from MatrixOS_KeyState import KeyState
 
@@ -119,7 +118,7 @@ setup_grid()
 MatrixOS.LED.fill(PICKER_COLORS[BLACK_INDEX])
 show_picker()
 
-main_ui = MatrixOS_UI.UI("PixelArt", Color(0xFFFFFF))
+main_ui = MatrixOS.UI.UI("PixelArt", Color(0xFFFFFF))
 main_ui.allow_exit(False)
 main_ui.set_fps(60)
 main_ui.set_loop_func(loop)

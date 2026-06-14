@@ -5,8 +5,8 @@ This checklist tracks the Python facade quality of `Applications/Python/PikaPyth
 ## Design Rules
 
 - Keep native `_MatrixOS_*` modules thin and stable.
-- Keep PascalCase names for compatibility with MatrixOS C++ naming.
-- Add lowercase helpers for app code.
+- Keep PascalCase names only in private `_MatrixOS_*` native bindings.
+- Expose Pythonic public endpoint names for app code.
 - Prefer Python facade objects or view objects for structured data.
 - Avoid `@property` until PikaPython property behavior is proven stable.
 - Avoid returning fresh native objects from hot callback paths when a small primitive bridge is enough.
@@ -35,6 +35,11 @@ Status: mostly reviewed.
 - [x] `keypad_clusters()`, `keypad_cluster()`, `primary_grid()`, and `get_cluster()`.
 - [x] UI `KeyEvent.id()` returns an `InputId`.
 - [x] UI `KeyEvent.is_grid()`, `x()`, and `y()`.
+- [x] `InputId.member_id()` is the single name for the cluster-local member; duplicate `input_id()`
+  aliases were removed.
+- [x] `InputId.cluster_name()` and `InputEvent.cluster_name()`.
+- [x] `Input.try_get_point()` returns point-or-`None` for coordinate-capable inputs.
+- [x] Keypad wrappers expose `pressure()` and `velocity()`.
 - [x] Examples should prefer `ui.pull_input()`.
 - [x] Add runtime regression for UI pull input with injected keypad events.
 - [x] Do not add a separate non-UI input queue service yet. Keep new apps on UI-owned input until a
@@ -44,11 +49,12 @@ Status: mostly reviewed.
 
 Status: reviewed for current native surface.
 
-- [x] Lowercase aliases for `UI`, `UIButton`, `UISelector`, `UI4pxNumber`, and `UIComponent`.
+- [x] UI components are exposed as `MatrixOS.UI.Button`, `MatrixOS.UI.Selector`,
+  `MatrixOS.UI.Number`, and `MatrixOS.UI.Component`.
 - [x] `UI.pull_input()` returns a pure Python `KeyEvent` or `None`.
 - [x] Audit callback lifetime behavior for all component callback setters.
 - [x] Add tests for selector and number component value changes.
-- [x] Add an example that uses normal `UIButton.OnPress()` plus `ui.pull_input()` together.
+- [x] Add an example that uses normal `Button.on_press()` plus `ui.pull_input()` together.
 
 ## MIDI
 

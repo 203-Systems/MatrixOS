@@ -1,32 +1,40 @@
 import _MatrixOS_KeypadInfo
 
-class KeypadInfo(_MatrixOS_KeypadInfo.KeypadInfo):
+
+class KeypadInfo:
+    def __init__(self):
+        self.native = _MatrixOS_KeypadInfo.KeypadInfo()
+
     def state(self) -> int:
-        return self.State()
+        return self.native.State()
+
+    def pressure(self) -> float:
+        return self.native.Force()
 
     def force(self) -> float:
-        return self.Force()
+        return self.pressure()
 
     def value(self, index: int) -> float:
-        return self.Value(index)
+        return self.native.Value(index)
 
     def velocity(self) -> float:
-        return self.Value(1)
+        return self.native.Value(1)
 
     def last_event_time(self) -> int:
-        return self.LastEventTime()
+        return self.native.LastEventTime()
 
     def hold(self) -> bool:
-        return self.Hold()
+        return self.native.Hold()
 
     def active(self) -> bool:
-        return self.Active()
+        return self.native.Active()
 
     def hold_time(self) -> int:
-        return self.HoldTime()
+        return self.native.HoldTime()
 
     def raw(self):
-        return self
+        return self.native
+
 
 class KeypadInfoView:
     def __init__(self, native = None):
@@ -34,50 +42,32 @@ class KeypadInfoView:
             native = _MatrixOS_KeypadInfo.KeypadInfo()
         self.native = native
 
-    def State(self) -> int:
+    def state(self) -> int:
         return self.native.State()
 
-    def state(self) -> int:
-        return self.State()
-
-    def Force(self) -> float:
+    def pressure(self) -> float:
         return self.native.Force()
 
     def force(self) -> float:
-        return self.Force()
-
-    def Value(self, index: int) -> float:
-        return self.native.Value(index)
+        return self.pressure()
 
     def value(self, index: int) -> float:
-        return self.Value(index)
+        return self.native.Value(index)
 
     def velocity(self) -> float:
-        return self.Value(1)
-
-    def LastEventTime(self) -> int:
-        return self.native.LastEventTime()
+        return self.native.Value(1)
 
     def last_event_time(self) -> int:
-        return self.LastEventTime()
-
-    def Hold(self) -> bool:
-        return self.native.Hold()
+        return self.native.LastEventTime()
 
     def hold(self) -> bool:
-        return self.Hold()
-
-    def Active(self) -> bool:
-        return self.native.Active()
+        return self.native.Hold()
 
     def active(self) -> bool:
-        return self.Active()
-
-    def HoldTime(self) -> int:
-        return self.native.HoldTime()
+        return self.native.Active()
 
     def hold_time(self) -> int:
-        return self.HoldTime()
+        return self.native.HoldTime()
 
     def raw(self):
         return self.native

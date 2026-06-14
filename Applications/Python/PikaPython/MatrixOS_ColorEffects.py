@@ -1,85 +1,81 @@
-# ColorEffects wrapper for MatrixOS
-# Binding of OS/Framework/Color/ColorEffects.h
-
 import _MatrixOS_ColorEffects
-from MatrixOS_Color import Color
+from MatrixOS_Color import Color, _native, _wrap
 
-# Color generation effects
-def Rainbow(period: int = 1000, offset: int = 0) -> Color:
-    """Generate a rainbow color that cycles through the spectrum"""
-    return _MatrixOS_ColorEffects.Rainbow(period, offset)
 
 def rainbow(period: int = 1000, offset: int = 0) -> Color:
-    return Rainbow(period, offset)
+    return _wrap(_MatrixOS_ColorEffects.Rainbow(period, offset))
 
-# Brightness modulation effects (returns 0-255)
-def Breath(period: int = 1000, offset: int = 0) -> int:
-    """Generate a breathing brightness value (0-255)"""
-    return _MatrixOS_ColorEffects.Breath(period, offset)
 
 def breath(period: int = 1000, offset: int = 0) -> int:
-    return Breath(period, offset)
+    return _MatrixOS_ColorEffects.Breath(period, offset)
 
-def BreathLowBound(low_bound: int = 64, period: int = 1000, offset: int = 0) -> int:
-    """Generate a breathing brightness value with a lower bound"""
-    return _MatrixOS_ColorEffects.BreathLowBound(low_bound, period, offset)
 
 def breath_low_bound(low_bound: int = 64, period: int = 1000, offset: int = 0) -> int:
-    return BreathLowBound(low_bound, period, offset)
+    return _MatrixOS_ColorEffects.BreathLowBound(low_bound, period, offset)
 
-def Strobe(period: int = 1000, offset: int = 0) -> int:
-    """Generate a strobe brightness value (0 or 255)"""
-    return _MatrixOS_ColorEffects.Strobe(period, offset)
 
 def strobe(period: int = 1000, offset: int = 0) -> int:
-    return Strobe(period, offset)
+    return _MatrixOS_ColorEffects.Strobe(period, offset)
 
-def Saw(period: int = 1000, offset: int = 0) -> int:
-    """Generate a sawtooth wave brightness value (0-255)"""
-    return _MatrixOS_ColorEffects.Saw(period, offset)
 
 def saw(period: int = 1000, offset: int = 0) -> int:
-    return Saw(period, offset)
+    return _MatrixOS_ColorEffects.Saw(period, offset)
 
-def Triangle(period: int = 1000, offset: int = 0) -> int:
-    """Generate a triangle wave brightness value (0-255)"""
-    return _MatrixOS_ColorEffects.Triangle(period, offset)
 
 def triangle(period: int = 1000, offset: int = 0) -> int:
-    return Triangle(period, offset)
+    return _MatrixOS_ColorEffects.Triangle(period, offset)
 
-# Color modulation effects (applies effect to existing color)
-def ColorBreath(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    """Apply breathing effect to a color"""
-    return _MatrixOS_ColorEffects.ColorBreath(color, period, offset)
 
 def color_breath(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    return ColorBreath(color, period, offset)
+    return _wrap(_MatrixOS_ColorEffects.ColorBreath(_native(color), period, offset))
 
-def ColorBreathLowBound(color: Color, low_bound: int = 64, period: int = 1000, offset: int = 0) -> Color:
-    """Apply breathing effect with lower bound to a color"""
-    return _MatrixOS_ColorEffects.ColorBreathLowBound(color, low_bound, period, offset)
 
 def color_breath_low_bound(color: Color, low_bound: int = 64, period: int = 1000, offset: int = 0) -> Color:
-    return ColorBreathLowBound(color, low_bound, period, offset)
+    return _wrap(_MatrixOS_ColorEffects.ColorBreathLowBound(_native(color), low_bound, period, offset))
 
-def ColorStrobe(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    """Apply strobe effect to a color"""
-    return _MatrixOS_ColorEffects.ColorStrobe(color, period, offset)
 
 def color_strobe(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    return ColorStrobe(color, period, offset)
+    return _wrap(_MatrixOS_ColorEffects.ColorStrobe(_native(color), period, offset))
 
-def ColorSaw(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    """Apply sawtooth wave effect to a color"""
-    return _MatrixOS_ColorEffects.ColorSaw(color, period, offset)
 
 def color_saw(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    return ColorSaw(color, period, offset)
+    return _wrap(_MatrixOS_ColorEffects.ColorSaw(_native(color), period, offset))
 
-def ColorTriangle(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    """Apply triangle wave effect to a color"""
-    return _MatrixOS_ColorEffects.ColorTriangle(color, period, offset)
 
 def color_triangle(color: Color, period: int = 1000, offset: int = 0) -> Color:
-    return ColorTriangle(color, period, offset)
+    return _wrap(_MatrixOS_ColorEffects.ColorTriangle(_native(color), period, offset))
+
+
+class ColorEffects:
+    def rainbow(period: int = 1000, offset: int = 0) -> Color:
+        return rainbow(period, offset)
+
+    def breath(period: int = 1000, offset: int = 0) -> int:
+        return breath(period, offset)
+
+    def breath_low_bound(low_bound: int = 64, period: int = 1000, offset: int = 0) -> int:
+        return breath_low_bound(low_bound, period, offset)
+
+    def strobe(period: int = 1000, offset: int = 0) -> int:
+        return strobe(period, offset)
+
+    def saw(period: int = 1000, offset: int = 0) -> int:
+        return saw(period, offset)
+
+    def triangle(period: int = 1000, offset: int = 0) -> int:
+        return triangle(period, offset)
+
+    def color_breath(color: Color, period: int = 1000, offset: int = 0) -> Color:
+        return color_breath(color, period, offset)
+
+    def color_breath_low_bound(color: Color, low_bound: int = 64, period: int = 1000, offset: int = 0) -> Color:
+        return color_breath_low_bound(color, low_bound, period, offset)
+
+    def color_strobe(color: Color, period: int = 1000, offset: int = 0) -> Color:
+        return color_strobe(color, period, offset)
+
+    def color_saw(color: Color, period: int = 1000, offset: int = 0) -> Color:
+        return color_saw(color, period, offset)
+
+    def color_triangle(color: Color, period: int = 1000, offset: int = 0) -> Color:
+        return color_triangle(color, period, offset)

@@ -144,6 +144,14 @@ number_module = types.ModuleType("_MatrixOS_UI4pxNumber")
 number_module.UI4pxNumber = NativeNumber
 sys.modules["_MatrixOS_UI4pxNumber"] = number_module
 
+ui_module = types.ModuleType("_MatrixOS_UI")
+ui_module.UI = object
+sys.modules["_MatrixOS_UI"] = ui_module
+
+input_id_module = types.ModuleType("_MatrixOS_InputId")
+input_id_module.InputId = object
+sys.modules["_MatrixOS_InputId"] = input_id_module
+
 ui_utility_calls = []
 ui_utility_module = types.ModuleType("_MatrixOS_UIUtility")
 ui_utility_module.TextScroll = lambda text, color, speed, loop: ui_utility_calls.append(("text", text, color, speed, loop))
@@ -160,10 +168,10 @@ dimension_module.Dimension = object
 sys.modules["MatrixOS_Dimension"] = dimension_module
 
 import MatrixOS_UI4pxNumber
-import MatrixOS_UIButton
 import MatrixOS_UIComponent
 import MatrixOS_UISelector
 import MatrixOS_UIUtility
+import MatrixOS_UI
 
 
 def test_component_pythonic_aliases_call_native_methods():
@@ -173,13 +181,13 @@ def test_component_pythonic_aliases_call_native_methods():
     assert component.set_enabled(False)
     assert component.set_enable_func(lambda: True)
 
-    assert component.calls[0] == ("close",)
-    assert component.calls[1] == ("enabled", False)
-    assert component.calls[2][0] == "enable_func"
+    assert component.native.calls[0] == ("close",)
+    assert component.native.calls[1] == ("enabled", False)
+    assert component.native.calls[2][0] == "enable_func"
 
 
 def test_button_pythonic_aliases_call_native_methods():
-    button = MatrixOS_UIButton.UIButton()
+    button = MatrixOS_UI.UI.Button()
 
     button.set_enabled(True)
     button.set_enable_func(lambda: True)
@@ -190,12 +198,13 @@ def test_button_pythonic_aliases_call_native_methods():
     button.on_press(lambda: None)
     button.on_hold(lambda: None)
 
-    assert button.calls[0] == ("enabled", True)
-    assert button.calls[2] == ("name", "Play")
-    assert button.calls[3] == ("color", "white")
-    assert button.calls[5] == ("size", (1, 2))
-    assert button.calls[6][0] == "press"
-    assert button.calls[7][0] == "hold"
+    assert button.native.calls[0] == ("enabled", True)
+    assert button.native.calls[2] == ("name", "Play")
+    assert button.native.calls[3] == ("color", "white")
+    assert button.native.calls[5] == ("size", (1, 2))
+    assert button.native.calls[6][0] == "press"
+    assert button.native.calls[7][0] == "hold"
+    assert MatrixOS_UI.Button is MatrixOS_UI.UI.Button
 
 
 def test_selector_pythonic_aliases_call_native_methods():
@@ -213,10 +222,10 @@ def test_selector_pythonic_aliases_call_native_methods():
     selector.set_color("blue")
     selector.on_change(lambda value: None)
 
-    assert selector.calls[0][0] == "value_func"
-    assert selector.calls[4] == ("lit_mode", 3)
-    assert selector.calls[7] == ("count", 8)
-    assert selector.calls[10][0] == "change"
+    assert selector.native.calls[0][0] == "value_func"
+    assert selector.native.calls[4] == ("lit_mode", 3)
+    assert selector.native.calls[7] == ("count", 8)
+    assert selector.native.calls[10][0] == "change"
 
 
 def test_4px_number_pythonic_aliases_call_native_methods():
@@ -233,10 +242,10 @@ def test_4px_number_pythonic_aliases_call_native_methods():
     number.set_value_func(lambda: 120)
     number.set_color_func(lambda: "green")
 
-    assert number.calls[0] == ("close",)
-    assert number.calls[3] == ("name", "Tempo")
-    assert number.calls[5] == ("alternative_color", "red")
-    assert number.calls[8][0] == "value_func"
+    assert number.native.calls[0] == ("close",)
+    assert number.native.calls[3] == ("name", "Tempo")
+    assert number.native.calls[5] == ("alternative_color", "red")
+    assert number.native.calls[8][0] == "value_func"
 
 
 def test_ui_utility_pythonic_aliases_call_native_methods():

@@ -201,6 +201,7 @@ sys_module = types.ModuleType("_MatrixOS_SYS")
 sys_module.Reboot = lambda: sys_calls.append("reboot")
 sys_module.Bootloader = lambda: sys_calls.append("bootloader")
 sys_module.DelayMs = lambda ms: sys_calls.append(("delay", ms))
+sys_module.TaskYield = lambda: sys_calls.append("yield")
 sys_module.Millis = lambda: 123
 sys_module.Micros = lambda: 456
 sys_module.OpenSetting = lambda: sys_calls.append("settings")
@@ -231,30 +232,26 @@ import MatrixOS_USB
 def test_midi_packet_factories_and_aliases():
     packet = MatrixOS_MidiPacket.note_on(2, 60, 100)
 
-    assert packet.Status() == 0x90
-    assert packet.Channel() == 2
-    assert packet.Note() == 60
-    assert packet.Velocity() == 100
     assert MatrixOS_MidiPacket.status(packet) == 0x90
     assert MatrixOS_MidiPacket.channel(packet) == 2
     assert MatrixOS_MidiPacket.note(packet) == 60
     assert MatrixOS_MidiPacket.velocity(packet) == 100
     assert MatrixOS_MIDI.velocity(packet) == 100
 
-    assert MatrixOS_MidiPacket.cc(1, 74, 64).Status() == 0xB0
-    assert MatrixOS_MidiPacket.control_change(1, 74, 64).Status() == 0xB0
-    assert MatrixOS_MidiPacket.note_off(2, 60).Status() == 0x80
-    assert MatrixOS_MidiPacket.program_change(1, 8).Status() == 0xC0
-    assert MatrixOS_MidiPacket.channel_pressure(1, 7).Status() == 0xD0
-    assert MatrixOS_MidiPacket.pitch_bend(3, 8192).Value() == 8192
-    assert MatrixOS_MidiPacket.clock().Status() == 0xF8
-    assert MatrixOS_MidiPacket.continue_().Status() == 0xFB
-    assert MatrixOS_MidiPacket.stop().Status() == 0xFC
-    assert MatrixOS_MidiPacket.active_sense().Status() == 0xFE
-    assert MatrixOS_MidiPacket.reset().Status() == 0xFF
-    assert MatrixOS_MidiPacket.song_position(128).Status() == 0xF2
-    assert MatrixOS_MidiPacket.song_select(3).Status() == 0xF3
-    assert MatrixOS_MidiPacket.tune_request().Status() == 0xF6
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.cc(1, 74, 64)) == 0xB0
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.control_change(1, 74, 64)) == 0xB0
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.note_off(2, 60)) == 0x80
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.program_change(1, 8)) == 0xC0
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.channel_pressure(1, 7)) == 0xD0
+    assert MatrixOS_MidiPacket.value(MatrixOS_MidiPacket.pitch_bend(3, 8192)) == 8192
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.clock()) == 0xF8
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.continue_()) == 0xFB
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.stop()) == 0xFC
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.active_sense()) == 0xFE
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.reset()) == 0xFF
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.song_position(128)) == 0xF2
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.song_select(3)) == 0xF3
+    assert MatrixOS_MidiPacket.status(MatrixOS_MidiPacket.tune_request()) == 0xF6
 
     editable = MatrixOS_MidiPacket.MidiPacket()
     assert editable.set_status(0x90)
@@ -293,7 +290,7 @@ def test_midi_packet_factories_and_aliases():
     assert MatrixOS_MIDI.get() is None
     MatrixOS_MIDI.send_sysex(0x100, b"\x01\x02\x03")
     assert midi_calls[-2][0] == "send"
-    assert midi_calls[-2][1] is packet
+    assert midi_calls[-2][1] is packet.raw()
     assert midi_calls[-1] == ("sysex", 0x100, 3, b"\x01\x02\x03", False)
 
 
@@ -301,17 +298,10 @@ def test_hid_lowercase_aliases():
     hid_calls.clear()
 
     assert MatrixOS_HID.ready()
-    assert MatrixOS_HID.Ready()
     assert MatrixOS_HID_Keyboard.tap(4)
     assert MatrixOS_HID_Keyboard.press(4)
     assert MatrixOS_HID_Keyboard.release(4)
-    assert MatrixOS_HID_Keyboard.Press(4)
-    assert MatrixOS_HID_Keyboard.Release(4)
     MatrixOS_HID_Keyboard.release_all()
-    MatrixOS_HID_Keyboard.ReleaseAll()
-    MatrixOS_HID_Gamepad.Press(1)
-    MatrixOS_HID_Gamepad.Release(1)
-    MatrixOS_HID_Gamepad.Button(1, True)
     MatrixOS_HID_Gamepad.press(1)
     MatrixOS_HID_Gamepad.release(1)
     MatrixOS_HID_Gamepad.button(1, True)
@@ -324,42 +314,26 @@ def test_hid_lowercase_aliases():
     MatrixOS_HID_Gamepad.buttons(0x03)
     MatrixOS_HID_Gamepad.dpad(1)
     MatrixOS_HID_Gamepad.release_all()
-    MatrixOS_HID_Gamepad.ReleaseAll()
     MatrixOS_HID_Mouse.click(1)
-    MatrixOS_HID_Mouse.Press(1)
-    MatrixOS_HID_Mouse.Release(1)
-    MatrixOS_HID_Mouse.MoveTo(1, 2)
     MatrixOS_HID_Mouse.press(1)
     MatrixOS_HID_Mouse.release(1)
     MatrixOS_HID_Mouse.move_to(1, 2)
     MatrixOS_HID_Mouse.move(1, 2)
     MatrixOS_HID_Mouse.release_all()
-    MatrixOS_HID_Mouse.ReleaseAll()
     MatrixOS_HID_Touch.click(1)
-    MatrixOS_HID_Touch.Press(1)
-    MatrixOS_HID_Touch.Release(1)
-    MatrixOS_HID_Touch.Move(1, 2)
     MatrixOS_HID_Touch.press(1)
     MatrixOS_HID_Touch.release(1)
     MatrixOS_HID_Touch.move(1, 2)
     MatrixOS_HID_Touch.move_to(3, 4)
     MatrixOS_HID_Touch.release_all()
-    MatrixOS_HID_Touch.ReleaseAll()
     MatrixOS_HID_Consumer.write(5)
-    MatrixOS_HID_Consumer.Press(5)
-    MatrixOS_HID_Consumer.Release(5)
     MatrixOS_HID_Consumer.press(5)
     MatrixOS_HID_Consumer.release(5)
     MatrixOS_HID_Consumer.release_all()
-    MatrixOS_HID_Consumer.ReleaseAll()
-    MatrixOS_HID_System.Write(5)
-    MatrixOS_HID_System.Press(5)
     MatrixOS_HID_System.write(5)
     MatrixOS_HID_System.press(5)
     MatrixOS_HID_System.release()
     MatrixOS_HID_System.release_all()
-    MatrixOS_HID_System.ReleaseAll()
-    assert MatrixOS_HID_RawHID.Get() == b"reply"
     assert MatrixOS_HID_RawHID.get() == b"reply"
     MatrixOS_HID_RawHID.send(b"abc")
 
@@ -386,11 +360,10 @@ def test_nvs_typed_helpers():
     assert MatrixOS_NVS.set_str(4, "Matrix")
     assert MatrixOS_NVS.get_str(4) == "Matrix"
     assert MatrixOS_NVS.get_size(4) == 6
-    assert MatrixOS_NVS.GetSize(4) == 6
     assert MatrixOS_NVS.delete(4)
-    assert MatrixOS_NVS.SetVariable(5, b"abc")
-    assert MatrixOS_NVS.GetVariable(5) == b"abc"
-    assert MatrixOS_NVS.DeleteVariable(5)
+    assert MatrixOS_NVS.set(5, b"abc")
+    assert MatrixOS_NVS.get(5) == b"abc"
+    assert MatrixOS_NVS.delete(5)
 
 
 def test_sys_and_usb_facades():
@@ -399,12 +372,13 @@ def test_sys_and_usb_facades():
     assert MatrixOS_SYS.micros() == 456
     MatrixOS_SYS.sleep_ms(5)
     MatrixOS_SYS.delay_ms(6)
+    MatrixOS_SYS.task_yield()
+    MatrixOS_SYS.yield_()
     MatrixOS_SYS.open_settings()
-    MatrixOS_SYS.OpenSetting()
     assert MatrixOS_SYS.get_version() == (4, 0, 1, 99)
-    MatrixOS_SYS.Reboot()
-    MatrixOS_SYS.Bootloader()
-    MatrixOS_SYS.DelayMs(7)
+    MatrixOS_SYS.reboot()
+    MatrixOS_SYS.bootloader()
+    assert sys_calls.count("yield") == 2
 
     version = MatrixOS_SYS.version()
     assert isinstance(version, MatrixOS_SYS.SystemVersion)

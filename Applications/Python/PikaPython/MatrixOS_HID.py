@@ -7,8 +7,6 @@ import MatrixOS_HID_Consumer as Consumer
 import MatrixOS_HID_System as System
 import MatrixOS_HID_Touch as Touch
 
-def Ready() -> bool:
-    return _MatrixOS_HID.Ready()
 
 def ready() -> bool:
-    return Ready()
+    return _MatrixOS_HID.Ready()

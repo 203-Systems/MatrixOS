@@ -155,10 +155,9 @@ def test_color_pythonic_aliases():
     assert color.wrgb() == 0x04010203
 
     scaled = color.scale(2)
-    assert scaled.R() == 2
+    assert scaled.r() == 2
     assert MatrixOS_Color.hex(0x01020304).wrgb() == 0x01020304
     assert color.dim_if_not(True) is color
-    assert color.DimIfNot(True) is color
 
 
 def test_point_pythonic_aliases():
@@ -172,8 +171,8 @@ def test_point_pythonic_aliases():
 
     assert point.x() == 5
     assert point.y() == 6
-    assert point.rotate(90, object()).X() == -6
-    assert point.Rotate(90, object()).Y() == 5
+    assert point.rotate(90, object()).x() == -6
+    assert point.rotate(90, object()).y() == 5
 
 
 def test_led_pythonic_aliases():
@@ -197,10 +196,10 @@ def test_led_pythonic_aliases():
     MatrixOS_LED.pause_update(True)
 
     assert led_calls[0][0] == "set_color"
-    assert led_calls[0][1].x() == 2
-    assert led_calls[0][1].y() == 3
-    assert led_calls[1] == ("set_id", 8, color, MatrixOS_LED.CURRENT_LAYER)
-    assert led_calls[2] == ("set_id", 7, color, MatrixOS_LED.CURRENT_LAYER)
+    assert led_calls[0][1].X() == 2
+    assert led_calls[0][1].Y() == 3
+    assert led_calls[1] == ("set_id", 8, color.raw(), MatrixOS_LED.CURRENT_LAYER)
+    assert led_calls[2] == ("set_id", 7, color.raw(), MatrixOS_LED.CURRENT_LAYER)
     assert led_calls[3][0] == "fill"
     assert led_calls[4] == ("update", MatrixOS_LED.CURRENT_LAYER)
     assert MatrixOS_LED.count() == 64
@@ -221,14 +220,13 @@ def test_led_partition_facade():
     assert partitions[0].is_rgb()
     assert not partitions[0].is_rgbw()
     assert MatrixOS_LED.partition_count() == 2
-    assert MatrixOS_LED.GetPartitions()[0].name == "Grid"
     assert MatrixOS_LED.get_partitions()[1].name == "Underglow"
     assert MatrixOS_LED.fill_partition(partitions[0].name, MatrixOS_Color.rgb(1, 2, 3))
     assert MatrixOS_LED.set_brightness_multiplier(partitions[0].name, 0.5)
 
     underglow = MatrixOS_LED.get_partition_by_name("Underglow")
     assert underglow.index == 1
-    assert MatrixOS_LED.GetPartitionByName("Grid").index == 0
+    assert MatrixOS_LED.get_partition_by_name("Grid").index == 0
     assert MatrixOS_LED.get_partition_by_name("Missing") is None
     assert led_calls[-2][0] == "fill_partition"
     assert led_calls[-2][1] == "Grid"

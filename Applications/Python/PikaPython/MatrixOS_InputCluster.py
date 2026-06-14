@@ -1,50 +1,57 @@
 import _MatrixOS_InputCluster
+from MatrixOS_Point import PointView
+from MatrixOS_Dimension import DimensionView
 
-class InputCluster(_MatrixOS_InputCluster.InputCluster):
+
+class InputCluster:
+    def __init__(self):
+        self.native = _MatrixOS_InputCluster.InputCluster()
+
     def cluster_id(self) -> int:
-        return self.ClusterId()
+        return self.native.ClusterId()
 
     def id(self) -> int:
-        return self.ClusterId()
+        return self.native.ClusterId()
 
     def name(self) -> str:
-        return self.Name()
+        return self.native.Name()
 
     def input_class(self) -> int:
-        return self.InputClass()
+        return self.native.InputClass()
 
     def shape(self) -> int:
-        return self.Shape()
+        return self.native.Shape()
 
     def root_point(self):
-        return self.RootPoint()
+        return PointView(self.native.RootPoint())
 
     def dimension(self):
-        return self.Dimension()
+        return DimensionView(self.native.Dimension())
 
     def input_count(self) -> int:
-        return self.InputCount()
+        return self.native.InputCount()
 
     def has_root_point(self) -> bool:
-        return self.HasRootPoint()
+        return self.native.HasRootPoint()
 
     def has_coordinates(self) -> bool:
-        return self.HasCoordinates()
+        return self.native.HasCoordinates()
 
     def is_keypad(self) -> bool:
-        return self.InputClass() == 1
+        return self.native.InputClass() == 1
 
     def is_grid(self) -> bool:
-        return self.Shape() == 2
+        return self.native.Shape() == 2
 
     def width(self) -> int:
-        return self.Dimension().X()
+        return self.native.Dimension().X()
 
     def height(self) -> int:
-        return self.Dimension().Y()
+        return self.native.Dimension().Y()
 
     def raw(self):
-        return self
+        return self.native
+
 
 class InputClusterView:
     def __init__(self, native = None):
@@ -52,74 +59,47 @@ class InputClusterView:
             native = _MatrixOS_InputCluster.InputCluster()
         self.native = native
 
-    def ClusterId(self) -> int:
+    def cluster_id(self) -> int:
         return self.native.ClusterId()
 
-    def cluster_id(self) -> int:
-        return self.ClusterId()
-
     def id(self) -> int:
-        return self.ClusterId()
-
-    def Name(self) -> str:
-        return self.native.Name()
+        return self.native.ClusterId()
 
     def name(self) -> str:
-        return self.Name()
-
-    def InputClass(self) -> int:
-        return self.native.InputClass()
+        return self.native.Name()
 
     def input_class(self) -> int:
-        return self.InputClass()
-
-    def Shape(self) -> int:
-        return self.native.Shape()
+        return self.native.InputClass()
 
     def shape(self) -> int:
-        return self.Shape()
-
-    def RootPoint(self):
-        return self.native.RootPoint()
+        return self.native.Shape()
 
     def root_point(self):
-        return self.RootPoint()
-
-    def Dimension(self):
-        return self.native.Dimension()
+        return PointView(self.native.RootPoint())
 
     def dimension(self):
-        return self.Dimension()
-
-    def InputCount(self) -> int:
-        return self.native.InputCount()
+        return DimensionView(self.native.Dimension())
 
     def input_count(self) -> int:
-        return self.InputCount()
-
-    def HasRootPoint(self) -> bool:
-        return self.native.HasRootPoint()
+        return self.native.InputCount()
 
     def has_root_point(self) -> bool:
-        return self.HasRootPoint()
-
-    def HasCoordinates(self) -> bool:
-        return self.native.HasCoordinates()
+        return self.native.HasRootPoint()
 
     def has_coordinates(self) -> bool:
-        return self.HasCoordinates()
+        return self.native.HasCoordinates()
 
     def is_keypad(self) -> bool:
-        return self.InputClass() == 1
+        return self.native.InputClass() == 1
 
     def is_grid(self) -> bool:
-        return self.Shape() == 2
+        return self.native.Shape() == 2
 
     def width(self) -> int:
-        return self.Dimension().X()
+        return self.native.Dimension().X()
 
     def height(self) -> int:
-        return self.Dimension().Y()
+        return self.native.Dimension().Y()
 
     def raw(self):
         return self.native

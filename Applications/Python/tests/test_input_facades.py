@@ -31,6 +31,51 @@ class NativeInputId:
         return NativeInputId(-1, -1)
 
 
+class NativePoint:
+    def __init__(self, x=0, y=0):
+        self.x_value = x
+        self.y_value = y
+
+    def X(self):
+        return self.x_value
+
+    def Y(self):
+        return self.y_value
+
+    def SetX(self, value):
+        self.x_value = value
+
+    def SetY(self, value):
+        self.y_value = value
+
+
+class NativeDimension:
+    def __init__(self, x=8, y=8):
+        self.x_value = x
+        self.y_value = y
+
+    def X(self):
+        return self.x_value
+
+    def Y(self):
+        return self.y_value
+
+    def SetX(self, value):
+        self.x_value = value
+
+    def SetY(self, value):
+        self.y_value = value
+
+    def Contains(self, point):
+        return True
+
+    def Area(self):
+        return self.x_value * self.y_value
+
+    def __bool__(self):
+        return True
+
+
 class NativeKeypadInfo:
     def State(self):
         return 4
@@ -125,6 +170,24 @@ class NativeInputCluster:
     def Shape(self):
         return self.shape_value
 
+    def RootPoint(self):
+        return NativePoint(0, 0)
+
+    def Dimension(self):
+        return NativeDimension(8, 8)
+
+    def InputCount(self):
+        return 64
+
+    def HasRootPoint(self):
+        return True
+
+    def HasCoordinates(self):
+        return True
+
+    def __bool__(self):
+        return True
+
 
 input_id_module = types.ModuleType("_MatrixOS_InputId")
 input_id_module.InputId = NativeInputId
@@ -146,9 +209,13 @@ cluster_native_module = types.ModuleType("_MatrixOS_InputCluster")
 cluster_native_module.InputCluster = NativeInputCluster
 sys.modules["_MatrixOS_InputCluster"] = cluster_native_module
 
-point_module = types.ModuleType("MatrixOS_Point")
-point_module.Point = object
-sys.modules["MatrixOS_Point"] = point_module
+point_module = types.ModuleType("_MatrixOS_Point")
+point_module.Point = NativePoint
+sys.modules["_MatrixOS_Point"] = point_module
+
+dimension_module = types.ModuleType("_MatrixOS_Dimension")
+dimension_module.Dimension = NativeDimension
+sys.modules["_MatrixOS_Dimension"] = dimension_module
 
 input_class_module = types.ModuleType("MatrixOS_InputClass")
 input_class_module.KEYPAD = 1
@@ -159,7 +226,7 @@ clear_calls = []
 input_module = types.ModuleType("_MatrixOS_Input")
 input_module.GetEvent = lambda timeout_ms: NativeInputEvent()
 input_module.GetState = lambda input_id: NativeInputSnapshot()
-input_module.GetPosition = lambda input_id: seen_position_id.append(input_id) or None
+input_module.GetPosition = lambda input_id: seen_position_id.append(input_id) or NativePoint(2, 3)
 input_module.GetInputsAt = lambda point: [NativeInputId(1, 2)]
 input_module.ClearInputBuffer = lambda: clear_calls.append(True)
 input_module.FunctionKey = lambda: NativeInputId(0, 0)
@@ -187,7 +254,8 @@ def test_get_event_returns_pythonic_proxy():
     assert event.cluster_id() == 1
     assert event.member_id() == 7
     assert event.is_aftertouch()
-    assert event.key_force() == 0.5
+    assert event.key_pressure() == 0.5
+    assert event.key_velocity() == 0.75
     assert event.key_value(1) == 0.75
     assert event.key_hold()
     assert event.key_active()
@@ -196,9 +264,9 @@ def test_get_event_returns_pythonic_proxy():
     input_id = event.id()
     assert input_id.cluster_id() == 1
     assert input_id.member_id() == 7
-    assert input_id.input_id() == 7
+    assert input_id.cluster_name() == "Grid"
     assert input_id.raw() is input_id.native
-    assert event.input_id() == 7
+    assert event.cluster_name() == "Grid"
     assert not (input_id != MatrixOS_Input.InputIdView(NativeInputId(1, 7)))
 
     keypad = event.keypad()
@@ -210,20 +278,37 @@ def test_get_event_returns_pythonic_proxy():
     assert keypad.raw() is keypad.native
     assert event.info().state() == 4
     assert event.raw() is event.native
+    assert not event.is_function_key()
+
+    class NativeFunctionEvent(NativeInputEvent):
+        def Id(self):
+            return NativeInputId.FunctionKey()
+
+        def ClusterId(self):
+            return 0
+
+        def MemberId(self):
+            return 0
+
+    assert MatrixOS_Input.InputEventView(NativeFunctionEvent()).is_function_key()
 
 
 def test_input_functions_unwrap_proxy_ids():
     input_id = MatrixOS_Input.function_key()
 
     MatrixOS_Input.get_position(input_id)
-    assert MatrixOS_Input.get_inputs_at(object())[0].MemberId() == 2
+    assert MatrixOS_Input.get_inputs_at(object())[0].member_id() == 2
     MatrixOS_Input.clear_input_buffer()
 
     assert seen_position_id[-1] is input_id.native
+    position = MatrixOS_Input.get_position(input_id)
+    assert position.x() == 2
+    assert position.y() == 3
+    assert position.raw().X() == 2
     assert clear_calls[-1]
 
     snapshot = MatrixOS_Input.get_state(input_id)
-    assert snapshot.id().input_id() == 7
+    assert snapshot.id().member_id() == 7
     assert snapshot.info().state() == 4
 
     original_get_state = input_module.GetState
@@ -249,27 +334,28 @@ def test_input_id_static_factories_return_proxies():
 
 
 def test_native_wrapper_alias_methods():
-    input_id = MatrixOS_InputId.InputId()
+    input_id = MatrixOS_InputId.InputId(1, 7)
     assert input_id.cluster_id() == 1
     assert input_id.member_id() == 7
-    assert input_id.input_id() == 7
+    assert input_id.cluster_name() == "Grid"
     assert not input_id.is_function_key()
-    assert input_id.raw() is input_id
+    assert input_id.raw() is input_id.native
 
     event = MatrixOS_InputEvent.InputEvent()
-    assert event.id().MemberId() == 7
+    assert event.id().member_id() == 7
     assert event.input_class() == 1
     assert event.cluster_id() == 1
     assert event.member_id() == 7
-    assert event.input_id() == 7
+    assert event.cluster_name() == "Grid"
     assert event.key_state() == 4
-    assert event.key_force() == 0.5
+    assert event.key_pressure() == 0.5
+    assert event.key_velocity() == 0.75
     assert event.key_value(1) == 0.75
     assert event.key_hold()
     assert event.key_active()
-    assert event.keypad().State() == 4
-    assert event.info().State() == 4
-    assert event.raw() is event
+    assert event.keypad().state() == 4
+    assert event.info().state() == 4
+    assert event.raw() is event.native
     assert event.is_aftertouch()
     assert not event.is_pressed()
     assert not event.is_hold()
@@ -284,24 +370,24 @@ def test_native_wrapper_alias_methods():
     assert not keypad.hold()
     assert keypad.active()
     assert keypad.hold_time() == 44
-    assert keypad.raw() is keypad
+    assert keypad.raw() is keypad.native
 
     keypad_view = MatrixOS_KeypadInfo.KeypadInfoView()
-    assert keypad_view.State() == 4
-    assert keypad_view.Force() == 0.5
-    assert keypad_view.Value(1) == 0.75
-    assert keypad_view.LastEventTime() == 123
-    assert keypad_view.Hold() is False
-    assert keypad_view.Active()
-    assert keypad_view.HoldTime() == 44
+    assert keypad_view.state() == 4
+    assert keypad_view.force() == 0.5
+    assert keypad_view.value(1) == 0.75
+    assert keypad_view.last_event_time() == 123
+    assert keypad_view.hold() is False
+    assert keypad_view.active()
+    assert keypad_view.hold_time() == 44
     assert bool(keypad_view)
 
     snapshot = MatrixOS_InputSnapshot.InputSnapshot()
-    assert snapshot.id().MemberId() == 7
+    assert snapshot.id().member_id() == 7
     assert snapshot.input_class() == 1
-    assert snapshot.keypad().State() == 4
-    assert snapshot.info().State() == 4
-    assert snapshot.raw() is snapshot
+    assert snapshot.keypad().state() == 4
+    assert snapshot.info().state() == 4
+    assert snapshot.raw() is snapshot.native
 
     cluster = MatrixOS_InputCluster.InputCluster()
     assert cluster.cluster_id() == 1
@@ -311,7 +397,7 @@ def test_native_wrapper_alias_methods():
     assert cluster.shape() == 2
     assert cluster.is_keypad()
     assert cluster.is_grid()
-    assert cluster.raw() is cluster
+    assert cluster.raw() is cluster.native
 
 
 def test_input_cluster_helpers():
@@ -320,19 +406,16 @@ def test_input_cluster_helpers():
     assert MatrixOS_Input._cluster_view(cluster_view) is cluster_view
     assert len(MatrixOS_Input.get_clusters()) == 3
     assert len(MatrixOS_Input.clusters()) == 3
-    assert MatrixOS_Input.get_cluster("Grid").ClusterId() == 1
-    assert MatrixOS_Input.get_cluster(2).Name() == "Slider"
+    assert MatrixOS_Input.get_cluster("Grid").cluster_id() == 1
+    assert MatrixOS_Input.get_cluster(2).name() == "Slider"
     assert MatrixOS_Input.get_cluster("Missing") is None
-    assert MatrixOS_Input.get_keypad_cluster().Name() == "Function"
-    assert MatrixOS_Input.get_keypad_cluster("Grid").ClusterId() == 1
-    assert MatrixOS_Input.GetKeypadCluster("Grid").ClusterId() == 1
-    assert MatrixOS_Input.GetKeypadCluster("Missing") is None
+    assert MatrixOS_Input.get_keypad_cluster().name() == "Function"
+    assert MatrixOS_Input.get_keypad_cluster("Grid").cluster_id() == 1
     assert MatrixOS_Input.keypad_cluster("Missing") is None
     assert len(MatrixOS_Input.get_keypad_clusters()) == 2
-    assert len(MatrixOS_Input.GetKeypadClusters()) == 2
     assert len(MatrixOS_Input.keypad_clusters()) == 2
-    assert MatrixOS_Input.primary_grid().Name() == "Grid"
-    assert MatrixOS_Input.get_primary_grid_cluster().Name() == "Grid"
+    assert MatrixOS_Input.primary_grid().name() == "Grid"
+    assert MatrixOS_Input.get_primary_grid_cluster().name() == "Grid"
 
     original_get_event = input_module.GetEvent
     try:

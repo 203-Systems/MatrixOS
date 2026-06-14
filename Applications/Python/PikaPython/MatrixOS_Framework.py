@@ -19,5 +19,6 @@ from MatrixOS_SystemKeycode import SystemKeycode
 from MatrixOS_MidiPortID import MidiPortID
 from MatrixOS_MidiStatus import MidiStatus
 from MatrixOS_MidiPacket import MidiPacket
+from MatrixOS_Timer import Timer
 
-import MatrixOS_ColorEffects as ColorEffects
+from MatrixOS_ColorEffects import ColorEffects

@@ -188,7 +188,7 @@ def test_input_cluster_pythonic_aliases():
     assert cluster.name() == "Grid"
     assert cluster.is_keypad()
     assert cluster.is_grid()
-    assert cluster.root_point().X() == 0
+    assert cluster.root_point().x() == 0
     assert cluster.has_root_point()
     assert cluster.width() == 8
     assert cluster.height() == 8
@@ -196,24 +196,16 @@ def test_input_cluster_pythonic_aliases():
     assert cluster.has_coordinates()
 
     view = MatrixOS_InputCluster.InputClusterView(NativeInputCluster())
-    assert view.ClusterId() == 1
     assert view.cluster_id() == 1
     assert view.id() == 1
-    assert view.Name() == "Grid"
     assert view.name() == "Grid"
-    assert view.InputClass() == 1
     assert view.input_class() == 1
-    assert view.Shape() == 2
     assert view.shape() == 2
-    assert view.root_point().Y() == 0
-    assert view.RootPoint().X() == 0
-    assert view.Dimension().X() == 8
-    assert view.dimension().Y() == 8
-    assert view.InputCount() == 64
+    assert view.root_point().y() == 0
+    assert view.dimension().x() == 8
+    assert view.dimension().y() == 8
     assert view.input_count() == 64
-    assert view.HasRootPoint()
     assert view.has_root_point()
-    assert view.HasCoordinates()
     assert view.has_coordinates()
     assert view.is_keypad()
     assert view.is_grid()
@@ -226,7 +218,7 @@ def test_input_cluster_pythonic_aliases():
 def test_input_snapshot_view_wraps_payload():
     snapshot = MatrixOS_InputSnapshot.InputSnapshotView(NativeInputSnapshot())
 
-    assert snapshot.id().input_id() == 7
+    assert snapshot.id().member_id() == 7
     assert snapshot.input_class() == 1
     assert snapshot.info().state() == 2
     assert snapshot.keypad().velocity() == 0.75

@@ -2,24 +2,29 @@ import _MatrixOS_InputSnapshot
 from MatrixOS_InputId import InputIdView
 from MatrixOS_KeypadInfo import KeypadInfoView
 
-class InputSnapshot(_MatrixOS_InputSnapshot.InputSnapshot):
+
+class InputSnapshot:
+    def __init__(self):
+        self.native = _MatrixOS_InputSnapshot.InputSnapshot()
+
     def id(self):
-        return self.Id()
+        return InputIdView(self.native.Id())
 
     def input_class(self) -> int:
-        return self.InputClass()
-
-    def Keypad(self):
-        return super().Keypad()
+        return self.native.InputClass()
 
     def keypad(self):
-        return self.Keypad()
+        keypad = self.native.Keypad()
+        if keypad is None:
+            return None
+        return KeypadInfoView(keypad)
 
     def info(self):
-        return self.Keypad()
+        return self.keypad()
 
     def raw(self):
-        return self
+        return self.native
+
 
 class InputSnapshotView:
     def __init__(self, native = None):
@@ -27,29 +32,20 @@ class InputSnapshotView:
             native = _MatrixOS_InputSnapshot.InputSnapshot()
         self.native = native
 
-    def Id(self):
+    def id(self):
         return InputIdView(self.native.Id())
 
-    def id(self):
-        return self.Id()
-
-    def InputClass(self) -> int:
+    def input_class(self) -> int:
         return self.native.InputClass()
 
-    def input_class(self) -> int:
-        return self.InputClass()
-
-    def Keypad(self):
+    def keypad(self):
         keypad = self.native.Keypad()
         if keypad is None:
             return None
         return KeypadInfoView(keypad)
 
-    def keypad(self):
-        return self.Keypad()
-
     def info(self):
-        return self.Keypad()
+        return self.keypad()
 
     def raw(self):
         return self.native

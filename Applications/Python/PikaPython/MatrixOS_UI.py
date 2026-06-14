@@ -6,143 +6,125 @@ from MatrixOS_UISelector import UISelector
 from MatrixOS_UI4pxNumber import UI4pxNumber
 from MatrixOS_InputId import InputId
 
+Component = UIComponent
+Button = UIButton
+Selector = UISelector
+Number = UI4pxNumber
+
+
+def _native(value):
+    if hasattr(value, "native"):
+        return value.native
+    return value
+
+
 class KeyEvent:
     def __init__(self, code: int):
         self.code = code
 
-    def ClusterId(self) -> int:
+    def cluster_id(self) -> int:
         return self.code & 0xFF
 
-    def cluster_id(self) -> int:
-        return self.ClusterId()
-
-    def KeyState(self) -> int:
+    def key_state(self) -> int:
         return (self.code >> 8) & 0xFF
 
-    def key_state(self) -> int:
-        return self.KeyState()
-
-    def MemberId(self) -> int:
+    def member_id(self) -> int:
         return (self.code >> 16) & 0xFFFF
 
-    def member_id(self) -> int:
-        return self.MemberId()
-
-    def input_id(self) -> int:
-        return self.MemberId()
-
-    def Id(self):
-        return InputId(self.ClusterId(), self.MemberId())
-
     def id(self):
-        return self.Id()
+        return InputId(self.cluster_id(), self.member_id())
 
     def as_input_id(self):
-        return self.Id()
-
-    def X(self) -> int:
-        if self.ClusterId() == 1:
-            return self.MemberId() % 8
-        return self.MemberId() & 0xFF
+        return self.id()
 
     def x(self) -> int:
-        return self.X()
-
-    def Y(self) -> int:
-        if self.ClusterId() == 1:
-            return self.MemberId() // 8
-        return (self.MemberId() >> 8) & 0xFF
+        if self.cluster_id() == 1:
+            return self.member_id() % 8
+        return self.member_id() & 0xFF
 
     def y(self) -> int:
-        return self.Y()
-
-    def IsPressed(self) -> bool:
-        return self.KeyState() == 2
+        if self.cluster_id() == 1:
+            return self.member_id() // 8
+        return (self.member_id() >> 8) & 0xFF
 
     def is_pressed(self) -> bool:
-        return self.IsPressed()
-
-    def IsHold(self) -> bool:
-        return self.KeyState() == 3
+        return self.key_state() == 2
 
     def is_hold(self) -> bool:
-        return self.IsHold()
-
-    def IsAftertouch(self) -> bool:
-        return self.KeyState() == 4
+        return self.key_state() == 3
 
     def is_aftertouch(self) -> bool:
-        return self.IsAftertouch()
-
-    def IsReleased(self) -> bool:
-        return self.KeyState() == 5
+        return self.key_state() == 4
 
     def is_released(self) -> bool:
-        return self.IsReleased()
-
-    def IsFunctionKey(self) -> bool:
-        return self.ClusterId() == 0
+        return self.key_state() == 5
 
     def is_function_key(self) -> bool:
-        return self.IsFunctionKey()
-
-    def IsGrid(self) -> bool:
-        return self.ClusterId() == 1
+        return self.cluster_id() == 0
 
     def is_grid(self) -> bool:
-        return self.IsGrid()
+        return self.cluster_id() == 1
 
-class UI(_MatrixOS_UI.UI):
-    def PullInput(self) -> any:
-        code = self.PullInputCode()
+
+class UI:
+    Component = UIComponent
+    Button = UIButton
+    Selector = UISelector
+    Number = UI4pxNumber
+
+    def __init__(self, *args):
+        self.native = _MatrixOS_UI.UI(*args)
+
+    def pull_input(self) -> any:
+        code = self.native.PullInputCode()
         if code < 0:
             return None
         return KeyEvent(code)
 
-    def pull_input(self) -> any:
-        return self.PullInput()
-
     def start(self) -> None:
-        self.Start()
+        self.native.Start()
 
     def exit(self) -> None:
-        self.Exit()
+        self.native.Exit()
 
     def close(self) -> bool:
-        return self.Close()
+        return self.native.Close()
 
     def set_name(self, name: str) -> None:
-        self.SetName(name)
+        self.native.SetName(name)
 
     def set_color(self, color) -> None:
-        self.SetColor(color)
+        self.native.SetColor(_native(color))
 
     def set_setup_func(self, setup_func) -> bool:
-        return self.SetSetupFunc(setup_func)
+        return self.native.SetSetupFunc(setup_func)
 
     def set_loop_func(self, loop_func) -> bool:
-        return self.SetLoopFunc(loop_func)
+        return self.native.SetLoopFunc(loop_func)
 
     def set_end_func(self, end_func) -> bool:
-        return self.SetEndFunc(end_func)
+        return self.native.SetEndFunc(end_func)
 
     def set_pre_render_func(self, pre_render_func) -> bool:
-        return self.SetPreRenderFunc(pre_render_func)
+        return self.native.SetPreRenderFunc(pre_render_func)
 
     def set_post_render_func(self, post_render_func) -> bool:
-        return self.SetPostRenderFunc(post_render_func)
+        return self.native.SetPostRenderFunc(post_render_func)
 
     def add(self, component, xy) -> None:
-        self.AddUIComponent(component, xy)
+        self.native.AddUIComponent(_native(component), _native(xy))
 
     def add_component(self, component, xy) -> None:
-        self.AddUIComponent(component, xy)
+        self.add(component, xy)
 
     def clear_components(self) -> None:
-        self.ClearUIComponents()
+        self.native.ClearUIComponents()
 
     def allow_exit(self, allow: bool) -> None:
-        self.AllowExit(allow)
+        self.native.AllowExit(allow)
 
     def set_fps(self, fps: int) -> None:
-        self.SetFPS(fps)
+        self.native.SetFPS(fps)
+
+    def raw(self):
+        return self.native

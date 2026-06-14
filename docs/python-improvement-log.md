@@ -31,9 +31,9 @@ instability.
 ### Current Design
 
 - Native `_MatrixOS_UI.UI.PullInputCode()` returns an integer code, or `-1` when the queue is empty.
-- Public Python `MatrixOS_UI.UI.PullInput()` wraps that code as a pure Python `KeyEvent`, or returns
+- Public Python `MatrixOS_UI.UI.pull_input()` wraps that code as a pure Python `KeyEvent`, or returns
   `None`.
-- `KeyEvent` currently exposes `ClusterId()`, `MemberId()`, and `KeyState()`.
+- `KeyEvent` exposes Pythonic helpers such as `cluster_id()`, `member_id()`, and `key_state()`.
 - UI instances install input capture automatically. Apps do not call `SetInputHandler()`.
 - The native input capture handler returns `false` so normal UI components such as `UIButton.OnPress()`
   still receive input.
@@ -47,10 +47,10 @@ instability.
 Application code sees:
 
 ```python
-event = ui.PullInput()
+event = ui.pull_input()
 if event is not None:
-    if event.KeyState() == KeyState.PRESSED:
-        handle(event.ClusterId(), event.MemberId())
+    if event.key_state() == KeyState.PRESSED:
+        handle(event.cluster_id(), event.member_id())
 ```
 
 The app no longer decodes bitfields, checks a sentinel integer, or enables a separate input handler.
@@ -59,7 +59,7 @@ The app no longer decodes bitfields, checks a sentinel integer, or enables a sep
 
 - Add optional `KeyEvent` helpers such as `IsPressed()`, `IsReleased()`, `IsFunctionKey()`, `X()`, and
   `Y(width=8)` if examples keep repeating those checks.
-- Add a simulator regression that starts a Python UI, injects a grid press, and verifies `PullInput()`
+- Add a simulator regression that starts a Python UI, injects a grid press, and verifies `pull_input()`
   returns a non-`None` object with the expected cluster/member/state.
 - Revisit native object returns after adding a focused Pika object lifetime test. Avoid using native
   `InputEvent` returns in hot UI paths until that test is stable.
@@ -70,8 +70,8 @@ Goal: make the public Python API pleasant without destabilizing the generated na
 
 ### Decisions
 
-- Keep PascalCase functions as the compatibility surface.
-- Add lowercase helpers in Python facade modules for new examples and tests.
+- Keep PascalCase only in private `_MatrixOS_*` native bindings.
+- Public Python facade modules expose Pythonic endpoint names only.
 - Avoid `@property` for now. PikaPython support is less proven than normal methods, and methods such
   as `point.x()` or `color.rgb()` are still much nicer than C++ getter names.
 - Avoid pure-Python facade classes in native `.pyi` files. The generator treats `.pyi` classes as
@@ -88,23 +88,31 @@ Goal: make the public Python API pleasant without destabilizing the generated na
 - `MatrixOS_Color`: added component helpers `r`, `g`, `b`, `w`, `rgb`, `wrgb`, setters, and module
   constructors `rgb`, `rgbw`, `hex`.
 - `MatrixOS_Point`: added `x`, `y`, `set_x`, `set_y`, `rotate`, and module constructor `point`.
-- `MatrixOS_UI`: added lowercase `pull_input()` and richer pure-Python `KeyEvent` helpers.
-- `MatrixOS_Input`: lowercase `get_event()` now returns a Python `InputEventView` while `GetEvent()`
-  keeps returning the raw native object. Proxy methods unwrap native input IDs when calling back into
-  native APIs.
+- `MatrixOS_UI`: added lowercase `pull_input()` and richer pure-Python `KeyEvent` helpers. UI
+  components are available through `MatrixOS.UI.Button`, `MatrixOS.UI.Selector`, and
+  `MatrixOS.UI.Number`.
+- `MatrixOS`: the top-level import now exposes Pythonic namespace facades. `MatrixOS.Input`,
+  `MatrixOS.SYS`, `MatrixOS.LED`, `MatrixOS.MIDI`, `MatrixOS.NVS`, `MatrixOS.HID`, `MatrixOS.USB`,
+  and `MatrixOS.UIUtility` only expose lowercase endpoint methods; generated/native PascalCase names
+  remain private implementation detail modules.
+- `MatrixOS_Input`: lowercase `get_event()` returns a Python `InputEventView`, and `get_position()`
+  returns a Pythonic point facade with `x()` and `y()`.
 - `MatrixOS_InputEvent`, `MatrixOS_InputId`, and `MatrixOS_KeypadInfo`: native class wrappers keep their
   generated class names and gain lowercase helpers. The Python-only proxy classes are named
   `InputEventView`, `InputIdView`, and `KeypadInfoView` so they do not pretend to be generated native
   classes.
-- `InputEvent` and `InputId` wrappers expose `input_id()` as an alias for the keypad member id, which
-  is the natural name when writing Python code against MatrixOS input events.
+- `InputEvent` and `InputId` use `member_id()` as the single name for the cluster-local input member.
+  They also expose `cluster_name()` for readable input routing.
+- `MatrixOS.Input.try_get_point(input_id)` returns a point facade or `None` when an input cannot be
+  represented as a coordinate.
+- Keypad payloads expose both `pressure()` and `velocity()`; event helpers expose `key_pressure()` and
+  `key_velocity()`.
 - `InputEvent.info()` is an alias for `keypad()`, giving Python code a short neutral name for the
   event payload while keeping the MatrixOS-specific `Keypad()` compatibility method.
 - `MatrixOS_UI.KeyEvent.x()` and `y()` decode the primary grid member id as `member % 8` and
   `member // 8`. Non-grid events still use packed low-byte/high-byte fallback decoding.
-- Proxy objects expose `raw()` for code that needs to pass through to lower-level APIs. PascalCase
-  `MatrixOS_Input.GetState()` and `GetPosition()` also unwrap proxies, so mixed code does not fail
-  unnecessarily.
+- Proxy objects expose `raw()` for code that needs to pass through to lower-level implementation APIs.
+  App code should use the lowercase endpoints from `import MatrixOS`.
 - `MatrixOS_NVS`, `MatrixOS_MIDI`, `MatrixOS_USB`, and `MatrixOS_Utils`: added small lowercase helpers
   and length-hiding helpers such as `MIDI.send_sysex(port, data)`.
 - UI facades now have lowercase component helpers: `ui.start()`, `ui.add(...)`, `ui.set_loop_func(...)`,
@@ -115,8 +123,8 @@ Goal: make the public Python API pleasant without destabilizing the generated na
 
 - `Applications/Python/examples/pixel_art.py` now uses the lowercase input, LED, point, and system
   helpers.
-- `Applications/Python/examples/same_game.py` now uses `main_ui.pull_input()`, lowercase event helpers,
-  and lowercase LED/SYS calls where touched.
+- `Applications/Python/examples/same_game.py` now uses `MatrixOS.UI.Button`, `MatrixOS.Timer`,
+  `MatrixOS.ColorEffects`, `MatrixOS.Input.try_get_point()`, and lowercase event helpers.
 
 ### Tests
 
@@ -181,9 +189,9 @@ objects directly.
   a real MatrixOS input id instead of forcing apps to carry separate cluster/member integers.
 - `MatrixOS_Input` now exposes keypad cluster helpers:
   `get_cluster(target)`, `keypad_clusters()`, `keypad_cluster(name="")`, and `primary_grid()`.
-- Native input cluster objects are wrapped with `InputClusterView` on lowercase/Pythonic APIs. The
-  compatibility `GetClusters()` call still returns raw native objects, while app-facing helpers return
-  objects with both PascalCase and lowercase methods.
+- Native input cluster objects are wrapped with `InputClusterView` on Pythonic APIs. Raw native
+  `_MatrixOS_*` calls remain implementation details, while app-facing helpers return objects with
+  lowercase methods.
 - `MatrixOS_Input.get_state()` now returns `InputSnapshotView`, matching the existing event and keypad
   proxy style.
 

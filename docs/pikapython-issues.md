@@ -6,32 +6,26 @@ This file tracks MatrixOS PikaPython issues found while porting and testing Pyth
 
 Observed while porting `MatrixOSPixelArtApp`.
 
-`MatrixOS.py` exposes `UI` as a class, but some examples and generated stubs suggest `MatrixOS.UI.UI(...)`. PikaPython reported:
+Some examples and generated stubs suggested chained UI access such as `MatrixOS.UI.UI(...)`. PikaPython reported:
 
 ```text
 Error: method 'MatrixOS.UI.UI' no found.
 ```
 
-Use one of these forms instead:
+Use the Pythonic MatrixOS UI namespace instead:
 
 ```python
 import MatrixOS
-ui = MatrixOS.UI("Demo", Color(0xFFFFFF))
-```
-
-or:
-
-```python
-from MatrixOS_UI import UI
-ui = UI("Demo", Color(0xFFFFFF))
+ui = MatrixOS.UI.UI("Demo", Color(0xFFFFFF))
+button = MatrixOS.UI.Button()
 ```
 
 Fix direction:
 
-- Use direct wrapper modules for UI classes for now, for example `MatrixOS_UI.UI(...)` and
-  `MatrixOS_UIButton.UIButton()`.
-- Do not add a public `MatrixOS.UI` facade until the generated module asset path is better understood.
-- Update docs/examples that imply `MatrixOS.UI.UI(...)` or `MatrixOS.UIButton(...)`.
+- Keep generated `_MatrixOS_*` modules private.
+- Keep public app code on Pythonic namespaces such as `MatrixOS.Input`, `MatrixOS.LED`, and
+  `MatrixOS.UI`.
+- Prefer `MatrixOS.UI.Button()` over direct component modules.
 
 ## 2026-06-12: Long Python loops block MystrixSim WebUI debugging
 
@@ -86,9 +80,9 @@ Fix direction:
 
 ## 2026-06-12: UI wrapper lifecycle and callbacks needed fixes
 
-Observed while trying to port SameGame settings/reset menus to `MatrixOS.UI` and `UIButton`.
+Observed while trying to port SameGame settings/reset menus to `MatrixOS.UI` and `Button`.
 
-A minimal script could construct `MatrixOS.UI`, add a `UIButton`, and call `Start()`, but the Python side did not have a clean way to exit a running UI from a custom callback. While reviewing the binding, `SaveCallbackObjToPikaObj()` also returned `False` on success and `True` on failure, which made callback setter results misleading. It also pre-freed an existing callback before calling `obj_setArg()`, even though `obj_setArg()` already replaces stored args.
+A minimal script could construct `MatrixOS.UI`, add a button, and call `Start()`, but the Python side did not have a clean way to exit a running UI from a custom callback. While reviewing the binding, `SaveCallbackObjToPikaObj()` also returned `False` on success and `True` on failure, which made callback setter results misleading. It also pre-freed an existing callback before calling `obj_setArg()`, even though `obj_setArg()` already replaces stored args.
 
 Fix:
 
@@ -97,12 +91,12 @@ Fix:
 - Fixed `SaveCallbackObjToPikaObj()` to return `True` on success and `False` on failure.
 - Removed the extra callback pre-free and let `obj_setArg()` own replacement.
 - Made the UI constructor tolerate a missing argument tuple.
-- Updated `same_game.py` to use `MatrixOS_UI.UI`, `SetLoopFunc()`, `SetPreRenderFunc()`,
-  `PullInput()`, `MatrixOS_UIButton.UIButton`, `SetEnableFunc()`, `SetColorFunc()`, and `OnPress()`.
+- Updated `same_game.py` to use `MatrixOS.UI.UI`, `set_loop_func()`, `set_pre_render_func()`,
+  `pull_input()`, `MatrixOS.UI.Button`, `set_enable_func()`, `set_color_func()`, and `on_press()`.
 
 Follow-up:
 
-- Add a simulator smoke test that runs a Python UI app through WebUI RPC and presses a `UIButton`.
+- Add a simulator smoke test that runs a Python UI app through WebUI RPC and presses a `Button`.
 - Keep future Python examples on the UI wrapper path when the goal is API coverage.
 
 ## 2026-06-12: Repeated `Point` construction during LED rendering can destabilize WASM
@@ -112,7 +106,7 @@ Observed while testing SameGame in MystrixSim.
 Small scripts can call:
 
 ```python
-MatrixOS.LED.SetColor(Point(0, 0), Color(0x00FF00))
+MatrixOS.LED.set_color_xy(0, 0, Color(0x00FF00))
 ```
 
 successfully, but repeatedly constructing many `Point` objects inside a render loop caused intermittent
@@ -121,14 +115,14 @@ successfully, but repeatedly constructing many `Point` objects inside a render l
 
 Workaround:
 
-- Use `MatrixOS.LED.SetColorByID(index, color)` for dense framebuffer-style writes.
+- Use `MatrixOS.LED.set_color_by_id(index, color)` for dense framebuffer-style writes.
 - Reuse existing `Color` objects where possible.
 
 Fix direction:
 
 - Investigate native-object lifetime and GC interaction for short-lived wrapper objects such as `Point`.
-- Add a stress regression that writes all 64 LEDs repeatedly from Python using both `SetColor()` and
-  `SetColorByID()`.
+- Add a stress regression that writes all 64 LEDs repeatedly from Python using both `set_color_xy()`
+  and `set_color_by_id()`.
 
 ## 2026-06-12: UI input callbacks must be polled from Python
 
@@ -147,11 +141,11 @@ Fix:
 
 - `UI` now captures keypad input into its native queue instead of invoking Python from the input
   dispatch stack.
-- Python UI loops call `ui.PullInput()` and process pure Python `KeyEvent` objects from normal Python
+- Python UI loops call `ui.pull_input()` and process pure Python `KeyEvent` objects from normal Python
   loop code.
 - Unread queued input is cleared after each UI loop callback.
-- SameGame uses this UI wrapper path for board and Function key input, while its settings menu still
-  uses `UIButton` callbacks.
+- SameGame uses raw input for the main board and a real `MatrixOS.UI` settings menu with button
+  callbacks.
 
 Fix direction:
 
@@ -243,7 +237,7 @@ velocity = MatrixOS.MIDI.velocity(packet)
 
 Fix direction:
 
-- Keep native packet PascalCase methods as the compatibility baseline.
+- Keep native packet PascalCase methods private to `_MatrixOS_*` bindings.
 - Use module-level helper functions for Pythonic field access on native-returned packets.
 - Avoid wrapping native MIDI packet objects until PikaPython object lifecycle behavior is better
   understood.

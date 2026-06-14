@@ -26,5 +26,6 @@ int64_t _MatrixOS_SYS_Micros(PikaObj *self);
 int64_t _MatrixOS_SYS_Millis(PikaObj *self);
 void _MatrixOS_SYS_OpenSetting(PikaObj *self);
 void _MatrixOS_SYS_Reboot(PikaObj *self);
+void _MatrixOS_SYS_TaskYield(PikaObj *self);
 
 #endif

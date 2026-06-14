@@ -16,6 +16,10 @@ extern "C" {
         MatrixOS::SYS::DelayMs(ms);
     }
 
+    void _MatrixOS_SYS_TaskYield(PikaObj *self) {
+        taskYIELD();
+    }
+
     int64_t _MatrixOS_SYS_Millis(PikaObj *self) {
         return MatrixOS::SYS::Millis();
     }

@@ -78,7 +78,22 @@ sys.modules["_MatrixOS_Utils"] = utils_module
 input_class_native_module = types.ModuleType("_MatrixOS_InputClass")
 sys.modules["_MatrixOS_InputClass"] = input_class_native_module
 
+sys_time = {"millis": 1000}
+sys_module = types.ModuleType("_MatrixOS_SYS")
+sys_module.Millis = lambda: sys_time["millis"]
+sys_module.Micros = lambda: sys_time["millis"] * 1000
+sys_module.DelayMs = lambda ms: sys_time.__setitem__("millis", sys_time["millis"] + ms)
+sys_module.TaskYield = lambda: None
+sys_module.Reboot = lambda: None
+sys_module.Bootloader = lambda: None
+sys_module.OpenSetting = lambda: None
+sys_module.ExecuteAPP = lambda author, app_name, args: None
+sys_module.ExecuteAPPByID = lambda app_id, args: None
+sys_module.GetVersion = lambda: (4, 0, 1)
+sys.modules["_MatrixOS_SYS"] = sys_module
+
 import MatrixOS_ColorEffects
+import MatrixOS_Color
 import MatrixOS_ConsumerKeycode
 import MatrixOS_Direction
 import MatrixOS_Framework
@@ -92,33 +107,23 @@ import MatrixOS_Utils
 
 
 def test_color_effect_lowercase_aliases():
-    color = NativeColor(7)
+    color = MatrixOS_Color.Color(7)
 
-    assert MatrixOS_ColorEffects.rainbow().value == 1
-    assert MatrixOS_ColorEffects.Rainbow().value == 1
+    assert MatrixOS_ColorEffects.rainbow().raw().value == 1
     assert MatrixOS_ColorEffects.breath(10, 1) == 2
-    assert MatrixOS_ColorEffects.Breath(10, 1) == 2
     assert MatrixOS_ColorEffects.breath_low_bound(8, 10, 1) == 3
-    assert MatrixOS_ColorEffects.BreathLowBound(8, 10, 1) == 3
     assert MatrixOS_ColorEffects.strobe(10, 1) == 4
-    assert MatrixOS_ColorEffects.Strobe(10, 1) == 4
     assert MatrixOS_ColorEffects.saw(10, 1) == 5
-    assert MatrixOS_ColorEffects.Saw(10, 1) == 5
     assert MatrixOS_ColorEffects.triangle(10, 1) == 6
-    assert MatrixOS_ColorEffects.Triangle(10, 1) == 6
-    assert MatrixOS_ColorEffects.color_breath(color) is color
-    assert MatrixOS_ColorEffects.ColorBreath(color) is color
-    assert MatrixOS_ColorEffects.color_breath_low_bound(color) is color
-    assert MatrixOS_ColorEffects.ColorBreathLowBound(color) is color
-    assert MatrixOS_ColorEffects.color_strobe(color) is color
-    assert MatrixOS_ColorEffects.ColorStrobe(color) is color
-    assert MatrixOS_ColorEffects.color_saw(color) is color
-    assert MatrixOS_ColorEffects.ColorSaw(color) is color
-    assert MatrixOS_ColorEffects.color_triangle(color) is color
-    assert MatrixOS_ColorEffects.ColorTriangle(color) is color
+    assert MatrixOS_ColorEffects.color_breath(color).raw() is color.raw()
+    assert MatrixOS_ColorEffects.color_breath_low_bound(color).raw() is color.raw()
+    assert MatrixOS_ColorEffects.color_strobe(color).raw() is color.raw()
+    assert MatrixOS_ColorEffects.color_saw(color).raw() is color.raw()
+    assert MatrixOS_ColorEffects.color_triangle(color).raw() is color.raw()
 
     assert effect_calls[0] == ("rainbow", 1000, 0)
     assert effect_calls[-1][0] == "color_triangle"
+    assert MatrixOS_ColorEffects.ColorEffects.rainbow().raw().value == 1
 
 
 def test_constant_modules_import_and_values():
@@ -140,6 +145,25 @@ def test_utils_facade():
     assert MatrixOS_Utils.string_hash("Matrix") == 6
 
 
+def test_timer_pythonic_facade():
+    sys_time["millis"] = 1000
+    timer = MatrixOS_Framework.Timer()
+
+    assert not timer.tick(10)
+    sys_time["millis"] = 1009
+    assert not hasattr(timer, "Tick")
+    sys_time["millis"] = 1010
+    assert timer.tick(10)
+    assert timer.since_last_tick() == 0
+
+    sys_time["millis"] = 1025
+    assert timer.tick(10, True)
+    assert timer.since_last_tick() == 5
+
+    timer.record_current()
+    assert timer.since_last_tick() == 0
+
+
 def test_framework_aggregate_exports():
     assert MatrixOS_Framework.Direction.UP == 0
     assert MatrixOS_Framework.KeyState.PRESSED == 2
@@ -151,4 +175,5 @@ if __name__ == "__main__":
     test_color_effect_lowercase_aliases()
     test_constant_modules_import_and_values()
     test_utils_facade()
+    test_timer_pythonic_facade()
     test_framework_aggregate_exports()

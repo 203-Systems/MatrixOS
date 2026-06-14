@@ -1,13 +1,9 @@
 import _MatrixOS_HID_RawHID
 
-def Get(timeout_ms: int = 0) -> bytes:
-    return _MatrixOS_HID_RawHID.Get(timeout_ms)
-
-def Send(report: bytes) -> bool:
-    return _MatrixOS_HID_RawHID.Send(report, len(report))
 
 def get(timeout_ms: int = 0) -> bytes:
-    return Get(timeout_ms)
+    return _MatrixOS_HID_RawHID.Get(timeout_ms)
+
 
 def send(report: bytes) -> bool:
-    return Send(report)
+    return _MatrixOS_HID_RawHID.Send(report, len(report))

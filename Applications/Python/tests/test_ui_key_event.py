@@ -99,31 +99,25 @@ import MatrixOS_UI
 def test_pull_input_returns_none_for_empty_queue():
     ui = MatrixOS_UI.UI()
 
-    assert ui.PullInput() is None
+    assert ui.pull_input() is None
 
 
 def test_pull_input_wraps_code_as_key_event():
     ui = MatrixOS_UI.UI()
-    ui.codes.append(0x002A0201)
+    ui.native.codes.append(0x002A0201)
 
-    event = ui.PullInput()
+    event = ui.pull_input()
 
     assert event is not None
-    assert event.ClusterId() == 1
-    assert event.KeyState() == 2
-    assert event.MemberId() == 42
     assert event.cluster_id() == 1
     assert event.key_state() == 2
     assert event.member_id() == 42
-    assert event.input_id() == 42
-    assert event.id().ClusterId() == 1
-    assert event.id().MemberId() == 42
-    assert event.IsPressed()
-    assert event.IsGrid()
+    assert event.id().cluster_id() == 1
+    assert event.id().member_id() == 42
     assert event.is_pressed()
     assert event.is_grid()
     assert not event.is_released()
-    assert event.as_input_id().MemberId() == 42
+    assert event.as_input_id().member_id() == 42
     assert not event.is_hold()
     assert not event.is_aftertouch()
     assert not event.is_function_key()
@@ -132,11 +126,9 @@ def test_pull_input_wraps_code_as_key_event():
 def test_grid_key_event_decodes_xy_from_member_id():
     event = MatrixOS_UI.KeyEvent((26 << 16) | (2 << 8) | 1)
 
-    assert event.ClusterId() == 1
-    assert event.KeyState() == 2
-    assert event.MemberId() == 26
-    assert event.X() == 2
-    assert event.Y() == 3
+    assert event.cluster_id() == 1
+    assert event.key_state() == 2
+    assert event.member_id() == 26
     assert event.x() == 2
     assert event.y() == 3
 
@@ -144,16 +136,16 @@ def test_grid_key_event_decodes_xy_from_member_id():
 def test_non_grid_key_event_decodes_packed_xy_member_id():
     event = MatrixOS_UI.KeyEvent(0x03040202)
 
-    assert event.ClusterId() == 2
-    assert event.X() == 4
-    assert event.Y() == 3
+    assert event.cluster_id() == 2
+    assert event.x() == 4
+    assert event.y() == 3
 
 
 def test_key_event_state_helpers():
-    assert MatrixOS_UI.KeyEvent((0 << 16) | (3 << 8) | 0).IsHold()
-    assert MatrixOS_UI.KeyEvent((0 << 16) | (4 << 8) | 0).IsAftertouch()
-    assert MatrixOS_UI.KeyEvent((0 << 16) | (5 << 8) | 0).IsReleased()
-    assert MatrixOS_UI.KeyEvent((0 << 16) | (2 << 8) | 0).IsFunctionKey()
+    assert MatrixOS_UI.KeyEvent((0 << 16) | (3 << 8) | 0).is_hold()
+    assert MatrixOS_UI.KeyEvent((0 << 16) | (4 << 8) | 0).is_aftertouch()
+    assert MatrixOS_UI.KeyEvent((0 << 16) | (5 << 8) | 0).is_released()
+    assert MatrixOS_UI.KeyEvent((0 << 16) | (2 << 8) | 0).is_function_key()
 
 
 def test_ui_pythonic_aliases_call_native_methods():
@@ -175,10 +167,10 @@ def test_ui_pythonic_aliases_call_native_methods():
     ui.allow_exit(False)
     ui.set_fps(60)
 
-    assert ui.calls[0] == ("start",)
-    assert ui.calls[1] == ("exit",)
-    assert ui.calls[10][0] == "add"
-    assert ui.calls[-1] == ("fps", 60)
+    assert ui.native.calls[0] == ("start",)
+    assert ui.native.calls[1] == ("exit",)
+    assert ui.native.calls[10][0] == "add"
+    assert ui.native.calls[-1] == ("fps", 60)
 
 
 if __name__ == "__main__":

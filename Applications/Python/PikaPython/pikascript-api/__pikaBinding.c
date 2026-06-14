@@ -4354,6 +4354,14 @@ method_typedef(
     "Reboot", ""
 );
 
+void _MatrixOS_SYS_TaskYieldMethod(PikaObj *self, Args *_args_){
+    _MatrixOS_SYS_TaskYield(self);
+}
+method_typedef(
+    _MatrixOS_SYS_TaskYield,
+    "TaskYield", ""
+);
+
 class_def(_MatrixOS_SYS){
     __BEFORE_MOETHOD_DEF
     method_def(_MatrixOS_SYS_Bootloader, 407357872),
@@ -4362,6 +4370,7 @@ class_def(_MatrixOS_SYS){
     method_def(_MatrixOS_SYS_ExecuteAPPByID, 1061449825),
     method_def(_MatrixOS_SYS_Micros, 1126205266),
     method_def(_MatrixOS_SYS_Millis, 1126521967),
+    method_def(_MatrixOS_SYS_TaskYield, 1147822799),
     method_def(_MatrixOS_SYS_Reboot, 1317099344),
     method_def(_MatrixOS_SYS_DelayMs, 1772772468),
     method_def(_MatrixOS_SYS_ExecuteAPP, 2062655097),

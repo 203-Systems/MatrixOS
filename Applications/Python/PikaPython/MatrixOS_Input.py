@@ -4,12 +4,15 @@ from MatrixOS_InputEvent import InputEvent, InputEventView
 from MatrixOS_InputSnapshot import InputSnapshot, InputSnapshotView
 from MatrixOS_KeypadInfo import KeypadInfo
 from MatrixOS_InputCluster import InputCluster, InputClusterView
-from MatrixOS_Point import Point
+from MatrixOS_Point import Point, PointView
 import MatrixOS_InputClass as InputClass
 
-# Nullable convention: PikaPython has no Optional[T].
-# Functions that may return None use `-> any` with a comment
-# documenting the real return type.
+
+def _native(value):
+    if hasattr(value, "native"):
+        return value.native
+    return value
+
 
 def _cluster_view(cluster):
     if cluster is None:
@@ -18,107 +21,100 @@ def _cluster_view(cluster):
         return cluster
     return InputClusterView(cluster)
 
-def GetEvent(timeout_ms: int = 0) -> any:  # InputEvent or None
-    return _MatrixOS_Input.GetEvent(timeout_ms)
 
-def get_event(timeout_ms: int = 0) -> any:  # InputEvent or None
-    event = GetEvent(timeout_ms)
+def get_event(timeout_ms: int = 0) -> any:
+    event = _MatrixOS_Input.GetEvent(timeout_ms)
     if event is None:
         return None
     return InputEventView(event)
 
-def GetState(input_id: InputId) -> any:  # InputSnapshot or None
-    if hasattr(input_id, "native"):
-        input_id = input_id.native
-    return _MatrixOS_Input.GetState(input_id)
 
-def get_state(input_id: InputId) -> any:  # InputSnapshot or None
-    if hasattr(input_id, "native"):
-        input_id = input_id.native
-    snapshot = GetState(input_id)
+def get_state(input_id: InputId) -> any:
+    snapshot = _MatrixOS_Input.GetState(_native(input_id))
     if snapshot is None:
         return None
     return InputSnapshotView(snapshot)
 
-def GetPosition(input_id: InputId) -> any:  # Point or None
-    if hasattr(input_id, "native"):
-        input_id = input_id.native
-    return _MatrixOS_Input.GetPosition(input_id)
 
-def get_position(input_id: InputId) -> any:  # Point or None
-    if hasattr(input_id, "native"):
-        input_id = input_id.native
-    return GetPosition(input_id)
+def get_position(input_id: InputId) -> any:
+    point = _MatrixOS_Input.GetPosition(_native(input_id))
+    if point is None:
+        return None
+    if hasattr(point, "native"):
+        return point
+    return PointView(point)
 
-def GetInputsAt(point: Point) -> list:  # list of InputId
-    return _MatrixOS_Input.GetInputsAt(point)
 
-def get_inputs_at(point: Point) -> list:  # list of InputId
-    return GetInputsAt(point)
+def try_get_point(input_id: InputId) -> any:
+    return get_position(input_id)
 
-def ClearInputBuffer() -> None:
-    _MatrixOS_Input.ClearInputBuffer()
+
+def get_inputs_at(point: Point) -> list:
+    result = []
+    for input_id in _MatrixOS_Input.GetInputsAt(_native(point)):
+        result.append(InputIdView(input_id))
+    return result
+
 
 def clear_input_buffer() -> None:
-    ClearInputBuffer()
+    _MatrixOS_Input.ClearInputBuffer()
 
-def FunctionKey() -> InputId:
-    return _MatrixOS_Input.FunctionKey()
 
 def function_key() -> InputId:
-    return InputIdView(FunctionKey())
+    return InputIdView(_MatrixOS_Input.FunctionKey())
 
-def GetClusters() -> list:  # list of InputCluster
-    return _MatrixOS_Input.GetClusters()
 
-def get_clusters() -> list:  # list of InputCluster
+def get_clusters() -> list:
     result = []
-    for cluster in GetClusters():
+    for cluster in _MatrixOS_Input.GetClusters():
         result.append(_cluster_view(cluster))
     return result
+
 
 def clusters() -> list:
     return get_clusters()
 
-def GetCluster(target) -> any:
-    for cluster in GetClusters():
-        if cluster.ClusterId() == target or cluster.Name() == target:
-            return _cluster_view(cluster)
-    return None
 
 def get_cluster(target) -> any:
-    return GetCluster(target)
-
-def GetKeypadClusters() -> list:
-    result = []
-    for cluster in GetClusters():
-        if cluster.InputClass() == InputClass.KEYPAD:
-            result.append(_cluster_view(cluster))
-    return result
-
-def get_keypad_clusters() -> list:
-    return GetKeypadClusters()
-
-def keypad_clusters() -> list:
-    return GetKeypadClusters()
-
-def GetKeypadCluster(name: str = "") -> any:
-    for cluster in GetKeypadClusters():
-        if name == "" or cluster.Name() == name:
+    for cluster in get_clusters():
+        if cluster.cluster_id() == target or cluster.name() == target:
             return cluster
     return None
 
+
+def get_cluster_name(cluster_id: int) -> str:
+    cluster = get_cluster(cluster_id)
+    if cluster is None:
+        return ""
+    return cluster.name()
+
+
+def get_keypad_clusters() -> list:
+    result = []
+    for cluster in get_clusters():
+        if cluster.input_class() == InputClass.KEYPAD:
+            result.append(cluster)
+    return result
+
+
+def keypad_clusters() -> list:
+    return get_keypad_clusters()
+
+
 def get_keypad_cluster(name: str = "") -> any:
-    return GetKeypadCluster(name)
+    for cluster in get_keypad_clusters():
+        if name == "" or cluster.name() == name:
+            return cluster
+    return None
+
 
 def keypad_cluster(name: str = "") -> any:
-    return GetKeypadCluster(name)
+    return get_keypad_cluster(name)
 
-def GetPrimaryGridCluster() -> any:  # InputCluster or None
-    return _MatrixOS_Input.GetPrimaryGridCluster()
 
-def get_primary_grid_cluster() -> any:  # InputCluster or None
-    return _cluster_view(GetPrimaryGridCluster())
+def get_primary_grid_cluster() -> any:
+    return _cluster_view(_MatrixOS_Input.GetPrimaryGridCluster())
+
 
 def primary_grid() -> any:
     return get_primary_grid_cluster()

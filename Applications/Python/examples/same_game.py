@@ -1,11 +1,15 @@
 import MatrixOS
-import MatrixOS_UI
-import MatrixOS_UIButton
-from MatrixOS_Color import Color
-from MatrixOS_Dimension import Dimension
-from MatrixOS_Point import Point
-import MatrixOS_ColorEffects as ColorEffects
-from MatrixOS_KeyState import KeyState
+
+
+LED = MatrixOS.LED
+SYS = MatrixOS.SYS
+Input = MatrixOS.Input
+UI = MatrixOS.UI
+Color = MatrixOS.Color
+Point = MatrixOS.Point
+Dimension = MatrixOS.Dimension
+ColorEffects = MatrixOS.ColorEffects
+Timer = MatrixOS.Timer
 
 
 WIDTH = 8
@@ -18,9 +22,9 @@ WAITING = 1
 MOVING = 2
 COMPACTING = 3
 ENDED = 4
-SETTINGS = 5
 
 STEP_MS = 100
+FRAME_MS = 16
 
 COLORS = [
     Color(0x000000),
@@ -48,10 +52,11 @@ last_color = 4
 game_state = SETUP_BOARD
 last_event_ms = 0
 random_seed = 1
-main_ui = None
-pending_function_press = False
-pending_cell_x = -1
-pending_cell_y = -1
+active_settings_ui = None
+app_running = True
+pending_cell = None
+render_timer = Timer()
+function_key = Input.function_key()
 
 
 def xy_index(x, y):
@@ -85,7 +90,7 @@ def random_color():
 
 def seed_random():
     global random_seed
-    random_seed = MatrixOS.SYS.millis() & 0x7FFFFFFF
+    random_seed = SYS.millis() & 0x7FFFFFFF
     if random_seed == 0:
         random_seed = 1
 
@@ -113,19 +118,16 @@ def reset_game():
     global last_color
     global game_state
     global last_event_ms
-    global pending_function_press
-    global pending_cell_x
-    global pending_cell_y
+    global pending_cell
 
     seed_random()
     reset_board()
     score = 0
     last_color = num_colors
     game_state = SETUP_BOARD
-    last_event_ms = MatrixOS.SYS.millis()
-    pending_function_press = False
-    pending_cell_x = -1
-    pending_cell_y = -1
+    last_event_ms = SYS.millis()
+    pending_cell = None
+    render_timer.record_current()
 
 
 def get_cell_color(cell):
@@ -135,24 +137,24 @@ def get_cell_color(cell):
 
 
 def fill_underglow(color):
-    MatrixOS.LED.FillPartition("Underglow", color)
+    LED.fill_partition("Underglow", color)
 
 
 def render_board_cells():
     for index in range(CELL_COUNT):
-        MatrixOS.LED.set_color_by_id(index, get_cell_color(board[index]))
+        LED.set_color_by_id(index, get_cell_color(board[index]))
 
 
 def render_game():
-    now = MatrixOS.SYS.millis()
+    now = SYS.millis()
     render_board_cells()
 
     if game_state == ENDED:
-        fill_underglow(ColorEffects.Rainbow(1000, 0))
+        fill_underglow(ColorEffects.rainbow(1000, 0))
     elif game_state == MOVING:
-        fill_underglow(ColorEffects.ColorSaw(get_cell_color(last_color), 250, now - last_event_ms))
+        fill_underglow(ColorEffects.color_saw(get_cell_color(last_color), 250, now - last_event_ms))
     else:
-        fill_underglow(ColorEffects.ColorBreath(get_cell_color(last_color), 2000, now - last_event_ms))
+        fill_underglow(ColorEffects.color_breath(get_cell_color(last_color), 2000, now - last_event_ms))
 
 
 def selected_color_button(index):
@@ -180,15 +182,8 @@ def color_button_3():
 
 def render_settings_background():
     for index in range(CELL_COUNT):
-        MatrixOS.LED.set_color_by_id(index, COLORS[EMPTY])
+        LED.set_color_by_id(index, COLORS[EMPTY])
     fill_underglow(Color(0x00FFFF))
-
-
-def render_ui():
-    if game_state == SETTINGS:
-        render_settings_background()
-    else:
-        render_game()
 
 
 def build_islands():
@@ -352,7 +347,7 @@ def place(x, y):
     if cleared > 0:
         score += cleared * (cleared - 2)
         game_state = MOVING
-        last_event_ms = MatrixOS.SYS.millis()
+        last_event_ms = SYS.millis()
 
 
 def update_game():
@@ -362,10 +357,7 @@ def update_game():
 
     process_pending_input()
 
-    if game_state == SETTINGS:
-        return
-
-    now = MatrixOS.SYS.millis()
+    now = SYS.millis()
 
     if game_state == SETUP_BOARD:
         if now - last_event_ms >= STEP_MS:
@@ -406,16 +398,6 @@ def update_game():
                 last_event_ms = now
 
 
-def enter_settings():
-    global game_state
-    game_state = SETTINGS
-
-
-def exit_settings():
-    global game_state
-    game_state = WAITING
-
-
 def set_two_colors():
     global num_colors
     num_colors = 2
@@ -438,101 +420,122 @@ def set_five_colors():
 
 def reset_from_settings():
     reset_game()
-    enter_settings()
-
-
-def settings_enabled():
-    return game_state == SETTINGS
 
 
 def process_pending_input():
-    global pending_function_press
-    global pending_cell_x
-    global pending_cell_y
+    global pending_cell
 
-    if main_ui is not None:
-        event = main_ui.pull_input()
-        while event is not None:
-            handle_key_input(event)
-            event = main_ui.pull_input()
+    event = Input.get_event()
+    while event is not None:
+        handle_key_input(event)
+        event = Input.get_event()
 
-    if pending_function_press:
-        pending_function_press = False
-        if game_state == SETTINGS:
-            exit_settings()
-        else:
-            enter_settings()
-        return
-
-    if pending_cell_x >= 0 and pending_cell_y >= 0:
-        x = pending_cell_x
-        y = pending_cell_y
-        pending_cell_x = -1
-        pending_cell_y = -1
+    if pending_cell is not None:
+        x = pending_cell[0]
+        y = pending_cell[1]
+        pending_cell = None
         place(x, y)
 
 
 def handle_key_input(event):
-    global pending_function_press
-    global pending_cell_x
-    global pending_cell_y
+    global pending_cell
 
-    cluster_id = event.cluster_id()
-    state = event.key_state()
-    member_id = event.member_id()
-
-    if cluster_id == 0 and member_id == 0:
-        if state == KeyState.PRESSED:
-            pending_function_press = True
+    if event.id() == function_key:
+        if event.is_hold():
+            open_settings_ui()
         return True
 
-    if game_state == SETTINGS:
-        return False
-
-    if state != KeyState.PRESSED:
+    if not event.is_pressed():
         return True
 
-    if cluster_id != 1 or member_id >= CELL_COUNT:
+    xy = Input.try_get_point(event.id())
+    if xy is None:
         return True
 
-    pending_cell_x = event.x()
-    pending_cell_y = event.y()
+    x = xy.x()
+    y = xy.y()
+    if x < 0 or x >= WIDTH or y < 0 or y >= HEIGHT:
+        return True
+
+    pending_cell = (x, y)
 
     return True
+
 
 def add_button(ui, button, x, y, height, name, color_func, press_func):
     button.set_name(name)
     button.set_size(Dimension(1, height))
     button.set_color_func(color_func)
-    button.set_enable_func(settings_enabled)
     button.on_press(press_func)
     ui.add(button, Point(x, y))
 
 
-reset_game()
+def process_settings_input():
+    global active_settings_ui
+    global app_running
 
-main_ui = MatrixOS_UI.UI("SameGame", Color(0xFFFFFF))
-main_ui.allow_exit(False)
-main_ui.set_fps(60)
-main_ui.set_loop_func(update_game)
-main_ui.set_pre_render_func(render_ui)
+    if active_settings_ui is None:
+        return
 
-color_2_button = MatrixOS_UIButton.UIButton()
-color_3_button = MatrixOS_UIButton.UIButton()
-color_4_button = MatrixOS_UIButton.UIButton()
-color_5_button = MatrixOS_UIButton.UIButton()
-reset_button = MatrixOS_UIButton.UIButton()
+    event = active_settings_ui.pull_input()
+    while event is not None:
+        if event.is_function_key():
+            if event.is_hold():
+                app_running = False
+                active_settings_ui.exit()
+            elif event.is_released():
+                active_settings_ui.exit()
+        event = active_settings_ui.pull_input()
 
-add_button(main_ui, color_2_button, 0, 0, 2, "2 Colors", color_button_0, set_two_colors)
-add_button(main_ui, color_3_button, 1, 0, 3, "3 Colors", color_button_1, set_three_colors)
-add_button(main_ui, color_4_button, 2, 0, 4, "4 Colors", color_button_2, set_four_colors)
-add_button(main_ui, color_5_button, 3, 0, 5, "5 Colors", color_button_3, set_five_colors)
 
-reset_button.set_name("Reset")
-reset_button.set_size(Dimension(1, 2))
-reset_button.set_color(Color(0xFF0000))
-reset_button.set_enable_func(settings_enabled)
-reset_button.on_press(reset_from_settings)
-main_ui.add(reset_button, Point(7, 3))
+def open_settings_ui():
+    global active_settings_ui
 
-main_ui.start()
+    settings_ui = UI.UI("Settings", Color(0x00FFFF), True)
+    active_settings_ui = settings_ui
+    settings_ui.allow_exit(False)
+    settings_ui.set_fps(60)
+    settings_ui.set_loop_func(process_settings_input)
+    settings_ui.set_pre_render_func(render_settings_background)
+
+    color_2_button = UI.Button()
+    color_3_button = UI.Button()
+    color_4_button = UI.Button()
+    color_5_button = UI.Button()
+    reset_button = UI.Button()
+
+    add_button(settings_ui, color_2_button, 0, 0, 2, "2 Colors", color_button_0, set_two_colors)
+    add_button(settings_ui, color_3_button, 1, 0, 3, "3 Colors", color_button_1, set_three_colors)
+    add_button(settings_ui, color_4_button, 2, 0, 4, "4 Colors", color_button_2, set_four_colors)
+    add_button(settings_ui, color_5_button, 3, 0, 5, "5 Colors", color_button_3, set_five_colors)
+
+    reset_button.set_name("Reset")
+    reset_button.set_size(Dimension(1, 2))
+    reset_button.set_color(Color(0xFF0000))
+    reset_button.on_press(reset_from_settings)
+    settings_ui.add(reset_button, Point(7, 3))
+
+    settings_ui.start()
+    active_settings_ui = None
+    settings_ui.close()
+
+
+def render_if_needed():
+    if render_timer.tick(FRAME_MS, True):
+        render_game()
+        LED.update()
+
+
+def main_loop():
+    reset_game()
+    Input.clear_input_buffer()
+
+    while app_running:
+        update_game()
+        render_if_needed()
+        SYS.task_yield()
+
+    Input.clear_input_buffer()
+
+
+main_loop()
