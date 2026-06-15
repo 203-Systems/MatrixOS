@@ -218,7 +218,7 @@ const char* matrixos_python_get_runtime_debug_json() {
 
 void Python::Setup(const vector<string>& args) {
   activePythonInstance = this;
-  MLOGI("Python", "Setup start: args=%d free heap=%d largest block=%d", args.size(), xPortGetFreeHeapSize(), GetLargestRuntimeHeapBlock());
+  MLOGD("Python", "Setup start: args=%d free heap=%d largest block=%d", args.size(), xPortGetFreeHeapSize(), GetLargestRuntimeHeapBlock());
   matrixos_python_clear_input();
   if (!runtime.Init())
   {
@@ -411,7 +411,7 @@ bool Python::ExecutePythonFile(const string& filePath) {
     return false;
   }
 
-  MLOGI("Python", "Loaded MicroPython script: %s (%d bytes)", filePath.c_str(), source.size());
+  MLOGD("Python", "Loaded MicroPython script: %s (%d bytes)", filePath.c_str(), source.size());
   bool ok = runtime.Exec(source, filePath.c_str());
   if (!ok)
   {

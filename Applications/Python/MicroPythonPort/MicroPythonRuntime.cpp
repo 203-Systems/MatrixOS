@@ -209,12 +209,10 @@ void MicroPythonRuntime::Deinit() {
 }
 
 bool MicroPythonRuntime::Exec(const std::string& source, const char* sourceName) {
-  MLOGD("Python", "MicroPython exec: enter");
   return ExecWithParseMode(source, sourceName, MP_PARSE_FILE_INPUT);
 }
 
 bool MicroPythonRuntime::ExecSingle(const std::string& source, const char* sourceName) {
-  MLOGD("Python", "MicroPython exec single: enter");
   return ExecWithParseMode(source, sourceName, MP_PARSE_SINGLE_INPUT);
 }
 
@@ -226,23 +224,16 @@ bool MicroPythonRuntime::ExecWithParseMode(const std::string& source, const char
 
   lastExceptionType = "";
   lastExceptionText.clear();
-  MLOGD("Python", "MicroPython exec: before nlr_push");
   nlr_buf_t nlr;
   int nlrResult = nlr_push(&nlr);
-  MLOGD("Python", "MicroPython exec: after nlr_push result=%d", nlrResult);
   if (nlrResult == 0)
   {
-    MLOGD("Python", "MicroPython exec: prepare lexer (%d bytes)", static_cast<int>(source.size()));
     matrixos_micropython_set_script_path(sourceName);
     mp_lexer_t* lexer = mp_lexer_new_from_str_len(qstr_from_str(sourceName), source.c_str(), source.size(), 0);
     qstr lexerSourceName = lexer->source_name;
-    MLOGD("Python", "MicroPython exec: parse");
     mp_parse_tree_t parseTree = mp_parse(lexer, (mp_parse_input_kind_t)parseMode);
-    MLOGD("Python", "MicroPython exec: compile");
     mp_obj_t moduleFunction = mp_compile(&parseTree, lexerSourceName, true);
-    MLOGD("Python", "MicroPython exec: run module");
     mp_call_function_0(moduleFunction);
-    MLOGD("Python", "MicroPython exec: module complete");
     nlr_pop();
     return true;
   }
