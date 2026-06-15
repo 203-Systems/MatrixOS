@@ -264,6 +264,7 @@ static const mp_rom_map_elem_t ui_module_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_Selector), MP_ROM_PTR(&selector_type)},
     {MP_ROM_QSTR(MP_QSTR_Number), MP_ROM_PTR(&number_type)},
     {MP_ROM_QSTR(MP_QSTR_Toggle), MP_ROM_PTR(&toggle_type)},
+    {MP_ROM_QSTR(MP_QSTR_CustomComponent), MP_ROM_PTR(&custom_component_type)},
     {MP_ROM_QSTR(MP_QSTR_text_scroll), MP_ROM_PTR(&ui_text_scroll_obj)},
     {MP_ROM_QSTR(MP_QSTR_color_picker), MP_ROM_PTR(&ui_color_picker_obj)},
     {MP_ROM_QSTR(MP_QSTR_number_selector), MP_ROM_PTR(&ui_number_selector_obj)},

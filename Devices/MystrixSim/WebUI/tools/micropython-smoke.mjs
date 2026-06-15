@@ -2119,15 +2119,15 @@ async function smokeLightingInteraction(socket) {
   assert(led.color === 'FFFFFF00', 'lighting.py did not open effect menu')
 
   await clickInput(socket, 'grid:4,0')
-  await clickInput(socket, 'grid:7,6')
+  await clickInput(socket, 'grid:7,7')
 
   await clickInput(socket, 'function', 120, 300)
   led = await waitForLed(socket, 'grid:4,0', 'FFFFFF00', 3_000)
   assert(led.color === 'FFFFFF00', 'lighting.py did not return to settings from effect menu')
   nvsEntry = await waitForNvsRaw(socket, temperatureEffectHash, '02')
   assert(nvsEntry?.rawBytes === '02', 'lighting.py did not persist temperature strobe effect')
-  nvsEntry = await waitForNvsRaw(socket, temperatureBpmHash, '8F')
-  assert(nvsEntry?.rawBytes === '8F', `lighting.py did not persist adjusted BPM: ${nvsEntry?.rawBytes ?? 'missing'}`)
+  nvsEntry = await waitForNvsRaw(socket, temperatureBpmHash, '6E')
+  assert(nvsEntry?.rawBytes === '6E', `lighting.py did not persist adjusted BPM: ${nvsEntry?.rawBytes ?? 'missing'}`)
 
   await clickInput(socket, 'function', 120, 300)
   led = await waitForLed(socket, 'grid:0,0', 'FFFFFF00', 3_000)

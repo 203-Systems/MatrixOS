@@ -341,6 +341,11 @@ def smoke_ui():
     expect(toggle.get_value() is True, "UI.Toggle value")
     toggle.set_color(MatrixOS.Color(32, 32, 0))
     toggle.on_press(lambda value: None)
+    custom = MatrixOS.UI.CustomComponent((2, 2))
+    expect_pythonic_public_api(custom, "MatrixOS.UI.CustomComponent")
+    custom.set_size((3, 1))
+    custom.set_render_func(lambda origin: True)
+    custom.set_key_func(lambda xy, keypad: True)
     expect(hasattr(MatrixOS.UI, "text_scroll"), "UI.text_scroll exists")
     expect(hasattr(MatrixOS.UI, "color_picker"), "UI.color_picker exists")
     expect(hasattr(MatrixOS.UI, "number_selector"), "UI.number_selector exists")
@@ -353,6 +358,7 @@ def smoke_ui():
     expect(selector.close(), "UI.Selector close after clear")
     expect(number.close(), "UI.Number close after clear")
     expect(toggle.close(), "UI.Toggle close after clear")
+    expect(custom.close(), "UI.CustomComponent close after clear")
     expect(ui.close(), "UI close")
 
 

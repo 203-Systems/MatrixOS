@@ -109,17 +109,106 @@ def render():
     LED.update()
 
 
+def make_bpm_tapper(get_bpm, set_bpm):
+    taps = []
+    component = UI.CustomComponent((8, 4))
+
+    tap_points = (
+        (0, 0, 0xFF00FF), (1, 0, 0xFF00FF), (2, 0, 0xFF00FF),
+        (1, 1, 0xFF00FF), (1, 2, 0xFF00FF), (1, 3, 0xFF00FF),
+        (3, 0, 0xFFFFFF), (4, 0, 0xFFFFFF), (5, 0, 0xFFFFFF),
+        (3, 1, 0xFFFFFF), (5, 1, 0xFFFFFF),
+        (3, 2, 0xFFFFFF), (4, 2, 0xFFFFFF), (5, 2, 0xFFFFFF),
+        (3, 3, 0xFFFFFF), (5, 3, 0xFFFFFF),
+        (6, 0, 0xFF00FF), (7, 0, 0xFF00FF),
+        (6, 1, 0xFF00FF), (7, 1, 0xFF00FF),
+        (6, 2, 0xFF00FF), (6, 3, 0xFF00FF),
+    )
+
+    def trim_taps(now):
+        if len(taps) and now - taps[-1] > 3000000:
+            taps.clear()
+        while len(taps) and now - taps[0] > 6000000:
+            taps.pop(0)
+
+    def calculate_bpm():
+        if len(taps) < 3:
+            return
+        taps_to_use = min(len(taps), 5)
+        start_index = len(taps) - taps_to_use
+        total_interval = taps[-1] - taps[start_index]
+        avg_interval = total_interval // (taps_to_use - 1)
+        if avg_interval <= 0:
+            return
+        bpm_value = 60000000 // avg_interval
+        if bpm_value > 299:
+            bpm_value = 299
+        if bpm_value < 30:
+            bpm_value = 30
+        set_bpm(bpm_value)
+
+    def render_tapper(origin):
+        now = SYS.micros()
+        trim_taps(now)
+        if len(taps) > 0 and len(taps) < 3:
+            ox, oy = origin
+            for y in range(4):
+                for x in range(8):
+                    LED.set_xy(ox + x, oy + y, 0)
+            for x, y, point_color in tap_points:
+                LED.set_xy(ox + x, oy + y, point_color)
+        return True
+
+    def handle_tap(xy, keypad):
+        state = keypad.get("state", -1)
+        if state == STATE_RELEASED:
+            taps.append(SYS.micros())
+            if len(taps) > 10:
+                taps.pop(0)
+            calculate_bpm()
+        elif state == STATE_HOLD:
+            UI.text_scroll("BPM", 0xFF00FF)
+            taps.clear()
+        return True
+
+    component.set_render_func(render_tapper)
+    component.set_key_func(handle_tap)
+    return component
+
+
+def make_bpm_modifier(get_bpm, set_bpm):
+    component = UI.CustomComponent((8, 1))
+    modifiers = (-50, -20, -5, -1, 1, 5, 20, 50)
+    gradient = (255, 127, 64, 32, 32, 64, 127, 255)
+
+    def render_modifier(origin):
+        ox, oy = origin
+        for x in range(8):
+            LED.set_xy(ox + x, oy, rgb_scale(0xFF00FF, gradient[x]))
+        return True
+
+    def handle_modifier(xy, keypad):
+        if keypad.get("state", -1) == STATE_PRESSED:
+            x, _ = xy
+            bpm_value = get_bpm() + modifiers[x]
+            if bpm_value < 10:
+                bpm_value = 10
+            if bpm_value > 299:
+                bpm_value = 299
+            set_bpm(bpm_value)
+        return True
+
+    component.set_render_func(render_modifier)
+    component.set_key_func(handle_modifier)
+    return component
+
+
 def effect_menu(target_mode):
     global rgb_effect, rgb_effect_bpm, temperature_effect, temperature_effect_bpm, start_ms
 
     base = color if target_mode == RGB else temperature_color
     selected = rgb_effect if target_mode == RGB else temperature_effect
     bpm = rgb_effect_bpm if target_mode == RGB else temperature_effect_bpm
-    bpm_step = (bpm - 10) // 19
-    if bpm_step < 0:
-        bpm_step = 0
-    if bpm_step > 15:
-        bpm_step = 15
     start_ms = SYS.millis()
 
     effect_ui = UI.UI("Effect Mode", base, True)
@@ -155,19 +244,17 @@ def effect_menu(target_mode):
     display.set_name("BPM")
     display.set_color(0xFF00FF)
     display.set_value_func(lambda: bpm)
-    effect_ui.add(display, (2, 2))
+    effect_ui.add(display, (-1, 2))
 
-    speed = UI.Selector((8, 2), 16)
-    speed.set_name("BPM")
-    speed.set_color_func(lambda: preview(selected))
-    speed.set_value(bpm_step)
+    def get_bpm():
+        return bpm
 
-    def set_bpm_step(value):
+    def set_bpm(value):
         nonlocal bpm
-        bpm = 10 + value * 19
+        bpm = value
 
-    speed.on_change(set_bpm_step)
-    effect_ui.add(speed, (0, 6))
+    effect_ui.add(make_bpm_tapper(get_bpm, set_bpm), (0, 2))
+    effect_ui.add(make_bpm_modifier(get_bpm, set_bpm), (0, 7))
 
     def effect_input_handler(event):
         if event.get("id") != FUNCTION_KEY:

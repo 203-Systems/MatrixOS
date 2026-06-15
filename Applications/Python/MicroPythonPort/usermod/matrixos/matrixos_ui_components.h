@@ -25,3 +25,4 @@ extern const mp_obj_type_t button_type;
 extern const mp_obj_type_t selector_type;
 extern const mp_obj_type_t number_type;
 extern const mp_obj_type_t toggle_type;
+extern const mp_obj_type_t custom_component_type;

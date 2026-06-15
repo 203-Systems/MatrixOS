@@ -492,7 +492,7 @@ Selector lit mode：
 
 ### Shared component methods
 
-`Button`、`Selector`、`Number`、`Toggle` 都支持：
+`Button`、`Selector`、`Number`、`Toggle`、`CustomComponent` 都支持：
 
 - `close() -> bool`
 - `set_enabled(enabled: bool) -> None`
@@ -545,6 +545,18 @@ Selector lit mode：
 - `set_size(size: Dimension) -> None`
 - `on_press(callback) -> None`
 - `on_hold(callback) -> None`
+
+### `UI.CustomComponent(dimension: Dimension = (1, 1))`
+
+轻量 Python-defined UI component。用于少量 app-specific control；高频复杂绘制仍应优先写 native component。
+
+- `set_size(size: Dimension) -> None`
+- `set_render_func(callback) -> None`
+- `set_key_func(callback) -> None`
+
+`render` callback 接收 `origin: Point`，在当前 UI layer 上直接用 `MatrixOS.LED` 绘制，返回 truthy 表示已处理 render。UI runtime 会在调用 component render 前清屏。
+
+`key` callback 接收 `xy: Point` 和 `keypad: dict`。`xy` 是相对 component origin 的坐标，`keypad` 字段同 `Input` event 中的 `keypad` dict。返回 truthy 表示 consume event，避免事件继续传给下层 component 或触发 UI text scroll。
 
 ## 验证
 

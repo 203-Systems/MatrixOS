@@ -61,6 +61,23 @@ mp_obj_t component_close(mp_obj_t selfObj) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(component_close_obj, component_close);
 
+typedef struct _matrixos_custom_component_obj_t matrixos_custom_component_obj_t;
+
+class MatrixOSPythonCustomComponent : public UIComponent {
+public:
+  matrixos_custom_component_obj_t* owner;
+  Dimension size;
+
+  explicit MatrixOSPythonCustomComponent(matrixos_custom_component_obj_t* owner) : owner(owner), size(1, 1) {}
+
+  Dimension GetSize() override {
+    return size;
+  }
+
+  bool Render(Point origin) override;
+  bool KeyEvent(Point xy, KeypadInfo* keypadInfo) override;
+};
+
 typedef struct _matrixos_button_obj_t {
   matrixos_component_base_t base;
   UIButton* button;
@@ -96,6 +113,86 @@ typedef struct _matrixos_toggle_obj_t {
   mp_obj_t hold_callback;
   mp_obj_t color_callback;
 } matrixos_toggle_obj_t;
+
+struct _matrixos_custom_component_obj_t {
+  matrixos_component_base_t base;
+  MatrixOSPythonCustomComponent* custom;
+  mp_obj_t render_callback;
+  mp_obj_t key_callback;
+};
+
+bool MatrixOSPythonCustomComponent::Render(Point origin) {
+  if (owner->render_callback == mp_const_none)
+  {
+    return false;
+  }
+  mp_obj_t args[] = {owner->render_callback, MakePoint(origin)};
+  mp_obj_t result = ProtectedCall(2, args);
+  return result != mp_const_none && mp_obj_is_true(result);
+}
+
+bool MatrixOSPythonCustomComponent::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
+  if (owner->key_callback == mp_const_none)
+  {
+    return false;
+  }
+  mp_obj_t args[] = {owner->key_callback, MakePoint(xy), MakeKeypadInfo(*keypadInfo)};
+  mp_obj_t result = ProtectedCall(3, args);
+  return result != mp_const_none && mp_obj_is_true(result);
+}
+
+mp_obj_t custom_component_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
+  (void)n_kw;
+  matrixos_custom_component_obj_t* self = mp_obj_malloc(matrixos_custom_component_obj_t, type);
+  self->custom = new MatrixOSPythonCustomComponent(self);
+  component_init(&self->base, type, self->custom);
+  self->render_callback = mp_const_none;
+  self->key_callback = mp_const_none;
+  if (argc > 0)
+  {
+    self->custom->size = ObjectToDimension(args[0]);
+  }
+  return MP_OBJ_FROM_PTR(self);
+}
+
+mp_obj_t custom_component_set_size(mp_obj_t selfObj, mp_obj_t dimensionObj) {
+  matrixos_custom_component_obj_t* self = (matrixos_custom_component_obj_t*)MP_OBJ_TO_PTR(selfObj);
+  self->custom->size = ObjectToDimension(dimensionObj);
+  return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(custom_component_set_size_obj, custom_component_set_size);
+
+mp_obj_t custom_component_set_render_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
+  matrixos_custom_component_obj_t* self = (matrixos_custom_component_obj_t*)MP_OBJ_TO_PTR(selfObj);
+  self->render_callback = callbackObj;
+  return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(custom_component_set_render_func_obj, custom_component_set_render_func);
+
+mp_obj_t custom_component_set_key_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
+  matrixos_custom_component_obj_t* self = (matrixos_custom_component_obj_t*)MP_OBJ_TO_PTR(selfObj);
+  self->key_callback = callbackObj;
+  return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_2(custom_component_set_key_func_obj, custom_component_set_key_func);
+
+static const mp_rom_map_elem_t custom_component_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_size), MP_ROM_PTR(&custom_component_set_size_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_render_func), MP_ROM_PTR(&custom_component_set_render_func_obj)},
+    {MP_ROM_QSTR(MP_QSTR_set_key_func), MP_ROM_PTR(&custom_component_set_key_func_obj)},
+};
+MP_DEFINE_CONST_DICT(custom_component_locals, custom_component_locals_table);
+
+MP_DEFINE_CONST_OBJ_TYPE(
+    custom_component_type,
+    MP_QSTR_CustomComponent,
+    MP_TYPE_FLAG_NONE,
+    make_new, (const void*)custom_component_make_new,
+    locals_dict, &custom_component_locals
+);
 
 mp_obj_t button_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
