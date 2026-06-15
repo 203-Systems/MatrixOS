@@ -23,7 +23,7 @@ namespace MatrixOS::HID::Keyboard
 HID_KeyboardReport_Data_t _keyReport;
 static TaskHandle_t _sendTaskHandle = nullptr;
 static StaticTask_t _sendTaskBuffer;
-static StackType_t _sendTaskStack[configMINIMAL_STACK_SIZE * 6];
+static StackType_t _sendTaskStack[configMINIMAL_STACK_SIZE];
 static uint64_t _lastSendMicros = 0;
 
 static void SendTask(void* param);
