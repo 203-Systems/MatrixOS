@@ -70,7 +70,6 @@ MatrixOS.Color((255, 0, 0))
 - `millis() -> int`
 - `micros() -> int`
 - `sleep_ms(ms: int) -> None`
-- `yield_() -> None`
 - `task_yield() -> None`
 - `exit_app() -> None`
 - `reboot() -> None`
@@ -78,9 +77,10 @@ MatrixOS.Color((255, 0, 0))
 - `open_setting() -> None`
 - `execute_app(app_id: int, args: list[str] = []) -> None`
 - `execute_app(author: str, app_name: str, args: list[str] = []) -> None`
-- `error_handler(message: str = "") -> None`
 - `version() -> str`
 - `version_id() -> int`
+
+`task_yield()` 是 cooperative yield 入口，底层走 MatrixOS/FreeRTOS task yield，不引入固定 ms delay。app 不应该依赖它产生精确时间等待；需要等待时间时使用 `sleep_ms()`。
 
 `reboot()`、`bootloader()`、`execute_app()` 是真实系统动作。测试里不要直接调用这些会改变 runtime 生命周期的 API，除非测试目标就是系统跳转。
 
@@ -92,14 +92,11 @@ MatrixOS.Color((255, 0, 0))
 - `fill(color: ColorLike, layer: int = 255) -> None`
 - `set_xy(x: int, y: int, color: ColorLike, layer: int = 255) -> None`
 - `set_index(index: int, color: ColorLike, layer: int = 255) -> None`
-- `set_many_xy(entries: Sequence[tuple[int, int, ColorLike]], layer: int = 255) -> None`
-- `set_many_index(entries: Sequence[tuple[int, ColorLike]], layer: int = 255) -> None`
 - `fill_partition(name: str, color: ColorLike, layer: int = 255) -> bool`
 - `update(layer: int = 255) -> None`
 
 `ColorLike` 可以是 packed int 或 RGB/RGBW tuple。
-`set_many_xy()` 和 `set_many_index()` 使用统一 layer 参数；每个 entry 只描述位置和颜色。
-`set_xy()` / `set_many_xy()` 使用 signed XY；Mystrix 系列的 perimeter LED 可以用 `x=-1`、`x=8`、`y=-1`、`y=8` 访问。
+`set_xy()` 使用 signed XY；Mystrix 系列的 perimeter LED 可以用 `x=-1`、`x=8`、`y=-1`、`y=8` 访问。
 
 ### 亮度和 layer
 
@@ -163,11 +160,13 @@ Keypad dict 字段：
 ### Cluster 查询
 
 - `clusters() -> list[dict]`
-- `get_cluster(cluster_id: int) -> dict | None`
+- `get_cluster(cluster: int | str) -> dict | None`
 - `primary_grid_cluster() -> dict | None`
 - `get_inputs_at(point: Point) -> list[InputId]`
-- `get_input_at(cluster_id: int, point: Point) -> InputId | None`
-- `get_keypad_capabilities(cluster_id: int) -> dict | None`
+- `get_input_at(cluster: int | str, point: Point) -> InputId | None`
+- `get_keypad_capabilities(cluster: int | str) -> dict | None`
+
+Cluster lookup accepts either `id` or `name`, matching LED partition lookup. Prefer names in app code when the device family gives a stable semantic name; use ids when handling raw `InputId` tuples.
 
 Cluster dict 字段：
 
@@ -404,10 +403,6 @@ Port constants:
 - `PORT_INVALID`
 
 ## `MatrixOS.HID`
-
-- `init() -> None`
-- `reset() -> None`
-- `ready() -> bool`
 
 ### `MatrixOS.HID.Keyboard`
 

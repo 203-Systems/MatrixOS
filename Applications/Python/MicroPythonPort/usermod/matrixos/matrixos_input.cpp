@@ -8,6 +8,29 @@ extern "C" {
 
 using namespace MatrixOSPython;
 
+namespace
+{
+const InputCluster* ResolveCluster(mp_obj_t clusterObj) {
+  if (mp_obj_is_int(clusterObj))
+  {
+    return MatrixOS::Input::GetCluster((uint8_t)mp_obj_get_int(clusterObj));
+  }
+
+  size_t nameLength = 0;
+  const char* nameData = mp_obj_str_get_data(clusterObj, &nameLength);
+  string name(nameData, nameLength);
+  for (const InputCluster& cluster : MatrixOS::Input::GetClusters())
+  {
+    if (cluster.name == name)
+    {
+      return &cluster;
+    }
+  }
+
+  return nullptr;
+}
+} // namespace
+
 mp_obj_t input_get_event(size_t argc, const mp_obj_t* args) {
   uint32_t timeoutMs = argc > 0 ? (uint32_t)mp_obj_get_int(args[0]) : 0;
   InputEvent event;
@@ -54,7 +77,7 @@ mp_obj_t input_clusters() {
 MP_DEFINE_CONST_FUN_OBJ_0(input_clusters_obj, input_clusters);
 
 mp_obj_t input_get_cluster(mp_obj_t clusterIdObj) {
-  const InputCluster* cluster = MatrixOS::Input::GetCluster((uint8_t)mp_obj_get_int(clusterIdObj));
+  const InputCluster* cluster = ResolveCluster(clusterIdObj);
   if (cluster == nullptr)
   {
     return mp_const_none;
@@ -97,8 +120,14 @@ mp_obj_t input_get_inputs_at(mp_obj_t pointObj) {
 MP_DEFINE_CONST_FUN_OBJ_1(input_get_inputs_at_obj, input_get_inputs_at);
 
 mp_obj_t input_get_input_at(mp_obj_t clusterIdObj, mp_obj_t pointObj) {
+  const InputCluster* cluster = ResolveCluster(clusterIdObj);
+  if (cluster == nullptr)
+  {
+    return mp_const_none;
+  }
+
   InputId id;
-  if (!MatrixOS::Input::GetInputAt((uint8_t)mp_obj_get_int(clusterIdObj), ObjectToPoint(pointObj), &id))
+  if (!MatrixOS::Input::GetInputAt(cluster->clusterId, ObjectToPoint(pointObj), &id))
   {
     return mp_const_none;
   }
@@ -107,8 +136,14 @@ mp_obj_t input_get_input_at(mp_obj_t clusterIdObj, mp_obj_t pointObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(input_get_input_at_obj, input_get_input_at);
 
 mp_obj_t input_get_keypad_capabilities(mp_obj_t clusterIdObj) {
+  const InputCluster* cluster = ResolveCluster(clusterIdObj);
+  if (cluster == nullptr)
+  {
+    return mp_const_none;
+  }
+
   KeypadCapabilities capabilities;
-  if (!MatrixOS::Input::GetKeypadCapabilities((uint8_t)mp_obj_get_int(clusterIdObj), &capabilities))
+  if (!MatrixOS::Input::GetKeypadCapabilities(cluster->clusterId, &capabilities))
   {
     return mp_const_none;
   }

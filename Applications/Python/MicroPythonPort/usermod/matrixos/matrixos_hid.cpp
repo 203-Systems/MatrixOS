@@ -47,23 +47,6 @@ int16_t ObjectToI16(mp_obj_t obj) {
   return (int16_t)value;
 }
 
-mp_obj_t hid_init() {
-  MatrixOS::HID::Init();
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_0(hid_init_obj, hid_init);
-
-mp_obj_t hid_reset() {
-  MatrixOS::HID::Reset();
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_0(hid_reset_obj, hid_reset);
-
-mp_obj_t hid_ready() {
-  return mp_obj_new_bool(MatrixOS::HID::Ready());
-}
-MP_DEFINE_CONST_FUN_OBJ_0(hid_ready_obj, hid_ready);
-
 mp_obj_t keyboard_tap(size_t argc, const mp_obj_t* args) {
   uint16_t lengthMs = argc > 1 ? ObjectToU16(args[1]) : 100;
   return mp_obj_new_bool(MatrixOS::HID::Keyboard::Tap((KeyboardKeycode)mp_obj_get_int(args[0]), lengthMs));
@@ -232,9 +215,6 @@ const mp_obj_module_t matrixos_hid_rawhid_module = {
 };
 
 static const mp_rom_map_elem_t hid_globals_table[] = {
-    {MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&hid_init_obj)},
-    {MP_ROM_QSTR(MP_QSTR_reset), MP_ROM_PTR(&hid_reset_obj)},
-    {MP_ROM_QSTR(MP_QSTR_ready), MP_ROM_PTR(&hid_ready_obj)},
     {MP_ROM_QSTR(MP_QSTR_Keyboard), MP_ROM_PTR(&matrixos_hid_keyboard_module)},
     {MP_ROM_QSTR(MP_QSTR_Gamepad), MP_ROM_PTR(&matrixos_hid_gamepad_module)},
     {MP_ROM_QSTR(MP_QSTR_RawHID), MP_ROM_PTR(&matrixos_hid_rawhid_module)},

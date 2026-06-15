@@ -64,6 +64,8 @@ def smoke_color_sys_timer():
     expect(isinstance(MatrixOS.SYS.version(), str), "SYS.version returns str")
     expect(isinstance(MatrixOS.SYS.version_id(), int), "SYS.version_id returns int")
     MatrixOS.SYS.task_yield()
+    expect(not hasattr(MatrixOS.SYS, "yield_"), "SYS.yield_ is not public")
+    expect(not hasattr(MatrixOS.SYS, "error_handler"), "SYS.error_handler is not public")
 
     timer = MatrixOS.Timer()
     expect(timer.since_last_tick() >= 0, "Timer.since_last_tick")
@@ -96,8 +98,8 @@ def smoke_led():
     MatrixOS.LED.clear()
     MatrixOS.LED.set_xy(0, 0, (16, 32, 48))
     MatrixOS.LED.set_index(0, 0x102030)
-    MatrixOS.LED.set_many_xy(((0, 0, 0x010203), (1, 0, (4, 5, 6))))
-    MatrixOS.LED.set_many_index(((0, 0x070809), (1, (10, 11, 12))))
+    expect(not hasattr(MatrixOS.LED, "set_many_xy"), "LED.set_many_xy is not public")
+    expect(not hasattr(MatrixOS.LED, "set_many_index"), "LED.set_many_index is not public")
     MatrixOS.LED.fill_partition(first_partition["name"], 0)
     expect(
         MatrixOS.LED.set_brightness_multiplier(first_partition["name"], first_partition["default_multiplier"]),
@@ -133,11 +135,17 @@ def smoke_input():
     expect("input_class_name" in primary_cluster, "primary cluster class name")
     expect("shape_name" in primary_cluster, "primary cluster shape name")
     expect("dimension" in primary_cluster, "primary cluster dimension")
-    expect(MatrixOS.Input.get_cluster(primary_cluster["id"]) is not None, "Input.get_cluster")
+    expect(MatrixOS.Input.get_cluster(primary_cluster["id"]) is not None, "Input.get_cluster by id")
+    expect(MatrixOS.Input.get_cluster(primary_cluster["name"]) == primary_cluster, "Input.get_cluster by name")
     expect(MatrixOS.Input.get_input_at(primary_cluster["id"], (0, 0)) == (primary_cluster["id"], 0), "Input.get_input_at")
+    expect(MatrixOS.Input.get_input_at(primary_cluster["name"], (0, 0)) == (primary_cluster["id"], 0), "Input.get_input_at by name")
     expect(MatrixOS.Input.get_inputs_at((0, 0))[0] == (primary_cluster["id"], 0), "Input.get_inputs_at")
 
     capabilities = MatrixOS.Input.get_keypad_capabilities(primary_cluster["id"])
+    expect(
+        MatrixOS.Input.get_keypad_capabilities(primary_cluster["name"]) == capabilities,
+        "Input.get_keypad_capabilities by name",
+    )
     expect(isinstance(capabilities, dict), "Input.get_keypad_capabilities returns dict")
     expect("has_pressure" in capabilities, "keypad capabilities pressure")
     expect("has_aftertouch" in capabilities, "keypad capabilities aftertouch")
@@ -238,8 +246,9 @@ def smoke_usb_hid():
     expect(isinstance(MatrixOS.USB.CDC.read_bytes(0), bytes), "USB.CDC.read_bytes")
     expect(isinstance(MatrixOS.USB.CDC.read_string(), str), "USB.CDC.read_string")
 
-    MatrixOS.HID.init()
-    expect(isinstance(MatrixOS.HID.ready(), bool), "HID.ready")
+    expect(not hasattr(MatrixOS.HID, "init"), "HID.init is not public")
+    expect(not hasattr(MatrixOS.HID, "ready"), "HID.ready is not public")
+    expect(not hasattr(MatrixOS.HID, "reset"), "HID.reset is not public")
     expect(isinstance(MatrixOS.HID.Keyboard.press(4), bool), "HID.Keyboard.press")
     expect(isinstance(MatrixOS.HID.Keyboard.release(4), bool), "HID.Keyboard.release")
     expect(isinstance(MatrixOS.HID.Keyboard.tap(4, 1), bool), "HID.Keyboard.tap")
@@ -259,7 +268,6 @@ def smoke_usb_hid():
     MatrixOS.HID.Gamepad.release_all()
     expect(MatrixOS.HID.RawHID.get(0) is None, "HID.RawHID.get empty")
     expect(isinstance(MatrixOS.HID.RawHID.send(b"abc"), bool), "HID.RawHID.send")
-    MatrixOS.HID.reset()
 
 
 def smoke_midi():

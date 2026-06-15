@@ -43,53 +43,6 @@ mp_obj_t led_set_index(size_t argc, const mp_obj_t* args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_set_index_obj, 2, 3, led_set_index);
 
-mp_obj_t led_set_many_xy(size_t argc, const mp_obj_t* args) {
-  uint8_t layer = argc > 1 ? (uint8_t)mp_obj_get_int(args[1]) : 255;
-  mp_obj_t* entries = nullptr;
-  size_t entryCount = 0;
-  mp_obj_get_array(args[0], &entryCount, &entries);
-
-  for (size_t i = 0; i < entryCount; i++)
-  {
-    mp_obj_t* entry = nullptr;
-    size_t entryLength = 0;
-    mp_obj_get_array(entries[i], &entryLength, &entry);
-    if (entryLength != 3)
-    {
-      mp_raise_ValueError(MP_ERROR_TEXT("xy entry must be (x, y, color)"));
-    }
-
-    Point point((int16_t)mp_obj_get_int(entry[0]), (int16_t)mp_obj_get_int(entry[1]));
-    MatrixOS::LED::SetColor(point, ObjectToColor(entry[2]), layer);
-  }
-
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_set_many_xy_obj, 1, 2, led_set_many_xy);
-
-mp_obj_t led_set_many_index(size_t argc, const mp_obj_t* args) {
-  uint8_t layer = argc > 1 ? (uint8_t)mp_obj_get_int(args[1]) : 255;
-  mp_obj_t* entries = nullptr;
-  size_t entryCount = 0;
-  mp_obj_get_array(args[0], &entryCount, &entries);
-
-  for (size_t i = 0; i < entryCount; i++)
-  {
-    mp_obj_t* entry = nullptr;
-    size_t entryLength = 0;
-    mp_obj_get_array(entries[i], &entryLength, &entry);
-    if (entryLength != 2)
-    {
-      mp_raise_ValueError(MP_ERROR_TEXT("index entry must be (index, color)"));
-    }
-
-    MatrixOS::LED::SetColor((uint16_t)mp_obj_get_int(entry[0]), ObjectToColor(entry[1]), layer);
-  }
-
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(led_set_many_index_obj, 1, 2, led_set_many_index);
-
 mp_obj_t led_update(size_t argc, const mp_obj_t* args) {
   uint8_t layer = argc > 0 ? (uint8_t)mp_obj_get_int(args[0]) : 255;
   MatrixOS::LED::Update(layer);
@@ -211,8 +164,6 @@ static const mp_rom_map_elem_t led_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_set_index), MP_ROM_PTR(&led_set_index_obj)},
     {MP_ROM_QSTR(MP_QSTR_fill_partition), MP_ROM_PTR(&led_fill_partition_obj)},
     {MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&led_update_obj)},
-    {MP_ROM_QSTR(MP_QSTR_set_many_xy), MP_ROM_PTR(&led_set_many_xy_obj)},
-    {MP_ROM_QSTR(MP_QSTR_set_many_index), MP_ROM_PTR(&led_set_many_index_obj)},
     {MP_ROM_QSTR(MP_QSTR_next_brightness), MP_ROM_PTR(&led_next_brightness_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_brightness), MP_ROM_PTR(&led_set_brightness_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_brightness_multiplier), MP_ROM_PTR(&led_set_brightness_multiplier_obj)},

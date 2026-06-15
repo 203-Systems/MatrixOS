@@ -214,8 +214,12 @@ MP_DEFINE_CONST_FUN_OBJ_1(midi_packet_is_sysex_start_obj, midi_packet_is_sysex_s
 
 mp_obj_t midi_packet_data(mp_obj_t selfObj) {
   MidiPacket& packet = ToMidiPacket(selfObj)->packet;
-  return mp_obj_new_tuple(3, (mp_obj_t[]){mp_obj_new_int_from_uint(packet.data[0]), mp_obj_new_int_from_uint(packet.data[1]),
-                                          mp_obj_new_int_from_uint(packet.data[2])});
+  mp_obj_t items[] = {
+      mp_obj_new_int_from_uint(packet.data[0]),
+      mp_obj_new_int_from_uint(packet.data[1]),
+      mp_obj_new_int_from_uint(packet.data[2]),
+  };
+  return mp_obj_new_tuple(3, items);
 }
 MP_DEFINE_CONST_FUN_OBJ_1(midi_packet_data_obj, midi_packet_data);
 

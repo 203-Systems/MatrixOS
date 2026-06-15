@@ -24,12 +24,6 @@ mp_obj_t sys_sleep_ms(mp_obj_t msObj) {
 }
 MP_DEFINE_CONST_FUN_OBJ_1(sys_sleep_ms_obj, sys_sleep_ms);
 
-mp_obj_t sys_yield() {
-  MatrixOS::SYS::DelayMs(1);
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_0(sys_yield_obj, sys_yield);
-
 mp_obj_t sys_exit_app() {
   MatrixOS::SYS::ExitAPP();
   return mp_const_none;
@@ -93,19 +87,6 @@ mp_obj_t sys_execute_app(size_t argc, const mp_obj_t* args) {
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sys_execute_app_obj, 1, 3, sys_execute_app);
 
-mp_obj_t sys_error_handler(size_t argc, const mp_obj_t* args) {
-  string error = "";
-  if (argc > 0)
-  {
-    size_t length = 0;
-    const char* text = mp_obj_str_get_data(args[0], &length);
-    error = string(text, length);
-  }
-  MatrixOS::SYS::ErrorHandler(error);
-  return mp_const_none;
-}
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(sys_error_handler_obj, 0, 1, sys_error_handler);
-
 mp_obj_t sys_version() {
   return mp_obj_new_str(MATRIXOS_VERSION_STRING.c_str(), MATRIXOS_VERSION_STRING.size());
 }
@@ -117,7 +98,7 @@ mp_obj_t sys_version_id() {
 MP_DEFINE_CONST_FUN_OBJ_0(sys_version_id_obj, sys_version_id);
 
 mp_obj_t sys_task_yield() {
-  MatrixOS::SYS::DelayMs(1);
+  taskYIELD();
   return mp_const_none;
 }
 MP_DEFINE_CONST_FUN_OBJ_0(sys_task_yield_obj, sys_task_yield);
@@ -126,14 +107,12 @@ static const mp_rom_map_elem_t sys_globals_table[] = {
     {MP_ROM_QSTR(MP_QSTR_millis), MP_ROM_PTR(&sys_millis_obj)},
     {MP_ROM_QSTR(MP_QSTR_micros), MP_ROM_PTR(&sys_micros_obj)},
     {MP_ROM_QSTR(MP_QSTR_sleep_ms), MP_ROM_PTR(&sys_sleep_ms_obj)},
-    {MP_ROM_QSTR(MP_QSTR_yield_), MP_ROM_PTR(&sys_yield_obj)},
     {MP_ROM_QSTR(MP_QSTR_task_yield), MP_ROM_PTR(&sys_task_yield_obj)},
     {MP_ROM_QSTR(MP_QSTR_exit_app), MP_ROM_PTR(&sys_exit_app_obj)},
     {MP_ROM_QSTR(MP_QSTR_reboot), MP_ROM_PTR(&sys_reboot_obj)},
     {MP_ROM_QSTR(MP_QSTR_bootloader), MP_ROM_PTR(&sys_bootloader_obj)},
     {MP_ROM_QSTR(MP_QSTR_open_setting), MP_ROM_PTR(&sys_open_setting_obj)},
     {MP_ROM_QSTR(MP_QSTR_execute_app), MP_ROM_PTR(&sys_execute_app_obj)},
-    {MP_ROM_QSTR(MP_QSTR_error_handler), MP_ROM_PTR(&sys_error_handler_obj)},
     {MP_ROM_QSTR(MP_QSTR_version), MP_ROM_PTR(&sys_version_obj)},
     {MP_ROM_QSTR(MP_QSTR_version_id), MP_ROM_PTR(&sys_version_id_obj)},
 };
