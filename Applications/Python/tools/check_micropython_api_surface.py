@@ -9,10 +9,10 @@ ROOT = Path(__file__).resolve().parents[3]
 
 CHECKED_PATHS = [
     ROOT / "Applications" / "Python" / "examples",
-    ROOT / "docs" / "micropython-api.md",
+    ROOT / "Applications" / "Python" / "micropython-api.md",
 ]
 
-API_DOC_PATH = ROOT / "docs" / "micropython-api.md"
+API_DOC_PATH = ROOT / "Applications" / "Python" / "micropython-api.md"
 INTROSPECTION_PATH = ROOT / "Applications" / "Python" / "examples" / "api_introspection" / "main.py"
 
 FORBIDDEN_PATTERNS = [

@@ -7,7 +7,7 @@ This directory has two different kinds of MicroPython code:
 - `MicroPythonEmbed/` is the vendored embed snapshot that MatrixOS actually builds.
 - `MicroPythonPort/` is the MatrixOS-specific port layer: runtime lifecycle, file hooks, port config, and native `MatrixOS` module bindings.
 
-The public Python API is documented in `docs/micropython-api.md`.
+The public Python API is documented in `micropython-api.md`.
 
 ## Why Is MicroPython Copied Here?
 

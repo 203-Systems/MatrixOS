@@ -7,7 +7,7 @@ This directory owns the MatrixOS-specific MicroPython runtime glue:
 - Lightweight file/import hooks.
 - Native `MatrixOS` usermod bindings.
 
-The public Python API is documented in `docs/micropython-api.md`. This README is for maintainers who need to build, regenerate, or extend the runtime.
+The public Python API is documented in `Applications/Python/micropython-api.md`. This README is for maintainers who need to build, regenerate, or extend the runtime.
 
 ## Directory Layout
 
@@ -122,7 +122,7 @@ Keep the public API Pythonic. New Python-visible names should use `snake_case`; 
 3. Add the source file to `usermod/matrixos/micropython.mk` and `Applications/Python/CMakeLists.txt`.
 4. Add the exported module/type declaration to `matrixos_modules.h`.
 5. Register the module/type in `matrixos_module.cpp` only if it is a new top-level export.
-6. Add public API documentation to `docs/micropython-api.md`.
+6. Add public API documentation to `Applications/Python/micropython-api.md`.
 7. Add coverage to `Applications/Python/examples/api_introspection/main.py` or the WebUI RPC smoke suite.
 8. Regenerate qstrs if new Python-visible names were added.
 9. Run `npm --prefix Devices\MystrixSim\WebUI run verify:micropython`.

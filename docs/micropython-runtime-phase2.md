@@ -39,7 +39,7 @@ MicroPython Phase 2 应该采用类似的模块边界，但 public API 不需要
 - [x] 每个 first-cut MatrixOS subsystem 有独立 MicroPython binding 文件和清晰 header。
 - [x] Python public API 以 Pythonic endpoint 为准，不保留 Pika 兼容 API。
   - `check_micropython_api_surface.py` 静态扫描 examples/docs。
-  - `check_micropython_api_surface.py` 从 `api_introspection.py` 自动提取 `MatrixOS.*` symbol，并要求 `docs/micropython-api.md` 覆盖。
+  - `check_micropython_api_surface.py` 从 `api_introspection.py` 自动提取 `MatrixOS.*` symbol，并要求 `Applications/Python/micropython-api.md` 覆盖。
   - `api_introspection.py` 在真实 MicroPython runtime 中检查 public module、nested module 和常用 public object instance 没有 `Get*` / `Set*` / 旧 Pika wrapper。
 - [ ] UI wrapper 足够承载原生 C++ app 的 setting UI 行为。
 - [x] MIDI / USB / HID / FileSystem 缺口被实现或明确标记为 unsupported；Logging wrapper、script exception traceback、UI callback exception reporting 已接入 smoke；`print` 与 structured logging 的关系仍作为产品策略保留。
@@ -124,7 +124,7 @@ Applications/Python/MicroPythonPort/usermod/matrixos/
 
 **实现要求**
 
-- 写一份 `docs/micropython-api.md`。
+- 写一份 `Applications/Python/micropython-api.md`。
 - 每个 module 都要列：
   - public methods/classes/constants。
   - 参数类型。
@@ -566,7 +566,7 @@ Python exception 和 app log 能清晰定位问题。
   - native target story。
   - memory budget。
   - filesystem/import story。
-- [x] `docs/micropython-api.md` 新增。
+- [x] `Applications/Python/micropython-api.md` 新增。
 - [x] 每个 binding 文件顶部写一句职责说明。
 - [x] `check_micropython_api_surface.py` 同时检查禁止的旧 API 形状、手写 public API 文档覆盖，以及 `api_introspection.py` 实际使用的 `MatrixOS.*` symbol 文档覆盖。
 
@@ -595,5 +595,5 @@ Python exception 和 app log 能清晰定位问题。
 - Pixel Art、SameGame、Gomoku、Dice 都已有 app interaction smoke，且已覆盖真实 FN hold exit；Dice 已补 dot/number faces 和 rolling/confirmed underglow effect/speed 子 UI parity smoke。更细的原版 parity（动画、TextScroll、剩余复杂 settings 子菜单）仍需要继续补强。
 - 当前已有集中式 app parity smoke 和 app-specific wrapper script，覆盖四个 example 的主流程、settings、NVS 和 app exit；`examples` suite 已支持 `--example` 单独跑某个 app。后续需要继续补动画、TextScroll timing、setting 子菜单边界等更深层原版 parity。
 - `verify-micropython.mjs --smoke-dev` 已能自动启动 WebUI dev server、Chrome 和 RPC smoke；后续需要把它接到 CI 或标准本地 release gate。
-- `docs/micropython-api.md` 已建立，但必须随着后续 parity work 持续同步。
+- `Applications/Python/micropython-api.md` 已建立，但必须随着后续 parity work 持续同步。
 - `verify-micropython.mjs` 会在未设置 `EM_CACHE` 时使用 `build/emscripten-cache`，避免 Windows 上裸 Emscripten build 写入 `C:\Program Files` cache 失败；裸跑 `cmake --build` 时需要手动设置同样的 `EM_CACHE`。

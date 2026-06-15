@@ -12,7 +12,7 @@ Phase 2 的重点是把 runtime 跑起来、拆出模块化 binding、冻结 Pyt
 
 ## Phase 3 验收标准
 
-- [x] `docs/micropython-api.md` 记录 stable public contract 基础结构，新增 / 删除 / 改名 API 会经过 introspection、文档和 smoke 静态检查。
+- [x] `Applications/Python/micropython-api.md` 记录 stable public contract 基础结构，新增 / 删除 / 改名 API 会经过 introspection、文档和 smoke 静态检查。
 - [ ] UI wrapper 可以承载常见 MatrixOS setting UI，不需要 example app 自己写 input consume / suppress workaround。
 - [x] WebUI RPC smoke 的 examples suite 与 single example 入口稳定可重复；full verify 仍需继续覆盖 production build smoke 和后续 stress suite。
 - [ ] MicroPython runtime 可以在目标设备上按 family 配置 heap、stack、script storage、stdout/stdin，并有明确 unsupported feature 策略。
@@ -33,7 +33,7 @@ Phase 2 的重点是把 runtime 跑起来、拆出模块化 binding、冻结 Pyt
   - `experimental`
   - `sim-only`
   - `unsupported`
-- [x] `docs/micropython-api.md` 补齐错误行为：
+- [x] `Applications/Python/micropython-api.md` 补齐错误行为：
   - 参数类型错误。
   - 设备能力不存在。
   - runtime inactive。
@@ -45,7 +45,7 @@ Phase 2 的重点是把 runtime 跑起来、拆出模块化 binding、冻结 Pyt
 
 **交付物**
 
-- `docs/micropython-api.md` 更新为稳定 API 文档。
+- `Applications/Python/micropython-api.md` 更新为稳定 API 文档。
 - `Applications/Python/examples/api_introspection/main.py` 覆盖完整 public surface。
 - `Applications/Python/tools/check_micropython_api_surface.py` 能发现文档/API 漂移。
 
@@ -204,7 +204,7 @@ Python app 可以自然组织成多文件项目。
 
 **交付物**
 
-- `docs/micropython-api.md` FileSystem / import 章节更新。
+- `Applications/Python/micropython-api.md` FileSystem / import 章节更新。
 - `filesystem` suite 覆盖多文件 import、relative open、bytes read/write。
 
 ## Deliverable 7: Logging / Debugging UX
