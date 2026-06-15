@@ -1,8 +1,13 @@
 # MicroPython Runtime Migration TODO
 
+> Historical note: this file is an archive of the original PikaPython to
+> MicroPython migration plan. Unchecked boxes below do not represent current
+> open implementation work. Current status and deferred polish items live in
+> `docs/micropython-runtime-phase3.md`.
+
 This document tracks the ongoing migration from the current PikaPython runtime to MicroPython.
 
-Production-ready follow-up work is tracked in `docs/micropython-runtime-phase2.md`. This original TODO records the migration history and current first-cut status; Phase 2 is the actionable checklist for modularization, API parity, UI parity, example parity, and tests.
+Production-ready follow-up work was previously tracked in `docs/micropython-runtime-phase2.md`. This original TODO records migration history and first-cut status only.
 
 ## Goal
 

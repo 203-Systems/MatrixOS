@@ -1,5 +1,9 @@
 # MicroPython Runtime Phase 2 TODO
 
+> Historical note: this file records the Phase 2 migration checklist and is no
+> longer the active source of truth for open Python runtime work. Current status
+> and deferred hardening notes live in `docs/micropython-runtime-phase3.md`.
+
 本文档记录 MicroPython 迁移进入 production-ready 阶段前必须完成的任务。Phase 1 的目标是证明 MicroPython 能在 MatrixOS / MystrixSim 中运行；Phase 2 的目标是把它整理成可维护、可扩展、可验证、能忠实承载原生 App 行为的正式 Python runtime。
 
 ## 当前问题
@@ -585,15 +589,20 @@ Python exception 和 app log 能清晰定位问题。
 5. 做 Deliverable 11：把四个 example 按原版行为接回 API。
 6. 做 Deliverable 12-13：测试和文档收口。
 
-## 当前不能称为完成的部分
+## 历史收尾记录
+
+This section is retained as migration history. It described the state at the
+end of the Phase 2 push and should not be read as the current open-task list.
+Current status and deferred hardening notes live in
+`docs/micropython-runtime-phase3.md`.
 
 - First-cut binding 已经按 subsystem 拆开，且 binding/header 文件已有职责说明；UI component binding 已拆成 `matrixos_ui_components.cpp`，UI utility 已拆成 `matrixos_ui_utility.cpp`。
-- UI wrapper 已有基础交互、callback exception、Button TextScroll hold、FN release/hold、color picker、number selector 的 RPC smoke；还缺剩余复杂 setting 子菜单和更深原版 parity 证明。
+- UI wrapper 已有基础交互、callback exception、Button TextScroll hold、FN release/hold、color picker、number selector 的 RPC smoke。
 - `UIUtility` 基础 wrapper 已接入；`text_scroll`、`color_picker`、`number_selector` 都已有 direct RPC interaction smoke，Dice 也间接覆盖 number selector 子 UI。
-- MIDI / USB / HID / FileSystem 基础 wrapper 已实现；MicroPython `open()` / import integration 已接入轻量 port hooks；Logging exception 和 callback exception reporting 已由 RPC smoke 覆盖，`print` 与 structured logging 的关系仍需产品决策。
-- LED / Input / SYS / NVS 已补到当前 smoke contract，但仍需要更强的 app parity 和交互测试证明。
-- Pixel Art、SameGame、Gomoku、Dice 都已有 app interaction smoke，且已覆盖真实 FN hold exit；Dice 已补 dot/number faces 和 rolling/confirmed underglow effect/speed 子 UI parity smoke。更细的原版 parity（动画、TextScroll、剩余复杂 settings 子菜单）仍需要继续补强。
-- 当前已有集中式 app parity smoke 和 app-specific wrapper script，覆盖四个 example 的主流程、settings、NVS 和 app exit；`examples` suite 已支持 `--example` 单独跑某个 app。后续需要继续补动画、TextScroll timing、setting 子菜单边界等更深层原版 parity。
-- `verify-micropython.mjs --smoke-dev` 已能自动启动 WebUI dev server、Chrome 和 RPC smoke；后续需要把它接到 CI 或标准本地 release gate。
-- `Applications/Python/micropython-api.md` 已建立，但必须随着后续 parity work 持续同步。
+- MIDI / USB / HID / FileSystem 基础 wrapper 已实现；MicroPython `open()` / import integration 已接入轻量 port hooks；Logging exception 和 callback exception reporting 已由 RPC smoke 覆盖。
+- LED / Input / SYS / NVS 已补到当前 smoke contract。
+- Pixel Art、SameGame、Gomoku、Dice 已有 app interaction smoke，且已覆盖真实 FN hold exit；后续 Python examples 又加入 Lighting 和 Reversi。
+- 当前已有集中式 app parity smoke 和 app-specific wrapper script，覆盖 examples 主流程、settings、NVS 和 app exit；`examples` suite 已支持 `--example` 单独跑某个 app。
+- `verify-micropython.mjs --smoke-dev` 已能自动启动 WebUI dev server、Chrome 和 RPC smoke。
+- `Applications/Python/micropython-api.md` 已建立，并由 API surface check 维护。
 - `verify-micropython.mjs` 会在未设置 `EM_CACHE` 时使用 `build/emscripten-cache`，避免 Windows 上裸 Emscripten build 写入 `C:\Program Files` cache 失败；裸跑 `cmake --build` 时需要手动设置同样的 `EM_CACHE`。

@@ -42,24 +42,35 @@ mp_obj_t component_set_enable_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
 }
 MP_DEFINE_CONST_FUN_OBJ_2(component_set_enable_func_obj, component_set_enable_func);
 
-mp_obj_t component_close(mp_obj_t selfObj) {
-  matrixos_component_base_t* self = (matrixos_component_base_t*)MP_OBJ_TO_PTR(selfObj);
+bool component_close_native(matrixos_component_base_t* self, bool force) {
   if (self->component == nullptr)
   {
-    return mp_const_true;
+    return true;
   }
-  if (UI::IsComponentAttached(self->component))
+  if (!force && UI::IsComponentAttached(self->component))
   {
-    return mp_const_false;
+    return false;
   }
   if (self->owns_component)
   {
     delete self->component;
   }
   self->component = nullptr;
-  return mp_const_true;
+  return true;
+}
+
+mp_obj_t component_close(mp_obj_t selfObj) {
+  matrixos_component_base_t* self = (matrixos_component_base_t*)MP_OBJ_TO_PTR(selfObj);
+  return component_close_native(self, false) ? mp_const_true : mp_const_false;
 }
 MP_DEFINE_CONST_FUN_OBJ_1(component_close_obj, component_close);
+
+mp_obj_t component___del__(mp_obj_t selfObj) {
+  matrixos_component_base_t* self = (matrixos_component_base_t*)MP_OBJ_TO_PTR(selfObj);
+  component_close_native(self, false);
+  return mp_const_none;
+}
+MP_DEFINE_CONST_FUN_OBJ_1(component___del___obj, component___del__);
 
 typedef struct _matrixos_custom_component_obj_t matrixos_custom_component_obj_t;
 
@@ -143,7 +154,7 @@ bool MatrixOSPythonCustomComponent::KeyEvent(Point xy, KeypadInfo* keypadInfo) {
 
 mp_obj_t custom_component_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
-  matrixos_custom_component_obj_t* self = mp_obj_malloc(matrixos_custom_component_obj_t, type);
+  matrixos_custom_component_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_custom_component_obj_t, type);
   self->custom = new MatrixOSPythonCustomComponent(self);
   component_init(&self->base, type, self->custom);
   self->render_callback = mp_const_none;
@@ -177,6 +188,7 @@ mp_obj_t custom_component_set_key_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(custom_component_set_key_func_obj, custom_component_set_key_func);
 
 static const mp_rom_map_elem_t custom_component_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&component___del___obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},
@@ -196,7 +208,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 mp_obj_t button_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
-  matrixos_button_obj_t* self = mp_obj_malloc(matrixos_button_obj_t, type);
+  matrixos_button_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_button_obj_t, type);
   self->button = new UIButton();
   component_init(&self->base, type, self->button);
   self->press_callback = mp_const_none;
@@ -271,6 +283,7 @@ mp_obj_t button_on_hold(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(button_on_hold_obj, button_on_hold);
 
 static const mp_rom_map_elem_t button_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&component___del___obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},
@@ -293,7 +306,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 mp_obj_t selector_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
-  matrixos_selector_obj_t* self = mp_obj_malloc(matrixos_selector_obj_t, type);
+  matrixos_selector_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_selector_obj_t, type);
   self->selector = new UISelector();
   component_init(&self->base, type, self->selector);
   self->value = 0;
@@ -423,6 +436,7 @@ mp_obj_t selector_set_name_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(selector_set_name_func_obj, selector_set_name_func);
 
 static const mp_rom_map_elem_t selector_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&component___del___obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},
@@ -452,7 +466,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 mp_obj_t number_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
-  matrixos_number_obj_t* self = mp_obj_malloc(matrixos_number_obj_t, type);
+  matrixos_number_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_number_obj_t, type);
   self->number = new UI4pxNumber();
   component_init(&self->base, type, self->number);
   self->value = 0;
@@ -537,6 +551,7 @@ mp_obj_t number_set_color_func(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(number_set_color_func_obj, number_set_color_func);
 
 static const mp_rom_map_elem_t number_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&component___del___obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},
@@ -562,7 +577,7 @@ MP_DEFINE_CONST_OBJ_TYPE(
 
 mp_obj_t toggle_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const mp_obj_t* args) {
   (void)n_kw;
-  matrixos_toggle_obj_t* self = mp_obj_malloc(matrixos_toggle_obj_t, type);
+  matrixos_toggle_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_toggle_obj_t, type);
   self->toggle = new UIToggle();
   component_init(&self->base, type, self->toggle);
   self->value = false;
@@ -652,6 +667,7 @@ mp_obj_t toggle_on_hold(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(toggle_on_hold_obj, toggle_on_hold);
 
 static const mp_rom_map_elem_t toggle_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&component___del___obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&component_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enabled), MP_ROM_PTR(&component_set_enabled_obj)},
     {MP_ROM_QSTR(MP_QSTR_set_enable_func), MP_ROM_PTR(&component_set_enable_func_obj)},

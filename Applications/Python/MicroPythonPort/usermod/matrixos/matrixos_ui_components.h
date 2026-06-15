@@ -21,6 +21,8 @@ typedef struct _matrixos_component_base_t {
   mp_obj_t enable_callback;
 } matrixos_component_base_t;
 
+bool component_close_native(matrixos_component_base_t* self, bool force);
+
 extern const mp_obj_type_t button_type;
 extern const mp_obj_type_t selector_type;
 extern const mp_obj_type_t number_type;

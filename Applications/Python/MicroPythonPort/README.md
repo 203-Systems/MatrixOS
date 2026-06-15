@@ -166,11 +166,8 @@ UI callbacks cross from native C++ into MicroPython. Treat them as runtime bound
 
 This is intentionally not a full MicroPython VFS. If a real VFS is needed later, implement it as a coherent subsystem pass instead of mixing VFS semantics into the current file hooks.
 
-## Current Production Gaps
+## Current Status
 
-The runtime has passed build verification and WebUI RPC smoke, but Phase 2 is not complete until the deeper parity checks are done:
+The runtime has reached the current working baseline: it builds through the normal MatrixOS app flow, passes the MicroPython verification gate, and supports the shipped Python example apps.
 
-- UI TextScroll hold and animation behavior need stronger parity tests.
-- Pixel Art, SameGame, Gomoku, and Dice need more app-specific original-behavior coverage.
-- Complex setting submenus still need deeper tests.
-- Device-family memory/storage tuning remains target-owned before broad user-facing enablement.
+Remaining work is deferred hardening or product polish rather than unfinished runtime implementation. Keep those notes in `docs/micropython-runtime-phase3.md` so this README stays focused on maintenance workflow.

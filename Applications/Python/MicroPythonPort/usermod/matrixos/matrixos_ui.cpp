@@ -44,7 +44,7 @@ mp_obj_t ui_make_new(const mp_obj_type_t* type, size_t argc, size_t n_kw, const 
     newLayer = mp_obj_is_true(args[2]);
   }
 
-  matrixos_ui_obj_t* self = mp_obj_malloc(matrixos_ui_obj_t, type);
+  matrixos_ui_obj_t* self = mp_obj_malloc_with_finaliser(matrixos_ui_obj_t, type);
   self->ui = new UI(name, color, newLayer);
   self->setup_callback = mp_const_none;
   self->loop_callback = mp_const_none;
@@ -83,6 +83,15 @@ mp_obj_t ui_close(mp_obj_t selfObj) {
   {
     delete self->ui;
     self->ui = nullptr;
+  }
+  if (mp_obj_is_type(self->components, &mp_type_list))
+  {
+    mp_obj_list_t* list = (mp_obj_list_t*)MP_OBJ_TO_PTR(self->components);
+    for (size_t i = 0; i < list->len; i++)
+    {
+      matrixos_component_base_t* component = (matrixos_component_base_t*)MP_OBJ_TO_PTR(list->items[i]);
+      component_close_native(component, true);
+    }
   }
   self->components = mp_obj_new_list(0, nullptr);
   return mp_const_true;
@@ -226,6 +235,7 @@ mp_obj_t ui_set_input_handler(mp_obj_t selfObj, mp_obj_t callbackObj) {
 MP_DEFINE_CONST_FUN_OBJ_2(ui_set_input_handler_obj, ui_set_input_handler);
 
 static const mp_rom_map_elem_t ui_locals_table[] = {
+    {MP_ROM_QSTR(MP_QSTR___del__), MP_ROM_PTR(&ui_close_obj)},
     {MP_ROM_QSTR(MP_QSTR_start), MP_ROM_PTR(&ui_start_obj)},
     {MP_ROM_QSTR(MP_QSTR_exit), MP_ROM_PTR(&ui_exit_obj)},
     {MP_ROM_QSTR(MP_QSTR_close), MP_ROM_PTR(&ui_close_obj)},

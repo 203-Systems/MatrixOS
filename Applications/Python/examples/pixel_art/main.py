@@ -16,6 +16,8 @@ FUNCTION_KEY = Input.function_key()
 ART_KEY = "Python Pixel Art grid"
 LEFT_SIDE_X = -1
 RIGHT_SIDE_X = WIDTH
+TOUCHBAR_LEFT_CLUSTER = 2
+TOUCHBAR_RIGHT_CLUSTER = 3
 
 STATE_PRESSED = MatrixOS.Input.STATE_PRESSED
 STATE_HOLD = MatrixOS.Input.STATE_HOLD
@@ -94,6 +96,31 @@ def paint_point(x, y):
     LED.update()
 
 
+def normalize_paint_point(x, y):
+    if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+        return x, y
+    if 0 <= y < HEIGHT and (x == LEFT_SIDE_X or x == RIGHT_SIDE_X):
+        return x, y
+    if 0 <= x < HEIGHT and y == HEIGHT:
+        return LEFT_SIDE_X, x
+    if 0 <= x < HEIGHT and y == -1:
+        return RIGHT_SIDE_X, x
+    return None
+
+
+def touchbar_paint_point(input_id):
+    if input_id is None or len(input_id) != 2:
+        return None
+    cluster, member = input_id
+    if member < 0 or member >= HEIGHT:
+        return None
+    if cluster == TOUCHBAR_LEFT_CLUSTER:
+        return LEFT_SIDE_X, member
+    if cluster == TOUCHBAR_RIGHT_CLUSTER:
+        return RIGHT_SIDE_X, member
+    return None
+
+
 def handle_function_key(state):
     global running
 
@@ -114,13 +141,19 @@ def handle_event(event):
     if state != STATE_PRESSED:
         return
 
+    normalized = touchbar_paint_point(event.get("id"))
+    if normalized is not None:
+        paint_point(normalized[0], normalized[1])
+        return
+
     point = event.get("point")
     if point is None:
         return
 
     x, y = point
-    if LEFT_SIDE_X <= x <= RIGHT_SIDE_X and 0 <= y < HEIGHT:
-        paint_point(x, y)
+    normalized = normalize_paint_point(x, y)
+    if normalized is not None:
+        paint_point(normalized[0], normalized[1])
 
 
 def loop():

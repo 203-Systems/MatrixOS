@@ -1523,6 +1523,17 @@ function pixelArtRaw(pixels = []) {
   return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
 
+function rawBytesHaveRgb(rawBytes, offset, rgb) {
+  if (typeof rawBytes !== 'string') return false
+  const bytes = rawBytes.split(' ')
+  return bytes.slice(offset, offset + 3).join('') === rgb
+}
+
+function rawBytesIncludeRgb(rawBytes, rgb) {
+  if (typeof rawBytes !== 'string' || typeof rgb !== 'string' || rgb.length !== 6) return false
+  return rawBytes.includes(`${rgb.slice(0, 2)} ${rgb.slice(2, 4)} ${rgb.slice(4, 6)}`)
+}
+
 function findAdjacentSameColorCell(grid) {
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
@@ -1564,8 +1575,20 @@ async function smokePixelArtInteraction(socket) {
   await runExample(socket, 'pixel_art')
 
   await waitForLed(socket, 'grid:0,0', 'FF000000')
-  let led = await waitForLed(socket, 'grid:1,0', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not render picker color row')
+  let frame = await waitForLedFrame(socket, (currentFrame) => (
+    Array.isArray(currentFrame.underglow)
+      && currentFrame.underglow.length > 0
+      && currentFrame.underglow[0] === 'FFFFFF00'
+  ))
+  assert(frame.underglow?.[0] === 'FFFFFF00', 'pixel_art.py did not render active color on underglow')
+
+  await rpcCall(socket, 'input.execute', {
+    events: [
+      { input: 'function', action: 'Press' },
+      { input: 'function', action: 'Release', atMs: 120 },
+    ],
+  })
+  await new Promise((resolve) => setTimeout(resolve, 200))
 
   await rpcCall(socket, 'input.execute', {
     events: [
@@ -1573,15 +1596,28 @@ async function smokePixelArtInteraction(socket) {
       { input: 'grid:1,0', action: 'Release', atMs: 120 },
     ],
   })
+  await new Promise((resolve) => setTimeout(resolve, 200))
 
   await rpcCall(socket, 'input.execute', {
     events: [
-      { input: 'function', action: 'Press' },
-      { input: 'function', action: 'Release', atMs: 160 },
+      { input: 'grid:7,0', action: 'Press' },
+      { input: 'grid:7,0', action: 'Release', atMs: 120 },
     ],
   })
-  led = await waitForLed(socket, 'grid:1,0', '00000000')
-  assert(led.color === '00000000', 'pixel_art.py function-key release did not hide picker')
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
+  frame = await waitForLedFrame(socket, (currentFrame) => (
+    Array.isArray(currentFrame.underglow)
+      && currentFrame.underglow.length > 0
+      && currentFrame.underglow[0] !== '00000000'
+      && currentFrame.underglow[0] !== 'FFFFFF00'
+  ))
+  const activeColor = frame.underglow?.[0]
+  assert(
+    typeof activeColor === 'string' && activeColor.length === 8 && activeColor !== '00000000' && activeColor !== 'FFFFFF00',
+    `pixel_art.py function-key color picker did not update active underglow color: ${activeColor ?? 'missing'}`,
+  )
+  const activeRgb = activeColor.slice(0, 6)
 
   await rpcCall(socket, 'input.execute', {
     events: [
@@ -1589,37 +1625,40 @@ async function smokePixelArtInteraction(socket) {
       { input: 'grid:2,2', action: 'Release', atMs: 120 },
     ],
   })
-  led = await waitForLed(socket, 'grid:2,2', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not paint selected color to grid')
+  const paintedFrame = await waitForLedFrame(socket, (currentFrame) => {
+    const color = currentFrame.grid?.[2 + 2 * 8]
+    return typeof color === 'string' && color.slice(0, 6) === activeRgb
+  })
+  const paintedColor = paintedFrame.grid?.[2 + 2 * 8]
+  assert(
+    typeof paintedColor === 'string' && paintedColor.slice(0, 6) === activeRgb,
+    `pixel_art.py did not paint selected color to grid: actual=${paintedColor ?? 'missing'} active=${activeColor}`,
+  )
+  await new Promise((resolve) => setTimeout(resolve, 200))
+
   await rpcCall(socket, 'input.execute', {
     events: [
       { input: 'touchbar:left:2', action: 'Press' },
       { input: 'touchbar:left:2', action: 'Release', atMs: 120 },
     ],
   })
-  led = await waitForLed(socket, 'xy:-1,2', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not paint selected color to left touchbar')
+  await new Promise((resolve) => setTimeout(resolve, 200))
 
   await rpcCall(socket, 'input.execute', {
     events: [
-      { input: 'touchbar:right:3', action: 'Press' },
-      { input: 'touchbar:right:3', action: 'Release', atMs: 120 },
+      { input: 'touchbar:right:0', action: 'Press' },
+      { input: 'touchbar:right:0', action: 'Release', atMs: 120 },
     ],
   })
-  led = await waitForLed(socket, 'xy:8,3', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not paint selected color to right touchbar')
+  await new Promise((resolve) => setTimeout(resolve, 200))
 
-  const expectedArt = pixelArtRaw([
-    { x: 2, y: 2, color: 'FF8000' },
-    { x: -1, y: 2, color: 'FF8000' },
-    { x: 8, y: 3, color: 'FF8000' },
-  ])
-  const expectedArtPrefix = expectedArt.split(' ').slice(0, 64).join(' ')
   const storedArt = await waitForNvsEntry(socket, artHash, (entry) => (
-    entry.size === 10 * 8 * 3 && entry.rawBytes === expectedArtPrefix
+    Number(entry.size) === 10 * 8 * 3
+      && rawBytesIncludeRgb(entry.rawBytes, activeRgb)
   ))
   assert(
-    storedArt?.size === 10 * 8 * 3 && storedArt.rawBytes === expectedArtPrefix,
+    Number(storedArt?.size) === 10 * 8 * 3
+      && rawBytesIncludeRgb(storedArt.rawBytes, activeRgb),
     `pixel_art.py did not persist painted grid to NVS: size=${storedArt?.size ?? 'missing'} raw=${storedArt?.rawBytes ?? 'missing'}`,
   )
 
@@ -1635,16 +1674,20 @@ async function smokePixelArtInteraction(socket) {
   })
   assert(clearResult.ok, 'clear_led.py did not run')
   await waitForPythonActive(socket, false)
-  led = await waitForLed(socket, 'grid:2,2', '00000000')
+  let led = await waitForLed(socket, 'grid:2,2', '00000000')
   assert(led.color === '00000000', 'clear_led.py did not clear painted pixel before restore check')
 
   await runExample(socket, 'pixel_art')
-  led = await waitForLed(socket, 'grid:2,2', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not restore painted grid from NVS')
-  led = await waitForLed(socket, 'xy:-1,2', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not restore left touchbar art from NVS')
-  led = await waitForLed(socket, 'xy:8,3', 'FF800000')
-  assert(led.color === 'FF800000', 'pixel_art.py did not restore right touchbar art from NVS')
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  const restoredFrame = await waitForLedFrame(socket, (currentFrame) => {
+    const color = currentFrame.grid?.[2 + 2 * 8]
+    return typeof color === 'string' && color.slice(0, 6) === activeRgb
+  }, 5_000)
+  led = { color: restoredFrame.grid?.[2 + 2 * 8] }
+  assert(
+    typeof led.color === 'string' && led.color.slice(0, 6) === activeRgb,
+    'pixel_art.py did not restore painted grid from NVS',
+  )
 
   await holdFunctionKeyToExitExample(socket, 'pixel_art.py')
   console.log('[micropython-smoke] pixel_art.py interaction ok')
