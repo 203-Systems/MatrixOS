@@ -33,10 +33,27 @@
 #include "shared/runtime/gchelper.h"
 #include "port/micropython_embed.h"
 
+size_t gc_get_max_new_split(void) {
+    return matrixos_micropython_get_max_new_split();
+}
+
 // Initialise the runtime.
 void mp_embed_init(void *gc_heap, size_t gc_heap_size, void *stack_top) {
     mp_stack_set_top(stack_top);
     gc_init(gc_heap, (uint8_t *)gc_heap + gc_heap_size);
+    mp_init();
+}
+
+void mp_embed_init_split(void **gc_heaps, const size_t *gc_heap_sizes, size_t gc_heap_count, void *stack_top) {
+    mp_stack_set_top(stack_top);
+    gc_init(gc_heaps[0], (uint8_t *)gc_heaps[0] + gc_heap_sizes[0]);
+    #if MICROPY_GC_SPLIT_HEAP
+    for (size_t i = 1; i < gc_heap_count; i++) {
+        gc_add(gc_heaps[i], (uint8_t *)gc_heaps[i] + gc_heap_sizes[i]);
+    }
+    #else
+    (void)gc_heap_count;
+    #endif
     mp_init();
 }
 

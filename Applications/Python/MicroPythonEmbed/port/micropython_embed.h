@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 void mp_embed_init(void *gc_heap, size_t gc_heap_size, void *stack_top);
+void mp_embed_init_split(void **gc_heaps, const size_t *gc_heap_sizes, size_t gc_heap_count, void *stack_top);
 void mp_embed_deinit(void);
 
 // Only available if MICROPY_ENABLE_COMPILER is enabled.

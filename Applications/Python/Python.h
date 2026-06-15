@@ -14,6 +14,8 @@ public:
       .visibility = true,
   };
 
+  Python();
+
   void Setup(const vector<string>& args) override;
   void Loop() override;
   void End() override;

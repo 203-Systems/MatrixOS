@@ -45,6 +45,7 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(input_get_event_obj, 0, 1, input_get_event);
 
 mp_obj_t input_clear() {
   MatrixOS::Input::ClearInputBuffer();
+  Device::Input::SuppressActiveInputs();
   return mp_const_none;
 }
 MP_DEFINE_CONST_FUN_OBJ_0(input_clear_obj, input_clear);

@@ -10,6 +10,10 @@
 #include "HostIO.h"
 #endif
 
+#if ESP_PLATFORM
+#include "esp_heap_caps.h"
+#endif
+
 extern "C" {
 #include "py/repl.h"
 }
@@ -158,6 +162,18 @@ string BuildPythonRuntimeDebugJson() {
   json += "}";
   return json;
 }
+
+size_t GetLargestRuntimeHeapBlock() {
+#if ESP_PLATFORM
+  return heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+#else
+  return xPortGetFreeHeapSize();
+#endif
+}
+}
+
+Python::Python() {
+  runtime.AllocateHeap();
 }
 
 extern "C" {
@@ -202,8 +218,19 @@ const char* matrixos_python_get_runtime_debug_json() {
 
 void Python::Setup(const vector<string>& args) {
   activePythonInstance = this;
+  MLOGI("Python", "Setup start: args=%d free heap=%d largest block=%d", args.size(), xPortGetFreeHeapSize(), GetLargestRuntimeHeapBlock());
   matrixos_python_clear_input();
-  runtime.Init();
+  if (!runtime.Init())
+  {
+    MLOGE("Python",
+          "Failed to allocate MicroPython GC heap (%d bytes, chunk %d bytes); free heap: %d bytes; largest block: %d bytes",
+          MATRIXOS_MICROPYTHON_HEAP_SIZE, MATRIXOS_MICROPYTHON_HEAP_CHUNK_SIZE, xPortGetFreeHeapSize(), GetLargestRuntimeHeapBlock());
+    Exit();
+    return;
+  }
+  MicroPythonRuntimeStats stats = runtime.GetStats();
+  MLOGD("Python", "MicroPython runtime initialized: heap budget %d bytes, chunk %d bytes, gc total %d bytes, free heap %d bytes",
+        MATRIXOS_MICROPYTHON_HEAP_SIZE, MATRIXOS_MICROPYTHON_HEAP_CHUNK_SIZE, stats.heapTotal, xPortGetFreeHeapSize());
   replMode = false;
   exitWhenIdle = false;
   activeScriptPath.clear();
@@ -216,14 +243,17 @@ void Python::Setup(const vector<string>& args) {
     matrixos_python_notify_mode(2);
     const string& pythonFilePath = args[0];
     activeScriptPath = pythonFilePath;
-    MLOGD("Python", "Executing MicroPython script: %s", pythonFilePath.c_str());
+    MLOGI("Python", "Executing MicroPython script: %s", pythonFilePath.c_str());
 
     if (ExecutePythonFile(pythonFilePath))
     {
       hasLoop = runtime.HasLoop();
-      MLOGD("Python", "MicroPython script executed successfully");
+      MLOGI("Python", "MicroPython script executed successfully");
       if (!hasLoop)
       {
+        MicroPythonRuntimeStats stats = runtime.GetStats();
+        MLOGW("Python", "MicroPython script has no loop(); exiting idle script. gc total=%d used=%d free=%d max_free=%d",
+              stats.heapTotal, stats.heapUsed, stats.heapFree, stats.heapMaxFree);
         exitWhenIdle = true;
       }
       return;
@@ -278,6 +308,10 @@ void Python::Loop() {
 
   if (!runtime.CallLoop())
   {
+    MicroPythonRuntimeStats stats = runtime.GetStats();
+    MLOGE("Python", "MicroPython loop failed: exception=%s; gc total=%d used=%d free=%d max_free=%d; system free=%d; traceback=%s",
+          runtime.GetLastExceptionType(), stats.heapTotal, stats.heapUsed, stats.heapFree, stats.heapMaxFree, xPortGetFreeHeapSize(),
+          runtime.GetLastExceptionText());
     hasLoop = false;
     Exit();
     return;
@@ -373,10 +407,20 @@ bool Python::ExecutePythonFile(const string& filePath) {
   string source;
   if (!ReadPythonFile(filePath, &source))
   {
+    MLOGE("Python", "Failed to read MicroPython script: %s", filePath.c_str());
     return false;
   }
 
-  return runtime.Exec(source, filePath.c_str());
+  MLOGI("Python", "Loaded MicroPython script: %s (%d bytes)", filePath.c_str(), source.size());
+  bool ok = runtime.Exec(source, filePath.c_str());
+  if (!ok)
+  {
+    MicroPythonRuntimeStats stats = runtime.GetStats();
+    MLOGE("Python", "MicroPython script startup failed: %s; exception=%s; gc total=%d used=%d free=%d max_free=%d; system free=%d; traceback=%s",
+          filePath.c_str(), runtime.GetLastExceptionType(), stats.heapTotal, stats.heapUsed, stats.heapFree, stats.heapMaxFree,
+          xPortGetFreeHeapSize(), runtime.GetLastExceptionText());
+  }
+  return ok;
 }
 
 bool Python::ReadPythonFile(const string& filePath, string* output) {
@@ -405,6 +449,10 @@ bool Python::ReadPythonFile(const string& filePath, string* output) {
   size_t bytesRead = file.Read(output->data(), size);
   output->resize(bytesRead);
   file.Close();
+  if (bytesRead != size)
+  {
+    MLOGW("Python", "MicroPython script read partial: %s (%d/%d bytes)", filePath.c_str(), bytesRead, size);
+  }
   return bytesRead > 0 || size == 0;
 #else
   (void)filePath;
