@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte'
-  import { TrashCan } from 'carbon-icons-svelte'
+  import { Close, TrashCan } from 'carbon-icons-svelte'
   import { get } from 'svelte/store'
   import { moduleReady, runtimeStatus } from '../../stores/wasm.js'
   import {
@@ -222,9 +222,9 @@
         if (!stagePythonScript(uploadedScript.name, uploadedScript.text)) {
           throw new Error('Uploaded file was read, but staging it into the runtime failed.')
         }
-        setNotice(`${uploadedScript.name} uploaded. Click Run Uploaded File to launch Python in app mode.`)
+        setNotice(`${uploadedScript.name} staged for Python app mode.`)
       } else {
-        setNotice(`${uploadedScript.name} uploaded locally. Start the runtime before running it.`)
+        setNotice(`${uploadedScript.name} loaded locally. Start the runtime before running it.`)
       }
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : String(uploadError))
@@ -392,7 +392,7 @@
     <div class="tool-section-title">Session</div>
     <div class="tool-grid python-status-grid">
       <div class="tool-card">
-        <span class="tool-card-label">MicroPython App</span>
+        <span class="tool-card-label">Python App</span>
         <span
           class="tool-card-value"
           class:tool-value-live={$moduleReady && pythonInstalled}
@@ -459,10 +459,23 @@
     </div>
 
     {#if $pythonPanelUploadedScript}
-      <div class="python-staged-meta">
-        <span class="python-staged-name">{$pythonPanelUploadedScript.name}</span>
-        <span class="python-staged-info">{$pythonPanelUploadedScript.lineCount} lines · {$pythonPanelUploadedScript.sizeLabel}</span>
-        <button class="python-staged-clear" on:click={clearUploadedScript} disabled={busy !== ''}>×</button>
+      <div class="python-file-loaded-card">
+        <div class="python-file-loaded-content">
+          <span class="python-file-loaded-label">File Loaded</span>
+          <span class="python-file-loaded-name">{$pythonPanelUploadedScript.name}</span>
+          <span class="python-file-loaded-meta">
+            {$pythonPanelUploadedScript.lineCount} lines · {$pythonPanelUploadedScript.sizeLabel}
+          </span>
+        </div>
+        <button
+          class="python-file-clear"
+          on:click={clearUploadedScript}
+          disabled={busy !== ''}
+          title="Remove loaded file"
+          aria-label="Remove loaded Python file"
+        >
+          <Close size={20} />
+        </button>
       </div>
     {/if}
 
@@ -601,46 +614,68 @@
     background: rgba(76, 201, 240, 0.2);
   }
 
-  .python-staged-meta {
+  .python-file-loaded-card {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
+    gap: 12px;
+    min-height: 64px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--panel);
+    padding: 10px 12px;
   }
 
-  .python-staged-name {
+  .python-file-loaded-content {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .python-file-loaded-label {
+    color: var(--muted);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .python-file-loaded-name {
     font-family: var(--mono);
     color: var(--text);
+    font-size: 0.82rem;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .python-staged-info {
+  .python-file-loaded-meta {
     color: var(--muted);
-    flex-shrink: 0;
+    font-size: 0.72rem;
   }
 
-  .python-staged-clear {
-    margin-left: auto;
+  .python-file-clear {
     flex-shrink: 0;
-    background: none;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
     border: none;
+    border-radius: 4px;
     color: var(--muted);
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0 2px;
     cursor: pointer;
-    opacity: 0.6;
+    transition: color 0.12s, background 0.12s;
   }
 
-  .python-staged-clear:not(:disabled):hover {
+  .python-file-clear:not(:disabled):hover {
+    background: rgba(255, 111, 111, 0.08);
     color: var(--danger);
-    opacity: 1;
   }
 
-  .python-staged-clear:disabled {
+  .python-file-clear:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
