@@ -10,7 +10,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <map>
 #include <mutex>
+#include <vector>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -44,7 +46,7 @@ std::deque<uint8_t> pythonInputBuffer;
 std::atomic<uint8_t> pythonSessionMode{static_cast<uint8_t>(PythonSessionMode::None)};
 std::mutex stagedPythonMutex;
 string stagedPythonPath;
-string stagedPythonContents;
+std::map<string, string> stagedPythonFiles;
 
 typedef union __attribute__((packed, aligned(1))) {
   uint8_t whole8[0];
@@ -234,6 +236,83 @@ string SanitizePythonFilename(const string& fileName) {
 
   return sanitized;
 }
+
+string SanitizePythonPath(const string& fileName) {
+  string normalized = fileName;
+  for (char& character : normalized)
+  {
+    if (character == '\\')
+    {
+      character = '/';
+    }
+  }
+
+  std::vector<string> segments;
+  size_t offset = 0;
+  while (offset <= normalized.size())
+  {
+    size_t slash = normalized.find('/', offset);
+    string segment = normalized.substr(offset, slash == string::npos ? string::npos : slash - offset);
+    if (!segment.empty() && segment != "." && segment != "..")
+    {
+      segments.push_back(segment);
+    }
+    if (slash == string::npos)
+    {
+      break;
+    }
+    offset = slash + 1;
+  }
+
+  if (segments.empty())
+  {
+    return "uploaded.py";
+  }
+
+  string result;
+  for (size_t index = 0; index < segments.size(); index++)
+  {
+    bool isFileName = index + 1 == segments.size();
+    string segment = isFileName ? SanitizePythonFilename(segments[index]) : segments[index];
+    string sanitized;
+    sanitized.reserve(segment.size());
+    for (unsigned char character : segment)
+    {
+      if (std::isalnum(character) || character == '_' || character == '-' || (isFileName && character == '.'))
+      {
+        sanitized.push_back(static_cast<char>(character));
+      }
+      else
+      {
+        sanitized.push_back('_');
+      }
+    }
+    if (sanitized.empty())
+    {
+      continue;
+    }
+    if (!result.empty())
+    {
+      result += "/";
+    }
+    result += sanitized;
+  }
+
+  if (result.empty())
+  {
+    return "uploaded.py";
+  }
+  return result;
+}
+
+string NormalizeStagedPythonPath(const string& path) {
+  const string prefix = "host:/python/";
+  if (path.rfind(prefix, 0) == 0)
+  {
+    return prefix + SanitizePythonPath(path.substr(prefix.size()));
+  }
+  return prefix + SanitizePythonPath(path);
+}
 } // namespace
 
 bool UsbConnected() {
@@ -374,8 +453,8 @@ void TapPythonOutput(PythonSessionMode mode, const string& text) {
 
 bool StagePythonScript(const string& fileName, const string& contents) {
   std::lock_guard<std::mutex> lock(stagedPythonMutex);
-  stagedPythonPath = "host:/python/" + SanitizePythonFilename(fileName);
-  stagedPythonContents = contents;
+  stagedPythonPath = NormalizeStagedPythonPath(fileName);
+  stagedPythonFiles[stagedPythonPath] = contents;
   return true;
 }
 
@@ -386,13 +465,43 @@ bool GetPythonScript(const string& path, string* contents) {
   }
 
   std::lock_guard<std::mutex> lock(stagedPythonMutex);
-  if (stagedPythonPath.empty() || path != stagedPythonPath)
+  auto entry = stagedPythonFiles.find(NormalizeStagedPythonPath(path));
+  if (entry == stagedPythonFiles.end())
   {
     return false;
   }
 
-  *contents = stagedPythonContents;
+  *contents = entry->second;
   return true;
+}
+
+bool WritePythonScriptFile(const string& path, const string& contents) {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  stagedPythonFiles[NormalizeStagedPythonPath(path)] = contents;
+  return true;
+}
+
+bool HasPythonScript(const string& path) {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  return stagedPythonFiles.find(NormalizeStagedPythonPath(path)) != stagedPythonFiles.end();
+}
+
+bool HasPythonDirectory(const string& path) {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  string normalized = NormalizeStagedPythonPath(path);
+  if (!normalized.empty() && normalized.back() != '/')
+  {
+    normalized += '/';
+  }
+
+  for (const auto& entry : stagedPythonFiles)
+  {
+    if (entry.first.rfind(normalized, 0) == 0)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 string GetStagedPythonScriptPath() {
@@ -400,10 +509,25 @@ string GetStagedPythonScriptPath() {
   return stagedPythonPath;
 }
 
+vector<PythonStagedFileInfo> ListStagedPythonScripts() {
+  std::lock_guard<std::mutex> lock(stagedPythonMutex);
+  vector<PythonStagedFileInfo> files;
+  files.reserve(stagedPythonFiles.size());
+  for (const auto& entry : stagedPythonFiles)
+  {
+    files.push_back({
+        .path = entry.first,
+        .size = entry.second.size(),
+        .entry = entry.first == stagedPythonPath,
+    });
+  }
+  return files;
+}
+
 void ClearStagedPythonScript() {
   std::lock_guard<std::mutex> lock(stagedPythonMutex);
   stagedPythonPath.clear();
-  stagedPythonContents.clear();
+  stagedPythonFiles.clear();
 }
 
 void TapSerial(int direction, const string& text) {

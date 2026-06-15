@@ -27,6 +27,19 @@
 
   const namespaces = [
     {
+      id: 'bridge',
+      summary: 'External WebSocket bridge diagnostics.',
+      handles: [
+        {
+          name: 'bridge.status',
+          purpose: 'Return bridge status even when no runtime tab is connected.',
+          params: '{}',
+          result: '{ runtimeConnected, externalConnectionCount, pendingRequestCount, pendingRequests, subscriptionCount }',
+          example: "await matrixosRpc.call('bridge.status')",
+        },
+      ],
+    },
+    {
       id: 'session',
       summary: 'Session health and reset control.',
       handles: [
@@ -97,6 +110,13 @@
           params: '{}',
           result: '{ activeInputs: [...] }',
           example: "await matrixosRpc.call('input.get')",
+        },
+        {
+          name: 'input.releaseAll',
+          purpose: 'Release every addressable input before starting another automated interaction.',
+          params: '{}',
+          result: '{ ok, released }',
+          example: "await matrixosRpc.call('input.releaseAll')",
         },
       ],
     },
@@ -213,10 +233,17 @@
       handles: [
         {
           name: 'python.status',
-          purpose: 'Return Python availability and current session mode.',
+          purpose: 'Return Python availability, current session mode, and debug summary.',
           params: '{}',
-          result: '{ available, active, mode }',
+          result: '{ available, active, mode, debug }',
           example: "await matrixosRpc.call('python.status')",
+        },
+        {
+          name: 'python.debug',
+          purpose: 'Return Python runtime loop state, staged script metadata, and MicroPython heap/stack summary.',
+          params: '{}',
+          result: '{ available, active, mode, scriptPath, scripts, runtime }',
+          example: "await matrixosRpc.call('python.debug')",
         },
         {
           name: 'python.runText',

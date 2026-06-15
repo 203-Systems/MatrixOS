@@ -10,6 +10,12 @@ enum class PythonSessionMode : uint8_t {
   App = 2,
 };
 
+struct PythonStagedFileInfo {
+  string path;
+  size_t size = 0;
+  bool entry = false;
+};
+
 bool UsbConnected();
 void SetUsbConnected(bool connected);
 
@@ -30,7 +36,11 @@ void TapPythonOutput(PythonSessionMode mode, const string& text);
 
 bool StagePythonScript(const string& fileName, const string& contents);
 bool GetPythonScript(const string& path, string* contents);
+bool WritePythonScriptFile(const string& path, const string& contents);
+bool HasPythonScript(const string& path);
+bool HasPythonDirectory(const string& path);
 string GetStagedPythonScriptPath();
+vector<PythonStagedFileInfo> ListStagedPythonScripts();
 void ClearStagedPythonScript();
 
 void TapSerial(int direction, const string& text);

@@ -1,5 +1,102 @@
 # Python Improvement Log
 
+## 2026-06-15: MicroPython smoke reliability and example parity
+
+Goal: improve Phase 3 debugging before changing app code or declaring example parity broken.
+
+### Finding
+
+- SameGame manual testing was correct: the app was not the root problem. The earlier automated failure
+  came from WebUI smoke timing/state isolation, not from a required SameGame workaround.
+- `input.execute` used independent timers for Press/Release and keypad hold ticks. When the browser
+  main thread was delayed, the hold tick could run before a due Release action, turning a short press
+  into a hold in automated tests.
+- `--smoke-dev` reused fixed ports (`5174` / `4012`). On Windows, old dev server or Chrome child
+  processes can survive a test run, so the next run could connect to stale runtime state.
+- Dice exposed a real robustness issue: bad or stale underglow period values could reach
+  `ColorEffects` and trigger a WASM `remainder by zero` instead of a Python-level error.
+
+### Implemented
+
+- WebUI input scheduling now runs due Press/Release actions before `tickKeypad()`, then performs a
+  final settle tick.
+- `input.get` diagnostics include recent injected input events.
+- `bridge.status` reports pending request details, and bridge requests can time out with structured
+  JSON-RPC errors instead of leaving opaque pending requests.
+- `--smoke-dev` now chooses fresh free ports by default, preventing stale dev runtime contamination.
+- Smoke failure diagnostics include bridge status, runtime/app state, Python status/output, active
+  input trace, LED frame summary, MatrixOS logs, and emulator host errors.
+- Dice clamps persisted underglow effect and period values to the selector-supported range.
+- MicroPython `ColorEffects` bindings reject period `0` with `ValueError` rather than crashing the
+  WASM runtime.
+
+### Verification
+
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-build --skip-web-build`
+  passed.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite examples --example same_game.py`
+  passed.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite examples --example dice.py`
+  passed.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite examples`
+  passed for Pixel Art, SameGame, Gomoku, and Dice.
+- Full `verify:micropython` passed after rebuilding `MatrixOSHost`, validating wasm, packaging the
+  WebUI runtime, and building the production WebUI.
+
+### Remaining Risk
+
+- One post-rebuild full examples run saw the runtime bridge stop responding during the later
+  startup/stop sanity phase. `gomoku.py` single-example smoke and a full examples rerun both passed.
+  Treat this as lifecycle/stress work for Phase 3, not as evidence that Gomoku or SameGame need
+  app-local workaround code.
+
+## 2026-06-15: Lifecycle smoke suite
+
+Goal: turn the runtime responsiveness risk into a focused regression suite.
+
+### Implemented
+
+- Added a `lifecycle` suite to `micropython-smoke.mjs`.
+- The suite repeatedly starts and exits short scripts, checking `session.ping` after each run.
+- It verifies `ColorEffects.rainbow(0)` raises `ValueError` and that a later script can still run.
+- It starts a long-running app, stops it through `python.stop`, then verifies `python.status` and
+  `session.ping` still respond.
+
+### Verification
+
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite lifecycle`
+  passed.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev`
+  passed with suites `core, filesystem, ui, lifecycle, examples`.
+
+## 2026-06-15: Runtime debug endpoint
+
+Goal: make Phase 3 runtime failures diagnosable without adding Python example workarounds.
+
+### Implemented
+
+- `MicroPythonRuntime` now exposes read-only stats for initialization state, heap size, GC usage, max
+  free heap, GC block counters, and C stack usage.
+- The Python app exposes a simulator debug JSON snapshot for active loop state, REPL/app state, and
+  runtime memory stats.
+- MystrixSim exports `MatrixOS_Wasm_GetPythonDebugJson`.
+- MystrixSim exports staged Python package metadata through `MatrixOS_Wasm_GetPythonStagedFilesJson`.
+- WebUI RPC adds `python.debug`, and `python.status` includes the same payload under `debug`.
+  The payload now includes active `scriptPath` plus staged file path/size/entry metadata without
+  embedding script contents.
+- Smoke failure diagnostics now include `python.debug`.
+- Lifecycle smoke verifies that a running app reports initialized runtime memory stats, active script
+  metadata, staged entry metadata, and that `python.debug` returns inactive after `python.stop`.
+
+### Verification
+
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-build --skip-web-build`
+  passed.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-web-build`
+  passed, including MatrixOSHost rebuild, wasm validation, and runtime packaging.
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite lifecycle`
+  passed.
+
 ## 2026-06-13: UI input API shape
 
 Goal: make Python UI input feel Pythonic without reintroducing native-to-Python input callback
@@ -183,8 +280,9 @@ objects directly.
   `GetPartitionCount()`, `GetPartitionName(index)`, `GetPartitionStart(index)`,
   `GetPartitionSize(index)`, `GetPartitionType(index)`, `GetPartitionDefaultMultiplier(index)`, and
   `GetPartitionIndex(name)`.
-- `MatrixOS_LED` wraps those primitives with `LEDPartition` objects and helpers:
-  `partition_count()`, `get_partition(index)`, `get_partition_by_name(name)`, and `partitions()`.
+- `MatrixOS_LED` originally wrapped those primitives with `LEDPartition` objects and split helpers;
+  the MicroPython public API later converged on `partitions()` and
+  `get_partition(index_or_name)` without exposing `partition_count()` or `get_partition_by_name()`.
 - `InputId(cluster_id, member_id)` is now constructible from Python, so UI `KeyEvent.id()` can return
   a real MatrixOS input id instead of forcing apps to carry separate cluster/member integers.
 - `MatrixOS_Input` now exposes keypad cluster helpers:

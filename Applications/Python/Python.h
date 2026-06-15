@@ -1,66 +1,50 @@
 #pragma once
 
-#include "MatrixOS.h"
 #include "Application.h"
-
-// Forward declaration
-typedef struct PikaObj PikaObj;
+#include "MatrixOS.h"
+#include "MicroPythonPort/MicroPythonRuntime.h"
 
 class Python : public Application {
 public:
   inline static Application_Info info = {
       .name = "Python",
       .author = "203 Systems",
-      .color = Color(0x3776AB), // Python blue
+      .color = Color(0x3776AB),
       .version = 1,
       .visibility = true,
   };
 
-  PikaObj* pikaMain;
-  bool hasLoop = false;
-
   void Setup(const vector<string>& args) override;
   void Loop() override;
   void End() override;
+  bool HasActiveLoop() const;
+  bool IsReplMode() const;
+  bool ShouldExitWhenIdle() const;
+  const string& GetActiveScriptPath() const;
+  MicroPythonRuntimeStats GetRuntimeStats() const;
 
 private:
+  MicroPythonRuntime runtime;
+  bool hasLoop = false;
+  bool replMode = false;
+  bool exitWhenIdle = false;
+  string activeScriptPath;
+  string replBuffer;
+  string replLineBuffer;
+  bool replBlockMode = false;
+
   bool ExecutePythonFile(const string& filePath);
+  bool ReadPythonFile(const string& filePath, string* output);
+  void PollRepl();
+  void PrintPrompt(bool continuation = false);
 };
 
-// Platform functions for PikaPython
 extern "C" {
-char pika_platform_getchar();
-int pika_platform_putchar(char ch);
-int64_t pika_platform_get_tick(void);
-void pika_platform_reboot(void);
-
 uint32_t matrixos_python_input_available();
 int matrixos_python_read_byte();
 void matrixos_python_write_bytes(const char* data, uint32_t length);
 void matrixos_python_notify_mode(uint8_t mode);
 void matrixos_python_clear_input();
-
-// File I/O platform functions
-FILE* pika_platform_fopen(const char* filename, const char* modes);
-size_t pika_platform_fwrite(const void* ptr, size_t size, size_t n, FILE* stream);
-size_t pika_platform_fread(void* ptr, size_t size, size_t n, FILE* stream);
-int pika_platform_fclose(FILE* stream);
-int pika_platform_fseek(FILE* stream, long offset, int whence);
-long pika_platform_ftell(FILE* stream);
-
-// Directory and path functions
-char* pika_platform_getcwd(char* buf, size_t size);
-int pika_platform_chdir(const char* path);
-int pika_platform_rmdir(const char* pathname);
-int pika_platform_mkdir(const char* pathname, int mode);
-int pika_platform_remove(const char* pathname);
-int pika_platform_rename(const char* oldpath, const char* newpath);
-char** pika_platform_listdir(const char* path, int* count);
-int pika_platform_path_exists(const char* path);
-int pika_platform_path_isdir(const char* path);
-int pika_platform_path_isfile(const char* path);
-
-// PikaPython main functions
-PikaObj* pikaPythonInit(void);
-void pikaPythonShell(PikaObj* self);
+void matrixos_micropython_stdout(const char* data, unsigned int length);
+const char* matrixos_python_get_runtime_debug_json();
 }

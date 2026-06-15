@@ -6,6 +6,7 @@
 #include "HostIO.h"
 #include "MatrixOS.h"
 #include "../../Applications/Application.h"
+#include "MIDI/MIDI.h"
 #include "System/System.h"
 
 #include <algorithm>
@@ -19,6 +20,8 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+
+extern "C" const char* matrixos_python_get_runtime_debug_json();
 
 static const char* TAG = "MystrixSim";
 
@@ -177,6 +180,8 @@ string wasmBuildMetadataJson = BuildMetadataJson();
 string wasmApplicationListJson;
 string wasmActiveAppName;
 string wasmActiveAppAuthor;
+string wasmPythonRuntimeDebugJson;
+string wasmPythonStagedFilesJson;
 
 bool IsPythonApplicationInfo(const Application_Info* info) {
   return info != nullptr && info->author == "203 Systems" && info->name == "Python";
@@ -243,6 +248,32 @@ string BuildApplicationListJson() {
     json += BuildApplicationInfoJson(appId, application->second);
   }
 
+  json += "]}";
+  return json;
+}
+
+string BuildPythonStagedFilesJson() {
+  string stagedPath = MystrixSim::HostIO::GetStagedPythonScriptPath();
+  vector<MystrixSim::HostIO::PythonStagedFileInfo> files = MystrixSim::HostIO::ListStagedPythonScripts();
+
+  string json = "{";
+  json += "\"entry\":\"" + JsonEscape(stagedPath) + "\",";
+  json += "\"count\":" + std::to_string(files.size()) + ",";
+  json += "\"files\":[";
+  bool first = true;
+  for (const auto& file : files)
+  {
+    if (!first)
+    {
+      json += ",";
+    }
+    first = false;
+    json += "{";
+    json += "\"path\":\"" + JsonEscape(file.path) + "\",";
+    json += "\"size\":" + std::to_string(file.size) + ",";
+    json += "\"entry\":" + string(file.entry ? "true" : "false");
+    json += "}";
+  }
   json += "]}";
   return json;
 }
@@ -606,10 +637,30 @@ void Update(Color* frameBuffer, vector<uint8_t>& brightness) {
 }
 
 uint16_t XY2Index(Point xy) {
-  if (xy.x < 0 || xy.x >= X_SIZE || xy.y < 0 || xy.y >= Y_SIZE)
-    return UINT16_MAX;
-  uint16_t gridIndex = xy.y * X_SIZE + xy.x;
-  return ledIndexMap[gridIndex];
+  if (xy.x >= 0 && xy.x < X_SIZE && xy.y >= 0 && xy.y < Y_SIZE)
+  {
+    uint16_t gridIndex = xy.y * X_SIZE + xy.x;
+    return ledIndexMap[gridIndex];
+  }
+
+  if (xy.x == X_SIZE && xy.y >= 0 && xy.y < Y_SIZE)
+  {
+    return 64 + (Y_SIZE - 1 - xy.y);
+  }
+  if (xy.y == -1 && xy.x >= 0 && xy.x < X_SIZE)
+  {
+    return 72 + (X_SIZE - 1 - xy.x);
+  }
+  if (xy.x == -1 && xy.y >= 0 && xy.y < Y_SIZE)
+  {
+    return 80 + xy.y;
+  }
+  if (xy.y == Y_SIZE && xy.x >= 0 && xy.x < X_SIZE)
+  {
+    return 88 + xy.x;
+  }
+
+  return UINT16_MAX;
 }
 
 uint16_t ID2Index(uint16_t ledID) {
@@ -871,6 +922,17 @@ uint8_t MatrixOS_Wasm_GetPythonSessionMode(void) {
   return static_cast<uint8_t>(MystrixSim::HostIO::GetPythonSessionMode());
 }
 
+const char* MatrixOS_Wasm_GetPythonDebugJson(void) {
+  const char* json = matrixos_python_get_runtime_debug_json();
+  wasmPythonRuntimeDebugJson = json != nullptr ? json : "{}";
+  return wasmPythonRuntimeDebugJson.c_str();
+}
+
+const char* MatrixOS_Wasm_GetPythonStagedFilesJson(void) {
+  wasmPythonStagedFilesJson = BuildPythonStagedFilesJson();
+  return wasmPythonStagedFilesJson.c_str();
+}
+
 uint8_t MatrixOS_Wasm_PythonEnterRepl(void) {
   if (!HasPythonApplicationRegistered())
   {
@@ -890,6 +952,10 @@ uint8_t MatrixOS_Wasm_PythonStageScript(const char* fileName, const char* data, 
   return MystrixSim::HostIO::StagePythonScript(string(fileName), string(data ? data : "", length)) ? 1 : 0;
 }
 
+void MatrixOS_Wasm_PythonClearStaged(void) {
+  MystrixSim::HostIO::ClearStagedPythonScript();
+}
+
 uint8_t MatrixOS_Wasm_PythonRunStaged(void) {
   if (!HasPythonApplicationRegistered())
   {
@@ -903,6 +969,16 @@ uint8_t MatrixOS_Wasm_PythonRunStaged(void) {
   }
 
   MatrixOS::SYS::ExecuteAPP("203 Systems", "Python", {stagedPath});
+  return 1;
+}
+
+uint8_t MatrixOS_Wasm_PythonStop(void) {
+  if (!IsPythonApplicationInfo(MatrixOS::SYS::activeAppInfo))
+  {
+    return 1;
+  }
+
+  MatrixOS::SYS::ExitAPP();
   return 1;
 }
 
@@ -965,10 +1041,42 @@ uint8_t MatrixOS_Wasm_GetFnState(void) {
 
 void MatrixOS_Wasm_MidiInject(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2, uint16_t targetPort) {
   MidiPacket pkt;
-  pkt.status = (EMidiStatus)status;
-  pkt.data[0] = d0;
-  pkt.data[1] = d1;
-  pkt.data[2] = d2;
+  uint8_t statusClass = status & 0xF0;
+  uint8_t channel = status & 0x0F;
+  switch (statusClass)
+  {
+  case MIDIv1_NOTE_OFF:
+    pkt = MidiPacket::NoteOff(channel, d0, d1);
+    break;
+  case MIDIv1_NOTE_ON:
+    pkt = MidiPacket::NoteOn(channel, d0, d1);
+    break;
+  case MIDIv1_AFTER_TOUCH:
+    pkt = MidiPacket::AfterTouch(channel, d0, d1);
+    break;
+  case MIDIv1_CONTROL_CHANGE:
+    pkt = MidiPacket::ControlChange(channel, d0, d1);
+    break;
+  case MIDIv1_PROGRAM_CHANGE:
+    pkt = MidiPacket::ProgramChange(channel, d0);
+    break;
+  case MIDIv1_CHANNEL_PRESSURE:
+    pkt = MidiPacket::ChannelPressure(channel, d0);
+    break;
+  case MIDIv1_PITCH_WHEEL:
+    pkt = MidiPacket::PitchBend(channel, (uint16_t)(d0 | (d1 << 7)));
+    break;
+  default:
+    pkt = MidiPacket((EMidiStatus)status, d0, d1, d2);
+    break;
+  }
+  if (targetPort == MIDI_PORT_OS && MatrixOS::MIDI::appQueue)
+  {
+    pkt.port = MIDI_PORT_USB;
+    xQueueSend(MatrixOS::MIDI::appQueue, &pkt, pdMS_TO_TICKS(10));
+    return;
+  }
+
   pkt.port = MIDI_PORT_OS;
   MatrixOS::MIDI::Send(pkt, targetPort, 10);
 }

@@ -1,30 +1,165 @@
 #include "Python.h"
-#include "pikaScript.h"
-#include "PikaVM.h"
-#include "PikaObj.h"
+
 #include "System/System.h"
+
 #if DEVICE_STORAGE == 1
-#include "FileSystem/FatFS/ff.h"
+#include "FileSystem/FileSystem.h"
 #endif
 
 #if MATRIXOS_WEB
 #include "HostIO.h"
 #endif
 
+extern "C" {
+#include "py/repl.h"
+}
+
 namespace
 {
-void PythonPlatformPrint(const string& text) {
+Python* activePythonInstance = nullptr;
+string pythonRuntimeDebugJson = "{\"active\":false,\"runtime\":{\"initialized\":false,\"heapSize\":0}}";
+
+void PythonPrint(const string& text) {
   matrixos_python_write_bytes(text.c_str(), static_cast<uint32_t>(text.size()));
 }
 
-void PythonPlatformPrintln(const string& text) {
-  PythonPlatformPrint(text);
+void PythonPrintln(const string& text) {
+  PythonPrint(text);
   static const char newline[] = "\n\r";
   matrixos_python_write_bytes(newline, 2);
 }
+
+void PrintBanner() {
+  PythonPrintln("");
+  PythonPrintln("Matrix OS MicroPython");
+  PythonPrintln("OS Version: " + MATRIXOS_VERSION_STRING);
+  PythonPrintln("");
 }
 
-// Platform abstraction functions for PikaPython
+bool IsBlankLine(const string& line) {
+  for (char character : line)
+  {
+    if (character != ' ' && character != '\t')
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool IsIdentifierBoundary(char character) {
+  return !((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+           (character >= '0' && character <= '9') || character == '_');
+}
+
+bool StartsWithWord(const string& text, size_t offset, const char* word) {
+  size_t index = 0;
+  while (word[index] != '\0')
+  {
+    if (offset + index >= text.size() || text[offset + index] != word[index])
+    {
+      return false;
+    }
+    index++;
+  }
+
+  return offset + index >= text.size() || IsIdentifierBoundary(text[offset + index]);
+}
+
+bool StartsCompoundBlock(const string& text) {
+  size_t offset = 0;
+  while (offset < text.size() && (text[offset] == ' ' || text[offset] == '\t'))
+  {
+    offset++;
+  }
+
+  if (offset >= text.size())
+  {
+    return false;
+  }
+
+  if (text[offset] == '@')
+  {
+    return true;
+  }
+
+  static const char* compoundWords[] = {"if", "while", "for", "try", "with", "def", "class", "async"};
+  for (const char* word : compoundWords)
+  {
+    if (StartsWithWord(text, offset, word))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+string BoolJson(bool value) {
+  return value ? "true" : "false";
+}
+
+string JsonEscape(const string& value) {
+  string escaped;
+  escaped.reserve(value.size() + 8);
+  for (char character : value)
+  {
+    switch (character)
+    {
+      case '\\':
+        escaped += "\\\\";
+        break;
+      case '"':
+        escaped += "\\\"";
+        break;
+      case '\n':
+        escaped += "\\n";
+        break;
+      case '\r':
+        escaped += "\\r";
+        break;
+      case '\t':
+        escaped += "\\t";
+        break;
+      default:
+        escaped += character;
+        break;
+    }
+  }
+  return escaped;
+}
+
+string BuildRuntimeStatsJson(const MicroPythonRuntimeStats& stats) {
+  string json = "{";
+  json += "\"initialized\":" + BoolJson(stats.initialized) + ",";
+  json += "\"heapSize\":" + std::to_string(stats.heapSize) + ",";
+  json += "\"heapTotal\":" + std::to_string(stats.heapTotal) + ",";
+  json += "\"heapUsed\":" + std::to_string(stats.heapUsed) + ",";
+  json += "\"heapFree\":" + std::to_string(stats.heapFree) + ",";
+  json += "\"heapMaxFree\":" + std::to_string(stats.heapMaxFree) + ",";
+  json += "\"gcOneBlockCount\":" + std::to_string(stats.gcOneBlockCount) + ",";
+  json += "\"gcTwoBlockCount\":" + std::to_string(stats.gcTwoBlockCount) + ",";
+  json += "\"gcMaxBlockCount\":" + std::to_string(stats.gcMaxBlockCount) + ",";
+  json += "\"cStackUsage\":" + std::to_string(stats.cStackUsage);
+  json += "}";
+  return json;
+}
+
+string BuildPythonRuntimeDebugJson() {
+  Python* python = activePythonInstance;
+  string json = "{";
+  json += "\"active\":" + BoolJson(python != nullptr) + ",";
+  json += "\"hasLoop\":" + BoolJson(python != nullptr && python->HasActiveLoop()) + ",";
+  json += "\"replMode\":" + BoolJson(python != nullptr && python->IsReplMode()) + ",";
+  json += "\"exitWhenIdle\":" + BoolJson(python != nullptr && python->ShouldExitWhenIdle()) + ",";
+  json += "\"scriptPath\":\"" + JsonEscape(python != nullptr ? python->GetActiveScriptPath() : "") + "\",";
+  json += "\"runtime\":";
+  json += BuildRuntimeStatsJson(python != nullptr ? python->GetRuntimeStats() : MicroPythonRuntimeStats{});
+  json += "}";
+  return json;
+}
+}
+
 extern "C" {
 __attribute__((weak)) uint32_t matrixos_python_input_available() {
   return MatrixOS::USB::CDC::Available();
@@ -39,6 +174,7 @@ __attribute__((weak)) void matrixos_python_write_bytes(const char* data, uint32_
   {
     return;
   }
+
   MatrixOS::USB::CDC::Print(string(data, length));
   MatrixOS::USB::CDC::Flush();
 }
@@ -54,510 +190,224 @@ __attribute__((weak)) void matrixos_python_clear_input() {
   }
 }
 
-char pika_platform_getchar() {
-  while (!matrixos_python_input_available())
-  {
-    MatrixOS::SYS::DelayMs(1); // Yield to other tasks
-  }
-  return static_cast<char>(matrixos_python_read_byte());
+void matrixos_micropython_stdout(const char* data, unsigned int length) {
+  matrixos_python_write_bytes(data, length);
 }
 
-int pika_platform_putchar(char ch) {
-  matrixos_python_write_bytes(&ch, 1);
-  return 0;
-}
-
-int64_t pika_platform_get_tick(void) {
-  return MatrixOS::SYS::Millis();
-}
-
-void pika_platform_reboot(void) {
-  // Reboot the system
-  MatrixOS::SYS::Reboot();
-}
-
-FILE* pika_platform_fopen(const char* filename, const char* modes) {
-#if DEVICE_STORAGE == 1
-
-  FRESULT res;
-
-  /* Check for valid initial mode character */
-  if (!strchr("rwa", *modes))
-  {
-    return nullptr;
-  }
-
-  // Translate path for sandboxing
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(filename));
-  if (translatedPath.empty())
-  {
-    return nullptr; // Access denied
-  }
-
-  // Ensure app directory exists for write operations
-  if (strchr(modes, 'w') || strchr(modes, 'a') || strchr(modes, '+'))
-  {
-    MatrixOS::FileSystem::EnsureAppDirectory();
-  }
-
-  /* Compute the flags to pass to open() */
-  int flags = 0;
-  if (strchr(modes, '+'))
-  {
-    flags = FA_WRITE | FA_READ;
-  }
-
-  if (*modes == 'r')
-  {
-    if (!(flags & FA_WRITE))
-    {
-      flags |= FA_READ;
-    }
-  }
-  else if (*modes == 'w')
-  {
-    flags |= FA_CREATE_ALWAYS | FA_WRITE;
-  }
-  else if (*modes == 'a')
-  {
-    flags |= FA_OPEN_APPEND | FA_WRITE;
-  }
-
-  FIL* fatFile = (FIL*)pika_platform_malloc(sizeof(FIL));
-  if (nullptr == fatFile)
-  {
-    return nullptr;
-  }
-  res = f_open(fatFile, translatedPath.c_str(), flags);
-  if (res)
-  {
-    pika_platform_free(fatFile);
-    return nullptr;
-  }
-
-  return (FILE*)fatFile;
-#else
-  return nullptr;
-#endif
-}
-
-size_t pika_platform_fwrite(const void* ptr, size_t size, size_t n, FILE* stream) {
-#if DEVICE_STORAGE == 1
-  FIL* fatFile = (FIL*)stream;
-  UINT len = 0;
-  FRESULT res = f_write(fatFile, ptr, static_cast<UINT>(n * size), &len);
-  return (res == FR_OK) ? static_cast<size_t>(len) : 0;
-#else
-  return 0;
-#endif
-}
-
-size_t pika_platform_fread(void* ptr, size_t size, size_t n, FILE* stream) {
-#if DEVICE_STORAGE == 1
-  FIL* fatFile = (FIL*)stream;
-  UINT len = 0;
-  FRESULT res = f_read(fatFile, ptr, static_cast<UINT>(n * size), &len);
-  return (res == FR_OK) ? static_cast<size_t>(len) : 0;
-#else
-  return 0;
-#endif
-}
-
-int pika_platform_fclose(FILE* stream) {
-#if DEVICE_STORAGE == 1
-  FIL* fatFile = (FIL*)stream;
-  FRESULT res = f_close(fatFile);
-  pika_platform_free(fatFile);
-  return (res == FR_OK) ? 0 : -1;
-#else
-  return -1;
-#endif
-}
-
-int pika_platform_fseek(FILE* stream, long offset, int whence) {
-#if DEVICE_STORAGE == 1
-  FIL* fatFile = (FIL*)stream;
-  DWORD fatfsOffset;
-  switch (whence)
-  {
-  case SEEK_SET:
-    fatfsOffset = offset;
-    break;
-  case SEEK_CUR:
-    fatfsOffset = f_tell(fatFile) + offset;
-    break;
-  case SEEK_END:
-    fatfsOffset = f_size(fatFile) + offset;
-    break;
-  default:
-    return -1; // Invalid argument
-  }
-  FRESULT res = f_lseek(fatFile, fatfsOffset);
-  int result = (res == FR_OK) ? 0 : -1;
-  return result;
-#else
-  return -1;
-#endif
-}
-
-long pika_platform_ftell(FILE* stream) {
-#if DEVICE_STORAGE == 1
-  FIL* fatFile = (FIL*)stream;
-  long result = f_tell(fatFile);
-  return result;
-#else
-  return -1;
-#endif
-}
-
-char* pika_platform_getcwd(char* buf, size_t size) {
-  // FatFS doesn't directly provide a getcwd function. You might need
-  // to manage the current directory yourself or return a default if it's
-  // not crucial for your application.
-  strncpy(buf, "/", size);
-  return buf;
-}
-
-int pika_platform_chdir(const char* path) {
-  // FatFS doesn't directly provide a chdir function. You might need
-  // to manage the current directory yourself.
-  return -1; // Not implemented
-}
-
-int pika_platform_rmdir(const char* pathname) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
-  if (translatedPath.empty())
-  {
-    return -1; // Access denied
-  }
-  FRESULT res = f_unlink(translatedPath.c_str());
-  int result = (res == FR_OK) ? 0 : -1;
-  return result;
-#else
-  return -1;
-#endif
-}
-
-int pika_platform_mkdir(const char* pathname, int mode) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
-  if (translatedPath.empty())
-  {
-    return -1; // Access denied
-  }
-
-  MatrixOS::FileSystem::EnsureAppDirectory();
-  FRESULT res = f_mkdir(translatedPath.c_str());
-  int result = (res == FR_OK) ? 0 : -1;
-  return result;
-#else
-  return -1;
-#endif
-}
-
-int pika_platform_remove(const char* pathname) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(pathname));
-  if (translatedPath.empty())
-  {
-    return -1; // Access denied
-  }
-  FRESULT res = f_unlink(translatedPath.c_str());
-  int result = (res == FR_OK) ? 0 : -1;
-  return result;
-#else
-  return -1;
-#endif
-}
-
-int pika_platform_rename(const char* oldpath, const char* newpath) {
-#if DEVICE_STORAGE == 1
-  string oldTranslated = MatrixOS::FileSystem::TranslatePath(string(oldpath));
-  string newTranslated = MatrixOS::FileSystem::TranslatePath(string(newpath));
-  if (oldTranslated.empty() || newTranslated.empty())
-  {
-    return -1; // Access denied
-  }
-  FRESULT res = f_rename(oldTranslated.c_str(), newTranslated.c_str());
-  int result = (res == FR_OK) ? 0 : -1;
-  return result;
-#else
-  return -1;
-#endif
-}
-
-char** pika_platform_listdir(const char* path, int* count) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
-  if (translatedPath.empty())
-  {
-    *count = 0;
-    return nullptr; // Access denied
-  }
-
-  DIR dir;
-  FILINFO fno;
-  FRESULT res;
-  char** filelist = nullptr;
-  int idx = 0, capacity = 10; // start with a capacity of 10, then grow if necessary
-
-  res = f_opendir(&dir, translatedPath.c_str()); // Open the directory
-  if (res == FR_OK)
-  {
-    filelist = (char**)pika_platform_malloc(capacity * sizeof(char*));
-    if (!filelist)
-      return nullptr; // Failed to allocate memory
-
-    for (;;)
-    {
-      res = f_readdir(&dir, &fno); // Read a directory item
-      if (res != FR_OK || fno.fname[0] == 0)
-        break; // Break on error or end of dir
-
-      if (idx == capacity)
-      { // Grow the list if necessary
-        capacity *= 2;
-        char** newlist = (char**)pika_platform_realloc(filelist, capacity * sizeof(char*));
-        if (!newlist)
-        {
-          // Free any previously allocated memory
-          for (int i = 0; i < idx; i++)
-            pika_platform_free(filelist[i]);
-          pika_platform_free(filelist);
-          *count = 0;
-          return nullptr; // Failed to allocate more memory
-        }
-        filelist = newlist;
-      }
-
-      filelist[idx] = pika_platform_strdup(fno.fname);
-      if (!filelist[idx])
-      {
-        // Free any previously allocated memory
-        for (int i = 0; i < idx; i++)
-          pika_platform_free(filelist[i]);
-        pika_platform_free(filelist);
-        *count = 0;
-        return nullptr; // Failed to allocate memory for filename
-      }
-      idx++;
-    }
-    f_closedir(&dir);
-  }
-
-  *count = idx;
-  return filelist;
-#else
-  *count = 0;
-  return nullptr;
-#endif
-}
-
-int pika_platform_path_exists(const char* path) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
-  if (translatedPath.empty())
-  {
-    return 0; // Access denied
-  }
-
-  FRESULT res;
-  FILINFO fno;
-
-  res = f_stat(translatedPath.c_str(), &fno);
-  int result = (res == FR_OK) ? 1 : 0;
-  return result;
-#else
-  return 0;
-#endif
-}
-
-int pika_platform_path_isdir(const char* path) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
-  if (translatedPath.empty())
-  {
-    return 0; // Access denied
-  }
-
-  int isDir = 0;
-  FRESULT res;
-  FILINFO fno;
-
-  res = f_stat(translatedPath.c_str(), &fno);
-  if (res == FR_OK)
-  {
-    isDir = (fno.fattrib & AM_DIR) ? 1 : 0;
-  }
-  return isDir;
-#else
-  return 0;
-#endif
-}
-
-int pika_platform_path_isfile(const char* path) {
-#if DEVICE_STORAGE == 1
-  string translatedPath = MatrixOS::FileSystem::TranslatePath(string(path));
-  if (translatedPath.empty())
-  {
-    return 0; // Access denied
-  }
-
-  int isFile = 0;
-  FRESULT res;
-  FILINFO fno;
-
-  res = f_stat(translatedPath.c_str(), &fno);
-  if (res == FR_OK)
-  {
-    isFile = (fno.fattrib & AM_DIR) == 0 ? 1 : 0;
-  }
-  return isFile;
-#else
-  return 0;
-#endif
+const char* matrixos_python_get_runtime_debug_json() {
+  pythonRuntimeDebugJson = BuildPythonRuntimeDebugJson();
+  return pythonRuntimeDebugJson.c_str();
 }
 }
 
 void Python::Setup(const vector<string>& args) {
+  activePythonInstance = this;
   matrixos_python_clear_input();
+  runtime.Init();
+  replMode = false;
+  exitWhenIdle = false;
+  activeScriptPath.clear();
+  replBuffer.clear();
+  replLineBuffer.clear();
+  replBlockMode = false;
 
-  pikaMain = pikaPythonInit();
-
-  // Check if a script path was provided
   if (!args.empty())
   {
     matrixos_python_notify_mode(2);
     const string& pythonFilePath = args[0];
-    MLOGD("Python", "Executing Python script: %s", pythonFilePath.c_str());
+    activeScriptPath = pythonFilePath;
+    MLOGD("Python", "Executing MicroPython script: %s", pythonFilePath.c_str());
 
-    // Execute the Python script file
     if (ExecutePythonFile(pythonFilePath))
     {
-      MLOGD("Python", "Python script executed successfully");
-      Arg* loopMethod = obj_getMethodArg(pikaMain, (char*)"loop");
-      if (loopMethod != nullptr)
+      hasLoop = runtime.HasLoop();
+      MLOGD("Python", "MicroPython script executed successfully");
+      if (!hasLoop)
       {
-        arg_deinit(loopMethod);
-        hasLoop = true;
-        MLOGD("Python", "Python script loop() registered");
-        return;
+        exitWhenIdle = true;
       }
+      return;
     }
-    else
-    {
-      MLOGE("Python", "Failed to execute Python script: %s", pythonFilePath.c_str());
-    }
-  }
-  else
-  {
-    matrixos_python_notify_mode(1);
-    // No file specified, start REPL mode
-    // Print Matrix OS ASCII art banner
-    PythonPlatformPrintln("");
-    PythonPlatformPrintln("███╗   ███╗ █████╗ ████████╗██████╗ ██╗██╗  ██╗     ██████╗ ███████╗");
-    PythonPlatformPrintln("████╗ ████║██╔══██╗╚══██╔══╝██╔══██╗██║╚██╗██╔╝    ██╔═══██╗██╔════╝");
-    PythonPlatformPrintln("██╔████╔██║███████║   ██║   ██████╔╝██║ ╚███╔╝     ██║   ██║███████╗");
-    PythonPlatformPrintln("██║╚██╔╝██║██╔══██║   ██║   ██╔══██╗██║ ██╔██╗     ██║   ██║╚════██║");
-    PythonPlatformPrintln("██║ ╚═╝ ██║██║  ██║   ██║   ██║  ██║██║██╔╝ ██╗    ╚██████╔╝███████║");
-    PythonPlatformPrintln("╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝     ╚═════╝ ╚══════╝");
-    PythonPlatformPrintln("Matrix OS Python REPL");
-    PythonPlatformPrintln("OS Version: " + MATRIXOS_VERSION_STRING);
-    PythonPlatformPrintln("See matrix.203.io for docs and usage guide.");
-    PythonPlatformPrintln("");
 
-    pikaPythonShell(pikaMain);
-  }
-
-  Exit();
-}
-
-void Python::Loop() {
-  if (!hasLoop)
-  {
+    MLOGE("Python", "Failed to execute MicroPython script: %s", pythonFilePath.c_str());
+    Exit();
     return;
   }
 
-  obj_run(pikaMain, (char*)"loop()");
+  matrixos_python_notify_mode(1);
+  PrintBanner();
+  replMode = true;
+  PrintPrompt();
+}
+
+bool Python::HasActiveLoop() const {
+  return hasLoop;
+}
+
+bool Python::IsReplMode() const {
+  return replMode;
+}
+
+bool Python::ShouldExitWhenIdle() const {
+  return exitWhenIdle;
+}
+
+const string& Python::GetActiveScriptPath() const {
+  return activeScriptPath;
+}
+
+MicroPythonRuntimeStats Python::GetRuntimeStats() const {
+  return runtime.GetStats();
+}
+
+void Python::Loop() {
+  if (replMode)
+  {
+    PollRepl();
+    return;
+  }
+
+  if (!hasLoop)
+  {
+    if (exitWhenIdle)
+    {
+      Exit();
+    }
+    return;
+  }
+
+  if (!runtime.CallLoop())
+  {
+    hasLoop = false;
+    Exit();
+    return;
+  }
+
+  MatrixOS::SYS::DelayMs(1);
+}
+
+void Python::PollRepl() {
+  while (matrixos_python_input_available())
+  {
+    int input = matrixos_python_read_byte();
+    if (input < 0)
+    {
+      return;
+    }
+
+    char character = static_cast<char>(input);
+    if (character == 0x04)
+    {
+      PythonPrintln("");
+      Exit();
+      return;
+    }
+
+    if (character == 0x03)
+    {
+      replBuffer.clear();
+      replLineBuffer.clear();
+      replBlockMode = false;
+      PythonPrintln("^C");
+      PrintPrompt();
+      continue;
+    }
+
+    if (character == '\b' || character == 0x7F)
+    {
+      if (!replLineBuffer.empty())
+      {
+        replBuffer.pop_back();
+        replLineBuffer.pop_back();
+        PythonPrint("\b \b");
+      }
+      continue;
+    }
+
+    if (character == '\r' || character == '\n')
+    {
+      PythonPrintln("");
+      bool blankLine = IsBlankLine(replLineBuffer);
+      if (replBuffer.empty() && blankLine)
+      {
+        replLineBuffer.clear();
+        PrintPrompt();
+        continue;
+      }
+
+      replBuffer.push_back('\n');
+      replBlockMode = replBlockMode || StartsCompoundBlock(replBuffer);
+      bool needsMoreInput = mp_repl_continue_with_input(replBuffer.c_str());
+      bool shouldExecute = !needsMoreInput && (!replBlockMode || blankLine);
+
+      if (shouldExecute)
+      {
+        runtime.ExecSingle(replBuffer, "<stdin>");
+        replBuffer.clear();
+        replLineBuffer.clear();
+        replBlockMode = false;
+        PrintPrompt();
+      }
+      else
+      {
+        replLineBuffer.clear();
+        PrintPrompt(true);
+      }
+      continue;
+    }
+
+    if (character >= ' ' && character <= '~')
+    {
+      replBuffer.push_back(character);
+      replLineBuffer.push_back(character);
+      matrixos_python_write_bytes(&character, 1);
+    }
+  }
+}
+
+void Python::PrintPrompt(bool continuation) {
+  PythonPrint(continuation ? "... " : ">>> ");
 }
 
 bool Python::ExecutePythonFile(const string& filePath) {
-#if MATRIXOS_WEB
-  string stagedScript;
-  if (MystrixSim::HostIO::GetPythonScript(filePath, &stagedScript))
+  string source;
+  if (!ReadPythonFile(filePath, &source))
   {
-    MLOGD("Python", "Executing staged host Python script: %s", filePath.c_str());
-    vector<char> buffer(stagedScript.begin(), stagedScript.end());
-    buffer.push_back('\0');
-    pikaVM_run(pikaMain, buffer.data());
+    return false;
+  }
+
+  return runtime.Exec(source, filePath.c_str());
+}
+
+bool Python::ReadPythonFile(const string& filePath, string* output) {
+  if (output == nullptr)
+  {
+    return false;
+  }
+
+#if MATRIXOS_WEB
+  if (MystrixSim::HostIO::GetPythonScript(filePath, output))
+  {
+    MLOGD("Python", "Loaded staged host MicroPython script: %s", filePath.c_str());
     return true;
   }
 #endif
 
 #if DEVICE_STORAGE == 1
-  size_t lastSlash = filePath.find_last_of('/');
-  if (lastSlash == string::npos)
+  File file = MatrixOS::FileSystem::Open(filePath, "r");
+  if (!file.Available() && file.Size() == 0)
   {
-    MLOGD("Python", "No directory separator found in path: %s", filePath.c_str());
     return false;
   }
 
-  // If the linked file path is already a py.a file.
-  if (filePath.size() >= 5 && filePath.substr(filePath.size() - 5) == ".py.a")
-  {
-    // Link the library file and run "main" module
-    MLOGD("Python", "Direct .py.a file execution: %s", filePath.c_str());
-    obj_linkLibraryFile(pikaMain, (char*)filePath.c_str());
-    obj_runModule(pikaMain, (char*)"main");
-    return true;
-  }
-
-  // .py script
-  string scriptDir = filePath.substr(0, lastSlash + 1); // Include trailing slash
-  string apiDir = scriptDir + "pikascript-api";
-
-  // Check if directory exists, create if not
-  if (!MatrixOS::FileSystem::Exists(apiDir))
-  {
-    if (!MatrixOS::FileSystem::MakeDir(apiDir))
-    {
-      MLOGD("Python", "Failed to create pikascript-api directory: %s", apiDir.c_str());
-      return false;
-    }
-  }
-
-  // Check if compiled byte code
-  string libFile = apiDir + "/pikaModules_cache.py.a";
-  if (MatrixOS::FileSystem::Exists(libFile))
-  {
-    // Extract just the filename without extension
-    string filename = filePath.substr(lastSlash + 1);
-    size_t dotPos = filename.find_last_of('.');
-    if (dotPos == string::npos)
-    {
-      MLOGD("Python", "No file extension found in filename: %s", filename.c_str());
-      return false;
-    }
-
-    string filenameNoExt = filename.substr(0, dotPos);
-
-    // Link the library and run the module
-    MLOGD("Python", "Found compiled library: %s", libFile.c_str());
-    MLOGD("Python", "Running module: %s", filenameNoExt.c_str());
-    obj_linkLibraryFile(pikaMain, (char*)libFile.c_str());
-    obj_runModule(pikaMain, (char*)filenameNoExt.c_str());
-  }
-  else
-  {
-    // Run the file normally if no compiled library exists
-    MLOGD("Python", "No compiled library found, running script directly: %s", filePath.c_str());
-    pikaVM_runFile(pikaMain, (char*)filePath.c_str());
-  }
-
-  return true;
+  size_t size = file.Size();
+  output->resize(size);
+  size_t bytesRead = file.Read(output->data(), size);
+  output->resize(bytesRead);
+  file.Close();
+  return bytesRead > 0 || size == 0;
 #else
-  MLOGE("Python", "Filesystem not available, cannot execute Python file");
+  (void)filePath;
   return false;
 #endif
 }
@@ -565,6 +415,15 @@ bool Python::ExecutePythonFile(const string& filePath) {
 void Python::End() {
   matrixos_python_notify_mode(0);
   hasLoop = false;
-  // Deinitialize PikaPython after shell exits
-  obj_deinit(pikaMain);
+  replMode = false;
+  exitWhenIdle = false;
+  activeScriptPath.clear();
+  replBuffer.clear();
+  replLineBuffer.clear();
+  replBlockMode = false;
+  runtime.Deinit();
+  if (activePythonInstance == this)
+  {
+    activePythonInstance = nullptr;
+  }
 }

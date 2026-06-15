@@ -1,25 +1,24 @@
 import MatrixOS
-import MatrixOS_Utils
 
 
 LED = MatrixOS.LED
 SYS = MatrixOS.SYS
 Input = MatrixOS.Input
-UI = MatrixOS.UI
-UIUtility = MatrixOS.UIUtility
 NVS = MatrixOS.NVS
-Color = MatrixOS.Color
-Point = MatrixOS.Point
-Dimension = MatrixOS.Dimension
 ColorEffects = MatrixOS.ColorEffects
-Timer = MatrixOS.Timer
+UI = MatrixOS.UI
 
+FUNCTION_KEY = Input.function_key()
 
-DOT = 0
-NUMBER = 1
+STATE_PRESSED = MatrixOS.Input.STATE_PRESSED
+STATE_HOLD = MatrixOS.Input.STATE_HOLD
+STATE_RELEASED = MatrixOS.Input.STATE_RELEASED
 
 ROLLING = 0
 CONFIRMED = 1
+
+DOT = 0
+NUMBER = 1
 
 STATIC = 0
 OFF = 1
@@ -27,13 +26,44 @@ BREATH = 2
 STROBE = 3
 SAW = 4
 
-FRAME_MS = 16
-SETTING_COLOR = Color(0x00FFFF)
-WHITE = Color(0xFFFFFF)
-BLACK = Color(0x000000)
-ORANGE = Color(0xFFA500)
+KEY_MODE = "Python Dice mode"
+KEY_ROLLING_COLOR = "Python Dice rolling_color"
+KEY_CONFIRMED_COLOR = "Python Dice confirmed_color"
+KEY_DOT_FACES = "Python Dice dot_faces"
+KEY_NUMBER_FACES = "Python Dice number_faces"
+KEY_ROLLING_RAINBOW = "Python Dice rolling_rainbow"
+KEY_CONFIRMED_RAINBOW = "Python Dice confirmed_rainbow"
+KEY_ROLLING_UNDERGLOW = "Python Dice rolling_underglow"
+KEY_CONFIRMED_UNDERGLOW = "Python Dice confirmed_underglow"
+KEY_ROLLING_PERIOD = "Python Dice rolling_period"
+KEY_CONFIRMED_PERIOD = "Python Dice confirmed_period"
 
-NVS_SCOPE = "PythonDice"
+mode = NVS.get(KEY_MODE, DOT)
+rolling_color = NVS.get(KEY_ROLLING_COLOR, 0xFFFFFF)
+confirmed_color = NVS.get(KEY_CONFIRMED_COLOR, 0xFFFFFF)
+dot_faces = NVS.get(KEY_DOT_FACES, 6)
+number_faces = NVS.get(KEY_NUMBER_FACES, 30)
+rolling_rainbow = NVS.get(KEY_ROLLING_RAINBOW, True)
+confirmed_rainbow = NVS.get(KEY_CONFIRMED_RAINBOW, False)
+rolling_underglow = NVS.get(KEY_ROLLING_UNDERGLOW, SAW)
+confirmed_underglow = NVS.get(KEY_CONFIRMED_UNDERGLOW, BREATH)
+rolling_period = NVS.get(KEY_ROLLING_PERIOD, 300)
+confirmed_period = NVS.get(KEY_CONFIRMED_PERIOD, 1000)
+
+if mode not in (DOT, NUMBER):
+    mode = DOT
+if dot_faces < 2 or dot_faces > 9:
+    dot_faces = 6
+if number_faces < 1 or number_faces > 99:
+    number_faces = 30
+if rolling_underglow < STATIC or rolling_underglow > SAW:
+    rolling_underglow = SAW
+if confirmed_underglow < STATIC or confirmed_underglow > SAW:
+    confirmed_underglow = BREATH
+if rolling_period < 200 or rolling_period > 1700:
+    rolling_period = 300
+if confirmed_period < 200 or confirmed_period > 1700:
+    confirmed_period = 1000
 
 NUMBER_FONT = [
     0x1E, 0x29, 0x25, 0x1E,
@@ -48,683 +78,442 @@ NUMBER_FONT = [
     0x06, 0x29, 0x29, 0x1E,
 ]
 
-mode = DOT
-dot_faces = 6
-number_faces = 30
-rolling_speed = 30
-flashing_speed = 10
+DOTS = {
+    1: [(3, 3)],
+    2: [(1, 3), (5, 3)],
+    3: [(0, 3), (3, 3), (6, 3)],
+    4: [(1, 1), (5, 1), (1, 5), (5, 5)],
+    5: [(1, 1), (5, 1), (1, 5), (5, 5), (3, 3)],
+    6: [(0, 1), (3, 1), (6, 1), (0, 5), (3, 5), (6, 5)],
+    7: [(0, 0), (3, 0), (6, 0), (3, 3), (0, 6), (3, 6), (6, 6)],
+    8: [(0, 0), (3, 0), (6, 0), (0, 3), (6, 3), (0, 6), (3, 6), (6, 6)],
+    9: [(0, 0), (3, 0), (6, 0), (0, 3), (3, 3), (6, 3), (0, 6), (3, 6), (6, 6)],
+}
 
-rolling_color = WHITE
-confirmed_color = WHITE
-rolling_rainbow = 1
-confirmed_rainbow = 0
-rolling_underglow_effect = SAW
-confirmed_underglow_effect = BREATH
-rolling_underglow_period = 300
-confirmed_underglow_period = 1000
-
+seed = SYS.millis() or 1
 phase = ROLLING
+rolling_start_ms = SYS.millis()
+last_roll_ms = SYS.millis()
 rolled_number = 1
-rolling_start_ms = 0
-last_roll_ms = 0
-random_seed = 1
-app_running = True
-settings_ui = None
-underglow_enabled = LED.get_partition_by_name("Underglow") is not None
-
-render_timer = Timer()
-function_key = Input.function_key()
+running = True
+underglow_enabled = LED.get_partition("Underglow") is not None
 
 
-def nvs_hash(name):
-    return MatrixOS_Utils.string_hash(NVS_SCOPE + "-" + name)
-
-
-def bool_to_u8(value):
-    if value:
-        return 1
-    return 0
-
-
-def is_rolling_rainbow():
-    return rolling_rainbow != 0
-
-
-def is_confirmed_rainbow():
-    return confirmed_rainbow != 0
-
-
-def load_config():
-    global mode
-    global dot_faces
-    global number_faces
-    global rolling_speed
-    global flashing_speed
-    global rolling_color
-    global confirmed_color
-    global rolling_rainbow
-    global confirmed_rainbow
-    global rolling_underglow_effect
-    global confirmed_underglow_effect
-    global rolling_underglow_period
-    global confirmed_underglow_period
-
-    mode = clamp(NVS.get_u8(nvs_hash("mode"), mode), DOT, NUMBER)
-    dot_faces = clamp(NVS.get_u8(nvs_hash("dot_faces"), dot_faces), 2, 9)
-    number_faces = clamp(NVS.get_u8(nvs_hash("number_faces"), number_faces), 1, 99)
-    rolling_speed = clamp(NVS.get_u8(nvs_hash("rolling_speed"), rolling_speed), 1, 255)
-    flashing_speed = clamp(NVS.get_u8(nvs_hash("flashing_speed"), flashing_speed), 1, 255)
-    rolling_color = Color(NVS.get_u32(nvs_hash("rolling_color"), rolling_color.rgb()))
-    confirmed_color = Color(NVS.get_u32(nvs_hash("confirmed_color"), confirmed_color.rgb()))
-    rolling_rainbow = bool_to_u8(NVS.get_u8(nvs_hash("rolling_rainbow"), rolling_rainbow))
-    confirmed_rainbow = bool_to_u8(NVS.get_u8(nvs_hash("confirmed_rainbow"), confirmed_rainbow))
-    rolling_underglow_effect = clamp(NVS.get_u8(nvs_hash("rolling_underglow_effect"), rolling_underglow_effect), STATIC, SAW)
-    confirmed_underglow_effect = clamp(
-        NVS.get_u8(nvs_hash("confirmed_underglow_effect"), confirmed_underglow_effect), STATIC, SAW
-    )
-    rolling_underglow_period = clamp(NVS.get_u16(nvs_hash("rolling_underglow_period"), rolling_underglow_period), 200, 1700)
-    confirmed_underglow_period = clamp(
-        NVS.get_u16(nvs_hash("confirmed_underglow_period"), confirmed_underglow_period), 200, 1700
-    )
-
-
-def save_config():
-    NVS.set_u8(nvs_hash("mode"), mode)
-    NVS.set_u8(nvs_hash("dot_faces"), dot_faces)
-    NVS.set_u8(nvs_hash("number_faces"), number_faces)
-    NVS.set_u8(nvs_hash("rolling_speed"), rolling_speed)
-    NVS.set_u8(nvs_hash("flashing_speed"), flashing_speed)
-    NVS.set_u32(nvs_hash("rolling_color"), rolling_color.rgb())
-    NVS.set_u32(nvs_hash("confirmed_color"), confirmed_color.rgb())
-    NVS.set_u8(nvs_hash("rolling_rainbow"), rolling_rainbow)
-    NVS.set_u8(nvs_hash("confirmed_rainbow"), confirmed_rainbow)
-    NVS.set_u8(nvs_hash("rolling_underglow_effect"), rolling_underglow_effect)
-    NVS.set_u8(nvs_hash("confirmed_underglow_effect"), confirmed_underglow_effect)
-    NVS.set_u16(nvs_hash("rolling_underglow_period"), rolling_underglow_period)
-    NVS.set_u16(nvs_hash("confirmed_underglow_period"), confirmed_underglow_period)
-
-
-def clamp(value, lower, upper):
-    if value < lower:
-        return lower
-    if value > upper:
-        return upper
-    return value
+def keypad_state(event):
+    keypad = event.get("keypad")
+    if keypad is None:
+        return -1
+    return keypad.get("state", -1)
 
 
 def next_random():
-    global random_seed
-
-    random_seed = (random_seed * 1103515245 + 12345) & 0x7FFFFFFF
-    return random_seed
-
-
-def seed_random():
-    global random_seed
-
-    random_seed = SYS.millis() & 0x7FFFFFFF
-    if random_seed == 0:
-        random_seed = 1
+    global seed
+    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF
+    return seed
 
 
-def random_between(lower, upper):
+def random_number(upper, lower=1):
     return (next_random() % (upper - lower + 1)) + lower
 
 
-def current_faces():
-    if mode == DOT:
-        return dot_faces
-    return number_faces
+def active_faces():
+    return dot_faces if mode == DOT else number_faces
 
 
 def roll_dice():
-    global rolled_number
-    global last_roll_ms
-
-    faces = current_faces()
-    last_roll_ms = SYS.millis()
-    previous = rolled_number
-    rolled_number = random_between(1, faces)
-
+    global rolled_number, last_roll_ms
+    faces = active_faces()
+    old = rolled_number
+    rolled_number = random_number(faces)
     if faces > 1:
-        while rolled_number == previous:
-            rolled_number = random_between(1, faces)
+        while rolled_number == old:
+            rolled_number = random_number(faces)
+    last_roll_ms = SYS.millis()
 
 
 def start_roll():
-    global phase
-    global rolling_start_ms
-
-    phase = ROLLING
+    global phase, rolling_start_ms
     rolling_start_ms = SYS.millis()
+    phase = ROLLING
     roll_dice()
-    render_timer.record_current()
+    render()
 
 
-def selected_rolling_color():
-    return rolling_color
-
-
-def selected_confirmed_color():
-    return confirmed_color
-
-
-def display_color():
-    if phase == ROLLING:
-        if is_rolling_rainbow():
-            return ColorEffects.rainbow()
-        return selected_rolling_color()
-
-    if is_confirmed_rainbow():
-        return ColorEffects.rainbow(3000)
-    return selected_confirmed_color()
-
-
-def apply_effect(color, effect, period, offset):
+def effect_color(color, effect, period, start_ms):
     if effect == OFF:
-        return BLACK
+        return 0
     if effect == BREATH:
-        return ColorEffects.color_breath(color, period, offset)
+        return ColorEffects.color_breath(color, period, start_ms)
     if effect == STROBE:
-        return ColorEffects.color_strobe(color, period, offset)
+        return ColorEffects.color_strobe(color, period, start_ms)
     if effect == SAW:
-        return ColorEffects.color_saw(color, period, offset)
+        return ColorEffects.color_saw(color, period, start_ms)
     return color
 
 
-def render_underglow(color):
-    if not underglow_enabled:
-        return
-
-    now = SYS.millis()
-    if phase == ROLLING:
-        effect = rolling_underglow_effect
-        period = rolling_underglow_period
-    else:
-        effect = confirmed_underglow_effect
-        period = confirmed_underglow_period
-
-    LED.fill_partition("Underglow", apply_effect(color, effect, period, now - rolling_start_ms))
-
-
-def render_dot(x, y, color):
-    LED.set_color_xy(x, y, color)
-    LED.set_color_xy(x + 1, y, color)
-    LED.set_color_xy(x, y + 1, color)
-    LED.set_color_xy(x + 1, y + 1, color)
+def render_dot(point, color):
+    x, y = point
+    LED.set_xy(x, y, color)
+    LED.set_xy(x + 1, y, color)
+    LED.set_xy(x, y + 1, color)
+    LED.set_xy(x + 1, y + 1, color)
 
 
 def render_dots(number, color):
     LED.clear()
-
-    if number == 1:
-        render_dot(3, 3, color)
-    elif number == 2:
-        render_dot(1, 3, color)
-        render_dot(5, 3, color)
-    elif number == 3:
-        render_dot(0, 3, color)
-        render_dot(3, 3, color)
-        render_dot(6, 3, color)
-    elif number == 4:
-        render_dot(1, 1, color)
-        render_dot(5, 1, color)
-        render_dot(1, 5, color)
-        render_dot(5, 5, color)
-    elif number == 5:
-        render_dot(1, 1, color)
-        render_dot(5, 1, color)
-        render_dot(1, 5, color)
-        render_dot(5, 5, color)
-        render_dot(3, 3, color)
-    elif number == 6:
-        render_dot(0, 1, color)
-        render_dot(3, 1, color)
-        render_dot(6, 1, color)
-        render_dot(0, 5, color)
-        render_dot(3, 5, color)
-        render_dot(6, 5, color)
-    elif number == 7:
-        render_dot(0, 0, color)
-        render_dot(3, 0, color)
-        render_dot(6, 0, color)
-        render_dot(3, 3, color)
-        render_dot(0, 6, color)
-        render_dot(3, 6, color)
-        render_dot(6, 6, color)
-    elif number == 8:
-        render_dot(0, 0, color)
-        render_dot(3, 0, color)
-        render_dot(6, 0, color)
-        render_dot(0, 3, color)
-        render_dot(6, 3, color)
-        render_dot(0, 6, color)
-        render_dot(3, 6, color)
-        render_dot(6, 6, color)
-    elif number == 9:
-        render_dot(0, 0, color)
-        render_dot(3, 0, color)
-        render_dot(6, 0, color)
-        render_dot(0, 3, color)
-        render_dot(3, 3, color)
-        render_dot(6, 3, color)
-        render_dot(0, 6, color)
-        render_dot(3, 6, color)
-        render_dot(6, 6, color)
+    if number > 9:
+        return
+    for point in DOTS[number]:
+        render_dot(point, color)
 
 
-def render_digit(x0, y0, digit, color):
-    offset = digit * 4
-
+def render_number_at(x0, y0, number, color):
     for x in range(4):
-        column = NUMBER_FONT[offset + x]
+        bits = NUMBER_FONT[number * 4 + x]
         for y in range(6):
-            if column & (1 << y):
-                LED.set_color_xy(x0 + x, y0 + y, color)
+            if bits & (1 << y):
+                LED.set_xy(x0 + x, y0 + y, color)
 
 
-def render_number(number, color):
+def render_numbers(number, color):
     LED.clear()
-
     if number > 99:
         return
-
-    tens = number // 10
-    ones = number % 10
-    if tens > 0:
-        render_digit(0, 1, tens, color)
-        render_digit(4, 1, ones, color)
+    digit1 = number // 10
+    digit2 = number % 10
+    if digit1 > 0:
+        render_number_at(0, 1, digit1, color)
+        render_number_at(4, 1, digit2, color)
     else:
-        render_digit(2, 1, ones, color)
+        render_number_at(2, 1, digit2, color)
 
 
-def render_game():
-    color = display_color()
-
+def render_dice_face(color):
     if mode == DOT:
         render_dots(rolled_number, color)
     else:
-        render_number(rolled_number, color)
+        render_numbers(rolled_number, color)
 
-    render_underglow(color)
+
+def render_underglow(effect, color, period):
+    if not underglow_enabled:
+        return
+    LED.fill_partition("Underglow", effect_color(color, effect, period, rolling_start_ms))
+
+
+def render():
+    if phase == ROLLING:
+        color = ColorEffects.rainbow() if rolling_rainbow else rolling_color
+        render_dice_face(color)
+        render_underglow(rolling_underglow, color, rolling_period)
+    else:
+        color = ColorEffects.rainbow(3000) if confirmed_rainbow else confirmed_color
+        render_dice_face(color)
+        render_underglow(confirmed_underglow, color, confirmed_period)
     LED.update()
 
 
-def update_rolling_state():
-    global phase
-
-    if phase != ROLLING:
-        return
-
-    now = SYS.millis()
-    if now - last_roll_ms >= flashing_speed * 10:
-        roll_dice()
-    if now - rolling_start_ms >= rolling_speed * 100:
-        phase = CONFIRMED
-
-
-def pick_rolling_color():
-    global rolling_color
-
-    if is_rolling_rainbow():
-        return
-
-    picked = UIUtility.color_picker()
-    if picked is not None:
-        rolling_color = picked
-        save_config()
+def save_settings():
+    NVS.set(KEY_MODE, mode)
+    NVS.set(KEY_ROLLING_COLOR, rolling_color)
+    NVS.set(KEY_CONFIRMED_COLOR, confirmed_color)
+    NVS.set(KEY_DOT_FACES, dot_faces)
+    NVS.set(KEY_NUMBER_FACES, number_faces)
+    NVS.set(KEY_ROLLING_RAINBOW, rolling_rainbow)
+    NVS.set(KEY_CONFIRMED_RAINBOW, confirmed_rainbow)
+    NVS.set(KEY_ROLLING_UNDERGLOW, rolling_underglow)
+    NVS.set(KEY_CONFIRMED_UNDERGLOW, confirmed_underglow)
+    NVS.set(KEY_ROLLING_PERIOD, rolling_period)
+    NVS.set(KEY_CONFIRMED_PERIOD, confirmed_period)
 
 
-def pick_confirmed_color():
-    global confirmed_color
-
-    if is_confirmed_rainbow():
-        return
-
-    picked = UIUtility.color_picker()
-    if picked is not None:
-        confirmed_color = picked
-        save_config()
+def dim_if_not(color, enabled):
+    if enabled:
+        return color
+    r = ((color >> 16) & 0xFF) // 5
+    g = ((color >> 8) & 0xFF) // 5
+    b = (color & 0xFF) // 5
+    return (r << 16) | (g << 8) | b
 
 
-def toggle_rolling_rainbow():
-    global rolling_rainbow
-    if is_rolling_rainbow():
-        rolling_rainbow = 0
-    else:
-        rolling_rainbow = 1
-    save_config()
+def active_color(is_rolling):
+    if is_rolling:
+        return ColorEffects.rainbow() if rolling_rainbow else rolling_color
+    return ColorEffects.rainbow(3000) if confirmed_rainbow else confirmed_color
 
 
-def toggle_confirmed_rainbow():
-    global confirmed_rainbow
-    if is_confirmed_rainbow():
-        confirmed_rainbow = 0
-    else:
-        confirmed_rainbow = 1
-    save_config()
-
-
-def set_dot_mode():
-    global mode
-    mode = DOT
-    save_config()
-    if rolled_number > dot_faces:
-        start_roll()
-
-
-def set_number_mode():
-    global mode
-    mode = NUMBER
-    save_config()
-
-
-def select_dot_faces():
+def dot_face_selector():
     global dot_faces
-    dot_faces = UIUtility.number_selector_8x8(dot_faces, SETTING_COLOR, "Dot Faces", 2, 9)
-    save_config()
-    if mode == DOT and rolled_number > dot_faces:
-        start_roll()
+    dot_value = dot_faces
+    selector_value = dot_faces - 2
+    selector_ui = UI.UI("Face Selector", 0x00FFFF, True)
+
+    display = UI.Number(1)
+    display.set_color(0x00FFFF)
+    display.set_value_func(lambda: dot_value)
+    selector_ui.add(display, (5, 0))
+
+    selector = UI.Selector((8, 1), 8)
+    selector.set_name("Faces")
+    selector.set_color(0x00FFFF)
+    selector.set_value(selector_value)
+
+    def on_change(value):
+        nonlocal dot_value
+        dot_value = value + 2
+
+    selector.on_change(on_change)
+    selector_ui.add(selector, (0, 7))
+
+    def selector_input_handler(event):
+        if event.get("id") != FUNCTION_KEY:
+            return False
+        if keypad_state(event) == STATE_RELEASED:
+            selector_ui.exit()
+        return True
+
+    selector_ui.set_input_handler(selector_input_handler)
+    selector_ui.start()
+    dot_faces = selector.get_value() + 2
+    save_settings()
 
 
-def select_number_faces():
-    global number_faces
-    number_faces = UIUtility.number_selector_8x8(number_faces, SETTING_COLOR, "Number Faces", 1, 99)
-    save_config()
-    if mode == NUMBER and rolled_number > number_faces:
-        start_roll()
+def underglow_menu(is_rolling):
+    global rolling_underglow, confirmed_underglow, rolling_period, confirmed_period
 
+    color = rolling_color if is_rolling else confirmed_color
+    rainbow = rolling_rainbow if is_rolling else confirmed_rainbow
+    effect = rolling_underglow if is_rolling else confirmed_underglow
+    period_steps = ((rolling_period if is_rolling else confirmed_period) // 100) - 2
+    timestamp = SYS.millis()
+    effect_ui = UI.UI("Underglow Effect Mode", color, True)
 
-def rolling_color_button_color():
-    if is_rolling_rainbow():
-        return ColorEffects.rainbow()
-    return selected_rolling_color()
-
-
-def confirmed_color_button_color():
-    if is_confirmed_rainbow():
-        return ColorEffects.rainbow(3000)
-    return selected_confirmed_color()
-
-
-def rolling_rainbow_button_color():
-    return ColorEffects.rainbow().dim_if_not(is_rolling_rainbow())
-
-
-def confirmed_rainbow_button_color():
-    return ColorEffects.rainbow(3000).dim_if_not(is_confirmed_rainbow())
-
-
-def dot_mode_button_color():
-    return Color(0xFF00FF).dim_if_not(mode == DOT)
-
-
-def number_mode_button_color():
-    return Color(0xFF5000).dim_if_not(mode == NUMBER)
-
-
-def dot_faces_enabled():
-    return mode == DOT
-
-
-def number_faces_enabled():
-    return mode == NUMBER
-
-
-def render_settings_background():
-    LED.clear()
-    LED.fill_partition("Underglow", ORANGE)
-
-
-def add_button(ui, x, y, width, height, name, color_func, press_func):
-    button = UI.Button()
-    button.set_name(name)
-    button.set_size(Dimension(width, height))
-    button.set_color_func(color_func)
-    button.on_press(press_func)
-    ui.add(button, Point(x, y))
-    return button
-
-
-def add_static_button(ui, x, y, width, height, name, color, press_func):
-    button = UI.Button()
-    button.set_name(name)
-    button.set_size(Dimension(width, height))
-    button.set_color(color)
-    button.on_press(press_func)
-    ui.add(button, Point(x, y))
-    return button
-
-
-def add_static_button_with_enable(ui, x, y, width, height, name, color, press_func, enable_func):
-    button = add_static_button(ui, x, y, width, height, name, color, press_func)
-    button.set_enable_func(enable_func)
-    return button
-
-
-def effect_period_selector_value(period):
-    return clamp((period - 200) // 100, 0, 15)
-
-
-def make_effect_color(effect, selected, rainbow, color, period):
-    if rainbow:
-        base = ColorEffects.rainbow()
-    else:
-        base = color
-    return apply_effect(base, effect, period, SYS.millis()).dim_if_not(effect == selected)
-
-
-def open_underglow_menu(rolling):
-    global rolling_underglow_effect
-    global confirmed_underglow_effect
-    global rolling_underglow_period
-    global confirmed_underglow_period
-    global settings_ui
-    global app_running
-
-    if rolling:
-        effect = rolling_underglow_effect
-        period = rolling_underglow_period
-        rainbow = is_rolling_rainbow()
-        color = selected_rolling_color()
-    else:
-        effect = confirmed_underglow_effect
-        period = confirmed_underglow_period
-        rainbow = is_confirmed_rainbow()
-        color = selected_confirmed_color()
-    effect_ui = UI.UI("Underglow", ORANGE, True)
-    effect_ui.allow_exit(False)
-    effect_ui.set_fps(60)
-    selected_effect = [effect]
-    selected_period = [effect_period_selector_value(period)]
-
-    def process_effect_input():
-        global app_running
-
-        event = effect_ui.pull_input()
-        while event is not None:
-            if event.is_function_key():
-                if event.is_hold():
-                    app_running = False
-                    effect_ui.exit()
-                    SYS.exit_app()
-                elif event.is_released():
-                    effect_ui.exit()
-            event = effect_ui.pull_input()
+    def preview(target_effect):
+        preview_color = ColorEffects.rainbow() if rainbow else color
+        return effect_color(preview_color, target_effect, period_steps * 100 + 200, timestamp)
 
     def set_effect(value):
-        selected_effect[0] = value
+        nonlocal effect
+        effect = value
 
-    def set_static():
-        set_effect(STATIC)
+    enable_btn = UI.Button("Static", 0x00FF00)
+    enable_btn.set_color_func(lambda: dim_if_not(0x00FF00, effect != OFF))
 
-    def toggle_effect_enabled():
-        if selected_effect[0] == OFF:
-            set_effect(STATIC)
-        else:
-            set_effect(OFF)
+    def toggle_enabled():
+        nonlocal effect
+        effect = STATIC if effect == OFF else OFF
 
-    def set_breath():
-        set_effect(BREATH)
+    enable_btn.on_press(toggle_enabled)
+    effect_ui.add(enable_btn, (0, 0))
 
-    def set_strobe():
-        set_effect(STROBE)
+    static_btn = UI.Button("Static")
+    static_btn.set_color_func(lambda: dim_if_not(preview(STATIC), effect == STATIC))
+    static_btn.on_press(lambda: set_effect(STATIC))
+    effect_ui.add(static_btn, (2, 0))
 
-    def set_saw():
-        set_effect(SAW)
+    breath_btn = UI.Button("Breathing")
+    breath_btn.set_color_func(lambda: dim_if_not(preview(BREATH), effect == BREATH))
+    breath_btn.on_press(lambda: set_effect(BREATH))
+    effect_ui.add(breath_btn, (3, 0))
 
-    def static_color():
-        return make_effect_color(STATIC, selected_effect[0], rainbow, color, selected_period[0] * 100 + 200)
+    strobe_btn = UI.Button("Strobe")
+    strobe_btn.set_color_func(lambda: dim_if_not(preview(STROBE), effect == STROBE))
+    strobe_btn.on_press(lambda: set_effect(STROBE))
+    effect_ui.add(strobe_btn, (4, 0))
 
-    def enabled_color():
-        return Color(0x00FF00).dim_if_not(selected_effect[0] != OFF)
+    saw_btn = UI.Button("Saw")
+    saw_btn.set_color_func(lambda: dim_if_not(preview(SAW), effect == SAW))
+    saw_btn.on_press(lambda: set_effect(SAW))
+    effect_ui.add(saw_btn, (5, 0))
 
-    def breath_color():
-        return make_effect_color(BREATH, selected_effect[0], rainbow, color, selected_period[0] * 100 + 200)
-
-    def strobe_color():
-        return make_effect_color(STROBE, selected_effect[0], rainbow, color, selected_period[0] * 100 + 200)
-
-    def saw_color():
-        return make_effect_color(SAW, selected_effect[0], rainbow, color, selected_period[0] * 100 + 200)
-
-    def get_period_selector():
-        return selected_period[0]
-
-    def set_period_selector(value):
-        selected_period[0] = value
-
-    effect_ui.set_loop_func(process_effect_input)
-    effect_ui.set_pre_render_func(render_settings_background)
-    enable_button = add_button(effect_ui, 0, 0, 1, 1, "Static", enabled_color, toggle_effect_enabled)
-    static_button = add_button(effect_ui, 2, 0, 1, 1, "Static", static_color, set_static)
-    breath_button = add_button(effect_ui, 3, 0, 1, 1, "Breath", breath_color, set_breath)
-    strobe_button = add_button(effect_ui, 4, 0, 1, 1, "Strobe", strobe_color, set_strobe)
-    saw_button = add_button(effect_ui, 5, 0, 1, 1, "Saw", saw_color, set_saw)
-
-    speed_selector = UI.Selector()
-    speed_selector.set_name("Speed")
+    speed_selector = UI.Selector((8, 2), 16)
+    speed_selector.set_name("Speed Selector")
     speed_selector.set_color(color)
-    speed_selector.set_dimension(Dimension(8, 2))
-    speed_selector.set_count(16)
-    speed_selector.set_value_func(get_period_selector)
-    speed_selector.on_change(set_period_selector)
-    effect_ui.add(speed_selector, Point(0, 6))
-
+    speed_selector.set_value(period_steps)
+    speed_selector.on_change(lambda value: None)
+    effect_ui.add(speed_selector, (0, 6))
     effect_ui.start()
-    effect_ui.close()
 
-    if rolling:
-        rolling_underglow_effect = selected_effect[0]
-        rolling_underglow_period = selected_period[0] * 100 + 200
+    period = speed_selector.get_value() * 100 + 200
+    if is_rolling:
+        rolling_underglow = effect
+        rolling_period = period
     else:
-        confirmed_underglow_effect = selected_effect[0]
-        confirmed_underglow_period = selected_period[0] * 100 + 200
-
-    save_config()
-
-
-def open_rolling_underglow_menu():
-    open_underglow_menu(True)
+        confirmed_underglow = effect
+        confirmed_period = period
+    save_settings()
 
 
-def open_confirmed_underglow_menu():
-    open_underglow_menu(False)
+def open_settings():
+    global running, rolling_color, confirmed_color, rolling_rainbow, confirmed_rainbow
+    global mode, number_faces
 
+    settings_ui = UI.UI("Settings", 0x00FFFF, True)
+    preview_start_ms = SYS.millis()
 
-def process_settings_input():
-    global app_running
+    rolling_color_btn = UI.Button("Rolling Color")
+    rolling_color_btn.set_size((1, 4))
+    rolling_color_btn.set_color_func(lambda: active_color(True))
 
-    if settings_ui is None:
-        return
+    def pick_rolling_color():
+        global rolling_color
+        if not rolling_rainbow:
+            picked = UI.color_picker(rolling_color)
+            if picked is not None:
+                rolling_color = picked
+                save_settings()
 
-    event = settings_ui.pull_input()
-    while event is not None:
-        if event.is_function_key():
-            if event.is_hold():
-                app_running = False
-                settings_ui.exit()
-                SYS.exit_app()
-            elif event.is_released():
-                settings_ui.exit()
-        event = settings_ui.pull_input()
+    rolling_color_btn.on_press(pick_rolling_color)
+    settings_ui.add(rolling_color_btn, (0, 2))
 
+    rolling_rainbow_toggle = UI.Toggle("Rolling Rainbow Mode", rolling_rainbow)
+    rolling_rainbow_toggle.set_color_func(lambda: ColorEffects.rainbow())
 
-def open_settings_ui():
-    global settings_ui
+    def set_rolling_rainbow(value):
+        global rolling_rainbow
+        rolling_rainbow = value
+        save_settings()
 
-    settings_ui = UI.UI("Dice Settings", ORANGE, True)
-    settings_ui.allow_exit(False)
-    settings_ui.set_fps(60)
-    settings_ui.set_loop_func(process_settings_input)
-    settings_ui.set_pre_render_func(render_settings_background)
+    rolling_rainbow_toggle.on_press(set_rolling_rainbow)
+    settings_ui.add(rolling_rainbow_toggle, (0, 0))
 
-    rolling_rainbow_button = add_button(
-        settings_ui, 0, 0, 1, 1, "Rolling Rainbow", rolling_rainbow_button_color, toggle_rolling_rainbow
-    )
-    confirmed_rainbow_button = add_button(
-        settings_ui, 7, 0, 1, 1, "Confirmed Rainbow", confirmed_rainbow_button_color, toggle_confirmed_rainbow
-    )
-    rolling_color_button = add_button(
-        settings_ui, 0, 2, 1, 4, "Rolling Color", rolling_color_button_color, pick_rolling_color
-    )
-    confirmed_color_button = add_button(
-        settings_ui, 7, 2, 1, 4, "Confirmed Color", confirmed_color_button_color, pick_confirmed_color
-    )
-    dot_mode_button = add_button(settings_ui, 3, 0, 1, 1, "Dot Mode", dot_mode_button_color, set_dot_mode)
-    number_mode_button = add_button(settings_ui, 4, 0, 1, 1, "Number Mode", number_mode_button_color, set_number_mode)
-    dot_faces_button = add_static_button_with_enable(
-        settings_ui, 2, 7, 4, 1, "Faces", SETTING_COLOR, select_dot_faces, dot_faces_enabled
-    )
-    number_faces_button = add_static_button_with_enable(
-        settings_ui, 2, 7, 4, 1, "Faces", SETTING_COLOR, select_number_faces, number_faces_enabled
-    )
+    rolling_underglow_btn = UI.Button("Rolling Underglow Effect")
+    rolling_underglow_btn.set_color_func(lambda: effect_color(active_color(True), rolling_underglow, rolling_period, preview_start_ms))
+    rolling_underglow_btn.set_enabled(underglow_enabled)
+    rolling_underglow_btn.on_press(lambda: underglow_menu(True))
+    settings_ui.add(rolling_underglow_btn, (0, 7))
 
-    if underglow_enabled:
-        rolling_underglow_button = add_button(
-            settings_ui, 0, 7, 1, 1, "Rolling Glow", rolling_color_button_color, open_rolling_underglow_menu
-        )
-        confirmed_underglow_button = add_button(
-            settings_ui, 7, 7, 1, 1, "Confirmed Glow", confirmed_color_button_color, open_confirmed_underglow_menu
-        )
+    confirmed_color_btn = UI.Button("Confirmed Color")
+    confirmed_color_btn.set_size((1, 4))
+    confirmed_color_btn.set_color_func(lambda: active_color(False))
 
+    def pick_confirmed_color():
+        global confirmed_color
+        if not confirmed_rainbow:
+            picked = UI.color_picker(confirmed_color)
+            if picked is not None:
+                confirmed_color = picked
+                save_settings()
+
+    confirmed_color_btn.on_press(pick_confirmed_color)
+    settings_ui.add(confirmed_color_btn, (7, 2))
+
+    confirmed_rainbow_toggle = UI.Toggle("Confirmed Rainbow Mode", confirmed_rainbow)
+    confirmed_rainbow_toggle.set_color_func(lambda: ColorEffects.rainbow())
+
+    def set_confirmed_rainbow(value):
+        global confirmed_rainbow
+        confirmed_rainbow = value
+        save_settings()
+
+    confirmed_rainbow_toggle.on_press(set_confirmed_rainbow)
+    settings_ui.add(confirmed_rainbow_toggle, (7, 0))
+
+    confirmed_underglow_btn = UI.Button("Confirmed Underglow Effect")
+    confirmed_underglow_btn.set_color_func(lambda: effect_color(active_color(False), confirmed_underglow, confirmed_period, preview_start_ms))
+    confirmed_underglow_btn.set_enabled(underglow_enabled)
+    confirmed_underglow_btn.on_press(lambda: underglow_menu(False))
+    settings_ui.add(confirmed_underglow_btn, (7, 7))
+
+    dot_mode_btn = UI.Button("Dot Mode")
+    dot_mode_btn.set_color_func(lambda: dim_if_not(0xFF00FF, mode == DOT))
+
+    def set_dot_mode():
+        global mode
+        mode = DOT
+        save_settings()
+
+    dot_mode_btn.on_press(set_dot_mode)
+    settings_ui.add(dot_mode_btn, (3, 0))
+
+    number_mode_btn = UI.Button("Number Mode")
+    number_mode_btn.set_color_func(lambda: dim_if_not(0xFF5000, mode == NUMBER))
+
+    def set_number_mode():
+        global mode
+        mode = NUMBER
+        save_settings()
+
+    number_mode_btn.on_press(set_number_mode)
+    settings_ui.add(number_mode_btn, (4, 0))
+
+    dot_faces_btn = UI.Button("Faces", 0x00FFFF)
+    dot_faces_btn.set_size((4, 1))
+    dot_faces_btn.set_enable_func(lambda: mode == DOT)
+    dot_faces_btn.on_press(dot_face_selector)
+    settings_ui.add(dot_faces_btn, (2, 7))
+
+    number_faces_btn = UI.Button("Faces", 0x00FFFF)
+    number_faces_btn.set_size((4, 1))
+    number_faces_btn.set_enable_func(lambda: mode == NUMBER)
+
+    def select_number_faces():
+        global number_faces
+        number_faces = UI.number_selector(number_faces, 0x00FFFF, "Face Selector", 1, 99)
+        save_settings()
+
+    number_faces_btn.on_press(select_number_faces)
+    settings_ui.add(number_faces_btn, (2, 7))
+
+    def settings_input_handler(event):
+        global running
+        if event.get("id") != FUNCTION_KEY:
+            return False
+        state = keypad_state(event)
+        if state == STATE_HOLD:
+            running = False
+            save_settings()
+            SYS.exit_app()
+        elif state == STATE_RELEASED:
+            save_settings()
+            settings_ui.exit()
+        return True
+
+    settings_ui.set_input_handler(settings_input_handler)
     settings_ui.start()
-    settings_ui.close()
-    settings_ui = None
+    save_settings()
+    render()
 
 
-def handle_input(event):
-    if not event.is_function_key():
+def handle_event(event):
+    global running
+    state = keypad_state(event)
+
+    if event.get("id") == FUNCTION_KEY:
+        if state == STATE_HOLD:
+            open_settings()
+        elif state == STATE_RELEASED:
+            start_roll()
         return
 
-    if event.is_hold():
-        open_settings_ui()
-    elif event.is_released():
+    if state == STATE_PRESSED:
         start_roll()
-
-
-def process_input():
-    event = Input.get_event()
-    while event is not None:
-        handle_input(event)
-        event = Input.get_event()
-
-
-def render_if_needed():
-    if render_timer.tick(FRAME_MS, True):
-        render_game()
 
 
 def loop():
-    if not app_running:
+    global phase
+    if not running:
         return
 
-    process_input()
-    update_rolling_state()
-    render_if_needed()
+    now = SYS.millis()
+    if phase == ROLLING:
+        if now - last_roll_ms >= 100:
+            roll_dice()
+            render()
+        if now - rolling_start_ms >= 3000:
+            phase = CONFIRMED
+            render()
+    elif phase == CONFIRMED:
+        render()
+
+    event = Input.get_event()
+    while event is not None:
+        handle_event(event)
+        event = Input.get_event()
+
+    SYS.sleep_ms(1)
 
 
-load_config()
-seed_random()
-start_roll()
-Input.clear_input_buffer()
+roll_dice()
+render()
+Input.clear()

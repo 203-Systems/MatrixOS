@@ -11,3 +11,6 @@
 	path = Library/ArduinoJson
 	url = https://github.com/bblanchon/ArduinoJson.git
 	branch = 7.x
+[submodule "Library/micropython"]
+	path = Library/micropython
+	url = https://github.com/micropython/micropython.git

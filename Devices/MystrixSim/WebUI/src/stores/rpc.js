@@ -24,9 +24,9 @@ import { logMessages } from './logs.js'
 import { midiEvents, midiPorts } from './midi.js'
 import { hidEvents } from './hid.js'
 import { serialEvents } from './serial.js'
-import { pythonEvents } from './python.js'
-import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex } from './storage.js'
-import { listInputs, executeInputEvents, getActiveInputs } from '../handles/input.js'
+import { clearPythonEvents, pythonEvents } from './python.js'
+import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex, refreshNvs } from './storage.js'
+import { listInputs, executeInputEvents, getActiveInputs, releaseAllInputs, getRecentInputEvents } from '../handles/input.js'
 import { getLedFrame, getLed } from '../handles/led.js'
 import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
 import { sendRawHid } from '../handles/hid.js'
@@ -35,9 +35,13 @@ import {
   hasPythonApp,
   isPythonAppActive,
   getPythonSessionMode,
+  getPythonDebugInfo,
   enterPythonRepl,
+  clearStagedPythonScripts,
   stagePythonScript,
+  stagePythonFiles,
   runStagedPythonScript,
+  stopPythonApp,
   sendPythonInput,
 } from '../handles/python.js'
 import {
@@ -274,7 +278,7 @@ function encodeRpcBytes(bytes, encoding = 'base64') {
   return btoa(String.fromCharCode(...data))
 }
 
-async function waitForPythonMode(mode, timeoutMs = 1800) {
+async function waitForPythonMode(mode, timeoutMs = 5000) {
   const deadline = Date.now() + timeoutMs
 
   while (Date.now() < deadline) {
@@ -285,7 +289,7 @@ async function waitForPythonMode(mode, timeoutMs = 1800) {
   return isPythonAppActive() && getPythonSessionMode() === mode
 }
 
-async function waitForPythonLaunch(mode, timeoutMs = 1800, startEventCount = get(pythonEvents).length) {
+async function waitForPythonLaunch(mode, timeoutMs = 5000, startEventCount = get(pythonEvents).length) {
   const deadline = Date.now() + timeoutMs
   let sawActive = false
 
@@ -308,6 +312,17 @@ async function waitForPythonLaunch(mode, timeoutMs = 1800, startEventCount = get
   }
 
   return { ok: false, mode: getPythonSessionMode() }
+}
+
+async function waitForPythonIdle(timeoutMs = 2000) {
+  const deadline = Date.now() + timeoutMs
+
+  while (Date.now() < deadline) {
+    if (!isPythonAppActive()) return true
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+
+  return !isPythonAppActive()
 }
 
 // ---------------------------------------------------------------------------
@@ -366,7 +381,12 @@ const handlers = {
     return { ok: true, accepted }
   },
 
-  'input.get': () => ({ activeInputs: getActiveInputs() }),
+  'input.releaseAll': () => ({ ok: true, released: releaseAllInputs() }),
+
+  'input.get': (params) => ({
+    activeInputs: getActiveInputs(),
+    recentEvents: getRecentInputEvents(params?.last ?? 80),
+  }),
 
   // ---- LED ----
 
@@ -537,15 +557,19 @@ const handlers = {
     available: hasPythonApp(),
     active: isPythonAppActive(),
     mode: getPythonSessionMode(),
+    debug: getPythonDebugInfo(),
   }),
+
+  'python.debug': () => getPythonDebugInfo(),
 
   'python.enterRepl': async (params) => {
     if (isPythonAppActive()) {
       return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
     }
+    clearPythonEvents()
     if (!enterPythonRepl()) return { __error: ERR.UNSUPPORTED }
 
-    const ok = await waitForPythonMode('repl', params?.timeoutMs ?? 1800)
+    const ok = await waitForPythonMode('repl', params?.timeoutMs ?? 5000)
     return ok
       ? { ok: true, mode: getPythonSessionMode() }
       : { __error: { ...ERR.TIMEOUT, detail: 'Python REPL did not become active.' } }
@@ -560,34 +584,70 @@ const handlers = {
     return ok ? { ok: true, name, size: text.length } : { __error: ERR.UNSUPPORTED }
   },
 
+  'python.stageFiles': (params) => {
+    const files = params?.files
+    const entry = params?.entry
+    if (!Array.isArray(files) || files.length === 0) return { __error: ERR.INVALID_PARAMS }
+
+    const normalized = files.map((file) => {
+      const name = file?.name ?? file?.fileName
+      const text = file?.text
+      if (typeof name !== 'string' || typeof text !== 'string') return null
+      return { name, text }
+    })
+    if (normalized.some((file) => file === null)) return { __error: ERR.INVALID_PARAMS }
+
+    let ordered = normalized
+    if (typeof entry === 'string') {
+      const entryIndex = normalized.findIndex((file) => file.name === entry)
+      if (entryIndex < 0) return { __error: ERR.INVALID_PARAMS }
+      ordered = normalized.filter((_, index) => index !== entryIndex)
+      ordered.push(normalized[entryIndex])
+    }
+
+    const ok = stagePythonFiles(ordered)
+    return ok ? { ok: true, count: ordered.length, entry: ordered[ordered.length - 1].name } : { __error: ERR.UNSUPPORTED }
+  },
+
   'python.runStaged': async (params) => {
-    if (isPythonAppActive()) {
+    if (isPythonAppActive() && !(await waitForPythonIdle(params?.idleTimeoutMs ?? 1200))) {
       return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
     }
+    clearPythonEvents()
     const startEventCount = get(pythonEvents).length
     if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
 
-    const launched = await waitForPythonLaunch('app', params?.timeoutMs ?? 1800, startEventCount)
-    return launched.ok
-      ? { ok: true, mode: launched.mode, completed: launched.completed === true }
-      : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
+    const launch = await waitForPythonLaunch('app', params?.timeoutMs ?? 5000, startEventCount)
+    return launch.ok
+      ? { ok: true, mode: launch.mode, completed: launch.completed === true }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python app did not start.' } }
   },
 
   'python.runText': async (params) => {
     const name = params?.name ?? params?.fileName ?? 'remote.py'
     const text = params?.text
     if (typeof name !== 'string' || typeof text !== 'string') return { __error: ERR.INVALID_PARAMS }
-    if (isPythonAppActive()) {
+    if (isPythonAppActive() && !(await waitForPythonIdle(params?.idleTimeoutMs ?? 1200))) {
       return { __error: { ...ERR.UNSUPPORTED, detail: 'Python is already active.' } }
     }
+    clearStagedPythonScripts()
     if (!stagePythonScript(name, text)) return { __error: ERR.UNSUPPORTED }
+    clearPythonEvents()
     const startEventCount = get(pythonEvents).length
     if (!runStagedPythonScript()) return { __error: ERR.UNSUPPORTED }
 
-    const launched = await waitForPythonLaunch('app', params?.timeoutMs ?? 1800, startEventCount)
-    return launched.ok
-      ? { ok: true, name, size: text.length, mode: launched.mode, completed: launched.completed === true }
-      : { __error: { ...ERR.TIMEOUT, detail: 'Python app mode did not become active.' } }
+    const launch = await waitForPythonLaunch('app', params?.timeoutMs ?? 5000, startEventCount)
+    return launch.ok
+      ? { ok: true, name, size: text.length, mode: launch.mode, completed: launch.completed === true }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python script did not start.' } }
+  },
+
+  'python.stop': async (params) => {
+    if (!stopPythonApp()) return { __error: ERR.UNSUPPORTED }
+    const ok = await waitForPythonIdle(params?.timeoutMs ?? 1200)
+    return ok
+      ? { ok: true, mode: getPythonSessionMode() }
+      : { __error: { ...ERR.TIMEOUT, detail: 'Python did not stop.' } }
   },
 
   'python.input': (params) => {
@@ -625,6 +685,7 @@ const handlers = {
   // ---- Storage / NVS ----
 
   'storage.nvs.find': (params) => {
+    refreshNvs()
     const hashFilter = params?.hash?.toLowerCase()
     let entries = get(nvsEntries)
 
@@ -642,6 +703,7 @@ const handlers = {
   },
 
   'storage.nvs.get': (params) => {
+    refreshNvs()
     const hash = parseNvsHash(params?.hash)
     if (hash === null) return { __error: ERR.INVALID_PARAMS }
 
@@ -780,7 +842,8 @@ async function dispatch(method, params = {}, notifyFn = null) {
 
 function getExternalRpcWsUrl() {
   const host = window.location.hostname || 'localhost'
-  return `ws://${host}:4002/?role=runtime`
+  const port = import.meta.env.VITE_MATRIXOS_RPC_PORT || '4002'
+  return `ws://${host}:${port}/?role=runtime`
 }
 
 function scheduleExternalRpcBridgeReconnect() {
@@ -804,7 +867,25 @@ async function handleExternalRpcBridgeMessage(socket, event) {
     return
   }
 
-  const response = await dispatch(payload.method, payload.params ?? {})
+  const notifyMethod = payload.method.endsWith('.subscribe')
+    ? `${payload.method.slice(0, -'.subscribe'.length)}.event`
+    : null
+
+  const response = await dispatch(
+    payload.method,
+    payload.params ?? {},
+    notifyMethod
+      ? (params) => {
+        if (socket.readyState !== WebSocket.OPEN) return
+        socket.send(JSON.stringify({
+          type: 'rpc_notification',
+          requestId: payload.requestId,
+          method: notifyMethod,
+          params,
+        }))
+      }
+      : null,
+  )
   if (socket.readyState !== WebSocket.OPEN) return
 
   socket.send(JSON.stringify({

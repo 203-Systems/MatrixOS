@@ -478,7 +478,9 @@ export function importFilesystemArchive(file, basePath = get(filesystemPath)) {
 }
 
 // ---------------------------------------------------------------------------
-// NVS hash — FNV-1a 32-bit, matching MatrixOS key hashing.
+// NVS hash — MatrixOS StringHash / FNV-1a 32-bit.
+// MatrixOS hashes C strings through strlen(str) + 1, so the trailing null byte
+// is part of the public hash contract.
 // Canonical home: rpc.js and UI both import from here, not from each other.
 // ---------------------------------------------------------------------------
 
@@ -489,6 +491,8 @@ export function computeNvsHash(text) {
     hash ^= byte
     hash = (Math.imul(hash, 0x01000193)) >>> 0
   }
+  hash ^= 0
+  hash = (Math.imul(hash, 0x01000193)) >>> 0
   return hash
 }
 

@@ -155,7 +155,8 @@ Status: in progress.
 
 ## Runtime Notes
 
-- [x] MystrixSim smoke verified `LED.partition_count()`, `LED.partitions()`, `Input.primary_grid()`,
+- [x] MystrixSim smoke verified Pythonic LED partition APIs (`LED.partitions()` and
+  `LED.get_partition(index_or_name)`), `Input.primary_grid()`,
   object facade methods, and a simple Python script launch through `python.stage` plus
   `python.runStaged`.
 - [x] MystrixSim smoke found a Pika parser limitation when multiple object method calls are packed

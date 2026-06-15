@@ -382,7 +382,7 @@
       <button class="tool-hero-close" on:click={onCloseHero} title="Close">✕</button>
       <div class="tool-hero-title">Python</div>
       <div class="tool-hero-desc">
-        Enter the built-in Python application in REPL mode, or upload a <code>.py</code> file and launch it in app mode.
+        Enter the built-in MicroPython runtime in REPL mode, or upload a <code>.py</code> file and launch it in app mode.
         Upload and run stay separate so the script is staged first and only executes after explicit confirmation.
       </div>
     </section>
@@ -392,7 +392,7 @@
     <div class="tool-section-title">Session</div>
     <div class="tool-grid python-status-grid">
       <div class="tool-card">
-        <span class="tool-card-label">Python App</span>
+        <span class="tool-card-label">MicroPython App</span>
         <span
           class="tool-card-value"
           class:tool-value-live={$moduleReady && pythonInstalled}
@@ -403,7 +403,7 @@
         </span>
       </div>
       <div class="tool-card">
-        <span class="tool-card-label">Python Mode</span>
+        <span class="tool-card-label">Runtime Mode</span>
         <span
           class="tool-card-value"
           class:tool-value-live={pythonActive && pythonMode === 'repl'}

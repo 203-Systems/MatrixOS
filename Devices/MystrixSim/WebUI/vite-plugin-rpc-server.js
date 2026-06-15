@@ -12,8 +12,9 @@
 import { WebSocketServer } from 'ws'
 import { GITHUB_RELEASE_ASSET_PROXY_PATH, handleGitHubReleaseAssetProxy } from './server/github-release-asset-proxy.js'
 
-export const RPC_WS_PORT = 4002
+export const RPC_WS_PORT = Number(process.env.MATRIXOS_RPC_PORT ?? 4002)
 export const RPC_DISCOVERY_PATH = '/__matrixos/rpc-status'
+const DEFAULT_PENDING_TIMEOUT_MS = 45_000
 
 export function rpcServerPlugin() {
     function installReleaseAssetProxy(server) {
@@ -35,6 +36,7 @@ export function rpcServerPlugin() {
       installReleaseAssetProxy(server)
       const wss = new WebSocketServer({ port: RPC_WS_PORT })
       const pendingRequests = new Map()
+      const subscriptionRequests = new Map()
       let runtimeClient = null
 
       function nextRequestId() {
@@ -47,6 +49,25 @@ export function rpcServerPlugin() {
           if (client.readyState === 1 /* OPEN */ && client._matrixRole !== 'runtime') count += 1
         }
         return count
+      }
+
+      function clearPendingRequest(requestId) {
+        const pending = pendingRequests.get(requestId)
+        if (!pending) return null
+        if (pending.timeoutHandle) clearTimeout(pending.timeoutHandle)
+        pendingRequests.delete(requestId)
+        return pending
+      }
+
+      function describePendingRequests() {
+        const now = Date.now()
+        return Array.from(pendingRequests.entries()).map(([requestId, pending]) => ({
+          requestId,
+          method: pending.method,
+          ageMs: now - pending.startedAt,
+          clientRequestId: pending.clientRequestId,
+          isSubscription: pending.isSubscription,
+        }))
       }
 
       function broadcastConnectionCount() {
@@ -115,13 +136,28 @@ export function rpcServerPlugin() {
           try { msg = JSON.parse(data.toString()) } catch { return }
 
           if (ws._matrixRole === 'runtime') {
+            if (msg?.type === 'rpc_notification' && msg.requestId) {
+              const subscription = subscriptionRequests.get(msg.requestId)
+              if (!subscription || subscription.client.readyState !== 1) return
+
+              subscription.client.send(JSON.stringify({
+                jsonrpc: '2.0',
+                method: msg.method,
+                params: msg.params ?? {},
+              }))
+              return
+            }
+
             if (msg?.type !== 'rpc_response' || !msg.requestId) return
 
-            const pending = pendingRequests.get(msg.requestId)
+            const pending = clearPendingRequest(msg.requestId)
             if (!pending) return
-            pendingRequests.delete(msg.requestId)
 
             if (pending.client.readyState !== 1) return
+
+            if (pending.isSubscription && !msg.response?.error) {
+              subscriptionRequests.set(msg.requestId, pending)
+            }
 
             pending.client.send(JSON.stringify({
               jsonrpc: '2.0',
@@ -143,6 +179,22 @@ export function rpcServerPlugin() {
             return
           }
 
+          if (msg.method === 'bridge.status') {
+            ws.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: msg.id ?? null,
+              result: {
+                ok: true,
+                runtimeConnected: runtimeClient?.readyState === 1,
+                externalConnectionCount: getExternalConnectionCount(),
+                pendingRequestCount: pendingRequests.size,
+                pendingRequests: describePendingRequests(),
+                subscriptionCount: subscriptionRequests.size,
+              },
+            }))
+            return
+          }
+
           if (!runtimeClient || runtimeClient.readyState !== 1) {
             ws.send(JSON.stringify({
               jsonrpc: '2.0',
@@ -156,9 +208,31 @@ export function rpcServerPlugin() {
           }
 
           const requestId = nextRequestId()
+          const startedAt = Date.now()
+          const timeoutMs = Number.isFinite(msg.params?.rpcTimeoutMs)
+            ? Math.max(1000, Number(msg.params.rpcTimeoutMs))
+            : DEFAULT_PENDING_TIMEOUT_MS
+          const timeoutHandle = setTimeout(() => {
+            const pending = clearPendingRequest(requestId)
+            if (!pending || pending.client.readyState !== 1) return
+            pending.client.send(JSON.stringify({
+              jsonrpc: '2.0',
+              id: pending.clientRequestId,
+              error: {
+                code: 4004,
+                message: 'Runtime bridge request timed out.',
+                detail: `${pending.method} did not respond within ${timeoutMs}ms.`,
+              },
+            }))
+          }, timeoutMs)
+
           pendingRequests.set(requestId, {
             client: ws,
             clientRequestId: msg.id ?? null,
+            method: msg.method,
+            startedAt,
+            timeoutHandle,
+            isSubscription: msg.method.endsWith('.subscribe'),
           })
 
           runtimeClient.send(JSON.stringify({
@@ -173,6 +247,7 @@ export function rpcServerPlugin() {
           if (runtimeClient === ws) {
             runtimeClient = null
             for (const [requestId, pending] of pendingRequests.entries()) {
+              clearPendingRequest(requestId)
               if (pending.client.readyState === 1) {
                 pending.client.send(JSON.stringify({
                   jsonrpc: '2.0',
@@ -185,10 +260,16 @@ export function rpcServerPlugin() {
               }
               pendingRequests.delete(requestId)
             }
+            subscriptionRequests.clear()
           } else {
             for (const [requestId, pending] of pendingRequests.entries()) {
               if (pending.client === ws) {
-                pendingRequests.delete(requestId)
+                clearPendingRequest(requestId)
+              }
+            }
+            for (const [requestId, subscription] of subscriptionRequests.entries()) {
+              if (subscription.client === ws) {
+                subscriptionRequests.delete(requestId)
               }
             }
           }

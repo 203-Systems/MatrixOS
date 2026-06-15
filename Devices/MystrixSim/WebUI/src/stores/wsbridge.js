@@ -12,7 +12,7 @@ import { writable } from 'svelte/store'
 import { IS_NODE_BACKED } from './rpc.js'
 
 // Must match vite-plugin-rpc-server.js
-export const RPC_WS_PORT = 4002
+export const RPC_WS_PORT = import.meta.env.VITE_MATRIXOS_RPC_PORT || '4002'
 export const RPC_WS_URL = IS_NODE_BACKED ? `ws://localhost:${RPC_WS_PORT}` : ''
 const RPC_DISCOVERY_PATH = '/__matrixos/rpc-status'
 const STATUS_POLL_MS = 2000

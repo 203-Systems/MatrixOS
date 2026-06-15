@@ -44,6 +44,7 @@ export function ledToHex({ r, g, b, w }) {
 
 export function resolveLedIndex(id) {
   const gridM = /^grid:(\d+),(\d+)$/.exec(id)
+  const xyM = /^xy:(-?\d+),(-?\d+)$/.exec(id)
   const ugM = /^underglow:(\d+)$/.exec(id)
 
   if (gridM) {
@@ -51,6 +52,17 @@ export function resolveLedIndex(id) {
     const y = parseInt(gridM[2], 10)
     if (x < 0 || x >= INPUT_GRID_SIZE || y < 0 || y >= INPUT_GRID_SIZE) return null
     return y * INPUT_GRID_SIZE + x
+  }
+
+  if (xyM) {
+    const x = parseInt(xyM[1], 10)
+    const y = parseInt(xyM[2], 10)
+    if (x >= 0 && x < INPUT_GRID_SIZE && y >= 0 && y < INPUT_GRID_SIZE) return y * INPUT_GRID_SIZE + x
+    if (x === INPUT_GRID_SIZE && y >= 0 && y < INPUT_GRID_SIZE) return 64 + (INPUT_GRID_SIZE - 1 - y)
+    if (y === -1 && x >= 0 && x < INPUT_GRID_SIZE) return 72 + (INPUT_GRID_SIZE - 1 - x)
+    if (x === -1 && y >= 0 && y < INPUT_GRID_SIZE) return 80 + y
+    if (y === INPUT_GRID_SIZE && x >= 0 && x < INPUT_GRID_SIZE) return 88 + x
+    return null
   }
 
   if (ugM) {
