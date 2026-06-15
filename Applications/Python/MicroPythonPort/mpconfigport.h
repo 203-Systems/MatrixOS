@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <port/mpconfigport_common.h>
 
 #define MICROPY_CONFIG_ROM_LEVEL (MICROPY_CONFIG_ROM_LEVEL_BASIC_FEATURES)
@@ -28,10 +29,27 @@
 #define MICROPY_PY_SYS_PLATFORM "matrixos"
 #define MICROPY_PY_TIME (0)
 
+#if defined(ESP_PLATFORM) && defined(__xtensa__)
+#undef MICROPY_PERSISTENT_CODE_LOAD
+#define MICROPY_PERSISTENT_CODE_LOAD (1)
+#define MICROPY_EMIT_INLINE_XTENSA (1)
+#define MICROPY_EMIT_INLINE_XTENSA_UNCOMMON_OPCODES (1)
+#if defined(__XTENSA_WINDOWED_ABI__)
+#define MICROPY_EMIT_XTENSAWIN (1)
+#else
+#define MICROPY_EMIT_XTENSA (1)
+#endif
+#define MICROPY_OPT_COMPUTED_GOTO (1)
+#define MICROPY_OPT_LOAD_ATTR_FAST_PATH (1)
+#define MICROPY_OPT_MAP_LOOKUP_CACHE (1)
+#define MP_PLAT_COMMIT_EXEC(buf, len, reloc) matrixos_micropython_commit_exec((buf), (len), (reloc))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern void matrixos_micropython_stdout(const char* data, unsigned int length);
+extern void* matrixos_micropython_commit_exec(void* buf, size_t len, void* reloc);
 extern void* matrixos_micropython_alloc_heap(size_t size);
 extern void matrixos_micropython_free_heap(void* ptr);
 extern size_t matrixos_micropython_get_max_new_split(void);

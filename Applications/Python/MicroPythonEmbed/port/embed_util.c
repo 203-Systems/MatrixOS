@@ -27,11 +27,49 @@
 #include <string.h>
 #include "py/compile.h"
 #include "py/gc.h"
+#include "py/misc.h"
 #include "py/persistentcode.h"
 #include "py/runtime.h"
 #include "py/stackctrl.h"
 #include "shared/runtime/gchelper.h"
 #include "port/micropython_embed.h"
+
+#if defined(ESP_PLATFORM) && defined(__xtensa__)
+#include "esp_heap_caps.h"
+
+typedef struct _matrixos_native_code_node_t {
+    struct _matrixos_native_code_node_t *next;
+    uint8_t data[];
+} matrixos_native_code_node_t;
+
+static matrixos_native_code_node_t *matrixos_native_code_head = NULL;
+
+static void matrixos_micropython_free_exec_all(void) {
+    while (matrixos_native_code_head != NULL) {
+        matrixos_native_code_node_t *next = matrixos_native_code_head->next;
+        heap_caps_free(matrixos_native_code_head);
+        matrixos_native_code_head = next;
+    }
+}
+
+void *matrixos_micropython_commit_exec(void *buf, size_t len, void *reloc) {
+    len = (len + 3) & ~3;
+    size_t node_len = sizeof(matrixos_native_code_node_t) + len;
+    matrixos_native_code_node_t *node = heap_caps_malloc(node_len, MALLOC_CAP_EXEC);
+    if (node == NULL) {
+        m_malloc_fail(node_len);
+    }
+
+    node->next = matrixos_native_code_head;
+    matrixos_native_code_head = node;
+
+    if (reloc != NULL) {
+        mp_native_relocate(reloc, buf, (uintptr_t)node->data);
+    }
+    memcpy(node->data, buf, len);
+    return node->data;
+}
+#endif
 
 size_t gc_get_max_new_split(void) {
     return matrixos_micropython_get_max_new_split();
@@ -99,6 +137,9 @@ void mp_embed_exec_mpy(const uint8_t *mpy, size_t len) {
 // Deinitialise the runtime.
 void mp_embed_deinit(void) {
     mp_deinit();
+    #if defined(ESP_PLATFORM) && defined(__xtensa__)
+    matrixos_micropython_free_exec_all();
+    #endif
 }
 
 #if MICROPY_ENABLE_GC
