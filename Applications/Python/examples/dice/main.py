@@ -296,6 +296,10 @@ def underglow_menu(is_rolling):
         nonlocal effect
         effect = value
 
+    def set_period_steps(value):
+        nonlocal period_steps
+        period_steps = value
+
     enable_btn = UI.Button("Static", 0x00FF00)
     enable_btn.set_color_func(lambda: dim_if_not(0x00FF00, effect != OFF))
 
@@ -328,9 +332,9 @@ def underglow_menu(is_rolling):
 
     speed_selector = UI.Selector((8, 2), 16)
     speed_selector.set_name("Speed Selector")
-    speed_selector.set_color(color)
+    speed_selector.set_color_func(lambda: preview(effect))
     speed_selector.set_value(period_steps)
-    speed_selector.on_change(lambda value: None)
+    speed_selector.on_change(set_period_steps)
     effect_ui.add(speed_selector, (0, 6))
     effect_ui.start()
 

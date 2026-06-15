@@ -123,7 +123,7 @@ Keep the public API Pythonic. New Python-visible names should use `snake_case`; 
 4. Add the exported module/type declaration to `matrixos_modules.h`.
 5. Register the module/type in `matrixos_module.cpp` only if it is a new top-level export.
 6. Add public API documentation to `docs/micropython-api.md`.
-7. Add coverage to `Applications/Python/examples/api_introspection.py` or the WebUI RPC smoke suite.
+7. Add coverage to `Applications/Python/examples/api_introspection/main.py` or the WebUI RPC smoke suite.
 8. Regenerate qstrs if new Python-visible names were added.
 9. Run `npm --prefix Devices\MystrixSim\WebUI run verify:micropython`.
 

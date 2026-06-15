@@ -19,7 +19,7 @@ import { WebSocket } from 'ws'
 
 const DEFAULT_WS = 'ws://localhost:4002'
 const TIMEOUT_MS = 15_000
-const EXAMPLES = ['pixel_art.py', 'same_game.py', 'gomoku.py', 'dice.py']
+const EXAMPLES = ['pixel_art', 'same_game', 'gomoku', 'dice']
 const SUITE_NAMES = ['core', 'filesystem', 'ui', 'lifecycle', 'examples']
 
 const toolDir = dirname(fileURLToPath(import.meta.url))
@@ -76,7 +76,7 @@ function printUsage() {
     '  examples    Pixel Art, SameGame, Gomoku, and Dice interaction/startup checks.',
     '',
     'Examples:',
-    `  ${EXAMPLES.map((name) => name.replace(/\.py$/, '')).join(', ')}`,
+    `  ${EXAMPLES.join(', ')}`,
   ].join('\n'))
 }
 
@@ -94,7 +94,7 @@ function normalizeSuites(rawSuites) {
 function normalizeExamples(rawExamples) {
   if (rawExamples.length === 0 || rawExamples.includes('all')) return EXAMPLES
 
-  const normalized = rawExamples.map((example) => (example.endsWith('.py') ? example : `${example}.py`))
+  const normalized = rawExamples.map((example) => example.replace(/\.py$/, ''))
   const unknown = normalized.filter((example) => !EXAMPLES.includes(example))
   if (unknown.length > 0) {
     throw new Error(`Unknown example: ${unknown.join(', ')}`)
@@ -677,7 +677,7 @@ async function smokeApiIntrospection(socket) {
   await stopPython(socket)
 
   const name = 'api_introspection.py'
-  const filePath = join(repoRoot, 'Applications', 'Python', 'examples', name)
+  const filePath = join(repoRoot, 'Applications', 'Python', 'examples', 'api_introspection', 'main.py')
   const text = readFileSync(filePath, 'utf8')
 
   const result = await runPythonText(socket, { name, text }, 20_000)
@@ -1429,9 +1429,10 @@ async function runExample(socket, name) {
   await stopPython(socket)
   await rpcCall(socket, 'input.releaseAll').catch(() => {})
 
-  const filePath = join(repoRoot, 'Applications', 'Python', 'examples', name)
+  const scriptName = `${name}.py`
+  const filePath = join(repoRoot, 'Applications', 'Python', 'examples', name, 'main.py')
   const text = readFileSync(filePath, 'utf8')
-  const staged = await rpcCall(socket, 'python.stage', { name, text })
+  const staged = await rpcCall(socket, 'python.stage', { name: scriptName, text })
   assert(staged.ok && staged.size === text.length, `${name} stage failed`)
 
   const run = await runPythonStaged(socket)
@@ -1557,7 +1558,7 @@ async function waitForStableSameGameBoard(socket, options = {}) {
 
 async function smokePixelArtInteraction(socket) {
   const artHash = await setNvsRaw(socket, 'Python Pixel Art grid', pixelArtRaw())
-  await runExample(socket, 'pixel_art.py')
+  await runExample(socket, 'pixel_art')
 
   await waitForLed(socket, 'grid:0,0', 'FF000000')
   let led = await waitForLed(socket, 'grid:1,0', 'FF800000')
@@ -1634,7 +1635,7 @@ async function smokePixelArtInteraction(socket) {
   led = await waitForLed(socket, 'grid:2,2', '00000000')
   assert(led.color === '00000000', 'clear_led.py did not clear painted pixel before restore check')
 
-  await runExample(socket, 'pixel_art.py')
+  await runExample(socket, 'pixel_art')
   led = await waitForLed(socket, 'grid:2,2', 'FF800000')
   assert(led.color === 'FF800000', 'pixel_art.py did not restore painted grid from NVS')
   led = await waitForLed(socket, 'xy:-1,2', 'FF800000')
@@ -1647,7 +1648,7 @@ async function smokePixelArtInteraction(socket) {
 }
 
 async function smokeSameGameInteraction(socket) {
-  await runExample(socket, 'same_game.py')
+  await runExample(socket, 'same_game')
 
   let frame = await waitForStableSameGameBoard(socket)
 
@@ -1741,7 +1742,7 @@ async function smokeGomokuInteraction(socket) {
   await setNvsRaw(socket, 'Python Gomoku first_player', '01')
   await setNvsRaw(socket, 'Python Gomoku winning_length', '05')
 
-  await runExample(socket, 'gomoku.py')
+  await runExample(socket, 'gomoku')
   await new Promise((resolve) => setTimeout(resolve, 300))
 
   await rpcCall(socket, 'input.execute', {
@@ -1866,7 +1867,7 @@ async function smokeDiceInteraction(socket) {
   const confirmedUnderglowHash = await setNvsRaw(socket, 'Python Dice confirmed_underglow', '02')
   const confirmedPeriodHash = await setNvsRaw(socket, 'Python Dice confirmed_period', 'e8 03')
 
-  await runExample(socket, 'dice.py')
+  await runExample(socket, 'dice')
 
   let frame = await waitForLedFrame(socket, (candidate) => (
     Array.isArray(candidate.grid) &&
@@ -2133,10 +2134,10 @@ async function smokeMultiFileImport(socket) {
 }
 
 async function runSelectedExampleInteraction(socket, name) {
-  if (name === 'pixel_art.py') await smokePixelArtInteraction(socket)
-  else if (name === 'same_game.py') await smokeSameGameInteraction(socket)
-  else if (name === 'gomoku.py') await smokeGomokuInteraction(socket)
-  else if (name === 'dice.py') await smokeDiceInteraction(socket)
+  if (name === 'pixel_art') await smokePixelArtInteraction(socket)
+  else if (name === 'same_game') await smokeSameGameInteraction(socket)
+  else if (name === 'gomoku') await smokeGomokuInteraction(socket)
+  else if (name === 'dice') await smokeDiceInteraction(socket)
   else throw new Error(`No interaction smoke registered for ${name}`)
 }
 

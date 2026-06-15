@@ -13,7 +13,7 @@ CHECKED_PATHS = [
 ]
 
 API_DOC_PATH = ROOT / "docs" / "micropython-api.md"
-INTROSPECTION_PATH = ROOT / "Applications" / "Python" / "examples" / "api_introspection.py"
+INTROSPECTION_PATH = ROOT / "Applications" / "Python" / "examples" / "api_introspection" / "main.py"
 
 FORBIDDEN_PATTERNS = [
     (re.compile(r"\.Get[A-Z][A-Za-z_]*\b"), "native PascalCase getter"),

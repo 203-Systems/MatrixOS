@@ -1,0 +1,8 @@
+{
+  "name": "Python Pixel Art",
+  "author": "aarongeorge",
+  "color": [255, 0, 255],
+  "version": 1,
+  "osMinimalVer": [3, 0, 0],
+  "appMainFile": "main.py"
+}

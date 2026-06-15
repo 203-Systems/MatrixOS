@@ -1,3 +1,5 @@
+# Python port based on triplefox/Matrix-OS-SameGame:
+# https://github.com/triplefox/Matrix-OS-SameGame
 import MatrixOS
 
 
@@ -57,12 +59,17 @@ def keypad_state(event):
 
 def next_random():
     global seed
-    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF
+    seed ^= (seed << 13) & 0xFFFFFFFF
+    seed ^= seed >> 17
+    seed ^= (seed << 5) & 0xFFFFFFFF
+    seed &= 0xFFFFFFFF
+    if seed == 0:
+        seed = 1
     return seed
 
 
 def random_color():
-    return (next_random() % num_colors) + 1
+    return ((next_random() >> 8) % num_colors) + 1
 
 
 def cell_color(cell):
@@ -165,7 +172,9 @@ def biggest_non_empty_group():
 
 def reset_game(confirmed=True):
     global board, score, cleared_score, seed, last_color, game_state, last_event_ms
-    seed = SYS.millis() or 1
+    seed = ((SYS.millis() << 16) ^ SYS.micros() ^ 0xA5A5A5A5) & 0xFFFFFFFF
+    if seed == 0:
+        seed = 1
     board = [EMPTY for _ in range(CELL_COUNT)]
     score = 0
     cleared_score = 0

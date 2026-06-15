@@ -1,0 +1,8 @@
+{
+  "name": "Python Gomoku",
+  "author": "sihyunlts",
+  "color": [0, 255, 174],
+  "version": 1,
+  "osMinimalVer": [3, 0, 0],
+  "appMainFile": "main.py"
+}

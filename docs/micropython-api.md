@@ -2,7 +2,7 @@
 
 本文档定义 MatrixOS MicroPython runtime 的 public API。目标是 Pythonic、稳定、可测试；不保留 PikaPython 兼容 wrapper，也不暴露 C++ native 的 PascalCase endpoint。
 
-当前 API 仍在 Phase 2 收敛中。本文只把已经进入 MicroPython usermod 并由 `Applications/Python/examples/api_introspection.py` 覆盖的接口列为 public。
+当前 API 仍在 Phase 2 收敛中。本文只把已经进入 MicroPython usermod 并由 `Applications/Python/examples/api_introspection/main.py` 覆盖的接口列为 public。
 
 ## API 稳定级别
 

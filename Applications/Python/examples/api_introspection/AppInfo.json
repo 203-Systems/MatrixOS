@@ -1,0 +1,8 @@
+{
+  "name": "Python API Introspection",
+  "author": "203 Systems",
+  "color": [0, 255, 255],
+  "version": 1,
+  "osMinimalVer": [3, 0, 0],
+  "appMainFile": "main.py"
+}

@@ -235,7 +235,7 @@ function parseMicropythonSmokeExamples() {
     throw new Error('micropython-smoke.mjs is missing EXAMPLES list')
   }
 
-  return Array.from(match[1].matchAll(/'([^']+\.py)'/g), (item) => item[1].replace(/\.py$/, ''))
+  return Array.from(match[1].matchAll(/'([^']+)'/g), (item) => item[1].replace(/\.py$/, ''))
 }
 
 function checkExampleSmokeEntrypoints() {
@@ -312,11 +312,11 @@ async function runStaticChecks() {
   await run(pythonCmd, [
     '-m',
     'py_compile',
-    join(repoRoot, 'Applications', 'Python', 'examples', 'api_introspection.py'),
-    join(repoRoot, 'Applications', 'Python', 'examples', 'pixel_art.py'),
-    join(repoRoot, 'Applications', 'Python', 'examples', 'same_game.py'),
-    join(repoRoot, 'Applications', 'Python', 'examples', 'gomoku.py'),
-    join(repoRoot, 'Applications', 'Python', 'examples', 'dice.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'api_introspection', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'pixel_art', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'same_game', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'gomoku', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'dice', 'main.py'),
   ])
   await run(pythonCmd, [join(repoRoot, 'Applications', 'Python', 'tools', 'check_micropython_api_surface.py')])
   checkQstrOrder()

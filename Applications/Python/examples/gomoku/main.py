@@ -1,3 +1,5 @@
+# Python port based on sihyunlts/Matrix-OS-Gomoku:
+# https://github.com/sihyunlts/Matrix-OS-Gomoku
 import MatrixOS
 
 

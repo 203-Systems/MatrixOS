@@ -46,7 +46,7 @@ Phase 2 的重点是把 runtime 跑起来、拆出模块化 binding、冻结 Pyt
 **交付物**
 
 - `docs/micropython-api.md` 更新为稳定 API 文档。
-- `Applications/Python/examples/api_introspection.py` 覆盖完整 public surface。
+- `Applications/Python/examples/api_introspection/main.py` 覆盖完整 public surface。
 - `Applications/Python/tools/check_micropython_api_surface.py` 能发现文档/API 漂移。
 
 ## Deliverable 2: UI Wrapper Production Parity
