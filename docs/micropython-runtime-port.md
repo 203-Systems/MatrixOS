@@ -35,7 +35,7 @@ The active MicroPython-facing API is intentionally Pythonic:
 - `MatrixOS.UI`
 
 Public names use `snake_case`; old Pika-style PascalCase wrappers are not part of the active API.
-The old Pika-style generated facade remains in the tree only as inactive legacy source. It is not part of the active build path.
+The old Pika-style generated facade has been removed from the tree and is not part of the active build path.
 
 ## API Surface Status
 

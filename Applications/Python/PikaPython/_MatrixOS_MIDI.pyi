@@ -1,9 +1,0 @@
-# MatrixOS Python Interface - MIDI
-# MIDI communication functions
-
-from MatrixOS_MidiPacket import MidiPacket
-
-# Returns MidiPacket on success or None on timeout/failure
-def Get(self, timeout_ms: int) -> any: ...
-def Send(self, packet: MidiPacket, timeout_ms: int) -> bool: ...
-def SendSysEx(self, port: int, length: int, data: bytes, include_meta: bool) -> bool: ...

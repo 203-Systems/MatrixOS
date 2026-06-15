@@ -28,7 +28,7 @@ This project has been made possible with the following open-source projects:
 
 [TinyUSB](https://github.com/hathach/tinyusb) - USB Host/Device stack
 
-[PikaPython](https://github.com/pikasTech/PikaPython) - Lightweight embedded Python engine.
+[MicroPython](https://github.com/micropython/micropython) - Embedded Python runtime.
 
 [Printf](https://github.com/eyalroz/printf/) - Formatted Printing Functions
 

@@ -1,2 +1,0 @@
-pikascript-core==8a4f2b8dd8651996390d1b255a8ea01233cd445c
-PikaStdLib==8a4f2b8dd8651996390d1b255a8ea01233cd445c
