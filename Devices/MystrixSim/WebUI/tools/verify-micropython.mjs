@@ -36,6 +36,8 @@ const exampleSmokeApps = [
   { example: 'same_game', scriptName: 'same-game-smoke.mjs', packageScript: 'smoke:micropython:same-game' },
   { example: 'gomoku', scriptName: 'gomoku-smoke.mjs', packageScript: 'smoke:micropython:gomoku' },
   { example: 'dice', scriptName: 'dice-smoke.mjs', packageScript: 'smoke:micropython:dice' },
+  { example: 'lighting', scriptName: 'lighting-smoke.mjs', packageScript: 'smoke:micropython:lighting' },
+  { example: 'reversi', scriptName: 'reversi-smoke.mjs', packageScript: 'smoke:micropython:reversi' },
 ]
 const smokeScripts = [
   'micropython-smoke.mjs',
@@ -126,7 +128,7 @@ function printUsage() {
     '  --smoke <ws-url>     Run WebUI RPC smoke against an existing runtime tab.',
     '  --smoke-dev          Start dev server + Chrome and run RPC smoke.',
     '  --suite <name>       Forward smoke suite filter: core, filesystem, ui, lifecycle, examples, or all.',
-    '  --example <name>     Forward example filter for examples suite: pixel_art, same_game, gomoku, dice, or all.',
+    '  --example <name>     Forward example filter for examples suite: pixel_art, same_game, gomoku, dice, lighting, reversi, or all.',
     '  --rpc-port <port>    WebSocket RPC port for --smoke-dev. Default: auto.',
     '  --web-port <port>    Vite dev server port for --smoke-dev. Default: auto.',
     '  --skip-build         Skip MatrixOSHost build/wasm/package steps.',
@@ -317,6 +319,8 @@ async function runStaticChecks() {
     join(repoRoot, 'Applications', 'Python', 'examples', 'same_game', 'main.py'),
     join(repoRoot, 'Applications', 'Python', 'examples', 'gomoku', 'main.py'),
     join(repoRoot, 'Applications', 'Python', 'examples', 'dice', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'lighting', 'main.py'),
+    join(repoRoot, 'Applications', 'Python', 'examples', 'reversi', 'main.py'),
   ])
   await run(pythonCmd, [join(repoRoot, 'Applications', 'Python', 'tools', 'check_micropython_api_surface.py')])
   checkQstrOrder()

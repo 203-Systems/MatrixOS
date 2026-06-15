@@ -1,0 +1,8 @@
+{
+  "name": "Python Reversi",
+  "author": "203 Systems",
+  "color": [0, 143, 0],
+  "version": 1,
+  "osMinimalVer": [3, 0, 0],
+  "appMainFile": "main.py"
+}

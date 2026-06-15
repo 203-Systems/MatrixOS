@@ -12,14 +12,14 @@
  *   node tools/micropython-smoke.mjs --suite examples --example dice
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { WebSocket } from 'ws'
 
 const DEFAULT_WS = 'ws://localhost:4002'
 const TIMEOUT_MS = 15_000
-const EXAMPLES = ['pixel_art', 'same_game', 'gomoku', 'dice']
+const EXAMPLES = ['pixel_art', 'same_game', 'gomoku', 'dice', 'lighting', 'reversi']
 const SUITE_NAMES = ['core', 'filesystem', 'ui', 'lifecycle', 'examples']
 
 const toolDir = dirname(fileURLToPath(import.meta.url))
@@ -73,7 +73,7 @@ function printUsage() {
     '  filesystem  Multi-file staging, import, and open().',
     '  ui          Native UI wrapper interactions and callback safety.',
     '  lifecycle   Repeated start/stop, error recovery, and runtime responsiveness.',
-    '  examples    Pixel Art, SameGame, Gomoku, and Dice interaction/startup checks.',
+    '  examples    Pixel Art, SameGame, Gomoku, Dice, Lighting, and Reversi interaction/startup checks.',
     '',
     'Examples:',
     `  ${EXAMPLES.join(', ')}`,
@@ -1400,10 +1400,13 @@ async function smokeExample(socket, name) {
   await rpcCall(socket, 'input.releaseAll').catch(() => {})
 
   const filePath = join(repoRoot, 'Applications', 'Python', 'examples', name)
-  const text = readFileSync(filePath, 'utf8')
+  const pathStats = statSync(filePath)
+  const scriptPath = pathStats.isDirectory() ? join(filePath, 'main.py') : filePath
+  const stageName = pathStats.isDirectory() ? `${name}.py` : name
+  const text = readFileSync(scriptPath, 'utf8')
 
   async function stageAndRun() {
-    const staged = await rpcCall(socket, 'python.stage', { name, text })
+    const staged = await rpcCall(socket, 'python.stage', { name: stageName, text })
     assert(staged.ok && staged.size === text.length, `${name} stage failed`)
     return runPythonStaged(socket)
   }
@@ -2089,6 +2092,102 @@ async function smokeDiceInteraction(socket) {
   console.log('[micropython-smoke] dice.py interaction ok')
 }
 
+async function smokeLightingInteraction(socket) {
+  const modeHash = await setNvsRaw(socket, 'Python Lighting mode', '00')
+  const colorHash = await setNvsRaw(socket, 'Python Lighting color', '56 34 12 00')
+  const temperatureEffectHash = await setNvsRaw(socket, 'Python Lighting temperature_effect', '00')
+  const temperatureBpmHash = await setNvsRaw(socket, 'Python Lighting temperature_effect_bpm', '3c')
+
+  await runExample(socket, 'lighting')
+
+  let led = await waitForLed(socket, 'grid:0,0', '12345600', 3_000)
+  assert(led.color === '12345600', 'lighting.py did not render configured RGB color')
+
+  await clickInput(socket, 'function', 160, 300)
+  led = await waitForLed(socket, 'grid:0,6', '12345600', 3_000)
+  assert(led.color === '12345600', 'lighting.py did not enter settings with RGB color button visible')
+
+  await clickInput(socket, 'grid:4,0')
+  let nvsEntry = await waitForNvsRaw(socket, modeHash, '01')
+  assert(nvsEntry?.rawBytes === '01', 'lighting.py did not persist temperature mode')
+
+  led = await waitForLed(socket, 'grid:4,0', 'FFFFFF00', 3_000)
+  assert(led.color === 'FFFFFF00', 'lighting.py did not show selected temperature mode')
+
+  await clickInput(socket, 'grid:0,3', 180, 500)
+  led = await waitForLed(socket, 'grid:2,0', 'FFFFFF00', 3_000)
+  assert(led.color === 'FFFFFF00', 'lighting.py did not open effect menu')
+
+  await clickInput(socket, 'grid:4,0')
+  await clickInput(socket, 'grid:7,6')
+
+  await clickInput(socket, 'function', 120, 300)
+  led = await waitForLed(socket, 'grid:4,0', 'FFFFFF00', 3_000)
+  assert(led.color === 'FFFFFF00', 'lighting.py did not return to settings from effect menu')
+  nvsEntry = await waitForNvsRaw(socket, temperatureEffectHash, '02')
+  assert(nvsEntry?.rawBytes === '02', 'lighting.py did not persist temperature strobe effect')
+  nvsEntry = await waitForNvsRaw(socket, temperatureBpmHash, '8F')
+  assert(nvsEntry?.rawBytes === '8F', `lighting.py did not persist adjusted BPM: ${nvsEntry?.rawBytes ?? 'missing'}`)
+
+  await clickInput(socket, 'function', 120, 300)
+  led = await waitForLed(socket, 'grid:0,0', 'FFFFFF00', 3_000)
+  assert(led.color === 'FFFFFF00', 'lighting.py did not render temperature color after leaving settings')
+
+  const output = outputText(await rpcCall(socket, 'python.getOutput', { last: 80 }))
+  assert(!output.includes('Traceback'), `lighting.py emitted traceback: ${output}`)
+  await stopPython(socket)
+  await waitForNvsRaw(socket, colorHash, '56 34 12 00')
+  console.log('[micropython-smoke] lighting.py interaction ok')
+}
+
+async function smokeReversiInteraction(socket) {
+  const player1ColorHash = await setNvsRaw(socket, 'Python Reversi player1_color', 'FF 00 FF 00')
+  const player2ColorHash = await setNvsRaw(socket, 'Python Reversi player2_color', 'FF FF 00 00')
+  const firstPlayerHash = await setNvsRaw(socket, 'Python Reversi first_player', '01')
+  const hintHash = await setNvsRaw(socket, 'Python Reversi hint', '01')
+
+  await runExample(socket, 'reversi')
+
+  let led = await waitForLed(socket, 'grid:3,3', 'FF00FF00', 3_000)
+  assert(led.color === 'FF00FF00', 'reversi.py did not render initial player 1 stone')
+  led = await waitForLed(socket, 'grid:3,4', '00FFFF00', 3_000)
+  assert(led.color === '00FFFF00', 'reversi.py did not render initial player 2 stone')
+
+  await clickInput(socket, 'grid:4,2')
+  led = await waitForLed(socket, 'grid:4,3', 'FF00FF00', 4_000)
+  assert(led.color === 'FF00FF00', 'reversi.py did not flip captured stone')
+
+  await clickInput(socket, 'function', 160, 300)
+  led = await waitForLed(socket, 'grid:7,3', 'FF000000', 3_000)
+  assert(led.color === 'FF000000', 'reversi.py did not enter settings with reset button visible')
+
+  await clickInput(socket, 'grid:0,3')
+  let nvsEntry = await waitForNvsRaw(socket, hintHash, '00')
+  assert(nvsEntry?.rawBytes === '00', 'reversi.py did not persist hint toggle')
+
+  await clickInput(socket, 'grid:0,7')
+  nvsEntry = await waitForNvsRaw(socket, player1ColorHash, 'FF FF')
+  assert(nvsEntry?.rawBytes === 'FF FF', 'reversi.py did not persist player 1 color cycle')
+
+  await clickInput(socket, 'grid:0,0')
+  nvsEntry = await waitForNvsRaw(socket, player2ColorHash, '00 FF')
+  assert(nvsEntry?.rawBytes === '00 FF', 'reversi.py did not persist player 2 color cycle')
+
+  await clickInput(socket, 'grid:0,1')
+  await clickInput(socket, 'grid:5,3', 120, 300)
+  nvsEntry = await waitForNvsRaw(socket, firstPlayerHash, '02')
+  assert(nvsEntry?.rawBytes === '02', 'reversi.py did not persist first-player change')
+
+  await clickInput(socket, 'function', 120, 300)
+  led = await waitForLed(socket, 'grid:3,3', '00FF0000', 3_000)
+  assert(led.color === '00FF0000', 'reversi.py did not reset board after first-player change')
+
+  const output = outputText(await rpcCall(socket, 'python.getOutput', { last: 80 }))
+  assert(!output.includes('Traceback'), `reversi.py emitted traceback: ${output}`)
+  await stopPython(socket)
+  console.log('[micropython-smoke] reversi.py interaction ok')
+}
+
 async function smokeMultiFileImport(socket) {
   await stopPython(socket)
 
@@ -2138,6 +2237,8 @@ async function runSelectedExampleInteraction(socket, name) {
   else if (name === 'same_game') await smokeSameGameInteraction(socket)
   else if (name === 'gomoku') await smokeGomokuInteraction(socket)
   else if (name === 'dice') await smokeDiceInteraction(socket)
+  else if (name === 'lighting') await smokeLightingInteraction(socket)
+  else if (name === 'reversi') await smokeReversiInteraction(socket)
   else throw new Error(`No interaction smoke registered for ${name}`)
 }
 

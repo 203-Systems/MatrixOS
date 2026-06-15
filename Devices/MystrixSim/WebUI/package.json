@@ -12,6 +12,8 @@
     "smoke:micropython:same-game": "node tools/same-game-smoke.mjs",
     "smoke:micropython:gomoku": "node tools/gomoku-smoke.mjs",
     "smoke:micropython:dice": "node tools/dice-smoke.mjs",
+    "smoke:micropython:lighting": "node tools/lighting-smoke.mjs",
+    "smoke:micropython:reversi": "node tools/reversi-smoke.mjs",
     "verify:micropython": "node tools/verify-micropython.mjs",
     "verify:micropython:smoke": "node tools/verify-micropython.mjs --smoke-dev"
   },
