@@ -5,10 +5,6 @@ static uint32_t droppedInputEvents = 0;
 
 static void LogDroppedInputEvent() {
   droppedInputEvents++;
-  if (droppedInputEvents == 1 || (droppedInputEvents % 32) == 0)
-  {
-    MLOGW(TAG, "Input queue overflow, dropped %lu event(s)", droppedInputEvents);
-  }
 }
 
 namespace MatrixOS::Input

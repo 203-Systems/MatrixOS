@@ -68,6 +68,7 @@ static Application* CreateApp() {
   void* mem = pvPortMalloc(sizeof(T));
   if (mem == nullptr)
   {
+    MLOGE("Application Factory", "Failed to allocate %d bytes for app object; free heap: %d bytes", sizeof(T), xPortGetFreeHeapSize());
     return nullptr;
   }
   return new (mem) T();

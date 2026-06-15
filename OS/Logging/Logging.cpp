@@ -20,11 +20,17 @@ void Log(ELogLevel level, const string& tag, const string& format, va_list& vals
 #endif
 
 #ifdef MATRIXOS_LOG_DEVICE
-  Device::Log(msg, valst);
+  va_list deviceArgs;
+  va_copy(deviceArgs, valst);
+  Device::Log(msg, deviceArgs);
+  va_end(deviceArgs);
 #endif
 
 #ifdef MATRIXOS_LOG_USBCDC
-  USB::CDC::VPrintf(msg, valst);
+  va_list cdcArgs;
+  va_copy(cdcArgs, valst);
+  USB::CDC::VPrintf(msg, cdcArgs);
+  va_end(cdcArgs);
 #endif
 }
 

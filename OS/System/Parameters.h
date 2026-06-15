@@ -37,7 +37,8 @@
 #define MATRIXOS_LOG_USBCDC
 #define MATRIXOS_LOG_COLOR
 
-#define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 64)
+// TODO: move this to per-app stack sizing so heavier apps can request more.
+#define APPLICATION_STACK_SIZE (configMINIMAL_STACK_SIZE * 32)
 
 #define INPUT_EVENT_QUEUE_SIZE 32
 #define MIDI_QUEUE_SIZE 128
