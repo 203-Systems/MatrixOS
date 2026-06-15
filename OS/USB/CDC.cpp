@@ -19,10 +19,20 @@ void Poll(void) {
 }
 
 void Print(string str) {
+  if (!Connected())
+  {
+    return;
+  }
+
   for (uint16_t i = 0; i < str.length(); i++)
   {
     while (!tud_cdc_n_write_available(0))
     {
+      if (!Connected())
+      {
+        return;
+      }
+      taskYIELD();
     }
     tud_cdc_n_write_char(0, str[i]);
   }
@@ -62,6 +72,11 @@ void VPrintf(string format, va_list valst) {
 }
 
 void Flush(void) {
+  if (!Connected())
+  {
+    return;
+  }
+
   tud_cdc_n_write_flush(0);
 }
 
@@ -110,5 +125,10 @@ string ReadString(void) {
 } // namespace MatrixOS::USB::CDC
 
 void putchar_(char character) {
+  if (!MatrixOS::USB::CDC::Connected())
+  {
+    return;
+  }
+
   tud_cdc_n_write_char(0, character);
 }
