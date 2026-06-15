@@ -319,7 +319,12 @@ function isActiveState(state) {
 }
 
 function forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y) {
-  if (sendKeyInfoEvent(clusterId, memberId, state, pressure, velocity)) return
+  if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
+    if (sendKeyInfoEvent(clusterId, memberId, state, pressure, velocity)) return
+  } else if (clusterId === INPUT_CLUSTER_PRIMARY_GRID) {
+    const logicalMemberId = y * 8 + x
+    if (sendKeyInfoEvent(clusterId, logicalMemberId, state, pressure, velocity)) return
+  }
 
   if (state !== KEYPAD_STATE_RELEASED && !isPressedState(state)) return
 

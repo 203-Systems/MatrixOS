@@ -97,6 +97,30 @@ Goal: make Phase 3 runtime failures diagnosable without adding Python example wo
 - `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-static --skip-build --skip-web-build --smoke-dev --suite lifecycle`
   passed.
 
+## 2026-06-15: Physical Developer input rotation
+
+Goal: keep WebUI hardware input mirroring aligned with the logical MatrixOS coordinate system.
+
+### Finding
+
+- Developer input reports include both `memberId` and logical `x/y`.
+- On a rotated physical device, MatrixOS input position APIs report rotated logical `x/y`, while the
+  raw grid `memberId` still identifies the physical key slot.
+- The WebUI physical bridge forwarded primary-grid events through `memberId` first, bypassing the
+  logical coordinate that Developer already sent. That made hardware input direction wrong when the
+  physical device rotation was not `TOP`.
+
+### Implemented
+
+- Primary-grid physical input forwarding now derives the simulator grid member from reported logical
+  `x/y` before calling `MatrixOS_Wasm_KeyInfoEvent`, preserving pressure, velocity, aftertouch, and
+  release semantics.
+- Function key forwarding still uses the function-key `memberId`.
+
+### Verification
+
+- `npm --prefix Devices\MystrixSim\WebUI run verify:micropython -- --skip-build` passed.
+
 ## 2026-06-13: UI input API shape
 
 Goal: make Python UI input feel Pythonic without reintroducing native-to-Python input callback
