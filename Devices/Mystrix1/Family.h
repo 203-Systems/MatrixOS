@@ -5,6 +5,8 @@
 
 #include "Framework.h"
 
+#include "System/Parameters.h"
+
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
 #include "driver/gpio.h"
@@ -52,6 +54,9 @@ inline DeviceInfo deviceInfo;
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, touchbarEnable, bool, true);
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, bluetooth, bool, false);
 inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, persistedRotation, Direction, TOP);
+#ifdef MATRIXOS_BUILD_INDEV
+inline CreateSavedVar(DEVICE_SAVED_VAR_SCOPE, serialJtagUsbMode, bool, false);
+#endif
 
 namespace HWMidi
 {
@@ -70,6 +75,8 @@ void LoadVariantInfo();
 namespace USB
 {
 void Init();
+bool SetSerialJtagMode(bool enabled, bool save = true);
+bool SerialJtagModeEnabled();
 }
 namespace LED
 {
@@ -151,7 +158,18 @@ bool NotifyOS(InputId id, KeypadInfo* keyState); // Emits InputEvent directly vi
 namespace NVS
 {
 void Init();
+size_t Size(uint32_t hash);
+vector<char> Read(uint32_t hash);
+bool Write(uint32_t hash, void* pointer, uint16_t length);
+bool Delete(uint32_t hash);
+void Clear();
 }
+
+namespace CrashLog
+{
+bool HasReport();
+void Print();
+} // namespace CrashLog
 
 namespace WIFI
 {

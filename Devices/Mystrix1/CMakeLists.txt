@@ -22,7 +22,7 @@ include($ENV{IDF_PATH}/tools/cmake/idf.cmake)
 idf_build_process("${IDF_TARGET}"
     SDKCONFIG ${SDKCONFIG_PATH}
     SDKCONFIG_DEFAULTS ${SDKCONFIG_DEFAULTS_PATH}
-    COMPONENTS esptool_py freertos usb efuse esp_common esp_system esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp bt console sdmmc driver
+    COMPONENTS esptool_py freertos usb efuse esp_common esp_system espcoredump esp_driver_gpio esp_driver_uart nvs_flash esp_wifi esp_netif esp_adc ulp bt console sdmmc driver
 )
 
 # Check ESP-IDF version
@@ -91,6 +91,7 @@ target_link_libraries(MatrixOSDevice PUBLIC
     idf::freertos
     idf::esp_common
     idf::esp_system
+    idf::espcoredump
     idf::usb
     idf::efuse
     idf::esp_driver_gpio

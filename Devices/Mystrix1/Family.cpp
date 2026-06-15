@@ -5,6 +5,7 @@
 #include "esp_private/system_internal.h" // For esp_reset_reason_set_hint
 #include "esp_timer.h"                   // esp_timer_get_time
 
+#include "esp_core_dump.h"
 #include "esp_efuse.h"
 #include "esp_efuse_table.h"
 #include <algorithm>
@@ -29,8 +30,8 @@ void UpdateRotationMapping(Direction rotation);
 
 void DeviceInit() {
   LoadDeviceInfo();
-  USB::Init();
   NVS::Init();
+  USB::Init();
   LED::Init();
   KeyPad::Init();
 
@@ -39,6 +40,47 @@ void DeviceInit() {
   HWMidi::Init();
   BLEMIDI::Init(name);
 }
+
+namespace CrashLog
+{
+bool HasReport() {
+#if CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH && CONFIG_ESP_COREDUMP_DATA_FORMAT_ELF
+  return esp_core_dump_image_check() == ESP_OK;
+#else
+  return false;
+#endif
+}
+
+void Print() {
+#if CONFIG_ESP_COREDUMP_ENABLE_TO_FLASH && CONFIG_ESP_COREDUMP_DATA_FORMAT_ELF
+  if (esp_core_dump_image_check() != ESP_OK)
+  {
+    MatrixOS::UIUtility::TextScroll("No Crash Log", Color(0x220000));
+    return;
+  }
+
+  esp_core_dump_summary_t summary = {};
+  if (esp_core_dump_get_summary(&summary) != ESP_OK)
+  {
+    MatrixOS::UIUtility::TextScroll("Crash Log Error", Color(0xFF0000));
+    return;
+  }
+
+  MLOGE("CrashLog", "Previous crash: task=%s pc=0x%08X cause=%u vaddr=0x%08X", summary.exc_task,
+        (unsigned int)summary.exc_pc, (unsigned int)summary.ex_info.exc_cause, (unsigned int)summary.ex_info.exc_vaddr);
+  MLOGE("CrashLog", "Backtrace depth=%u corrupted=%d", (unsigned int)summary.exc_bt_info.depth, summary.exc_bt_info.corrupted);
+
+  for (uint32_t i = 0; i < summary.exc_bt_info.depth; i++)
+  {
+    MLOGE("CrashLog", "  bt[%u]=0x%08X", (unsigned int)i, (unsigned int)summary.exc_bt_info.bt[i]);
+  }
+
+  MatrixOS::UIUtility::TextScroll("Crash Log Printed", Color(0xFF0000));
+#else
+  MatrixOS::UIUtility::TextScroll("No Crash Log", Color(0x220000));
+#endif
+}
+} // namespace CrashLog
 
 void RegisterInputClusters(); // forward declaration
 
@@ -295,12 +337,33 @@ void DeviceSettings() {
   touchbarToggle.OnPress([&]() -> void { Device::touchbarEnable.Save(); });
   deviceSettings.AddUIComponent(touchbarToggle, Point(1, 0));
 
+#ifdef MATRIXOS_BUILD_INDEV
+  UIButton usbModeToggle;
+  usbModeToggle.SetName("USB Serial/JTAG");
+  usbModeToggle.SetColorFunc([]() -> Color {
+    return Color(0xFF5500).DimIfNot(Device::USB::SerialJtagModeEnabled());
+  });
+  usbModeToggle.OnPress([&]() -> void {
+    bool enableSerialJtag = !Device::USB::SerialJtagModeEnabled();
+    Device::USB::SetSerialJtagMode(enableSerialJtag);
+    MatrixOS::SYS::Reboot();
+  });
+  deviceSettings.AddUIComponent(usbModeToggle, Point(0, 1));
+#endif
+
   UIButton keypadCalibrationBtn;
   keypadCalibrationBtn.SetName("Keypad Calibration");
   keypadCalibrationBtn.SetColor(Color::White);
   keypadCalibrationBtn.OnPress([]() -> void { MatrixOS::SYS::ExecuteAPP("203 Systems", "Force Calibration"); });
   keypadCalibrationBtn.SetEnabled(Device::KeyPad::velocitySensitivity);
   deviceSettings.AddUIComponent(keypadCalibrationBtn, Point(7, 0));
+
+  UIButton crashLogBtn;
+  crashLogBtn.SetName("Crash Log");
+  crashLogBtn.SetColor(Color(0xFF0000));
+  crashLogBtn.SetEnabled(Device::CrashLog::HasReport());
+  crashLogBtn.OnPress([]() -> void { Device::CrashLog::Print(); });
+  deviceSettings.AddUIComponent(crashLogBtn, Point(0, 6));
 
   // Infomation
   UIButton deviceNameBtn;
