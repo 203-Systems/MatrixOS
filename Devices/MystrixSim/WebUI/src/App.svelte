@@ -10,6 +10,7 @@
   import DevicePanel from './components/DevicePanel.svelte'
   import ConnectionPage from './components/ConnectionPage.svelte'
   import FirmwarePage from './components/FirmwarePage.svelte'
+  import MIDIPage from './components/MIDIPage.svelte'
   import PhysicalDevicePage from './components/PhysicalDevicePage.svelte'
   import ToolTray from './components/ToolTray.svelte'
   import ToolPanelStack from './components/ToolPanelStack.svelte'
@@ -19,7 +20,7 @@
   let activeSection = 'device'
 
   const sectionPrefKey = 'matrixos-active-section'
-  const validSections = ['device', 'physical', 'connection', 'firmware']
+  const validSections = ['device', 'physical', 'midi', 'connection', 'firmware']
 
   onMount(() => {
     try {
@@ -78,6 +79,8 @@
         <DevicePanel />
       {:else if activeSection === 'physical'}
         <PhysicalDevicePage />
+      {:else if activeSection === 'midi'}
+        <MIDIPage />
       {:else if activeSection === 'connection'}
         <ConnectionPage />
       {:else if activeSection === 'firmware'}

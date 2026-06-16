@@ -16,6 +16,10 @@ function injectMidi(status, data0, data1, data2, targetPort) {
   return true
 }
 
+export function sendMidiRaw(status, data0 = 0, data1 = 0, data2 = 0, targetPort = 0xF000) {
+  return injectMidi(status & 0xFF, data0, data1, data2, targetPort)
+}
+
 export function sendMidiNote(channel, note, velocity, targetPort) {
   const status = velocity > 0 ? (0x90 | (channel & 0x0F)) : (0x80 | (channel & 0x0F))
   return injectMidi(status, note, velocity, 0, targetPort)
