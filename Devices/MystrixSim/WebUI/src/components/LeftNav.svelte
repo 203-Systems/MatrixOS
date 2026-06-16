@@ -5,11 +5,11 @@
   let expanded = false
 
   const sections = [
-    { id: 'device',     label: 'Device',     icon: Dashboard },
+    { id: 'device',     label: 'Simulator',  icon: Dashboard },
+    { id: 'firmware',   label: 'Firmware',   icon: Chip },
     { id: 'physical',   label: 'Hardware',   icon: Usb },
     { id: 'midi',       label: 'MIDI',       icon: Music },
     { id: 'connection', label: 'Connection', icon: Connect },
-    { id: 'firmware',   label: 'Firmware',   icon: Chip },
   ]
 </script>
 
