@@ -80,7 +80,7 @@ MatrixOS.Color((255, 0, 0))
 - `version() -> str`
 - `version_id() -> int`
 
-`task_yield()` 是 cooperative yield 入口，底层走 MatrixOS/FreeRTOS task yield，不引入固定 ms delay。app 不应该依赖它产生精确时间等待；需要等待时间时使用 `sleep_ms()`。
+`task_yield()` 是 cooperative yield 入口，底层走 MatrixOS/FreeRTOS task yield，不引入固定 ms delay。app 不应该依赖它产生精确时间等待；需要等待时间时使用 `sleep_ms()`。Python runtime 会在每次 app `loop()` 返回后自动 yield；普通 app loop 不需要手动调用 `task_yield()`。
 
 `reboot()`、`bootloader()`、`execute_app()` 是真实系统动作。测试里不要直接调用这些会改变 runtime 生命周期的 API，除非测试目标就是系统跳转。
 

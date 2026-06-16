@@ -264,6 +264,7 @@ bool MicroPythonRuntime::CallLoop() {
   {
     mp_call_function_0(loopElement->value);
     nlr_pop();
+    taskYIELD();
     return true;
   }
 
