@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "carbon-icons-svelte": "^13.8.0",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "soundfont-player": "^0.12.0"
   }
 }

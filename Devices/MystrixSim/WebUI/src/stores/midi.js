@@ -1,5 +1,6 @@
 // MIDI event store for MystrixSim dashboard
 import { writable, get } from 'svelte/store'
+import Soundfont from 'soundfont-player'
 import { sendMidiRaw, sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
 
 let counter = 0
@@ -33,17 +34,54 @@ export const midiPorts = writable([
 ])
 
 let midiAccess = null
-let activeNotes = new Map()
 let audioCtx = null
+let activeNotes = new Map()
+let instrumentCache = new Map()
 
-export const synthPresets = [
-  { id: 'warm-pad', name: 'Warm Pad', wave: 'sawtooth', attack: 0.08, release: 0.5, gain: 0.14, detune: -5 },
-  { id: 'soft-sine', name: 'Soft Sine', wave: 'sine', attack: 0.012, release: 0.22, gain: 0.18, detune: 0 },
-  { id: 'square-lead', name: 'Square Lead', wave: 'square', attack: 0.006, release: 0.16, gain: 0.13, detune: 0 },
-  { id: 'triangle-bell', name: 'Triangle Bell', wave: 'triangle', attack: 0.003, release: 0.75, gain: 0.16, detune: 12 },
-  { id: 'bass-pulse', name: 'Bass Pulse', wave: 'square', attack: 0.004, release: 0.18, gain: 0.18, detune: -12 },
-  { id: 'pluck', name: 'Pluck', wave: 'sawtooth', attack: 0.002, release: 0.12, gain: 0.13, detune: 7 },
+const GM_INSTRUMENTS = [
+  'acoustic_grand_piano', 'bright_acoustic_piano', 'electric_grand_piano', 'honkytonk_piano',
+  'electric_piano_1', 'electric_piano_2', 'harpsichord', 'clavinet',
+  'celesta', 'glockenspiel', 'music_box', 'vibraphone', 'marimba', 'xylophone', 'tubular_bells', 'dulcimer',
+  'drawbar_organ', 'percussive_organ', 'rock_organ', 'church_organ', 'reed_organ', 'accordion', 'harmonica', 'tango_accordion',
+  'acoustic_guitar_nylon', 'acoustic_guitar_steel', 'electric_guitar_jazz', 'electric_guitar_clean',
+  'electric_guitar_muted', 'overdriven_guitar', 'distortion_guitar', 'guitar_harmonics',
+  'acoustic_bass', 'electric_bass_finger', 'electric_bass_pick', 'fretless_bass', 'slap_bass_1', 'slap_bass_2',
+  'synth_bass_1', 'synth_bass_2',
+  'violin', 'viola', 'cello', 'contrabass', 'tremolo_strings', 'pizzicato_strings', 'orchestral_harp', 'timpani',
+  'string_ensemble_1', 'string_ensemble_2', 'synth_strings_1', 'synth_strings_2', 'choir_aahs', 'voice_oohs', 'synth_choir', 'orchestra_hit',
+  'trumpet', 'trombone', 'tuba', 'muted_trumpet', 'french_horn', 'brass_section', 'synth_brass_1', 'synth_brass_2',
+  'soprano_sax', 'alto_sax', 'tenor_sax', 'baritone_sax', 'oboe', 'english_horn', 'bassoon', 'clarinet',
+  'piccolo', 'flute', 'recorder', 'pan_flute', 'blown_bottle', 'shakuhachi', 'whistle', 'ocarina',
+  'lead_1_square', 'lead_2_sawtooth', 'lead_3_calliope', 'lead_4_chiff', 'lead_5_charang', 'lead_6_voice', 'lead_7_fifths', 'lead_8_bass__lead',
+  'pad_1_new_age', 'pad_2_warm', 'pad_3_polysynth', 'pad_4_choir', 'pad_5_bowed', 'pad_6_metallic', 'pad_7_halo', 'pad_8_sweep',
+  'fx_1_rain', 'fx_2_soundtrack', 'fx_3_crystal', 'fx_4_atmosphere', 'fx_5_brightness', 'fx_6_goblins', 'fx_7_echoes', 'fx_8_scifi',
+  'sitar', 'banjo', 'shamisen', 'koto', 'kalimba', 'bagpipe', 'fiddle', 'shanai',
+  'tinkle_bell', 'agogo', 'steel_drums', 'woodblock', 'taiko_drum', 'melodic_tom', 'synth_drum', 'reverse_cymbal',
+  'guitar_fret_noise', 'breath_noise', 'seashore', 'bird_tweet', 'telephone_ring', 'helicopter', 'applause', 'gunshot',
 ]
+
+export const synthCategories = [
+  'Piano', 'Chromatic', 'Organ', 'Guitar', 'Bass', 'Strings', 'Ensemble', 'Brass',
+  'Reed', 'Pipe', 'Lead', 'Pad', 'FX', 'Ethnic', 'Percussive', 'SFX',
+]
+
+function categoryForProgram(program) {
+  return synthCategories[Math.max(0, Math.min(synthCategories.length - 1, Math.floor(program / 8)))]
+}
+
+function humanizeInstrument(name) {
+  return name
+    .replace(/__/g, ' + ')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
+export const synthPresets = GM_INSTRUMENTS.map((id, program) => ({
+  id,
+  program,
+  name: humanizeInstrument(id),
+  category: categoryForProgram(program),
+}))
 
 function loadJson(key, fallback) {
   if (typeof window === 'undefined') return fallback
@@ -71,7 +109,7 @@ function loadSynthPrefs() {
   const loaded = loadJson(SYNTH_PREF_KEY, null)
   if (Array.isArray(loaded)) return loaded
   return [
-    { id: cryptoId(), channel: 1, preset: 'warm-pad', enabled: false, label: 'Synth 1' },
+    { id: cryptoId(), channel: 1, preset: 'acoustic_grand_piano', enabled: false, label: 'Synth 1' },
   ]
 }
 
@@ -362,12 +400,27 @@ export function resumeSynthAudio() {
   return Boolean(ctx)
 }
 
-function noteFrequency(note) {
-  return 440 * Math.pow(2, (note - 69) / 12)
-}
-
 function getPreset(id) {
   return synthPresets.find(p => p.id === id) || synthPresets[0]
+}
+
+function loadInstrument(instrumentId) {
+  const ctx = ensureAudio()
+  if (!ctx) return Promise.resolve(null)
+  const preset = getPreset(instrumentId)
+  const cacheKey = preset.id
+  if (!instrumentCache.has(cacheKey)) {
+    instrumentCache.set(cacheKey, Soundfont.instrument(ctx, preset.id, {
+      soundfont: 'FluidR3_GM',
+      format: 'mp3',
+      gain: 1.8,
+    }).catch((error) => {
+      instrumentCache.delete(cacheKey)
+      console.warn('[MystrixSim] Failed to load soundfont instrument:', preset.id, error)
+      return null
+    }))
+  }
+  return instrumentCache.get(cacheKey)
 }
 
 function synthKey(bindingId, channel, note) {
@@ -378,12 +431,10 @@ function stopSynthNote(key, release = 0.18) {
   const voice = activeNotes.get(key)
   if (!voice) return
   activeNotes.delete(key)
-  const now = voice.ctx.currentTime
   try {
-    voice.gain.gain.cancelScheduledValues(now)
-    voice.gain.gain.setValueAtTime(voice.gain.gain.value, now)
-    voice.gain.gain.linearRampToValueAtTime(0.0001, now + release)
-    voice.osc.stop(now + release + 0.02)
+    if (typeof voice.stop === 'function') {
+      voice.stop(audioCtx.currentTime + release)
+    }
   } catch {}
 }
 
@@ -395,26 +446,13 @@ function playSynthNote(binding, channel, note, velocity) {
   const key = synthKey(binding.id, channel, note)
   stopSynthNote(key, 0.02)
 
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  const filter = ctx.createBiquadFilter()
-  const now = ctx.currentTime
-  const level = Math.max(0.02, Math.min(1, velocity / 127)) * preset.gain
-
-  osc.type = preset.wave
-  osc.frequency.setValueAtTime(noteFrequency(note), now)
-  osc.detune.setValueAtTime(preset.detune || 0, now)
-  filter.type = 'lowpass'
-  filter.frequency.setValueAtTime(3600, now)
-  filter.Q.setValueAtTime(0.8, now)
-  gain.gain.setValueAtTime(0.0001, now)
-  gain.gain.linearRampToValueAtTime(level, now + preset.attack)
-
-  osc.connect(filter)
-  filter.connect(gain)
-  gain.connect(ctx.destination)
-  osc.start(now)
-  activeNotes.set(key, { ctx, osc, gain })
+  activeNotes.set(key, { loading: true })
+  loadInstrument(preset.id).then((instrument) => {
+    if (!instrument || !activeNotes.has(key)) return
+    const volume = Math.max(0.02, Math.min(1, velocity / 127))
+    const voice = instrument.play(note, ctx.currentTime, 0, { gain: volume })
+    activeNotes.set(key, voice)
+  })
 }
 
 function routeToSynths(status, data0, data1) {
@@ -432,7 +470,7 @@ function routeToSynths(status, data0, data1) {
 export function addSynthBinding() {
   synthBindings.update(bindings => [
     ...bindings,
-    { id: cryptoId(), channel: Math.min(16, bindings.length + 1), preset: 'soft-sine', enabled: true, label: `Synth ${bindings.length + 1}` },
+    { id: cryptoId(), channel: Math.min(16, bindings.length + 1), preset: 'acoustic_grand_piano', enabled: true, label: `Synth ${bindings.length + 1}` },
   ])
   resumeSynthAudio()
 }
@@ -444,9 +482,14 @@ export function updateSynthBinding(id, patch) {
 export function auditionSynthBinding(id) {
   const binding = get(synthBindings).find(item => item.id === id)
   if (!binding) return
+  auditionSynthPreset(binding.preset, binding.channel)
+}
+
+export function auditionSynthPreset(presetId, channel = 1) {
   const note = 60
-  playSynthNote({ ...binding, enabled: true }, binding.channel, note, 96)
-  window.setTimeout(() => stopSynthNote(synthKey(binding.id, binding.channel, note), getPreset(binding.preset).release), 220)
+  const id = `audition-${presetId}`
+  playSynthNote({ id, channel, preset: presetId, enabled: true }, channel, note, 96)
+  window.setTimeout(() => stopSynthNote(synthKey(id, channel, note), 0.04), 420)
 }
 
 export function removeSynthBinding(id) {

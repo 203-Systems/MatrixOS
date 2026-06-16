@@ -5,11 +5,13 @@
   import {
     addSynthBinding,
     auditionSynthBinding,
+    auditionSynthPreset,
     midiForwarding,
     panicSynth,
     requestWebMidiAccess,
     resumeSynthAudio,
     synthBindings,
+    synthCategories,
     synthPresets,
     updateMidiForwarding,
     updateSynthBinding,
@@ -18,6 +20,10 @@
     webMidiOutputs,
     webMidiState,
   } from '../stores/midi.js'
+
+  let voiceSelector = null
+  let voiceDraft = ''
+  let voiceTab = 'Piano'
 
   onMount(() => {
     if ($webMidiState.supported && !$webMidiState.requested) {
@@ -60,6 +66,39 @@
   function panic() {
     panicSynth()
   }
+
+  function currentPresetName(id) {
+    return synthPresets.find(preset => preset.id === id)?.name || synthPresets[0]?.name || 'Instrument'
+  }
+
+  function openVoiceSelector(binding) {
+    const preset = synthPresets.find(item => item.id === binding.preset) || synthPresets[0]
+    voiceSelector = binding
+    voiceDraft = preset.id
+    voiceTab = preset.category
+  }
+
+  function closeVoiceSelector() {
+    voiceSelector = null
+    voiceDraft = ''
+  }
+
+  function auditionVoice(preset) {
+    voiceDraft = preset.id
+    auditionSynthPreset(preset.id, voiceSelector?.channel || 1)
+  }
+
+  function confirmVoice() {
+    if (!voiceSelector || !voiceDraft) return
+    setBinding(voiceSelector.id, 'preset', voiceDraft)
+    closeVoiceSelector()
+  }
+
+  function handleBackdropClick(event) {
+    if (event.target === event.currentTarget) closeVoiceSelector()
+  }
+
+  $: visiblePresets = synthPresets.filter(preset => preset.category === voiceTab)
 </script>
 
 <div class="tool-surface midi-page">
@@ -207,17 +246,16 @@
               </select>
             </label>
 
-            <label class="midi-grow-field">
+            <div class="midi-grow-field">
               <span>Voice</span>
-              <select
-                value={binding.preset}
-                on:change={(event) => setBinding(binding.id, 'preset', event.currentTarget.value)}
+              <button
+                class="midi-voice-button"
+                on:click={() => openVoiceSelector(binding)}
+                title="Select synth voice"
               >
-                {#each synthPresets as preset}
-                  <option value={preset.id}>{preset.name}</option>
-                {/each}
-              </select>
-            </label>
+                {currentPresetName(binding.preset)}
+              </button>
+            </div>
 
             <button class="midi-test-button" on:click={() => auditionSynthBinding(binding.id)} title="Audition synth">
               Test
@@ -238,6 +276,59 @@
       <MIDIPanel showHero={false} />
     </div>
   </section>
+
+  {#if voiceSelector}
+    <div
+      class="midi-modal-backdrop"
+      role="button"
+      tabindex="0"
+      aria-label="Close voice selector"
+      on:click={handleBackdropClick}
+      on:keydown={(event) => event.key === 'Escape' && closeVoiceSelector()}
+    >
+      <div class="midi-voice-modal" role="dialog" aria-modal="true">
+        <div class="midi-voice-modal-header">
+          <div>
+            <div class="midi-voice-modal-title">Select Synth Voice</div>
+            <div class="midi-voice-modal-subtitle">Click a voice to audition it. Confirm applies it to channel {voiceSelector.channel}.</div>
+          </div>
+          <button class="midi-icon-button" on:click={closeVoiceSelector} title="Close voice selector">
+            <Close size={16} />
+          </button>
+        </div>
+
+        <div class="midi-voice-tabs">
+          {#each synthCategories as category}
+            <button
+              class="midi-voice-tab"
+              class:midi-voice-tab-active={voiceTab === category}
+              on:click={() => voiceTab = category}
+            >
+              {category}
+            </button>
+          {/each}
+        </div>
+
+        <div class="midi-voice-grid">
+          {#each visiblePresets as preset}
+            <button
+              class="midi-voice-option"
+              class:midi-voice-option-active={voiceDraft === preset.id}
+              on:click={() => auditionVoice(preset)}
+            >
+              <span class="midi-voice-program">{preset.program + 1}</span>
+              <span class="midi-voice-name">{preset.name}</span>
+            </button>
+          {/each}
+        </div>
+
+        <div class="midi-voice-actions">
+          <button class="midi-action-button midi-action-muted" on:click={closeVoiceSelector}>Cancel</button>
+          <button class="midi-action-button midi-action-confirm" on:click={confirmVoice}>Confirm</button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -293,7 +384,7 @@
   }
   .midi-select,
   .midi-compact-field select,
-  .midi-grow-field select {
+  .midi-voice-button {
     width: 100%;
     min-height: 34px;
     border: 1px solid var(--border);
@@ -303,6 +394,17 @@
     padding: 0 9px;
     font: inherit;
     font-size: 0.82rem;
+  }
+  .midi-voice-button {
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .midi-voice-button:hover {
+    border-color: rgba(76, 201, 240, 0.45);
+    background: rgba(76, 201, 240, 0.08);
   }
   .midi-select:disabled {
     color: var(--muted);
@@ -387,6 +489,14 @@
     border-color: rgba(76, 201, 240, 0.45);
     background: rgba(76, 201, 240, 0.08);
   }
+  .midi-action-muted {
+    color: var(--muted);
+  }
+  .midi-action-confirm {
+    color: #b9ebff;
+    border-color: rgba(76, 201, 240, 0.45);
+    background: rgba(76, 201, 240, 0.1);
+  }
   .midi-panic:hover {
     color: #ffb2b2;
     border-color: rgba(255, 107, 107, 0.45);
@@ -432,6 +542,123 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.02);
+  }
+  .midi-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.58);
+  }
+  .midi-voice-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(880px, 92vw);
+    max-height: min(720px, 86vh);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: #141418;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  }
+  .midi-voice-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .midi-voice-modal-title {
+    font-size: 0.94rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .midi-voice-modal-subtitle {
+    margin-top: 3px;
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .midi-voice-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .midi-voice-tab {
+    min-height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--muted);
+    padding: 0 9px;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .midi-voice-tab:hover,
+  .midi-voice-tab-active {
+    color: var(--text);
+    border-color: rgba(76, 201, 240, 0.42);
+    background: rgba(76, 201, 240, 0.1);
+  }
+  .midi-voice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    overflow: auto;
+  }
+  .midi-voice-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text);
+    padding: 0 10px;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+  .midi-voice-option:hover {
+    border-color: rgba(76, 201, 240, 0.36);
+    background: rgba(76, 201, 240, 0.08);
+  }
+  .midi-voice-option-active {
+    border-color: rgba(76, 201, 240, 0.6);
+    background: rgba(76, 201, 240, 0.14);
+  }
+  .midi-voice-program {
+    width: 28px;
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-align: right;
+  }
+  .midi-voice-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+  .midi-voice-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
   }
   @media (max-width: 980px) {
     .midi-status-grid,
