@@ -28,10 +28,10 @@ Performance
 Note
 Sequencer
 CustomControlMap
-Lighting
-Dice
+# Lighting
+# Dice
 Strum
-Reversi
+# Reversi
 Companion
 Developer
 # PolyPlayground

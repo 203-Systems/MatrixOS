@@ -28,14 +28,14 @@ Performance
 Note
 Sequencer
 CustomControlMap
-Lighting
-Dice
+# Lighting
+# Dice
 Strum
-Reversi
+# Reversi
 Companion
 Developer
 # PolyPlayground
-# [System]Python  # Disabled: input API migration in progress
+[System]Python
 
 # Boot animation
 {FAMILY_PATH}/Applications/MystrixBoot
