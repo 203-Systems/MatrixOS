@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "smoke:python": "node tools/micropython-smoke.mjs",
     "smoke:micropython": "node tools/micropython-smoke.mjs",
     "smoke:micropython:pixel-art": "node tools/pixel-art-smoke.mjs",
     "smoke:micropython:same-game": "node tools/same-game-smoke.mjs",
