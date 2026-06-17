@@ -8,8 +8,30 @@ namespace MatrixOS::Command
 {
 static constexpr uint8_t DEFAULT_LAYER = 255;
 static constexpr uint32_t ACTION_ACK_DELAY_MS = 20;
+static constexpr size_t MAX_REQUEST_SIZE = 1024;
+static constexpr uint8_t QUEUE_DEPTH = 4;
+static constexpr uint32_t SUBMIT_TIMEOUT_MS = 10;
+static constexpr uint32_t TASK_STACK_SIZE = configMINIMAL_STACK_SIZE * 4;
+
+struct QueuedRequest {
+  Encoding encoding = Encoding::HID;
+  uint16_t port = MIDI_PORT_INVALID;
+  uint16_t maxReplyLength = 0;
+  uint16_t size = 0;
+  ReplyCallback replyCallback = nullptr;
+  uint8_t data[MAX_REQUEST_SIZE] = {};
+};
+
+static QueueHandle_t requestQueue = nullptr;
+static TaskHandle_t commandTask = nullptr;
+static StackType_t commandTaskStack[TASK_STACK_SIZE];
+static StaticTask_t commandTaskDef;
 
 static bool SendReply(const vector<uint8_t>& reply, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext);
+static bool SendCommandAck(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext);
+static bool SendCommandAckAndDelay(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext);
+static bool HandleActionCommand(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext);
+static void CommandTask(void* parameters);
 
 static uint8_t ResponseCommand(uint8_t command, Encoding encoding) {
   if (encoding == Encoding::HID)
@@ -30,6 +52,89 @@ static bool SendCommandAckAndDelay(uint8_t command, Encoding encoding, size_t ma
   }
   SYS::DelayMs(ACTION_ACK_DELAY_MS);
   return true;
+}
+
+static bool HandleActionCommand(uint8_t command, Encoding encoding, size_t maxReplyLength, ReplyCallback replyCallback, void* replyContext) {
+  if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
+  {
+    return false;
+  }
+
+  switch (command)
+  {
+  case MATRIXOS_COMMAND_QUIT_APP:
+    SYS::ExitAPP();
+    break;
+  case MATRIXOS_COMMAND_BOOTLOADER:
+    SYS::Bootloader();
+    break;
+  case MATRIXOS_COMMAND_REBOOT:
+    SYS::Reboot();
+    break;
+  case MATRIXOS_COMMAND_SLEEP:
+    break;
+  case MATRIXOS_COMMAND_OPEN_SETTINGS:
+    SYS::OpenSetting();
+    break;
+  case MATRIXOS_COMMAND_OPEN_DEVELOPER_APP:
+    SYS::ExecuteAPP("203 Systems", "Developer");
+    break;
+  default:
+    return false;
+  }
+  return true;
+}
+
+void Init() {
+  if (requestQueue == nullptr)
+  {
+    requestQueue = xQueueCreate(QUEUE_DEPTH, sizeof(QueuedRequest));
+  }
+
+  if (commandTask == nullptr)
+  {
+    commandTask = xTaskCreateStatic(CommandTask, "cmd_handler", TASK_STACK_SIZE, nullptr, 1, commandTaskStack, &commandTaskDef);
+  }
+}
+
+bool Submit(Encoding encoding, const uint8_t* request, size_t size, size_t maxReplyLength, ReplyCallback replyCallback, uint16_t replyPort) {
+  if (request == nullptr || size == 0 || size > MAX_REQUEST_SIZE || maxReplyLength > UINT16_MAX || replyCallback == nullptr)
+  {
+    return false;
+  }
+
+  if (requestQueue == nullptr)
+  {
+    return false;
+  }
+
+  QueuedRequest item;
+  item.encoding = encoding;
+  item.port = replyPort;
+  item.maxReplyLength = (uint16_t)maxReplyLength;
+  item.size = (uint16_t)size;
+  item.replyCallback = replyCallback;
+  memcpy(item.data, request, size);
+
+  return xQueueSend(requestQueue, &item, pdMS_TO_TICKS(SUBMIT_TIMEOUT_MS)) == pdTRUE;
+}
+
+static void CommandTask(void* parameters) {
+  (void)parameters;
+
+  QueuedRequest request;
+  while (true)
+  {
+    if (xQueueReceive(requestQueue, &request, portMAX_DELAY) != pdTRUE)
+    {
+      continue;
+    }
+
+    if (!Handle(request.data, request.size, request.encoding, request.maxReplyLength, request.replyCallback, &request.port) && request.size > 0)
+    {
+      MLOGE("CommandHandler", "Unknown command: %d", request.data[0]);
+    }
+  }
 }
 
 static void AppendString(vector<uint8_t>* reply, const string& value) {
@@ -464,48 +569,13 @@ bool Handle(const uint8_t* request, size_t size, Encoding encoding, size_t maxRe
     SYS::ExecuteAPP(appId);
     return true;
   }
-  case MATRIXOS_COMMAND_QUIT_APP: {
-    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
-    {
-      return false;
-    }
-    SYS::ExitAPP();
-    return true;
-  }
-  case MATRIXOS_COMMAND_BOOTLOADER: {
-    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
-    {
-      return false;
-    }
-    SYS::Bootloader();
-    return true;
-  }
-  case MATRIXOS_COMMAND_REBOOT: {
-    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
-    {
-      return false;
-    }
-    SYS::Reboot();
-    return true;
-  }
-  case MATRIXOS_COMMAND_SLEEP: {
-    return SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext);
-  }
-  case MATRIXOS_COMMAND_OPEN_SETTINGS: {
-    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
-    {
-      return false;
-    }
-    SYS::OpenSetting();
-    return true;
-  }
+  case MATRIXOS_COMMAND_QUIT_APP:
+  case MATRIXOS_COMMAND_BOOTLOADER:
+  case MATRIXOS_COMMAND_REBOOT:
+  case MATRIXOS_COMMAND_SLEEP:
+  case MATRIXOS_COMMAND_OPEN_SETTINGS:
   case MATRIXOS_COMMAND_OPEN_DEVELOPER_APP: {
-    if (!SendCommandAckAndDelay(command, encoding, maxReplyLength, replyCallback, replyContext))
-    {
-      return false;
-    }
-    SYS::ExecuteAPP("203 Systems", "Developer");
-    return true;
+    return HandleActionCommand(command, encoding, maxReplyLength, replyCallback, replyContext);
   }
   case MATRIXOS_COMMAND_LED_SET_COLOR_XY: {
     return HandleLedSetColorXY(request, size, encoding);

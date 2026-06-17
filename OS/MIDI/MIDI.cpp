@@ -13,17 +13,12 @@ static uint32_t droppedAppMidiPackets = 0;
 static uint32_t droppedOversizedSysExMessages = 0;
 static uint32_t timedOutSysExSessions = 0;
 
-struct MatrixOSSysExReplyContext {
-  uint16_t port;
-};
-
-static bool SendMatrixOSSysExReply(const vector<uint8_t>& reply, bool end, void* context) {
+static bool SendCommandSysExReply(const vector<uint8_t>& reply, bool end, void* context) {
+  (void)end;
   if (context == nullptr)
   {
     return false;
   }
-
-  (void)end;
 
   for (uint8_t byte : reply)
   {
@@ -33,14 +28,13 @@ static bool SendMatrixOSSysExReply(const vector<uint8_t>& reply, bool end, void*
     }
   }
 
-  MatrixOSSysExReplyContext* replyContext = static_cast<MatrixOSSysExReplyContext*>(context);
   vector<uint8_t> sysExReply;
   sysExReply.reserve(reply.size() + 3);
   sysExReply.push_back(MIDIv1_SYSEX_START);
   sysExReply.push_back(MATRIXOS_SYSEX_RESPONSE);
   sysExReply.insert(sysExReply.end(), reply.begin(), reply.end());
   sysExReply.push_back(MIDIv1_SYSEX_END);
-  return SendSysEx(replyContext->port, sysExReply.size(), sysExReply.data(), false);
+  return SendSysEx(*static_cast<uint16_t*>(context), sysExReply.size(), sysExReply.data(), false);
 }
 
 static void LogDroppedAppMidiPacket() {
@@ -345,14 +339,13 @@ void HandleMatrixOSSysEx(uint16_t port, vector<uint8_t>& sysExBuffer) {
     return;
   }
 
-  MatrixOSSysExReplyContext replyContext = {port};
   const uint8_t* request = sysExBuffer.data() + 2;
   size_t requestSize = sysExBuffer.size() - 3;
-  size_t maxReplyLength = MAX_SYSTEM_SYSEX_SIZE - MATRIXOS_SYSEX_REPLY_OVERHEAD;
 
-  if (!Command::Handle(request, requestSize, Command::Encoding::SysEx7Bit, maxReplyLength, SendMatrixOSSysExReply, &replyContext))
+  if (!Command::Submit(Command::Encoding::SysEx7Bit, request, requestSize, MAX_SYSTEM_SYSEX_SIZE - MATRIXOS_SYSEX_REPLY_OVERHEAD,
+                       SendCommandSysExReply, port))
   {
-    MLOGE("MIDI", "Unknown MatrixOS SysEx Command: %d", sysExBuffer[2]);
+    MLOGE("MIDI", "Dropped MatrixOS SysEx command: %d", sysExBuffer[2]);
   }
 }
 } // namespace MatrixOS::MIDI

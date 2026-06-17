@@ -7,6 +7,7 @@
 #include "../LED/LED.h"
 #include "../Input/Input.h"
 #include "../MIDI/MIDI.h"
+#include "../Commands/CommandHandler.h"
 #include "task.h"
 
 extern std::unordered_map<uint32_t, Application_Info*> applications;
@@ -140,6 +141,8 @@ void Supervisor(void* param) {
 }
 
 void Begin(void) {
+  MatrixOS::Command::Init();
+
   MLOGI("System", "Begin: DeviceInit start");
   Device::DeviceInit();
   MLOGI("System", "Begin: DeviceInit done");

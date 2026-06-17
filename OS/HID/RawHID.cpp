@@ -47,7 +47,7 @@ void Init() {
 bool HandleMatrixOSHID(const uint8_t* report, size_t size) {
   // MLOGD("RAW HID", "Received MatrixOS HID Command: %d", report[0]);
 
-  return Command::Handle(report, size, Command::Encoding::HID, RAW_HID_REPORT_SIZE, SendCommandReply, nullptr);
+  return Command::Submit(Command::Encoding::HID, report, size, RAW_HID_REPORT_SIZE, SendCommandReply);
 }
 
 bool NewReport(const uint8_t* report, size_t size) {
