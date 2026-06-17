@@ -20,9 +20,10 @@ constexpr uint8_t COMMAND_LED_CLEAR_SCREEN = 0x21;
 constexpr uint8_t COMMAND_KEY_READ_INDEX = 0x30;
 constexpr uint8_t COMMAND_KEY_READ_XY = 0x31;
 
-constexpr uint8_t REPLY_ACK = 0x80;
-constexpr uint8_t REPLY_ERROR = 0x81;
-constexpr uint8_t REPLY_INPUT_EVENT = 0x90;
+constexpr uint8_t REPLY_COMMAND_BASE = 0x40;
+constexpr uint8_t REPLY_COMMAND_LIMIT = 0x3E;
+constexpr uint8_t REPLY_GENERIC_ERROR = 0x7E;
+constexpr uint8_t REPLY_INPUT_EVENT = 0x7F;
 
 constexpr uint8_t STATUS_OK = 0x00;
 constexpr uint8_t ERROR_BAD_LENGTH = 0x02;
@@ -108,6 +109,11 @@ void AppendIndex(vector<uint8_t>* data, uint16_t index, Transport transport) {
   data->push_back((uint8_t)((index >> 7) & 0x7F));
 }
 
+void AppendUInt14(vector<uint8_t>* data, uint16_t value) {
+  data->push_back((uint8_t)(value & 0x7F));
+  data->push_back((uint8_t)((value >> 7) & 0x7F));
+}
+
 bool Is7BitData(const uint8_t* data, size_t size) {
   for (size_t i = 0; i < size; i++)
   {
@@ -134,6 +140,14 @@ uint8_t ResultToErrorCode(CommandResult result) {
   }
 }
 
+bool IsDeveloperCommand(uint8_t command) {
+  return command < REPLY_COMMAND_LIMIT;
+}
+
+uint8_t ReplyCommandFor(uint8_t command) {
+  return IsDeveloperCommand(command) ? (uint8_t)(REPLY_COMMAND_BASE | command) : REPLY_GENERIC_ERROR;
+}
+
 void SendHIDPacket(uint8_t command, const vector<uint8_t>& payload) {
   vector<uint8_t> report;
   report.reserve(HID_REPORT_SIZE);
@@ -144,10 +158,14 @@ void SendHIDPacket(uint8_t command, const vector<uint8_t>& payload) {
 
 void SendHIDReply(uint8_t command, uint8_t status, const vector<uint8_t>& data = {}) {
   vector<uint8_t> payload;
-  payload.reserve(data.size() + 1);
+  payload.reserve(data.size() + (IsDeveloperCommand(command) ? 1 : 2));
   payload.push_back(status);
+  if (!IsDeveloperCommand(command))
+  {
+    payload.push_back(command);
+  }
   payload.insert(payload.end(), data.begin(), data.end());
-  SendHIDPacket(command | 0x80, payload);
+  SendHIDPacket(ReplyCommandFor(command), payload);
 }
 
 void SendHIDAck(uint8_t command, const vector<uint8_t>& data = {}) {
@@ -175,15 +193,20 @@ bool SendSysExPacket(uint16_t port, uint8_t command, const vector<uint8_t>& payl
 
 void SendSysExAck(uint16_t port, uint8_t command, const vector<uint8_t>& data = {}) {
   vector<uint8_t> payload;
-  payload.reserve(data.size() + 2);
-  payload.push_back(command);
+  payload.reserve(data.size() + 1);
   payload.push_back(STATUS_OK);
   payload.insert(payload.end(), data.begin(), data.end());
-  SendSysExPacket(port, REPLY_ACK, payload);
+  SendSysExPacket(port, ReplyCommandFor(command), payload);
 }
 
 void SendSysExError(uint16_t port, uint8_t command, uint8_t errorCode) {
-  SendSysExPacket(port, REPLY_ERROR, vector<uint8_t>{command, errorCode});
+  if (IsDeveloperCommand(command))
+  {
+    SendSysExPacket(port, ReplyCommandFor(command), vector<uint8_t>{errorCode});
+    return;
+  }
+
+  SendSysExPacket(port, REPLY_GENERIC_ERROR, vector<uint8_t>{errorCode, command});
 }
 
 bool ValidateWriteFlags(uint8_t flags) {
@@ -580,8 +603,8 @@ bool EncodeKeyInfo(InputId id, const KeypadInfo& keypad, Transport transport, ve
   data->push_back(EncodeInt7(point.x));
   data->push_back(EncodeInt7(point.y));
   data->push_back((uint8_t)keypad.state & 0x7F);
-  data->push_back(To7Bit(keypad.pressure.value));
-  data->push_back(To7Bit(keypad.velocity.value));
+  AppendUInt14(data, keypad.pressure.value);
+  AppendUInt14(data, keypad.velocity.value);
   return true;
 }
 
@@ -917,6 +940,12 @@ void Developer::HandleHIDReport(const uint8_t* report, size_t size) {
 }
 
 void Developer::HandleMIDIPacket(const MidiPacket& packet) {
+  if (packet.status == EMidiStatus::SysExData || packet.status == EMidiStatus::SysExEnd)
+  {
+    HandleSysExPacket(packet);
+    return;
+  }
+
   switch (packet.Status())
   {
   case EMidiStatus::Start:
@@ -930,10 +959,6 @@ void Developer::HandleMIDIPacket(const MidiPacket& packet) {
   case EMidiStatus::ControlChange:
     HandleMIDIControlChange(packet);
     break;
-  case EMidiStatus::SysExData:
-  case EMidiStatus::SysExEnd:
-    HandleSysExPacket(packet);
-    break;
   default:
     break;
   }
@@ -941,6 +966,11 @@ void Developer::HandleMIDIPacket(const MidiPacket& packet) {
 
 void Developer::HandleSysExPacket(const MidiPacket& packet) {
   if (packet.SysExStart())
+  {
+    sysExBuffer.clear();
+    activeSysExPort = packet.Port();
+  }
+  else if (activeSysExPort == MIDI_PORT_INVALID)
   {
     sysExBuffer.clear();
     activeSysExPort = packet.Port();
@@ -959,7 +989,7 @@ void Developer::HandleSysExPacket(const MidiPacket& packet) {
   }
 
   sysExBuffer.insert(sysExBuffer.end(), packet.data, packet.data + length);
-  if (packet.Status() == EMidiStatus::SysExEnd)
+  if (packet.status == EMidiStatus::SysExEnd)
   {
     HandleSysExMessage(packet.Port(), sysExBuffer);
     sysExBuffer.clear();
@@ -968,15 +998,14 @@ void Developer::HandleSysExPacket(const MidiPacket& packet) {
 }
 
 void Developer::HandleSysExMessage(uint16_t port, const vector<uint8_t>& message) {
-  if (message.size() < 8 || message[0] != MIDIv1_SYSEX_START || message.back() != MIDIv1_SYSEX_END || message[1] != SYSEX_MFG_ID[0] ||
-      message[2] != SYSEX_MFG_ID[1] || message[3] != SYSEX_MFG_ID[2] || message[4] != SYSEX_FAMILY_ID[0] || message[5] != SYSEX_FAMILY_ID[1])
+  if (message.size() < 2 || message.back() != MIDIv1_SYSEX_END)
   {
     return;
   }
 
-  uint8_t command = message[6];
-  const uint8_t* payload = message.data() + 7;
-  size_t length = message.size() - 8;
+  uint8_t command = message[0];
+  const uint8_t* payload = message.data() + 1;
+  size_t length = message.size() - 2;
   if (!Is7BitData(payload, length))
   {
     SendSysExError(port, command, ERROR_BAD_PAYLOAD);

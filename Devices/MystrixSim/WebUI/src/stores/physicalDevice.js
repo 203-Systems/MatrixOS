@@ -21,7 +21,10 @@ const COMMAND_EXIT_APP = 0x02
 const COMMAND_LED_WRITE_INDEX_RANGE = 0x12
 const COMMAND_LED_CANVAS_UPDATE = 0x20
 
-const REPLY_INPUT_EVENT = 0x90
+const REPLY_COMMAND_BASE = 0x40
+const REPLY_COMMAND_LIMIT = 0x3E
+const REPLY_GENERIC_ERROR = 0x7E
+const REPLY_INPUT_EVENT = 0x7F
 
 const INPUT_REPORT_KEY_INFO = 0x01
 const INPUT_EVENT_KEY_INFO = 0x01
@@ -150,6 +153,14 @@ function makeAppReport(command, payload = []) {
   return report
 }
 
+function isDeveloperCommand(command) {
+  return command >= 0 && command < REPLY_COMMAND_LIMIT
+}
+
+function replyCommandFor(command) {
+  return isDeveloperCommand(command) ? (REPLY_COMMAND_BASE | command) : REPLY_GENERIC_ERROR
+}
+
 function reportError(error) {
   const message = error instanceof Error ? error.message : String(error)
   setState({ error: message, status: 'Error' })
@@ -242,7 +253,7 @@ async function sendDeveloperCommand(command, payload = [], options = {}) {
 
   let replyPromise = null
   if (waitForAck) {
-    const replyCommand = command | 0x80
+    const replyCommand = replyCommandFor(command)
     replyPromise = new Promise((resolve, reject) => {
       const timer = window.setTimeout(() => {
         pendingReplies.delete(replyCommand)
@@ -262,9 +273,16 @@ function parseAppReply(data) {
   const replyCommand = data[0]
   const payload = data.slice(1)
 
-  if ((replyCommand & 0x80) !== 0 && pendingReplies.has(replyCommand)) {
-    const command = replyCommand & 0x7F
-    const status = payload[0] ?? 0
+  if (replyCommand === REPLY_GENERIC_ERROR && payload.length >= 2) {
+    const status = payload[0]
+    const command = payload[1]
+    rejectPendingReply(replyCommandFor(command), new Error(`DeveloperApp command 0x${command.toString(16)} failed: 0x${status.toString(16)}`))
+    return
+  }
+
+  if (replyCommand >= REPLY_COMMAND_BASE && replyCommand < REPLY_GENERIC_ERROR && payload.length >= 1) {
+    const command = replyCommand & 0x3F
+    const status = payload[0]
     const replyData = payload.slice(1)
     if (status === 0) {
       resolvePendingReply(replyCommand, { command, status, data: replyData })
