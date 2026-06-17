@@ -15,6 +15,7 @@
     "smoke:micropython:dice": "node tools/dice-smoke.mjs",
     "smoke:micropython:lighting": "node tools/lighting-smoke.mjs",
     "smoke:micropython:reversi": "node tools/reversi-smoke.mjs",
+    "smoke:developer-sysex": "node tools/developer-sysex-smoke.mjs",
     "verify:micropython": "node tools/verify-micropython.mjs",
     "verify:micropython:smoke": "node tools/verify-micropython.mjs --smoke-dev"
   },
