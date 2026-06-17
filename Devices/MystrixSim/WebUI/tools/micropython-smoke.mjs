@@ -565,7 +565,6 @@ async function smokeMidi(socket) {
 
   await waitForOutput(socket, (text) => text.includes('midi_ready'))
   const sent = await rpcCall(socket, 'midi.send', {
-    targetPort: 0xF000,
     message: { kind: 'note_on', channel: 1, note: 64, velocity: 96 },
   })
   assert(sent.ok, 'midi.send failed')
@@ -578,7 +577,6 @@ async function smokeMidi(socket) {
   let output = await waitForOutput(socket, hasExpectedMidiPacket, 3_000)
   if (!hasExpectedMidiPacket(output)) {
     const retried = await rpcCall(socket, 'midi.send', {
-      targetPort: 0xF000,
       message: { kind: 'note_on', channel: 1, note: 64, velocity: 96 },
     })
     assert(retried.ok, 'midi.send retry failed')

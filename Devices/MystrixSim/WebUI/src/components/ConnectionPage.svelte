@@ -87,6 +87,26 @@
       ],
     },
     {
+      id: 'application',
+      summary: 'Application listing and launch control.',
+      handles: [
+        {
+          name: 'application.list',
+          purpose: 'Return the active app and launchable app list.',
+          params: '{}',
+          result: '{ activeApp, activeAppId, applications, available }',
+          example: "await matrixosRpc.call('application.list')",
+        },
+        {
+          name: 'application.launch',
+          purpose: 'Launch an app by numeric or hex app id.',
+          params: "{ appId: '0xBCC0FAEF' }",
+          result: '{ ok: true }',
+          example: "await matrixosRpc.call('application.launch', { appId: '0xBCC0FAEF' })",
+        },
+      ],
+    },
+    {
       id: 'input',
       summary: 'Input listing, injection, and current pressed-state queries.',
       handles: [
@@ -173,10 +193,31 @@
         },
         {
           name: 'midi.send',
-          purpose: 'Send a MIDI message to a target port.',
+          purpose: 'Send an external MIDI message into MatrixOS.',
+          params: "{ message: { kind: 'noteOn', channel: 1, note: 60, velocity: 100 } }",
+          result: '{ ok: true }',
+          example: "await matrixosRpc.call('midi.send', { message: { kind: 'noteOn', channel: 1, note: 60, velocity: 100 } })",
+        },
+        {
+          name: 'midi.sendToPort',
+          purpose: 'Send a MatrixOS-originated MIDI message to a target port.',
           params: "{ targetPort: '0x0100', message: { kind: 'noteOn', channel: 1, note: 60, velocity: 100 } }",
           result: '{ ok: true }',
-          example: "await matrixosRpc.call('midi.send', { targetPort: '0x0100', message: { kind: 'noteOn', channel: 1, note: 60, velocity: 100 } })",
+          example: "await matrixosRpc.call('midi.sendToPort', { targetPort: '0x0100', message: { kind: 'noteOn', channel: 1, note: 60, velocity: 100 } })",
+        },
+        {
+          name: 'midi.sendSysEx',
+          purpose: 'Send a complete external SysEx message into MatrixOS.',
+          params: "{ encoding: 'hex', payload: 'F0 00 02 03 4D 58 00 F7' }",
+          result: '{ ok: true }',
+          example: "await matrixosRpc.call('midi.sendSysEx', { payload: 'F0 00 02 03 4D 58 00 F7' })",
+        },
+        {
+          name: 'midi.sendSysExToPort',
+          purpose: 'Send a MatrixOS-originated SysEx message to a target port.',
+          params: "{ targetPort: '0x0100', encoding: 'hex', payload: 'F0 00 02 03 4D 58 00 F7' }",
+          result: '{ ok: true }',
+          example: "await matrixosRpc.call('midi.sendSysExToPort', { targetPort: '0x0100', payload: 'F0 00 02 03 4D 58 00 F7' })",
         },
         {
           name: 'midi.subscribe',

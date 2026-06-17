@@ -793,6 +793,40 @@ uint64_t Micros() {
 // ---------------------------------------------------------------------------
 // WASM-exported API (called from JavaScript)
 // ---------------------------------------------------------------------------
+static MidiPacket BuildWasmMidiPacket(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2) {
+  MidiPacket pkt;
+  uint8_t statusClass = status & 0xF0;
+  uint8_t channel = status & 0x0F;
+  switch (statusClass)
+  {
+  case MIDIv1_NOTE_OFF:
+    pkt = MidiPacket::NoteOff(channel, d0, d1);
+    break;
+  case MIDIv1_NOTE_ON:
+    pkt = MidiPacket::NoteOn(channel, d0, d1);
+    break;
+  case MIDIv1_AFTER_TOUCH:
+    pkt = MidiPacket::AfterTouch(channel, d0, d1);
+    break;
+  case MIDIv1_CONTROL_CHANGE:
+    pkt = MidiPacket::ControlChange(channel, d0, d1);
+    break;
+  case MIDIv1_PROGRAM_CHANGE:
+    pkt = MidiPacket::ProgramChange(channel, d0);
+    break;
+  case MIDIv1_CHANNEL_PRESSURE:
+    pkt = MidiPacket::ChannelPressure(channel, d0);
+    break;
+  case MIDIv1_PITCH_WHEEL:
+    pkt = MidiPacket::PitchBend(channel, (uint16_t)(d0 | (d1 << 7)));
+    break;
+  default:
+    pkt = MidiPacket((EMidiStatus)status, d0, d1, d2);
+    break;
+  }
+  return pkt;
+}
+
 extern "C"
 {
 
@@ -1037,46 +1071,17 @@ uint8_t MatrixOS_Wasm_GetFnState(void) {
   return fnState.info.Active() ? 1 : 0;
 }
 
-// ---- MIDI injection ----
+// ---- MIDI send ----
 
-void MatrixOS_Wasm_MidiInject(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2, uint16_t targetPort) {
-  MidiPacket pkt;
-  uint8_t statusClass = status & 0xF0;
-  uint8_t channel = status & 0x0F;
-  switch (statusClass)
-  {
-  case MIDIv1_NOTE_OFF:
-    pkt = MidiPacket::NoteOff(channel, d0, d1);
-    break;
-  case MIDIv1_NOTE_ON:
-    pkt = MidiPacket::NoteOn(channel, d0, d1);
-    break;
-  case MIDIv1_AFTER_TOUCH:
-    pkt = MidiPacket::AfterTouch(channel, d0, d1);
-    break;
-  case MIDIv1_CONTROL_CHANGE:
-    pkt = MidiPacket::ControlChange(channel, d0, d1);
-    break;
-  case MIDIv1_PROGRAM_CHANGE:
-    pkt = MidiPacket::ProgramChange(channel, d0);
-    break;
-  case MIDIv1_CHANNEL_PRESSURE:
-    pkt = MidiPacket::ChannelPressure(channel, d0);
-    break;
-  case MIDIv1_PITCH_WHEEL:
-    pkt = MidiPacket::PitchBend(channel, (uint16_t)(d0 | (d1 << 7)));
-    break;
-  default:
-    pkt = MidiPacket((EMidiStatus)status, d0, d1, d2);
-    break;
-  }
-  if (targetPort == MIDI_PORT_OS && MatrixOS::MIDI::appQueue)
-  {
-    pkt.port = MIDI_PORT_USB;
-    xQueueSend(MatrixOS::MIDI::appQueue, &pkt, pdMS_TO_TICKS(10));
-    return;
-  }
+void MatrixOS_Wasm_MidiSend(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2) {
+  MatrixOS::MIDI::Init();
+  MidiPacket pkt = BuildWasmMidiPacket(status, d0, d1, d2);
+  pkt.port = MIDI_PORT_USB;
+  MidiPort::RouteMidiPacket(pkt, MIDI_PORT_OS, 10);
+}
 
+void MatrixOS_Wasm_MidiSendToPort(uint8_t status, uint8_t d0, uint8_t d1, uint8_t d2, uint16_t targetPort) {
+  MidiPacket pkt = BuildWasmMidiPacket(status, d0, d1, d2);
   pkt.port = MIDI_PORT_OS;
   MatrixOS::MIDI::Send(pkt, targetPort, 10);
 }

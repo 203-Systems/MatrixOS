@@ -28,7 +28,16 @@ import { clearPythonEvents, pythonEvents } from './python.js'
 import { nvsEntries, writeNvsEntry, computeNvsHash, nvsHashHex, refreshNvs } from './storage.js'
 import { listInputs, executeInputEvents, getActiveInputs, releaseAllInputs, getRecentInputEvents } from '../handles/input.js'
 import { getLedFrame, getLed } from '../handles/led.js'
-import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../handles/midi.js'
+import {
+  sendMidiNote,
+  sendMidiNoteToPort,
+  sendMidiCC,
+  sendMidiCCToPort,
+  sendMidiProgramChange,
+  sendMidiProgramChangeToPort,
+  sendMidiSysEx,
+  sendMidiSysExToPort,
+} from '../handles/midi.js'
 import { sendRawHid } from '../handles/hid.js'
 import { sendSerialText, sendSerialHex } from '../handles/serial.js'
 import {
@@ -59,6 +68,10 @@ import {
   getRuntimeState,
   getRuntimeAppState,
 } from '../handles/session.js'
+import {
+  getApplicationState,
+  launchApplication,
+} from '../handles/application.js'
 import {
   connectPhysicalDevice,
   disconnectPhysicalDevice,
@@ -278,6 +291,62 @@ function encodeRpcBytes(bytes, encoding = 'base64') {
   return btoa(String.fromCharCode(...data))
 }
 
+function parseMidiTargetPort(params, fallback = 0x0100) {
+  const rawTarget = params?.targetPort
+  const value = typeof rawTarget === 'string'
+    ? (rawTarget.trim().match(/^0x/i) ? parseInt(rawTarget, 16) : Number(rawTarget))
+    : (typeof rawTarget === 'number' ? rawTarget : fallback)
+  return Number.isInteger(value) && value >= 0 && value <= 0xFFFF ? value : null
+}
+
+function hasMidiTargetPort(params) {
+  return params && Object.prototype.hasOwnProperty.call(params, 'targetPort')
+}
+
+function decodeMidiSysExPayload(params) {
+  const payload = params?.payload
+  if (!payload) return null
+
+  let bytes
+  if (Array.isArray(payload)) {
+    bytes = payload.map(byte => Number(byte))
+  } else if ((params.encoding ?? 'hex') === 'hex') {
+    const tokens = String(payload).trim().split(/\s+/).filter(Boolean)
+    if (tokens.some(token => !/^[0-9a-fA-F]{1,2}$/.test(token))) return null
+    bytes = tokens.map(h => parseInt(h, 16))
+  } else {
+    bytes = [...new TextEncoder().encode(String(payload))]
+  }
+
+  if (!Array.isArray(bytes) || bytes.some(byte => !Number.isFinite(byte) || byte < 0 || byte > 0xFF)) {
+    return null
+  }
+  return bytes
+}
+
+function sendMidiMessage(message, senders, targetPort = null) {
+  if (!message) return false
+
+  const ch = typeof message.channel === 'number' ? (message.channel - 1) & 0x0F : 0
+  const kind = message.kind?.toLowerCase()
+  const args = targetPort === null ? [] : [targetPort]
+
+  if (kind === 'noteon' || kind === 'note_on') {
+    return senders.note(ch, message.note ?? 60, message.velocity ?? 100, ...args)
+  }
+  if (kind === 'noteoff' || kind === 'note_off') {
+    return senders.note(ch, message.note ?? 60, 0, ...args)
+  }
+  if (kind === 'cc' || kind === 'controlchange' || kind === 'control_change') {
+    return senders.cc(ch, message.controller ?? 0, message.value ?? 0, ...args)
+  }
+  if (kind === 'programchange' || kind === 'program_change') {
+    return senders.program(ch, message.program ?? 0, ...args)
+  }
+
+  return false
+}
+
 async function waitForPythonMode(mode, timeoutMs = 5000) {
   const deadline = Date.now() + timeoutMs
 
@@ -347,6 +416,18 @@ const handlers = {
   'runtime.getState': () => getRuntimeState(),
 
   'runtime.getAppState': () => getRuntimeAppState(),
+
+  // ---- Applications ----
+
+  'application.list': () => getApplicationState(),
+
+  'application.launch': (params) => {
+    const appId = typeof params?.appId === 'string'
+      ? parseInt(params.appId.replace(/^0x/i, ''), 16)
+      : Number(params?.appId)
+    if (!Number.isFinite(appId)) return { __error: ERR.INVALID_PARAMS }
+    return launchApplication(appId) ? { ok: true } : { __error: ERR.UNSUPPORTED }
+  },
 
   // ---- Physical Hardware ----
 
@@ -474,30 +555,41 @@ const handlers = {
   },
 
   'midi.send': (params) => {
-    const msg = params?.message
-    if (!msg) return { __error: ERR.INVALID_PARAMS }
+    if (hasMidiTargetPort(params)) return { __error: ERR.INVALID_PARAMS }
+    const ok = sendMidiMessage(params?.message, {
+      note: sendMidiNote,
+      cc: sendMidiCC,
+      program: sendMidiProgramChange,
+    })
+    return ok ? { ok: true } : { __error: ERR.INVALID_PARAMS }
+  },
 
-    const rawTarget = params.targetPort ?? params.destinationPort
-    const targetPort = typeof rawTarget === 'string'
-      ? parseInt(rawTarget.replace(/^0x/i, ''), 16)
-      : (typeof rawTarget === 'number' ? rawTarget : 0x0100)
+  'midi.sendToPort': (params) => {
+    const targetPort = parseMidiTargetPort(params, 0x0100)
+    if (!Number.isFinite(targetPort)) return { __error: ERR.INVALID_PARAMS }
+    const ok = sendMidiMessage(params?.message, {
+      note: sendMidiNoteToPort,
+      cc: sendMidiCCToPort,
+      program: sendMidiProgramChangeToPort,
+    }, targetPort)
+    return ok ? { ok: true } : { __error: ERR.INVALID_PARAMS }
+  },
 
-    const ch = typeof msg.channel === 'number' ? (msg.channel - 1) & 0x0F : 0
+  'midi.sendSysEx': (params) => {
+    if (hasMidiTargetPort(params)) return { __error: ERR.INVALID_PARAMS }
+    const bytes = decodeMidiSysExPayload(params)
+    if (bytes === null) return { __error: ERR.INVALID_PARAMS }
+    const ok = sendMidiSysEx(bytes)
+    return ok ? { ok: true } : { __error: ERR.INVALID_PARAMS }
+  },
 
-    const kind = msg.kind?.toLowerCase()
-    if (kind === 'noteon' || kind === 'note_on') {
-      sendMidiNote(ch, msg.note ?? 60, msg.velocity ?? 100, targetPort)
-    } else if (kind === 'noteoff' || kind === 'note_off') {
-      sendMidiNote(ch, msg.note ?? 60, 0, targetPort)
-    } else if (kind === 'cc' || kind === 'controlchange' || kind === 'control_change') {
-      sendMidiCC(ch, msg.controller ?? 0, msg.value ?? 0, targetPort)
-    } else if (kind === 'programchange' || kind === 'program_change') {
-      sendMidiProgramChange(ch, msg.program ?? 0, targetPort)
-    } else {
-      return { __error: ERR.INVALID_PARAMS }
-    }
-
-    return { ok: true }
+  'midi.sendSysExToPort': (params) => {
+    const bytes = decodeMidiSysExPayload(params)
+    if (bytes === null) return { __error: ERR.INVALID_PARAMS }
+    const targetPort = parseMidiTargetPort(params, 0x0100)
+    if (!Number.isFinite(targetPort)) return { __error: ERR.INVALID_PARAMS }
+    const ok = sendMidiSysExToPort(bytes, targetPort)
+    return ok ? { ok: true } : { __error: ERR.INVALID_PARAMS }
   },
 
   'midi.subscribe': (params, notifyFn) => {

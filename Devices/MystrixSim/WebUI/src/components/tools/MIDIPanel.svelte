@@ -1,6 +1,6 @@
 <script>
   import { midiEvents, midiConnected, midiPorts, clearMidiEvents, portLabel } from '../../stores/midi.js'
-  import { sendMidiNote, sendMidiCC, sendMidiProgramChange } from '../../handles/midi.js'
+  import { sendMidiNoteToPort, sendMidiCCToPort, sendMidiProgramChangeToPort } from '../../handles/midi.js'
   import { Search, Information, TrashCan, Time } from 'carbon-icons-svelte'
   export let showHero = true
   export let onCloseHero = () => {}
@@ -85,13 +85,13 @@
     const ch = clamp(channel, 1, 16) - 1
     const port = resolvePort(dstPortChoice, dstCustomHex)
     if (msgType === 'noteOn') {
-      sendMidiNote(ch, clamp(note, 0, 127), clamp(velocity, 0, 127), port)
+      sendMidiNoteToPort(ch, clamp(note, 0, 127), clamp(velocity, 0, 127), port)
     } else if (msgType === 'noteOff') {
-      sendMidiNote(ch, clamp(note, 0, 127), 0, port)
+      sendMidiNoteToPort(ch, clamp(note, 0, 127), 0, port)
     } else if (msgType === 'cc') {
-      sendMidiCC(ch, clamp(controller, 0, 127), clamp(ccValue, 0, 127), port)
+      sendMidiCCToPort(ch, clamp(controller, 0, 127), clamp(ccValue, 0, 127), port)
     } else if (msgType === 'program') {
-      sendMidiProgramChange(ch, clamp(program, 0, 127), port)
+      sendMidiProgramChangeToPort(ch, clamp(program, 0, 127), port)
     }
   }
 </script>

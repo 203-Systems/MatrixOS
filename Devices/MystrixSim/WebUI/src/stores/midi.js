@@ -299,7 +299,7 @@ function midiMessageLength(status) {
 }
 
 function asMidiBytes(status, data0, data1, data2) {
-  return [status & 0xFF, data0 & 0x7F, data1 & 0x7F, data2 & 0x7F].slice(0, midiMessageLength(status))
+  return [status & 0xFF, data0 & 0xFF, data1 & 0xFF, data2 & 0xFF].slice(0, midiMessageLength(status))
 }
 
 function isUsbTarget(dstPort) {
@@ -341,7 +341,7 @@ function attachInputHandlers() {
       const data = Array.from(event.data || [])
       if (data.length === 0) return
       const status = data[0]
-      sendMidiRaw(status, data[1] ?? 0, data[2] ?? 0, 0, MIDI_PORT_OS)
+      sendMidiRaw(status, data[1] ?? 0, data[2] ?? 0, 0)
     }
   })
 }
