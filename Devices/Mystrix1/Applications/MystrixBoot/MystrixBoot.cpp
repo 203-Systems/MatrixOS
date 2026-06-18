@@ -225,6 +225,10 @@ void MystrixBoot::BootPhase2() {
   {
     memcpy(hue, hueList[1], sizeof(hue));
   }
+  else
+  {
+    memcpy(hue, hueList[0], sizeof(hue)); // Pre Production Mystrix Pro fallback
+  }
 #else
   memcpy(hue, hueList[1], sizeof(hue));
 #endif
