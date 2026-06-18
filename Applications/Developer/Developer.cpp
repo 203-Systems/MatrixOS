@@ -30,9 +30,9 @@ constexpr uint8_t ERROR_BAD_LENGTH = 0x02;
 constexpr uint8_t ERROR_BAD_PAYLOAD = 0x03;
 constexpr uint8_t ERROR_UNKNOWN_COMMAND = 0x7F;
 
-constexpr uint8_t INPUT_REPORT_ALL = 0x00;
-constexpr uint8_t INPUT_REPORT_KEY_INFO = 0x01;
-constexpr uint8_t INPUT_EVENT_KEY_INFO = 0x01;
+constexpr uint8_t INPUT_EVENT_KEY = 0x02;
+constexpr uint8_t INPUT_EVENT_CLUSTER_ID_MASK = 0x1F;
+constexpr uint8_t INPUT_EVENT_FLAG_XY = 0x20;
 
 constexpr uint8_t LED_FLAG_CANVAS = 0x01;
 constexpr uint8_t LED_FLAG_COLOR_MODE_SHIFT = 1;
@@ -477,6 +477,12 @@ bool GetHIDPayloadLength(uint8_t command, const uint8_t* payload, size_t size, s
     *length = 0;
     return true;
   case COMMAND_SET_INPUT_REPORT:
+    if (size < 1)
+    {
+      return false;
+    }
+    *length = 1;
+    return true;
   case COMMAND_KEY_READ_INDEX:
   case COMMAND_KEY_READ_XY:
     if (size < 2)
@@ -563,59 +569,79 @@ bool GetInputByXY(Point point, InputId* id) {
   return MatrixOS::Input::GetInputAt(grid->clusterId, point, id);
 }
 
-bool EncodeKeyInfo(InputId id, const KeypadInfo& keypad, Transport transport, vector<uint8_t>* data) {
-  const InputCluster* grid = MatrixOS::Input::GetPrimaryGridCluster();
-  bool isFunctionKey = id == InputId::FunctionKey();
-  bool isGridKey = grid != nullptr && id.clusterId == grid->clusterId;
-  if (!isFunctionKey && !isGridKey)
-  {
-    return false;
-  }
-
-  Point point = Point::Invalid();
-  if (isGridKey && (!MatrixOS::Input::GetPosition(id, &point) || !point))
-  {
-    return false;
-  }
-  if (isFunctionKey)
-  {
-    point = Point::Origin();
-  }
-
-  data->push_back(INPUT_EVENT_KEY_INFO);
-  data->push_back(id.clusterId);
-  if (transport == Transport::HID)
-  {
-    data->push_back((uint8_t)(id.memberId >> 8));
-    data->push_back((uint8_t)id.memberId);
-    data->push_back((uint8_t)(int8_t)point.x);
-    data->push_back((uint8_t)(int8_t)point.y);
-    data->push_back((uint8_t)keypad.state);
-    data->push_back((uint8_t)(keypad.pressure.value >> 8));
-    data->push_back((uint8_t)keypad.pressure.value);
-    data->push_back((uint8_t)(keypad.velocity.value >> 8));
-    data->push_back((uint8_t)keypad.velocity.value);
-    return true;
-  }
-
-  data->push_back((uint8_t)(id.memberId & 0x7F));
-  data->push_back((uint8_t)((id.memberId >> 7) & 0x7F));
-  data->push_back(EncodeInt7(point.x));
-  data->push_back(EncodeInt7(point.y));
-  data->push_back((uint8_t)keypad.state & 0x7F);
-  AppendUInt14(data, keypad.pressure.value);
-  AppendUInt14(data, keypad.velocity.value);
-  return true;
-}
-
-bool EncodeKeyInfo(InputId id, Transport transport, vector<uint8_t>* data) {
+bool EncodeKeyPressure(InputId id, Transport transport, vector<uint8_t>* data) {
   InputSnapshot snapshot;
   if (!MatrixOS::Input::GetState(id, &snapshot) || snapshot.inputClass != InputClass::Keypad)
   {
     return false;
   }
 
-  return EncodeKeyInfo(id, snapshot.keypad, transport, data);
+  if (transport == Transport::HID)
+  {
+    data->push_back((uint8_t)(snapshot.keypad.pressure.value >> 8));
+    data->push_back((uint8_t)snapshot.keypad.pressure.value);
+  }
+  else
+  {
+    AppendUInt14(data, snapshot.keypad.pressure.value);
+  }
+  return true;
+}
+
+bool EncodeKeyEvent(const InputEvent& event, Transport transport, vector<uint8_t>* data) {
+  if (event.id.clusterId > INPUT_EVENT_CLUSTER_ID_MASK)
+  {
+    return false;
+  }
+
+  uint16_t value = 0;
+  switch (event.keypad.state)
+  {
+  case KeypadState::Pressed:
+    value = event.keypad.velocity.value;
+    break;
+  case KeypadState::Released:
+    value = event.keypad.velocity.value;
+    break;
+  case KeypadState::Aftertouch:
+    value = event.keypad.pressure.value;
+    break;
+  default:
+    return false;
+  }
+
+  data->push_back(INPUT_EVENT_KEY);
+  Point point = Point::Invalid();
+  if (MatrixOS::Input::GetPosition(event.id, &point) && point.x >= INT8_MIN && point.x <= INT8_MAX && point.y >= INT8_MIN && point.y <= INT8_MAX)
+  {
+    data->push_back((uint8_t)(event.id.clusterId | INPUT_EVENT_FLAG_XY));
+    if (transport == Transport::HID)
+    {
+      data->push_back((uint8_t)(int8_t)point.x);
+      data->push_back((uint8_t)(int8_t)point.y);
+    }
+    else
+    {
+      data->push_back(EncodeInt7(point.x));
+      data->push_back(EncodeInt7(point.y));
+    }
+  }
+  else
+  {
+    data->push_back((uint8_t)(event.id.clusterId & INPUT_EVENT_CLUSTER_ID_MASK));
+    AppendIndex(data, event.id.memberId, transport);
+  }
+  data->push_back((uint8_t)event.keypad.state);
+  if (transport == Transport::HID)
+  {
+    data->push_back((uint8_t)(value >> 8));
+    data->push_back((uint8_t)value);
+  }
+  else
+  {
+    AppendUInt14(data, value);
+  }
+  return true;
 }
 
 CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t length, Transport transport, bool* inputReportEnabled) {
@@ -637,20 +663,13 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
     return reply;
   }
   case COMMAND_SET_INPUT_REPORT: {
-    if (length != 2)
+    if (length != 1)
     {
       reply.result = CommandResult::BadLength;
       return reply;
     }
 
-    uint8_t type = payload[0];
-    if (type != INPUT_REPORT_ALL && type != INPUT_REPORT_KEY_INFO)
-    {
-      reply.result = CommandResult::BadPayload;
-      return reply;
-    }
-
-    *inputReportEnabled = payload[1] != 0;
+    *inputReportEnabled = payload[0] != 0;
     return reply;
   }
   case COMMAND_EXIT_APP: {
@@ -696,7 +715,7 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
     }
 
     InputId id = InputId::Invalid();
-    if (!GetInputByIndex(DecodeIndex(payload, transport), &id) || !EncodeKeyInfo(id, transport, &reply.data))
+    if (!GetInputByIndex(DecodeIndex(payload, transport), &id) || !EncodeKeyPressure(id, transport, &reply.data))
     {
       reply.result = CommandResult::BadPayload;
     }
@@ -725,7 +744,7 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
     }
 
     InputId id = InputId::Invalid();
-    if (!GetInputByXY(point, &id) || !EncodeKeyInfo(id, transport, &reply.data))
+    if (!GetInputByXY(point, &id) || !EncodeKeyPressure(id, transport, &reply.data))
     {
       reply.result = CommandResult::BadPayload;
     }
@@ -739,7 +758,7 @@ CommandReply ExecuteCommand(uint8_t command, const uint8_t* payload, size_t leng
 
 void SendHIDInputEvent(const InputEvent& event) {
   vector<uint8_t> data;
-  if (EncodeKeyInfo(event.id, event.keypad, Transport::HID, &data))
+  if (EncodeKeyEvent(event, Transport::HID, &data))
   {
     SendHIDPacket(REPLY_INPUT_EVENT, data);
   }
@@ -747,7 +766,7 @@ void SendHIDInputEvent(const InputEvent& event) {
 
 void SendSysExInputEvent(uint16_t port, const InputEvent& event) {
   vector<uint8_t> data;
-  if (EncodeKeyInfo(event.id, event.keypad, Transport::SysEx, &data))
+  if (EncodeKeyEvent(event, Transport::SysEx, &data))
   {
     SendSysExPacket(port, REPLY_INPUT_EVENT, data);
   }

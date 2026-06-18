@@ -26,8 +26,10 @@ const REPLY_COMMAND_LIMIT = 0x3E
 const REPLY_GENERIC_ERROR = 0x7E
 const REPLY_INPUT_EVENT = 0x7F
 
-const INPUT_REPORT_KEY_INFO = 0x01
 const INPUT_EVENT_KEY_INFO = 0x01
+const INPUT_EVENT_KEY = 0x02
+const INPUT_EVENT_CLUSTER_ID_MASK = 0x1F
+const INPUT_EVENT_FLAG_XY = 0x20
 const INPUT_CLUSTER_FUNCTION = 0x00
 const INPUT_CLUSTER_PRIMARY_GRID = 0x01
 const INPUT_MEMBER_FUNCTION = 0x0000
@@ -313,7 +315,10 @@ function parseSystemReply(data) {
 }
 
 function handleInputReport(event) {
-  const data = new Uint8Array(event.data.buffer, event.data.byteOffset, event.data.byteLength)
+  let data = new Uint8Array(event.data.buffer, event.data.byteOffset, event.data.byteLength)
+  if (data.length > 0 && data[0] === event.reportId) {
+    data = data.slice(1)
+  }
 
   if (event.reportId === APP_REPORT_ID) {
     parseAppReply(data)
@@ -354,8 +359,8 @@ function forwardInputEvent(clusterId, memberId, state, pressure, velocity, x, y)
   }
 }
 
-function handleInputEvent(payload) {
-  if (!getState().inputForwardingEnabled || payload[0] !== INPUT_EVENT_KEY_INFO || payload.length < 11) return
+function handleKeyInfoInputEvent(payload) {
+  if (payload.length < 11) return
 
   const clusterId = payload[1]
   const memberId = (payload[2] << 8) | payload[3]
@@ -398,6 +403,66 @@ function handleInputEvent(payload) {
   logInputEvent('grid', x, y, stateName, to7Bit(velocity), to7Bit(pressure))
   setState({ inputEvents: getState().inputEvents + 1 })
   updateKeypadTickLoop()
+}
+
+function handleKeyInputEvent(payload) {
+  if (payload.length < 7) return
+
+  const clusterFlags = payload[1]
+  const clusterId = clusterFlags & INPUT_EVENT_CLUSTER_ID_MASK
+  const hasXY = (clusterFlags & INPUT_EVENT_FLAG_XY) !== 0
+  const memberId = hasXY ? 0 : ((payload[2] << 8) | payload[3])
+  const x = hasXY ? signedByte(payload[2]) : memberId % 8
+  const y = hasXY ? signedByte(payload[3]) : Math.floor(memberId / 8)
+  const state = payload[4]
+  const value = (payload[5] << 8) | payload[6]
+  if (state !== KEYPAD_STATE_PRESSED && state !== KEYPAD_STATE_RELEASED && state !== KEYPAD_STATE_AFTERTOUCH) return
+
+  const pressure = state === KEYPAD_STATE_RELEASED ? 0 : value
+  const velocity = state === KEYPAD_STATE_AFTERTOUCH ? 0 : value
+  const stateName = KEYPAD_STATE_NAMES[state] || `State ${state}`
+
+  if (clusterId === INPUT_CLUSTER_FUNCTION && memberId === INPUT_MEMBER_FUNCTION) {
+    if (state === KEYPAD_STATE_RELEASED) {
+      activePhysicalFnKey = false
+    } else if (state === KEYPAD_STATE_PRESSED) {
+      activePhysicalFnKey = true
+    } else if (!activePhysicalFnKey) {
+      return
+    }
+
+    forwardInputEvent(INPUT_CLUSTER_FUNCTION, INPUT_MEMBER_FUNCTION, state, pressure, velocity, 0, 0)
+    logInputEvent('fn', 0, 0, stateName, to7Bit(velocity), to7Bit(pressure))
+    setState({ inputEvents: getState().inputEvents + 1 })
+    updateKeypadTickLoop()
+    return
+  }
+
+  if (clusterId !== INPUT_CLUSTER_PRIMARY_GRID || x < 0 || y < 0 || x >= 8 || y >= 8) return
+
+  const gridKey = `${x},${y}`
+  if (state === KEYPAD_STATE_RELEASED) activePhysicalGridKeys.delete(gridKey)
+  else if (state === KEYPAD_STATE_PRESSED || activePhysicalGridKeys.has(gridKey)) activePhysicalGridKeys.add(gridKey)
+  else return
+
+  forwardInputEvent(INPUT_CLUSTER_PRIMARY_GRID, memberId, state, pressure, velocity, x, y)
+  logInputEvent('grid', x, y, stateName, to7Bit(velocity), to7Bit(pressure))
+  setState({ inputEvents: getState().inputEvents + 1 })
+  updateKeypadTickLoop()
+}
+
+function handleInputEvent(payload) {
+  if (!getState().inputForwardingEnabled) return
+  if (payload.length === 0) return
+
+  if (payload[0] === INPUT_EVENT_KEY) {
+    handleKeyInputEvent(payload)
+    return
+  }
+
+  if (payload[0] === INPUT_EVENT_KEY_INFO) {
+    handleKeyInfoInputEvent(payload)
+  }
 }
 
 function readFrameBuffer() {
@@ -646,10 +711,7 @@ async function refreshActiveAppId() {
 
 async function configureInputReports() {
   if (!getState().developerReady) return
-  await sendDeveloperCommand(COMMAND_SET_INPUT_REPORT, [
-    INPUT_REPORT_KEY_INFO,
-    getState().inputForwardingEnabled ? 1 : 0,
-  ])
+  await sendDeveloperCommand(COMMAND_SET_INPUT_REPORT, [getState().inputForwardingEnabled ? 1 : 0])
 }
 
 async function initializeDeveloperSession(status = 'Connecting') {
