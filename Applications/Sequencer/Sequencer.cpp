@@ -61,6 +61,15 @@ void Sequencer::End() {
 
 void Sequencer::SequencerUI() {
   UI sequencerUI("SequencerUI", Color(0x00FFFF), false);
+  bool underglowAvailable = false;
+  for (const LEDPartition& partition : Device::LED::partitions)
+  {
+    if (partition.name == "Underglow")
+    {
+      underglowAvailable = true;
+      break;
+    }
+  }
 
   SequencerNotePad notePad(this);
   sequencerUI.AddUIComponent(notePad, Point(0, 3));
@@ -95,6 +104,41 @@ void Sequencer::SequencerUI() {
 
   SequencerMessageDisplay messageDisplay(this);
   sequencerUI.AddUIComponent(messageDisplay, Point(0, 3));
+
+  sequencerUI.SetPostRenderFunc([&]() -> void {
+    if (!underglowAvailable || currentView != ViewMode::Sequencer)
+    {
+      return;
+    }
+
+    SequenceScopedLock lock(sequence);
+
+    if (track >= sequence.GetTrackCount() || track >= meta.tracks.size())
+    {
+      MatrixOS::LED::FillPartition("Underglow", Color::Black);
+      return;
+    }
+
+    Color color = meta.tracks[track].color;
+
+    if (!sequence.GetEnabled(track))
+    {
+      color = color.Dim();
+    }
+    else
+    {
+      uint32_t timeSinceLastEvent = MatrixOS::SYS::Millis() - sequence.GetLastEventTime(track);
+
+      const uint16_t fadeLengthMs = 200;
+      if (timeSinceLastEvent < fadeLengthMs)
+      {
+        float ratio = (float)timeSinceLastEvent / fadeLengthMs;
+        color = Color::Crossfade(Color::White, color, Fract16(ratio * UINT16_MAX));
+      }
+    }
+
+    MatrixOS::LED::FillPartition("Underglow", color);
+  });
 
   sequencerUI.AllowExit(false);
   sequencerUI.SetInputEventHandler([&](InputEvent* inputEvent) -> bool {
