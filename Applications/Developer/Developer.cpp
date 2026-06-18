@@ -968,8 +968,13 @@ void Developer::HandleMIDIPacket(const MidiPacket& packet) {
   switch (packet.Status())
   {
   case EMidiStatus::Start:
-  case EMidiStatus::Continue:
     midiKeyReportEnabled = true;
+    break;
+  case EMidiStatus::Stop:
+    midiKeyReportEnabled = false;
+    break;
+  case EMidiStatus::Reset:
+    Exit();
     break;
   case EMidiStatus::NoteOn:
   case EMidiStatus::NoteOff:
