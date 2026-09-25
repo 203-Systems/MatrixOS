@@ -67,25 +67,28 @@ uint8_t const* msc_configuration_descriptor_cb(uint8_t index) {
 }
 
 
-static uint16_t _desc_str[32];
+// One header word plus the complete 32-character device serial.
+static uint16_t _desc_str[33];
 
 uint16_t const* msc_string_descriptor_cb(uint8_t index, uint16_t langid) {
   (void)langid;
 
-  uint8_t chr_count;
+  size_t chr_count;
+  const string serial = Device::GetSerial();
+  const string interfaceName = Device::productName + " MSC";
 
   // array of pointer to string descriptors
   const char* string_desc_arr[] = {
-      (const char[]){0x09, 0x04},              // 0: is supported language is English (0x0409)
+      nullptr,                                // 0: language descriptor is handled below
       Device::manufacturerName.c_str(),        // 1: Manufacturer
       Device::productName.c_str(),                    // 2: Product (with MSC suffix)
-      Device::GetSerial().c_str(),                   // 3: Serials, should use chip ID
-      (Device::productName + " MSC").c_str()  // 4: MSC Interface
+      serial.c_str(),                         // 3: Serial
+      interfaceName.c_str()                   // 4: MSC Interface
   };
 
   if (index == 0)
   {
-    memcpy(&_desc_str[1], string_desc_arr[0], 2);
+    _desc_str[1] = 0x0409; // English (United States)
     chr_count = 1;
   }
   else
@@ -94,18 +97,19 @@ uint16_t const* msc_string_descriptor_cb(uint8_t index, uint16_t langid) {
     // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
 
     if (!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0])))
-      return NULL;
+      return nullptr;
 
     const char* str = string_desc_arr[index];
 
     // Cap at max char
     chr_count = strlen(str);
-    if (chr_count > 31)
-      chr_count = 31;
+    const size_t maxChars = sizeof(_desc_str) / sizeof(_desc_str[0]) - 1;
+    if (chr_count > maxChars)
+      chr_count = maxChars;
 
     // Convert ASCII string into UTF-16
-    for (uint8_t i = 0; i < chr_count; i++)
-    { _desc_str[1 + i] = str[i]; }
+    for (size_t i = 0; i < chr_count; i++)
+    { _desc_str[1 + i] = static_cast<uint8_t>(str[i]); }
   }
 
   // first byte is length (including header), second byte is string type

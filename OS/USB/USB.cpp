@@ -5,6 +5,7 @@
 
 namespace MatrixOS::USB
 {
+static constexpr char TAG[] = "USB";
 static uint8_t mode = USB_MODE_NORMAL;
 
 // Function to get current mode for descriptor callbacks
@@ -52,16 +53,46 @@ uint16_t GetBCDID() {
   return MATRIXOS_VERSION_ID_16;
 }
 
-// New unified SetMode API
-void SetMode(USB_MODE new_mode) {
-  if (mode != new_mode)
+void SetMode(USB_MODE newMode) {
+  if (newMode != USB_MODE_NORMAL
+#if DEVICE_STORAGE
+      && newMode != USB_MODE_MSC
+#endif
+  )
   {
-    mode = new_mode;
-    if (Connected())
+    MLOGE(TAG, "Unsupported USB mode: %u", newMode);
+    return;
+  }
+  if (mode == newMode)
+  {
+    return;
+  }
+  if (!tud_inited())
+  {
+    mode = newMode;
+    return;
+  }
+
+  const uint8_t previousMode = mode;
+  MLOGI(TAG, "Switching mode %u -> %u (mounted=%u, suspended=%u)", previousMode, newMode, tud_mounted(), tud_suspended());
+
+  // Suspended devices still need to disconnect before changing descriptors.
+  if (!Disconnect())
+  {
+    MLOGE(TAG, "Failed to disconnect for mode switch");
+    return;
+  }
+
+  // Let the host detect removal and drain requests for the old configuration.
+  vTaskDelay(pdMS_TO_TICKS(250));
+  mode = newMode;
+  if (!Connect())
+  {
+    MLOGE(TAG, "Failed to connect in mode %u", newMode);
+    mode = previousMode;
+    if (!Connect())
     {
-      Disconnect();
-      vTaskDelay(pdMS_TO_TICKS(100));
-      Connect();
+      MLOGE(TAG, "Failed to restore USB mode %u", previousMode);
     }
   }
 }
