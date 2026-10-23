@@ -1,5 +1,6 @@
 #include "CommandHandler.h"
 #include "CommandSpecs.h"
+#include "AppInstaller.h"
 
 #include "../../Applications/Application.h"
 #include "../System/System.h"
@@ -11,7 +12,8 @@ static constexpr uint32_t ACTION_ACK_DELAY_MS = 20;
 static constexpr size_t MAX_REQUEST_SIZE = 1024;
 static constexpr uint8_t QUEUE_DEPTH = 4;
 static constexpr uint32_t SUBMIT_TIMEOUT_MS = 10;
-static constexpr uint32_t TASK_STACK_SIZE = configMINIMAL_STACK_SIZE * 4;
+// App installation nests JSON validation and FatFS/SD calls on this task.
+static constexpr uint32_t TASK_STACK_SIZE = configMINIMAL_STACK_SIZE * 8;
 
 struct QueuedRequest {
   Encoding encoding = Encoding::HID;
@@ -125,7 +127,8 @@ static void CommandTask(void* parameters) {
   QueuedRequest request;
   while (true)
   {
-    if (xQueueReceive(requestQueue, &request, portMAX_DELAY) != pdTRUE)
+    AppInstaller::Poll();
+    if (xQueueReceive(requestQueue, &request, pdMS_TO_TICKS(1000)) != pdTRUE)
     {
       continue;
     }
@@ -508,6 +511,10 @@ bool Handle(const uint8_t* request, size_t size, Encoding encoding, size_t maxRe
 
   switch (command)
   {
+  case MATRIXOS_COMMAND_INSTALL_APP: {
+    if (encoding != Encoding::HID) return false;
+    return AppInstaller::Handle(request, size, replyCallback);
+  }
   case MATRIXOS_COMMAND_GET_OS_VERSION: {
     return SendReply(EncodeVersion(command, encoding), maxReplyLength, replyCallback, replyContext);
   }

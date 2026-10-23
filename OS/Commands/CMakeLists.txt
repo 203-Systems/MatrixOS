@@ -9,5 +9,6 @@ add_library(MatrixOSCommands
 target_include_directories(MatrixOSCommands PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_include_directories(MatrixOSCommands PRIVATE ${CMAKE_SOURCE_DIR}/Library/ArduinoJson/src)
 
-target_link_libraries(MatrixOSCommands PUBLIC MatrixOSInterface)
+target_link_libraries(MatrixOSCommands PUBLIC MatrixOSInterface PRIVATE MatrixOSAPPInterface)

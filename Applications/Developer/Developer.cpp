@@ -1,4 +1,5 @@
 #include "Developer.h"
+#include "Commands/AppInstaller.h"
 
 #include "MIDI/MIDI.h"
 
@@ -868,6 +869,7 @@ void Developer::Loop() {
 }
 
 void Developer::End() {
+  MatrixOS::AppInstaller::Cancel();
   sysExBuffer.clear();
   activeSysExPort = MIDI_PORT_INVALID;
   sysExReportPort = MIDI_PORT_INVALID;

@@ -1,0 +1,136 @@
+INSTALL_APP protocol v1 — CLI and firmware implementation
+
+Scope
+  Install a Python application from one package byte stream. No generic file access
+  API. All destination paths come from validated package metadata. The firmware
+  service is OS/Commands/AppInstaller.cpp; existing 0x70 PAGE_1 is assigned to
+  INSTALL_APP. Requires storage-enabled firmware. Basic installation, replacement,
+  committed-status verification and launcher return were validated on a Mystrix Pro
+  over macOS HID; hardware fault and power-loss tests remain pending.
+
+Transport
+  System HID report ID 0xCB, 63-byte payload, zero padded. hidapi write/read buffers
+  include the report ID, making 64 bytes. All multi-byte integers are big endian.
+  Request payload:
+    INSTALL_APP=0x70:u8, sub:u8, request_id:u16, session:u32, length:u8,
+    data[length] (maximum 54), zero padding.
+  Reply payload:
+    0xF0:u8, sub:u8, request_id:u16, session:u32, result:u8, length:u8,
+    data[length] (maximum 53), zero padding.
+  Request/reply length excludes header and padding. Match sub, request_id and session;
+  BEGIN replies assign a nonzero session. Other replies echo the request session.
+  CAPS uses session zero. Replies are mandatory, including errors.
+
+Sub IDs (only these six operations)
+  0x00 CAPS
+    Request: empty, session 0.
+    Reply data: ASCII MIAP[4], version:u8=1, max_chunk:u8 (1..50), max_files:u16,
+      max_package_bytes:u32, max_manifest_bytes:u32. Total 16 bytes.
+  0x01 BEGIN
+    Request: client_token[16], flags:u8 (bit 0 replace; all others zero),
+      package_size:u32, package_crc32:u32. Total 25 bytes, session 0.
+    Success reply: newly assigned session; empty data.
+    Enter the existing Developer APP through SYS::ExecuteAPP before storage I/O.
+    Error 11 means this context could not be entered. Its End() cancels an incomplete
+    upload before another application starts.
+    Reserve one transaction; reject unavailable/MSC-owned storage and conflicting
+    transactions before acknowledgement. Repeated token + identical parameters
+    returns the same session, without clearing uploaded data. A token reused with
+    different parameters is invalid. Do not create final application paths yet.
+  0x02 DATA
+    Request: offset:u32, package_bytes[1..max_chunk]. No filename or file handle.
+    Reply: next_offset:u32. Append only at expected offset; reject out-of-range data.
+    ACK means bytes accepted into transaction storage, not durable installation.
+  0x03 FINISH
+    Request: empty. All declared package bytes must already be received.
+    Synchronous operation on the existing system command task. Verify the stored
+    package CRC, manifest CRC, file checksums, AppInfo and OS compatibility, then
+    stage/commit the application. Reply only after completion; a nonzero result
+    reports validation/commit failure. CLI still confirms identity with STATUS.
+  0x04 STATUS
+    Request: empty.
+    Reply: state:u8, last_error:u8, received_bytes:u32, expected_package_crc32:u32.
+    States: 0 idle, 1 receiving, 2 validating, 3 committing, 4 committed,
+      5 aborted, 6 failed. No file paths or file readback.
+    CRC/size identify the package associated with this session; committed requires
+    received_bytes == package_size and all validation/commit steps completed.
+  0x05 ABORT
+    Request/reply data: empty.
+    Receiving/failed -> abort and clean temporary transaction files. Repeated abort
+    of an aborted transaction succeeds. Reject abort during validation/commit and
+    after commit; never interpret abort as uninstall. STATUS reports final state.
+
+Errors (result or last_error)
+  0 OK; 1 unsupported; 2 busy/MSC; 3 bad payload; 4 invalid/expired session;
+  5 offset mismatch; 6 storage I/O; 7 checksum; 8 app exists without replace;
+  9 invalid app/unsupported required OS; 10 quota/capacity; 11 unable to enter Developer APP.
+  Error response data is empty in v1; use STATUS to recover expected offset.
+
+Retries, lifetime and concurrency
+  One outstanding request per host. Timeout 2 seconds (60 seconds for BEGIN/FINISH),
+  up to two retries using the
+  exact same bytes. Request IDs wrap at 16 bits, so deduplicate by the complete
+  request, session and state, not request ID alone. BEGIN uses its 128-bit token.
+  Cache the most recent request and reply for the session (including FINISH) and
+  replay it without side effects. For older duplicate DATA, verify the stored bytes
+  at that offset are identical before acknowledging offset+count; conflicting bytes fail.
+  Unknown outcomes require STATUS; never auto-repeat a whole installation after an
+  uncertain FINISH. STATUS waits behind synchronous FINISH on the command queue. Committed sessions are queryable for at least ten minutes in
+  the current boot; receiving sessions expire after ten minutes of inactivity.
+  Polling STATUS must not overwrite the last mutating request's replay record.
+  Reset/USB reconnect within the same boot must not discard transaction metadata.
+  Reboot invalidates sessions. Recover any commit journal on the next BEGIN, after
+  entering Developer APP. There is no boot/discovery hook or upload resume.
+  USB callbacks use the existing command queue. The command task handles storage
+  and replies directly; no extra queue, worker task or global filesystem lock.
+  Poll expiry from the existing command-task idle wait. A local recursive mutex
+  serializes installer commands with Developer::End() cleanup.
+  Accept requests only in normal USB mode; MSC exposes no HID interface. Changing
+  apps invokes End(), which finishes/cancels the install operation before the next
+  app starts. No global application-launch or USB-mode interception is added.
+
+MPKG v1 (built automatically in host memory; no on-disk package required)
+  Header, 24 bytes:
+    magic[4]=MPKG, version:u8=1, flags:u8=0, reserved:u16=0,
+    manifest_size:u32, payload_size:u32, manifest_crc32:u32, payload_crc32:u32.
+  Followed by UTF-8 JSON manifest, then raw file contents concatenated in manifest
+  order, with no compression or padding. CRC32 uses the standard zlib/IEEE variant.
+  BEGIN package_crc32 covers the entire header + manifest + payload.
+  Manifest uses compact canonical JSON as generated by the CLI (no whitespace,
+  duplicate keys or alternate escape encodings). File paths are ASCII in v1.
+  Manifest schema:
+    {"app":"GravityMarble","files":[
+      {"path":"AppInfo.json","size":123,"crc32":123456789},
+      {"path":"main.py","size":456,"crc32":987654321}
+    ]}
+  Sizes/checksums above are illustrative. All files must be listed exactly once and
+  consume the entire payload, including zero-length files. No archive extraction
+  code or general filesystem commands are exposed over HID.
+
+Firmware validation and commit requirements
+  Independently validate all untrusted lengths/counts before allocating/writing;
+  enforce quotas, available space (package + stage + old app), header versions,
+  CRCs, manifest schema and relative paths. Match host path rejection rules, reject
+  non-canonical manifest JSON, duplicate names under FAT ASCII case folding,
+  non-ASCII paths, reserved FAT names, trailing dots/spaces and file/directory collisions.
+  App directory: ASCII [A-Za-z0-9][A-Za-z0-9_-]{0,63}; paths max 160 ASCII bytes and 16 components.
+  Require valid AppInfo.json, packaged .py entrypoint and compatible OS version.
+  Persist the stream outside /MatrixOS/Applications, under an installer-owned
+  transaction directory. Validate the complete package before staging/activation.
+  Do not auto-execute installed code. Use the existing Developer APP context and
+  its End() cleanup to serialize file operations with app changes; preserve
+  /MatrixOS/AppData. Reuse app validation/discovery logic where practical.
+  Keep the old application until staging succeeds. Use a persisted commit journal
+  and backup directory around final renames; recover at the next BEGIN.
+  FAT multi-rename is not an atomic transaction and cannot guarantee recovery from
+  every power-loss filesystem failure. Never format storage as an error response.
+  Mark committed only after validated staging, final switch, required flushes and
+  file completion. The CLI returns to the launcher through the existing app-exit
+  command; normal Shell setup discovers the new app. Partial/failing transactions are never launcher apps.
+
+Required device validation before release
+  Actual hidapi report framing on macOS/Windows/Linux; Mystrix1/Mystrix2 discovery;
+  old firmware; repeated/lost BEGIN/DATA/FINISH replies; stale response; corruption;
+  offset errors; empty/resource files; quotas; bad paths; app-running conflict;
+  USB reconnect; card removal/full card; MSC conflicts; failures/power loss at each
+  commit boundary; old app and AppData preservation; launcher refresh and app launch.

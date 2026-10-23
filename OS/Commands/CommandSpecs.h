@@ -69,6 +69,7 @@
 
 // Followed by page specific commands IDs ,like MATRIXOS_COMMAND_PAGE_1 <command> <data>
 #define MATRIXOS_COMMAND_PAGE_1 0x70
+#define MATRIXOS_COMMAND_INSTALL_APP MATRIXOS_COMMAND_PAGE_1 // sub IDs: caps, begin, data, finish, status, abort
 #define MATRIXOS_COMMAND_PAGE_2 0x71
 #define MATRIXOS_COMMAND_PAGE_3 0x72
 #define MATRIXOS_COMMAND_PAGE_4 0x73
